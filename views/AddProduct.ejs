@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+</head>
+
+<body>
+    <form name="addform" action="/Product/POST/AddProduct" method="post" accept-charset="utf-8" >
+        <h1>Add Product</h1>
+        <div>
+            <label>Token代號(SYMBOL)</label>
+            <input type="text" name="SYMBOL" placeholder="SYMBOL" />
+        </div>
+        <div>
+            <label>產品名稱(p_name)</label>
+            <input type="text" name="p_name" placeholder="p_name">
+        </div>
+        <div>
+            <label>產品所在地(Location)</label>
+            <input type="text" name="Location" placeholder="Location">
+        </div>
+        <div>
+            <label>單片售價(price)</label>
+            <input type="text" name="price" placeholder="price">
+        </div>
+        <div>
+            <label>專案年期(duration)</label>
+            <input type="text" name="duration" placeholder="duration">
+        </div>
+        <div>
+            <label>貨幣種類(currency)</label>
+            <input type="text" name="currency" placeholder="currency">
+        </div>
+        <div>
+            <label>投報率(irr)</label>
+            <input type="text" name="irr" placeholder="irr">
+        </div>
+        <div>
+            <input type='submit' value='Submit'>
+            <input type='reset' value='Reset'>
+            <input type='button' value='Back' onclick="javascript: location.href='/Product/GET/Product'">
+        </div>
+    </form>
+</body>
+
+</html>

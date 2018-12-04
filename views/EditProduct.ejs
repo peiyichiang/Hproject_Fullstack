@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form name="editform" action="/Product/POST/EditProduct" method="post" accept-charset="utf-8">
+        <h1>Product - Edit</h1>
+        <!-- <input type="hidden" name="id" value="<%=data[0].id  %>" /> -->
+        <div>
+            <div>
+                    <label>Token代號(SYMBOL):</label>
+                    <input type="text" name="SYMBOL" placeholder="SYMBOL" value="<%=data[0].SYMBOL %>" readonly />
+            </div>
+            <div>
+                    <label>產品名稱(p_name):</label>
+                    <input type="text" name="p_name" placeholder="p_name" value="<%=data[0].p_name %>" />
+            </div>
+            <div>
+                    <label>產品所在地(Location):</label>
+                    <input type="text" name="Location" placeholder="Location" value="<%=data[0].Location %>" />
+            </div>
+            <div>
+                    <label>單片售價(price):</label>
+                    <input type="text" name="price" placeholder="price" value="<%=data[0].price %>" />
+            </div>
+            <div>
+                    <label>專案年期(duration):</label>
+                    <input type="text" name="duration" placeholder="duration" value="<%=data[0].duration %>" />
+            </div>
+            <div>
+                <label>貨幣種類(currency):</label>
+                <input type="text" name="currency" placeholder="currency" value="<%=data[0].currency %>" />
+            </div>
+            <div>
+                <label>投報率(irr):</label>
+                <input type="text" name="irr" placeholder="irr" value="<%=data[0].irr %>" />
+            </div>
+        </div>
+        <div>
+            <input type='submit' value='Submit'>
+            <input type='reset' value='Reset'>
+            <input type='button' value='Back' onclick="javascript: window.history.back();">
+        </div>
+    </form>
+</body>
+</html>

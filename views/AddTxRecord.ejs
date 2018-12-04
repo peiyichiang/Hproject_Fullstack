@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+</head>
+
+<body>
+    <form name="addform" action="/POST/AddTxRecord" method="post" accept-charset="utf-8" >
+        <h1>Add data</h1>
+        <div>
+            <label>tx_hash:</label>
+            <input type="text" name="tx_hash" placeholder="tx_hash" />
+        </div>
+        <div>
+            <label>tx_from</label>
+            <input type="text" name="tx_from" placeholder="tx_from">
+        </div>
+        <div>
+            <label>tx_to:</label>
+            <input type="text" name="tx_to" placeholder="tx_to">
+        </div>
+        <div>
+            <label>tx_tokencount:</label>
+            <input type="text" name="tx_tokencount" placeholder="tx_tokencount">
+        </div>
+        <div>
+            <label>tx_fundcount:</label>
+            <input type="text" name="tx_fundcount" placeholder="tx_fundcount">
+        </div>
+        <div>
+            <input type='submit' value='Submit'>
+            <input type='reset' value='Reset'>
+            <input type='button' value='Back' onclick="javascript: location.href='/GET/TxRecord'">
+        </div>
+    </form>
+</body>
+
+</html>

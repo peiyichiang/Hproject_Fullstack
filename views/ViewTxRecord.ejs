@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1>Tx Record - List</h1>
+    <input type='submit' value='Add' onclick="javascript: location.href='/GET/AddTxRecord'">
+    <table>
+        <tr>
+            <th>tx_hash</th>
+            <th>tx_from</th>
+            <th>tx_to</th>
+            <th>tx_tokencount</th>
+            <th>tx_fundcount</th>
+        </tr>
+        <% for ( var i = 0 ; i < data.length ; i++){ %>
+            <tr>
+                <td>
+                    <%= data[i].tx_hash  %>
+                </td>
+                <td>
+                    <%= data[i].tx_from  %>
+                </td>
+                <td>
+                    <%= data[i].tx_to  %>
+                </td>
+                <td>
+                    <%= data[i].tx_tokencount  %>
+                </td>
+                <td>
+                    <%= data[i].tx_fundcount  %>
+                </td>
+                <td>
+                    <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].tx_hash  %>');" />
+                </td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onclick="Delete('<%= data[i].tx_hash  %>');" />
+                </td>
+                <!-- onclick="Edit('<%= data[i].id  %>');" -->
+            </tr>
+            <% } %>
+    </table>
+
+    <script>
+        function Edit(tx_hash) {
+            window.location.href = "/GET/EditTxRecord?tx_hash=" + tx_hash;
+        }
+        function Delete(txhash) {
+            var rs = confirm('Confirm to delete?');
+            if (rs) {
+                window.location.href = "/GET/DeleteTxRecord?tx_hash=" + txhash;
+            }
+        }
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form name="editform" action="/POST/EditTxRecord" method="post" accept-charset="utf-8">
+        <h1>TxRecord - Edit</h1>
+        <!-- <input type="hidden" name="id" value="<%=data[0].id  %>" /> -->
+        <div>
+            <div>
+                    <label>tx_hash:</label>
+                    <input type="text" name="tx_hash" placeholder="tx_hash" value="<%=data[0].tx_hash %>" readonly />
+            </div>
+            <div>
+                    <label>tx_from:</label>
+                    <input type="text" name="tx_from" placeholder="tx_from" value="<%=data[0].tx_from %>" />
+            </div>
+            <div>
+                    <label>tx_to:</label>
+                    <input type="text" name="tx_to" placeholder="tx_to" value="<%=data[0].tx_to %>" />
+            </div>
+            <div>
+                    <label>tx_tokencount:</label>
+                    <input type="text" name="tx_tokencount" placeholder="tx_tokencount" value="<%=data[0].tx_tokencount %>" />
+            </div>
+            <div>
+                    <label>tx_fundcount:</label>
+                    <input type="text" name="tx_fundcount" placeholder="tx_fundcount" value="<%=data[0].tx_fundcount %>" />
+            </div>
+        </div>
+        <div>
+            <input type='submit' value='Submit'>
+            <input type='reset' value='Reset'>
+            <input type='button' value='Back' onclick="javascript: window.history.back();">
+        </div>
+    </form>
+</body>
+</html>
