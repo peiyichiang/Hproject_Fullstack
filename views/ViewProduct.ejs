@@ -10,9 +10,9 @@
     <table>
         <tr>
             <th>Token代號(SYMBOL)</th>
-            <th>產品名稱(p_name)</th>
-            <th>產品所在地(Location)</th>
-            <th>單片售價(price)</th>
+            <th>產品名稱(name)</th>
+            <th>產品所在地(location)</th>
+            <th>單片售價(pricing)</th>
             <th>專案年期(duration)</th>
             <th>貨幣種類(currency)</th>
             <th>投報率(irr)</th>
@@ -20,25 +20,25 @@
         <% for ( var i = 0 ; i < data.length ; i++){ %>
             <tr>
                 <td>
-                    <%= data[i].SYMBOL  %>
+                    <%= data[i].p_SYMBOL  %>
                 </td>
                 <td>
                     <%= data[i].p_name  %>
                 </td>
                 <td>
-                    <%= data[i].Location  %>
+                    <%= data[i].p_location  %>
                 </td>
                 <td>
-                    <%= data[i].price  %>
+                    <%= data[i].p_pricing  %>
                 </td>
                 <td>
-                    <%= data[i].duration  %>
+                    <%= data[i].p_duration  %>
                 </td>
                 <td>
-                    <%= data[i].currency  %>
+                    <%= data[i].p_currency  %>
                 </td>
                 <td>
-                    <%= data[i].irr  %>
+                    <%= data[i].p_irr  %>
                 </td>
                 <td>
                     <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].SYMBOL  %>');" />

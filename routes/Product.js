@@ -31,13 +31,13 @@ router.post('/POST/AddProduct', function(req, res, next) {
   var db = req.con;
 
   var sql = {
-      SYMBOL: req.body.SYMBOL,
+      SYMBOL: req.body.p_SYMBOL,
       p_name: req.body.p_name,
-      Location: req.body.Location,
-      price: req.body.price,
-      duration: req.body.duration,
-      currency: req.body.currency,
-      irr: req.body.irr
+      Location: req.body.p_location,
+      price: req.body.p_pricing,
+      duration: req.body.p_duration,
+      currency: req.body.p_currency,
+      irr: req.body.p_irr
   };
 
  console.log(sql);
