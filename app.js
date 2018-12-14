@@ -11,13 +11,15 @@ var productRouter = require('./routes/Product');
 var userRouter = require('./routes/user');
 //Ray
 var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
+//Chih-Hao
+var orderRouter = require('./routes/Order');
 
 // var usersRouter = require('./routes/users');
 // DataBase 
 var mysql = require("mysql");
 
 var con = mysql.createConnection({
-    host: "140.119.101.130",
+    host: "140.119.101.130",//from outside: 140.119.101.130, else 192.168.0.2
     user: "root",
     password: "350bchub321",
     database: "htoken",
@@ -54,7 +56,7 @@ app.use('/', indexRouter);
 app.use('/Product', productRouter);
 app.use('/user', userRouter);
 app.use('/NFTokenSPLC', NFTokenSPLCRouter);
-
+app.use('/Order', orderRouter);
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
