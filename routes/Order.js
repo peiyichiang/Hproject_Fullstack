@@ -7,6 +7,15 @@ router.post('/POST/AddOrder', function(req, res, next) {
   var db = req.con;
   //當前時間
   var timeStamp = new Date().getTime();
+  var currentDate = new Date();
+  var date = currentDate.getDate();
+  if (date<10) {date = '0'+date;}
+  var month = currentDate.getMonth()+1; //Be careful! January is 0 not 1
+  if (month<10) {month = '0'+month;}
+  var year = currentDate.getFullYear();
+  var yyyymmdd = year.toString() + month.toString() + date.toString();
+  console.log('timeStamp', timeStamp, 'yyyymmdd', yyyymmdd, year, month, date);
+
   var sql = {
       o_id:req.body.o_symbol + "_" + timeStamp,
       o_symbol: req.body.o_symbol,
@@ -14,8 +23,8 @@ router.post('/POST/AddOrder', function(req, res, next) {
       o_txHash:Math.random().toString(36).substring(2, 15),
       o_tokenCount: req.body.o_tokenCount,
       o_fundCount: req.body.o_fundCount,
-      o_purchaseDate: timeStamp,
-      o_paymentStatus: "not_paid"
+      o_purchaseDate: yyyymmdd,
+      o_paymentStatus: "new"
   };//random() to prevent duplicate NULL entry!
 
  console.log(sql);

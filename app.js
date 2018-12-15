@@ -32,6 +32,7 @@ con.connect(function(err) {
         return;
     }
     console.log('connecting success');
+    console.log('http://localhost:3000/Product/productList');
 });
 
 var app = express();
