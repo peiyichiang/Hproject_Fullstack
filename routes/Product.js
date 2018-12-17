@@ -138,7 +138,10 @@ router.get('/productList', function (req, res) {
 //Ray ... htoken.  omitted
 router.get('/GetProductBySymbol', function(req, res, next) {
     var db = req.con;
+    console.log('req.body', req.body, 'req.body.p_SYMBOL', req.body.p_SYMBOL);
+    //db.query('SELECT * FROM product WHERE p_SYMBOL = ?', req.body.p_SYMBOL, function(err, result) {
     db.query('SELECT * FROM product WHERE p_SYMBOL="'+req.body.p_SYMBOL+'"', function(err, result) {
+
         if (err) {
             console.log(err);
             res.status(400);
