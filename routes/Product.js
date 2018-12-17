@@ -135,6 +135,24 @@ router.get('/productList', function (req, res) {
     });
 });
 
-
+//Ray ... htoken.  omitted
+router.get('/GetProductBySymbol', function(req, res, next) {
+    var db = req.con;
+    db.query('SELECT * FROM product WHERE p_SYMBOL="'+req.body.p_SYMBOL+'"', function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] 產品symbol not found 取得失敗:\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] 產品symbol found 取得成功！",
+                "result" : result
+            });
+        }
+    });
+});
 
 module.exports = router;
