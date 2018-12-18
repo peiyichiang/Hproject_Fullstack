@@ -24,7 +24,7 @@ router.post('/POST/AddOrder', function(req, res, next) {
       o_tokenCount: req.body.o_tokenCount,
       o_fundCount: req.body.o_fundCount,
       o_purchaseDate: yyyymmdd,
-      o_paymentStatus: "new"
+      o_paymentStatus: "unpaid"
   };//random() to prevent duplicate NULL entry!
 
  console.log(sql);
@@ -72,7 +72,34 @@ router.get('/GET/SumOrderedTokensBySymbol', function(req, res, next) {
             });
         }
     });
-  
-  });
+});
+
+//http://localhost:3000/Order/GET/SumUnpaidOrders
+router.get('/GET/SumUnpaidOrders', function(req, res, next) {
+    var db = req.con;
+    console.log('@SumUnpaidOrders: req.query', req.query, 'req.query.userAccount', req.query.userAccount);
+    console.log('@SumUnpaidOrders: req.body', req.body, 'req.body.userAccount', req.body.userAccount);
+    let userAccount;
+    if (req.body.userAccount === undefined) {
+        userAccount = req.query.userAccount;
+    } else {userAccount = req.body.userAccount;}
+    //SELECT SUM(o_fundCount) AS total FROM htoken.`order` WHERE o_fromAddress = '4ekv' AND o_paymentStatus = 'new';
+    var qur = db.query(
+        'SELECT SUM(o_fromAddress) AS total FROM htoken.order WHERE o_fromAddress = "'+fromAddress+'"', function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
 
 module.exports = router;
