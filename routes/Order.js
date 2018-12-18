@@ -46,6 +46,33 @@ router.post('/POST/AddOrder', function(req, res, next) {
 
 });
 
-
+//http://localhost:3000/Order/GET/SumOrderedTokensBySymbol
+router.get('/GET/SumOrderedTokensBySymbol', function(req, res, next) {
+    var db = req.con;
+    console.log('@SumOrderedTokensBySymbol: req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('@SumOrderedTokensBySymbol: req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
+    //SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';
+    var qur = db.query(
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = "'+symbol+'"', function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+  
+  });
 
 module.exports = router;

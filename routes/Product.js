@@ -138,12 +138,16 @@ router.get('/productList', function (req, res) {
 //Ray ... htoken.  omitted
 router.get('/GetProductBySymbol', function(req, res, next) {
     var db = req.con;
-    console.log('req', req);
-    console.log('req.query', req.query, 'req.query.p_SYMBOL', req.query.p_SYMBOL);
-    console.log('req.body', req.body, 'req.body.p_SYMBOL', req.body.p_SYMBOL);
-    //db.query('SELECT * FROM product WHERE p_SYMBOL = ?', req.body.p_SYMBOL, function(err, result) {
-    db.query('SELECT * FROM product WHERE p_SYMBOL="'+req.query.p_SYMBOL+'"', function(err, result) {
+    //console.log('req', req);
+    console.log('@GetProductBySymbol: req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('@GetProductBySymbol: req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
 
+    //db.query('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function(err, result) {
+    db.query('SELECT * FROM product WHERE p_SYMBOL="'+symbol+'"', function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
