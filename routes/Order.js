@@ -3,7 +3,7 @@ var router = express.Router();
 
 //新增資料：接收資料的post
 router.post('/POST/AddOrder', function(req, res, next) {
-
+  console.log('------------------------==');
   var db = req.con;
   //當前時間
   var timeStamp = new Date().getTime();
@@ -24,7 +24,7 @@ router.post('/POST/AddOrder', function(req, res, next) {
       o_tokenCount: req.body.o_tokenCount,
       o_fundCount: req.body.o_fundCount,
       o_purchaseDate: yyyymmdd,
-      o_paymentStatus: "unpaid"
+      o_paymentStatus: "waiting"
   };//random() to prevent duplicate NULL entry!
 
  console.log(sql);
@@ -46,18 +46,19 @@ router.post('/POST/AddOrder', function(req, res, next) {
 
 });
 
-//http://localhost:3000/Order/GET/SumOrderedTokensBySymbol
-router.get('/GET/SumOrderedTokensBySymbol', function(req, res, next) {
+//SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';
+//http://localhost:3000/Order/GET/SumAllOrdersBySymbol
+router.get('/GET/SumAllOrdersBySymbol', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/SumAllOrdersBySymbol');
     var db = req.con;
-    console.log('@SumOrderedTokensBySymbol: req.query', req.query, 'req.query.symbol', req.query.symbol);
-    console.log('@SumOrderedTokensBySymbol: req.body', req.body, 'req.body.symbol', req.body.symbol);
+    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
     let symbol;
     if (req.body.symbol === undefined) {
         symbol = req.query.symbol;
     } else {symbol = req.body.symbol;}
-    //SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';
     var qur = db.query(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = "'+symbol+'"', function(err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ?', symbol, function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
@@ -74,18 +75,18 @@ router.get('/GET/SumOrderedTokensBySymbol', function(req, res, next) {
     });
 });
 
-//http://localhost:3000/Order/GET/SumUnpaidOrders
-router.get('/GET/SumUnpaidOrders', function(req, res, next) {
-    var db = req.con;
-    console.log('@SumUnpaidOrders: req.query', req.query, 'req.query.userAccount', req.query.userAccount);
-    console.log('@SumUnpaidOrders: req.body', req.body, 'req.body.userAccount', req.body.userAccount);
-    let userAccount;
-    if (req.body.userAccount === undefined) {
-        userAccount = req.query.userAccount;
-    } else {userAccount = req.body.userAccount;}
-    //SELECT SUM(o_fundCount) AS total FROM htoken.`order` WHERE o_fromAddress = '4ekv' AND o_paymentStatus = 'new';
+//http://localhost:3000/Order/GET/SumWaitingOrdersBySymbol
+router.get('/GET/SumWaitingOrdersBySymbol', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/SumWaitingOrdersBySymbol');
+    var db = req.con; const status = 'waiting';
+    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
     var qur = db.query(
-        'SELECT SUM(o_fromAddress) AS total FROM htoken.order WHERE o_fromAddress = "'+fromAddress+'"', function(err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
@@ -101,5 +102,119 @@ router.get('/GET/SumUnpaidOrders', function(req, res, next) {
         }
     });
 });
+
+
+//http://localhost:3000/Order/GET/SumCancelledOrdersBySymbol
+router.get('/GET/SumCancelledOrdersBySymbol', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/SumCancelledOrdersBySymbol');
+    var db = req.con; const status = 'cancelled';
+    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
+    var qur = db.query(
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
+
+//http://localhost:3000/Order/GET/SumExpiredOrdersBySymbol
+router.get('/GET/SumExpiredOrdersBySymbol', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/SumExpiredOrdersBySymbol');
+    var db = req.con; const status = 'expired';
+    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
+    var qur = db.query(
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
+
+//http://localhost:3000/Order/GET/SumPendingOrdersBySymbol
+router.get('/GET/SumPendingOrdersBySymbol', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/SumPendingOrdersBySymbol');
+    var db = req.con; const status = 'pending';
+    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
+    var qur = db.query(
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
+
+//http://localhost:3000/Order/GET/SumCompletedOrdersBySymbol
+router.get('/GET/SumCompletedOrdersBySymbol', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/SumCompletedOrdersBySymbol');
+    var db = req.con; const status = 'completed';
+    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
+    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
+    let symbol;
+    if (req.body.symbol === undefined) {
+        symbol = req.query.symbol;
+    } else {symbol = req.body.symbol;}
+    var qur = db.query(
+        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
+
 
 module.exports = router;
