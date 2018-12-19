@@ -136,11 +136,10 @@ router.get('/productList', function (req, res) {
 });
 
 //Ray ... htoken.  omitted
-router.get('/GetProductBySymbol', function(req, res, next) {
+router.get('/Get/ProductBySymbol', function(req, res, next) {
     var db = req.con;
     //console.log('req', req);
-    console.log('@GetProductBySymbol: req.query', req.query, 'req.query.symbol', req.query.symbol);
-    console.log('@GetProductBySymbol: req.body', req.body, 'req.body.symbol', req.body.symbol);
+    console.log('------------------------==\n@Product/Get/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol === undefined) {
         symbol = req.query.symbol;
