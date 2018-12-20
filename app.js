@@ -13,11 +13,9 @@ var userRouter = require('./routes/user');
 var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
-//冠毅
-var paymentGWRouter = require('./routes/paymentGW');
 
 // var usersRouter = require('./routes/users');
-// DataBase
+// DataBase 
 var mysql = require("mysql");
 
 var con = mysql.createConnection({
@@ -60,7 +58,6 @@ app.use('/Product', productRouter);
 app.use('/user', userRouter);
 app.use('/NFTokenSPLC', NFTokenSPLCRouter);
 app.use('/Order', orderRouter);
-app.use('/paymentGW', paymentGWRouter);
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
