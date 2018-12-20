@@ -145,8 +145,7 @@ router.get('/Get/ProductBySymbol', function(req, res, next) {
         symbol = req.query.symbol;
     } else {symbol = req.body.symbol;}
 
-    //db.query('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function(err, result) {
-    db.query('SELECT * FROM product WHERE p_SYMBOL="'+symbol+'"', function(err, result) {
+    db.query('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
