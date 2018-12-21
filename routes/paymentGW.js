@@ -2,9 +2,26 @@ var express = require('express');
 var router = express.Router();
 
 
+// home page
+router.get('/', function (req, res, next) {
+
+    var db = req.con;
+    var data = "";
+
+    db.query('SELECT * FROM htoken.order', function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        var data = rows;
+
+        // use index.ejs
+        res.render('payment', { title: 'paymentGW', data: data });
+    });
+
+});
 
 router.get('/GET/pay', async function (req, res, next) {
-    res.render('payment', { amount: 16800, o_id: "MYRR1701_4920358206" });
+    res.render('payByCreditCard', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"] });
 });
 
 /*
@@ -14,17 +31,14 @@ router.get('/GET/bank', async function (req, res, next) {
 */
 
 router.post('/POST/postToBank', async function (req, res, next) {
+    var paymentInfo = JSON.parse(req.body.JSONtoBank)
+    //console.log(paymentInfo)
     await setTimeout(function () {
         let bank = true;
 
         res.send({
             bank: bank,
-            name: req.body.name,
-            cardNumber: req.body.card_no1 + "-" + req.body.card_no2 + "-" + req.body.card_no3 + "-" + req.body.card_no4,
-            securityCode: req.body.securityCode,
-            dated: req.body.month + "-" + req.body.year,
-            amount: req.body.amount,
-            o_id: req.body.o_id
+            amount: paymentInfo.amount
         });
     }, 3000);
 });
@@ -32,24 +46,26 @@ router.post('/POST/postToBank', async function (req, res, next) {
 router.post('/POST/updateOrder', function (req, res, next) {
 
     var db = req.con;
-    var o_id = req.body.o_id;
-
+    var order = JSON.parse(req.body.o_IDs);
     var sql = {
-        o_paymentStatus: "paid"
+        o_paymentStatus: "completed"
     };
 
-    var qur = db.query('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, o_id], function (err, rows) {
-        if (err) {
-            console.log(err);
-            res.send({
-                status: "fail",
-                o_id: o_id
-            });
-        }
-        res.send({
-            status: "success",
-            o_id: o_id
+    order.o_IDs.forEach(element => {
+        //console.log(element)
+        db.query('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
+            if (err) {
+                console.log(err);
+                res.send({
+                    status: "fail",
+                    o_IDs: element
+                });
+            }
         });
+    });
+    res.send({
+        status: "success",
+        o_IDs: order.o_IDs
     });
 
 });
