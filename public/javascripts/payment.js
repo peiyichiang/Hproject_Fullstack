@@ -13,7 +13,9 @@ let year = $('#year');
 let submit = $('#submit');
 
 let amount = $('#amount');
-let o_id = $('#o_id');
+let o_IDs = [];
+$(".order").each(function(){ o_IDs.push(this.value); });
+//log(o_IDs);
 
 //把log印在網頁上
 function log(...inputs) {
@@ -27,9 +29,8 @@ function log(...inputs) {
 
 
 submit.on('click', function () {
-	//log(amount1)
-	log('submit to bank..');
-	$.post('/paymentGW/POST/postToBank', {
+
+	let JSONtoBank = JSON.stringify({
 		name: name.val(),
 		card_no1: card_no1.val(),
 		card_no2: card_no2.val(),
@@ -39,13 +40,20 @@ submit.on('click', function () {
 		month: month.val(),
 		year: year.val(),
 		amount: amount.val(),
-		o_id: o_id.val()
-	}, function (result) {
+		o_IDs: o_IDs
+	})
+	let o_IDsJSON = JSON.stringify({o_IDs: o_IDs})
+
+	log('submit to bank..');
+	log(JSONtoBank)
+
+	$.post('/paymentGW/POST/postToBank',{JSONtoBank: JSONtoBank}, function (result) {
 		log(result)
-		if (result.bank == true) {
+		//核對真實刷卡金額，確認銀行刷卡成功
+		if (result.bank == true && result.amount == amount.val()) {
 			log('付款成功')
 			$.post('/paymentGW/POST/updateOrder', {
-				o_id: o_id.val()
+				o_IDs: o_IDsJSON
 			}, function (result) {
 				log(result)
 			})
