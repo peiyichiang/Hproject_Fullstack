@@ -140,12 +140,15 @@ router.get('/Get/ProductBySymbol', function(req, res, next) {
     var db = req.con;
     //console.log('req', req);
     console.log('------------------------==\n@Product/Get/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
-    let symbol;
+    let symbol; const status = 'na';
     if (req.body.symbol === undefined) {
         symbol = req.query.symbol;
     } else {symbol = req.body.symbol;}
+    //console.log('symbol', symbol);
 
-    db.query('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function(err, result) {
+    let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    //console.log('qstr1', qstr1);
+    db.query(qstr1, [symbol], function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
