@@ -7,6 +7,8 @@ var router = express.Router();
 // const solc = require('solc');
 const nodemailer = require('nodemailer');
 
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -185,6 +187,44 @@ router.get('/verify_email', function (req, res) {
 });
 
 
+//-----------------------==
+//http://localhost:3000/user/POST/AddUser
+router.post('/POST/AddUser', function(req, res, next) {
+    console.log('------------------------==\n@user/POST/AddUser');
+    const qstr1 = 'INSERT INTO htoken.user SET ?';
+    var db = req.con;
+
+    console.log('req.query', req.query, 'req.body', req.body);
+    let email, pwHash, id, imagef, imageb, ethAdd, cellphone;
+    if (req.body.pwHash) {pwHash = req.body.pwHash;
+    } else {pwHash = req.query.pwHash;}
+
+    var sql = {
+        u_email: email,
+        u_salt:Math.random().toString(36).substring(2, 15),
+        u_password_hash: pwHash,
+        //u_id:req.body.o_symbol + "_" + timeStamp,
+    };//random() to prevent duplicate NULL entry!
+    //Math.random().toString(36).substring(2, 15),
+
+    console.log(sql);
+    var qur = db.query(qstr1, sql, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
+
 
 //http://localhost:3000/user/Get/UserByUserId
 router.get('/GET/UserByUserId', function(req, res, next) {
@@ -213,49 +253,66 @@ router.get('/GET/UserByUserId', function(req, res, next) {
 });
 
 
+
 //http://localhost:3000/user/Get/UserLogin
 router.get('/GET/UserLogin', function(req, res, next) {
     console.log('------------------------==\n@Order/GET/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var db = req.con;
     console.log('req.query', req.query, 'req.body', req.body);
-    let userId, userPw;
-    if (req.body.userId) {
-        userId = req.body.userId; userPw = req.body.userPw;
-    } else {userId = req.query.userId; userPw = req.query.userPw;}
+    let email, password;
+    if (req.body.email) {
+        email = req.body.email; password = req.body.password;
+    } else {email = req.query.email; password = req.query.password;}
 
-    var qur = db.query(qstr1, userId, function(err, result) {
+    var qur = db.query(qstr1, email, function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
             res.json({
-                "message": "[Error] Failure :\n" + err,
+                "message": "[Error] db.query to/from DB :\n" + err,
                 "login": false
             });
         } else {
             res.status(200);
             if (result.length === 0) {
                 res.json({
-                    "message" : "[Error] Email Not found",
+                    "message" : "[Error] email Not found",
                     "result" : result,
                     "login": false
                 });
             } else if (result.length === 1) {
-                console.log("1 Email is found", result);
-                if (result[0].u_password_hash === userPw) {
-                    res.json({
-                        "message" : "[Success] Id and Pw correct",
-                        "result" : result,
-                        "login": true
-                    });
-                } else {
-                    res.json({
-                        "message" : "[Try Again] 1 Email is found but Password is not correct",
-                        "result" : result,
-                        "login": false
-                    });
-                }
-            } else if (result.length > 1) {
+                console.log("1 email is found", result);
+                bcrypt
+                .compare(password, result[0].u_password_hash)
+                .then(compareResult => {
+                    console.log(compareResult);
+                    if (compareResult) {
+                        const user = result[0];
+                        jwt.sign({user}, 'privatekey', { expiresIn: '1h' },(err, token) => {
+                            if(err) { console.log('[Error] no token is sent.', err);
+                            } else {
+                                console.log('[Success] login is successful!');
+                                //res.send(token);
+                                res.json({
+                                    "message" : "[Success] password is correct",
+                                    "result" : result,
+                                    "login": true,
+                                    "jwt": token
+                                });
+                            }
+                        });
+
+                    } else {
+                        res.json({
+                            "message" : "[Not Valid] password is not correct",
+                            "result" : result,
+                            "login": false
+                        });
+                    }
+                }).catch(err => console.error('Error at compare password & pwHash', err.message));
+
+            } else {
                 res.json({
                     "message" : "[Error] Duplicate Entries are found",
                     "result" : result,
