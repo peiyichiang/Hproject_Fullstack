@@ -184,4 +184,88 @@ router.get('/verify_email', function (req, res) {
     });
 });
 
+
+
+//http://localhost:3000/user/Get/UserByUserId
+router.get('/GET/UserByUserId', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/UserByUserId');
+    let qstr1 = 'SELECT * FROM htoken.user WHERE u_eth_add = ?';
+    var db = req.con;
+    console.log('req.query', req.query, 'req.body', req.body);
+    let status, userId, qstrz;
+    if (req.body.userId) {userId = req.body.userId;
+    } else {userId = req.query.userId;}
+    var qur = db.query(qstr1, userId, function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message" : "[Success] Success",
+                "result" : result
+            });
+        }
+    });
+});
+
+
+//http://localhost:3000/user/Get/UserLogin
+router.get('/GET/UserLogin', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/UserLogin');
+    let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
+    var db = req.con;
+    console.log('req.query', req.query, 'req.body', req.body);
+    let userId, userPw;
+    if (req.body.userId) {
+        userId = req.body.userId; userPw = req.body.userPw;
+    } else {userId = req.query.userId; userPw = req.query.userPw;}
+
+    var qur = db.query(qstr1, userId, function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err,
+                "login": false
+            });
+        } else {
+            res.status(200);
+            if (result.length === 0) {
+                res.json({
+                    "message" : "[Error] Email Not found",
+                    "result" : result,
+                    "login": false
+                });
+            } else if (result.length === 1) {
+                console.log("1 Email is found", result);
+                if (result[0].u_password_hash === userPw) {
+                    res.json({
+                        "message" : "[Success] Id and Pw correct",
+                        "result" : result,
+                        "login": true
+                    });
+                } else {
+                    res.json({
+                        "message" : "[Try Again] 1 Email is found but Password is not correct",
+                        "result" : result,
+                        "login": false
+                    });
+                }
+            } else if (result.length > 1) {
+                res.json({
+                    "message" : "[Error] Duplicate Entries are found",
+                    "result" : result,
+                    "login": false
+                });
+            }
+
+        }
+    });
+});
+
+
 module.exports = router;

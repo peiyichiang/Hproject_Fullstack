@@ -141,9 +141,8 @@ router.get('/Get/ProductBySymbol', function(req, res, next) {
     //console.log('req', req);
     console.log('------------------------==\n@Product/Get/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
     let symbol; const status = 'na';
-    if (req.body.symbol === undefined) {
-        symbol = req.query.symbol;
-    } else {symbol = req.body.symbol;}
+    if (req.body.symbol) {symbol = req.body.symbol;
+    } else {symbol = req.query.symbol;}
     //console.log('symbol', symbol);
 
     let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';

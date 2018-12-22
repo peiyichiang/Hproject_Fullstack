@@ -51,12 +51,11 @@ router.post('/POST/AddOrder', function(req, res, next) {
 router.get('/GET/SumAllOrdersBySymbol', function(req, res, next) {
     console.log('------------------------==\n@Order/GET/SumAllOrdersBySymbol');
     var db = req.con;
-    console.log('req.query', req.query, 'req.query.symbol', req.query.symbol);
-    console.log('req.body', req.body, 'req.body.symbol', req.body.symbol);
+    console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
-    if (req.body.symbol === undefined) {
-        symbol = req.query.symbol;
-    } else {symbol = req.body.symbol;}
+    if (req.body.symbol) {symbol = req.body.symbol;
+    } else {symbol = req.query.symbol;}
+
     var qur = db.query(
         'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ?', symbol, function(err, result) {
         if (err) {
@@ -82,14 +81,13 @@ router.get('/GET/SumWaitingOrdersBySymbol', function(req, res, next) {
     var db = req.con; const status = 'waiting';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol, userId, qstrz;
-    if (req.body.symbol === undefined) {
+    if (req.body.symbol) {
+        symbol = req.body.symbol; userId = req.body.userId;
+    } else {
         symbol = req.query.symbol; userId = req.query.userId;
-        if (userId == undefined) {
-            qstrz = qstr1;
-        } else {
-            qstrz = qstr1 + ' AND o_fromAddress = ?';
-        }
-    } else {symbol = req.body.symbol; userId = req.body.userId;}
+        if (userId) {qstrz = qstr1 + ' AND o_fromAddress = ?';
+        } else {qstrz = qstr1;}
+    }
     var qur = db.query(qstrz, [symbol, status] , function(err, result) {
         if (err) {
             console.log(err);
@@ -114,14 +112,13 @@ router.get('/GET/OrdersByUserId', function(req, res, next) {
     var db = req.con;
     console.log('req.query', req.query, 'req.body', req.body);
     let status, userId, qstrz;
-    if (req.body.userId === undefined) {
+    if (req.body.userId) {
+        userId = req.body.userId; status = req.body.status;
+    } else {
         userId = req.query.userId; status = req.query.status;
-        if (status == undefined) {
-            qstrz = qstr1;
-        } else {
-            qstrz = qstr1 + ' AND o_paymentStatus = ?';
-        }
-    } else {userId = req.body.userId; status = req.body.status;}
+        if (status) {qstrz = qstr1 + ' AND o_paymentStatus = ?';
+        } else {qstrz = qstr1;}
+    }
     var qur = db.query(qstrz, [userId, status] , function(err, result) {
         if (err) {
             console.log(err);
@@ -145,9 +142,9 @@ router.get('/GET/SumCancelledOrdersBySymbol', function(req, res, next) {
     var db = req.con; const status = 'cancelled';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
-    if (req.body.symbol === undefined) {
-        symbol = req.query.symbol;
-    } else {symbol = req.body.symbol;}
+    if (req.body.symbol) {symbol = req.body.symbol;
+    } else {symbol = req.query.symbol;}
+
     var qur = db.query(
         'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
         if (err) {
@@ -172,9 +169,9 @@ router.get('/GET/SumExpiredOrdersBySymbol', function(req, res, next) {
     var db = req.con; const status = 'expired';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
-    if (req.body.symbol === undefined) {
-        symbol = req.query.symbol;
-    } else {symbol = req.body.symbol;}
+    if (req.body.symbol) {symbol = req.body.symbol;
+    } else {symbol = req.query.symbol;}
+
     var qur = db.query(
         'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
         if (err) {
@@ -199,9 +196,8 @@ router.get('/GET/SumPendingOrdersBySymbol', function(req, res, next) {
     var db = req.con; const status = 'pending';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
-    if (req.body.symbol === undefined) {
-        symbol = req.query.symbol;
-    } else {symbol = req.body.symbol;}
+    if (req.body.symbol) {symbol = req.body.symbol;
+    } else {symbol = req.query.symbol;}
     var qur = db.query(
         'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
         if (err) {
@@ -226,9 +222,8 @@ router.get('/GET/SumCompletedOrdersBySymbol', function(req, res, next) {
     var db = req.con; const status = 'completed';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
-    if (req.body.symbol === undefined) {
-        symbol = req.query.symbol;
-    } else {symbol = req.body.symbol;}
+    if (req.body.symbol) {symbol = req.body.symbol;
+    } else {symbol = req.query.symbol;}
     var qur = db.query(
         'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status] , function(err, result) {
         if (err) {
