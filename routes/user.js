@@ -195,34 +195,56 @@ router.post('/POST/AddUser', function(req, res, next) {
     var db = req.con;
 
     console.log('req.query', req.query, 'req.body', req.body);
-    let email, pwHash, id, imagef, imageb, ethAdd, cellphone;
-    if (req.body.pwHash) {pwHash = req.body.pwHash;
-    } else {pwHash = req.query.pwHash;}
+    let user;
+    if (req.body.email) {user = req.body;
+    } else {user = req.query;}//Object.keys(user).length === 0 && user.constructor === Object
+    console.log('user', user);
 
-    var sql = {
-        u_email: email,
-        u_salt:Math.random().toString(36).substring(2, 15),
-        u_password_hash: pwHash,
-        //u_id:req.body.o_symbol + "_" + timeStamp,
-    };//random() to prevent duplicate NULL entry!
-    //Math.random().toString(36).substring(2, 15),
+    let passwordHash; const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+    //Generate a salt and hash on separate function calls.
+    //each password that we hash is going to have a unique salt and a unique hash. As we learned before, this helps us mitigate greatly rainbow table attacks.
+    bcrypt
+    .genSalt(saltRounds)
+    .then(salt => {
+        console.log(`Salt: ${salt}`);
+        return bcrypt.hash(user.password, salt);
+    })
+    .then(hash => {
+        console.log(`Hash: ${hash}`);
+        let userNew = {
+            u_email: user.email,
+            u_salt: 0,
+            u_password_hash: hash,
+            u_identityNumber: user.nationalId,
+            u_imagef: Math.random().toString(36).substring(2, 15),
+            u_imageb: Math.random().toString(36).substring(2, 15),
+            u_eth_add: '0x'+Math.random().toString(36).substring(2, 15),
+            u_cellphone: user.phone,
+            u_name: user.name,
+        };
+    
+        console.log(userNew);
+        var qur = db.query(qstr1, userNew, function (err, result) {
+            if (err) {
+                console.log(err);
+                res.status(400);
+                res.json({
+                    "message": "[Error] Failure :\n" + err,
+                    "success": false,
+                });
+            } else {
+                res.status(200);
+                res.json({
+                    "message" : "[Success] Success",
+                    "result" : result,
+                    "success": true,
+                });
+            }
+        });
 
-    console.log(sql);
-    var qur = db.query(qstr1, sql, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.status(400);
-            res.json({
-                "message": "[Error] Failure :\n" + err
-            });
-        } else {
-            res.status(200);
-            res.json({
-                "message" : "[Success] Success",
-                "result" : result
-            });
-        }
-    });
+    })
+    .catch(err => console.error(err.message));
+
 });
 
 
@@ -240,13 +262,15 @@ router.get('/GET/UserByUserId', function(req, res, next) {
             console.log(err);
             res.status(400);
             res.json({
-                "message": "[Error] Failure :\n" + err
+                "message": "[Error] Failure :\n" + err,
+                "success": false,
             });
         } else {
             res.status(200);
             res.json({
                 "message" : "[Success] Success",
-                "result" : result
+                "result" : result,
+                "success": true,
             });
         }
     });
@@ -271,7 +295,7 @@ router.get('/GET/UserLogin', function(req, res, next) {
             res.status(400);
             res.json({
                 "message": "[Error] db.query to/from DB :\n" + err,
-                "login": false
+                "success": false
             });
         } else {
             res.status(200);
@@ -279,7 +303,7 @@ router.get('/GET/UserLogin', function(req, res, next) {
                 res.json({
                     "message" : "[Error] email Not found",
                     "result" : result,
-                    "login": false
+                    "success": false
                 });
             } else if (result.length === 1) {
                 console.log("1 email is found", result);
@@ -297,7 +321,7 @@ router.get('/GET/UserLogin', function(req, res, next) {
                                 res.json({
                                     "message" : "[Success] password is correct",
                                     "result" : result,
-                                    "login": true,
+                                    "success": true,
                                     "jwt": token
                                 });
                             }
@@ -307,7 +331,7 @@ router.get('/GET/UserLogin', function(req, res, next) {
                         res.json({
                             "message" : "[Not Valid] password is not correct",
                             "result" : result,
-                            "login": false
+                            "success": false
                         });
                     }
                 }).catch(err => console.error('Error at compare password & pwHash', err.message));
@@ -316,7 +340,7 @@ router.get('/GET/UserLogin', function(req, res, next) {
                 res.json({
                     "message" : "[Error] Duplicate Entries are found",
                     "result" : result,
-                    "login": false
+                    "success": false
                 });
             }
 
@@ -326,3 +350,20 @@ router.get('/GET/UserLogin', function(req, res, next) {
 
 
 module.exports = router;
+/**
+    function bcryptHash(pw) {
+        const bcrypt = require('bcrypt');
+        const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+        const myPlaintextPassword = '1111';
+        const someOtherPlaintextPassword = '1112';
+
+        bcrypt
+        .hash(pw, saltRounds)
+        .then(hash => {
+            console.log(`Hash: ${hash}`);
+            return hash;
+            // Store hash in your password DB.
+        })
+        .catch(err => console.error('[Error@bcryptHash]',err.message));
+    }
+ */
