@@ -32,10 +32,8 @@
                 <%=amount%>元</h4>
             <hr>
             <h4>請將這次付款金額匯入指定帳戶</h4>
-            <% for ( var i = 0 ; i < v_account.length ; i++){ %>
-                <input class="v_account" type="hidden" value=<%=v_account[i]%> >
-                <h4><%=v_account[i]%></h4>
-            <% } %>
+                <input id="v_account" type="hidden" value=<%=v_account%> >
+                <h4><%=v_account%></h4>
 
 
         </div>

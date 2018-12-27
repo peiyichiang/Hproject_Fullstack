@@ -27,7 +27,7 @@ router.get('/GET/pay', async function (req, res, next) {
 
 
 router.get('/GET/bank', async function (req, res, next) {
-    res.render('payByTransfer', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"],v_account: ["中國信託822","33"] });
+    res.render('payByTransfer', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"],v_account: "822-03113250581281" });
 });
 
 
@@ -84,7 +84,7 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
         }
     });
 
-    var text = '<h2>付款成功</h2> <p>我們已收到您的付款，訂單編號為:'+ order.o_IDs+'，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
+    var text = '<h2>付款成功</h2> <p>我們已收到您的付款，訂單編號為:<br>'+ order.o_IDs+'，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
 
     var options = {
         //寄件者
@@ -110,7 +110,7 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
 
 ///////////匯款部分//////////
 
-router.post('/POST/sendPayedMail', function (req, res, next) {
+router.post('/POST/sendTransferInfoMail', function (req, res, next) {
 
     var order = JSON.parse(req.body.o_IDs);
 
@@ -123,7 +123,7 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
         }
     });
 
-    var text = '<h2>匯款資訊</h2> <p>此次預計付款訂單編號為:'+ order.o_IDs+'。以下是您的匯款資訊'+ +'  </p>'
+    var text = '<h2>匯款資訊</h2> <p>此次預計付款訂單編號為:<br>'+ order.o_IDs+'。<br>以下是您的匯款資訊:<br>'+ req.body.v_account +'  </p>'
 
     var options = {
         //寄件者
@@ -131,7 +131,7 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
         //收件者
         to: '103703051@mail2.nccu.tw',
         //主旨
-        subject: '付款成功通知',
+        subject: ' 匯款通知',
         //嵌入 html 的內文
         html: text
     };
@@ -146,5 +146,35 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
         }
     });
 })
+
+router.post('/POST/bindOrder', function (req, res, next) {
+
+    var db = req.con;
+    var order = JSON.parse(req.body.o_IDs);
+
+    var sql = {
+        o_bankvirtualaccount: req.body.v_account
+    };
+
+    order.o_IDs.forEach(element => {
+        //console.log(element)
+        db.query('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
+            if (err) {
+                console.log(err);
+                res.send({
+                    status: "fail",
+                    o_IDs: element
+                });
+            }
+        });
+    });
+    res.send({
+        status: "success",
+        o_IDs: order.o_IDs,
+        v_account: req.body.v_account
+    });
+
+});
+
 
 module.exports = router;
