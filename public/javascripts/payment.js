@@ -57,6 +57,9 @@ submit.on('click', function () {
 			}, function (result) {
 				log(result)
 			})
+			$.post('/paymentGW/POST/sendPayedMail', {
+				o_IDs: o_IDsJSON
+			})
 		}
 		else {
 			log('付款失敗')

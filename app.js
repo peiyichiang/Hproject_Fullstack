@@ -37,6 +37,9 @@ con.connect(function(err) {
     console.log('http://localhost:3000/Product/productList');
 });
 
+
+
+
 var app = express();
 
 //有容
@@ -50,6 +53,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'views')));
+
 app.use(function(req, res, next) {
   req.con = con;
   next();
