@@ -307,6 +307,10 @@ router.get('/GET/UserLogin', function(req, res, next) {
                 });
             } else if (result.length === 1) {
                 console.log("1 email is found", result);
+                const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
+                const timeExpiry = timeLogin + 60*60;
+                console.log('timeLogin', timeLogin, 'timeExpiry', timeExpiry);
+
                 bcrypt
                 .compare(password, result[0].u_password_hash)
                 .then(compareResult => {
@@ -322,6 +326,7 @@ router.get('/GET/UserLogin', function(req, res, next) {
                                     "message" : "[Success] password is correct",
                                     "result" : result,
                                     "success": true,
+                                    "expiry": timeExpiry,
                                     "jwt": token
                                 });
                             }

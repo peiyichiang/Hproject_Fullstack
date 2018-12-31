@@ -6,7 +6,7 @@ router.post('/POST/AddOrder', function(req, res, next) {
   console.log('------------------------==');
   var db = req.con;
   //當前時間
-  var timeStamp = new Date().getTime();
+  var timeStamp = Date.now() / 1000 | 0;//new Date().getTime();
   var currentDate = new Date();
   var date = currentDate.getDate();
   if (date<10) {date = '0'+date;}
@@ -17,7 +17,7 @@ router.post('/POST/AddOrder', function(req, res, next) {
   console.log('timeStamp', timeStamp, 'yyyymmdd', yyyymmdd, year, month, date);
 
   var sql = {
-      o_id:req.body.o_symbol + "_" + timeStamp,
+      o_id: req.body.o_symbol + "_" + req.body.nationalIdLast5 + "_" + timeStamp,
       o_symbol: req.body.o_symbol,
       o_fromAddress:Math.random().toString(36).substring(2, 15),
       o_txHash:Math.random().toString(36).substring(2, 15),
