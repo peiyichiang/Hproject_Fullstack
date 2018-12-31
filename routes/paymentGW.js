@@ -25,19 +25,20 @@ router.get('/GET/pay', async function (req, res, next) {
     res.render('payByCreditCard', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"] });
 });
 
-
+/*
 router.get('/GET/bank', async function (req, res, next) {
     res.render('payByTransfer', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"],v_account: "822-03113250581281" });
 });
-
+*/
 
 router.post('/POST/postToBank', async function (req, res, next) {
     var paymentInfo = JSON.parse(req.body.JSONtoBank)
+    console.log(paymentInfo)
     //console.log(paymentInfo)
     await setTimeout(function () {
         let bank = true;
 
-        res.send({
+        res.json({
             bank: bank,
             amount: paymentInfo.amount
         });
@@ -73,7 +74,7 @@ router.post('/POST/updateOrder', function (req, res, next) {
 
 router.post('/POST/sendPayedMail', function (req, res, next) {
 
-    var order = JSON.parse(req.body.o_IDs);
+    var mailInfo = JSON.parse(req.body.mailInfo);
 
     //宣告發信物件
     var transporter = nodemailer.createTransport({
@@ -84,13 +85,13 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
         }
     });
 
-    var text = '<h2>付款成功</h2> <p>我們已收到您的付款，訂單編號為:<br>'+ order.o_IDs+'，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
+    var text = '<h2>付款成功</h2> <p>'+mailInfo.name+'您好：<br>我們已收到您的付款，訂單編號為:<br>'+ mailInfo.o_IDs+'，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
 
     var options = {
         //寄件者
         from: '103753016@mail2.nccu.tw',
         //收件者
-        to: '103703051@mail2.nccu.tw',
+        to: mailInfo.email,
         //主旨
         subject: '付款成功通知',
         //嵌入 html 的內文
@@ -109,10 +110,13 @@ router.post('/POST/sendPayedMail', function (req, res, next) {
 })
 
 ///////////匯款部分//////////
+router.get('/GET/bank', async function (req, res, next) {
+    res.json({ v_account: "822-03113250581281" });
+});
 
 router.post('/POST/sendTransferInfoMail', function (req, res, next) {
 
-    var order = JSON.parse(req.body.o_IDs);
+    var mailInfo = JSON.parse(req.body.mailInfo);
 
     //宣告發信物件
     var transporter = nodemailer.createTransport({
@@ -123,13 +127,13 @@ router.post('/POST/sendTransferInfoMail', function (req, res, next) {
         }
     });
 
-    var text = '<h2>匯款資訊</h2> <p>此次預計付款訂單編號為:<br>'+ order.o_IDs+'。<br>以下是您的匯款資訊:<br>'+ req.body.v_account +'  </p>'
+    var text = '<h2>匯款資訊'+mailInfo.v_account+'</h2> <p>'+mailInfo.name+'您好：<br>此次預計付款訂單編號為:<br>'+ mailInfo.o_IDs+'。<br>請將以下金額匯入指定帳戶:<br>'+mailInfo.amount+'NTD。<br>以下是您的匯款資訊:<br>'+ mailInfo.v_account +'  </p>'
 
     var options = {
         //寄件者
         from: '103753016@mail2.nccu.tw',
         //收件者
-        to: '103703051@mail2.nccu.tw',
+        to: mailInfo.email,
         //主旨
         subject: ' 匯款通知',
         //嵌入 html 的內文
@@ -161,14 +165,14 @@ router.post('/POST/bindOrder', function (req, res, next) {
         db.query('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
-                res.send({
+                res.json({
                     status: "fail",
                     o_IDs: element
                 });
             }
         });
     });
-    res.send({
+    res.json({
         status: "success",
         o_IDs: order.o_IDs,
         v_account: req.body.v_account
