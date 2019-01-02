@@ -3,7 +3,12 @@ var router = express.Router();
 
 //新增資料：接收資料的post
 router.post('/POST/AddOrder', function(req, res, next) {
-  console.log('------------------------==');
+  console.log('------------------------==\n@Order/POST/AddOrder');
+  var db = req.con; let symbol;
+  console.log('req.query', req.query, 'req.body', req.body);
+  if (req.body.symbol) {symbol = req.body.symbol;
+  } else {symbol = req.query.symbol;}
+
   var db = req.con;
   //當前時間
   var timeStamp = Date.now() / 1000 | 0;//new Date().getTime();
@@ -16,13 +21,18 @@ router.post('/POST/AddOrder', function(req, res, next) {
   var yyyymmdd = year.toString() + month.toString() + date.toString();
   console.log('timeStamp', timeStamp, 'yyyymmdd', yyyymmdd, year, month, date);
 
+  const nationalId = req.body.nationalId;
+  const nationalIdLast5 = nationalId.toString().slice(-5);
+  console.log('nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
+
   var sql = {
-      o_id: req.body.o_symbol + "_" + req.body.nationalIdLast5 + "_" + timeStamp,
-      o_symbol: req.body.o_symbol,
+      o_id: symbol + "_" + nationalIdLast5 + "_" + timeStamp,
+      o_symbol: req.body.symbol,
+      o_userIdentityNumber: nationalId,
       o_fromAddress:Math.random().toString(36).substring(2, 15),
       o_txHash:Math.random().toString(36).substring(2, 15),
-      o_tokenCount: req.body.o_tokenCount,
-      o_fundCount: req.body.o_fundCount,
+      o_tokenCount: req.body.tokenCount,
+      o_fundCount: req.body.fundCount,
       o_purchaseDate: yyyymmdd,
       o_paymentStatus: "waiting"
   };//random() to prevent duplicate NULL entry!
@@ -105,9 +115,40 @@ router.get('/GET/SumWaitingOrdersBySymbol', function(req, res, next) {
     });
 });
 
-//http://localhost:3000/Order/GET/OrdersByUserId
-router.get('/GET/OrdersByUserId', function(req, res, next) {
-    console.log('------------------------==\n@Order/GET/OrdersByUserId');
+//http://localhost:3000/Order/GET/OrdersByNationalId
+router.get('/GET/OrdersByNationalId', function(req, res, next) {
+  console.log('------------------------==\n@Order/GET/OrdersByNationalId');
+  let qstr1 = 'SELECT * FROM htoken.order WHERE o_userIdentityNumber = ?';
+  var db = req.con;
+  console.log('req.query', req.query, 'req.body', req.body);
+  let status, nationalId, qstrz;
+  if (req.body.nationalId) {
+      nationalId = req.body.nationalId; status = req.body.status;
+  } else {
+      nationalId = req.query.nationalId; status = req.query.status;
+      if (status) {qstrz = qstr1 + ' AND o_paymentStatus = ?';
+      } else {qstrz = qstr1;}
+  }
+  var qur = db.query(qstrz, [nationalId, status] , function(err, result) {
+      if (err) {
+          console.log(err);
+          res.status(400);
+          res.json({
+              "message": "[Error] Failure :\n" + err
+          });
+      } else {
+          res.status(200);
+          res.json({
+              "message" : "[Success] Success",
+              "result" : result
+          });
+      }
+  });
+});
+
+//http://localhost:3000/Order/GET/OrdersByFromAddr
+router.get('/GET/OrdersByFromAddr', function(req, res, next) {
+    console.log('------------------------==\n@Order/GET/OrdersByFromAddr');
     let qstr1 = 'SELECT * FROM htoken.order WHERE o_fromAddress = ?';
     var db = req.con;
     console.log('req.query', req.query, 'req.body', req.body);
