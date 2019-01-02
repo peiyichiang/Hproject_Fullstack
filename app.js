@@ -21,9 +21,9 @@ var paymentGWRouter = require('./routes/paymentGW');
 var mysql = require("mysql");
 
 var con = mysql.createConnection({
-    host: "140.119.101.130",//from outside: 140.119.101.130, else 192.168.0.2
+    host: "140.119.101.130",//outside: 140.119.101.130, else 192.168.0.2 or localhost
     user: "root",
-    password: "350bchub321",
+    password: "bchub",
     database: "htoken",
 });
 
