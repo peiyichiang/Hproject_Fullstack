@@ -1,0 +1,244 @@
+
+
+.content{
+	height: 100%;
+}
+
+.content .signup{
+	/* max-width: 1024px; */
+	height: 100%;
+	background-color: #efe9e7;
+}
+
+/*=================上半部=================*/
+.content .signup .up{
+	/* max-width: 1024px; */
+	height: 158px;
+	/*background-color: red;*/
+	text-align: center;
+
+	padding-top: 50px;
+	box-sizing: border-box;
+}
+
+
+.content .signup .up .textInfo{
+	font-family: NotoSansCJKtc-Medium;
+	font-size: 20px;
+	color: #3D1101;
+	margin-top: 5px;
+	margin-bottom: 35px;
+}
+
+/*=================下半部=================*/
+.content .signup .down{
+	/* max-width: 1024px; */
+	height: 340px;
+	/*box-sizing: border-box;*/
+	/*background-color: yellow;*/
+}
+
+/*註冊框*/
+.content .signup .down .signUpWindow{
+	max-width: 310px;
+	height: 280px;
+	/*background-color: pink;*/
+	margin:0 auto;
+
+	box-sizing: border-box;
+	background: #EFE9E7;
+	box-shadow: 3px 3px 4px 0px rgba(0,0,0,0.16);	
+	border-top: 4px solid #FF5E45;
+
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+/*手機*/
+/* @media(max-width: 414px){
+	.content .signup .down .signUpWindow{
+		border-bottom: 4px solid #FF5E45;
+	}
+} */
+
+.content .signup .down .signUpWindow .windowUp{
+	/* max-width: 620px; */
+	height: 45px;
+	/*background-color: red;*/
+	box-sizing: border-box;
+	padding-top: 11px;
+}
+
+.content .signup .down .signUpWindow .windowUp .title{
+	font-family: NotoSansCJKtc-Black;
+	font-size: 18px;
+	color: #3D1101;
+	text-align: center;
+	font-weight: bold;
+	margin-top: 10px;
+}
+
+.content .signup .down .signUpWindow .windowDown{
+	/* max-width: 620px; */
+	height: 271px;
+	/* padding-left: 20px; */
+	/*background-color: yellow;*/
+}
+
+.content .signup .down .signUpWindow .windowDown .left{
+	width: 50%;
+	height: 271px;
+	/*background-color: pink;*/
+	display: inline-block;
+	/* padding-left: 20px;
+	padding-right: 20px; */
+	/* float: left; */
+}
+
+.content .signup .down .signUpWindow .windowDown .left .termsText{
+	max-width: 285px;
+	max-height: 138px;
+	margin-left: 15px;
+}
+
+.content .signup .down .signUpWindow .windowDown .left .termsText .termsTitle{
+	font-family: MicrosoftJhengHeiRegular;
+	font-size: 18px;
+	line-height: 25px;
+	color: #3D1101;
+}
+
+.content .signup .down .signUpWindow .windowDown .left .termsText .termsTextInfo{
+	font-family: MicrosoftJhengHeiRegular;
+	font-size: 14px;
+	line-height: 20px;
+	color: #3D1101;
+}
+
+.content .signup .down .signUpWindow .windowDown .right{
+	width: 100%;
+	height: 271px;
+	/*background-color: red;*/
+	display: inline-block;
+	/* float: left; */
+	
+}
+
+.content .signup .down .signUpWindow .windowDown .right .login{
+	width: 100%;
+	height: 271px;
+	/*background-color: red;*/
+	/*display: inline-block;*/
+	/* padding-left: 20px;
+	padding-right: 20px; */
+}
+
+.content .signup .down .signUpWindow .windowDown .right .inputTitle{
+	font-family: MicrosoftJhengHeiRegular;
+	font-size: 16px;
+	color: #3D1101;
+	margin-bottom: 5px;
+}
+
+.content .signup .down .signUpWindow .windowDown .right .inputContainer{
+	position: relative;
+}
+
+.content .signup .down .signUpWindow .windowDown .right .inputContainer i{
+	position: absolute;
+	top: 10px;
+	left: 9px;
+	color: rgba(61,17,0,0.50);
+	font-size: 15px;
+}
+
+.content .signup .down .signUpWindow .windowDown .right .inputContainer input{
+	background: #FFFFFF;
+	border: 1px solid #CCCCCC;
+	box-shadow: inset 0px 1px 0px 0px #ECECEC;
+	border-radius: 3px;
+
+	box-sizing: border-box;
+	height: 32px;
+	width: 100%;
+
+	margin-bottom: 12px;
+
+	text-indent: 30px;
+}
+
+.content .signup .down .signUpWindow .windowDown .right .haveAccount{
+	font-family: MicrosoftJhengHeiRegular;
+	font-size: 14px;
+	color: #FF5E45;
+}
+
+.content .signup .down .signUpWindow .windowDown .right .loginBtn{
+	border:none;
+	
+	background: #F56C23;
+	border-radius: 3px;
+
+	font-family: PingFangTC-Regular;
+	font-size: 14px;
+	color: #FFFFFF;
+
+	width: 125px;
+	height: 32px;
+
+	margin-top: 30px;
+	float: right;
+	margin-right: 17px;
+}
+
+/*平板*/
+@media(max-width: 768px){
+}
+
+/*手機*/
+/* @media(max-width: 414px){
+	.content .signup .down .signUpWindow .windowDown .left{
+		width: 100%;
+	}
+	.content .signup .down .signUpWindow .windowDown .right{
+		width: 100%;
+	}
+	.content .signup .down .signUpWindow .windowDown .right .login{
+		width: 70%;
+	}
+
+	.content .signup{
+		height: auto;
+	}
+
+	.content .signup .down{
+		height: auto;
+	}
+	.content .signup .down .signUpWindow{
+		height: auto;
+	}
+
+	.content .signup .down .signUpWindow .windowDown{
+		height: auto;
+	}
+
+	.content .signup .down .signUpWindow .windowDown .left{
+		height: 138px;
+		margin-bottom: 50px;
+	}
+
+	.content .signup .down .signUpWindow .windowDown .right .login{
+		margin:0 auto;
+	}
+
+	.content .signup .down .signUpWindow .windowDown .left .termsText{
+		margin:0 auto;
+	}
+} */
+
+
+
+
+
+
+

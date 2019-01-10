@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  </head>
+  <body>
+    <h1>Product - List</h1>
+    <input type='submit' value='Add' onclick="javascript: location.href='/Product/GET/AddProduct'">
+<div class="table-responsive">
+    <table class="table table-hover table-striped">
+        <tr>
+            <th>Token代號(p_SYMBOL)</th>
+            <th>產品名稱(p_name)</th>
+            <th>產品所在地(p_location)</th>
+            <th>單片售價(p_pricing)</th>
+            <th>專案年期(p_duration)</th>
+            <th>貨幣種類(p_currency)</th>
+            <th>投報率(p_irr)</th>
+            <th>發行日(p_releasedate)</th>
+            <th>到期日(p_validdate)</th>
+            <th>案場規模(p_size)</th>
+            <th>總發行量(p_totalrelease)</th>
+            <th>發行專案的產品經理(p_fundmanager)</th>
+            <th>該專案處理狀態(p_state)</th>
+
+        </tr>
+        <% for ( var i = 0 ; i < data.length ; i++){ %>
+            <tr>
+                <td>
+                    <%= data[i].p_SYMBOL  %>
+                </td>
+                <td>
+                    <%= data[i].p_name  %>
+                </td>
+                <td>
+                    <%= data[i].p_location  %>
+                </td>
+                <td>
+                    <%= data[i].p_pricing  %>
+                </td>
+                <td>
+                    <%= data[i].p_duration  %>
+                </td>
+                <td>
+                    <%= data[i].p_currency  %>
+                </td>
+                <td>
+                    <%= data[i].p_irr  %>
+                </td>
+
+                <td>
+                    <%= data[i].p_releasedate  %>
+                </td>
+                <td>
+                    <%= data[i].p_validdate  %>
+                </td>
+                <td>
+                    <%= data[i].p_size  %>
+                </td>
+                <td>
+                    <%= data[i].p_totalrelease  %>
+                </td>
+                <td>
+                    <%= data[i].p_fundmanager  %>
+                </td>
+                <td>
+                    <%= data[i].p_state  %>
+                </td>
+                
+                <td>
+                    <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].p_SYMBOL  %>');" />
+                </td>
+                <td>
+                    <input type="button" name="delete" value="Delete" onclick="Delete('<%= data[i].p_SYMBOL  %>');" />
+                </td>
+                <!-- onclick="Edit('<%= data[i].id  %>');" -->
+            </tr>
+            <% } %>
+    </table>
+</div>
+
+    <script>
+        function Edit(SYMBOL) {
+            window.location.href = "/Product/GET/EditProduct?SYMBOL=" + SYMBOL;
+        }
+        function Delete(SYMBOL) {
+            var rs = confirm('Confirm to delete?');
+            if (rs) {
+                window.location.href = "/Product/GET/DeleteProduct?SYMBOL=" + SYMBOL;
+            }
+        }
+    </script>
+
+  </body>
+</html>

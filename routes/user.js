@@ -317,19 +317,26 @@ router.get('/GET/UserLogin', function(req, res, next) {
                     console.log(compareResult);
                     if (compareResult) {
                         const user = result[0];
-                        jwt.sign({user}, 'privatekey', { expiresIn: '1h' },(err, token) => {
-                            if(err) { console.log('[Error] no token is sent.', err);
-                            } else {
-                                console.log('[Success] login is successful!');
-                                //res.send(token);
-                                res.json({
-                                    "message" : "[Success] password is correct",
-                                    "result" : result,
-                                    "success": true,
-                                    "expiry": timeExpiry,
-                                    "jwt": token
-                                });
-                            }
+
+                        var data ={
+                            u_email:result[0].u_email,
+                            u_identityNumber:result[0].u_identityNumber
+                        };
+                        time={
+                            expiresIn:'24h'
+                        };
+                        token = jwt.sign(data, 'privatekey', time);
+
+                        // token = jwt.sign({ user, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'privatekey');
+                        // console.log("＊＊JWT token:" + token);
+                        // var decoded = jwt.verify(token, 'privatekey');
+                        // console.log("＊@Decoded：" + JSON.stringify(decoded));
+                        res.json({
+                            "message" : "[Success] password is correct",
+                            "result" : result,
+                            "success": true,
+                            "expiry": timeExpiry,
+                            "jwt": token
                         });
 
                     } else {

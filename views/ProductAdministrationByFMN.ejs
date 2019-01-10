@@ -9,7 +9,7 @@
   </head>
   <body>
     <!-- <h1>Product - List</h1> -->
-
+    <!-- <input type='submit' value='Add' onclick="javascript: location.href='/Product/GET/AddProductByFMN'"> -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <a class="navbar-brand" href="#">HeliumCryptic</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,9 @@
                 <span class="navbar-text">
                     歡迎<%= UserID %>
                 </span>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Product/GET/AddProductByFMN">新增產品</a>
+                  </li>
                 <li class="nav-item" id="SignOut">
                   <a class="nav-link" href="#">登出</a>
                 </li>
@@ -27,23 +30,26 @@
             </div>
     </nav>
 
+    <!-- <button type="button" class="btn btn-success" onclick="javascript: location.href='/Product/GET/AddProductByFMN'">新增產品</button> -->
+    <!-- <br> -->
 <div class="table-responsive">
     <table class="table table-hover table-striped">
         <tr class="bg-primary" style="color:white;">
-            <th class="nowrap">Token代號(p_SYMBOL)</th>
-            <th class="nowrap">產品名稱(p_name)</th>
-            <th class="nowrap">產品所在地(p_location)</th>
-            <th class="nowrap">單片售價(p_pricing)</th>
-            <th class="nowrap">專案年期(p_duration)</th>
-            <th class="nowrap">貨幣種類(p_currency)</th>
-            <th class="nowrap">投報率(p_irr)</th>
-            <th class="nowrap">發行日(p_releasedate)</th>
-            <th class="nowrap">到期日(p_validdate)</th>
-            <th class="nowrap">案場規模(p_size)</th>
-            <th class="nowrap">總發行量(p_totalrelease)</th>
-            <th class="nowrap">發行專案的產品經理(p_fundmanager)</th>
-            <th class="nowrap">該專案處理狀態(p_state)</th>
-
+            <th class="nowrap">Token代號</th>
+            <th class="nowrap">產品名稱</th>
+            <th class="nowrap">產品所在地</th>
+            <th class="nowrap">單片售價</th>
+            <th class="nowrap">專案年期</th>
+            <th class="nowrap">貨幣種類</th>
+            <th class="nowrap">投報率</th>
+            <th class="nowrap">發行日</th>
+            <th class="nowrap">到期日</th>
+            <th class="nowrap">案場規模</th>
+            <th class="nowrap">總發行量</th>
+            <th class="nowrap">發行專案的產品經理</th>
+            <th class="nowrap">該專案處理狀態</th>
+            <th class="nowrap">編輯</th>
+            <th class="nowrap">刪除</th>
         </tr>
         <% for ( var i = 0 ; i < data.length ; i++){ %>
             <tr>
@@ -87,10 +93,33 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
+                
+                <td>
+                    <!-- <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].p_SYMBOL  %>');" /> -->
+                    <button type="button" class="btn btn-success" name="edit" value="Edit" onclick="Edit('<%= data[i].p_SYMBOL  %>');">Edit</button>
+                </td>
+                <td>
+                    <!-- <input type="button" name="delete" value="Delete" onclick="Delete('<%= data[i].p_SYMBOL  %>');" /> -->
+                    <button type="button" class="btn btn-success" name="delete" value="Delete" onclick="Delete('<%= data[i].p_SYMBOL  %>');">Delete</button>
+                </td>
+                <!-- onclick="Edit('<%= data[i].id  %>');" -->
             </tr>
             <% } %>
     </table>
 </div>
+
+    <script>
+        function Edit(SYMBOL) {
+            window.location.href = "/Product/GET/EditProductByFMN?SYMBOL=" + SYMBOL;
+        }
+        function Delete(SYMBOL) {
+            var rs = confirm('Confirm to delete?');
+            if (rs) {
+                window.location.href = "/Product/GET/DeleteProduct?SYMBOL=" + SYMBOL;
+            }
+        }
+    </script>
+
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
