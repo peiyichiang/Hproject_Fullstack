@@ -6,10 +6,10 @@ var nodemailer = require('nodemailer');
 // home page
 router.get('/', function (req, res, next) {
 
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var data = "";
 
-    db.query('SELECT * FROM htoken.order', function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM htoken.order', function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -47,7 +47,7 @@ router.post('/POST/postToBank', async function (req, res, next) {
 
 router.post('/POST/updateOrder', function (req, res, next) {
 
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var order = JSON.parse(req.body.o_IDs);
     var sql = {
         o_paymentStatus: "completed"
@@ -55,7 +55,7 @@ router.post('/POST/updateOrder', function (req, res, next) {
 
     order.o_IDs.forEach(element => {
         //console.log(element)
-        db.query('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
+        mysqlPoolQuery('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
                 res.send({
@@ -153,7 +153,7 @@ router.post('/POST/sendTransferInfoMail', function (req, res, next) {
 
 router.post('/POST/bindOrder', function (req, res, next) {
 
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var order = JSON.parse(req.body.o_IDs);
 
     var sql = {
@@ -162,7 +162,7 @@ router.post('/POST/bindOrder', function (req, res, next) {
 
     order.o_IDs.forEach(element => {
         //console.log(element)
-        db.query('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
+        mysqlPoolQuery('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
                 res.json({

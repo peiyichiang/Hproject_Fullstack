@@ -20,22 +20,33 @@ var paymentGWRouter = require('./routes/paymentGW');
 // DataBase
 var mysql = require("mysql");
 
-var con = mysql.createConnection({
-    host: "140.119.101.130",//outside: 140.119.101.130, else 192.168.0.2 or localhost
-    user: "root",
-    password: "bchub",
-    database: "htoken",
+var pool = mysql.createPool({
+  host: "140.119.101.130",//outside: 140.119.101.130, else 192.168.0.2 or localhost
+  user: "root",
+  password: "bchub",
+  database: "htoken"
 });
 
-con.connect(function(err) {
-    if (err) {
-        console.log('connecting error');
-        console.log(err);
-        return;
-    }
-    console.log('connecting success');
-    console.log('http://localhost:3000/Product/productList');
-});
+var mysqlPoolQuery = function(sql, options, callback) {
+  console.log(sql, options, callback);
+  if (typeof options === "function") {
+      callback = options;
+      options = undefined;
+  }
+  pool.getConnection(function(err, conn){
+      if (err) {
+          callback(err, null, null);
+      } else {
+          conn.query(sql, options, function(err, results, fields){
+              // callback
+              callback(err, results, fields);
+          });
+          // release connection。
+          // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
+          conn.release();
+      }
+  });
+};
 
 
 
@@ -56,7 +67,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 
 app.use(function(req, res, next) {
-  req.con = con;
+  req.pool = mysqlPoolQuery;
   next();
 });
 

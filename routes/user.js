@@ -19,7 +19,7 @@ router.get('/', function (req, res, next) {
 /* my DB */
 // router.post('/user_information', function (req, res) {
 
-//     let db = req.con;
+//     let mysqlPoolQuery = req.pool;
 
 //     let insertData = {
 //         email: req.body.email,
@@ -33,7 +33,7 @@ router.get('/', function (req, res, next) {
 
 //     // console.log(insertData);
 
-//     let query = db.query('INSERT INTO user_information SET ?', insertData, function (err, rows) {
+//     let query = mysqlPoolQuery('INSERT INTO user_information SET ?', insertData, function (err, rows) {
 //         if (err) {
 //             res.status(400)
 //             res.json({
@@ -56,7 +56,7 @@ router.get('/', function (req, res, next) {
 /* Helium */
 router.post('/user_information', function (req, res) {
 
-    let db = req.con;
+    let mysqlPoolQuery = req.pool;
     let insertData = {
         u_email: req.body.email,
         salt: req.body.salt,
@@ -68,7 +68,7 @@ router.post('/user_information', function (req, res) {
     };
     // console.log(insertData);
 
-    let query = db.query('INSERT INTO user SET ?', insertData, function (err) {
+    let query = mysqlPoolQuery('INSERT INTO user SET ?', insertData, function (err) {
         if (err) {
             res.status(400)
             res.json({
@@ -146,8 +146,8 @@ router.post('/send_email', function (req, res) {
 // router.get('/verify_email', function (req, res) {
 //     var email = req.query.email
 
-//     let db = req.con;
-//     db.query('UPDATE user_information SET verify_status = 1 WHERE email = \'' + email + '\'', function (err) {
+//     let mysqlPoolQuery = req.pool;
+//     mysqlPoolQuery('UPDATE user_information SET verify_status = 1 WHERE email = \'' + email + '\'', function (err) {
 //         if (err) {
 //             res.status(400)
 //             res.json({
@@ -168,8 +168,8 @@ router.post('/send_email', function (req, res) {
 router.get('/verify_email', function (req, res) {
     var email = req.query.email
 
-    let db = req.con;
-    db.query('UPDATE user SET verify_status = 1 WHERE u_email = \'' + email + '\'', function (err) {
+    let mysqlPoolQuery = req.pool;
+    mysqlPoolQuery('UPDATE user SET verify_status = 1 WHERE u_email = \'' + email + '\'', function (err) {
         if (err) {
             res.status(400)
             res.json({
@@ -192,7 +192,7 @@ router.get('/verify_email', function (req, res) {
 router.post('/POST/AddUser', function(req, res, next) {
     console.log('------------------------==\n@user/POST/AddUser');
     const qstr1 = 'INSERT INTO htoken.user SET ?';
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
 
     console.log('req.query', req.query, 'req.body', req.body);
     let user;
@@ -224,7 +224,7 @@ router.post('/POST/AddUser', function(req, res, next) {
         };
     
         console.log(userNew);
-        var qur = db.query(qstr1, userNew, function (err, result) {
+        var qur = mysqlPoolQuery(qstr1, userNew, function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -252,12 +252,12 @@ router.post('/POST/AddUser', function(req, res, next) {
 router.get('/GET/UserByUserId', function(req, res, next) {
     console.log('------------------------==\n@Order/GET/UserByUserId');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_eth_add = ?';
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let status, userId, qstrz;
     if (req.body.userId) {userId = req.body.userId;
     } else {userId = req.query.userId;}
-    var qur = db.query(qstr1, userId, function(err, result) {
+    var qur = mysqlPoolQuery(qstr1, userId, function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
@@ -282,19 +282,19 @@ router.get('/GET/UserByUserId', function(req, res, next) {
 router.get('/GET/UserLogin', function(req, res, next) {
     console.log('------------------------==\n@Order/GET/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let email, password;
     if (req.body.email) {
         email = req.body.email; password = req.body.password;
     } else {email = req.query.email; password = req.query.password;}
 
-    var qur = db.query(qstr1, email, function(err, result) {
+    var qur = mysqlPoolQuery(qstr1, email, function(err, result) {
         if (err) {
             console.log(err);
             res.status(400);
             res.json({
-                "message": "[Error] db.query to/from DB :\n" + err,
+                "message": "[Error] db to/from DB :\n" + err,
                 "success": false
             });
         } else {
