@@ -19,6 +19,7 @@ var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
 var orderRouter = require('./routes/Order');
 //冠毅
 var paymentGWRouter = require('./routes/paymentGW');
+var registryContractAPIRouter = require('./routes/registryContractAPI');
 
 // var usersRouter = require('./routes/users');
 // DataBase
@@ -139,6 +140,7 @@ app.use('/user', userRouter);
 app.use('/NFTokenSPLC', NFTokenSPLCRouter);
 app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
+app.use('/registryContractAPI', registryContractAPIRouter);
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
