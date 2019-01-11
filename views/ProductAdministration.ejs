@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/ProductAdministration.css">
+  </head>
+  <body>
+    <!-- <h1>Product - List</h1> -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="#">HeliumCryptic</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav">
+                <span class="navbar-text">
+                    歡迎<%= UserID %>
+                </span>
+                <li class="nav-item" id="SignOut">
+                  <a class="nav-link" href="#">登出</a>
+                </li>
+              </ul>
+            </div>
+    </nav>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <tr class="bg-primary" style="color:white;">
+                <th class="nowrap">Token代號</th>
+                <th class="nowrap">產品名稱</th>
+                <th class="nowrap">產品所在地</th>
+                <th class="nowrap">單片售價</th>
+                <th class="nowrap">專案年期</th>
+                <th class="nowrap">貨幣種類</th>
+                <th class="nowrap">投報率</th>
+                <th class="nowrap">發行日</th>
+                <th class="nowrap">到期日</th>
+                <th class="nowrap">案場規模</th>
+                <th class="nowrap">總發行量</th>
+                <th class="nowrap">發行專案的產品經理</th>
+                <th class="nowrap">該專案處理狀態</th>
+                <th class="nowrap">退回</th>
+                <th class="nowrap">募資</th>
+                <th class="nowrap">達標</th>
+            </tr>
+            <% for ( var i = 0 ; i < data.length ; i++){ %>
+                <tr>
+                    <td>
+                        <%= data[i].p_SYMBOL  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_name  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_location  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_pricing  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_duration  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_currency  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_irr  %>
+                    </td>
+
+                    <td>
+                        <%= data[i].p_releasedate  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_validdate  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_size  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_totalrelease  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_fundmanager  %>
+                    </td>
+                    <td>
+                        <%= data[i].p_state  %>
+                    </td>
+                    <td>
+                        <!-- <input type="button" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');" /> -->
+                        <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button>
+                    </td>
+                    <td>
+                        <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
+                        <button type="button" class="btn btn-success" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');">募資</button>
+                    </td>
+                    <td>
+                        <!-- <input type="button" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');" /> -->
+                        <button type="button" class="btn btn-success" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');">達標</button>
+                    </td>
+                    <!-- onclick="Edit('<%= data[i].id  %>');" -->
+                </tr>
+                <% } %>
+        </table>
+    </div>
+
+    <script>
+        function Edit(SYMBOL,State) {
+            window.location.href = "/Product/GET/EditProductByPlatformAuditor?SYMBOL=" + SYMBOL + "&State=" + State;
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script src="/js/SignOut.js"></script>
+
+  </body>
+</html>

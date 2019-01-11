@@ -1,0 +1,291 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+	height: 100%;
+	background-color: #efe9e7;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/*=================CSS Reset=================*/
+
+.wrap{
+	/* max-width: 1024px; */
+	margin: 0px auto;
+	height: auto;
+	background-color: #efe9e7;
+}
+
+.header{
+	height: 56px;
+	background: rgba(0,0,0,1);
+	margin: 0px auto;
+}
+
+/*=================Logo=================*/
+.header .logo{
+    width: 204px;
+	height: 56px;
+	line-height: 56px;
+	float: left;
+    text-align: center;
+	/*background-color: red;*/
+}
+
+.header .logo img{
+	width: 120px;
+	height: 24px;
+	vertical-align: middle;
+}
+
+/*=================Menu=================*/
+.header .menu{
+	float: right;
+}
+
+.header .menu{
+	height: 56px;
+	line-height: 56px;
+}
+
+.header .menu .hamburgerMenu{
+	display: none;
+}
+
+/*平板*/
+@media(max-width: 768px){
+	
+}
+
+/*手機*/
+@media(max-width: 414px){
+	.header{
+		position: relative;
+	}
+
+	.header .hMenu{
+		/*一開始先隱藏*/
+		height: 0px;
+		overflow:hidden;
+		/*打開的動畫*/
+		transition: height 1s;
+
+		/*浮在網頁上*/
+		position: absolute;
+		/*width: 100%;*/
+		left: 0;
+		right: 0;
+		top: 56px;
+		z-index: 100; 
+	}
+
+	.header .menu ul li{
+		width: 100%;
+		background-color: rgba(0,0,0,0.7);
+	}
+
+	.header .menu ul li:hover{
+		background-color: rgba(255,255,255,0.7);
+	}
+
+
+	.header .menu .hamburgerMenu{
+		display: inline-block;
+		float: right;
+		font-size: 24px;
+		color: #FFFFFF;
+		margin-top: 16px;
+		margin-right: 16px;
+	}
+
+	.menuShow .hMenu
+	{
+		height: 168px;
+	}
+
+/*	.header .menu .hamburgerMenu:hover{
+		color: #3D1101;
+	}*/
+
+}
+
+.header .menu li{
+	float: left;
+	font-size: 16px;
+	width: 46px;
+	height: 56px;
+	text-align: center;
+}
+
+/*增加a標籤的點擊範圍*/
+.header .menu li a{
+	display: block;
+	color: white;
+}
+
+.header .menu li a:hover{
+	color: #3D1101;
+}
+/*=================Footer=================*/
+.footer{
+	/* max-width: 1024px; */
+	/* min-height: 100px; */
+	/*height: auto;*/
+	/*background-color: red;*/
+	margin-top:30px;
+	background-color: black;
+	text-align: left;
+	overflow:auto;
+
+	position: relative;
+    left: 0;
+	bottom: 0;
+	width: 100%;
+}
+
+@media(max-width: 414px){
+	.footer{
+		display: none;
+	}
+}
+
+/*.footer .container{
+	max-width: 1024px;
+	height: auto;
+}*/
+
+.footer .Info{
+	/* width: 33.33333%; */
+	
+	/*background-color: yellow;*/
+	/* float: left; */
+
+	/*border:1px solid black;*/
+	box-sizing: border-box;
+}
+
+/*平板*/
+@media(max-width: 768px){
+}
+
+/* 手機 */
+/* @media(max-width: 414px){
+	.footer{
+		min-height: 510px;
+	}
+
+	.footer .Info{
+		width: 100%;
+		min-height: 170px;
+		padding:20px;
+	}
+} */
+
+.footer .Info .title
+{
+	font-family: MicrosoftJhengHeiRegular;
+	font-size: 24px;
+	color: white;
+	padding: 16px;
+}
+
+.footer .Info .text{
+	font-family: MicrosoftJhengHeiRegular;
+	font-size: 16px;
+	color: #3D1101;
+	margin-left: 43px;
+	word-break:break-all;
+}
+
+/*手機*/
+@media(max-width: 414px){
+	.footer .Info .title,.footer .Info .text
+	{
+		margin-left:0px;
+	}	
+}
+
+.footer .Info img{
+	margin-bottom: 22px;
+	width: 80%;
+}
+
+.footer .Info .fa-google-plus-square{
+	/*font-family: FontAwesome;*/
+	font-size: 36px;
+	color: #DB4437;
+}
+
+.footer .Info .fa-twitter-square{
+	font-size: 36px;
+	color: #41ABE1;
+}
+
+.footer .Info .fa-facebook-square{
+	font-size: 36px;
+	color: #3A5795;
+}
+
+.footer .Info-right{
+	text-align: right;
+	/*float: right;*/
+	padding-right: 42px;
+	padding-top:54px;
+	background-color: #efe9e7;
+}
+
+
+
+
+/*=================a標籤Reset=================*/
+a{
+	text-decoration: none;
+}
+
+/*=================Clear Float=================*/
+.clear{
+	clear: both;
+}
+

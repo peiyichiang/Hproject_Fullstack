@@ -7,7 +7,6 @@ var nodemailer = require('nodemailer');
 router.get('/', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
-    var data = "";
 
     mysqlPoolQuery('SELECT * FROM htoken.order', function (err, rows) {
         if (err) {
