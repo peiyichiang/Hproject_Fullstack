@@ -64,6 +64,24 @@
         })
     })
 
+    $('#registerUser').on('click', function () {
+        $.get('/registryContractAPI/POST/registerUser',function (result) {
+            log(result);
+        })
+    })
+
+    $('#setAccountStatus').on('click', function () {
+        $.get('/registryContractAPI/POST/setAccountStatus',function (result) {
+            log(result);
+        })
+    })
+
+    $('#setEthAddr').on('click', function () {
+        $.get('/registryContractAPI/POST/setEthAddr',function (result) {
+            log(result);
+        })
+    })
+
 
 
 
