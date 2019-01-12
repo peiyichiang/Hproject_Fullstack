@@ -64,8 +64,8 @@
         }
     }
 
-    $('#getOwner').on('click', function () {
-        $.get('/registryContract/GET/getOwner', function (result) {
+    $('#deploy').on('click', function () {
+        $.post('/assetContractAPI/POST/deploy', function (result) {
             log(result);
         })
     })

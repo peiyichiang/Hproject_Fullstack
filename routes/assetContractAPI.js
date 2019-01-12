@@ -10,11 +10,28 @@ var userAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var privateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
 
 const contract = require('../contract/asset.json');
-var assetContract = new web3js.eth.Contract(contract.abi);
-
 
 router.get('/', function (req, res, next) {
     res.render('assetContractAPI');
+});
+
+router.post('/POST/deploy', function (req, res, next) {
+    let assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+
+    let assetContract = new web3.eth.Contract(contract.abi);
+    assetContract.deploy({
+        data: contract.bytecode
+    })
+        .send({
+            from: assetOwner,
+            gas: 3400000
+        })
+        .on('receipt', function (receipt) {
+            res.send(receipt);
+        })
+        .on('error', function (error) {
+            res.send(error.toString());
+        })
 });
 
 module.exports = router;
