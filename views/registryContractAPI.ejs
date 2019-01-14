@@ -47,11 +47,40 @@
     }
 
     $('#getOwner').on('click', function () {
-        $.get('/registryContract/GET/getOwner',function (result) {
+        $.get('/registryContractAPI/GET/getOwner',function (result) {
             log(result);
         })
     })
 
+    $('#getUserCount').on('click', function () {
+        $.get('/registryContractAPI/GET/getUserCount',function (result) {
+            log(result);
+        })
+    })
+
+    $('#getUserInfo').on('click', function () {
+        $.get('/registryContractAPI/GET/getUserInfo',function (result) {
+            log(result);
+        })
+    })
+
+    $('#registerUser').on('click', function () {
+        $.post('/registryContractAPI/POST/registerUser',function (result) {
+            log(result);
+        })
+    })
+
+    $('#setAccountStatus').on('click', function () {
+        $.post('/registryContractAPI/POST/setAccountStatus',function (result) {
+            log(result);
+        })
+    })
+
+    $('#setEthAddr').on('click', function () {
+        $.post('/registryContractAPI/POST/setEthAddr',function (result) {
+            log(result);
+        })
+    })
 
 
 

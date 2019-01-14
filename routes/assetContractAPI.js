@@ -19,6 +19,7 @@ router.get('/', function (req, res, next) {
     res.render('assetContractAPI');
 });
 
+
 //deploy asset contract
 router.post('/POST/deploy', function (req, res, next) {
     const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
@@ -45,7 +46,8 @@ router.post('/POST/deploy', function (req, res, next) {
         })
 });
 
-/*deploy contract with tx
+/*
+//deploy contract with tx
 router.post('/POST/deploy', async function (req, res, next) {
     let assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
     let platform = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
@@ -64,9 +66,8 @@ router.post('/POST/deploy', async function (req, res, next) {
             let txParams = {
                 from: userAddr,
                 nonce: web3.utils.toHex(nonce),
-                gasPrice: web3.utils.toHex(20 * 1e9),
-                gasLimit: web3.utils.toHex(8000000),
-                value: 0,
+                gasPrice: web3.utils.toHex(40 * 1e9),
+                gasLimit: web3.utils.toHex(3400000),
                 data: deploy
             }
 
@@ -105,7 +106,7 @@ router.post('/POST/deploy', async function (req, res, next) {
 router.get('/GET/getAssetsOwner', async function (req, res, next) {
     let contractAddr = req.query.address;
 
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: userAddr })
 
     res.send({
@@ -116,7 +117,7 @@ router.get('/GET/getAssetsOwner', async function (req, res, next) {
 router.get('/GET/getPlatform', async function (req, res, next) {
     let contractAddr = req.query.address;
 
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let platform = await assetContract.methods.getPlatform().call({ from: userAddr })
 
     res.send({
@@ -127,7 +128,7 @@ router.get('/GET/getPlatform', async function (req, res, next) {
 router.get('/GET/getThirdparty', async function (req, res, next) {
     let contractAddr = req.query.address;
 
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let thirdparty = await assetContract.methods.getThirdparty().call({ from: userAddr })
 
     res.send({
@@ -138,7 +139,7 @@ router.get('/GET/getThirdparty', async function (req, res, next) {
 router.get('/GET/getOwnerSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let ownerSign = await assetContract.methods.getOwnerSign().call({ from: userAddr })
 
     res.send({
@@ -149,7 +150,7 @@ router.get('/GET/getOwnerSign', async function (req, res, next) {
 router.get('/GET/getPlatformSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let platformSign = await assetContract.methods.getPlatformSign().call({ from: userAddr })
 
     res.send({
@@ -160,7 +161,7 @@ router.get('/GET/getPlatformSign', async function (req, res, next) {
 router.get('/GET/getThirdpartySign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let thirdpartySign = await assetContract.methods.getThirdpartySign().call({ from: userAddr })
 
     res.send({
@@ -173,7 +174,7 @@ router.post('/POST/ownerSign', async function (req, res, next) {
     let owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB'
     let ownerPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
     let contractAddr = req.body.address;
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     web3.eth.getTransactionCount(owner)
         .then(nonce => {
@@ -223,7 +224,7 @@ router.post('/POST/platformSign', async function (req, res, next) {
     let platform = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB'
     let platformPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
     let contractAddr = req.body.address;
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     web3.eth.getTransactionCount(platform)
         .then(nonce => {
@@ -271,7 +272,7 @@ router.get('/POST/thirdpartySign', async function (req, res, next) {
     let thirdparty = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB'
     let thirdpartyPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
     let contractAddr = req.body.address;
-    let assetContract =  new web3.eth.Contract(contract.abi, contractAddr);
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     web3.eth.getTransactionCount(thirdparty)
         .then(nonce => {
