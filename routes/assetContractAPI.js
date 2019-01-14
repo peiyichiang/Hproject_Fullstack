@@ -168,6 +168,7 @@ router.get('/GET/getThirdpartySign', async function (req, res, next) {
     })
 });
 
+
 router.post('/POST/ownerSign', async function (req, res, next) {
     let owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB'
     let ownerPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
@@ -181,8 +182,8 @@ router.post('/POST/ownerSign', async function (req, res, next) {
                 from: owner,
                 nonce: web3.utils.toHex(nonce),
                 gasPrice: web3.utils.toHex(20 * 1e9),
-                gasLimit: web3.utils.toHex(3000000),
-                to: assetContract,
+                gasLimit: web3.utils.toHex(3400000),
+                to: contractAddr,
                 value: 0,
                 data: assetContract.methods.ownerSign().encodeABI()
             }
@@ -209,7 +210,9 @@ router.post('/POST/ownerSign', async function (req, res, next) {
                 })
                 .on('error', function (err) {
                     console.log(err);
-                    reject(err);
+                    res.send({
+                        err: err.toString()
+                    })
                 })
 
         })
@@ -230,7 +233,7 @@ router.post('/POST/platformSign', async function (req, res, next) {
                 nonce: web3.utils.toHex(nonce),
                 gasPrice: web3.utils.toHex(20 * 1e9),
                 gasLimit: web3.utils.toHex(3000000),
-                to: assetContract,
+                to: contractAddr,
                 value: 0,
                 data: assetContract.methods.platformSign().encodeABI()
             }
@@ -278,7 +281,7 @@ router.get('/POST/thirdpartySign', async function (req, res, next) {
                 nonce: web3.utils.toHex(nonce),
                 gasPrice: web3.utils.toHex(20 * 1e9),
                 gasLimit: web3.utils.toHex(3000000),
-                to: assetContract,
+                to: contractAddr,
                 value: 0,
                 data: assetContract.methods.thirdpartySign().encodeABI()
             }

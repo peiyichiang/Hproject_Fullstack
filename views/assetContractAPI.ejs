@@ -133,7 +133,7 @@
     $('#ownerSign').on('click', function () {
         address = assetContract;
         log(assetContract);
-        $.post('/assetContractAPI/POST/ownerSign',function (result) {
+        $.post('/assetContractAPI/POST/ownerSign',{address: address},function (result) {
             log(result);
         })
     })
@@ -141,7 +141,7 @@
     $('#platformSign').on('click', function () {
         address = assetContract;
         log(assetContract);
-        $.post('/assetContractAPI/POST/platformSign',function (result) {
+        $.post('/assetContractAPI/POST/platformSign',{address: address},function (result) {
             log(result);
         })
     })
@@ -149,7 +149,7 @@
     $('#thirdpartySign').on('click', function () {
         address = assetContract;
         log(assetContract);
-        $.get('/assetContractAPI/POST/thirdpartySign',function (result) {
+        $.get('/assetContractAPI/POST/thirdpartySign',{address: address},function (result) {
             log(result);
         })
     })
@@ -158,7 +158,7 @@
     $('#changeAssetOwner').on('click', function () {
         address = assetContract;
         log(assetContract);
-        $.post('/assetContractAPI/POST/changeAssetOwner',function (result) {
+        $.post('/assetContractAPI/POST/changeAssetOwner',{address: address},function (result) {
             log(result);
         })
     })
@@ -166,7 +166,7 @@
     $('#changePlatform').on('click', function () {
         address = assetContract;
         log(assetContract);
-        $.post('/assetContractAPI/POST/changePlatform',function (result) {
+        $.post('/assetContractAPI/POST/changePlatform',{address: address},function (result) {
             log(result);
         })
     })
@@ -174,7 +174,7 @@
     $('#changeThirdparty').on('click', function () {
         address = assetContract;
         log(assetContract);
-        $.post('/assetContractAPI/POST/changeThirdparty',function (result) {
+        $.post('/assetContractAPI/POST/changeThirdparty',{address: address},function (result) {
             log(result);
         })
     })
