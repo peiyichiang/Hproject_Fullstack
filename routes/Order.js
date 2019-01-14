@@ -13,6 +13,7 @@ router.post('/POST/AddOrder', function (req, res, next) {
         symbol = req.body.symbol;
     } else { symbol = req.query.symbol; }
 
+    var mysqlPoolQuery = req.pool;
     //當前時間
     var timeStamp = Date.now() / 1000 | 0;//new Date().getTime();
     var currentDate = new Date();

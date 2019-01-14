@@ -83,12 +83,12 @@
 
     <script>
         function Edit(SYMBOL) {
-            window.location.href = "/Product/GET/EditProduct?SYMBOL=" + SYMBOL;
+            window.location.href = "/Product/GET/EditProduct?symbol=" + SYMBOL;
         }
         function Delete(SYMBOL) {
             var rs = confirm('Confirm to delete?');
             if (rs) {
-                window.location.href = "/Product/GET/DeleteProduct?SYMBOL=" + SYMBOL;
+                window.location.href = "/Product/GET/DeleteProduct?symbol=" + SYMBOL;
             }
         }
     </script>

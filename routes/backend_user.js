@@ -53,11 +53,11 @@ router.get('/GET/backend_user', function(req, res, next) {
     //     return;
     // }
 
-  var db = req.con;
+//   var db = req.con;
   var data = "";
-  
+  var mysqlPoolQuery = req.pool;
 
-  db.query('SELECT * FROM backend_user', function(err, rows) {
+  mysqlPoolQuery('SELECT * FROM backend_user', function(err, rows) {
       if (err) {
           console.log(err);
       }
@@ -98,7 +98,8 @@ router.post('/POST/AddBackendUser', function(req, res, next) {
     // }
 
 
-  var db = req.con;
+  var mysqlPoolQuery = req.pool;
+
 
   //前端傳明文密碼過來，將salt與明文密碼做sha256
   var password=req.body.m_passwordhash;
@@ -114,7 +115,7 @@ router.post('/POST/AddBackendUser', function(req, res, next) {
 
  console.log("*:"+sql);
 
-  var qur = db.query('INSERT INTO backend_user SET ?', sql, function(err, rows) {
+  var qur = mysqlPoolQuery('INSERT INTO backend_user SET ?', sql, function(err, rows) {
       if (err) {
           console.log(err);
           res.render('error', { message: '帳號重複', error: '' });
@@ -161,9 +162,9 @@ router.get('/GET/DeleteBackendUser', function(req, res, next) {
     // }
 
     var ID = req.query.ID;
-    var db = req.con;
+    var mysqlPoolQuery = req.pool;
   
-    var qur = db.query('DELETE FROM backend_user WHERE m_id = ?', ID, function(err, rows) {
+    var qur = mysqlPoolQuery('DELETE FROM backend_user WHERE m_id = ?', ID, function(err, rows) {
         if (err) {
             console.log(err);
         }
@@ -207,10 +208,11 @@ router.get('/GET/EditBackendUser', function(req, res, next) {
     // }
 
     var ID = req.query.ID;
-    var db = req.con;
+    // var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var data = "";
 
-    db.query('SELECT * FROM backend_user WHERE m_id = ?', ID, function(err, rows) {
+    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function(err, rows) {
         if (err) {
             console.log(err);
         }
@@ -254,7 +256,8 @@ router.post('/POST/EditBackendUser', function(req, res, next) {
     //     return;
     // }
 
-    var db = req.con;
+    // var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var ID = req.body.m_id;
 
     var sql = {
@@ -267,7 +270,7 @@ router.post('/POST/EditBackendUser', function(req, res, next) {
 
     console.log("*:" + JSON.stringify(sql));
 
-    var qur = db.query('UPDATE backend_user SET ? WHERE m_id = ?', [sql, ID], function(err, rows) {
+    var qur = mysqlPoolQuery('UPDATE backend_user SET ? WHERE m_id = ?', [sql, ID], function(err, rows) {
         if (err) {
             console.log(err);
         }else{
@@ -288,11 +291,12 @@ router.get('/GET/BackendUserLogin', function(req, res, next) {
 //接收後端使用者登入資料
 router.post('/POST/BackendUserLogin', function(req, res, next) {
 
-  var db = req.con;
+//   var db = req.con;
+  var mysqlPoolQuery = req.pool;
   var ID = req.body.m_id;
   var Password=req.body.m_password;
 
- db.query('SELECT * FROM backend_user WHERE m_id = ?', ID, function(err, rows) {
+  mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function(err, rows) {
     if (err) {
         console.log(err);
     }
@@ -387,11 +391,12 @@ router.get('/GET/BackendUser_CustomerService', function(req, res, next) {
     //     return;
     // }
 
-    var db = req.con;
+    // var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var data = "";
     console.log("＊：" + req);
   
-    db.query('SELECT * FROM product', function(err, rows) {
+    mysqlPoolQuery('SELECT * FROM product', function(err, rows) {
         if (err) {
             console.log(err);
         }
@@ -438,11 +443,12 @@ router.get('/GET/BackendUser_Platform_Auditor', function(req, res, next) {
     //     return;
     // }
 
-    var db = req.con;
+    // var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var data = "";
     // console.log("＊：" + req);
   
-    db.query('SELECT * FROM product', function(err, rows) {
+    mysqlPoolQuery('SELECT * FROM product', function(err, rows) {
         if (err) {
             console.log(err);
         }
