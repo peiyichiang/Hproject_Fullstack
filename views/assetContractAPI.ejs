@@ -39,6 +39,12 @@
     </div>
     <hr>
     <div>
+        <button id="ownerSign">ownerSign</button>
+        <button id="platformSign">platformSign</button>
+        <button id="thirdpartySign">thirdpartySign</button>
+    </div>
+    <hr>
+    <div>
         <button id="changeAssetOwner">changeAssetOwner</button>
         <button id="changePlatform">changePlatform</button>
         <button id="changeThirdparty">changeThirdparty</button>
@@ -64,8 +70,111 @@
         }
     }
 
+    let assetContract = "0x0";
+
     $('#deploy').on('click', function () {
         $.post('/assetContractAPI/POST/deploy', function (result) {
+            log(result);
+            assetContract = result.contractAddress;
+        })
+    })
+
+    /*get地址*/
+    $('#getAssetsOwner').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/GET/getAssetsOwner',{address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getPlatform').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/GET/getPlatform',{address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getThirdparty').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/GET/getThirdparty',{address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    /*get簽名*/
+    $('#getOwnerSign').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/GET/getOwnerSign',{address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getPlatformSign').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/GET/getPlatformSign',{address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getThirdpartySign').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/GET/getThirdpartySign',{address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    /*簽名*/
+    $('#ownerSign').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.post('/assetContractAPI/POST/ownerSign',function (result) {
+            log(result);
+        })
+    })
+
+    $('#platformSign').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.post('/assetContractAPI/POST/platformSign',function (result) {
+            log(result);
+        })
+    })
+
+    $('#thirdpartySign').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.get('/assetContractAPI/POST/thirdpartySign',function (result) {
+            log(result);
+        })
+    })
+
+    /*變更地址*/
+    $('#changeAssetOwner').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.post('/assetContractAPI/POST/changeAssetOwner',function (result) {
+            log(result);
+        })
+    })
+
+    $('#changePlatform').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.post('/assetContractAPI/POST/changePlatform',function (result) {
+            log(result);
+        })
+    })
+
+    $('#changeThirdparty').on('click', function () {
+        address = assetContract;
+        log(assetContract);
+        $.post('/assetContractAPI/POST/changeThirdparty',function (result) {
             log(result);
         })
     })

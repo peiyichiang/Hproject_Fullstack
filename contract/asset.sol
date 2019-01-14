@@ -1,7 +1,8 @@
 pragma solidity ^0.4.25;
 //pragma experimental ABIEncoderV2;
 
-import "browser/ERC721.sol"; //與ERC721相接
+import "https://github.com/kappabooom/h_contract/ERC721.sol";
+
 
 contract multiSig {
     address internal assetsOwner;//用戶
@@ -33,80 +34,80 @@ contract multiSig {
         require(owner_flag+platform_flag+thirdparty_flag >= 2);
         _;
     }
-
+    
     //重置簽章狀態
     function resetSignStatus() internal {
         owner_flag = 0;
         platform_flag = 0;
         thirdparty_flag = 0;
     }
-
+    
     //檢查是否為合約擁有者
     modifier isOwner(){
         require(msg.sender == assetsOwner);
         _;
     }
-
+    
     //檢查是否為平台方
     modifier isPlatform(){
         require(msg.sender == platform);
         _;
     }
-
+    
     //檢查是否為第三方公信機構
     modifier isThirdparty(){
         require(msg.sender == thirdparty);
         _;
     }
-
+    
     //更換assetOwner
     function changeAssetOwner(address _to) public isMultiSignature{
         assetsOwner = _to;
         resetSignStatus();
-
+        
         emit changeAssetOwnerEvent(msg.sender, _to, now);
     }
-
+    
     //更換platform
     function changePlatform(address _to) public isMultiSignature{
         platform = _to;
         resetSignStatus();
-
+        
         emit changePlatformEvent(msg.sender, _to, now);
     }
-
+    
     //更換thirdparty
     function changeThirdparty(address _to) public isMultiSignature{
         thirdparty = _to;
         resetSignStatus();
-
+        
         emit changeThirdpartyEvent(msg.sender, _to, now);
     }
-
+    
     function getOwnerSign() public view returns(uint){
         return owner_flag;
     }
-
+    
     function getPlatformSign() public view returns(uint){
         return platform_flag;
     }
-
+    
     function getThirdpartySign() public view returns(uint){
         return thirdparty_flag;
     }
-
+    
     function getAssetsOwner() public view returns(address){
         return assetsOwner;
     }
-
+    
     function getPlatform() public view returns(address){
         return platform;
     }
-
+    
     function getThirdparty() public view returns(address){
         return thirdparty;
     }
-
+    
 }
 
 contract AssetContract is multiSig{
@@ -130,7 +131,7 @@ contract AssetContract is multiSig{
             assetsOwner = _assetsOwner;
             platform = _platform;
             thirdparty = _thirdparty;
-
+            
             emit createAssetContractEvent(_assetsOwner, _platform, _thirdparty, now);
     }
 
@@ -155,7 +156,7 @@ contract AssetContract is multiSig{
     //提領token
     function transferAsset(address _tokenAddr, uint _transferAmount,address _to) public isAssetsOwner {
         require(assets[_tokenAddr].tokenAmount >= _transferAmount, "your balances are not enough" );
-
+        
         uint remainAmount = 123;//_tokenAddr.balances(this);
         //_tokenAddr.transfer(_to);
 
@@ -171,7 +172,7 @@ contract AssetContract is multiSig{
     function getAssetCount() public view returns(uint assetCount){
     	return assetIndex.length;
 	}
-
+	
 	//get all assetAddr
 	function getAssetIndex() public view returns(address[]){
         return (assetIndex);
