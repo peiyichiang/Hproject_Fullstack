@@ -43,7 +43,7 @@ router.get('/GET/getUserInfo', async function (req, res, next) {
     })
 });
 
-router.get('/POST/registerUser', async function (req, res, next) {
+router.post('/POST/registerUser', async function (req, res, next) {
     let u_id = "B122";
     let assetAccount = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
     let etherAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
@@ -90,7 +90,7 @@ router.get('/POST/registerUser', async function (req, res, next) {
 
 });
 
-router.get('/POST/setAccountStatus', async function (req, res, next) {
+router.post('/POST/setAccountStatus', async function (req, res, next) {
     let u_id = "A123";
     let AccountStatus = 1;
 
@@ -136,7 +136,7 @@ router.get('/POST/setAccountStatus', async function (req, res, next) {
 
 });
 
-router.get('/POST/setEthAddr', async function (req, res, next) {
+router.post('/POST/setEthAddr', async function (req, res, next) {
     let u_id = "A123";
     let EthAddr = "0xca35b7d915458ef540ade6068dfe2f44e8fa733c";
 
