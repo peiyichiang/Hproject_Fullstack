@@ -6,6 +6,21 @@ yarn-debug.log*
 yarn-error.log*
 yarn.lock
 package-lock.json
+archives/
+
+#ReactJs
+out/
+
+#ReactNative
+android/
+ios/
+
+#Cordova
+platforms/
+plugins/
+res/
+www/archives/
+
 
 # Runtime data
 pids
@@ -80,4 +95,3 @@ typings/
 #DynamoDB Local files 
 .dynamodb/ 
 
-archives/
