@@ -284,7 +284,11 @@ router.post('/POST/AddProduct', function(req, res, next) {
       p_fundmanager: req.body.p_fundmanager,
       p_state: req.body.p_state,
       p_icon:req.body.p_icon,
-      p_assetdocs:req.body.p_assetdocs
+      p_assetdocs:req.body.p_assetdocs,
+      p_FAY:req.body.p_FAY,
+      p_FTRT:req.body.p_FTRT,
+      p_RPT:req.body.p_RPT,
+      p_Timeline:req.body.p_Timeline
   };
 
  console.log(sql);
@@ -354,7 +358,11 @@ router.post('/POST/AddProductByFMN', function(req, res, next) {
       p_fundmanager: JWT_decoded.payload.m_id,
       p_state: "creation",
       p_icon:req.body.p_icon,
-      p_assetdocs:req.body.p_assetdocs
+      p_assetdocs:req.body.p_assetdocs,
+      p_FAY:req.body.p_FAY,
+      p_FTRT:req.body.p_FTRT,
+      p_RPT:req.body.p_RPT,
+      p_Timeline:req.body.p_Timeline
   };
 
  console.log(sql);
