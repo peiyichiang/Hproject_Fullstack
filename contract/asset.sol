@@ -1,13 +1,13 @@
 pragma solidity ^0.4.25;
 //pragma experimental ABIEncoderV2;
 
-import "https://github.com/kappabooom/h_contract/ERC721.sol";
-
+import "https://github.com/kappabooom/h_contract/ERC721_SPLC5.sol";
+//import "ERC721_SPLC5.sol";
 
 contract multiSig {
-    address internal assetsOwner;//用戶
-    address internal platform;
-    address internal thirdparty;
+    address internal assetsOwner; //用戶 address
+    address internal platform; //平台方 address
+    address internal thirdparty; //第三方 address (一到三個人?)
     uint private owner_flag;
     uint private platform_flag;
     uint private thirdparty_flag;
@@ -31,148 +31,156 @@ contract multiSig {
     }
 
     modifier isMultiSignature(){
-        require(owner_flag+platform_flag+thirdparty_flag >= 2);
+        require(owner_flag+platform_flag+thirdparty_flag >= 2, "請確認是否完成多重簽章");
         _;
     }
-    
+
     //重置簽章狀態
     function resetSignStatus() internal {
         owner_flag = 0;
         platform_flag = 0;
         thirdparty_flag = 0;
     }
-    
+
     //檢查是否為合約擁有者
     modifier isOwner(){
-        require(msg.sender == assetsOwner);
+        require(msg.sender == assetsOwner, "請檢查是否為合約擁有者");
         _;
     }
-    
+
     //檢查是否為平台方
     modifier isPlatform(){
-        require(msg.sender == platform);
+        require(msg.sender == platform, "請檢查是否為平台方");
         _;
     }
-    
+
     //檢查是否為第三方公信機構
     modifier isThirdparty(){
-        require(msg.sender == thirdparty);
+        require(msg.sender == thirdparty, "請檢查是否為第三方公信機構");
         _;
     }
-    
+
     //更換assetOwner
     function changeAssetOwner(address _to) public isMultiSignature{
         assetsOwner = _to;
         resetSignStatus();
-        
+
         emit changeAssetOwnerEvent(msg.sender, _to, now);
     }
-    
+
     //更換platform
     function changePlatform(address _to) public isMultiSignature{
         platform = _to;
         resetSignStatus();
-        
+
         emit changePlatformEvent(msg.sender, _to, now);
     }
-    
+
     //更換thirdparty
     function changeThirdparty(address _to) public isMultiSignature{
         thirdparty = _to;
         resetSignStatus();
-        
+
         emit changeThirdpartyEvent(msg.sender, _to, now);
     }
-    
+
+    //取得sign
     function getOwnerSign() public view returns(uint){
         return owner_flag;
     }
-    
+
     function getPlatformSign() public view returns(uint){
         return platform_flag;
     }
-    
+
     function getThirdpartySign() public view returns(uint){
         return thirdparty_flag;
     }
-    
+
     function getAssetsOwner() public view returns(address){
         return assetsOwner;
     }
-    
+
     function getPlatform() public view returns(address){
         return platform;
     }
-    
+
     function getThirdparty() public view returns(address){
         return thirdparty;
     }
-    
+
 }
 
 contract AssetContract is multiSig{
 
 
     struct Asset{
-        address tokenAddr;//token合約位址
+        address tokenAddr; //token合約位址
         string tokenSymbol; //tokenSymbol
-        uint tokenAmount;//Token數量
+        uint tokenAmount; //Token數量
+        uint[] ids; //擁有的TokenId
     }
 
     mapping (address => Asset) assets;
-    address[] assetIndex;
+    address[] assetIndex; //token address list
 
 
     event createAssetContractEvent(address assetsOwner, address platform, address thirdparty, uint timestamp);
-    event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint timestamp);
-    event transferAssetEvent(address to, string tokenSymbol, uint transferAmount, uint remainAmount, uint timestamp);
+    event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
+    event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
     constructor (address _assetsOwner, address _platform, address _thirdparty) public {
             assetsOwner = _assetsOwner;
             platform = _platform;
             thirdparty = _thirdparty;
-            
+
             emit createAssetContractEvent(_assetsOwner, _platform, _thirdparty, now);
     }
 
     modifier isAssetsOwner(){
-        require(msg.sender == assetsOwner);
+        require(msg.sender == assetsOwner, "請檢查是否為合約擁有者");
         _;
     }
 
     //新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來)
     function addAsset(address _tokenAddr) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        ERC721 _erc721 = ERC721(_tokenAddr);
+        NFTokenSPLC _erc721 = NFTokenSPLC(_tokenAddr);
 
         assets[_tokenAddr].tokenAddr = _tokenAddr;
-        assets[_tokenAddr].tokenSymbol = _erc721.getTokenSymbol(this);
-        assets[_tokenAddr].tokenAmount += _erc721.getBalance(this);
+        assets[_tokenAddr].tokenSymbol = _erc721.symbol();
+        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(this);
+        assets[_tokenAddr].ids = _erc721.get_ownerToIds(this);
         assetIndex.push(_tokenAddr);
 
-        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, now);
+        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, now);
     }
 
     //提領token
-    function transferAsset(address _tokenAddr, uint _transferAmount,address _to) public isAssetsOwner {
-        require(assets[_tokenAddr].tokenAmount >= _transferAmount, "your balances are not enough" );
-        
-        uint remainAmount = 123;//_tokenAddr.balances(this);
-        //_tokenAddr.transfer(_to);
+    function transferAsset(address _tokenAddr, uint _tokenId, address _to) public isAssetsOwner {
+        NFTokenSPLC _erc721 = NFTokenSPLC(_tokenAddr);
+        require( _erc721.ownerOf(_tokenId) == address(this) , "請確認欲轉移的token_id");
 
-        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _transferAmount, remainAmount, now);
+        uint remainAmount = _erc721.balanceOf(this);//_tokenAddr.balances(this);
+        _erc721.transferFrom(this, _to, _tokenId);
+        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(this);
+        assets[_tokenAddr].ids = _erc721.get_ownerToIds(this);
+
+        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, now);
     }
 
     //get tokenAmount
-    function getAsset(address _tokenAddr) public view returns (uint){
-        return assets[_tokenAddr].tokenAmount;
+    function getAsset(address _tokenAddr) public view returns (uint, uint[]){
+        NFTokenSPLC _erc721 = NFTokenSPLC(_tokenAddr);
+
+        return (assets[_tokenAddr].tokenAmount, _erc721.get_ownerToIds(this));
     }
 
     //get asset number
     function getAssetCount() public view returns(uint assetCount){
     	return assetIndex.length;
 	}
-	
+
 	//get all assetAddr
 	function getAssetIndex() public view returns(address[]){
         return (assetIndex);
