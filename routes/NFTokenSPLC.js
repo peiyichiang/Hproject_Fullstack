@@ -125,7 +125,7 @@ router.get('/mintserialnft',function(req,res){
       count = v;
       //var amount = web3js.utils.toHex(1e16);
       var rawTransaction = {
-        "from":fromAddr, 
+        "from":fromAddr,
         "gasPrice":web3js.utils.toHex(20*1e9),
         "gasLimit":web3js.utils.toHex(3000000),//3000000
         "to":ctrtAddr,

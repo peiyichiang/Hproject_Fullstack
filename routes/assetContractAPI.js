@@ -4,8 +4,10 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
-//Infura HttpProvider Endpoint
+/*Infura HttpProvider Endpoint*/
 web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
+/*POA*/
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 
 //平台方公私鑰
 var userAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -21,6 +23,7 @@ router.get('/', function (req, res, next) {
 //deploy asset contract
 router.post('/POST/deploy', function (req, res, next) {
     const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
+    //const provider = new PrivateKeyProvider(privateKey, 'http://140.119.101.130:8545');
     const web3deploy = new Web3(provider);
 
     let assetOwner = req.body.assetOwner;
@@ -173,7 +176,7 @@ router.post('/POST/ownerSign', async function (req, res, next) {
     let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: userAddr });
 
     /*privatekey 到時候會去底層keycahin sign*/
-    let ownerPrivateKey = '17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
     let encodedData = assetContract.methods.ownerSign().encodeABI();
     let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
@@ -190,7 +193,7 @@ router.post('/POST/platformSign', async function (req, res, next) {
     console.log(platform);
 
     /*privatekey 到時候會去底層keycahin sign*/
-    let platformPrivateKey = '87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18';
+    let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18';
     let encodedData = assetContract.methods.platformSign().encodeABI();
     let result = await signTx(platform, platformPrivateKey, contractAddr, encodedData);
 
@@ -206,7 +209,7 @@ router.post('/POST/thirdpartySign', async function (req, res, next) {
     let thirdparty = await assetContract.methods.getThirdparty().call({ from: userAddr });
 
     /*privatekey 到時候會去底層keycahin sign*/
-    let thirdpartyPrivateKey = '9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
+    let thirdpartyPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
     let encodedData = assetContract.methods.thirdpartySign().encodeABI();
     let result = await signTx(thirdparty, thirdpartyPrivateKey, contractAddr, encodedData);
 
@@ -222,7 +225,7 @@ router.post('/POST/changePlatform', async function (req, res, next) {
     let platform = await assetContract.methods.getPlatform().call({ from: userAddr });
 
     /*privatekey 到時候會去底層keycahin sign*/
-    let platformPrivateKey = '87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18'
+    let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18'
     let newPlatform = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
     let encodedData = assetContract.methods.changePlatform(newPlatform).encodeABI();
     let result = await signTx(platform, platformPrivateKey, contractAddr, encodedData);
@@ -325,7 +328,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gasPrice: web3.utils.toHex(20 * 1e9),
+                    gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),
                     to: contractAddr,
                     value: 0,
