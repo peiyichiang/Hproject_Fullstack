@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const path = require('path');
-
+const bcrypt = require('bcrypt');
 
 /* email sender */
 const nodemailer = require('nodemailer');
@@ -114,8 +114,8 @@ router.post('/send_email', function (req, res) {
         from: ' <user3@heliumcryptic.club>', // sender address
         to: email, // list of receivers
         subject: '錢包帳號註冊驗證信', // Subject line
-        text: '請點以下連結以完成驗證： http://140.119.101.130:3000/user/verify_email?email=' + email, // plain text body
-        // text: '請點以下連結以完成驗證： http://140.119.101.130:8000/user/verify_email?email=' + email, // plain text body
+        text: '請點以下連結以完成驗證： http://localhost:3000/user/verify_email?email=' + email, // plain text body
+        // text: '請點以下連結以完成驗證： http://localhost:8000/user/verify_email?email=' + email, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 

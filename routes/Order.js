@@ -1,6 +1,6 @@
 var express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+//const bcrypt = require('bcrypt');
 var async = require('async');
 var router = express.Router();
 
