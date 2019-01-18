@@ -40,8 +40,8 @@ router.post('/signIn', function (req, res) {
     // console.log('sign in')
     console.log(req.body)
 
-    let db = req.con;
-    db.query('SELECT u_email,u_eth_add FROM user WHERE u_email = \'' + req.body.email + '\'', function (err) {
+    let mysqlPoolQuery = req.pool;
+    mysqlPoolQuery('SELECT u_email,u_eth_add FROM user WHERE u_email = \'' + req.body.email + '\'', function (err) {
         let data = {
             email: result.email,
             address: result.address,
@@ -62,7 +62,7 @@ router.post('/signIn', function (req, res) {
 router.post('/user_information', function (req, res) {
     console.log(req.files)
 
-    let db = req.con;
+    let mysqlPoolQuery = req.pool;
     let insertData = {
         u_email: req.body.email,
         u_salt: req.body.salt,
@@ -75,7 +75,7 @@ router.post('/user_information', function (req, res) {
         u_imageb: req.body.imageURLB,
     };
 
-    let query = db.query('INSERT INTO user SET ?', insertData, function (err) {
+    let query = mysqlPoolQuery('INSERT INTO user SET ?', insertData, function (err) {
         if (err) {
             res.status(400)
             res.json({
@@ -144,8 +144,8 @@ router.post('/send_email', function (req, res) {
 router.get('/verify_email', function (req, res) {
     var email = req.query.email
 
-    let db = req.con;
-    db.query('UPDATE user SET u_verify_status = 1 WHERE u_email = \'' + email + '\'', function (err) {
+    let mysqlPoolQuery = req.pool;
+    mysqlPoolQuery('UPDATE user SET u_verify_status = 1 WHERE u_email = \'' + email + '\'', function (err) {
         if (err) {
             res.sendFile(path.join(__dirname + '/verify_fail.html'))
         }
@@ -159,12 +159,12 @@ router.get('/verify_email', function (req, res) {
 
 /* test post image function */
 router.post('/post_image', upload.single('image'), function (req, res) {
-    let db = req.con;
+    let mysqlPoolQuery = req.pool;
     var email = req.body.email
     var imageLocation = req.body.imageLocation
 
     if (req.body.front_back == "front") {
-        db.query('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+        mysqlPoolQuery('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
             if (err) {
                 res.status(400)
                 res.json({
@@ -179,7 +179,7 @@ router.post('/post_image', upload.single('image'), function (req, res) {
             }
         });
     } else {
-        db.query('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+        mysqlPoolQuery('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
             if (err) {
                 res.status(400)
                 res.json({
@@ -220,7 +220,7 @@ router.post('/POST/AddUser', function (req, res, next) {
     } else { user = req.query; }//Object.keys(user).length === 0 && user.constructor === Object
     console.log('user', user);
 
-    let passwordHash; const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+    const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
     //Generate a salt and hash on separate function calls.
     //each password that we hash is going to have a unique salt and a unique hash. As we learned before, this helps us mitigate greatly rainbow table attacks.
     bcrypt
@@ -236,12 +236,13 @@ router.post('/POST/AddUser', function (req, res, next) {
                 u_salt: 0,
                 u_password_hash: hash,
                 u_identityNumber: user.nationalId,
-                u_imagef: Math.random().toString(36).substring(2, 15),
-                u_imageb: Math.random().toString(36).substring(2, 15),
-                u_eth_add: '0x' + Math.random().toString(36).substring(2, 15),
+                u_imagef: user.imageURLF,
+                u_imageb: user.imageURLB,
+                u_eth_add: '0x',
+                u_verify_status: user.verify_status,
                 u_cellphone: user.phone,
                 u_name: user.name,
-            };
+            };//Math.random().toString(36).substring(2, 15)
 
             console.log(userNew);
             var qur = mysqlPoolQuery(qstr1, userNew, function (err, result) {
