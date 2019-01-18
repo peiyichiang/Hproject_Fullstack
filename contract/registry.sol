@@ -7,9 +7,9 @@ contract RegistryContract{
     uint totalUser;
 
     struct User{
-        string u_id;
-        address assetAccount;
-        address etherAddr;
+        string u_id; //user 身分證字號
+        address assetAccount; //user assetContract address
+        address etherAddr; //user ethereum (EOA);
         uint accountStatus; //用數字分狀態，0=>合法、1=>停權
     }
 

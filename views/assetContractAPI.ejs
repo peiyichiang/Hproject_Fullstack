@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>assetContractAPI</title>
+    <style>
+        .flex {
+            display: flex;
+        }
+
+        .item {
+            flex: 1;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <button id="deploy">部署合約</button>
+        <button id="load">載入合約</button>
+        <button id="addAsset">新增資產</button>
+        <button id="getAsset">token數量（幾個）、ID</button>
+        <button id="getAssetCount">資產數量（幾種）</button>
+        <button id="getAssetIndex">資產種類</button>
+        <button id="transferAsset">轉移資產</button>
+    </div>
+    <hr>
+    <div>
+        <button id="getAssetsOwner">getAssetsOwner</button>
+        <button id="getPlatform">getPlatform</button>
+        <button id="getThirdparty">getThirdparty</button>
+    </div>
+    <hr>
+    <div>
+        <button id="getOwnerSign">getOwnerSign</button>
+        <button id="getPlatformSign">getPlatformSign</button>
+        <button id="getThirdpartySign">getThirdpartySign</button>
+    </div>
+    <hr>
+    <div>
+        <button id="ownerSign">ownerSign</button>
+        <button id="platformSign">platformSign</button>
+        <button id="thirdpartySign">thirdpartySign</button>
+    </div>
+    <hr>
+    <div>
+        <button id="changeAssetOwner">changeAssetOwner</button>
+        <button id="changePlatform">changePlatform</button>
+        <button id="changeThirdparty">changeThirdparty</button>
+    </div>
+
+    <div class="item" style="width:500px;">
+        <h3>活動紀錄</h3>
+        <pre id="logger"></pre>
+    </div>
+
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+</body>
+
+<script>
+    let logger = $('#logger');
+    //把log印在網頁上
+    function log(...inputs) {
+        for (let input of inputs) {
+            if (typeof input === 'object') {
+                input = JSON.stringify(input, null, 2)
+            }
+            logger.html(input + '\n' + logger.html())
+        }
+    }
+
+    let assetContract = "0xd22ef24a86df0ff56ed5151a0ffffec5650b6ce9";
+
+    $('#deploy').on('click', function () {
+        assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+        platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        thirdparty = "0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590";
+        log("deploying");
+
+        $.post('/assetContractAPI/POST/deploy', {
+            assetOwner: assetOwner,
+            platform: platform,
+            thirdparty: thirdparty
+        }, function (result) {
+            log(result);
+        })
+    })
+
+    $('#load').on('click', function () {
+            assetContract = "0xd22ef24a86df0ff56ed5151a0ffffec5650b6ce9";
+            log(assetContract);
+    })
+
+    /*get acount*/
+    $('#getAssetsOwner').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getAssetsOwner', {address: address }, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getPlatform').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getPlatform', {address: address }, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getThirdparty').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getThirdparty', {address: address }, function (result) {
+            log(result);
+        })
+    })
+
+    /*get簽名*/
+    $('#getOwnerSign').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getOwnerSign', {address: address }, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getPlatformSign').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getPlatformSign', {address: address }, function (result) {
+            log(result);
+        })
+    })
+
+    $('#getThirdpartySign').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getThirdpartySign', {address: address }, function (result) {
+            log(result);
+        })
+    })
+
+    /*簽名*/
+    $('#ownerSign').on('click', function () {
+        address = assetContract;
+        owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/ownerSign', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#platformSign').on('click', function () {
+        address = assetContract;
+        platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/platformSign', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#thirdpartySign').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/thirdpartySign', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    /*變更地址*/
+    $('#changeAssetOwner').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/changeAssetOwner', {address: address,}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#changePlatform').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/changePlatform', {address: address,}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#changeThirdparty').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/changeThirdparty', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    //新增assetInfo
+    $('#addAsset').on('click', function () {
+        address = assetContract;
+        ERC721Addr = "0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/addAsset', {address: address, ERC721Addr: ERC721Addr}, function (result) {
+            log(result);
+        })
+    })
+
+    //get assetInfo(token數量（幾個）、ID)
+    $('#getAsset').on('click', function () {
+        address = assetContract;
+        ERC721Addr = "0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getAsset', {address: address, ERC721Addr: ERC721Addr}, function (result) {
+            log(result);
+        })
+    })
+
+    //get assetInfo(token數量（幾種)）
+    $('#getAssetCount').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getAssetCount', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    //get 資產種類
+    $('#getAssetIndex').on('click', function () {
+        address = assetContract;
+        //log(assetContract);
+        $.get('/assetContractAPI/GET/getAssetIndex', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    //transfer token
+    $('#transferAsset').on('click', function () {
+        address = assetContract;
+        ERC721Addr = "0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
+        token_id = 3;
+        to = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+        //log(assetContract);
+        $.post('/assetContractAPI/POST/transferAsset', {
+            address: address,
+            ERC721Addr: ERC721Addr,
+            token_id: token_id,
+            to: to
+        }, function (result) {
+            log(result);
+        })
+    })
+
+
+
+
+
+
+
+</script>
+
+
+</html>

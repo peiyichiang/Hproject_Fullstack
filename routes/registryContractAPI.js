@@ -8,7 +8,7 @@ web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d
 
 var userAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var privateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
-var contractAddr = '0x391dace017a97273e1231c7072f6cd9dcd05e798';
+var contractAddr = '0x806e5435281eb8f03959edefbf02b802dcadfa16';
 
 const contract = require('../contract/registry.json');
 var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -35,18 +35,18 @@ router.get('/GET/getUserCount', async function (req, res, next) {
 });
 
 router.get('/GET/getUserInfo', async function (req, res, next) {
-    let u_id = "A123"
-    let userInfo = await registryContract.methods.getUserInfo(u_id).call({ from: userAddr })
+    let u_id = req.query.u_id;
+    let userInfo = await registryContract.methods.getUserInfo(u_id).call({ from: userAddr });
 
     res.send({
         userInfo: userInfo
     })
 });
 
-router.get('/POST/registerUser', async function (req, res, next) {
-    let u_id = "B122";
-    let assetAccount = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-    let etherAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+router.post('/POST/registerUser', async function (req, res, next) {
+    let u_id = req.body.u_id;
+    let assetAddr = req.body.assetAddr;
+    let ethAddr = req.body.ethAddr;
 
     web3.eth.getTransactionCount(userAddr)
         .then(nonce => {
@@ -58,7 +58,7 @@ router.get('/POST/registerUser', async function (req, res, next) {
                 gasLimit: web3js.utils.toHex(3000000),
                 to: contractAddr,
                 value: 0,
-                data: registryContract.methods.registerUser(u_id, assetAccount, etherAddr).encodeABI()
+                data: registryContract.methods.registerUser(u_id, assetAddr, ethAddr).encodeABI()
             }
 
             let tx = new Tx(txParams);
@@ -90,7 +90,7 @@ router.get('/POST/registerUser', async function (req, res, next) {
 
 });
 
-router.get('/POST/setAccountStatus', async function (req, res, next) {
+router.post('/POST/setAccountStatus', async function (req, res, next) {
     let u_id = "A123";
     let AccountStatus = 1;
 
@@ -104,7 +104,7 @@ router.get('/POST/setAccountStatus', async function (req, res, next) {
                 gasLimit: web3js.utils.toHex(3000000),
                 to: contractAddr,
                 value: 0,
-                data: registryContract.methods.setAccountStatus(u_id,AccountStatus).encodeABI()
+                data: registryContract.methods.setAccountStatus(u_id, AccountStatus).encodeABI()
             }
 
             let tx = new Tx(txParams);
@@ -136,7 +136,7 @@ router.get('/POST/setAccountStatus', async function (req, res, next) {
 
 });
 
-router.get('/POST/setEthAddr', async function (req, res, next) {
+router.post('/POST/setEthAddr', async function (req, res, next) {
     let u_id = "A123";
     let EthAddr = "0xca35b7d915458ef540ade6068dfe2f44e8fa733c";
 
@@ -150,7 +150,7 @@ router.get('/POST/setEthAddr', async function (req, res, next) {
                 gasLimit: web3js.utils.toHex(3000000),
                 to: contractAddr,
                 value: 0,
-                data: registryContract.methods.setEthAddr(u_id,EthAddr).encodeABI()
+                data: registryContract.methods.setEthAddr(u_id, EthAddr).encodeABI()
             }
 
             let tx = new Tx(txParams);
@@ -182,7 +182,34 @@ router.get('/POST/setEthAddr', async function (req, res, next) {
 
 });
 
+router.post('/POST/updateUserDB', function (req, res, next) {
 
+    var u_email = req.body.email;
+    var mysqlPoolQuery = req.pool;
+    var sql = {
+        u_address: req.body.assetContractAddr,
+        u_verify_status: req.body.status
+    };
+
+
+    //console.log(element)
+    mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, u_email], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: "fail",
+            });
+        }
+    });
+
+    res.send({
+        status: "success",
+        u_email: req.body.email,
+        u_address: req.body.assetContractAddr,
+        u_verify_status: req.body.status
+    });
+
+});
 
 module.exports = router;
 

@@ -258,7 +258,6 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
         _safeTransferFrom(_from, _to, _tokenId, "");
     }
 
-    //For asset contracts
     function transferFrom(
         address _from, address _to, uint256 _tokenId) external 
         checkTfStatus
