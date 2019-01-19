@@ -113,7 +113,7 @@ router.post('/send_email', function (req, res) {
     let mailOptions = {
         from: ' <user3@heliumcryptic.club>', // sender address
         to: email, // list of receivers
-        subject: '錢包帳號註冊驗證信', // Subject line
+        subject: '帳號註冊驗證信', // Subject line
         text: '請點以下連結以完成驗證： http://localhost:3000/user/verify_email?email=' + email, // plain text body
         // text: '請點以下連結以完成驗證： http://localhost:8000/user/verify_email?email=' + email, // plain text body
         // html: '<b>Hello world?</b>' // html body
@@ -147,10 +147,12 @@ router.get('/verify_email', function (req, res) {
     let mysqlPoolQuery = req.pool;
     mysqlPoolQuery('UPDATE user SET u_verify_status = 1 WHERE u_email = \'' + email + '\'', function (err) {
         if (err) {
-            res.sendFile(path.join(__dirname + '/verify_fail.html'))
+            res.sendFile(path.join(__dirname + '/verify_fail.html'));
+            //edit page at /routes/verify_fail.html
         }
         else {
-            res.sendFile(path.join(__dirname + '/verify_success.html'))
+            res.sendFile(path.join(__dirname + '/verify_success.html'));
+            //edit page at /routes/verify_success.html
         }
         /* code = 304? */
     });
@@ -238,7 +240,7 @@ router.post('/POST/AddUser', function (req, res, next) {
                 u_identityNumber: user.nationalId,
                 u_imagef: user.imageURLF,
                 u_imageb: user.imageURLB,
-                u_eth_add: '0x',
+                u_eth_add: '0x'+Math.random().toString(36).substring(2, 15),
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phone,
                 u_name: user.name,
