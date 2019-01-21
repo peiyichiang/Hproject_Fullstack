@@ -1,12 +1,5 @@
 pragma solidity ^0.5.2;
-/*
--->每季底FMX結帳後FMXA通知平台該期應該發放的租金是多少-->PBD-->PA審核, 確認.
--->平台發出訊息給user, 即將於x月底發放租金至指定帳戶, 請user確認.
--->發放租金資訊鏈接bank-->回報訊息.
--->異常處理.
--->二級市場交易時, 租金分配規則制定.
--->外部還要寫一隻BE程式專門與銀行對接收/ 付款資訊.
-*/
+
 contract Ownable {
     address public owner;
     address public ownerNew;
@@ -63,9 +56,10 @@ contract Rent is Ownable {
     //re-entry attack??
     uint public nextRentTxnIndex = 1;//rent issuing index
 
-    mapping(address => bool) public restricted;
+    address public platformAdmin;
     mapping(uint256 => RentTxn) public idToRentTxn;
-
+    mapping(address => address) public tokenToFMXA;
+    
     // cash flow: FMX -> platform -> investors
     struct RentTxn {
         uint rentIndex;
@@ -74,10 +68,20 @@ contract Rent is Ownable {
         uint timeToSend;//the time to send rent
         bool isApproved;//by PA
         uint amountSent;//confirmed after platform's bank confirming rent has been sent
+        uint timeOfSentTxn;
         uint8 errorCode;//0 to 255
     }
+    /*
+    -->每季底FMX結帳後FMXA通知平台該期應該發放的租金是多少-->PBD-->PA審核, 確認.
+    -->平台發出訊息給user, 即將於x月底發放租金至指定帳戶, 請user確認.
+    -->發放租金資訊鏈接bank-->回報訊息.
+    -->異常處理.
+    -->二級市場交易時, 租金分配規則制定.
+    -->外部還要寫一隻BE程式專門與銀行對接收/ 付款資訊.
+    */
 
-    function makeRentTxn(address _tokenCtrt, uint _amountToSend, uint _timeToSend) external onlyFMXA {
+    function makeRentTxn(address _tokenCtrt, uint _amountToSend, uint _timeToSend, uint _timeOfSentTxn) external {
+        require(tokenToFMXA[_tokenCtrt] == msg.sender, "sender is not the admin for this token");
         RentTxn newRentTxn = RentTxn({ 
             rentIndex: nextRentTxnIndex,
             tokenCtrt: _tokenCtrt,
@@ -85,11 +89,20 @@ contract Rent is Ownable {
             timeToSend: _timeToSend,
             isApproved: false,
             amountSent: 0,
+            timeOfSentTxn: _timeOfSentTxn,
             errorCode: 0
         });
         idToRentTxn[nextRentTxnIndex] = newRentTxn;
         nextRentTxnIndex = nextRentTxnIndex.add(1);
     }
+
+    function approveRentSchedule(uint rentTxnIndex, bool boolValue) external {
+        require(platformAdmin == msg.sender, "only platform admin can execute this function");
+        idToRentTxn[rentTxnIndex].isApproved = boolValue;
+    
+    }
+
+
 
     function generateToken(uint pairId, string _uri) external onlyAdmin {
         htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
@@ -175,63 +188,10 @@ contract Rent is Ownable {
     }
 
 
-    /**
-    //ERC721
-    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
-    event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
-    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
-    function balanceOf(address _owner) external view returns (uint256);
-    function ownerOf(uint256 _tokenId) external view returns (address);
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes _data) external;
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
-    function transferFrom(address _from, address _to, uint256 _tokenId) external;
-    function approve(address _approved, uint256 _tokenId) external;
-    function setApprovalForAll(address _operator, bool _approved) external;
-    function getApproved(uint256 _tokenId) external view returns (address);
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool);
-
-    //ERC165
-    function supportsInterface(bytes4 _interfaceID) external view returns (bool);
-    //ERC721Metadata
-    function name() external view returns (string _name);
-    function symbol() external view returns (string _symbol);
-    function tokenURI(uint256 _tokenId) external view returns (string);
-    //ERC721Enumerable
-    function totalSupply() external view returns (uint256);
-    function tokenByIndex(uint256 _index) external view returns (uint256);
-    function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256);
-     */
-
     function transferOwnership(uint pairId) public {
         htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
         htoken.transferOwnership();
     }
-
-    /*
-    function name(uint pairId) public returns (string) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.name();
-    }
-    function symbol(uint pairId) public returns (string) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.symbol();
-    }
-    function tokenURI(uint pairId, uint256 _tokenId) public returns (string) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.tokenURI(_tokenId);
-    }
-    function totalSupply(uint pairId) public returns (uint) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.totalSupply();
-    }
-    function tokenByIndex(uint pairId, uint256 _index) public returns (uint) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.tokenByIndex(_index);
-    }
-    function tokenOfOwnerByIndex(uint pairId, address _owner, uint256 _index) public returns (uint) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.tokenOfOwnerByIndex(_owner,_index);
-    }*/
 
 
 // get_ownerToIds(address _owner) external view returns (uint[]) {
@@ -254,24 +214,6 @@ contract Rent is Ownable {
         htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
         return htoken.getCtrtDetails();
     }
-
-    /*
-    function Invest(uint _tokencount) public checkAmount(_tokencount);
-    function ProjectState() public view returns(string _return);
-    function Progress() public view returns(uint);
-    
-    function Invest(uint pairId, uint _tokencount) public {
-        crowdSale = CrowdSale(idToCtrtPair[pairId].crowdSaleCtrt);
-        return crowdSale.Invest(_tokencount);
-    }
-    function ProjectState(uint pairId) public returns(string _return){
-        crowdSale = CrowdSale(idToCtrtPair[pairId].crowdSaleCtrt);
-        return crowdSale.ProjectState();
-    }
-    function Progress(uint pairId) public returns(uint){
-        crowdSale = CrowdSale(idToCtrtPair[pairId].crowdSaleCtrt);
-        return crowdSale.Progress();
-    }*/
 
 }
 
