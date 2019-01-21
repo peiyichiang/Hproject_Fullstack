@@ -2,7 +2,7 @@
 <html>
   <head>
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <!-- 跟ProductAdministration共用，只有用到nowrap -->
     <link rel="stylesheet" href="/css/ProductAdministration.css">
@@ -30,20 +30,26 @@
 <div class="table-responsive">
     <table class="table table-hover table-striped">
         <tr class="bg-primary" style="color:white;">
-            <th class="nowrap">Token代號(p_SYMBOL)</th>
-            <th class="nowrap">產品名稱(p_name)</th>
-            <th class="nowrap">產品所在地(p_location)</th>
-            <th class="nowrap">單片售價(p_pricing)</th>
-            <th class="nowrap">專案年期(p_duration)</th>
-            <th class="nowrap">貨幣種類(p_currency)</th>
-            <th class="nowrap">投報率(p_irr)</th>
-            <th class="nowrap">發行日(p_releasedate)</th>
-            <th class="nowrap">到期日(p_validdate)</th>
-            <th class="nowrap">案場規模(p_size)</th>
-            <th class="nowrap">總發行量(p_totalrelease)</th>
-            <th class="nowrap">發行專案的產品經理(p_fundmanager)</th>
-            <th class="nowrap">該專案處理狀態(p_state)</th>
-
+            <th class="nowrap">Token代號</th>
+            <th class="nowrap">產品名稱</th>
+            <th class="nowrap">產品所在地</th>
+            <th class="nowrap">單片售價</th>
+            <th class="nowrap">專案年期</th>
+            <th class="nowrap">貨幣種類</th>
+            <th class="nowrap">投報率</th>
+            <th class="nowrap">發行日</th>
+            <th class="nowrap">到期日</th>
+            <th class="nowrap">案場規模</th>
+            <th class="nowrap">總發行量</th>
+            <th class="nowrap">發行專案的產品經理</th>
+            <th class="nowrap">該專案處理狀態</th>
+            <th class="nowrap">預估平均年收益</th>
+            <th class="nowrap">預估回收金額</th>
+            <th class="nowrap">租金支付週期</th>
+            <th class="nowrap">預估回收年限</th>
+            <th class="nowrap">預估進度圖</th>
+            <th class="nowrap">產品文件</th>
+            <th class="nowrap">產品icon</th>
         </tr>
         <% for ( var i = 0 ; i < data.length ; i++){ %>
             <tr>
@@ -86,6 +92,31 @@
                 </td>
                 <td>
                     <%= data[i].p_state  %>
+                </td>
+                <td>
+                    <%= data[i].p_FAY  %>
+                </td>
+                <td>
+                    <%= data[i].p_FTRT  %>
+                </td>
+                <td>
+                    <%= data[i].p_RPT  %>
+                </td>
+                <td>
+                    <%= data[i].p_FRP  %>
+                </td>
+                <td>
+                    <%= data[i].p_Timeline  %>
+                </td>
+                <td>
+                    <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
+                        <a target="_blank" href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                    <% } %>
+                </td>
+                <td>
+                    <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
+                        <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                    <% } %>
                 </td>
             </tr>
             <% } %>
