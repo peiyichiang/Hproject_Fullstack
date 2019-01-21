@@ -80,27 +80,31 @@ router.get('/GET/ProductByFMN', function(req, res, next) {
         res.render('error', { message: '請先登入', error: '' });
         return;
     }
-
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
     
-    // if(req.session.m_permission!="Company_FundManagerN"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
+    // var mysqlPoolQuery = req.pool;
+    // mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?',[JWT_decoded.payload.m_id , "creation"])
+    // .then( rows => {
+    //     var data = rows;
+    //     res.render('ProductAdministrationByFMN', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data});
+    // } );
+
     var mysqlPoolQuery = req.pool;
-  
+    //獲取審核中的產品資料
     mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?', [JWT_decoded.payload.m_id , "creation"] , function(err, rows) {
         if (err) {
             console.log(err);
         }
         var data = rows;
-  
-        // use index.ejs
-        res.render('ProductAdministrationByFMN', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data});
+        //獲取編輯中的產品資料
+        mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?', [JWT_decoded.payload.m_id , "draft"] , function(err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            var dataDraft = rows;
+            res.render('ProductAdministrationByFMN', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data,dataDraft:dataDraft});
+        });
     });
+
     
 });
 
@@ -131,29 +135,35 @@ router.get('/GET/ProductByFMA', function(req, res, next) {
         res.render('error', { message: '請先登入', error: '' });
         return;
     }
+    
+    //   var mysqlPoolQuery = req.pool;
+    //   mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"creation"]  , function(err, rows) {
+    //       if (err) {
+    //           console.log(err);
+    //       }
+    //       var data = rows;
+    //     //   console.log(rows);
+    //       // use index.ejs
+    //       res.render('ProductAdministrationByFMA', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data});
+    //   });
 
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-    
-    // if(req.session.m_permission!="Company_FundManagerA"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
-    
     var mysqlPoolQuery = req.pool;
-    //   SELECT * FROM htoken.product, backend_user WHERE (backend_user.m_id = product.p_fundmanager AND backend_user.m_company = 'NTU');
-      mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"creation"]  , function(err, rows) {
-    //mysqlPoolQuery('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function(err, rows) {
-          if (err) {
-              console.log(err);
-          }
-          var data = rows;
-        //   console.log(rows);
-          // use index.ejs
-          res.render('ProductAdministrationByFMA', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data});
-      });
+    mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"creation"]  , function(err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        var data = rows;
+
+        mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"publish"]  , function(err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            var dataPublish = rows;
+            res.render('ProductAdministrationByFMA', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data,dataPublish:dataPublish});
+        });
+
+
+    });
     
 });
 
@@ -305,7 +315,7 @@ router.post('/POST/AddProduct', function(req, res, next) {
 
 //新增資料：接收資料的post(FMN專用)
 router.post('/POST/AddProductByFMN', function(req, res, next) {
-    console.log('------------------------==\n@Product/POST/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
+    // console.log('------------------------==\n@Product/POST/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     var token=req.cookies.access_token;
     var JWT_decoded;
     if (token) {
@@ -356,12 +366,13 @@ router.post('/POST/AddProductByFMN', function(req, res, next) {
       p_size: req.body.p_size,
       p_totalrelease: req.body.p_totalrelease,
       p_fundmanager: JWT_decoded.payload.m_id,
-      p_state: "creation",
+      p_state: "draft",   //草稿
       p_icon:req.body.p_icon,
       p_assetdocs:req.body.p_assetdocs,
       p_FAY:req.body.p_FAY,
       p_FTRT:req.body.p_FTRT,
       p_RPT:req.body.p_RPT,
+      p_FRP:req.body.p_FRP,
       p_Timeline:req.body.p_Timeline
   };
 
@@ -592,10 +603,10 @@ router.post('/POST/EditProduct', function(req, res, next) {
 
 });
 
-// ok
+
 //修改資料：將修改後的資料傳到資料庫(FMN專用)
 router.post('/POST/EditProductByFMN', function(req, res, next) {
-    console.log('------------------------==\n@Product/POST/EditProductByFMA:\nreq.query', req.query, 'req.body', req.body);
+    // console.log('------------------------==\n@Product/POST/EditProductByFMA:\nreq.query', req.query, 'req.body', req.body);
     var token=req.cookies.access_token;
     if (token) {
         // 驗證JWT token
@@ -629,7 +640,7 @@ router.post('/POST/EditProductByFMN', function(req, res, next) {
     // }
 
     var mysqlPoolQuery = req.pool;
-    var symbol = req.body.symbol;
+    var symbol = req.body.p_SYMBOL;
 
     var sql = {
         p_SYMBOL: req.body.p_SYMBOL,
@@ -648,10 +659,11 @@ router.post('/POST/EditProductByFMN', function(req, res, next) {
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
-
-    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
+    console.log("@@@：" + symbol);
+    console.log("@@@：" + JSON.stringify(req.query));
+    var qur = mysqlPoolQuery('UPDATE htoken.product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
         if (err) {
-            console.log(err);
+            console.log("＊＊＊:"+err);
         }
 
         res.setHeader('Content-Type', 'application/json');
@@ -660,7 +672,58 @@ router.post('/POST/EditProductByFMN', function(req, res, next) {
 
 });
 
-//修改資料：publish(FMA專用)
+//修改資料：將產品狀態設置為creation，讓FMA可以審核(FMN專用)
+router.get('/GET/SetProductCreationByFMN', function(req, res, next) {
+    // console.log('------------------------==\n@Product/POST/EditProductByFMA:\nreq.query', req.query, 'req.body', req.body);
+    var token=req.cookies.access_token;
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+          if (err) {
+            //JWT token驗證失敗
+            res.render('error', { message: '帳號密碼錯誤', error: '' });
+            return;
+          } else {
+            //JWT token驗證成功
+            if(decoded.payload.m_permission!="Company_FundManagerN"){
+                res.render('error', { message: '權限不足', error: '' });
+                return;
+            }
+          }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    // if(req.session.login!=true){
+    //     res.render('error', { message: '請先登入帳號', error: '' });
+    //     return;
+    // }
+    
+    // if(req.session.m_permission!="Company_FundManagerN"){
+    //     res.render('error', { message: '權限不足', error: '' });
+    //     return;
+    // }
+
+    var mysqlPoolQuery = req.pool;
+    var symbol = req.query.symbol;
+    console.log("@@@:" + symbol);
+
+    var qur = mysqlPoolQuery('UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function(err, rows) {
+        if (err) {
+            console.log("＊＊＊:"+err);
+        }
+
+        res.setHeader('Content-Type', 'application/json');
+        res.redirect('/Product/GET/ProductByFMN');
+    });
+
+});
+
+
+//設置產品的狀態：將產品狀態設為publish(FMA專用)
 router.get('/GET/EditProductByFMA', function(req, res, next) {
   console.log('------------------------==\n@Product/GET/EditProductByFMA:\nreq.query', req.query, 'req.body', req.body);
   var token=req.cookies.access_token;
@@ -713,7 +776,60 @@ router.get('/GET/EditProductByFMA', function(req, res, next) {
 
 });
 
-//設置產品的狀態：將產品狀態退回creation，或設置為funding跟archive(Platform Auditor專用)
+//設置產品的狀態：將產品狀態設為draft(FMA專用)
+router.get('/GET/SetProductDraftByFMA', function(req, res, next) {
+    console.log('------------------------==\n@Product/GET/EditProductByFMA:\nreq.query', req.query, 'req.body', req.body);
+    var token=req.cookies.access_token;
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+          if (err) {
+            //JWT token驗證失敗
+            res.render('error', { message: '帳號密碼錯誤', error: '' });
+            return;
+          } else {
+            //JWT token驗證成功
+            if(decoded.payload.m_permission!="Company_FundManagerA"){
+                res.render('error', { message: '權限不足', error: '' });
+                return;
+            }
+          }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+  
+    // if(req.session.login!=true){
+    //     res.render('error', { message: '請先登入帳號', error: '' });
+    //     return;
+    // }
+    
+    // if(req.session.m_permission!="Company_FundManagerA"){
+    //     res.render('error', { message: '權限不足', error: '' });
+    //     return;
+    // }
+  
+    var mysqlPoolQuery = req.pool;
+    var symbol = req.query.symbol;
+  
+    var sql = {
+        p_state: "draft"
+    };
+  
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
+        if (err) {
+            console.log(err);
+        }
+  
+        res.setHeader('Content-Type', 'application/json');
+        res.redirect('/Product/GET/ProductByFMA');
+    });
+  
+});
+
+//設置產品的狀態：將產品狀態設為退回creation，或設置為funding跟archive(Platform Auditor專用)
 router.get('/GET/EditProductByPlatformAuditor', function(req, res, next) {
   console.log('------------------------==\n@Product/GET/EditProductByPlatformAuditor:\nreq.query', req.query, 'req.body', req.body);
   var token=req.cookies.access_token;

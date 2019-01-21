@@ -4,164 +4,140 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="/css/HeaderFooter.css">
-    <link rel="stylesheet" href="/css/EditProductByFMN.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <title>Document</title>
 </head>
 <body>
-<!-- <form name="editform" action="/Product/POST/EditProductByFMN" method="post" accept-charset="utf-8">
-        <h1>Product - Edit</h1>
-        <div>
-
-            <div>
-                <label>到期日(p_validdate):</label>
-                <input type="text" name="p_validdate" placeholder="p_validdate" value="<%=data[0].p_validdate %>" />
-            </div>
-            <div>
-                <label>案場規模(p_size):</label>
-                <input type="text" name="p_size" placeholder="p_size" value="<%=data[0].p_size %>" />
-            </div>
-            <div>
-                <label>總發行量(p_totalrelease):</label>
-                <input type="text" name="p_totalrelease" placeholder="p_totalrelease" value="<%=data[0].p_totalrelease %>" />
-            </div>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="border-bottom:1px solid white;">
+        <a class="navbar-brand sticky-top" href="#">HeliumCryptic</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/Product/GET/ProductByFMN">管理產品</a>
+              </li>
+            <!-- <li class="nav-item" id="SignOut">
+              <a class="nav-link" href="#">登出</a>
+            </li> -->
+          </ul>
         </div>
-        <div>
-            <input type='submit' value='Submit'>
-        </div>
-</form> -->
+</nav>
 
-<div class="wrap">
-        <div class="clear"></div>
-        <div class="content">
-            <div class="signup">
-                <div class="up">
-                    <!-- <img style="width: 90px;" src="data:image/png;base64,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" alt=""> -->
-                    <!-- <div class="textInfo">享受美食好味道</div> -->
+<!-- 新增產品表單 -->
+<div class="wrap" style="width:50%;height:100%;margin:0 auto;margin-top:60px;margin-bottom:60px;border:1px solid #dbdbdb;border-radius: 25px;padding:20px;">
+    <form name="editform" id="editform" action="/Product/POST/EditProductByFMN" method="post" accept-charset="utf-8">
+        <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="p_SYMBOL">產品代號</label>
+            <input type="text" class="form-control" name="p_SYMBOL" id="p_SYMBOL" placeholder="ex:NCCU19" value="<%=data[0].p_SYMBOL %>" readonly>
+        </div>
+        <div class="form-group col-md-4">
+                <label for="p_name">產品名稱</label>
+                <input type="text" class="form-control" name="p_name" id="p_name" placeholder="ex:政大一號" value="<%=data[0].p_name %>">
+        </div>
+        <div class="form-group col-md-4">
+                <label for="p_location">產品所在地</label>
+                <input type="text" class="form-control" name="p_location" id="p_location" placeholder="ex:台北" value="<%=data[0].p_location %>">
+        </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                <label for="p_pricing">單片售價</label>
+                <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500" value="<%=data[0].p_pricing %>">
                 </div>
-
-                <div class="down">
-                    <div class="signUpWindow">
-                        <div class="windowUp">
-                            <div class="title">
-                                編輯產品資料
-                            </div>
-                        </div>
-                        <div class="windowDown">
-                            <div class="right">
-                                <div class="login">
-                                    <form name="editform" id="editform" action="/Product/POST/EditProductByFMN" method="post" accept-charset="utf-8">
-                                                <div class="inputTitle">Token代號</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_SYMBOL" placeholder="p_SYMBOL" value="<%=data[0].p_SYMBOL %>" readonly/>
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">產品名稱</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_name" placeholder="p_name" value="<%=data[0].p_name %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">產品所在地</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_location" placeholder="p_location" value="<%=data[0].p_location %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">單片售價</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_pricing" placeholder="p_pricing" value="<%=data[0].p_pricing %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">專案年期</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_duration" placeholder="p_duration" value="<%=data[0].p_duration %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">貨幣種類</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_currency" placeholder="p_currency" value="<%=data[0].p_currency %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">投報率</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_irr" placeholder="p_irr" value="<%=data[0].p_irr %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">發行日</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_releasedate" placeholder="p_releasedate" value="<%=data[0].p_releasedate %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">到期日</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_validdate" placeholder="p_validdate" value="<%=data[0].p_validdate %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">案場規模</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_size" placeholder="p_size" value="<%=data[0].p_size %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">總發行量</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_totalrelease" placeholder="p_totalrelease" value="<%=data[0].p_totalrelease %>" />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">產品icon</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_icon" id="p_icon" placeholder="p_icon" value="<%=data[0].p_icon %>" readonly />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-
-                                                <div class="inputTitle">產品文件</div>
-                                                <div class="inputContainer">
-                                                        <input type="text" class="username" name="p_assetdocs" id="p_assetdocs" placeholder="p_assetdocs" value="<%=data[0].p_assetdocs %>" readonly />
-                                                        <i class="fas fa-id-badge"></i>
-                                                </div>
-                                                <div class="haveAccount responseState"></div>
-                                        </form>
-                                        <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
-                                            <div class="inputTitle">上傳產品文件</div>
-                                            <input type="file" name="file" style="margin-bottom:10px;" />
-                                            <div class="inputTitle">上傳產品icon</div>
-                                            <input type="file" name="icon" />
-                                        </form>
-                                        <input type='button' value="修改" id="modify" class="modify">
-                                    <div class="clear"></div>
-                                </div>
-                            </div>
-                            <div class="clear"></div>
-                        </div>
-                    </div>
+                <div class="form-group col-md-4">
+                    <label for="p_duration">專案年期</label>
+                    <input type="text" class="form-control" name="p_duration" id="p_duration" placeholder="ex:10" value="<%=data[0].p_duration %>">
                 </div>
-            </div>
-            <div class="transaction">
-                
-            </div>
+                <div class="form-group col-md-4">
+                    <label for="p_currency">貨幣種類</label>
+                    <input type="text" class="form-control" name="p_currency" id="p_currency" placeholder="ex:NTD" value="<%=data[0].p_currency %>">
+                </div>
         </div>
-
-        <div class="clear"></div>
-
-        <!-- <div class="footer">
-            <div class="Info">
-                <div class="title">@NCCU Blockchain Hub</div>
-
-            </div>
-        </div> -->
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                <label for="p_irr">投報率</label>
+                <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8" value="<%=data[0].p_irr %>">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_releasedate">發行日</label>
+                    <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:12312019" value="<%=data[0].p_releasedate %>">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_validdate">到期日</label>
+                    <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:12312022" value="<%=data[0].p_validdate %>">
+                </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                <label for="p_size">案場規模</label>
+                <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:8" value="<%=data[0].p_size %>">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="p_totalrelease">總發行量</label>
+                    <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:999" value="<%=data[0].p_totalrelease %>">
+                </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                <label for="p_FAY">預估平均年收益</label>
+                <input type="text" class="form-control" name="p_FAY" id="p_FAY" placeholder="ex:4.8" value="<%=data[0].p_FAY %>">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_FTRT">預估回收金額</label>
+                    <input type="text" class="form-control" name="p_FTRT" id="p_FTRT" placeholder="ex:15,327" value="<%=data[0].p_FTRT %>">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_RPT">租金支付週期</label>
+                    <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:" value="<%=data[0].p_RPT %>">
+                </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                <label for="p_FRP">預估回收年限</label>
+                <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:8" value="<%=data[0].p_FRP %>">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="p_Timeline">預估進度圖</label>
+                    <input type="text" class="form-control" name="p_Timeline" id="p_Timeline" placeholder="ex:" value="<%=data[0].p_Timeline %>">
+                </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                <label for="p_assetdocs">產品文件</label>
+                <input type="text" class="form-control" name="p_assetdocs" id="p_assetdocs" value="<%=data[0].p_assetdocs %>" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="p_icon">產品icon</label>
+                    <input type="text" class="form-control" name="p_icon" id="p_icon" value="<%=data[0].p_icon %>" readonly>
+                </div>
+        </div>
+    </form>
+    <!-- 文件上傳表單 -->
+    <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                        <label for="file">產品文件</label>
+                        <input type="file" class="form-control" name="file" id="file">
+                </div>
+                <div class="form-group col-md-6">
+                        <label for="icon">產品icon</label>
+                        <input type="file" class="form-control" name="icon" id="icon">
+                </div>
+        </div>
+    </form>
+    <button type="button" id="modify" class="btn btn-primary">修改</button>
 </div>
 
+
+
 <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script src="/js/EditProductByFMN.js"></script>
 </body>
 </html>
