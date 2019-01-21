@@ -68,7 +68,7 @@ contract Rent is Ownable {
         uint timeToSend;//the time to send rent
         bool isApproved;//by PA
         uint amountSent;//confirmed after platform's bank confirming rent has been sent
-        uint timeOfSentTxn;
+        uint timeOfTxn;
         uint8 errorCode;//0 to 255
     }
     /*
