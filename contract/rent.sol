@@ -7,9 +7,9 @@ contract Ownable {
     address public director;
     address public manager;
     address public admin;
-
+    address public addrNew;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
+    uint public ownerVote, chairmanVote, directorVote, managerVote, adminVote;
     constructor() public {
         owner = msg.sender;
         chairman = msg.sender;
@@ -21,207 +21,167 @@ contract Ownable {
         require(msg.sender == owner, "only owner can call this function");
         _;
     }
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "only admin can call this function");
+    event changeManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
+
+    function ownerSign() public {
+        require(msg.sender == owner, "restricted to owner");
+        ownerVote = 1;
+    }
+    function chairmanSign() public {
+        require(msg.sender == chairman, "restricted to chairman");
+        chairmanVote = 1;
+    }
+    function directorSign() public isThirdparty {
+        require(msg.sender == director, "restricted to director");
+        directorVote = 1;
+    }
+    function managerSign() public isThirdparty {
+        require(msg.sender == manager, "restricted to manager");
+        managerVote = 1;
+    }
+    function adminSign() public isThirdparty {
+        require(msg.sender == admin, "restricted to admin");
+        adminVote = 1;
+    }
+    modifier isMultiSig(){
+        require(ownerVote + chairmanVote + directorVote + managerVote + adminVote >= 3, "isMultiSig failed");
         _;
     }
-    function addNewOwner(address _newOwner) external onlyOwner {
-        ownerNew = _newOwner;
+    function resetSignStatus() internal {
+        ownerVote = 0;
+        chairmanVote = 0;
+        directorVote = 0;
+        managerVote = 0;
+        adminVote = 0;
     }
-    function transferOwnership() external {
-        require(ownerNew == msg.sender, "only new owner can call this function");
-        emit OwnershipTransferred(owner, ownerNew);
-        owner = ownerNew;
+    function changeManagement(uint managementIdx, address addrNew) public isMultiSig {
+        require(msg.sender == owner || msg.sender == chairman || msg.sender == director  || msg.sender == manager || msg.sender == admin, "only management team can access");
+        require(managementIdx > 0 && managementIdx < 6, "managementIdx is out of range");
+        require(addrNew != address(0), "new address cannot be zero");
+        if (managementIdx == 1) {
+            owner = addrNew;
+            emit changeManagement(owner, addrNew, managementIdx);
+        } else if (managementIdx == 2) {
+            chairman = addrNew;
+            emit changeManagement(chairman, addrNew, managementIdx);
+        } else if (managementIdx == 3) {
+            director = addrNew;
+            emit changeManagement(director, addrNew, managementIdx);
+        } else if (managementIdx == 4) {
+            manager = addrNew;
+            emit changeManagement(manager, addrNew, managementIdx);
+        } else if (managementIdx == 5) {
+            admin = addrNew;
+            emit changeManagement(admin, addrNew, managementIdx);
+        } else (require(false, "not valid option");)
+        resetSignStatus();
     }
-    function setNewChairman(address _newChairman) external onlyOwner {
-        chairman = _newChairman;
-    }
-    function setNewDirector(address _newDirector) external {
-        require(msg.sender == chairman, "only chairman can call this function");
-        director = _newDirector;
-    }
-    function setNewManager(address _newMgr) external {
-        require(msg.sender == director, "only director can call this function");
-        manager = _newMgr;
-    }
-    function setNewAdmin(address _newAdmin) external {
-        require(msg.sender == manager, "only manager can call this function");
-        admin = _newAdmin;
+    function getVotes() public view returns(uint,uint,uint,uint,uint){
+        return (ownerVote, chairmanVote, directorVote, managerVote, adminVote);
     }
 }
-
+contract Htoken {
+    function getTokenOwners(uint idStart, uint idCount) external returns(address[]) {}
+}
 contract Rent is Ownable {
     using SafeMath for uint256;
-    //using AddressUtils for address;
+    //using AddressUtils for address??
     //re-entry attack??
-    uint public nextRentTxnIndex = 1;//rent issuing index
+    uint public releaseDate;//basis of time reference
+    address public tokenCtrt;
+    uint public nextScheduleIndex = 1;//index of the next scheduled date for rent payment
 
-    address public platformAdmin;
-    mapping(uint256 => RentTxn) public idToRentTxn;
+    address public platformAuditor;
+    address public platformBackend;
+    address public timeServer;
+    uint public dateNow;//20190301
+    uint public startingDate = 20190122;
+    uint public nextScheduleIndexToRun;
+
+    mapping(uint256 => RentSchedule) public dateToRentSchedule;
     mapping(address => address) public tokenToFMXA;
     
     // cash flow: FMX -> platform -> investors
-    struct RentTxn {
-        uint rentIndex;
-        address tokenCtrt;
-        uint amountToSend;//given by FMXA, sending rent from platform to investors
-        uint timeToSend;//the time to send rent
+    struct RentSchedule {
+        uint paymentDate;//the date to send rent
+        uint paymentAmount;//given by FMXA, sending rent from platform to investors
         bool isApproved;//by PA
-        uint amountSent;//confirmed after platform's bank confirming rent has been sent
-        uint timeOfTxn;
+        bool isRentPaid;//confirmed after platform's bank confirming rent has been sent
         uint8 errorCode;//0 to 255
+        bool isErrorResolved;
+    }
+    constructor(uint _releaseDate, address _tokenCtrt, address _platformAuditor, address _platformBackend) public {
+        releaseDate = _releaseDate;//20190301
+        tokenCtrt = _tokenCtrt;
+        platformAuditor = _platformAuditor;
+        platformBackend = _platformBackend;
+        timeServer = _timeServer;
+    }
+    modifier onlyPlatformAuditor() {
+        require(msg.sender == platformAuditor, "only platformAuditor can call this function");
+        _;
+    }
+    modifier onlyPlatformBackend() {
+        require(msg.sender == platformBackend, "only platformBackend can call this function");
+        _;
     }
     /*
-    -->每季底FMX結帳後FMXA通知平台該期應該發放的租金是多少-->PBD-->PA審核, 確認.
+    -->每季底FMX結帳後FMXA通知平台該期應該發放的租金是多少-->PlatformBD-->PlatformA審核, 確認.
     -->平台發出訊息給user, 即將於x月底發放租金至指定帳戶, 請user確認.
     -->發放租金資訊鏈接bank-->回報訊息.
     -->異常處理.
     -->二級市場交易時, 租金分配規則制定.
     -->外部還要寫一隻BE程式專門與銀行對接收/ 付款資訊.
+
+    發行日(RD)之後, 每一季發放租金, 外部預先把期數定義好(SPLC life time總共80期), 去ERC721合約中撈持幣user資料(及持有時間長短), time server檢查要發放租金前通知FM, 平台, 
+    -->match product time line以及後台功能.
     */
+    function checkRentRelease(uint _dateToday) external pure returns (bool) {
+        require(timeServer == msg.sender, "sender is not the time server");
+        return (dateToRentSchedule[_dateToday].isApproved && !dateToRentSchedule[_dateToday].isRentPaid);
+    }
 
-    function makeRentTxn(address _tokenCtrt, uint _amountToSend, uint _timeToSend, uint _timeOfSentTxn) external {
-        require(tokenToFMXA[_tokenCtrt] == msg.sender, "sender is not the admin for this token");
-        RentTxn newRentTxn = RentTxn({ 
-            rentIndex: nextRentTxnIndex,
-            tokenCtrt: _tokenCtrt,
-            amountToSend: _amountToSend,
-            timeToSend: _timeToSend,
+    function makeRentSchedule(uint _paymentDate, uint _paymentAmount) external {
+        require(tokenToFMXA[tokenCtrt] == msg.sender, "sender is not the admin for this token");
+        RentSchedule newRentSchedule = RentSchedule({
+            paymentDate: _paymentDate,
+            paymentAmount: _paymentAmount,
             isApproved: false,
-            amountSent: 0,
-            timeOfSentTxn: _timeOfSentTxn,
-            errorCode: 0
-        });
-        idToRentTxn[nextRentTxnIndex] = newRentTxn;
-        nextRentTxnIndex = nextRentTxnIndex.add(1);
+            isRentPaid: false,
+            errorCode: 0,
+            isErrorResolved: false,
+        });//20190301
+        dateToRentSchedule[nextScheduleIndex] = newRentSchedule;
+        nextScheduleIndex = nextScheduleIndex.add(1);
+    }
+    function getRentPaymentSchedule(uint _paymentDate) external view returns (RentSchedule) {
+        return dateToRentSchedule[_paymentDate];
+    }
+    function getRentPaymentScheduleList(uint[] _paymentDates) external view returns (RentSchedule[]) {
+        // require(rentStartDate + rentCount - 1 < nextScheduleIndex, "rentStartDate is too big for rentCount");
+        RentSchedule[] memory rentSchedule;
+        for(uint i = 0; i < paymentDates.length; i = i.add(1)) {
+            rentSchedule.push(dateToRentSchedule[_paymentDates[i]]);
+        }
+        return rentSchedule;
     }
 
-    function approveRentSchedule(uint rentTxnIndex, bool boolValue) external {
-        require(platformAdmin == msg.sender, "only platform admin can execute this function");
-        idToRentTxn[rentTxnIndex].isApproved = boolValue;
-    
+    function decideOnRentSchedule(uint _paymentDate, bool boolValue) external onlyPlatformAuditor {
+        dateToRentSchedule[_paymentDate].isApproved = boolValue;
     }
-
-
-
-    function generateToken(uint pairId, string _uri) external onlyAdmin {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.mintSerialNFT(_uri);
+    function changeFMXA(address _tokenCtrt, address addrFMXA) external onlyPlatformAuditor {
+        tokenToFMXA[_tokenCtrt] = addrFMXA;
     }
-    function setNewSafeVault(uint pairId, address _newSafeVault) 
-    external onlyAdmin {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.setNewSafeVault(_newSafeVault);
+    function reportOnRentPayment(uint _paymentDate, bool boolValue, uint8 _errorCode) external onlyPlatformBackend {
+        dateToRentSchedule[_paymentDate].isRentPaid = boolValue;
+        if (_errorCode != 0) {
+            dateToRentSchedule[_paymentDate].errorCode = _errorCode;
+        }
     }
-/*  //ERC721
-    event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
-    function mintSerialNFT(string _uri) external;
-    event BurnNFT(address _owner, uint _tokenId, address msgsender);
-    function burnNFT(address _owner, uint256 _tokenId) external;
-    event SetNewSafeVault(address _SafeVault, address _SafeVaultNew);
-    function setNewSafeVault(address _newSafeVault) external;
-    function setNewSafeVault() external;
-    function disablePreDelivery() external;
-    function setLockUpPeriod(
-        uint _LockUpPeriod_inMins, uint _LockUpPeriod_inWeeks) 
-        external;
-    function setTokenMintTime(uint _tokenMintTime) external;
-    function setTokenStatus(bool _tokenStatus) external;
- */
-
-    function balanceOf(uint pairId, address _owner) public returns (uint256) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.balanceOf(_owner);
+    function reportOnErrResolution(uint _paymentDate, bool boolValue) external onlyPlatformBackend {
+        dateToRentSchedule[_paymentDate].isErrorResolved = boolValue;
     }
-
-    function ownerOf(uint pairId, uint256 _tokenId) public returns (address) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.ownerOf(_tokenId);
-    }
-
-    function safeTransferFrom(
-        uint pairId, address _from, address _to, uint256 _tokenId, bytes _data) public onlyAdmin{
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.safeTransferFrom(_from, _to, _tokenId, _data);
-    }
-//safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
-    function safeTransferFrom(
-        uint pairId, address _from, address _to, uint256 _tokenId) public onlyAdmin {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.safeTransferFrom(_from, _to, _tokenId);
-    }
-//transferFrom(address _from, address _to, uint256 _tokenId) external;
-    function transferFrom(
-        uint pairId, address _from, address _to, uint256 _tokenId) public onlyAdmin {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.transferFrom(_from, _to, _tokenId);
-    }
-
-//approve(address _approved, uint256 _tokenId) external;
-    function approve(
-        uint pairId, address _approved, uint256 _tokenId) public onlyAdmin {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.approve(_approved, _tokenId);
-    }
-
-//setApprovalForAll(address _operator, bool _approved) external;
-    function setApprovalForAll(
-        uint pairId, address _operator, bool _approved) public onlyAdmin {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.setApprovalForAll(_operator, _approved);
-    }
-
-//getApproved(uint256 _tokenId) external view returns (address);
-    function getApproved(
-        uint pairId, uint256 _tokenId) 
-        external returns (address) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.getApproved(_tokenId);
-    }
-
-//isApprovedForAll(address _owner, address _operator) external view returns (bool);
-    function isApprovedForAll(
-        uint pairId, address _owner, address _operator) 
-        external returns (bool) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.isApprovedForAll(_owner, _operator);
-    }
-
-
-    function transferOwnership(uint pairId) public {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        htoken.transferOwnership();
-    }
-
-
-// get_ownerToIds(address _owner) external view returns (uint[]) {
-    function get_ownerToIds(uint pairId, address _owner) public returns(uint[]) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.get_ownerToIds(_owner);
-    }
-
-// getNFT(uint _id) external view returns (string, string, string, string, uint) {
-    function getNFT(uint pairId, uint _tokenId) public returns (string, string, string, string, uint){
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.getNFT(_tokenId);
-    }
-    
-    function getCtrtDetails(uint pairId) public returns (
-        bool, uint, uint, uint,
-        uint, uint, string, 
-        uint, string, bool, address,
-        uint, uint) {
-        htoken = NFTokenSPLC(idToCtrtPair[pairId].tokenCtrt);
-        return htoken.getCtrtDetails();
-    }
-
 }
-
-//==================
-/*https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/NFTokenMetadata.sol
-contract SPLC is NFToken, ERC721Metadata {
-}*/
-
 library SafeMath {
     function mul(uint256 _a, uint256 _b) internal pure returns (uint256) {
         if (_a == 0) {

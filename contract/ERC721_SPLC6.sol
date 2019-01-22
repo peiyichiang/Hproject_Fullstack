@@ -377,6 +377,15 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         return 999999999999999999;
     }
     //-------------------==End of Enumerable interface
+    function getTokenOwners(uint idStart, uint idCount) external returns(address[]) {
+        //maxTokenId = nextTokenId - 1;
+        require(idStart + idCount - 1 < nextTokenId, "idStart is too big for idCount");
+        address[] memory addrArray;
+        for(uint i = idStart; i < nextTokenId; i = i.add(1)) {
+            addrArray.push(ownerOf(i));
+        }
+        return addrArray;
+    }
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(string _uri) external onlyAdmin {
