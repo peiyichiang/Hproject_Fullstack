@@ -5,15 +5,19 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*Infura HttpProvider Endpoint*/
-web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
+//web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 
-//平台方公私鑰
+/*平台方公私鑰*/
 var userAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var privateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
 
+/*registry contract address*/
 const contract = require('../contract/asset.json');
+
+
+
 
 router.get('/', function (req, res, next) {
     res.render('assetContractAPI');
@@ -22,8 +26,8 @@ router.get('/', function (req, res, next) {
 
 //deploy asset contract
 router.post('/POST/deploy', function (req, res, next) {
-    const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
-    //const provider = new PrivateKeyProvider(privateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
+    const provider = new PrivateKeyProvider(privateKey, 'http://140.119.101.130:8545');
     const web3deploy = new Web3(provider);
 
     let assetOwner = req.body.assetOwner;
@@ -37,7 +41,7 @@ router.post('/POST/deploy', function (req, res, next) {
     })
         .send({
             from: userAddr,
-            gas: 3400000
+            gas: 4700000
         })
         .on('receipt', function (receipt) {
             res.send(receipt);
@@ -47,8 +51,8 @@ router.post('/POST/deploy', function (req, res, next) {
         })
 });
 
+/*deploy contract with tx*/
 /*
-//deploy contract with tx
 router.post('/POST/deploy', async function (req, res, next) {
     let assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
     let platform = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
@@ -67,7 +71,9 @@ router.post('/POST/deploy', async function (req, res, next) {
             let txParams = {
                 from: userAddr,
                 nonce: web3.utils.toHex(nonce),
-                gasPrice: web3.utils.toHex(40 * 1e9),
+                gas: 4700000,
+                gasPrice: 0,
+                //gasPrice: web3.utils.toHex(40 * 1e9),
                 gasLimit: web3.utils.toHex(3400000),
                 data: deploy
             }
@@ -104,6 +110,7 @@ router.post('/POST/deploy', async function (req, res, next) {
 });
 */
 
+/*取得用戶address */
 router.get('/GET/getAssetsOwner', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -115,6 +122,7 @@ router.get('/GET/getAssetsOwner', async function (req, res, next) {
     })
 });
 
+/*取得平台方address */
 router.get('/GET/getPlatform', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -126,6 +134,7 @@ router.get('/GET/getPlatform', async function (req, res, next) {
     })
 });
 
+/*取得第三方address */
 router.get('/GET/getThirdparty', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -137,6 +146,7 @@ router.get('/GET/getThirdparty', async function (req, res, next) {
     })
 });
 
+/*取得用戶簽名 */
 router.get('/GET/getOwnerSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -148,6 +158,7 @@ router.get('/GET/getOwnerSign', async function (req, res, next) {
     })
 });
 
+/*取得平台方簽名 */
 router.get('/GET/getPlatformSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -159,6 +170,7 @@ router.get('/GET/getPlatformSign', async function (req, res, next) {
     })
 });
 
+/*取得第三方簽名 */
 router.get('/GET/getThirdpartySign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -170,6 +182,7 @@ router.get('/GET/getThirdpartySign', async function (req, res, next) {
     })
 });
 
+/*用戶簽名 */
 router.post('/POST/ownerSign', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -186,6 +199,7 @@ router.post('/POST/ownerSign', async function (req, res, next) {
 
 });
 
+/*平台方簽名 */
 router.post('/POST/platformSign', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -203,6 +217,7 @@ router.post('/POST/platformSign', async function (req, res, next) {
 
 });
 
+/*第三方簽名 */
 router.post('/POST/thirdpartySign', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -219,15 +234,21 @@ router.post('/POST/thirdpartySign', async function (req, res, next) {
 
 });
 
-router.post('/POST/changePlatform', async function (req, res, next) {
+/*更換用戶address */
+router.post('/POST/changeOwner', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let platform = await assetContract.methods.getPlatform().call({ from: userAddr });
 
+    /*平台方資訊*/
+    let platform = await assetContract.methods.getPlatform().call({ from: userAddr });
     /*privatekey 到時候會去底層keycahin sign*/
     let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18'
-    let newPlatform = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
-    let encodedData = assetContract.methods.changePlatform(newPlatform).encodeABI();
+
+    let newOwner = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
+
+    let encodedData = assetContract.methods.changePlatform(newOwner).encodeABI();
+
+    /**由平台方送出交易 */
     let result = await signTx(platform, platformPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -236,15 +257,20 @@ router.post('/POST/changePlatform', async function (req, res, next) {
 
 });
 
-router.post('/POST/changeThirdparty', async function (req, res, next) {
+/*更換平台方address */
+router.post('/POST/changePlatform', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let thirdparty = await assetContract.methods.getThirdparty().call({ from: userAddr });
 
+    /*第三方資訊*/
+    let thirdparty = await assetContract.methods.getThirdparty().call({ from: userAddr });
     /*privatekey 到時候會去底層keycahin sign*/
     let thirdpartyPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
-    let newThirdparty = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
-    let encodedData = assetContract.methods.changeThirdparty(newThirdparty).encodeABI();
+
+    let newPlatform = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
+
+    let encodedData = assetContract.methods.changePlatform(newPlatform).encodeABI();
+
     let result = await signTx(thirdparty, thirdpartyPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -253,6 +279,30 @@ router.post('/POST/changeThirdparty', async function (req, res, next) {
 
 });
 
+/*更換第三方address */
+router.post('/POST/changeThirdparty', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*平台方資訊*/
+    let platform = await assetContract.methods.getPlatform().call({ from: userAddr });
+    /*privatekey 到時候會去底層keycahin sign*/
+    let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18'
+
+    let newThirdparty = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
+
+    let encodedData = assetContract.methods.changeThirdparty(newThirdparty).encodeABI();
+
+    /**由平台方送出交易 */
+    let result = await signTx(platform, platformPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/*新增資產到assetContract（由erc721Contract Trigger!）*/
 router.post('/POST/addAsset', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -269,6 +319,7 @@ router.post('/POST/addAsset', async function (req, res, next) {
     })
 });
 
+/*輸入erc721tokenAddr，取得token相關資訊*/
 router.get('/GET/getAsset', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -279,6 +330,7 @@ router.get('/GET/getAsset', async function (req, res, next) {
     })
 });
 
+/*取得有幾種erc721token */
 router.get('/GET/getAssetCount', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -289,6 +341,7 @@ router.get('/GET/getAssetCount', async function (req, res, next) {
     })
 });
 
+/*取得assetContract所擁有的所有erc721token address */
 router.get('/GET/getAssetIndex', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -300,6 +353,7 @@ router.get('/GET/getAssetIndex', async function (req, res, next) {
 
 });
 
+/*轉移token */
 router.post('/POST/transferAsset', async function (req, res, next) {
     let contractAddr = req.body.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -318,6 +372,7 @@ router.post('/POST/transferAsset', async function (req, res, next) {
 
 });
 
+/*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
     return new Promise((resolve, reject) => {
 
@@ -328,7 +383,9 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gasPrice: web3js.utils.toHex(20 * 1e9),
+                    gas: 300000,
+                    gasPrice: 0,
+                    //gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),
                     to: contractAddr,
                     value: 0,

@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
+
+<head>
+    <title>
+        <%= title %>
+    </title>
     <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-  </head>
-  <body>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+</head>
+
+<body>
     <!-- <h1>Backend User - List</h1> -->
     <!-- <input type='submit' value='Add' onclick="javascript: location.href='/BackendUser/GET/AddBackendUser'"> -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <a class="navbar-brand" href="#">HeliumCryptic</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
-            <span class="navbar-text">
-                歡迎<%= UserID %>
-            </span>
-            <li class="nav-item" id="SignOut">
-              <a class="nav-link" href="#">登出</a>
-            </li>
-          </ul>
+            <ul class="navbar-nav">
+                <span class="navbar-text">
+                    歡迎
+                    <%= UserID %>
+                </span>
+                <li class="nav-item" id="SignOut">
+                    <a class="nav-link" href="#">登出</a>
+                </li>
+            </ul>
         </div>
     </nav>
     <!-- 後端使用者管理區 -->
@@ -41,32 +48,32 @@
             </tr>
             <tbody>
                 <% for ( var i = 0 ; i < data.length ; i++){ %>
-                    <tr>
-                        <td>
-                            <%= data[i].m_id  %>
-                        </td>
-                        <!-- <td>
+                <tr>
+                    <td>
+                        <%= data[i].m_id  %>
+                    </td>
+                    <!-- <td>
                             <%= data[i].m_salt  %>
                         </td> -->
-                        <!-- <td>
+                    <!-- <td>
                             <%= data[i].m_passwordhash  %>
                         </td> -->
-                        <td>
-                            <%= data[i].m_company  %>
-                        </td>
-                        <td>
-                            <%= data[i].m_permission  %>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-success" name="edit" value="Edit" onclick="Edit('<%= data[i].m_id  %>');">Edit</button>
-                            <!-- <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].m_id  %>');" /> -->
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-danger" name="delete" value="Delete" onclick="Delete('<%= data[i].m_id  %>');">Delete</button>
-                            <!-- <input type="button" name="delete" value="Delete" onclick="Delete('<%= data[i].m_id  %>');" /> -->
-                        </td>
-                        <!-- onclick="Edit('<%= data[i].id  %>');" -->
-                    </tr>
+                    <td>
+                        <%= data[i].m_company  %>
+                    </td>
+                    <td>
+                        <%= data[i].m_permission  %>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" name="edit" value="Edit" onclick="Edit('<%= data[i].m_id  %>');">Edit</button>
+                        <!-- <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].m_id  %>');" /> -->
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" name="delete" value="Delete" onclick="Delete('<%= data[i].m_id  %>');">Delete</button>
+                        <!-- <input type="button" name="delete" value="Delete" onclick="Delete('<%= data[i].m_id  %>');" /> -->
+                    </td>
+                    <!-- onclick="Edit('<%= data[i].id  %>');" -->
+                </tr>
                 <% } %>
             </tbody>
         </table>
@@ -83,54 +90,132 @@
                 <th>Email</th>
                 <th>身分證字號</th>
                 <th>手機</th>
-                <th>以太方地址</th>
-                <th>DeployAccount</th>
+                <th>以太坊地址</th>
+                <th>資產合約地址</th>
+                <th>狀態</th>
+                <th>審核通過</th>
             </tr>
             <tbody>
                 <% for ( var i = 0 ; i < FrontEnd_data.length ; i++){ %>
-                    <tr>
-                        <td>
-                            <%= FrontEnd_data[i].u_name  %>
-                        </td>
-                        <td>
-                            <%= FrontEnd_data[i].u_email  %>
-                        </td>
-                        <td>
-                            <%= FrontEnd_data[i].u_identityNumber  %>
-                        </td>
-                        <td>
-                            <%= FrontEnd_data[i].u_cellphone  %>
-                        </td>
-                        <td>
-                            <%= FrontEnd_data[i].u_eth_add  %>
-                        </td>
-                        <td>
-                            <button type="button" id="DeployBtn" class="btn btn-success" name="DeployAccount" value="DeployAccount" onclick="UploadImage()">部署個人合約</button>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>
+                        <%= FrontEnd_data[i].u_name  %>
+                    </td>
+                    <td>
+                        <%= FrontEnd_data[i].u_email  %>
+                    </td>
+                    <td>
+                        <%= FrontEnd_data[i].u_identityNumber  %>
+                    </td>
+                    <td>
+                        <%= FrontEnd_data[i].u_cellphone  %>
+                    </td>
+                    <td>
+                        <%= FrontEnd_data[i].u_eth_add  %>
+                    </td>
+                    <td>
+                        <%= FrontEnd_data[i].u_address  %>
+                    </td>
+                    <td>
+                        <%= FrontEnd_data[i].u_verify_status  %>
+                    </td>
+                    <td>
+                        <button type="button" id="approve" class="btn btn-success" name="Approve" value="Approve"
+                            onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>');">Approve</button>
+                    </td>
+                </tr>
                 <% } %>
             </tbody>
         </table>
     </div>
 
     <!-- <scrip src="/js/SignOut.js"></script> -->
-        <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
     <script src="/js/SignOut.js"></script>
     <script src="/js/DeployAccount.js"></script>
-    <script>    
-            function Edit(ID) {
-                window.location.href = "/BackendUser/GET/EditBackendUser?ID=" + ID;
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+
+    <script>
+        function Edit(ID) {
+            window.location.href = "/BackendUser/GET/EditBackendUser?ID=" + ID;
+        }
+        function Delete(ID) {
+            var rs = confirm('Confirm to delete?');
+            if (rs) {
+                window.location.href = "/BackendUser/GET/DeleteBackendUser?ID=" + ID;
             }
-            function Delete(ID) {
-                var rs = confirm('Confirm to delete?');
-                if (rs) {
-                    window.location.href = "/BackendUser/GET/DeleteBackendUser?ID=" + ID;
+        }
+
+        function Approve(ID, email) {
+            /* To-Do */
+	    	/* @dev
+			1. 創立個人eth account
+		    */
+            let assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"; //由平台幫使用者創立的ethAddr
+            let platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+            let thirdparty = "0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590";
+            /*部署assetContract*/
+            console.log("deploying...");
+            $.post("http://localhost:3000/assetContractAPI/POST/deploy", {
+                assetOwner: assetOwner,
+                platform: platform,
+                thirdparty: thirdparty
+            }, function (result) {
+                //var result = JSON.parse(resultJSON);
+                console.log(result);
+                console.log(result.contractAddress);
+
+                /*檢查是否部署成功*/
+                if (result.status == true) {
+                    /*部署成功後，註冊會員白名單*/
+                    $.post("http://localhost:3000/registryContractAPI/POST/registerUser", {
+                        u_id: ID,
+                        assetAddr: result.contractAddress,
+                        ethAddr: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"
+                    }, function (result) {
+                        //var result = JSON.parse(resultJSON);
+                        console.log(result);
+
+                        /*檢查是否註冊會員白名單成功*/
+                        if (result.result.status == true) {
+                            /*註冊會員白名單成功後，取得會員資訊*/
+                            $.get("http://localhost:3000/registryContractAPI/GET/getUserInfo", {
+                                u_id: ID,
+                            }, function (result) {
+                                //var result = JSON.parse(resultJSON);
+                                console.log(result.userInfo);
+                                console.log(result.userInfo.u_id);
+                                console.log(result.userInfo.assetAccount);
+                                console.log(result.userInfo.etherAddr);
+                                console.log(result.userInfo.accountStatus);
+                                $.post("http://localhost:3000/registryContractAPI/POST/updateUserDB", {
+                                    email: email,
+                                    assetContractAddr: result.userInfo.assetAccount,
+                                    status: result.userInfo.accountStatus,
+                                    ethAddr: '0xKAppaBomo1051'//result.userInfo.etherAddr
+                                }, function (result) {
+                                    //var result = JSON.parse(resultJSON);
+                                    console.log(result);
+                                });
+                            });
+                        }
+                    });
+
+
                 }
-            }
-    </script>  
+                else {
+                    console.log("something wrong on blockchain");
+                }
+            });
+
+        }
+    </script>
 
 </body>
+
 </html>

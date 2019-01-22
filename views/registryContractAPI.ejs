@@ -18,6 +18,7 @@
 
 <body>
     <div>
+        <button id="deploy">部署合約</button>
         <button id="registerUser">註冊會員</button>
         <button id="setAccountStatus">設定會員狀態</button>
         <button id="setEthAddr">設定會員ETH帳戶</button>
@@ -46,38 +47,46 @@
         }
     }
 
+    $('#deploy').on('click', function () {
+        log("deploying");
+
+        $.post('/registryContractAPI/POST/deploy' , function (result) {
+            log(result);
+        })
+    })
+
     $('#getOwner').on('click', function () {
-        $.get('/registryContractAPI/GET/getOwner',function (result) {
+        $.get('/registryContractAPI/GET/getOwner', function (result) {
             log(result);
         })
     })
 
     $('#getUserCount').on('click', function () {
-        $.get('/registryContractAPI/GET/getUserCount',function (result) {
+        $.get('/registryContractAPI/GET/getUserCount', function (result) {
             log(result);
         })
     })
 
     $('#getUserInfo').on('click', function () {
-        $.get('/registryContractAPI/GET/getUserInfo',function (result) {
+        $.get('/registryContractAPI/GET/getUserInfo', function (result) {
             log(result);
         })
     })
 
     $('#registerUser').on('click', function () {
-        $.get('/registryContractAPI/POST/registerUser',function (result) {
+        $.post('/registryContractAPI/POST/registerUser', function (result) {
             log(result);
         })
     })
 
     $('#setAccountStatus').on('click', function () {
-        $.get('/registryContractAPI/POST/setAccountStatus',function (result) {
+        $.post('/registryContractAPI/POST/setAccountStatus', function (result) {
             log(result);
         })
     })
 
     $('#setEthAddr').on('click', function () {
-        $.get('/registryContractAPI/POST/setEthAddr',function (result) {
+        $.post('/registryContractAPI/POST/setEthAddr', function (result) {
             log(result);
         })
     })
