@@ -244,7 +244,7 @@ router.post('/POST/AddUser', function (req, res, next) {
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phone,
                 u_name: user.name,
-            };//user.eth_account,
+            };//Math.random().toString(36).substring(2, 15)
 
             console.log(userNew);
             var qur = mysqlPoolQuery(qstr1, userNew, function (err, result) {

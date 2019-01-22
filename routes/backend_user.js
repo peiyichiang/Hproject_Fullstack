@@ -5,7 +5,7 @@ var jwt = require('jsonwebtoken');
 
 var router = express.Router();
 
-//撈取後端使用者資料(Platform_Admin可訪問頁面，其他不行)
+//撈取前台、後台使用者資料(Platform_Admin可訪問頁面，其他不行)
 router.get('/GET/backend_user', function(req, res, next) {
     // console.log("＊：" + JSON.stringify(req.session.m_permission));
     // console.log(req.cookies.access_token);
@@ -33,39 +33,33 @@ router.get('/GET/backend_user', function(req, res, next) {
         return;
     }
 
-    // verifyJWT(req.cookies.access_token)
-    // .then(decoded => {
-    //     console.log(decoded);
-    // })
-    // .catch((err) => {
-    //     console.log(err);
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    // });
-
-
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_Admin"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
-
 //   var db = req.con;
   var data = "";
   var mysqlPoolQuery = req.pool;
 
-  mysqlPoolQuery('SELECT * FROM backend_user', function(err, rows) {
-      if (err) {
-          console.log(err);
-      }
-      var data = rows;
+//   mysqlPoolQuery('SELECT * FROM backend_user', function(err, rows) {
+//       if (err) {
+//           console.log(err);
+//       }
+//       var data = rows;
+//       res.render('Viewbackend_user', { title: 'Backend User Information',UserID:JWT_decoded.payload.m_id, data: data});
+//   });
 
-      // use index.ejs
-      res.render('Viewbackend_user', { title: 'Backend User Information',UserID:JWT_decoded.payload.m_id, data: data});
-  });
+    mysqlPoolQuery('SELECT * FROM backend_user', function(err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        //data=後端使用者資料
+        var data = rows;
+        mysqlPoolQuery('SELECT * FROM htoken.user', function(err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            //FrontEnd_data=前端使用者資料
+            var FrontEnd_data = rows;
+            res.render('Viewbackend_user', { title: 'Backend User Information',UserID:JWT_decoded.payload.m_id, data: data,FrontEnd_data:FrontEnd_data});
+        });
+    });
 
 });
 
