@@ -5,24 +5,22 @@ import "./Ownable.sol";
 contract Htoken {
     function getTokenOwners(uint idStart, uint idCount) external returns(address[] memory) {}
 }
+
+//re-entry attack: prevented by noReentrancy
 contract Rent is Ownable {
     using SafeMath for uint256;
-    //using AddressUtils for address??
-    //re-entry attack: prevented by noReentrancy
     uint public releaseDate;//basis of time reference
     address public tokenCtrt;
-    uint public nextScheduleIndex = 1;//index of the next scheduled date for rent payment
+    uint public scheduleIndex;//index of the next scheduled date for rent payment
 
-    address public platformAuditor;//
-    address public platformBackend;//FMXA
-    address public timeServer;
+    address public PA_Ctrt;//
+    address public FMXA_Ctrt;//FMXA
+    address public platformCtrt;
     uint public dateNow;//20190301
     uint public startingDate = 20190122;
-    uint public nextScheduleIndexToRun;
 
-    mapping(uint256 => uint256) public dateToScheduleIndex;
-    mapping(uint256 => RentSchedule) public idxToRentSchedule;
-    mapping(address => address) public tokenToFMXA;
+    mapping(uint256 => uint256) public dateToScheduleIndex;//date to scheduleIndex
+    mapping(uint256 => RentSchedule) public indexToSchedule;//scheduleIndex to rentSchedule
     
     // cash flow: FMX -> platform -> investors
     struct RentSchedule {
@@ -33,19 +31,19 @@ contract Rent is Ownable {
         uint8 errorCode;//0 to 255
         bool isErrorResolved;//default = true
     }
-    constructor(uint _releaseDate, address _tokenCtrt, address _platformAuditor, address _platformBackend, address _timeServer) public {
+    constructor(uint _releaseDate, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
         releaseDate = _releaseDate;//20190301
         tokenCtrt = _tokenCtrt;
-        platformAuditor = _platformAuditor;
-        platformBackend = _platformBackend;
-        timeServer = _timeServer;
+        PA_Ctrt = _PA_Ctrt;
+        FMXA_Ctrt = _FMXA_Ctrt;
+        platformCtrt = _platformCtrt;
     }
-    modifier onlyPlatformAuditor() {
-        require(msg.sender == platformAuditor, "only platformAuditor can call this function");
+    modifier onlyPA_Ctrt() {
+        require(msg.sender == PA_Ctrt, "only PA_Ctrt can call this function");
         _;
     }
-    modifier onlyPlatformBackend() {
-        require(msg.sender == platformBackend, "only platformBackend can call this function");
+    modifier onlyFMXA_Ctrt() {
+        require(msg.sender == FMXA_Ctrt, "only FMXA_Ctrt can call this function");
         _;
     }
     /*
@@ -60,15 +58,17 @@ contract Rent is Ownable {
     -->match product time line以及後台功能.
     */
 
-    //check rent  ready to release
-    function checkRentRelease(uint _dateToday) external view returns (bool) {
-        require(timeServer == msg.sender, "sender is not the time server");
+    //check rent ready to release
+    function isRentReadyForRelease(uint _dateToday) external view returns (bool) {
+        require(platformCtrt == msg.sender, "sender is not the time server");
 
-        return (idxToRentSchedule[dateToScheduleIndex[_dateToday]].isApproved && !idxToRentSchedule[dateToScheduleIndex[_dateToday]].isRentPaid);
+        return (indexToSchedule[dateToScheduleIndex[_dateToday]].isApproved && !indexToSchedule[dateToScheduleIndex[_dateToday]].isRentPaid);
     }
 
+    event NewRentSchedule(uint indexed _index, uint indexed _paymentDate, uint _paymentAmount);
     function makeRentSchedule(uint _paymentDate, uint _paymentAmount) external noReentrancy{
-        require(tokenToFMXA[tokenCtrt] == msg.sender, "sender is not the admin for this token");
+        require(FMXA_Ctrt == msg.sender, "sender is not the admin for this token");
+        scheduleIndex = scheduleIndex.add(1);
         RentSchedule memory newRentSchedule = RentSchedule({
             paymentDate: _paymentDate,
             paymentAmount: _paymentAmount,
@@ -77,9 +77,9 @@ contract Rent is Ownable {
             errorCode: 0,
             isErrorResolved: false
         });//20190301
-        dateToScheduleIndex[_paymentDate] = nextScheduleIndex;
-        idxToRentSchedule[nextScheduleIndex] = newRentSchedule;
-        nextScheduleIndex = nextScheduleIndex.add(1);
+        dateToScheduleIndex[_paymentDate] = scheduleIndex;
+        indexToSchedule[scheduleIndex] = newRentSchedule;
+        emit NewRentSchedule(scheduleIndex, _paymentDate, _paymentAmount);
     }
     /**
         uint paymentDate;//the date to send rent
@@ -91,35 +91,35 @@ contract Rent is Ownable {
      */
     function getRentPaymentSchedule(uint _paymentDate) external view returns (uint,uint,bool,bool,uint8,bool) {
         uint idx = dateToScheduleIndex[_paymentDate];
-        RentSchedule memory rs = idxToRentSchedule[idx];
+        RentSchedule memory rs = indexToSchedule[idx];
         return (rs.paymentDate, rs.paymentAmount, rs.isApproved, rs.isRentPaid, rs.errorCode, rs.isErrorResolved);
     }
     // function getRentPaymentScheduleList(uint[] calldata _paymentDates) external view returns (RentSchedule[] memory) {
-    //     // require(rentStartDate + rentCount - 1 < nextScheduleIndex, "rentStartDate is too big for rentCount");
+    //     // require(rentStartDate + rentCount - 1 < scheduleIndex, "rentStartDate is too big for rentCount");
     //     RentSchedule[] memory rentSchedule;
     //     for(uint i = 0; i < _paymentDates.length; i = i.add(1)) {
-    //         rentSchedule.push(idxToRentSchedule[dateToScheduleIndex[_paymentDates[i]]]);
+    //         rentSchedule.push(indexToSchedule[dateToScheduleIndex[_paymentDates[i]]]);
     //     }
     //     return rentSchedule;
     // }
 
     /**設定isApproved */
-    function decideOnRentSchedule(uint _paymentDate, bool boolValue) external onlyPlatformAuditor noReentrancy{
-        idxToRentSchedule[dateToScheduleIndex[_paymentDate]].isApproved = boolValue;
+    function setRentSchedule(uint _paymentDate, bool boolValue) external onlyPA_Ctrt noReentrancy{
+        indexToSchedule[dateToScheduleIndex[_paymentDate]].isApproved = boolValue;
     }
-    function changeFMXA(address _tokenCtrt, address addrFMXA) external onlyPlatformAuditor noReentrancy{
-        tokenToFMXA[_tokenCtrt] = addrFMXA;
+    function changeFMXA(address addrFMXA) external onlyPA_Ctrt noReentrancy{
+        FMXA_Ctrt = addrFMXA;
     }
     /**設定isRentPaid，如果有錯誤發生，設定errorCode */
-    function setPaymentReleaseResults(uint _paymentDate, bool boolValue, uint8 _errorCode) external onlyPlatformBackend noReentrancy{
-        idxToRentSchedule[dateToScheduleIndex[_paymentDate]].isRentPaid = boolValue;
+    function setPaymentReleaseResults(uint _paymentDate, bool boolValue, uint8 _errorCode) external onlyFMXA_Ctrt noReentrancy{
+        indexToSchedule[dateToScheduleIndex[_paymentDate]].isRentPaid = boolValue;
         if (_errorCode != 0) {
-            idxToRentSchedule[dateToScheduleIndex[_paymentDate]].errorCode = _errorCode;
+            indexToSchedule[dateToScheduleIndex[_paymentDate]].errorCode = _errorCode;
         }
     }
     /**設定isErrorResolved */
-    function setErrResolution(uint _paymentDate, bool boolValue) external onlyPlatformBackend noReentrancy{
-        idxToRentSchedule[dateToScheduleIndex[_paymentDate]].isErrorResolved = boolValue;
+    function setErrResolution(uint _paymentDate, bool boolValue) external onlyFMXA_Ctrt noReentrancy{
+        indexToSchedule[dateToScheduleIndex[_paymentDate]].isErrorResolved = boolValue;
     }
 }
 library SafeMath {

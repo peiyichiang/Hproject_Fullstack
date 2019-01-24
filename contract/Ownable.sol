@@ -12,7 +12,7 @@ contract Ownable {
     uint public managerVote;
     uint public adminVote;
     uint public minVotes = 3;
-    uint public maxVotes = 5;
+
     constructor() public {
         owner = msg.sender;
         chairman = msg.sender;
@@ -68,10 +68,9 @@ contract Ownable {
         managerVote = 0;
         adminVote = 0;
     }
-    function setManagement(uint managementIdx, address addrNew) public isMultiSig noReentrancy{
+    function setManagement(uint managementIdx, address addrNew, uint num1) public isMultiSig noReentrancy{
         require(
             msg.sender == owner || msg.sender == chairman || msg.sender == director || msg.sender == manager || msg.sender == admin, "only management team can access");
-        require(managementIdx > 0 && managementIdx <= maxVotes, "managementIdx is out of range");
         require(addrNew != address(0), "new address cannot be zero");
         if (managementIdx == 1) {
             owner = addrNew;
@@ -88,6 +87,8 @@ contract Ownable {
         } else if (managementIdx == 5) {
             admin = addrNew;
             emit SetManagement(admin, addrNew, managementIdx);
+        } else if (managementIdx == 6) {
+            minVotes = num1;
         } else {require(false, "not valid option");}
         resetSignStatus();
     }

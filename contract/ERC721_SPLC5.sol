@@ -1,3 +1,4 @@
+pragma solidity ^0.5.3;
 import "./Ownable.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
