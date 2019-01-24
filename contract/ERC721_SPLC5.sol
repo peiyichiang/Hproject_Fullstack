@@ -1,57 +1,9 @@
-pragma solidity ^0.4.25;
-
-contract Ownable {
-    address public owner;
-    address public ownerNew;
-    address public chairman;
-    address public director;
-    address public manager;
-    address public admin;
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    constructor() public {
-        owner = msg.sender;
-        chairman = msg.sender;
-        director = msg.sender;
-        manager = msg.sender;
-        admin = msg.sender;
-    }
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only owner can call this function");
-        _;
-    }
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "only admin can call this function");
-        _;
-    }
-    function addNewOwner(address _newOwner) external onlyOwner {
-        ownerNew = _newOwner;
-    }
-    function transferOwnership() external {
-        require(ownerNew == msg.sender, "only new owner can call this function");
-        emit OwnershipTransferred(owner, ownerNew);
-        owner = ownerNew;
-    }
-    function setNewChairman(address _newChairman) external onlyOwner {
-        chairman = _newChairman;
-    }
-    function setNewDirector(address _newDirector) external {
-        require(msg.sender == chairman, "only chairman can call this function");
-        director = _newDirector;
-    }
-    function setNewManager(address _newMgr) external {
-        require(msg.sender == director, "only director can call this function");
-        manager = _newMgr;
-    }
-    function setNewAdmin(address _newAdmin) external {
-        require(msg.sender == manager, "only manager can call this function");
-        admin = _newAdmin;
-    }
-}
+import "./Ownable.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
 
 interface ERC721TokenReceiver {
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes _data) external returns(bytes4);
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external returns(bytes4);
 }
 
 //supportsInterface[0x01ffc9a7] will be true, must not set element 0xffffffff to true!!!!!
@@ -114,8 +66,8 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
 
     function getCtrtDetails() public view returns (
         bool, uint, uint, uint,
-        uint, uint, string, 
-        uint, string, bool, address,
+        uint, uint, string memory, 
+        uint, string memory, bool, address,
         uint, uint){
         return (
             tokenStatus, nextTokenId, siteSizeInKW, maxTotalSupply,
@@ -129,18 +81,18 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
     string internal nftSymbol;//abbreviated name for NFTokens
     //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
 
-    function name() external view returns (string _name) {
+    function name() external view returns (string memory _name) {
         _name = nftName;
     }
-    function symbol() external view returns (string _symbol) {
+    function symbol() external view returns (string memory _symbol) {
         _symbol = nftSymbol;
     }
-    function tokenURI(uint256 _tokenId) external validNFToken(_tokenId) view returns (string) {
+    function tokenURI(uint256 _tokenId) external validNFToken(_tokenId) view returns (string memory) {
         return idToAsset[_tokenId].uri;//idToUri[_tokenId];
     }
-    constructor(string _nftName, string _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
-        uint _initialAssetPricing, string _pricingCurrency,
-        uint _IRR20yrx100, string _validDate) public {
+    constructor(string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
+        uint _initialAssetPricing, string memory _pricingCurrency,
+        uint _IRR20yrx100, string memory _validDate) public {
         nftName = _nftName;
         nftSymbol = _nftSymbol;
         siteSizeInKW = _siteSizeInKW;
@@ -167,11 +119,11 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
     function get_lockupUntil() public view returns (uint){
         return tokenMintTime.add(LockUpPeriod);
     }
-    function getNFT(uint _id) external view returns (string, string, string, string, uint) {
+    function getNFT(uint _id) external view returns (string memory, string memory, string memory, string memory, uint) {
         return (idToAsset[_id].name, idToAsset[_id].symbol,
         idToAsset[_id].currency, idToAsset[_id].uri, idToAsset[_id].pricing);
     }
-    function get_ownerToIds(address _owner) external view returns (uint[]) {
+    function get_ownerToIds(address _owner) external view returns (uint[] memory) {
         return ownerToIds[_owner];
     }
     function get_idToOwnerIndexPlus1(uint _tokenId) public view returns (uint){
@@ -185,7 +137,7 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
     //-------------------==End of Enumerable interface
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
-    function mintSerialNFT(string _uri) external onlyAdmin {
+    function mintSerialNFT(string calldata _uri) external onlyAdmin {
         require(nextTokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //nextTokenId -1 +1 <= maxTotalSupply
         idToAsset[nextTokenId] = Asset(nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
@@ -207,7 +159,34 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
         emit BurnNFT(_owner, _tokenId, msg.sender);
     }
 
-    function() public payable { revert("should not send any ether directly"); } //should not send any ether directly
+    event SetNewSafeVault(address _SafeVault, address _SafeVaultNew);
+    function setNewSafeVault(address _newSafeVault) external onlyAdmin {
+        SafeVaultNew = _newSafeVault;
+    }
+    function setNewSafeVault() external {
+        require(isPreDelivery, "still in pre_delivery");
+        require(SafeVaultNew == msg.sender, "only SafeVaultNew can call this function");
+        emit SetNewSafeVault(SafeVault, SafeVaultNew);
+        SafeVault = SafeVaultNew;
+    }
+    function disablePreDelivery() external onlyAdmin {
+        isPreDelivery = false;
+    }
+    function setLockUpPeriod(
+        uint _LockUpPeriod_inMins, uint _LockUpPeriod_inWeeks) 
+        external onlyAdmin {
+        require(isPreDelivery, "still in pre_delivery");
+        LockUpPeriod = (_LockUpPeriod_inMins * 1 minutes).add(_LockUpPeriod_inWeeks * 1 weeks);
+    }
+    function setTokenMintTime(uint _tokenMintTime) external onlyAdmin {
+        require(isPreDelivery, "still in pre_delivery");
+        tokenMintTime = _tokenMintTime;
+    }
+    function setTokenStatus(bool _tokenStatus) external onlyAdmin {
+        tokenStatus = _tokenStatus;
+    }
+    
+    function() external payable { revert("should not send any ether directly"); } //should not send any ether directly
 
 
     //====================Copied code
@@ -247,7 +226,7 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
     }
 
     function safeTransferFrom(
-        address _from, address _to, uint256 _tokenId, bytes _data) 
+        address _from, address _to, uint256 _tokenId, bytes calldata _data) 
         external checkTfStatus {
         _safeTransferFrom(_from, _to, _tokenId, _data);
     }
@@ -300,7 +279,7 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
     }
 
     function _safeTransferFrom(
-        address _from, address _to, uint256 _tokenId, bytes _data)
+        address _from, address _to, uint256 _tokenId, bytes memory _data)
         internal canTransfer(_tokenId) validNFToken(_tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be _from");

@@ -1,10 +1,11 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.5.3;
 
-contract CrowdSale{
+import "./Ownable.sol";
+
+contract CrowdSale is Ownable{
     
     event showState(string _state);
     
-    address public owner; //平台方
     address public HTokenaddress; //專案erc721合約
     uint public token_price;//每片太陽能板定價
     uint public totalamount; //專案總token數
@@ -31,7 +32,6 @@ contract CrowdSale{
         uint _percents,
         uint durationInMinutes
     ) public {
-        owner = msg.sender;
         HTokenaddress = _tokenaddress;//設定專案專案erc721合約
         token_price = _toeknprice;
         totalamount = _totalamount;//專案總量
@@ -43,24 +43,25 @@ contract CrowdSale{
 
     /* The function without name is the default function that is called whenever anyone sends funds to a contract */
     function Invest(uint _tokencount) public checkAmount(_tokencount){
-        require(salestate == SaleState.Funding || salestate == SaleState.goalReached);
+        require(
+            salestate == SaleState.Funding || salestate == SaleState.goalReached);
         if(now > deadline && amountRaised < fundingGoal){
             salestate = SaleState.goalnotReached;//專案失敗
         }
         else{
-        uint amount = _tokencount;
-        token_balanceOf[msg.sender] += amount;//用mapping記錄每個投資人的token數目
-        fund_balanceOf[msg.sender] += amount * token_price;//記錄每個投資者投入多少資金
-        amountRaised += _tokencount;//紀錄已經賣了多少token
-        emit FundTransfer(msg.sender, amount);
-        checkState();//投資後檢查整個專案狀態
-        emit showState(ProjectState());
+            uint amount = _tokencount;
+            token_balanceOf[msg.sender] += amount;//用mapping記錄每個投資人的token數目
+            fund_balanceOf[msg.sender] += amount * token_price;//記錄每個投資者投入多少資金
+            amountRaised += _tokencount;//紀錄已經賣了多少token
+            emit FundTransfer(msg.sender, amount);
+            checkState();//投資後檢查整個專案狀態
+            emit showState(ProjectState());
         }
     }
     
     /* checks if the goal or time limit has been reached and ends the campaign */
     function checkState() private{
-        if(now <= deadline &&amountRaised >= fundingGoal){
+        if(now <= deadline && amountRaised >= fundingGoal){
             emit GoalReached(HTokenaddress, amountRaised);
             salestate = SaleState.goalReached;
         }
@@ -74,13 +75,13 @@ contract CrowdSale{
     }
     
 
-    function ProjectState() public view returns(string _return){
-         if(salestate == SaleState.Funding) _return = "募資中!";
-         else if(salestate == SaleState.goalReached) _return = "已達標，尚有太陽能板可購買！";
-         else if(salestate == SaleState.projectClosed && amountRaised == totalamount) _return = "專案已結束，完售";
-         else if(salestate == SaleState.projectClosed && amountRaised >= fundingGoal) _return = "專案已結束，達標";
-         else if(salestate == SaleState.goalnotReached) _return = "募款失敗";
-         else revert();
+    function ProjectState() public view returns(string memory _return){
+        if(salestate == SaleState.Funding) _return = "募資中!";
+        else if(salestate == SaleState.goalReached) _return = "已達標，尚有太陽能板可購買！";
+        else if(salestate == SaleState.projectClosed && amountRaised == totalamount) _return = "專案已結束，完售";
+        else if(salestate == SaleState.projectClosed && amountRaised >= fundingGoal) _return = "專案已結束，達標";
+        else if(salestate == SaleState.goalnotReached) _return = "募款失敗";
+        else revert("ProjectState() failed");
     }
     
     //檢視專案進度，賣出了多少太陽能板
@@ -89,7 +90,7 @@ contract CrowdSale{
     }
     
     modifier checkAmount(uint _tokencount){
-        require(_tokencount+amountRaised <= totalamount);
+        require(_tokencount + amountRaised <= totalamount, "checkAmount failed");
         _;
     }
 }

@@ -1,8 +1,8 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
 
-import "https://github.com/kappabooom/h_contract/ERC721_SPLC5.sol";
-//import "ERC721_SPLC5.sol";
+//import "https://github.com/kappabooom/h_contract/ERC721_SPLC5.sol";
+import "./ERC721_SPLC5.sol";
 
 contract multiSig {
     address internal assetsOwner; //用戶 address
@@ -145,12 +145,12 @@ contract AssetContract is multiSig{
     //新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來)
     function addAsset(address _tokenAddr) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        NFTokenSPLC _erc721 = NFTokenSPLC(_tokenAddr);
+        NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
 
         assets[_tokenAddr].tokenAddr = _tokenAddr;
         assets[_tokenAddr].tokenSymbol = _erc721.symbol();
-        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(this);
-        assets[_tokenAddr].ids = _erc721.get_ownerToIds(this);
+        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
+        assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
         assetIndex.push(_tokenAddr);
 
         emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, now);
@@ -158,22 +158,22 @@ contract AssetContract is multiSig{
 
     //提領token
     function transferAsset(address _tokenAddr, uint _tokenId, address _to) public isAssetsOwner {
-        NFTokenSPLC _erc721 = NFTokenSPLC(_tokenAddr);
+        NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
         require( _erc721.ownerOf(_tokenId) == address(this) , "請確認欲轉移的token_id");
 
-        uint remainAmount = _erc721.balanceOf(this);//_tokenAddr.balances(this);
-        _erc721.transferFrom(this, _to, _tokenId);
-        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(this);
-        assets[_tokenAddr].ids = _erc721.get_ownerToIds(this);
+        uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);
+        _erc721.transferFrom(address(this), _to, _tokenId);
+        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
+        assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
 
         emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, now);
     }
 
     //get tokenAmount
-    function getAsset(address _tokenAddr) public view returns (uint, uint[]){
-        NFTokenSPLC _erc721 = NFTokenSPLC(_tokenAddr);
+    function getAsset(address _tokenAddr) public view returns (uint, uint[] memory){
+        NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
 
-        return (assets[_tokenAddr].tokenAmount, _erc721.get_ownerToIds(this));
+        return (assets[_tokenAddr].tokenAmount, _erc721.get_ownerToIds(address(this)));
     }
 
     //get asset number
@@ -182,7 +182,7 @@ contract AssetContract is multiSig{
 	}
 
 	//get all assetAddr
-	function getAssetIndex() public view returns(address[]){
+	function getAssetIndex() public view returns(address[] memory){
         return (assetIndex);
 	}
 

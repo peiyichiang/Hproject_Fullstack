@@ -1,4 +1,4 @@
-pragma solidity ^0.5.2;
+pragma solidity ^0.5.3;
 /* => Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!! => use 3rd party to freeze token transfer
 
 ONLY use external account to deploy this contract
@@ -35,12 +35,17 @@ $ The URI MAY be mutable (i.e. it changes from time to time).
 
 contract Ownable {
     address public owner;
-    address public ownerNew;
     address public chairman;
     address public director;
     address public manager;
     address public admin;
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    uint public ownerVote;
+    uint public chairmanVote;
+    uint public directorVote;
+    uint public managerVote;
+    uint public adminVote;
+    uint public minVotes = 3;
+    uint public maxVotes = 5;
     constructor() public {
         owner = msg.sender;
         chairman = msg.sender;
@@ -56,28 +61,71 @@ contract Ownable {
         require(msg.sender == admin, "only admin can call this function");
         _;
     }
-    function addNewOwner(address _newOwner) external onlyOwner {
-        ownerNew = _newOwner;
+    bool public locked;// initialized as false
+    modifier noReentrancy() {
+        require(!locked, "noReentrancy failed");
+        locked = true;
+        _;
+        locked = false;
     }
-    function transferOwnership() external {
-        require(ownerNew == msg.sender, "only new owner can call this function");
-        emit OwnershipTransferred(owner, ownerNew);
-        owner = ownerNew;
+    event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
+
+    function ownerSign() public {
+        require(msg.sender == owner, "restricted to owner");
+        ownerVote = 1;
     }
-    function setNewChairman(address _newChairman) external onlyOwner {
-        chairman = _newChairman;
+    function chairmanSign() public {
+        require(msg.sender == chairman, "restricted to chairman");
+        chairmanVote = 1;
     }
-    function setNewDirector(address _newDirector) external {
-        require(msg.sender == chairman, "only chairman can call this function");
-        director = _newDirector;
+    function directorSign() public {
+        require(msg.sender == director, "restricted to director");
+        directorVote = 1;
     }
-    function setNewManager(address _newMgr) external {
-        require(msg.sender == director, "only director can call this function");
-        manager = _newMgr;
+    function managerSign() public {
+        require(msg.sender == manager, "restricted to manager");
+        managerVote = 1;
     }
-    function setNewAdmin(address _newAdmin) external {
-        require(msg.sender == manager, "only manager can call this function");
-        admin = _newAdmin;
+    function adminSign() public {
+        require(msg.sender == admin, "restricted to admin");
+        adminVote = 1;
+    }
+    modifier isMultiSig(){
+        require(ownerVote + chairmanVote + directorVote + managerVote + adminVote >= minVotes, "isMultiSig failed due to not enough votes");
+        _;
+    }
+    function resetSignStatus() internal {
+        ownerVote = 0;
+        chairmanVote = 0;
+        directorVote = 0;
+        managerVote = 0;
+        adminVote = 0;
+    }
+    function setManagement(uint managementIdx, address addrNew) public isMultiSig noReentrancy{
+        require(
+            msg.sender == owner || msg.sender == chairman || msg.sender == director || msg.sender == manager || msg.sender == admin, "only management team can access");
+        require(managementIdx > 0 && managementIdx <= maxVotes, "managementIdx is out of range");
+        require(addrNew != address(0), "new address cannot be zero");
+        if (managementIdx == 1) {
+            owner = addrNew;
+            emit SetManagement(owner, addrNew, managementIdx);
+        } else if (managementIdx == 2) {
+            chairman = addrNew;
+            emit SetManagement(chairman, addrNew, managementIdx);
+        } else if (managementIdx == 3) {
+            director = addrNew;
+            emit SetManagement(director, addrNew, managementIdx);
+        } else if (managementIdx == 4) {
+            manager = addrNew;
+            emit SetManagement(manager, addrNew, managementIdx);
+        } else if (managementIdx == 5) {
+            admin = addrNew;
+            emit SetManagement(admin, addrNew, managementIdx);
+        } else {require(false, "not valid option");}
+        resetSignStatus();
+    }
+    function getVotes() public view returns(uint,uint,uint,uint,uint){
+        return (ownerVote, chairmanVote, directorVote, managerVote, adminVote);
     }
 }
 
