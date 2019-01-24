@@ -415,22 +415,14 @@ router.get('/GET/DeleteProduct', function(req, res, next) {
         return;
     }
 
-
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-    
-    // console.log("*:"+req.session.m_permission);
-    // if(req.session.m_permission!="Platform_Auditor" && req.session.m_permission!="Company_FundManagerN"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
-
     var symbol = req.query.symbol;
     var mysqlPoolQuery = req.pool;
-  
-    var qur = mysqlPoolQuery('DELETE FROM product WHERE p_SYMBOL = ?', symbol, function(err, rows) {
+
+    var sql = {
+        p_isDelete: true
+    };
+
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
         if (err) {
             console.log(err);
         }
@@ -439,8 +431,19 @@ router.get('/GET/DeleteProduct', function(req, res, next) {
         } else if (JWT_decoded.payload.m_permission=="Company_FundManagerN"){
             res.redirect('/Product/GET/ProductByFMN');
         }
-        
     });
+  
+    // var qur = mysqlPoolQuery('DELETE FROM product WHERE p_SYMBOL = ?', symbol, function(err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     if (JWT_decoded.payload.m_permission=="Platform_Auditor"){
+    //         res.redirect('/Product/GET/Product');
+    //     } else if (JWT_decoded.payload.m_permission=="Company_FundManagerN"){
+    //         res.redirect('/Product/GET/ProductByFMN');
+    //     }
+        
+    // });
 });
 
 //修改資料：撈取原有資料到修改頁面(Platform_Auditor專用)

@@ -62,93 +62,96 @@
                         <th class="nowrap">送審</th>
                     </tr>
                     <% for ( var i = 0 ; i < dataDraft.length ; i++){ %>
-                        <tr>
-                            <td>
-                                <%= dataDraft[i].p_SYMBOL  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_name  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_location  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_pricing  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_duration  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_currency  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_irr  %>
-                            </td>
-        
-                            <td>
-                                <%= dataDraft[i].p_releasedate  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_validdate  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_size  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_totalrelease  %>
-                            </td>
-                            <!-- <td>
-                                <%= dataDraft[i].p_fundmanager  %>
-                            </td> -->
-                            <td>
-                                <%= dataDraft[i].p_state  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_FAY  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_FTRT  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_RPT  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_FRP  %>
-                            </td>
-                            <td>
-                                <%= dataDraft[i].p_Timeline  %>
-                            </td>
-                            <td>
-                                <%if (dataDraft[i].p_assetdocs != null && dataDraft[i].p_assetdocs != "") { %>
-                                    <a target="_blank" href="http://127.0.0.1:3000/<%= dataDraft[i].p_assetdocs.replace('public','')  %>">doc</a>
-                                <% } %>
-                            </td>
-                            <td>
-                                <%if (dataDraft[i].p_icon != null && dataDraft[i].p_icon != "") { %>
-                                    <img src="http://127.0.0.1:3000/<%= dataDraft[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
-                                <% } %>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-success" name="edit" value="Edit" onclick="Edit('<%= dataDraft[i].p_SYMBOL  %>');">Edit</button>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-success" name="delete" value="Delete" onclick="Delete('<%= dataDraft[i].p_SYMBOL  %>');">Delete</button>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-success" name="send" value="Send" onclick="Send('<%= dataDraft[i].p_SYMBOL  %>');">Send</button>
-                            </td>
-                        </tr>
+                        <!-- 被刪掉的不顯示 -->
+                        <%if (dataDraft[i].p_isDelete !=true ) { %>
+                            <tr>
+                                <td>
+                                    <%= dataDraft[i].p_SYMBOL  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_name  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_location  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_pricing  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_duration  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_currency  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_irr  %>
+                                </td>
+            
+                                <td>
+                                    <%= dataDraft[i].p_releasedate  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_validdate  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_size  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_totalrelease  %>
+                                </td>
+                                <!-- <td>
+                                    <%= dataDraft[i].p_fundmanager  %>
+                                </td> -->
+                                <td>
+                                    <%= dataDraft[i].p_state  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_FAY  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_FTRT  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_RPT  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_FRP  %>
+                                </td>
+                                <td>
+                                    <%= dataDraft[i].p_Timeline  %>
+                                </td>
+                                <td>
+                                    <%if (dataDraft[i].p_assetdocs != null && dataDraft[i].p_assetdocs != "") { %>
+                                        <a target="_blank" href="http://127.0.0.1:3000/<%= dataDraft[i].p_assetdocs.replace('public','')  %>">doc</a>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <%if (dataDraft[i].p_icon != null && dataDraft[i].p_icon != "") { %>
+                                        <img src="http://127.0.0.1:3000/<%= dataDraft[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-success" name="edit" value="Edit" onclick="Edit('<%= dataDraft[i].p_SYMBOL  %>');">Edit</button>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-success" name="delete" value="Delete" onclick="Delete('<%= dataDraft[i].p_SYMBOL  %>');">Delete</button>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-success" name="send" value="Send" onclick="Send('<%= dataDraft[i].p_SYMBOL  %>');">Send</button>
+                                </td>
+                            </tr>
+                        <% } %>
                     <% } %>
         </table>
     </div>
 
     <!-- 審核中 -->
-    <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
+    <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
         <span style="margin-left:15px;">審核中</span>
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
-            <tr class="bg-primary" style="color:white;">
+            <tr class="bg-warning" style="color:white;">
                 <th class="nowrap">Token代號</th>
                 <th class="nowrap">產品名稱</th>
                 <th class="nowrap">產品所在地</th>

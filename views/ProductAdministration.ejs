@@ -187,7 +187,7 @@
                     <th class="nowrap">產品icon</th>
                     <th class="nowrap">退回</th>
                     <th class="nowrap">募資</th>
-                    <th class="nowrap">達標</th>
+                    <!-- <th class="nowrap">達標</th> -->
                 </tr>
                 <% for ( var i = 0 ; i < data.length ; i++){ %>
                     <%if (data[i].p_state =="funding" ) { %>
@@ -265,11 +265,9 @@
                                 <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
                                 <button type="button" class="btn btn-success" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');">募資</button>
                             </td>
-                            <td>
-                                <!-- <input type="button" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');" /> -->
+                            <!-- <td>
                                 <button type="button" class="btn btn-success" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');">達標</button>
-                            </td>
-                            <!-- onclick="Edit('<%= data[i].id  %>');" -->
+                            </td> -->
                         </tr>
                     <% } %>
                 <% } %>
@@ -286,12 +284,12 @@
         <% } %>
     <% } %>
     <%if (count>0 ) { %>
-        <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
+        <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
             <span style="margin-left:15px;">平台方待審核區</span>
         </div>
         <div class="table-responsive">
             <table class="table table-hover table-striped">
-                <tr class="bg-primary" style="color:white;">
+                <tr class="bg-warning" style="color:white;">
                     <th class="nowrap">Token代號</th>
                     <th class="nowrap">產品名稱</th>
                     <th class="nowrap">產品所在地</th>
@@ -314,7 +312,7 @@
                     <th class="nowrap">產品icon</th>
                     <th class="nowrap">退回</th>
                     <th class="nowrap">募資</th>
-                    <th class="nowrap">達標</th>
+                    <!-- <th class="nowrap">達標</th> -->
                 </tr>
                 <% for ( var i = 0 ; i < data.length ; i++){ %>
                     <%if (data[i].p_state =="publish" ) { %>
@@ -392,11 +390,9 @@
                                 <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
                                 <button type="button" class="btn btn-success" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');">募資</button>
                             </td>
-                            <td>
-                                <!-- <input type="button" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');" /> -->
+                            <!-- <td>
                                 <button type="button" class="btn btn-success" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');">達標</button>
-                            </td>
-                            <!-- onclick="Edit('<%= data[i].id  %>');" -->
+                            </td> -->
                         </tr>
                     <% } %>
                 <% } %>
