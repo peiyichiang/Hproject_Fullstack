@@ -13,8 +13,8 @@ contract Rent is Ownable {
     address public tokenCtrt;
     uint public nextScheduleIndex = 1;//index of the next scheduled date for rent payment
 
-    address public platformAuditor;
-    address public platformBackend;
+    address public platformAuditor;//
+    address public platformBackend;//FMXA
     address public timeServer;
     uint public dateNow;//20190301
     uint public startingDate = 20190122;
@@ -31,7 +31,7 @@ contract Rent is Ownable {
         bool isApproved;//by PA
         bool isRentPaid;//confirmed after platform's bank confirming rent has been sent
         uint8 errorCode;//0 to 255
-        bool isErrorResolved;
+        bool isErrorResolved;//default = true
     }
     constructor(uint _releaseDate, address _tokenCtrt, address _platformAuditor, address _platformBackend, address _timeServer) public {
         releaseDate = _releaseDate;//20190301
@@ -59,6 +59,8 @@ contract Rent is Ownable {
     發行日(RD)之後, 每一季發放租金, 外部預先把期數定義好(SPLC life time總共80期), 去ERC721合約中撈持幣user資料(及持有時間長短), time server檢查要發放租金前通知FM, 平台, 
     -->match product time line以及後台功能.
     */
+
+    //check rent  ready to release
     function checkRentRelease(uint _dateToday) external view returns (bool) {
         require(timeServer == msg.sender, "sender is not the time server");
 
@@ -101,19 +103,22 @@ contract Rent is Ownable {
     //     return rentSchedule;
     // }
 
+    /**設定isApproved */
     function decideOnRentSchedule(uint _paymentDate, bool boolValue) external onlyPlatformAuditor noReentrancy{
         idxToRentSchedule[dateToScheduleIndex[_paymentDate]].isApproved = boolValue;
     }
     function changeFMXA(address _tokenCtrt, address addrFMXA) external onlyPlatformAuditor noReentrancy{
         tokenToFMXA[_tokenCtrt] = addrFMXA;
     }
-    function reportOnRentPayment(uint _paymentDate, bool boolValue, uint8 _errorCode) external onlyPlatformBackend noReentrancy{
+    /**設定isRentPaid，如果有錯誤發生，設定errorCode */
+    function setPaymentReleaseResults(uint _paymentDate, bool boolValue, uint8 _errorCode) external onlyPlatformBackend noReentrancy{
         idxToRentSchedule[dateToScheduleIndex[_paymentDate]].isRentPaid = boolValue;
         if (_errorCode != 0) {
             idxToRentSchedule[dateToScheduleIndex[_paymentDate]].errorCode = _errorCode;
         }
     }
-    function reportOnErrResolution(uint _paymentDate, bool boolValue) external onlyPlatformBackend noReentrancy{
+    /**設定isErrorResolved */
+    function setErrResolution(uint _paymentDate, bool boolValue) external onlyPlatformBackend noReentrancy{
         idxToRentSchedule[dateToScheduleIndex[_paymentDate]].isErrorResolved = boolValue;
     }
 }

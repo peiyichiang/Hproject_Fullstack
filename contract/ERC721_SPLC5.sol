@@ -30,6 +30,7 @@ contract NFTokenSPLC is Ownable, SupportsInterface {
     mapping(uint256 => address) internal idToOwner;//NFT ID to owner
     mapping(uint256 => address) internal idToApprovals;//NFT ID to approved address
     mapping(address => uint256) internal ownerToNFTokenCount;//owner address to count of his tokens
+    //approve
     mapping(address => mapping (address => bool)) internal ownerToOperators;
 
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;

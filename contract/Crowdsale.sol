@@ -6,37 +6,48 @@ contract CrowdSale is Ownable{
     
     event showState(string _state);
     
-    address public HTokenaddress; //專案erc721合約
+    //string public HTokenSYMBOL; //專案erc721合約
     uint public token_price;//每片太陽能板定價
     uint public totalamount; //專案總token數
     uint public fundingGoal;//專案達標數目
     uint public amountRaised; //累積賣出數目
     uint public deadline; //截止日期
     
-    mapping(address => uint256) public token_balanceOf;
-    mapping(address => uint256) public fund_balanceOf;
-    
-    //募款中、已達標(未到期)、已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
+    struct balance {
+        address userAssetcontract;
+        uint256 token_balance;
+        uint256 fund_balance;
+    }
+
+    //asset contract address
+    //mapping(address => uint256) public token_balanceOf;
+    mapping(uint => balance) public balanceOf;
+
+
+    ///募款中、已達標(未到期)、已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
     enum SaleState{Funding, goalReached, projectClosed, goalnotReached}
     SaleState salestate;
-    
+    //timestamp uint yyyymmddhhmm time server 要處理跨月、大小月
+    //string _htokenSYMBOL
     event StartFunding(address _htoken, uint fundingGoal);
+    //timestamp uint yyyymmddhhmm
     event GoalReached(address _htoken, uint amountRaised);
+    //timestamp
     event FundTransfer(address sponsor, uint amount);
 
     /*  at initialization, setup the owner */
     constructor  (
-        address _tokenaddress,
+        //address _tokenaddress,
         uint _toeknprice,
         uint _totalamount,
         uint _percents,
-        uint durationInMinutes
+        uint _deadline//from time server
     ) public {
-        HTokenaddress = _tokenaddress;//設定專案專案erc721合約
+        ///HTokenaddress = _tokenaddress;//設定專案專案erc721合約
         token_price = _toeknprice;
         totalamount = _totalamount;//專案總量
         fundingGoal = totalamount * _percents / 100;//專案達標數量
-        deadline = now + durationInMinutes * 30 seconds;///設定專案期限「測試時用30秒而已」
+        deadline = _deadline;///設定專案期限「測試時用30秒而已」
         salestate = SaleState.Funding;//init the project state
         emit StartFunding(HTokenaddress, fundingGoal);
     }
