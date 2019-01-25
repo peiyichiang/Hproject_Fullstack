@@ -6,15 +6,15 @@ import "./ERC721_SPLC5.sol";
 
 contract multiSig {
     address internal assetsOwner; //用戶 address
-    address internal platform; //平台方 address
-    address internal thirdparty; //第三方 address (一到三個人?)
+    address internal platform; //平台方 platformContract address
+    address[] internal endorsers; //背書者的 ssetContract address (一到三個人?)
     uint private owner_flag;
     uint private platform_flag;
-    uint private thirdparty_flag;
+    uint private endorsers_flag;
 
     event changeAssetOwnerEvent(address indexed oldOwner, address indexed newOwner, uint256 timestamp);
-    event changePlatformEvent(address indexed oldPlatform, address indexed newPlatform, uint256 timestamp);
-    event changeThirdpartyEvent(address indexed oldThirdparty, address indexed newThirdparty, uint256 timestamp);
+    event changeEndorsersEvent(address indexed oldEndorsers, address indexed newEndorsers, uint256 timestamp);
+    event addEndorsersEvent(address indexed endorsers, uint256 timestamp);
 
 
     //執行更換eth地址前 三人中有兩人須簽章
@@ -26,12 +26,12 @@ contract multiSig {
         platform_flag = 1;
     }
 
-    function thirdpartySign() public isThirdparty {
-        thirdparty_flag = 1;
+    function endorsersSign() public isEndorsers {
+        endorsers_flag = 1;
     }
 
     modifier isMultiSignature(){
-        require(owner_flag+platform_flag+thirdparty_flag >= 2, "請確認是否完成多重簽章");
+        require(owner_flag+platform_flag+endorsers_flag >= 2, "請確認是否完成多重簽章");
         _;
     }
 
@@ -39,7 +39,7 @@ contract multiSig {
     function resetSignStatus() internal {
         owner_flag = 0;
         platform_flag = 0;
-        thirdparty_flag = 0;
+        endorsers_flag = 0;
     }
 
     //檢查是否為合約擁有者
@@ -50,38 +50,42 @@ contract multiSig {
 
     //檢查是否為平台方
     modifier isPlatform(){
-        require(msg.sender == platform, "請檢查是否為平台方");
+        require(msg.sender == platform, "請檢查是否為平台方合約地址");
         _;
     }
 
-    //檢查是否為第三方公信機構
-    modifier isThirdparty(){
-        require(msg.sender == thirdparty, "請檢查是否為第三方公信機構");
+    //檢查是否為背書者
+    modifier isEndorsers(){
+        require(endorsers[0] == msg.sender || endorsers[1] == msg.sender || endorsers[2] == msg.sender, "請檢查是否為背書人合約地址");
         _;
     }
 
     //更換assetOwner
     function changeAssetOwner(address _to) public isMultiSignature{
+        address _oldAssetOwner = assetsOwner;
         assetsOwner = _to;
+        //獎勵endorser
         resetSignStatus();
 
-        emit changeAssetOwnerEvent(msg.sender, _to, now);
+        emit changeAssetOwnerEvent(_oldAssetOwner, assetsOwner, now);
     }
 
-    //更換platform
-    function changePlatform(address _to) public isMultiSignature{
-        platform = _to;
-        resetSignStatus();
+    //新增endorser
+    function addEndorser(address _newEndorser) public isOwner{
+        require(endorsers.length < 3, "背書者人數上限為三人");
+        endorsers.push(_newEndorser);
 
-        emit changePlatformEvent(msg.sender, _to, now);
+        emit addEndorsersEvent(_newEndorser, now);
     }
 
-    //更換thirdparty
-    function changeThirdparty(address _to) public isMultiSignature{
-        thirdparty = _to;
-        resetSignStatus();
-
-        emit changeThirdpartyEvent(msg.sender, _to, now);
+    //更換endorsers
+    function changeEndorsers(address _oldEndorser, address _newEndorser) public isOwner{
+        for(uint i = 0;  i < endorsers.length; i++){
+            if(endorsers[i] == _oldEndorser){
+                endorsers[i] = _newEndorser;
+                emit changeEndorsersEvent(_oldEndorser, _newEndorser, now);
+            }
+        }
     }
 
     //取得sign
@@ -93,8 +97,8 @@ contract multiSig {
         return platform_flag;
     }
 
-    function getThirdpartySign() public view returns(uint){
-        return thirdparty_flag;
+    function getEndorsersSign() public view returns(uint){
+        return endorsers_flag;
     }
 
     function getAssetsOwner() public view returns(address){
@@ -105,11 +109,24 @@ contract multiSig {
         return platform;
     }
 
-    function getThirdparty() public view returns(address){
-        return thirdparty;
+    function getEndorsers() public view returns(address[] memory){
+        address[] memory _endorsers = new address[](endorsers.length);
+        for (uint i = 0; i < endorsers.length; i++) {
+            _endorsers[i] = endorsers[i];
+        }
+
+        return _endorsers;
+    }
+
+    //獎勵endorser
+    function reward(address _endorser) public{
+        /* @dev
+			獎勵制度實作
+		*/
     }
 
 }
+
 
 contract AssetContract is multiSig{
 
@@ -125,16 +142,15 @@ contract AssetContract is multiSig{
     address[] assetIndex; //token address list
 
 
-    event createAssetContractEvent(address assetsOwner, address platform, address thirdparty, uint timestamp);
+    event createAssetContractEvent(address assetsOwner, address platform, uint timestamp);
     event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
     event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
-    constructor (address _assetsOwner, address _platform, address _thirdparty) public {
-            assetsOwner = _assetsOwner;
-            platform = _platform;
-            thirdparty = _thirdparty;
+    constructor (address _assetsOwner, address _platform) public {
+        assetsOwner = _assetsOwner;
+        platform = _platform;
 
-            emit createAssetContractEvent(_assetsOwner, _platform, _thirdparty, now);
+        emit createAssetContractEvent(_assetsOwner, _platform, now);
     }
 
     modifier isAssetsOwner(){
@@ -159,7 +175,7 @@ contract AssetContract is multiSig{
     //提領token
     function transferAsset(address _tokenAddr, uint _tokenId, address _to) public isAssetsOwner {
         NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
-        require( _erc721.ownerOf(_tokenId) == address(this) , "請確認欲轉移的token_id");
+        require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
         uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);
         _erc721.transferFrom(address(this), _to, _tokenId);
@@ -178,13 +194,13 @@ contract AssetContract is multiSig{
 
     //get asset number
     function getAssetCount() public view returns(uint assetCount){
-    	return assetIndex.length;
-	}
+        return assetIndex.length;
+    }
 
 	//get all assetAddr
-	function getAssetIndex() public view returns(address[] memory){
+    function getAssetIndex() public view returns(address[] memory){
         return (assetIndex);
-	}
+    }
 
 /*
     //get all assets
@@ -202,6 +218,7 @@ contract AssetContract is multiSig{
 
         return (tokenAddrs, tokenSymbols, tokenAmounts);
     }
-*/
 
+*/
 }
+
