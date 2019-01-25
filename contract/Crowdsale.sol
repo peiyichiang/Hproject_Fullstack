@@ -2,6 +2,10 @@ pragma solidity ^0.5.3;
 
 import "./Ownable.sol";
 
+contract RegistryContract{
+    function getUserInfo(string memory _u_id) public isOwner view returns (string memory u_id, address assetAccount, address etherAddr, uint accountStatus){};
+}
+
 contract CrowdSale is Ownable{
     
     event showState(string _state);
