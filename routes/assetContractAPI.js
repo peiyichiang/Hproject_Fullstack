@@ -14,7 +14,7 @@ var userAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var privateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
 
 /*registry contract address*/
-const contract = require('../contract/asset.json');
+const contract = require('../contract/Asset.json');
 
 
 
