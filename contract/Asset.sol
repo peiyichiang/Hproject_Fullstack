@@ -61,29 +61,29 @@ contract multiSig {
     }
 
     //更換assetOwner
-    function changeAssetOwner(address _to) public isMultiSignature{
+    function changeAssetOwner(address _to, uint256 _time) public isMultiSignature{
         address _oldAssetOwner = assetsOwner;
         assetsOwner = _to;
         //獎勵endorser
         resetSignStatus();
 
-        emit changeAssetOwnerEvent(_oldAssetOwner, assetsOwner, now);
+        emit changeAssetOwnerEvent(_oldAssetOwner, assetsOwner, _time);
     }
 
     //新增endorser
-    function addEndorser(address _newEndorser) public isOwner{
+    function addEndorser(address _newEndorser, uint256 _time) public isOwner{
         require(endorsers.length < 3, "背書者人數上限為三人");
         endorsers.push(_newEndorser);
 
-        emit addEndorsersEvent(_newEndorser, now);
+        emit addEndorsersEvent(_newEndorser, _time);
     }
 
     //更換endorsers
-    function changeEndorsers(address _oldEndorser, address _newEndorser) public isOwner{
+    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _time) public isOwner{
         for(uint i = 0;  i < endorsers.length; i++){
             if(endorsers[i] == _oldEndorser){
                 endorsers[i] = _newEndorser;
-                emit changeEndorsersEvent(_oldEndorser, _newEndorser, now);
+                emit changeEndorsersEvent(_oldEndorser, _newEndorser, _time);
             }
         }
     }
@@ -146,11 +146,11 @@ contract AssetContract is multiSig{
     event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
     event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
-    constructor (address _assetsOwner, address _platform) public {
+    constructor (address _assetsOwner, address _platform, uint256 _time) public {
         assetsOwner = _assetsOwner;
         platform = _platform;
 
-        emit createAssetContractEvent(_assetsOwner, _platform, now);
+        emit createAssetContractEvent(_assetsOwner, _platform, _time);
     }
 
     modifier isAssetsOwner(){
@@ -169,7 +169,7 @@ contract AssetContract is multiSig{
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
         assetIndex.push(_tokenAddr);
 
-        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, now);
+        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _time);
     }
 
     //提領token
@@ -182,7 +182,7 @@ contract AssetContract is multiSig{
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
 
-        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, now);
+        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _time);
     }
 
     //get tokenAmount
