@@ -16,7 +16,7 @@ contract Rent is Ownable {
     address public PA_Ctrt;//
     address public FMXA_Ctrt;//FMXA
     address public platformCtrt;
-    uint public dateNow;//20190301
+    //uint public dateNow;//201903010000
     uint public startingDate = 20190122;
 
     mapping(uint256 => uint256) public dateToScheduleIndex;//date to scheduleIndex
@@ -32,7 +32,8 @@ contract Rent is Ownable {
         bool isErrorResolved;//default = true
     }
     constructor(uint _releaseDate, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
-        releaseDate = _releaseDate;//20190301
+        require(_releaseDate > 99999999999, "_releaseDate has to be in the format of yyyymmddhhmm");
+        releaseDate = _releaseDate;//201903010000
         tokenCtrt = _tokenCtrt;
         PA_Ctrt = _PA_Ctrt;
         FMXA_Ctrt = _FMXA_Ctrt;
@@ -67,6 +68,7 @@ contract Rent is Ownable {
 
     event NewRentSchedule(uint indexed _index, uint indexed _paymentDate, uint _paymentAmount);
     function makeRentSchedule(uint _paymentDate, uint _paymentAmount) external noReentrancy onlyFMXA {
+        require(_paymentDate > 99999999999, "_paymentDate has to be in the format of yyyymmddhhmm");
         scheduleIndex = scheduleIndex.add(1);
         RentSchedule memory newRentSchedule = RentSchedule({
             paymentDate: _paymentDate,
