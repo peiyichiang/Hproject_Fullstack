@@ -5,20 +5,13 @@ const net = require("net");
 const path = require('path');
 
 // 每20秒發送一次time
-schedule.scheduleJob('*/20 * * * * *', function () {
+schedule.scheduleJob('*/5 * * * * *', function () {
     let date = new Date().myFormat()
     sendTime(date)
 });
 
 Date.prototype.myFormat = function () {
-    let d = this.toLocaleDateString().split('-')
-    let t = this.toLocaleTimeString().split(':')
-    return [d[0],
-    (d[1] > 9 ? '' : '0') + d[1],
-    (d[2] > 9 ? '' : '0') + d[2],
-    t[0],
-    t[1]
-    ].join('')
+    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g,'-').replace(/(\.(.*)Z)/g,'').split('-').join('').slice(0,12);
 };
 
 function sendTime(date) {
