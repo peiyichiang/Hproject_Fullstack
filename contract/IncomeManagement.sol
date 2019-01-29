@@ -9,15 +9,15 @@ contract Htoken {
 //re-entry attack: prevented by noReentrancy
 contract Rent is Ownable {
     using SafeMath for uint256;
-    uint public releaseDate;//basis of time reference
+    uint public releaseDate;//basis of time reference, format: 201903010900
     address public tokenCtrt;
     uint public scheduleIndex;//index of the next scheduled date for rent payment
 
     address public PA_Ctrt;//
     address public FMXA_Ctrt;//FMXA
     address public platformCtrt;
-    //uint public dateNow;//201903010000
-    uint public startingDate = 20190122;
+    //uint public dateNow;//201903010900
+    uint public startingDate = 201901220900;
 
     mapping(uint256 => uint256) public dateToScheduleIndex;//date to scheduleIndex
     mapping(uint256 => RentSchedule) public schedules;//scheduleIndex to rentSchedule
@@ -33,7 +33,7 @@ contract Rent is Ownable {
     }
     constructor(uint _releaseDate, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
         require(_releaseDate > 99999999999, "_releaseDate has to be in the format of yyyymmddhhmm");
-        releaseDate = _releaseDate;//201903010000
+        releaseDate = _releaseDate;//201903010900
         tokenCtrt = _tokenCtrt;
         PA_Ctrt = _PA_Ctrt;
         FMXA_Ctrt = _FMXA_Ctrt;

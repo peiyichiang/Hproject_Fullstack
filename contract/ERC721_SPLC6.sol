@@ -70,23 +70,23 @@ contract Ownable {
     }
     event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
 
-    function ownerSign() public {
+    function ownerSign() external {
         require(msg.sender == owner, "restricted to owner");
         ownerVote = 1;
     }
-    function chairmanSign() public {
+    function chairmanSign() external {
         require(msg.sender == chairman, "restricted to chairman");
         chairmanVote = 1;
     }
-    function directorSign() public {
+    function directorSign() external {
         require(msg.sender == director, "restricted to director");
         directorVote = 1;
     }
-    function managerSign() public {
+    function managerSign() external {
         require(msg.sender == manager, "restricted to manager");
         managerVote = 1;
     }
-    function adminSign() public {
+    function adminSign() external {
         require(msg.sender == admin, "restricted to admin");
         adminVote = 1;
     }
@@ -101,7 +101,8 @@ contract Ownable {
         managerVote = 0;
         adminVote = 0;
     }
-    function setManagement(uint managementIdx, address addrNew) public isMultiSig noReentrancy{
+
+    function setManagement(uint8 managementIdx, address addrNew) external isMultiSig noReentrancy{
         require(
             msg.sender == owner || msg.sender == chairman || msg.sender == director || msg.sender == manager || msg.sender == admin, "only management team can access");
         require(managementIdx > 0 && managementIdx <= maxVotes, "managementIdx is out of range");
@@ -121,6 +122,7 @@ contract Ownable {
         } else if (managementIdx == 5) {
             admin = addrNew;
             emit SetManagement(admin, addrNew, managementIdx);
+
         } else {require(false, "not valid option");}
         resetSignStatus();
     }
@@ -163,7 +165,7 @@ interface ERC721 {
    * $param _to The new owner.
    * $param _tokenId The NFT to transfer.
    * $param _data Additional data with no specified format, sent in call to `_to`.   */
-  function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes _data) external;
+  function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external;
 
   /** $dev Transfers the ownership of an NFT from one address to another address.
    * $notice This works identically to the other function with an extra data parameter, except this
@@ -222,7 +224,7 @@ interface ERC721TokenReceiver {
      $param _data Additional data with no specified format
      $return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
       unless throwing*/
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes _data) external returns(bytes4);
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external returns(bytes4);
 }
 
 //supportsInterface[0x01ffc9a7] will be true, must not set element 0xffffffff to true!!!!!
@@ -249,9 +251,9 @@ contract SupportsInterface is ERC165 {
 https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Metadata.sol
  */
 interface ERC721Metadata {
-    function name() external view returns (string _name);//get token name of the contract
-    function symbol() external view returns (string _symbol);// get symbol of the contract
-    function tokenURI(uint256 _tokenId) external view returns (string);// get token URI of certain tokenId
+    function name() external view returns (string memory _name);//get token name of the contract
+    function symbol() external view returns (string memory _symbol);// get symbol of the contract
+    function tokenURI(uint256 _tokenId) external view returns (string memory);// get token URI of certain tokenId
 }
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Enumerable.sol
@@ -299,11 +301,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     //ID to index in owner tokens list; 0 is reserved for not in list!
     mapping(address => uint256[]) internal ownerToIds;//owner to list of owned NFT IDs.
 
-    //==================New code starting from here
-    //bool public SPLC_Termination_Time;
-    //uint public 1yPeriod = 31536000;
-    bool public tokenStatus = true;
-    
+    //-------------==H token specifics
     mapping(uint256 => Asset) internal idToAsset;//NFT ID to token assets
     struct Asset {
         string name;// NCCU site No.1(2018)
@@ -313,33 +311,27 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         uint pricing;// pricing in the "currency" type above
     }
 
-    uint public nextTokenId = 1;//next token id, NOT from 0!!!
+    uint public tokenId;//first id will be 1
     uint public siteSizeInKW;// 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
-    uint public totalSupplyValidToken;//total generated tokens - destroyed tokens
+    uint public totalValidToken;//total generated tokens - destroyed tokens
     uint public initialAssetPricing;// 17000
     string public pricingCurrency;// for the initialAssetPricing: NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
-    string public ValidDate;// 01312038 ... mmddyyyy, last day for the contract to be valid
-    bool public isPreDelivery = true;// IsPreDelivery indicates if it is before token delivery time(launch).
-    //If true, we can change those variables before the token launch time: SafeVault, LockUpPeriod, tokenMintTime
-    address public SafeVault;//the default address for sending all newly minted tokens to.
-    address public SafeVaultNew;
 
-    uint256 public tokenMintTime = 1;// the time when the token is minted
-    uint public LockUpPeriod = 5 minutes;// 5 minutes, only used once after ICO
-    //bool public isAfterLockup;
+    uint public currentTime;//201903310000
+    uint public TokenValidTime;
+    uint public TokenUnlockTime = 201901310000;// the time when the token is minted
+    bool public isLaunched;//
 
     function getCtrtDetails() public view returns (
-        bool, uint, uint, uint,
-        uint, uint, string, 
-        uint, string, bool, address,
-        uint, uint){
+        uint, uint, uint,
+        uint, uint, string memory, 
+        uint, uint, uint, uint, bool) {
         return (
-            tokenStatus, nextTokenId, siteSizeInKW, maxTotalSupply,
-        totalSupplyValidToken, initialAssetPricing, pricingCurrency,
-        IRR20yrx100, ValidDate, isPreDelivery, SafeVault, 
-        tokenMintTime, LockUpPeriod);
+            tokenId, siteSizeInKW, maxTotalSupply,
+        totalValidToken, initialAssetPricing, pricingCurrency,
+        IRR20yrx100, currentTime, TokenValidTime, TokenUnlockTime, isLaunched);
     }
 
     //==================Metadata
@@ -347,13 +339,13 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     string internal nftSymbol;//abbreviated name for NFTokens
     //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
 
-    function name() external view returns (string _name) {
+    function name() external view returns (string memory _name) {
         _name = nftName;
     }
-    function symbol() external view returns (string _symbol) {
+    function symbol() external view returns (string memory _symbol) {
         _symbol = nftSymbol;
     }
-    function tokenURI(uint256 _tokenId) external validNFToken(_tokenId) view returns (string) {
+    function tokenURI(uint256 _tokenId) external validNFToken(_tokenId) view returns (string memory) {
         return idToAsset[_tokenId].uri;//idToUri[_tokenId];
     }
     /*function _setTokenUri(uint256 _tokenId, string _uri) internal validNFToken(_tokenId) onlyOwner {
@@ -365,9 +357,10 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     Deployed in Rinkeby
     0x1DB86a2B9Ab01024333Bd335B6D67cc30d50324f
     */
-    constructor(string _nftName, string _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
-        uint _initialAssetPricing, string _pricingCurrency,
-        uint _IRR20yrx100, string _validDate) public {
+    constructor(
+        string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
+        uint _initialAssetPricing, string memory _pricingCurrency, uint _IRR20yrx100,
+        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime) public {
         nftName = _nftName;
         nftSymbol = _nftSymbol;
         siteSizeInKW = _siteSizeInKW;
@@ -375,8 +368,11 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         initialAssetPricing = _initialAssetPricing;
         pricingCurrency = _pricingCurrency;
         IRR20yrx100 = _IRR20yrx100;
-        ValidDate = _validDate;
-        SafeVault = owner;
+
+        currentTime = _currentTime;
+        TokenValidTime = _TokenValidTime;
+        TokenUnlockTime = _TokenUnlockTime;
+
         supportedInterfaces[0x80ac58cd] = true;// ERC721
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
@@ -393,24 +389,52 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     *   bytes4(keccak256('safeTransferFrom(address,address,uint256)')) ^
     *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
     */
-    modifier checkTfStatus() {
-        //will block all token tranfers either before the lockup time, 
-        //or until a time when SPLC's power plant contract is finished
-        require(now >= tokenMintTime.add(LockUpPeriod), "still in the lockup period");
-        require(tokenStatus,"token status is false: locked up");
+    
+    event SetCurrentTime(uint _currentTime);
+    function setCurrentTime(uint _currentTime) external onlyAdmin ckTime(_currentTime){
+        currentTime = _currentTime;//For TimeServer injecting current time
+        emit SetCurrentTime(_currentTime);
+    }
+
+    event SetTokenValidTime(uint _validTime);
+    function setTokenValidTime(uint _validTime) external onlyAdmin ckTime(_validTime) ckLaunched {
+        TokenValidTime = _validTime;
+        emit SetTokenValidTime(_validTime);
+    }
+
+    event SetTokenUnlockTime(uint _unlockTime);
+    function setTokenUnlockTime(uint _unlockTime) external onlyAdmin ckTime(_unlockTime) ckLaunched {
+        TokenUnlockTime = _unlockTime;
+        emit SetTokenUnlockTime(_unlockTime);
+    }
+
+    event SetLaunchTime(uint _launchTime);
+    function setLaunchTime(uint _launchTime) external onlyAdmin ckTime(_launchTime) ckLaunched {
+        isLaunched = true;
+        emit SetLaunchTime(_launchTime);
+    }
+
+    modifier ckTime(uint _time) {
+        require(_time > 201901310000, "_time has to be in the format of yyyymmddhhmm");
         _;
     }
-    function get_now() public view returns (uint){
-        return now;//check current time. Useful for 2038 unix time overflow
+    modifier ckLaunched() {
+        require(!isLaunched, "only allowed before launch time");
+        _;
     }
-    function get_lockupUntil() public view returns (uint){
-        return tokenMintTime.add(LockUpPeriod);
+
+    modifier onlyUnlockedValid() {
+        //will block all token tranfers either before the lockup time, 
+        //or until a time when SPLC's power plant contract is finished
+        require(TokenUnlockTime < currentTime && currentTime < TokenValidTime, "token in lockup time or over valid date");
+        _;
     }
-    function getNFT(uint _id) external view returns (string, string, string, string, uint) {
+
+    function getNFT(uint _id) external view returns (string memory, string memory, string memory, string memory, uint) {
         return (idToAsset[_id].name, idToAsset[_id].symbol,
         idToAsset[_id].currency, idToAsset[_id].uri, idToAsset[_id].pricing);
     }
-    function get_ownerToIds(address _owner) external view returns (uint[]) {
+    function get_ownerToIds(address _owner) external view returns (uint[] memory) {
         return ownerToIds[_owner];
     }
     function get_idToOwnerIndexPlus1(uint _tokenId) public view returns (uint){
@@ -418,75 +442,47 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     }
     //-------------------==Enumerable
     function totalSupply() external view returns (uint256) {
-        return totalSupplyValidToken;//edit
+        return totalValidToken;//edit
     }
     //no array so no token should be found by array index => returning the tokenId(token identifier)
     function tokenByIndex(uint256 _index) external view returns (uint256) {
-        return 999999999999999999;
+        return _index;
     }
     //-------------------==End of Enumerable interface
-    function getTokenOwners(uint idStart, uint idCount) external returns(address[]) {
-        //maxTokenId = nextTokenId - 1;
-        require(idStart + idCount - 1 < nextTokenId, "idStart is too big for idCount");
+    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory) {
+        //maxTokenId = tokenId - 1;
+        require(idStart + idCount - 1 <= tokenId, "idStart is too big for idCount");
         address[] memory addrArray;
-        for(uint i = idStart; i < nextTokenId; i = i.add(1)) {
-            addrArray.push(ownerOf(i));
+        for(uint i = idStart; i <= tokenId; i = i.add(1)) {
+            addrArray[i] = ownerOf(i);
         }
         return addrArray;
     }
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
-    function mintSerialNFT(string _uri) external onlyAdmin {
-        require(nextTokenId <= maxTotalSupply, "max allowed token amount has been reached");
-        //nextTokenId -1 +1 <= maxTotalSupply
-        idToAsset[nextTokenId] = Asset(nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
+    function mintSerialNFT(address _to, string calldata _uri) external onlyAdmin {
+        tokenId = tokenId.add(1);
+        require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
+        //tokenId <= maxTotalSupply
+        idToAsset[tokenId] = Asset(nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
 
         //uint256 length = tokens.push(_tokenId);//Enumerable
-        //idToIndex[nextTokenId] = length;//.sub(1);//Enumerable, starting form 1
+        //idToIndex[tokenId] = length;//.sub(1);//Enumerable, starting form 1
 
-        _mint(SafeVault, nextTokenId);
-        //_setTokenUri(nextTokenId, _uri);
-        emit MintSerialNFT(nextTokenId, nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
-        totalSupplyValidToken = totalSupplyValidToken.add(1);
-        nextTokenId = nextTokenId.add(1);
+        _mint(_to, tokenId);
+        //_setTokenUri(tokenId, _uri);
+        emit MintSerialNFT(tokenId, nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
+        totalValidToken = totalValidToken.add(1);
     }
     event BurnNFT(address _owner, uint _tokenId, address msgsender);
     function burnNFT(address _owner, uint256 _tokenId) external onlyAdmin {
         delete idToAsset[_tokenId];
         _burn(_owner, _tokenId);
-        totalSupplyValidToken = totalSupplyValidToken.sub(1);
+        totalValidToken = totalValidToken.sub(1);
         emit BurnNFT(_owner, _tokenId, msg.sender);
     }
 
-
-    event SetNewSafeVault(address _SafeVault, address _SafeVaultNew);
-    function setNewSafeVault(address _newSafeVault) external onlyAdmin {
-        SafeVaultNew = _newSafeVault;
-    }
-    function setNewSafeVault() external {
-        require(isPreDelivery, "still in pre_delivery");
-        require(SafeVaultNew == msg.sender, "only SafeVaultNew can call this function");
-        emit SetNewSafeVault(SafeVault, SafeVaultNew);
-        SafeVault = SafeVaultNew;
-    }
-    function disablePreDelivery() external onlyAdmin {
-        isPreDelivery = false;
-    }
-    function setLockUpPeriod(
-        uint _LockUpPeriod_inMins, uint _LockUpPeriod_inWeeks) 
-        external onlyAdmin {
-        require(isPreDelivery, "still in pre_delivery");
-        LockUpPeriod = (_LockUpPeriod_inMins * 1 minutes).add(_LockUpPeriod_inWeeks * 1 weeks);
-    }
-    function setTokenMintTime(uint _tokenMintTime) external onlyAdmin {
-        require(isPreDelivery, "still in pre_delivery");
-        tokenMintTime = _tokenMintTime;
-    }
-    function setTokenStatus(bool _tokenStatus) external onlyAdmin {
-        tokenStatus = _tokenStatus;
-    }
-
-    function() public payable { revert("should not send any ether directly"); } //should not send any ether directly
+    function() external payable { revert("should not send any ether directly"); } //should not send any ether directly
 
 
     //====================Copied code
@@ -556,7 +552,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     * invalid, and queries about them do throw.
     * $param _tokenId The identifier for an NFT.   */
     function ownerOf(uint256 _tokenId) 
-        external view returns (address _owner) {
+        public view returns (address _owner) {
         _owner = idToOwner[_tokenId];
         require(_owner != address(0), "_owner should not be 0x0");
     }
@@ -569,8 +565,8 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     * $param _tokenId The NFT to transfer.
     * $param _data Additional data with no specified format, sent in call to `_to`.   */
     function safeTransferFrom(
-        address _from, address _to, uint256 _tokenId, bytes _data) 
-        external checkTfStatus {
+        address _from, address _to, uint256 _tokenId, bytes calldata _data) 
+        external onlyUnlockedValid {
         _safeTransferFrom(_from, _to, _tokenId, _data);
     }
 
@@ -582,7 +578,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     * $param _tokenId The NFT to transfer.   */
     function safeTransferFrom(
         address _from, address _to, uint256 _tokenId) external 
-        checkTfStatus {
+        onlyUnlockedValid {
         _safeTransferFrom(_from, _to, _tokenId, "");
     }
 
@@ -596,7 +592,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     * $param _tokenId The NFT to transfer.   */
     function transferFrom(
         address _from, address _to, uint256 _tokenId) external 
-        checkTfStatus
+        onlyUnlockedValid
         canTransfer(_tokenId) validNFToken(_tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be equal to _from");
@@ -658,7 +654,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     * $param _tokenId The NFT to transfer.
     * $param _data Additional data with no specified format, sent in call to `_to`.   */
     function _safeTransferFrom(
-        address _from, address _to, uint256 _tokenId, bytes _data)
+        address _from, address _to, uint256 _tokenId, bytes memory _data)
         internal canTransfer(_tokenId) validNFToken(_tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be _from");
