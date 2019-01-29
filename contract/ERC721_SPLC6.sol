@@ -430,6 +430,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         _;
     }
 
+    //--------------------==Copied code
     function getNFT(uint _id) external view returns (string memory, string memory, string memory, string memory, uint) {
         return (idToAsset[_id].name, idToAsset[_id].symbol,
         idToAsset[_id].currency, idToAsset[_id].uri, idToAsset[_id].pricing);

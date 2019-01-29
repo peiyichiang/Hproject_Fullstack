@@ -7,11 +7,11 @@ contract Htoken {
 }
 
 //re-entry attack: prevented by noReentrancy
-contract Rent is Ownable {
+contract IncomeManagement is Ownable {
     using SafeMath for uint256;
     uint public releaseDate;//basis of time reference, format: 201903010900
     address public tokenCtrt;
-    uint public scheduleIndex;//index of the next scheduled date for rent payment
+    uint public scheduleIndex;//index of the next scheduled date for income payment
 
     address public PA_Ctrt;//
     address public FMXA_Ctrt;//FMXA
@@ -20,14 +20,14 @@ contract Rent is Ownable {
     uint public startingDate = 201901220900;
 
     mapping(uint256 => uint256) public dateToScheduleIndex;//date to scheduleIndex
-    mapping(uint256 => RentSchedule) public schedules;//scheduleIndex to rentSchedule
+    mapping(uint256 => IncomeSchedule) public schedules;//scheduleIndex to incomeSchedule
     
     // cash flow: FMX -> platform -> investors
-    struct RentSchedule {
-        uint paymentDate;//the date to send rent, used as mapping key
-        uint paymentAmount;//given by FMXA, sending rent from platform to investors
+    struct IncomeSchedule {
+        uint paymentDate;//the date to send income, used as mapping key
+        uint paymentAmount;//given by FMXA, sending income from platform to investors
         bool isApproved;//by PA
-        bool isRentPaid;//confirmed after platform's bank confirming rent has been sent
+        bool isIncomePaid;//confirmed after platform's bank confirming income has been sent
         uint8 errorCode;//0 to 255
         bool isErrorResolved;//default = true
     }
@@ -59,73 +59,73 @@ contract Rent is Ownable {
     -->match product time line以及後台功能.
     */
 
-    //check rent ready to release
-    function isRentReadyForRelease(uint _dateToday) external view returns (bool) {
+    //check income ready to release
+    function isIncomeReadyForRelease(uint _dateToday) external view returns (bool) {
         require(platformCtrt == msg.sender, "sender is not the time server");
 
-        return (schedules[dateToScheduleIndex[_dateToday]].isApproved && !schedules[dateToScheduleIndex[_dateToday]].isRentPaid);
+        return (schedules[dateToScheduleIndex[_dateToday]].isApproved && !schedules[dateToScheduleIndex[_dateToday]].isIncomePaid);
     }
 
-    event NewRentSchedule(uint indexed _index, uint indexed _paymentDate, uint _paymentAmount);
-    function makeRentSchedule(uint _paymentDate, uint _paymentAmount) external noReentrancy onlyFMXA {
+    event NewIncomeSchedule(uint indexed _index, uint indexed _paymentDate, uint _paymentAmount);
+    function makeIncomeSchedule(uint _paymentDate, uint _paymentAmount) external noReentrancy onlyFMXA {
         require(_paymentDate > 99999999999, "_paymentDate has to be in the format of yyyymmddhhmm");
         scheduleIndex = scheduleIndex.add(1);
-        RentSchedule memory newRentSchedule = RentSchedule({
+        IncomeSchedule memory newIncomeSchedule = IncomeSchedule({
             paymentDate: _paymentDate,
             paymentAmount: _paymentAmount,
             isApproved: false,
-            isRentPaid: false,
+            isIncomePaid: false,
             errorCode: 0,
             isErrorResolved: false
         });//20190301
         dateToScheduleIndex[_paymentDate] = scheduleIndex;
-        schedules[scheduleIndex] = newRentSchedule;
-        emit NewRentSchedule(scheduleIndex, _paymentDate, _paymentAmount);
+        schedules[scheduleIndex] = newIncomeSchedule;
+        emit NewIncomeSchedule(scheduleIndex, _paymentDate, _paymentAmount);
     }
 
-    event EditRentSchedule(uint indexed _index, uint indexed _paymentDate, uint _paymentAmount);
-    function editRentSchedule(uint _index, uint _paymentDate, uint _paymentAmount) external noReentrancy onlyFMXA {
+    event EditIncomeSchedule(uint indexed _index, uint indexed _paymentDate, uint _paymentAmount);
+    function editIncomeSchedule(uint _index, uint _paymentDate, uint _paymentAmount) external noReentrancy onlyFMXA {
         uint rsIndex;
         if (_index == 0) {
             rsIndex = dateToScheduleIndex[_paymentDate];
         } else {rsIndex = _index;}
         schedules[rsIndex].paymentDate = _paymentDate;
         schedules[rsIndex].paymentAmount = _paymentAmount;
-        emit EditRentSchedule(scheduleIndex, _paymentDate, _paymentAmount);
+        emit EditIncomeSchedule(scheduleIndex, _paymentDate, _paymentAmount);
     }
     /**
-        uint paymentDate;//the date to send rent
-        uint paymentAmount;//given by FMXA, sending rent from platform to investors
+        uint paymentDate;//the date to send income
+        uint paymentAmount;//given by FMXA, sending income from platform to investors
         bool isApproved;//by PA
-        bool isRentPaid;//confirmed after platform's bank confirming rent has been sent
+        bool isIncomePaid;//confirmed after platform's bank confirming income has been sent
         uint8 errorCode;//0 to 255
         bool isErrorResolved;
      */
-    function getRentPaymentSchedule(uint _paymentDate) external view returns (uint,uint,bool,bool,uint8,bool) {
+    function getIncomePaymentSchedule(uint _paymentDate) external view returns (uint,uint,bool,bool,uint8,bool) {
         uint idx = dateToScheduleIndex[_paymentDate];
-        RentSchedule memory rs = schedules[idx];
-        return (rs.paymentDate, rs.paymentAmount, rs.isApproved, rs.isRentPaid, rs.errorCode, rs.isErrorResolved);
+        IncomeSchedule memory rs = schedules[idx];
+        return (rs.paymentDate, rs.paymentAmount, rs.isApproved, rs.isIncomePaid, rs.errorCode, rs.isErrorResolved);
     }
-    event RemoveRentSchedule(uint indexed _index);
-    function removeRentSchedule(uint _index, uint _paymentDate) external noReentrancy onlyFMXA {
+    event RemoveIncomeSchedule(uint indexed _index);
+    function removeIncomeSchedule(uint _index, uint _paymentDate) external noReentrancy onlyFMXA {
         uint rsIndex;
         if (_index == 0) {
             rsIndex = dateToScheduleIndex[_paymentDate];
         } else {rsIndex = _index;}
 
-        if(!schedules[rsIndex].isApproved && !schedules[rsIndex].isRentPaid) {
+        if(!schedules[rsIndex].isApproved && !schedules[rsIndex].isIncomePaid) {
             schedules[rsIndex].paymentDate = 0;
             schedules[rsIndex].paymentAmount = 0;
         }
-        emit RemoveRentSchedule(rsIndex);
+        emit RemoveIncomeSchedule(rsIndex);
     }
-    // function getRentPaymentScheduleList(uint[] calldata _paymentDates) external view returns (RentSchedule[] memory) {
-    //     // require(rentStartDate + rentCount - 1 < scheduleIndex, "rentStartDate is too big for rentCount");
-    //     RentSchedule[] memory rentSchedule;
+    // function getIncomePaymentScheduleList(uint[] calldata _paymentDates) external view returns (IncomeSchedule[] memory) {
+    //     // require(incomeStartDate + incomeCount - 1 < scheduleIndex, "incomeStartDate is too big for incomeCount");
+    //     IncomeSchedule[] memory incomeSchedule;
     //     for(uint i = 0; i < _paymentDates.length; i = i.add(1)) {
-    //         rentSchedule.push(schedules[dateToScheduleIndex[_paymentDates[i]]]);
+    //         incomeSchedule[i] = schedules[dateToScheduleIndex[_paymentDates[i]]];
     //     }
-    //     return rentSchedule;
+    //     return incomeSchedule;
     // }
 
     /**設定isApproved */
@@ -138,10 +138,10 @@ contract Rent is Ownable {
         emit ChangeFMXA(FMXA_Ctrt, FMXA_Ctrt_new);
         FMXA_Ctrt = FMXA_Ctrt_new;
     }
-    /**設定isRentPaid，如果有錯誤發生，設定errorCode */
+    /**設定 isIncomePaid，如果有錯誤發生，設定errorCode */
     event SetPaymentReleaseResults(uint indexed _paymentDate, bool boolValue, uint8 _errorCode);
     function setPaymentReleaseResults(uint _paymentDate, bool boolValue, uint8 _errorCode) external onlyPA noReentrancy{
-        schedules[dateToScheduleIndex[_paymentDate]].isRentPaid = boolValue;
+        schedules[dateToScheduleIndex[_paymentDate]].isIncomePaid = boolValue;
         if (_errorCode != 0) {
             schedules[dateToScheduleIndex[_paymentDate]].errorCode = _errorCode;
         }
