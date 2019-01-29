@@ -8,7 +8,8 @@
     "manager": "node manager/manager.js",
     "rent": "node manager/rent.js",
     "crowdfunding": "node manager/crowdfunding.js",
-    "time": "concurrently -n timeserver,manager,rent,crowdfunding \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\""
+    "order": "node manager/order.js",
+    "time": "concurrently -n timeserver,manager,rent,crowdfunding,order \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\""
   },
   "dependencies": {
     "bcrypt": "^3.0.2",
