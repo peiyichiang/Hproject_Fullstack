@@ -5,10 +5,10 @@
   "scripts": {
     "start": "nodemon ./bin/www",
     "timeserver": "node timeserver/timeserver.js",
-    "manager": "node manager/manager.js",
-    "rent": "node manager/rent.js",
-    "crowdfunding": "node manager/crowdfunding.js",
-    "order": "node manager/order.js",
+    "manager": "node timeserver/manager/manager.js",
+    "rent": "node timeserver/manager/rent.js",
+    "crowdfunding": "node timeserver/manager/crowdfunding.js",
+    "order": "node timeserver/manager/order.js",
     "time": "concurrently -n timeserver,manager,rent,crowdfunding,order \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\""
   },
   "dependencies": {
