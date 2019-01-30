@@ -3,6 +3,7 @@
 pragma solidity ^0.5.3;
 
 import "./Ownable.sol";
+import "./SafeMath.sol";
 
 contract CrowdSale is Ownable{
     using SafeMath for uint256;
@@ -43,34 +44,34 @@ contract CrowdSale is Ownable{
         uint _tokenprice,
         uint _totalamount,
         uint _percents,
-        uint _deadline,//from time server yyyymmddhhmm
+        uint _deadline,//time format yyyymmddhhmm
         uint _startTime
     ) public {
         platformAddress = msg.sender;
         HTokenSYMBOL = _htokenSYMBOL;//設定專案專案erc721合約
         token_price = _tokenprice;
         totalamount = _totalamount;//專案總量
-        fundingGoal = totalamount * _percents / 100;//專案達標數量
+        fundingGoal = totalamount.mul(_percents).div(100);//專案達標數量
         deadline = _deadline;// yyyymmddhhmm
         salestate = saleState.Funding;//init the project state
         pausestate = pauseState.Active;
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
 
-    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState checkPlatform{
+    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
         if(_serverTime > deadline && amountRaised < fundingGoal){
             salestate = saleState.goalnotReached;//專案失敗
+            emit showState(ProjectState());
         }
         else{
             uint amount = _tokenInvest;
+            balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
             uint tokenBalance = balanceOf[_assetContrcatAddr].token_balance;
             tokenBalance = tokenBalance.add(amount);//用mapping記錄每個投資人的token數目
             uint fundBalance = balanceOf[_assetContrcatAddr].fund_balance;
             fundBalance = fundBalance.add(_tokenInvest.mul(token_price));
             amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
             emit FundTransfer(msg.sender, amount, _serverTime);
-            updateState(_serverTime);//投資後檢查整個專案狀態
-            emit showState(ProjectState());
         }
     }
     
@@ -114,44 +115,21 @@ contract CrowdSale is Ownable{
         return (totalamount - amountRaised);
     }
     
-    modifier checkState() {
-        require(salestate == saleState.Funding || salestate == saleState.goalReached || pausestate == pauseState.Active);
+    modifier checkState(uint _serverTime) {
+        updateState(_serverTime);
+        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active);
         _;
+        updateState(_serverTime);
+        emit showState(ProjectState());
     }
     
     modifier checkAmount(uint _tokencount){
-        require(_tokencount + amountRaised <= totalamount, "checkAmount failed");
+        require(_tokencount.add(amountRaised) <= totalamount, "checkAmount failed");
         _;
     }
     
     modifier checkPlatform() {
         require(msg.sender == platformAddress);
         _;
-    }
-}
-
-library SafeMath {
-    function mul(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        if (_a == 0) {
-            return 0;
-        }
-        uint256 c = _a * _b;
-        require(c / _a == _b, "safeMath mul failed");
-        return c;
-    }
-    function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        uint256 c = _a / _b;
-        // require(b > 0); // Solidity automatically throws when dividing by 0
-        // require(a == b * c + a % b); // There is no case in which this doesn't hold
-        return c;
-    }
-    function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        require(_b <= _a, "safeMath sub failed");
-        return _a - _b;
-    }
-    function add(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        uint256 c = _a + _b;
-        require(c >= _a, "safeMath add failed");
-        return c;
     }
 }
