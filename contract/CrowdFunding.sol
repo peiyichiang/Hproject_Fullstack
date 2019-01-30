@@ -66,10 +66,8 @@ contract CrowdSale is Ownable{
         else{
             uint amount = _tokenInvest;
             balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
-            uint tokenBalance = balanceOf[_assetContrcatAddr].token_balance;
-            tokenBalance = tokenBalance.add(amount);//用mapping記錄每個投資人的token數目
-            uint fundBalance = balanceOf[_assetContrcatAddr].fund_balance;
-            fundBalance = fundBalance.add(_tokenInvest.mul(token_price));
+            balanceOf[_assetContrcatAddr].token_balance = balanceOf[_assetContrcatAddr].token_balance.add(amount);//用mapping記錄每個投資人的token數目
+            balanceOf[_assetContrcatAddr].fund_balance = balanceOf[_assetContrcatAddr].fund_balance.add(_tokenInvest.mul(token_price));
             amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
             emit FundTransfer(msg.sender, amount, _serverTime);
         }
@@ -100,6 +98,11 @@ contract CrowdSale is Ownable{
         else if(salestate == saleState.goalnotReached) _return = "募款失敗";
         else revert("ProjectState() failed");
     }
+    
+    function showPausestate() public view returns(string memory _return) {
+        if(pausestate == pauseState.Pause) _return = "專案暫停";
+        else if(pausestate == pauseState.Active) _return = "專案進行中";
+    }  
     
     function pauseSale() public checkPlatform {
         pausestate = pauseState.Pause;
