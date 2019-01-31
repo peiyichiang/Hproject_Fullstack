@@ -12,7 +12,8 @@ contract CrowdSale is Ownable{
     event startFunding(string indexed _htokenSYMBOL, uint _fundingGoal, uint _time);
     event goalReached(string indexed _htokenSYMBOL, uint _amountRaised, uint _time);
     event fundingClosing(string indexed _htokenSYMBOL, uint _time);
-    event FundTransfer(address _investor, uint _amount, uint _time);
+    event FundTransfer(address indexed _investor, uint _amount, uint _time);
+    event reFundrecord(address _investor, uint _amount, uint _time);
     
     address private platformAddress;
     string public HTokenSYMBOL; //專案erc721合約
@@ -63,7 +64,7 @@ contract CrowdSale is Ownable{
         balanceOf[_assetContrcatAddr].token_balance = balanceOf[_assetContrcatAddr].token_balance.add(amount);//用mapping記錄每個投資人的token數目
         balanceOf[_assetContrcatAddr].fund_balance = balanceOf[_assetContrcatAddr].fund_balance.add(_tokenInvest.mul(token_price));
         amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
-        emit FundTransfer(msg.sender, amount, _serverTime);
+        emit FundTransfer(_assetContrcatAddr, amount, _serverTime);
     }
     
     /* checks if the goal or time limit has been reached and ends the campaign */
@@ -84,6 +85,10 @@ contract CrowdSale is Ownable{
             salestate = saleState.goalnotReached;//專案失敗
             emit showState(ProjectState());
         }
+    }
+    
+    function refund(uint _serverTime, address userAssetcontract) public checkPlatform {
+        emit reFundrecord(userAssetcontract, balanceOf[userAssetcontract].fund_balance, _serverTime);
     }
 
     function ProjectState() public view returns(string memory _return){
