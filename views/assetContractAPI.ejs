@@ -30,25 +30,25 @@
     <div>
         <button id="getAssetsOwner">getAssetsOwner</button>
         <button id="getPlatform">getPlatform</button>
-        <button id="getThirdparty">getThirdparty</button>
+        <button id="getEndorsers">getEndorsers</button>
     </div>
     <hr>
     <div>
-        <button id="getOwnerSign">getOwnerSign</button>
+        <button id="getAssetsOwnerSign">getAssetsOwnerSign</button>
         <button id="getPlatformSign">getPlatformSign</button>
-        <button id="getThirdpartySign">getThirdpartySign</button>
+        <button id="getEndorsersSign">getEndorsersSign</button>
     </div>
     <hr>
     <div>
-        <button id="ownerSign">ownerSign</button>
+        <button id="assetsOwnerSign">assetsOwnerSign</button>
         <button id="platformSign">platformSign</button>
-        <button id="thirdpartySign">thirdpartySign</button>
+        <button id="endorsersSign">endorsersSign</button>
     </div>
     <hr>
     <div>
         <button id="changeAssetOwner">changeAssetOwner</button>
         <button id="changePlatform">changePlatform</button>
-        <button id="changeThirdparty">changeThirdparty</button>
+        <button id="changeEndorsers">changeEndorsers</button>
     </div>
 
     <div class="item" style="width:500px;">
@@ -76,13 +76,11 @@
     $('#deploy').on('click', function () {
         assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
         platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
-        thirdparty = "0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590";
         log("deploying");
 
         $.post('/assetContractAPI/POST/deploy', {
             assetOwner: assetOwner,
             platform: platform,
-            thirdparty: thirdparty
         }, function (result) {
             log(result);
         })
@@ -110,19 +108,19 @@
         })
     })
 
-    $('#getThirdparty').on('click', function () {
+    $('#getEndorsers').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getThirdparty', {address: address }, function (result) {
+        $.get('/assetContractAPI/GET/getEndorsers', {address: address }, function (result) {
             log(result);
         })
     })
 
     /*get簽名*/
-    $('#getOwnerSign').on('click', function () {
+    $('#getAssetsOwnerSign').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getOwnerSign', {address: address }, function (result) {
+        $.get('/assetContractAPI/GET/getAssetsOwnerSign', {address: address }, function (result) {
             log(result);
         })
     })
@@ -135,20 +133,20 @@
         })
     })
 
-    $('#getThirdpartySign').on('click', function () {
+    $('#getEndorsersSign').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getThirdpartySign', {address: address }, function (result) {
+        $.get('/assetContractAPI/GET/getEndorsersSign', {address: address }, function (result) {
             log(result);
         })
     })
 
     /*簽名*/
-    $('#ownerSign').on('click', function () {
+    $('#assetsOwnerSign').on('click', function () {
         address = assetContract;
         owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
         //log(assetContract);
-        $.post('/assetContractAPI/POST/ownerSign', {address: address}, function (result) {
+        $.post('/assetContractAPI/POST/assetsOwnerSign', {address: address}, function (result) {
             log(result);
         })
     })
@@ -162,10 +160,10 @@
         })
     })
 
-    $('#thirdpartySign').on('click', function () {
+    $('#endorsersSign').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.post('/assetContractAPI/POST/thirdpartySign', {address: address}, function (result) {
+        $.post('/assetContractAPI/POST/endorsersSign', {address: address}, function (result) {
             log(result);
         })
     })
@@ -187,10 +185,10 @@
         })
     })
 
-    $('#changeThirdparty').on('click', function () {
+    $('#changeEndorsers').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.post('/assetContractAPI/POST/changeThirdparty', {address: address}, function (result) {
+        $.post('/assetContractAPI/POST/changeEndorsers', {address: address}, function (result) {
             log(result);
         })
     })

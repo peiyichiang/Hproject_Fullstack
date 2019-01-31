@@ -4,19 +4,19 @@ import "./Asset.sol";
 //import "browser/asset.sol";
 
 
-contract platform{
+contract Platform{
 
     address owner;
     uint adminNumber = 0;
-    struct Platform{
-        string platformAdminId; /** @dev platform admin id */
-        address platformAdminAddr; /** @dev platform admin address */
+    struct Platforms{
+        string platformAdminId; //platform admin id
+        address platformAdminAddr; //platform admin address
     }
 
-    mapping(string => Platform) platforms;
-    string[] platformsIndex; /** @dev platform address list */
+    mapping(string => Platforms) platforms;
+    string[] platformsIndex; //platform address list
 
-    /** @dev platform相關event */
+
     event addPlatformAdminEvent(address indexed adminAddr,string id, uint256 timestamp);
     event deletePlatformAdminEvent(address indexed adminAddr, string id, uint256 timestamp);
     event changePlatformAdminEvent(address indexed oldAdminAddr, address indexed newAdminAddr, string id, uint256 timestamp);
@@ -26,25 +26,25 @@ contract platform{
         owner = msg.sender;
     }
 
-    /** @dev 檢查是否為owner */
+    //檢查是否為owner
     modifier isOwner(){
         require(msg.sender == owner, "請檢查是否為合約擁有者");
         _;
     }
 
-    /** @dev 檢查是否為platformAdmin */
+    //檢查是否為platformAdmin
     modifier isPlatformAdmin(string memory _id){
         require(msg.sender == platforms[_id].platformAdminAddr || msg.sender == owner, "請檢查是否為平台管理員");
         _;
     }
 
-    /** @dev sign assetContract's platformSign */
-    function signAssetContract(address _assetContractAddr, string memory _id, uint _time) public isPlatformAdmin(_id){
+    //sign assetContract 的 multiSig
+    function signAssetContract(address _assetContractAddr, string memory _id, uint256 _time) public isPlatformAdmin(_id){
         AssetContract _multiSig = AssetContract(address(uint160(_assetContractAddr)));
         _multiSig.platformSign(_time);
     }
 
-    /** @dev 新增admin */
+    //新增admin
     function addPlatformAdmin(address _adminAddr, string memory _id, uint _time) public isOwner(){
 
         platforms[_id].platformAdminId = _id;
@@ -55,7 +55,7 @@ contract platform{
         emit addPlatformAdminEvent(_adminAddr, _id, _time);
     }
 
-    /** @dev 移除admin */
+    //移除admin
     function deletePlatformAdmin(string memory _id, uint _time) public isOwner(){
 
         address _adminAddr = platforms[_id].platformAdminAddr;
@@ -65,7 +65,7 @@ contract platform{
         emit deletePlatformAdminEvent(_adminAddr, _id, _time);
     }
 
-    /** @dev 更改admin address */
+    //更改admin address
     function changePlatformAdmin(address _newAdminAddr, string memory _id, uint _time) public isOwner(){
 
         address _oldAdminNumber = platforms[_id].platformAdminAddr;
@@ -74,12 +74,10 @@ contract platform{
         emit changePlatformAdminEvent(_oldAdminNumber, _newAdminAddr, _id, _time);
     }
 
-    /** @dev get Admin number */
     function getPlatformAdminNumber() public view returns(uint platformAdminNumber){
         return adminNumber;
     }
 
-    /** @dev get 某個admin 資訊 */
     function getPlatformAdminInfo(string memory _id) public view returns(address platformAdminAddr){
         return platforms[_id].platformAdminAddr;
     }
