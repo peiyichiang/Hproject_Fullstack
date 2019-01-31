@@ -21,100 +21,90 @@ contract RegistryContract is Ownable {
     event SetAssetCtAddr(string uid, address assetCtAddr, uint time);
     event SetExtoAddr(string uid, address assetCtAddr, address extoAddr, uint status, uint time);
 
-    mapping (bytes32 => User) public users;//string: 2 letters for country + 身分證字號, SSN, SIN
-    mapping (address => bytes32) public assetCtAddrToUidB32;
+    mapping (string => User) users;//string: 2 letters for country + 身分證字號, SSN, SIN
+    mapping (address => string) public assetCtAddrToUid;
     uint public userCount;//count and index
 
     //Legal/Regulation Compliance
     uint public amountLegalMax;
     uint public amountLegalMin;
-    bytes32 public emptyUID = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
-    modifier ckUid(string memory _uid) {
-        require(bytes(_uid).length > 0, "_uid cannot be zero length");
+    modifier ckUid(string memory uid) {
+        require(bytes(uid).length > 0, "uid cannot be zero length");
         _;
     }
-    modifier ckAssetCtAddr(address _assetCtAddr) {
-        require(_assetCtAddr != address(0), "_assetCtAddr should not be zero");
+    modifier ckAssetCtAddr(address assetCtAddr) {
+        require(assetCtAddr != address(0), "assetCtAddr should not be zero");
         _;
     }
-    modifier ckExtoAddr(address _extoAddr) {
-        require(_extoAddr != address(0), "_extoAddr should not be zero");
+    modifier ckExtoAddr(address extoAddr) {
+        require(extoAddr != address(0), "extoAddr should not be zero");
         _;
     }
-    modifier ckTime(uint _time) {
-        require(_time > 201902010000, "_time should be greater than 201902010000");
+    modifier ckTime(uint time) {
+        require(time > 201902010000, "time should be greater than 201902010000");
         _;
     }
 
     /**@dev 新增user */
     function setNewUser(
-        string calldata _uid, address _assetCtAddr, address _extoAddr, uint _time) 
-        external onlyOwner ckUid(_uid) ckAssetCtAddr(_assetCtAddr) ckExtoAddr(_extoAddr) ckTime(_time) {
-
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        require(users[uidBytes32].assetCtAddr == address(0), "user already exists");
+        string calldata uid, address assetCtAddr, address extoAddr, uint time) 
+        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
+        
+        require(users[uid].assetCtAddr == address(0), "user already exists");
         userCount = userCount.add(1);
 
-        users[uidBytes32].assetCtAddr = _assetCtAddr;
-        users[uidBytes32].extoAddr = _extoAddr;
-        users[uidBytes32].status = 0;
+        users[uid].assetCtAddr = assetCtAddr;
+        users[uid].extoAddr = extoAddr;
+        users[uid].status = 0;
 
-        assetCtAddrToUidB32[_assetCtAddr] = uidBytes32;
-        emit SetNewUser(_uid, _assetCtAddr, _extoAddr, 0, _time);
+        assetCtAddrToUid[assetCtAddr] = uid;
+        emit SetNewUser(uid, assetCtAddr, extoAddr, 0, time);
     }
 
     function setOldUser(
-        string calldata _uid, address _assetCtAddr, address _extoAddr, uint _status, uint _time)
-        external onlyOwner ckUid(_uid) ckAssetCtAddr(_assetCtAddr) ckExtoAddr(_extoAddr) ckTime(_time) {
+        string calldata uid, address assetCtAddr, address extoAddr, uint status, uint time)
+        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
 
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        require(users[uidBytes32].assetCtAddr != address(0), "user does not exist");
+        require(users[uid].assetCtAddr != address(0), "user does not exist");
+        assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
-        assetCtAddrToUidB32[users[uidBytes32].assetCtAddr] = emptyUID;
+        users[uid].assetCtAddr = assetCtAddr;
+        users[uid].extoAddr = extoAddr;
+        users[uid].status = status;
 
-        users[uidBytes32].assetCtAddr = _assetCtAddr;
-        users[uidBytes32].extoAddr = _extoAddr;
-        users[uidBytes32].status = _status;
-
-        assetCtAddrToUidB32[_assetCtAddr] = uidBytes32;
-        emit SetOldUser(_uid, _assetCtAddr, _extoAddr, _status, _time);
+        assetCtAddrToUid[assetCtAddr] = uid;
+        emit SetOldUser(uid, assetCtAddr, extoAddr, status, time);
     }
 
     /**@dev 設定user的 assetCtAddr */
-    function setAssetCtAddr(string calldata _uid, address _assetCtAddr, uint _time) 
-        external onlyOwner ckUid(_uid) ckAssetCtAddr(_assetCtAddr) ckTime(_time) {
+    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint time) 
+        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(time) {
+        
+        require(users[uid].assetCtAddr != address(0), "user does not exist");
+        assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        require(users[uidBytes32].assetCtAddr != address(0), "user does not exist");
-
-        assetCtAddrToUidB32[users[uidBytes32].assetCtAddr] = emptyUID;
-
-        assetCtAddrToUidB32[_assetCtAddr] = uidBytes32;
-        users[uidBytes32].assetCtAddr = _assetCtAddr;
-        emit SetAssetCtAddr(_uid, _assetCtAddr, _time);
+        assetCtAddrToUid[assetCtAddr] = uid;
+        users[uid].assetCtAddr = assetCtAddr;
+        emit SetAssetCtAddr(uid, assetCtAddr, time);
     }
 
     /**@dev 設定user的以太帳號 */
-    function setExtoAddr(string calldata _uid, address _extoAddr, uint _time) 
-        external onlyOwner ckUid(_uid) ckExtoAddr(_extoAddr) ckTime(_time) {
-
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        require(users[uidBytes32].extoAddr != address(0), "user does not exist");
-
-        users[uidBytes32].extoAddr = _extoAddr;
-        emit SetExtoAddr(_uid, users[uidBytes32].assetCtAddr, _extoAddr, users[uidBytes32].status, _time);
+    function setExtoAddr(string calldata uid, address extoAddr, uint time) 
+        external onlyOwner ckUid(uid) ckExtoAddr(extoAddr) ckTime(time) {
+        
+        require(users[uid].extoAddr != address(0), "user does not exist");
+        users[uid].extoAddr = extoAddr;
+        emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, time);
     }
 
     /**@dev 設定user的狀態 */
-    function setUserStatus(string calldata _uid, uint _status, uint _time)
-        external onlyOwner ckUid(_uid) ckTime(_time) {
+    function setUserStatus(string calldata uid, uint status, uint time)
+        external onlyOwner ckUid(uid) ckTime(time) {
 
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        require(users[uidBytes32].assetCtAddr != address(0), "user does not exist");
-
-        users[uidBytes32].status = _status;
-        emit SetUserStatus(_uid, _status, _time);
+        require(users[uid].assetCtAddr != address(0), "user does not exist");
+        users[uid].status = status;
+        emit SetUserStatus(uid, status, time);
     }
 
     /**@dev 取得user數量 */
@@ -123,15 +113,13 @@ contract RegistryContract is Ownable {
     }
 
     /**@dev get user information */
-    function getUser(string memory _uid) public view returns (
+    function getUser(string memory uid) public view returns (
         string memory, address, address, uint) {
-
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        return(_uid, users[uidBytes32].assetCtAddr, users[uidBytes32].extoAddr, users[uidBytes32].status);
+        return(uid, users[uid].assetCtAddr, users[uid].extoAddr, users[uid].status);
     }
 
-    function getUidFromAssetCtAddr(address _assetCtAddr) public view returns (bytes32) {
-        return assetCtAddrToUidB32[_assetCtAddr];
+    function getUidFromAssetCtAddr(address assetCtAddr) public view returns (string memory) {
+        return assetCtAddrToUid[assetCtAddr];
     }
 
     //--------------------==Legal Compliance
@@ -139,67 +127,39 @@ contract RegistryContract is Ownable {
     # Transfers of over / under certain amounts could be prohibited.
       //Partial token transfers could be restricted.*/
     /**@dev 設定user的 LegaCompliance */
-    event SetLegalAmount(uint _amountLegalMax, uint _amountLegalMin);
+    event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
     function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
-        require(_amountLegalMax > _amountLegalMin, "_amountLegalMax should be greater than _amountLegalMin");
+        require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
         amountLegalMax = _amountLegalMax;
         amountLegalMin = _amountLegalMin;
-        emit SetLegalAmount(_amountLegalMax, _amountLegalMin);
+        emit SetLegalAmount(amountLegalMax, amountLegalMin);
     }
 
-    function isUserApproved(string calldata _uid) external view returns (bool) {
-        bytes32 uidBytes32 = stringToBytes32(_uid);
-        if(users[uidBytes32].status == 0) {
+    function isUserApproved(string calldata uid) external view returns (bool) {
+        if(users[uid].status == 0) {
             return true;
         } else {return false;}
     }
-    function isAddrApproved(address _addr) external view returns (bool) {
-        bytes32 uidBytes32 = assetCtAddrToUidB32[_addr];//EOA or AssetCtrt
-        if(users[uidBytes32].status == 0) {
+    function isAddrApproved(address addr) external view returns (bool) {
+        string memory uid = assetCtAddrToUid[addr];
+        if(users[uid].status == 0) {
             return true;
         } else {return false;}
     }
 
     //To be called by token transfer functions
-    function isUnderCompliance(address _to, address _from, uint _amount) external view returns (bool) {
+    function isUnderCompliance(address to, address from, uint amount) external view returns (bool) {
         //require(msg.sender == tokenCtrt, "msg.sender is not tokenCtrt");
-        bytes32 uidTo = assetCtAddrToUidB32[_to];//toAssetCtrt
-        bytes32 uidFrom = assetCtAddrToUidB32[_from];//fromAssetCtrt
+        string memory uidTo = assetCtAddrToUid[to];//toAssetCtrt
+        string memory uidFrom = assetCtAddrToUid[from];//fromAssetCtrt
 
-        if(users[uidTo].status == 0 && users[uidFrom].status == 0 && amountLegalMin <= _amount && _amount <= amountLegalMax) {
+        if(users[uidTo].status == 0 && users[uidFrom].status == 0 && amountLegalMin <= amount && amount <= amountLegalMax) {
             return true;
         } else {
             return false;
         }
     }
     
-    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
-        bytes memory tempEmptyStringTest = bytes(source);
-        if (tempEmptyStringTest.length == 0) {
-            return 0x0;
-        }
-        assembly {
-            result := mload(add(source, 32))
-        }
-    }
-    function bytes32ToString(bytes32 x) public pure returns (string memory) {
-        bytes memory bytesString = new bytes(32);
-        uint charCount = 0;
-        for (uint j = 0; j < 32; j++) {
-            byte char = byte(bytes32(uint(x) * 2 ** (8 * j)));
-            if (char != 0) {
-                bytesString[charCount] = char;
-                charCount++;
-            }
-        }
-        bytes memory bytesStringTrimmed = new bytes(charCount);
-        for (uint j = 0; j < charCount; j++) {
-            bytesStringTrimmed[j] = bytesString[j];
-        }
-        return string(bytesStringTrimmed);
-    }
-
-
 /**@dev 尚未支援回傳string[] */
 /*
     //get 所有user
