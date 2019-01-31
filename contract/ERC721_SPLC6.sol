@@ -184,9 +184,9 @@ interface ERC721Enumerable {
 }
 
 interface Registry {
-    function isUnderCompliance(address _to, address _from, uint _amount) external returns (bool);
-    function isUserApproved(string calldata _uid) external view returns (bool);
-    function isAddrApproved(address _addr) external view returns (bool);
+    function isUnderCompliance(address to, address from, uint amount) external view returns (bool);
+    function isAddrApproved(address addr) external view returns (bool);
+    function isUserApproved(string calldata uid) external view returns (bool);
 }
 //=> Add our own get_ownerToIds()
 //==================

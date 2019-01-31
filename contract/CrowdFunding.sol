@@ -5,6 +5,12 @@ pragma solidity ^0.5.3;
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
+interface Registry {
+    function isUnderCompliance(address to, address from, uint amount) external view returns (bool);
+    function isAddrApproved(address addr) external view returns (bool);
+    function isUserApproved(string calldata uid) external view returns (bool);
+}
+
 contract CrowdSale is Ownable{
     using SafeMath for uint256;
     
@@ -22,7 +28,9 @@ contract CrowdSale is Ownable{
     uint public fundingGoal; //專案達標數目
     uint public amountRaised; //累積賣出數目
     uint public deadline; //截止日期 yyyymmddhhmm
-    
+
+    address public addrRegistry;
+
     struct Balance {
         address userAssetcontract;
         uint256 token_balance;
@@ -45,7 +53,8 @@ contract CrowdSale is Ownable{
         uint _totalamount,
         uint _percents,
         uint _deadline,//time format yyyymmddhhmm
-        uint _startTime
+        uint _startTime,
+        address _addrRegistry
     ) public {
         platformAddress = msg.sender;
         HTokenSYMBOL = _htokenSYMBOL;//設定專案專案erc721合約
@@ -55,10 +64,16 @@ contract CrowdSale is Ownable{
         deadline = _deadline;// yyyymmddhhmm
         salestate = saleState.Funding;//init the project state
         pausestate = pauseState.Active;
+
+        addrRegistry = _addrRegistry;
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
 
     function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
+
+        //Legal Compliance
+        require(Registry(addrRegistry).isAddrApproved(_assetContrcatAddr), "_assetContrcatAddr is not in compliance");
+
         uint amount = _tokenInvest;
         balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
         balanceOf[_assetContrcatAddr].token_balance = balanceOf[_assetContrcatAddr].token_balance.add(amount);//用mapping記錄每個投資人的token數目

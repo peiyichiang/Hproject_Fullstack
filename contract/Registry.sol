@@ -30,7 +30,9 @@ contract RegistryContract is Ownable {
     uint public amountLegalMin;
 
     modifier ckUid(string memory uid) {
-        require(bytes(uid).length > 0, "uid cannot be zero length");
+        uint uidLength = bytes(uid).length;
+        require(uidLength > 0, "uid cannot be zero length");
+        require(uidLengthh <= 32, "uid cannot be longer than 32");
         _;
     }
     modifier ckAssetCtAddr(address assetCtAddr) {
