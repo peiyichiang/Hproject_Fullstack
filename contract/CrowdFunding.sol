@@ -9,11 +9,11 @@ contract CrowdSale is Ownable{
     using SafeMath for uint256;
     
     event showState(string _state);
-    event updateTime(uint _time);
     event startFunding(string indexed _htokenSYMBOL, uint _fundingGoal, uint _time);
     event goalReached(string indexed _htokenSYMBOL, uint _amountRaised, uint _time);
     event fundingClosing(string indexed _htokenSYMBOL, uint _time);
-    event FundTransfer(address _investor, uint _amount, uint _time);
+    event FundTransfer(address indexed _investor, uint _amount, uint _time);
+    event reFundrecord(address _investor, uint _amount, uint _time);
     
     address private platformAddress;
     string public HTokenSYMBOL; //專案erc721合約
@@ -24,9 +24,9 @@ contract CrowdSale is Ownable{
     uint public deadline; //截止日期 yyyymmddhhmm
     
     struct Balance {
-        address userAssetcontract; //
-        uint256 token_balance; //購買的token總數
-        uint256 fund_balance; //
+        address userAssetcontract;
+        uint256 token_balance;
+        uint256 fund_balance;
     }
     
     mapping(address => Balance) public balanceOf;
@@ -59,22 +59,16 @@ contract CrowdSale is Ownable{
     }
 
     function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
-        if(_serverTime > deadline && amountRaised < fundingGoal){
-            salestate = saleState.goalnotReached;//專案失敗
-            emit showState(ProjectState());
-        }
-        else{
-            uint amount = _tokenInvest;
-            balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
-            balanceOf[_assetContrcatAddr].token_balance = balanceOf[_assetContrcatAddr].token_balance.add(amount);//用mapping記錄每個投資人的token數目
-            balanceOf[_assetContrcatAddr].fund_balance = balanceOf[_assetContrcatAddr].fund_balance.add(_tokenInvest.mul(token_price));
-            amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
-            emit FundTransfer(msg.sender, amount, _serverTime);
-        }
+        uint amount = _tokenInvest;
+        balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
+        balanceOf[_assetContrcatAddr].token_balance = balanceOf[_assetContrcatAddr].token_balance.add(amount);//用mapping記錄每個投資人的token數目
+        balanceOf[_assetContrcatAddr].fund_balance = balanceOf[_assetContrcatAddr].fund_balance.add(_tokenInvest.mul(token_price));
+        amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
+        emit FundTransfer(_assetContrcatAddr, amount, _serverTime);
     }
     
     /* checks if the goal or time limit has been reached and ends the campaign */
-    function updateState(uint _serverTime) private{
+    function updateState(uint _serverTime) public checkPlatform{
         if(_serverTime <= deadline && amountRaised >= fundingGoal){
             emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
             salestate = saleState.goalReached;
@@ -83,11 +77,18 @@ contract CrowdSale is Ownable{
             salestate = saleState.projectClosed;//賣完及結案
             emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
         }
-        if ((_serverTime >= deadline) && (amountRaised >= fundingGoal || amountRaised == totalamount)){
+        if ((_serverTime == deadline) && (amountRaised >= fundingGoal || amountRaised == totalamount)){
             salestate = saleState.projectClosed;//到期後有達標，無論是否賣完都算結案
             emit fundingClosing(HTokenSYMBOL, _serverTime);
         }
-        
+        if(_serverTime == deadline && amountRaised < fundingGoal){
+            salestate = saleState.goalnotReached;//專案失敗
+            emit showState(ProjectState());
+        }
+    }
+    
+    function refund(uint _serverTime, address userAssetcontract) public checkPlatform {
+        emit reFundrecord(userAssetcontract, balanceOf[userAssetcontract].fund_balance, _serverTime);
     }
 
     function ProjectState() public view returns(string memory _return){
@@ -105,10 +106,12 @@ contract CrowdSale is Ownable{
     }  
     
     function pauseSale() public checkPlatform {
+        require(pausestate == pauseState.Active);
         pausestate = pauseState.Pause;
     }
     
     function resumeSale(uint _resetDeadline) public checkPlatform {
+        require(pausestate == pauseState.Pause);
         pausestate = pauseState.Active;
         deadline = _resetDeadline;
     }
@@ -119,7 +122,6 @@ contract CrowdSale is Ownable{
     }
     
     modifier checkState(uint _serverTime) {
-        updateState(_serverTime);
         require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active);
         _;
         updateState(_serverTime);
@@ -132,7 +134,7 @@ contract CrowdSale is Ownable{
     }
     
     modifier checkPlatform() {
-        require(msg.sender == platformAddress);
+        require(msg.sender == platformAddress, "Permissioin denied");
         _;
     }
 }
