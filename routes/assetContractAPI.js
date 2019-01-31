@@ -56,7 +56,7 @@ router.post('/POST/deploy', function (req, res, next) {
 router.post('/POST/deploy', async function (req, res, next) {
     let assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
     let platform = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-    let thirdparty = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+    let endorsers = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 
     let assetContract = new web3.eth.Contract(contract.abi);
 
@@ -65,7 +65,7 @@ router.post('/POST/deploy', async function (req, res, next) {
 
             let deploy = assetContract.deploy({
                 data: contract.bytecode,
-                arguments: [assetOwner, platform, thirdparty]
+                arguments: [assetOwner, platform, endorsers]
             }).encodeABI();
 
             let txParams = {
@@ -135,14 +135,14 @@ router.get('/GET/getPlatform', async function (req, res, next) {
 });
 
 /*取得第三方address */
-router.get('/GET/getThirdparty', async function (req, res, next) {
+router.get('/GET/getEndorsers', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let thirdparty = await assetContract.methods.getThirdparty().call({ from: backendAddr })
+    let endorsers = await assetContract.methods.getEndorsers().call({ from: backendAddr })
 
     res.send({
-        thirdparty: thirdparty
+        endorsers: endorsers
     })
 });
 
@@ -227,11 +227,11 @@ router.post('/POST/endorsersSign', async function (req, res, next) {
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用手機keychain 抓公私鑰*/
-    let thirdparty = await assetContract.methods.getThirdparty().call({ from: backendAddr });
-    let thirdpartyPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7'
+    let endorsers = await assetContract.methods.getEndorsers().call({ from: backendAddr });
+    let endorsersPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7'
 
     let encodedData = assetContract.methods.endorsersSign(time).encodeABI();
-    let result = await signTx(thirdparty, thirdpartyPrivateKey, contractAddr, encodedData);
+    let result = await signTx(endorsers, endorsersPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -245,7 +245,7 @@ router.post('/POST/changeAssetOwner', async function (req, res, next) {
     let time = 20180131;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let newOwner = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
+    let newOwner = req.body.newOwner;
 
     let encodedData = assetContract.methods.changeAssetOwner(newOwner, time).encodeABI();
 
@@ -258,21 +258,22 @@ router.post('/POST/changeAssetOwner', async function (req, res, next) {
 
 });
 
-/*更換平台方address */
-router.post('/POST/changePlatform', async function (req, res, next) {
+/*更換第三方address */
+router.post('/POST/changeEndorsers', async function (req, res, next) {
     let contractAddr = req.body.address;
+    let time = 20180131;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    /*第三方資訊*/
-    let thirdparty = await assetContract.methods.getThirdparty().call({ from: backendAddr });
-    /*privatekey 到時候會去底層keycahin sign*/
-    let thirdpartyPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-    let newPlatform = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
+    let newEndorsers = req.body.newEndorsers;
 
-    let encodedData = assetContract.methods.changePlatform(newPlatform).encodeABI();
+    let encodedData = assetContract.methods.changeEndorsers(newEndorsers, time).encodeABI();
 
-    let result = await signTx(thirdparty, thirdpartyPrivateKey, contractAddr, encodedData);
+    /**由平台方送出交易 */
+    let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -280,26 +281,8 @@ router.post('/POST/changePlatform', async function (req, res, next) {
 
 });
 
-/*更換第三方address */
-router.post('/POST/changeThirdparty', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*平台方資訊*/
-    let platform = await assetContract.methods.getPlatform().call({ from: backendAddr });
-    /*privatekey 到時候會去底層keycahin sign*/
-    let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18'
-
-    let newThirdparty = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
-
-    let encodedData = assetContract.methods.changeThirdparty(newThirdparty).encodeABI();
-
-    /**由平台方送出交易 */
-    let result = await signTx(platform, platformPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
+/**To do */
+router.post('/POST/addEndorser', async function (req, res, next) {
 
 });
 
@@ -370,6 +353,11 @@ router.post('/POST/transferAsset', async function (req, res, next) {
         result: result
     })
 
+
+});
+
+/**To do */
+router.post('/POST/signAssetContract', async function (req, res, next) {
 
 });
 
