@@ -37,38 +37,42 @@ contract Ownable {
     }
     event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
 
-    function ownerSign() public {
+    function ownerApprove(bool boolValue) external {
         require(msg.sender == owner, "restricted to owner");
-        ownerVote = 1;
+        if (boolValue){
+            ownerVote = 1;
+        } else {ownerVote = 0;}
     }
-    function chairmanSign() public {
+    function chairmanApprove(bool boolValue) external {
         require(msg.sender == chairman, "restricted to chairman");
-        chairmanVote = 1;
+        if (boolValue){
+            chairmanVote = 1;
+        } else {chairmanVote = 0;}
     }
-    function directorSign() public {
+    function directorApprove(bool boolValue) external {
         require(msg.sender == director, "restricted to director");
-        directorVote = 1;
+        if (boolValue){
+            directorVote = 1;
+        } else {directorVote = 0;}
     }
-    function managerSign() public {
+    function managerApprove(bool boolValue) external {
         require(msg.sender == manager, "restricted to manager");
-        managerVote = 1;
+        if (boolValue){
+            managerVote = 1;
+        } else {managerVote = 0;}
     }
-    function adminSign() public {
+    function adminApprove(bool boolValue) external {
         require(msg.sender == admin, "restricted to admin");
-        adminVote = 1;
+        if (boolValue){
+            adminVote = 1;
+        } else {adminVote = 0;}
     }
     modifier isMultiSig(){
         require(ownerVote + chairmanVote + directorVote + managerVote + adminVote >= minVotes, "isMultiSig failed due to not enough votes");
         _;
     }
-    function resetSignStatus() internal {
-        ownerVote = 0;
-        chairmanVote = 0;
-        directorVote = 0;
-        managerVote = 0;
-        adminVote = 0;
-    }
-    function setManagement(uint managementIdx, address addrNew, uint num1) public isMultiSig noReentrancy{
+
+    function setManagement(uint8 managementIdx, address addrNew, uint8 itg) external isMultiSig noReentrancy{
         require(
             msg.sender == owner || msg.sender == chairman || msg.sender == director || msg.sender == manager || msg.sender == admin, "only management team can access");
         require(addrNew != address(0), "new address cannot be zero");
@@ -88,9 +92,15 @@ contract Ownable {
             admin = addrNew;
             emit SetManagement(admin, addrNew, managementIdx);
         } else if (managementIdx == 6) {
-            minVotes = num1;
-        } else {require(false, "not valid option");}
-        resetSignStatus();
+            minVotes = itg;
+        } else {
+            require(false, "not valid option");
+        }
+        ownerVote = 0;
+        chairmanVote = 0;
+        directorVote = 0;
+        managerVote = 0;
+        adminVote = 0;
     }
     function getVotes() public view returns(uint,uint,uint,uint,uint){
         return (ownerVote, chairmanVote, directorVote, managerVote, adminVote);
