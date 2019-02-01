@@ -22,20 +22,14 @@ yarn add ganache-cli --dev
 yarn add solc --dev
 ```
 
-### 3. Compile Solidity smart contract
+### 3. Compile Solidity smart contracts
 $ node ./ethereum/contracts/zcompile.js
 
-### 4. Compile Solidity smart contract
+### 4. Test Solidity smart contracts
 ```
 yarn global add mocha
 ```
 to run Mocha test, $ yarn run test
-
-------==
-```
-
-node ./ethereum/compileXYZ.js
-```
 
 ### 5. Run the app
 

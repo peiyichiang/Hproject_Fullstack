@@ -25,7 +25,7 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 */
 
 //--------------------==
-const ctrtData = require('../crowdfunding.json');
+const ctrtData = require('../ethereum/contracts/build/Crowdfunding.json');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
 if (ctrtData === undefined){console.log('[Error] ctrtData is NOT defined');
@@ -66,8 +66,8 @@ beforeEach( async () => {
 
     const _nftName = "NCCU site No.1(2018)"; 
 
-    if (ctrtData.abi === undefined){console.log('[Error] ctrtData.interface is NOT defined');
-    } else {console.log('[Good] ctrtData.interface is defined; ctrtData.interface:');
+    if (ctrtData.abi === undefined){console.log('[Error] ctrtData.abi is NOT defined');
+    } else {console.log('[Good] ctrtData.interface is defined; ctrtData.abi:');
         //console.log(ctrtData.interface);
     }
     if (ctrtData.bytecode === undefined){console.log('[Error] ctrtData.bytecode is NOT defined');

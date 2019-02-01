@@ -25,7 +25,7 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 */
 
 //--------------------==
-const ctrtData = require('../ERC721_SPLC6.json');
+const ctrtData = require('../ethereum/contracts/build/NFTokenSPLC.json');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
 if (ctrtData === undefined){console.log('[Error] ctrtData is NOT defined');
@@ -74,9 +74,9 @@ beforeEach( async () => {
     const _initialAssetPricing = 17000; const _pricingCurrency = "NTD";
     const _IRR20yrx100 = 470; const _validDate = "01312038";
 
-    if (ctrtData.interface === undefined){console.log('[Error] ctrtData.interface is NOT defined');
-    } else {console.log('[Good] ctrtData.interface is defined; ctrtData.interface:');
-        //console.log(ctrtData.interface);
+    if (ctrtData.abi === undefined){console.log('[Error] ctrtData.abi is NOT defined');
+    } else {console.log('[Good] ctrtData.abi is defined; ctrtData.abi:');
+        //console.log(ctrtData.abi);
     }
     if (ctrtData.bytecode === undefined){console.log('[Error] ctrtData.bytecode is NOT defined');
     } else {console.log('[Good] ctrtData.bytecode is defined; ctrtData.bytecode:');
@@ -88,11 +88,13 @@ beforeEach( async () => {
         _nftName, _nftSymbol, _siteSizeInKW, _maxTotalSupply, 
         _initialAssetPricing, _pricingCurrency, _IRR20yrx100, _validDate
     ]
-    instCtrtData = await new web3.eth.Contract(JSON.parse(ctrtData.interface))
+    instCtrtData = await new web3.eth.Contract(ctrtData.abi)
       .deploy({ data: ctrtData.bytecode, arguments: args
     })
     .send({ from: acc0, gas: '7000000', gasPrice: '9000000000' });
     /**
+    instCtrtData = await new web3.eth.Contract(JSON.parse(ctrtData.interface))
+
     Error: Invalid number of parameters for "undefined". Got 0 expected 8!
     value: '0', from: acc0, gas: '1000000', gasPrice: '9000000000'
     value: web3.utils.toWei('10','ether')
