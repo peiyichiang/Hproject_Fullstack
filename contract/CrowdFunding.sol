@@ -3,16 +3,23 @@
 pragma solidity ^0.5.3;
 
 import "./Ownable.sol";
+import "./SafeMath.sol";
+
+interface Registry {
+    function isUnderCompliance(address to, address from, uint amount) external view returns (bool);
+    function isAddrApproved(address addr) external view returns (bool);
+    function isUserApproved(string calldata uid) external view returns (bool);
+}
 
 contract CrowdSale is Ownable{
     using SafeMath for uint256;
     
     event showState(string _state);
-    event updateTime(uint _time);
     event startFunding(string indexed _htokenSYMBOL, uint _fundingGoal, uint _time);
     event goalReached(string indexed _htokenSYMBOL, uint _amountRaised, uint _time);
     event fundingClosing(string indexed _htokenSYMBOL, uint _time);
-    event FundTransfer(address _investor, uint _amount, uint _time);
+    event FundTransfer(address indexed _investor, uint _amount, uint _time);
+    event reFundrecord(address _investor, uint _amount, uint _time);
     
     address private platformAddress;
     string public HTokenSYMBOL; //專案erc721合約
@@ -21,11 +28,13 @@ contract CrowdSale is Ownable{
     uint public fundingGoal; //專案達標數目
     uint public amountRaised; //累積賣出數目
     uint public deadline; //截止日期 yyyymmddhhmm
-    
+
+    address public addrRegistry;
+
     struct Balance {
-        address userAssetcontract; //
-        uint256 token_balance; //購買的token總數
-        uint256 fund_balance; //
+        address userAssetcontract;
+        uint256 token_balance;
+        uint256 fund_balance;
     }
     
     mapping(address => Balance) public balanceOf;
@@ -43,39 +52,38 @@ contract CrowdSale is Ownable{
         uint _tokenprice,
         uint _totalamount,
         uint _percents,
-        uint _deadline,//from time server yyyymmddhhmm
-        uint _startTime
+        uint _deadline,//time format yyyymmddhhmm
+        uint _startTime,
+        address _addrRegistry
     ) public {
         platformAddress = msg.sender;
         HTokenSYMBOL = _htokenSYMBOL;//設定專案專案erc721合約
         token_price = _tokenprice;
         totalamount = _totalamount;//專案總量
-        fundingGoal = totalamount * _percents / 100;//專案達標數量
+        fundingGoal = totalamount.mul(_percents).div(100);//專案達標數量
         deadline = _deadline;// yyyymmddhhmm
         salestate = saleState.Funding;//init the project state
         pausestate = pauseState.Active;
+
+        addrRegistry = _addrRegistry;
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
 
-    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState checkPlatform{
-        if(_serverTime > deadline && amountRaised < fundingGoal){
-            salestate = saleState.goalnotReached;//專案失敗
-        }
-        else{
-            uint amount = _tokenInvest;
-            uint tokenBalance = balanceOf[_assetContrcatAddr].token_balance;
-            tokenBalance = tokenBalance.add(amount);//用mapping記錄每個投資人的token數目
-            uint fundBalance = balanceOf[_assetContrcatAddr].fund_balance;
-            fundBalance = fundBalance.add(_tokenInvest.mul(token_price));
-            amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
-            emit FundTransfer(msg.sender, amount, _serverTime);
-            updateState(_serverTime);//投資後檢查整個專案狀態
-            emit showState(ProjectState());
-        }
+    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
+
+        //Legal Compliance
+        require(Registry(addrRegistry).isAddrApproved(_assetContrcatAddr), "_assetContrcatAddr is not in compliance");
+
+        uint amount = _tokenInvest;
+        balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
+        balanceOf[_assetContrcatAddr].token_balance = balanceOf[_assetContrcatAddr].token_balance.add(amount);//用mapping記錄每個投資人的token數目
+        balanceOf[_assetContrcatAddr].fund_balance = balanceOf[_assetContrcatAddr].fund_balance.add(_tokenInvest.mul(token_price));
+        amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
+        emit FundTransfer(_assetContrcatAddr, amount, _serverTime);
     }
     
     /* checks if the goal or time limit has been reached and ends the campaign */
-    function updateState(uint _serverTime) private{
+    function updateState(uint _serverTime) public checkPlatform{
         if(_serverTime <= deadline && amountRaised >= fundingGoal){
             emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
             salestate = saleState.goalReached;
@@ -84,11 +92,18 @@ contract CrowdSale is Ownable{
             salestate = saleState.projectClosed;//賣完及結案
             emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
         }
-        if ((_serverTime >= deadline) && (amountRaised >= fundingGoal || amountRaised == totalamount)){
+        if ((_serverTime == deadline) && (amountRaised >= fundingGoal || amountRaised == totalamount)){
             salestate = saleState.projectClosed;//到期後有達標，無論是否賣完都算結案
             emit fundingClosing(HTokenSYMBOL, _serverTime);
         }
-        
+        if(_serverTime == deadline && amountRaised < fundingGoal){
+            salestate = saleState.goalnotReached;//專案失敗
+            emit showState(ProjectState());
+        }
+    }
+    
+    function refund(uint _serverTime, address userAssetcontract) public checkPlatform {
+        emit reFundrecord(userAssetcontract, balanceOf[userAssetcontract].fund_balance, _serverTime);
     }
 
     function ProjectState() public view returns(string memory _return){
@@ -100,11 +115,18 @@ contract CrowdSale is Ownable{
         else revert("ProjectState() failed");
     }
     
+    function showPausestate() public view returns(string memory _return) {
+        if(pausestate == pauseState.Pause) _return = "專案暫停";
+        else if(pausestate == pauseState.Active) _return = "專案進行中";
+    }  
+    
     function pauseSale() public checkPlatform {
+        require(pausestate == pauseState.Active);
         pausestate = pauseState.Pause;
     }
     
     function resumeSale(uint _resetDeadline) public checkPlatform {
+        require(pausestate == pauseState.Pause);
         pausestate = pauseState.Active;
         deadline = _resetDeadline;
     }
@@ -114,44 +136,20 @@ contract CrowdSale is Ownable{
         return (totalamount - amountRaised);
     }
     
-    modifier checkState() {
-        require(salestate == saleState.Funding || salestate == saleState.goalReached || pausestate == pauseState.Active);
+    modifier checkState(uint _serverTime) {
+        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active);
         _;
+        updateState(_serverTime);
+        emit showState(ProjectState());
     }
     
     modifier checkAmount(uint _tokencount){
-        require(_tokencount + amountRaised <= totalamount, "checkAmount failed");
+        require(_tokencount.add(amountRaised) <= totalamount, "checkAmount failed");
         _;
     }
     
     modifier checkPlatform() {
-        require(msg.sender == platformAddress);
+        require(msg.sender == platformAddress, "Permissioin denied");
         _;
-    }
-}
-
-library SafeMath {
-    function mul(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        if (_a == 0) {
-            return 0;
-        }
-        uint256 c = _a * _b;
-        require(c / _a == _b, "safeMath mul failed");
-        return c;
-    }
-    function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        uint256 c = _a / _b;
-        // require(b > 0); // Solidity automatically throws when dividing by 0
-        // require(a == b * c + a % b); // There is no case in which this doesn't hold
-        return c;
-    }
-    function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        require(_b <= _a, "safeMath sub failed");
-        return _a - _b;
-    }
-    function add(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        uint256 c = _a + _b;
-        require(c >= _a, "safeMath add failed");
-        return c;
     }
 }

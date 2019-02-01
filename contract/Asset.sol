@@ -1,27 +1,27 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
 
-//import "https://github.com/kappabooom/h_contract/ERC721_SPLC5.sol";
-import "./ERC721_SPLC5.sol";
+//import "browser/ERC721_SPLC6.sol";
+import "./ERC721_SPLC6.sol";
 
 contract multiSig {
     address internal assetsOwner; /** @dev 用戶 address */
     address internal platformContractAddr; /** @dev 平台方 platformContractAddr */
     address[] internal endorsersContractAddr; /** @dev 背書者的 assetContractAddr (一到三個人) */
-    uint private owner_flag;
+    uint private assetsOwner_flag;
     uint private platform_flag;
     uint private endorsers_flag;
 
     /** @dev multiSig相關event */
-    event changeAssetOwnerEvent(address indexed oldOwner, address indexed newOwner, uint256 timestamp);
+    event changeAssetOwnerEvent(address indexed oldAssetsOwner, address indexed newAssetsOwner, uint256 timestamp);
     event changeEndorsersEvent(address indexed oldEndorsers, address indexed newEndorsers, uint256 timestamp);
     event addEndorsersEvent(address indexed endorsers, uint256 timestamp);
-    event ownerSignEvent(address owner, uint256 timestamp);
+    event assetsOwnerSignEvent(address assetsOwner, uint256 timestamp);
     event platformSignEvent(address platformContractAddr, uint256 timestamp);
     event endorserSignEvent(address endorserContractAddr, uint256 timestamp);
 
     /** @dev 檢查是否為合約擁有者 */
-    modifier isOwner(){
+    modifier isAssetsOwner(){
         require(msg.sender == assetsOwner, "請檢查是否為合約擁有者");
         _;
     }
@@ -39,29 +39,29 @@ contract multiSig {
     }
 
     /** @dev 執行更換eth地址前，三人中有兩人須簽章 */
-    function ownerSign(uint256 _time) public isOwner {
-        owner_flag = 1;
-        emit ownerSignEvent(msg.sender, _time);
+    function AssetsOwnerSign(uint256 _time) public isAssetsOwner {
+        assetsOwner_flag = 1;
+        emit assetsOwnerSignEvent(msg.sender, _time);
     }
 
     function platformSign(uint256 _time) public isPlatform {
         platform_flag = 1;
-        emit ownerSignEvent(msg.sender, _time);
+        emit platformSignEvent(msg.sender, _time);
     }
 
     function endorsersSign(uint256 _time) public isEndorsers {
         endorsers_flag = 1;
-        emit ownerSignEvent(msg.sender, _time);
+        emit endorserSignEvent(msg.sender, _time);
     }
 
     modifier isMultiSignature(){
-        require(owner_flag+platform_flag+endorsers_flag >= 2, "請確認是否完成多重簽章");
+        require(assetsOwner_flag+platform_flag+endorsers_flag >= 2, "請確認是否完成多重簽章");
         _;
     }
 
     /** @dev 重置簽章狀態 */
     function resetSignStatus() internal {
-        owner_flag = 0;
+        assetsOwner_flag = 0;
         platform_flag = 0;
         endorsers_flag = 0;
     }
@@ -76,7 +76,7 @@ contract multiSig {
     }
 
     /** @dev 新增endorser */
-    function addEndorser(address _newEndorser, uint256 _time) public isOwner{
+    function addEndorser(address _newEndorser, uint256 _time) public isAssetsOwner{
         require(endorsersContractAddr.length < 3, "背書者人數上限為三人");
         endorsersContractAddr.push(_newEndorser);
 
@@ -84,7 +84,7 @@ contract multiSig {
     }
 
     /** @dev 更換endorser */
-    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _time) public isOwner{
+    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _time) public isAssetsOwner{
         for(uint i = 0;  i < endorsersContractAddr.length; i++){
             if(endorsersContractAddr[i] == _oldEndorser){
                 endorsersContractAddr[i] = _newEndorser;
@@ -94,8 +94,8 @@ contract multiSig {
     }
 
     /** @dev 取得sign */
-    function getOwnerSign() public view returns(uint){
-        return owner_flag;
+    function getAssetsOwnerSign() public view returns(uint){
+        return assetsOwner_flag;
     }
 
     function getPlatformSign() public view returns(uint){
