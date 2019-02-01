@@ -2,27 +2,31 @@ const path = require('path');
 //guaranteed for cross platform path from current dir to inboc dir
 const solc = require('solc');
 const fs = require('fs-extra');//filesystem module EXTRA
-var mkdirp = require('mkdirp');
 
 const buildPath = path.resolve(__dirname, 'build');
 fs.removeSync(buildPath);//remove the build folder
-mkdirp('./ethereum/contracts/build', function(err) { 
-  if (err) {
-    console.error(err);
-    return;
-  } else {
-    console.log('new build directory is made');
-  }
-});
+
+fs.ensureDirSync(buildPath);//if the build folder does not exist, make it existing
+
+//var mkdirp = require('mkdirp');
+// mkdirp(buildPath, function(err) { 
+//   if (err) {
+//     console.error(err);
+//     return;
+//   } else {
+//     console.log('new build directory is made');
+//   }
+// });
 
 console.log('check1');
-const fileList = ['Campaign', 'Crowdfunding'];
+const fileList = ['Campaign', 'Crowdfunding', 'SafeMath', 'Ownable', 'Registry', 'ERC721_SPLC6', 'Asset'];
 
 for (let idx in fileList) {
   const solFileName = fileList[idx];
   console.log('\n inside ', solFileName);
   //const solFileName= 'Campaign';
-  const filePath = path.resolve(__dirname, 'contracts', solFileName+'.sol');
+  const filePath = path.resolve(__dirname, solFileName+'.sol');
+  //const filePath = path.resolve(__dirname, 'contracts', solFileName+'.sol');
 
   // Note: You should be defining your contract sources as objects now.
   // Note: You must also provide the compiler output selection as well.
@@ -97,8 +101,10 @@ for (let idx in fileList) {
       abi: abi,
       bytecode: bytecode
     }
-
-    fs.writeFileSync('./ethereum/contracts/build/'+ctrtName+'.json', JSON.stringify(compiledCtrt, null, 2));
+    
+    const filePathOut = path.resolve(buildPath, ctrtName+'.json');
+    //const filePathOut = path.resolve(__dirname, ctrtName+'.json');
+    fs.writeFileSync(filePathOut, JSON.stringify(compiledCtrt, null, 2));
     console.log('Finished compiling for '+solFileName);
 
   }

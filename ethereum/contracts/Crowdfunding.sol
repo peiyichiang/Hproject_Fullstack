@@ -4,13 +4,7 @@ pragma solidity ^0.5.3;
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
-
-interface Registry {
-    function isUserApproved(string memory uid) public view 
-      ckUid(uid) uidExists(uid) returns (bool);
-    function isAddrApproved(address assetCtAddr) public view 
-      ckAssetCtAddr(assetCtAddr) returns (bool);
-}
+import "./Registry.sol";
 
 contract Crowdfunding is Ownable{
     using SafeMath for uint256;
@@ -74,7 +68,7 @@ contract Crowdfunding is Ownable{
         uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
 
         //Legal Compliance
-        require(Registry(addrRegistry).isAddrApproved(_assetContrcatAddr), "_assetContrcatAddr is not in compliance");
+        require(RegistryContract(addrRegistry).isAddrApproved(_assetContrcatAddr), "_assetContrcatAddr is not in compliance");
 
         uint amount = _tokenInvest;
         balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
