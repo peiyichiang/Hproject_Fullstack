@@ -188,8 +188,6 @@ interface Registry {
       ckUid(uid) uidExists(uid) returns (bool);
     function isAddrApproved(address assetCtAddr) public view 
       ckAssetCtAddr(assetCtAddr) returns (bool);
-    function isUnderCompliance(address to, address from, uint amount) external view 
-      ckAddr(to) ckAddr(from) returns (bool);
 }
 //=> Add our own get_ownerToIds()
 //==================

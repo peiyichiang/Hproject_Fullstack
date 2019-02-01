@@ -10,11 +10,9 @@ interface Registry {
       ckUid(uid) uidExists(uid) returns (bool);
     function isAddrApproved(address assetCtAddr) public view 
       ckAssetCtAddr(assetCtAddr) returns (bool);
-    function isUnderCompliance(address to, address from, uint amount) external view 
-      ckAddr(to) ckAddr(from) returns (bool);
 }
 
-contract CrowdSale is Ownable{
+contract Crowdfunding is Ownable{
     using SafeMath for uint256;
     
     event showState(string _state);
@@ -72,7 +70,8 @@ contract CrowdSale is Ownable{
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
 
-    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
+    function Invest(
+        uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
 
         //Legal Compliance
         require(Registry(addrRegistry).isAddrApproved(_assetContrcatAddr), "_assetContrcatAddr is not in compliance");
@@ -124,12 +123,12 @@ contract CrowdSale is Ownable{
     }  
     
     function pauseSale() public checkPlatform {
-        require(pausestate == pauseState.Active);
+        require(pausestate == pauseState.Active, "current state is not active");
         pausestate = pauseState.Pause;
     }
     
     function resumeSale(uint _resetDeadline) public checkPlatform {
-        require(pausestate == pauseState.Pause);
+        require(pausestate == pauseState.Pause, "current state is not paused");
         pausestate = pauseState.Active;
         deadline = _resetDeadline;
     }
@@ -140,7 +139,7 @@ contract CrowdSale is Ownable{
     }
     
     modifier checkState(uint _serverTime) {
-        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active);
+        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState() failed");
         _;
         updateState(_serverTime);
         emit showState(ProjectState());

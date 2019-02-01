@@ -26,8 +26,6 @@ contract RegistryContract is Ownable {
 
     //Legal/Regulation Compliance
     mapping (address => string) public assetCtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
-    uint public amountLegalMax;
-    uint public amountLegalMin;
 
     /**@dev check uid value */
     modifier ckUid(string memory uid) {
@@ -146,14 +144,15 @@ contract RegistryContract is Ownable {
        # Partial token transfers could be restricted... Not applicable to ERC721
     */
 
-    /**@dev 設定user的 LegaCompliance */
-    event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
-    function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
-        require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
-        amountLegalMax = _amountLegalMax;
-        amountLegalMin = _amountLegalMin;
-        emit SetLegalAmount(amountLegalMax, amountLegalMin);
-    }
+    // amountMax/Min should be set inside the token contracts
+    // /**@dev 設定user的 LegaCompliance */
+    // event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
+    // function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
+    //     require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
+    //     amountLegalMax = _amountLegalMax;
+    //     amountLegalMin = _amountLegalMin;
+    //     emit SetLegalAmount(amountLegalMax, amountLegalMin);
+    // }
 
     /**@dev check if uid is approved */
     function isUserApproved(string memory uid) public view 
@@ -168,11 +167,12 @@ contract RegistryContract is Ownable {
         return isUserApproved(uid);
     }
 
+    //amount checking should be done inside the token transfer function!
     /**@dev check token transfer in compliance by using isApproved() */
-    function isUnderCompliance(address to, address from, uint amount) external view 
-      ckAddr(to) ckAddr(from) returns (bool) {
-        return (isAddrApproved(to) && isAddrApproved(from) && amountLegalMin <= amount && amount <= amountLegalMax);
-    }
+    // function isUnderCompliance(address to, address from, uint amount) external view 
+    //   ckAddr(to) ckAddr(from) returns (bool) {
+    //     return (isAddrApproved(to) && isAddrApproved(from) && amountLegalMin <= amount && amount <= amountLegalMax);
+    // }
     
 /**@dev 尚未支援回傳string[] */
 /*
