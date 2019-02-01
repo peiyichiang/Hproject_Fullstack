@@ -184,9 +184,12 @@ interface ERC721Enumerable {
 }
 
 interface Registry {
-    function isUnderCompliance(address to, address from, uint amount) external view returns (bool);
-    function isAddrApproved(address addr) external view returns (bool);
-    function isUserApproved(string calldata uid) external view returns (bool);
+    function isUserApproved(string memory uid) public view 
+      ckUid(uid) uidExists(uid) returns (bool);
+    function isAddrApproved(address assetCtAddr) public view 
+      ckAssetCtAddr(assetCtAddr) returns (bool);
+    function isUnderCompliance(address to, address from, uint amount) external view 
+      ckAddr(to) ckAddr(from) returns (bool);
 }
 //=> Add our own get_ownerToIds()
 //==================
@@ -392,6 +395,10 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, string calldata _uri) external onlyAdmin {
+
+        //Legal Compliance
+        require(Registry(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //tokenId <= maxTotalSupply

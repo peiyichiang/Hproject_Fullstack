@@ -6,9 +6,12 @@ import "./Ownable.sol";
 import "./SafeMath.sol";
 
 interface Registry {
-    function isUnderCompliance(address to, address from, uint amount) external view returns (bool);
-    function isAddrApproved(address addr) external view returns (bool);
-    function isUserApproved(string calldata uid) external view returns (bool);
+    function isUserApproved(string memory uid) public view 
+      ckUid(uid) uidExists(uid) returns (bool);
+    function isAddrApproved(address assetCtAddr) public view 
+      ckAssetCtAddr(assetCtAddr) returns (bool);
+    function isUnderCompliance(address to, address from, uint amount) external view 
+      ckAddr(to) ckAddr(from) returns (bool);
 }
 
 contract CrowdSale is Ownable{
