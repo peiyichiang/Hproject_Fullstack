@@ -25,7 +25,7 @@
             </div>
     </nav>
 
-    <!-- 假如archive狀態的產品數量>0，才顯示 -->
+    <!-- (目前沒在使用)假如archive狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
         <%if (data[i].p_state =="archive" ) { %>
@@ -133,7 +133,7 @@
                             </td>
                             <td>
                                 <!-- <input type="button" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');" /> -->
-                                <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button>
+                                <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','publish');">退回</button>
                             </td>
                             <td>
                                 <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
@@ -168,19 +168,26 @@
                     <th class="nowrap">Token代號</th>
                     <th class="nowrap">產品名稱</th>
                     <th class="nowrap">產品所在地</th>
-                    <th class="nowrap">單片售價</th>
+                    <th class="nowrap">產品定價</th>
+                    <th class="nowrap">幣別</th>
                     <th class="nowrap">專案年期</th>
-                    <th class="nowrap">貨幣種類</th>
-                    <th class="nowrap">投報率</th>
-                    <th class="nowrap">發行日</th>
-                    <th class="nowrap">到期日</th>
-                    <th class="nowrap">案場規模</th>
-                    <th class="nowrap">總發行量</th>
+                    <th class="nowrap">投報率</th>                        
+                    <!--  -->
+                    <th class="nowrap">專案開始日期</th>
+                    <th class="nowrap">FMA審核通過的日期</th>
+                    <th class="nowrap">PA審核通過的日期</th>
+                    <th class="nowrap">開始購買/眾籌日期</th>
+                    <th class="nowrap">結束購買/眾籌日期</th>
+                    <!--  -->
+                    <th class="nowrap">Token發行日</th>
+                    <th class="nowrap">Token到期日</th>
+                    <th class="nowrap">案場規模(kw)</th>
+                    <th class="nowrap">總發行量(token)</th>
                     <th class="nowrap">發行專案的產品經理</th>
                     <th class="nowrap">該專案處理狀態</th>
                     <th class="nowrap">預估平均年收益</th>
                     <th class="nowrap">預估回收金額</th>
-                    <th class="nowrap">租金支付週期</th>
+                    <th class="nowrap">租金支付週期每幾個月</th>
                     <th class="nowrap">預估回收年限</th>
                     <th class="nowrap">預估進度圖</th>
                     <th class="nowrap">產品文件</th>
@@ -205,14 +212,31 @@
                                 <%= data[i].p_pricing  %>
                             </td>
                             <td>
-                                <%= data[i].p_duration  %>
-                            </td>
-                            <td>
                                 <%= data[i].p_currency  %>
                             </td>
                             <td>
-                                <%= data[i].p_irr  %>
+                                <%= data[i].p_duration  %>
                             </td>
+                            <td>
+                                <%= data[i].p_irr  %>
+                            </td>                                
+                            <!--  -->
+                            <td>
+                                <%= data[i].p_PSD  %>
+                            </td>
+                            <td>
+                                <%= data[i].p_FMXAdate  %>
+                            </td>
+                            <td>
+                                <%= data[i].p_PAdate  %>
+                            </td>
+                            <td>
+                                <%= data[i].p_CFSD  %>
+                            </td>
+                            <td>
+                                <%= data[i].p_CFED  %>
+                            </td>
+                            <!--  -->
     
                             <td>
                                 <%= data[i].p_releasedate  %>
@@ -259,7 +283,7 @@
                             </td>
                             <td>
                                 <!-- <input type="button" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');" /> -->
-                                <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button>
+                                <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','publish');">退回</button>
                             </td>
                             <td>
                                 <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
@@ -293,19 +317,26 @@
                     <th class="nowrap">Token代號</th>
                     <th class="nowrap">產品名稱</th>
                     <th class="nowrap">產品所在地</th>
-                    <th class="nowrap">單片售價</th>
+                    <th class="nowrap">產品定價</th>
+                    <th class="nowrap">幣別</th>
                     <th class="nowrap">專案年期</th>
-                    <th class="nowrap">貨幣種類</th>
-                    <th class="nowrap">投報率</th>
-                    <th class="nowrap">發行日</th>
-                    <th class="nowrap">到期日</th>
-                    <th class="nowrap">案場規模</th>
-                    <th class="nowrap">總發行量</th>
+                    <th class="nowrap">投報率</th>                    
+                    <!--  -->
+                    <th class="nowrap">專案開始日期</th>
+                    <th class="nowrap">FMA審核通過的日期</th>
+                    <!-- <th class="nowrap">PA審核通過的日期</th> -->
+                    <th class="nowrap">開始購買/眾籌日期</th>
+                    <th class="nowrap">結束購買/眾籌日期</th>
+                    <!--  -->
+                    <th class="nowrap">Token發行日</th>
+                    <th class="nowrap">Token到期日</th>
+                    <th class="nowrap">案場規模(kw)</th>
+                    <th class="nowrap">總發行量(token)</th>
                     <th class="nowrap">發行專案的產品經理</th>
                     <th class="nowrap">該專案處理狀態</th>
                     <th class="nowrap">預估平均年收益</th>
                     <th class="nowrap">預估回收金額</th>
-                    <th class="nowrap">租金支付週期</th>
+                    <th class="nowrap">租金支付週期每幾個月</th>
                     <th class="nowrap">預估回收年限</th>
                     <th class="nowrap">預估進度圖</th>
                     <th class="nowrap">產品文件</th>
@@ -330,14 +361,31 @@
                                 <%= data[i].p_pricing  %>
                             </td>
                             <td>
-                                <%= data[i].p_duration  %>
-                            </td>
-                            <td>
                                 <%= data[i].p_currency  %>
                             </td>
                             <td>
-                                <%= data[i].p_irr  %>
+                                <%= data[i].p_duration  %>
                             </td>
+                            <td>
+                                <%= data[i].p_irr  %>
+                            </td>                    
+                            <!--  -->
+                            <td>
+                                <%= data[i].p_PSD  %>
+                            </td>
+                            <td>
+                                <%= data[i].p_FMXAdate  %>
+                            </td>
+                            <!-- <td>
+                                <%= data[i].p_PAdate  %>
+                            </td> -->
+                            <td>
+                                <%= data[i].p_CFSD  %>
+                            </td>
+                            <td>
+                                <%= data[i].p_CFED  %>
+                            </td>
+                            <!--  -->
     
                             <td>
                                 <%= data[i].p_releasedate  %>
@@ -384,7 +432,8 @@
                             </td>
                             <td>
                                 <!-- <input type="button" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');" /> -->
-                                <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button>
+                                <!-- <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button> -->
+                                <button type="button" class="btn btn-success" name="return" value="return" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">退回</button>
                             </td>
                             <td>
                                 <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
@@ -400,12 +449,68 @@
         </div>
     <% } %>
 
+    <!-- 按下退回時，要出現的產品備註(p_PANote)的Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">退回原因</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+            <form>
+                <div class="form-group">
+                <label for="message-text" class="col-form-label">請描述退回的原因:</label>
+                <textarea class="form-control" id="message-text"></textarea>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="SaveNoteAndReturn()">Send message</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script>
         function Edit(SYMBOL,State) {
             window.location.href = "/Product/GET/EditProductByPlatformAuditor?symbol=" + SYMBOL + "&State=" + State;
         }
+
+        // 用來記錄當前被點到退回按鈕的產品SYMBOL
+        var CurrentSYMBOL="";
+
+        // 用來設置CurrentSYMBOL
+        function SetCurrentSYMBOL(SYMBOL){
+            CurrentSYMBOL=SYMBOL;
+        }
+
+        // 儲存備注並退回
+        function SaveNoteAndReturn(){
+            var SYMBOL=CurrentSYMBOL;
+            var NOTE=document.getElementById('message-text').value;
+            // alert(SYMBOL);
+            // alert(NOTE);
+            window.location.href = "/Product/GET/SetPANoteAndReturnByPA?symbol=" + SYMBOL + "&note=" + NOTE;
+        }
+
+        // Modal觸發
+        $('#exampleModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            // modal.find('.modal-title').text('New message to ' + recipient)
+            // modal.find('.modal-body input').val(recipient)
+        })
     </script>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
     <script src="/js/SignOut.js"></script>
 

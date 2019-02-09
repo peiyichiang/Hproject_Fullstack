@@ -37,21 +37,29 @@
             <th class="nowrap">Token代號</th>
             <th class="nowrap">產品名稱</th>
             <th class="nowrap">產品所在地</th>
-            <th class="nowrap">單片售價</th>
+            <th class="nowrap">產品定價</th>
+            <th class="nowrap">幣別</th>
             <th class="nowrap">專案年期</th>
-            <th class="nowrap">貨幣種類</th>
-            <th class="nowrap">投報率</th>
-            <th class="nowrap">發行日</th>
-            <th class="nowrap">到期日</th>
-            <th class="nowrap">案場規模</th>
-            <th class="nowrap">總發行量</th>
+            <th class="nowrap">投報率</th>                        
+            <!--  -->
+            <th class="nowrap">專案開始日期</th>
+            <!-- <th class="nowrap">FMA審核通過的日期</th>
+            <th class="nowrap">PA審核通過的日期</th> -->
+            <th class="nowrap">開始購買/眾籌日期</th>
+            <th class="nowrap">結束購買/眾籌日期</th>
+            <!--  -->
+            <th class="nowrap">Token發行日</th>
+            <th class="nowrap">Token到期日</th>
+            <th class="nowrap">案場規模(kw)</th>
+            <th class="nowrap">總發行量(token)</th>
             <th class="nowrap">發行專案的產品經理</th>
             <th class="nowrap">該專案處理狀態</th>
             <th class="nowrap">預估平均年收益</th>
             <th class="nowrap">預估回收金額</th>
-            <th class="nowrap">租金支付週期</th>
+            <th class="nowrap">租金支付週期每幾個月</th>
             <th class="nowrap">預估回收年限</th>
-            <th class="nowrap">預估進度圖</th>
+            <!-- <th class="nowrap">預估進度圖</th> -->
+            <th class="nowrap">PA審核退回備註</th>
             <th class="nowrap">產品文件</th>
             <th class="nowrap">產品icon</th>
             <th class="nowrap">發佈</th>
@@ -72,14 +80,31 @@
                     <%= data[i].p_pricing  %>
                 </td>
                 <td>
-                    <%= data[i].p_duration  %>
-                </td>
-                <td>
                     <%= data[i].p_currency  %>
                 </td>
                 <td>
-                    <%= data[i].p_irr  %>
+                    <%= data[i].p_duration  %>
                 </td>
+                <td>
+                    <%= data[i].p_irr  %>
+                </td>                                
+                <!--  -->
+                <td>
+                    <%= data[i].p_PSD  %>
+                </td>
+                <!-- <td>
+                    <%= data[i].p_FMXAdate  %>
+                </td>
+                <td>
+                    <%= data[i].p_PAdate  %>
+                </td> -->
+                <td>
+                    <%= data[i].p_CFSD  %>
+                </td>
+                <td>
+                    <%= data[i].p_CFED  %>
+                </td>
+                <!--  -->
 
                 <td>
                     <%= data[i].p_releasedate  %>
@@ -111,8 +136,11 @@
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
+                </td> -->                                
+                <td>
+                    <%= data[i].p_PANote %>
                 </td>
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
@@ -130,9 +158,9 @@
                 </td>
                 <td>
                     <!-- <input type="button" name="publish" value="publish" onclick="Edit('<%= data[i].p_SYMBOL  %>');" /> -->
-                    <button type="button" class="btn btn-success" name="ReturnBack" value="ReturnBack" onclick="ReturnBack('<%= data[i].p_SYMBOL  %>');">退回</button>
+                    <!-- <button type="button" class="btn btn-success" name="ReturnBack" value="ReturnBack" onclick="ReturnBack('<%= data[i].p_SYMBOL  %>');">退回</button> -->
+                    <button type="button" class="btn btn-success" name="ReturnBack" value="ReturnBack" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">退回</button>
                 </td>
-                <!-- onclick="Edit('<%= data[i].id  %>');" -->
             </tr>
         <% } %>
     </table>
@@ -147,21 +175,28 @@
             <th class="nowrap">Token代號</th>
             <th class="nowrap">產品名稱</th>
             <th class="nowrap">產品所在地</th>
-            <th class="nowrap">單片售價</th>
+            <th class="nowrap">產品定價</th>
             <th class="nowrap">專案年期</th>
-            <th class="nowrap">貨幣種類</th>
-            <th class="nowrap">投報率</th>
-            <th class="nowrap">發行日</th>
-            <th class="nowrap">到期日</th>
-            <th class="nowrap">案場規模</th>
-            <th class="nowrap">總發行量</th>
+            <th class="nowrap">幣別</th>
+            <th class="nowrap">投報率</th>                        
+            <!--  -->
+            <th class="nowrap">專案開始日期</th>
+            <th class="nowrap">FMA審核通過的日期</th>
+            <!-- <th class="nowrap">PA審核通過的日期</th> -->
+            <th class="nowrap">開始購買/眾籌日期</th>
+            <th class="nowrap">結束購買/眾籌日期</th>
+            <!--  -->
+            <th class="nowrap">Token發行日</th>
+            <th class="nowrap">Token到期日</th>
+            <th class="nowrap">案場規模(kw)</th>
+            <th class="nowrap">總發行量(token)</th>
             <th class="nowrap">發行專案的產品經理</th>
             <th class="nowrap">該專案處理狀態</th>
             <th class="nowrap">預估平均年收益</th>
             <th class="nowrap">預估回收金額</th>
-            <th class="nowrap">租金支付週期</th>
+            <th class="nowrap">租金支付週期每幾個月</th>
             <th class="nowrap">預估回收年限</th>
-            <th class="nowrap">預估進度圖</th>
+            <!-- <th class="nowrap">預估進度圖</th> -->
             <th class="nowrap">產品文件</th>
             <th class="nowrap">產品icon</th>
         </tr>
@@ -180,15 +215,31 @@
                     <%= dataPublish[i].p_pricing  %>
                 </td>
                 <td>
-                    <%= dataPublish[i].p_duration  %>
-                </td>
-                <td>
                     <%= dataPublish[i].p_currency  %>
                 </td>
                 <td>
-                    <%= dataPublish[i].p_irr  %>
+                    <%= dataPublish[i].p_duration  %>
                 </td>
-
+                <td>
+                    <%= dataPublish[i].p_irr  %>
+                </td>                                
+                <!--  -->
+                <td>
+                    <%= dataPublish[i].p_PSD  %>
+                </td>
+                <td>
+                    <%= dataPublish[i].p_FMXAdate  %>
+                </td>
+                <!-- <td>
+                    <%= dataPublish[i].p_PAdate  %>
+                </td> -->
+                <td>
+                    <%= dataPublish[i].p_CFSD  %>
+                </td>
+                <td>
+                    <%= dataPublish[i].p_CFED  %>
+                </td>
+                <!--  -->
                 <td>
                     <%= dataPublish[i].p_releasedate  %>
                 </td>
@@ -219,9 +270,9 @@
                 <td>
                     <%= dataPublish[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= dataPublish[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (dataPublish[i].p_assetdocs != null && dataPublish[i].p_assetdocs !="") { %>
                         <a target="_blank" href="http://127.0.0.1:3000/<%= dataPublish[i].p_assetdocs.replace('public','')  %>">doc</a>
@@ -232,23 +283,72 @@
                         <img src="http://127.0.0.1:3000/<%= dataPublish[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
                     <% } %>
                 </td>
-                <!-- onclick="Edit('<%= data[i].id  %>');" -->
             </tr>
             <% } %>
     </table>
+</div>
+<!-- 按下退回時，要出現的產品備註(p_FMANote)的Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">退回原因</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="message-text" class="col-form-label">請描述退回的原因:</label>
+              <textarea class="form-control" id="message-text"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="SaveNoteAndReturn()">Send message</button>
+        </div>
+      </div>
+    </div>
 </div>
 
 
 
 
-
     <script>
+        // 用來記錄當前被點到退回按鈕的產品SYMBOL
+        var CurrentSYMBOL="";
+        // 編輯按鈕觸發
         function Edit(SYMBOL) {
             window.location.href = "/Product/GET/EditProductByFMA?symbol=" + SYMBOL;
         }
+        // 退回按鈕觸發(目前不使用)
         function ReturnBack(SYMBOL) {
             window.location.href = "/Product/GET/SetProductDraftByFMA?symbol=" + SYMBOL;
         }
+        // 用來設置CurrentSYMBOL
+        function SetCurrentSYMBOL(SYMBOL){
+            CurrentSYMBOL=SYMBOL;
+        }
+
+        // 儲存備注並退回
+        function SaveNoteAndReturn(){
+            var SYMBOL=CurrentSYMBOL;
+            var NOTE=document.getElementById('message-text').value;
+            window.location.href = "/Product/GET/SetFMANoteAndReturnByFMA?symbol=" + SYMBOL + "&note=" + NOTE;
+        }
+
+        // Modal觸發
+        $('#exampleModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            modal.find('.modal-title').text('New message to ' + recipient)
+            modal.find('.modal-body input').val(recipient)
+        })
     </script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
