@@ -5,9 +5,9 @@ const net = require("net");
 const path = require('path');
 
 // 每20秒發送一次time
-schedule.scheduleJob('*/5 * * * * *', function () {
+schedule.scheduleJob('*/20 * * * * *', function () {
     let date = new Date().myFormat()
-    console.log('年:', date.slice(0, 4),'\n月:', date.slice(4, 6),'\n日:', date.slice(6, 8),'\n時:', date.slice(8, 10),'\n分:', date.slice(10, 12))
+    console.log(date.slice(0, 4),'年', date.slice(4, 6),'月', date.slice(6, 8),'日', date.slice(8, 10),'時', date.slice(10, 12),'分')
     sendTime(date)
 });
 

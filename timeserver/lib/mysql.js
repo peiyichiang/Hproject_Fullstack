@@ -7,4 +7,24 @@ var pool = mysql.createPool({
     database: "htoken"
 });
 
-module.exports = pool
+function getCrowdfundingContractAddress(cb) {
+    pool.query('SELECT sc_crowdsaleaddress FROM smart_contracts', function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        cb(rows);
+    })
+}
+
+function getOrderDate(cb) {
+    pool.query('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        cb(rows);
+    })
+}
+module.exports = {
+    getCrowdfundingContractAddress,
+    getOrderDate
+}

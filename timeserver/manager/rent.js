@@ -3,7 +3,7 @@ const net = require("net");
 const path = require('path');
 const fs = require('fs');
 
-const contract = require('../lib/contractAPI.js')
+//const contract = require('../lib/contractAPI.js')
 
 createServer()
 
@@ -12,9 +12,9 @@ function createServer() {
 
         c.on("data", (data) => {
             // 接收時間後的動作
-            let addr = "";
-            contract.sendTimeToRentContract(addr, date);
-            console.log(data.toString());
+            /*let addr = "";
+            contract.sendTimeToRentContract(addr, data.toString());
+            */
         });
 
         c.on("end", () => {

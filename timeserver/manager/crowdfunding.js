@@ -3,7 +3,8 @@ const net = require("net");
 const path = require('path');
 const fs = require('fs');
 
-const contract = require('../lib/contractAPI.js')
+//const contract = require('../lib/contractAPI.js')
+const mysql = require('../lib/mysql.js');
 
 createServer()
 
@@ -12,9 +13,17 @@ function createServer() {
 
         c.on("data", (data) => {
             // 接收時間後的動作
-            let addr = "";
-            contract.sendTimeToCrowdfundingContract(addr, date);
-            console.log(data.toString());
+            mysql.getCrowdfundingContractAddress(function (result) {
+                if (result.length == 0) {
+                    console.log('nothing')
+                }
+                else {
+                    for (let i in result) {
+                        console.log(result[i].sc_crowdsaleaddress, data.toString());
+                        //contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString());
+                    }
+                }
+            })
         });
 
         c.on("end", () => {
@@ -27,21 +36,21 @@ function createServer() {
     server.on('error', function (e) {
         if (e.code == 'EADDRINUSE') {
             var clientSocket = new net.Socket();
-            clientSocket.on('error', function(e) {
+            clientSocket.on('error', function (e) {
                 if (e.code == 'ECONNREFUSED') {
                     fs.unlinkSync('./crowdfunding.ipc');
-                    server.listen('./crowdfunding.ipc', function() {
+                    server.listen('./crowdfunding.ipc', function () {
                         console.log('server recovered');
                     });
                 }
             });
-            clientSocket.connect({path: './crowdfunding.ipc'}, function() { 
+            clientSocket.connect({ path: './crowdfunding.ipc' }, function () {
                 console.log('Server running, giving up...');
                 process.exit();
             });
         }
     });
-    
+
     if (os.platform() == 'win32') {
         server.listen(path.join('\\\\?\\pipe', process.cwd(), 'crowdfunding'), () => {
             console.log("server bound");
