@@ -22,38 +22,53 @@ contract RegistryContract is Ownable {
     event SetExtoAddr(string uid, address assetCtAddr, address extoAddr, uint status, uint time);
 
     mapping (string => User) users;//string: 2 letters for country + 身分證字號, SSN, SIN
-    mapping (address => string) public assetCtAddrToUid;
-    uint public userCount;//count and index
+    uint public userCount;//count the number of users
 
     //Legal/Regulation Compliance
-    uint public amountLegalMax;
-    uint public amountLegalMin;
+    mapping (address => string) public assetCtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
 
+    /**@dev check uid value */
     modifier ckUid(string memory uid) {
         uint uidLength = bytes(uid).length;
         require(uidLength > 0, "uid cannot be zero length");
-        require(uidLengthh <= 32, "uid cannot be longer than 32");
+        require(uidLength <= 32, "uid cannot be longer than 32");//compatible to bytes32 format, too
         _;
     }
+    /**@dev check asset contract address */
     modifier ckAssetCtAddr(address assetCtAddr) {
         require(assetCtAddr != address(0), "assetCtAddr should not be zero");
         _;
     }
+    /**@dev check EOA address */
     modifier ckExtoAddr(address extoAddr) {
         require(extoAddr != address(0), "extoAddr should not be zero");
         _;
     }
+    /**@dev check time */
     modifier ckTime(uint time) {
         require(time > 201902010000, "time should be greater than 201902010000");
+        _;
+    }
+    /**@dev check address value not zero */
+    modifier ckAddr(address addr) {
+        require(addr != address(0), "addr should not be zero");
+        _;
+    }
+
+    /**@dev check if uid exists by checking its user's information */
+    modifier uidExists(string memory uid) {
+        require(users[uid].assetCtAddr != address(0), "user does not exist: assetCtAddr is empty");
+        require(users[uid].extoAddr != address(0), "user does not exist: extoAddr is empty");
         _;
     }
 
     /**@dev 新增user */
     function setNewUser(
-        string calldata uid, address assetCtAddr, address extoAddr, uint time) 
-        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
+        string calldata uid, address assetCtAddr, address extoAddr, uint time) external 
+        onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
         
-        require(users[uid].assetCtAddr == address(0), "user already exists");
+        require(users[uid].assetCtAddr == address(0), "user already exists: assetCtAddr not empty");
+        require(users[uid].extoAddr == address(0), "user already exists: extoAddr not empty");
         userCount = userCount.add(1);
 
         users[uid].assetCtAddr = assetCtAddr;
@@ -64,11 +79,12 @@ contract RegistryContract is Ownable {
         emit SetNewUser(uid, assetCtAddr, extoAddr, 0, time);
     }
 
+    /**@dev set user的 information */
     function setOldUser(
         string calldata uid, address assetCtAddr, address extoAddr, uint status, uint time)
-        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
+        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) 
+        uidExists(uid) {
 
-        require(users[uid].assetCtAddr != address(0), "user does not exist");
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
         users[uid].assetCtAddr = assetCtAddr;
@@ -80,10 +96,9 @@ contract RegistryContract is Ownable {
     }
 
     /**@dev 設定user的 assetCtAddr */
-    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint time) 
-        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(time) {
+    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint time) external 
+      onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(time) uidExists(uid) {
         
-        require(users[uid].assetCtAddr != address(0), "user does not exist");
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
         assetCtAddrToUid[assetCtAddr] = uid;
@@ -92,19 +107,15 @@ contract RegistryContract is Ownable {
     }
 
     /**@dev 設定user的以太帳號 */
-    function setExtoAddr(string calldata uid, address extoAddr, uint time) 
-        external onlyOwner ckUid(uid) ckExtoAddr(extoAddr) ckTime(time) {
-        
-        require(users[uid].extoAddr != address(0), "user does not exist");
+    function setExtoAddr(string calldata uid, address extoAddr, uint time) external 
+      onlyOwner ckUid(uid) ckExtoAddr(extoAddr) ckTime(time) uidExists(uid) {
         users[uid].extoAddr = extoAddr;
         emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, time);
     }
 
     /**@dev 設定user的狀態 */
-    function setUserStatus(string calldata uid, uint status, uint time)
-        external onlyOwner ckUid(uid) ckTime(time) {
-
-        require(users[uid].assetCtAddr != address(0), "user does not exist");
+    function setUserStatus(string calldata uid, uint status, uint time) external 
+      onlyOwner ckUid(uid) ckTime(time) uidExists(uid) {
         users[uid].status = status;
         emit SetUserStatus(uid, status, time);
     }
@@ -115,52 +126,53 @@ contract RegistryContract is Ownable {
     }
 
     /**@dev get user information */
-    function getUser(string memory uid) public view returns (
+    function getUser(string memory uid) public view ckUid(uid) returns (
         string memory, address, address, uint) {
         return(uid, users[uid].assetCtAddr, users[uid].extoAddr, users[uid].status);
     }
 
-    function getUidFromAssetCtAddr(address assetCtAddr) public view returns (string memory) {
+    /**@dev get uid from Asset contract address */
+    function getUidFromAssetCtAddr(address assetCtAddr) public view 
+        ckAssetCtAddr(assetCtAddr) returns (string memory) {
         return assetCtAddrToUid[assetCtAddr];
     }
 
     //--------------------==Legal Compliance
-    /* # A whitelist could be implemented to ensure that both sender and receiver have been cleared to transact. # Certain addresses could be blacklisted⁹.
-    # Transfers of over / under certain amounts could be prohibited.
-      //Partial token transfers could be restricted.*/
-    /**@dev 設定user的 LegaCompliance */
-    event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
-    function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
-        require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
-        amountLegalMax = _amountLegalMax;
-        amountLegalMin = _amountLegalMin;
-        emit SetLegalAmount(amountLegalMax, amountLegalMin);
+    /* # A Whitelist: check both sender and receiver have been cleared to make transactions
+       # A Blacklist: if the status is not approved
+       # Check if transfer amount is over or under certain amounts
+       # Partial token transfers could be restricted... Not applicable to ERC721
+    */
+
+    // amountMax/Min should be set inside the token contracts
+    // /**@dev 設定user的 LegaCompliance */
+    // event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
+    // function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
+    //     require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
+    //     amountLegalMax = _amountLegalMax;
+    //     amountLegalMin = _amountLegalMin;
+    //     emit SetLegalAmount(amountLegalMax, amountLegalMin);
+    // }
+
+    /**@dev check if uid is approved */
+    function isUserApproved(string memory uid) public view 
+      ckUid(uid) uidExists(uid) returns (bool) {
+        return (users[uid].status == 0);
     }
 
-    function isUserApproved(string calldata uid) external view returns (bool) {
-        if(users[uid].status == 0) {
-            return true;
-        } else {return false;}
-    }
-    function isAddrApproved(address addr) external view returns (bool) {
-        string memory uid = assetCtAddrToUid[addr];
-        if(users[uid].status == 0) {
-            return true;
-        } else {return false;}
+    /**@dev check if asset contract address is approved, by finding its uid then checking it */
+    function isAddrApproved(address assetCtAddr) public view 
+      ckAssetCtAddr(assetCtAddr) returns (bool) {
+        string memory uid = assetCtAddrToUid[assetCtAddr];
+        return isUserApproved(uid);
     }
 
-    //To be called by token transfer functions
-    function isUnderCompliance(address to, address from, uint amount) external view returns (bool) {
-        //require(msg.sender == tokenCtrt, "msg.sender is not tokenCtrt");
-        string memory uidTo = assetCtAddrToUid[to];//toAssetCtrt
-        string memory uidFrom = assetCtAddrToUid[from];//fromAssetCtrt
-
-        if(users[uidTo].status == 0 && users[uidFrom].status == 0 && amountLegalMin <= amount && amount <= amountLegalMax) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    //amount checking should be done inside the token transfer function!
+    /**@dev check token transfer in compliance by using isApproved() */
+    // function isUnderCompliance(address to, address from, uint amount) external view 
+    //   ckAddr(to) ckAddr(from) returns (bool) {
+    //     return (isAddrApproved(to) && isAddrApproved(from) && amountLegalMin <= amount && amount <= amountLegalMax);
+    // }
     
 /**@dev 尚未支援回傳string[] */
 /*

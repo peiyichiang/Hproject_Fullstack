@@ -35,6 +35,7 @@ $ The URI MAY be mutable (i.e. it changes from time to time).
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
+import "./Registry.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
 interface ERC721 {
@@ -183,11 +184,7 @@ interface ERC721Enumerable {
     returns (uint256);
 }
 
-interface Registry {
-    function isUnderCompliance(address to, address from, uint amount) external view returns (bool);
-    function isAddrApproved(address addr) external view returns (bool);
-    function isUserApproved(string calldata uid) external view returns (bool);
-}
+
 //=> Add our own get_ownerToIds()
 //==================
 contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC721Enumerable {
@@ -392,6 +389,10 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, string calldata _uri) external onlyAdmin {
+
+        //Legal Compliance
+        require(RegistryContract(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //tokenId <= maxTotalSupply
@@ -608,8 +609,8 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         address from = idToOwner[_tokenId];
 
         //Legal Compliance
-        require(Registry(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
-        require(Registry(addrRegistry).isAddrApproved(from), "from is not in compliance");
+        require(RegistryContract(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+        require(RegistryContract(addrRegistry).isAddrApproved(from), "from is not in compliance");
         //require(Registry(addrRegistry).isUnderCompliance(_to, from, 1), "not under compliance");
 
         clearApproval(_tokenId);
