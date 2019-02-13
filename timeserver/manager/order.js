@@ -19,6 +19,7 @@ function createServer() {
                 else {
                     for (let i in result) {
                         console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
+                        console.log(result[i].o_purchaseDate.add3Day())
                     }
                 }
             })
@@ -72,4 +73,9 @@ function createServer() {
             process.exit();
         }
     });
+}
+
+Object.prototype.add3Day = function(){
+    let date = this
+    return date;
 }
