@@ -9,7 +9,7 @@
     "rent": "node timeserver/manager/rent.js",
     "crowdfunding": "node timeserver/manager/crowdfunding.js",
     "order": "node timeserver/manager/order.js",
-    "time": "concurrently -n timeserver,manager,rent,crowdfunding,order \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\""
+    "time": "concurrently -n timeserver,manager,rent,crowdfunding,order \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\"",
     "test": "mocha"
   },
   "dependencies": {
