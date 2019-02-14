@@ -12,9 +12,10 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*平台方公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
+var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /*registry contract address*/
-const contract = require('../contract/Asset.json');
+const contract = require('../ethereum/contracts/Asset.json');
 
 
 
@@ -127,14 +128,14 @@ router.get('/GET/getPlatform', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let platform = await assetContract.methods.getPlatform().call({ from: backendAddr })
+    let platform = await assetContract.methods.getPlatformContractAddr().call({ from: backendAddr })
 
     res.send({
         platform: platform
     })
 });
 
-/*取得第三方address */
+/*取得背書人address */
 router.get('/GET/getEndorsers', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -170,7 +171,7 @@ router.get('/GET/getPlatformSign', async function (req, res, next) {
     })
 });
 
-/*取得第三方簽名 */
+/*取得背書人簽名 */
 router.get('/GET/getEndorsersSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
@@ -189,7 +190,7 @@ router.post('/POST/assetsOwnerSign', async function (req, res, next) {
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用手機keychain 抓公私鑰*/
-    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
     let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
     let encodedData = assetContract.methods.assetsOwnerSign(time).encodeABI();
@@ -201,14 +202,14 @@ router.post('/POST/assetsOwnerSign', async function (req, res, next) {
 
 });
 
-/*平台方簽名 */
+/*平台方簽名 => 到時候要由platform合約來簽*/
 router.post('/POST/platformSign', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = 20180131;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用手機keychain 抓公私鑰*/
-    let platform = await assetContract.methods.getPlatform().call({ from: backendAddr });
+    let platform = '0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2';
     let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18';
 
     let encodedData = assetContract.methods.platformSign(time).encodeABI();
@@ -220,23 +221,23 @@ router.post('/POST/platformSign', async function (req, res, next) {
 
 });
 
-/*第三方簽名 */
-router.post('/POST/endorsersSign', async function (req, res, next) {
+/*背書人簽名（Ａ是Ｂ的背書人=> 由Ｂ的assetContract去簽Ａ */
+router.post('/POST/signAssetContract', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = 20180131;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
+    let assetsContractToBeSigned = '0x8D5A91BA7e07419F610D3a6793D8582Bb11F6fFa';
 
     /*用手機keychain 抓公私鑰*/
-    let endorsers = await assetContract.methods.getEndorsers().call({ from: backendAddr });
-    let endorsersPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7'
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-    let encodedData = assetContract.methods.endorsersSign(time).encodeABI();
-    let result = await signTx(endorsers, endorsersPrivateKey, contractAddr, encodedData);
+    let encodedData = assetContract.methods.signAssetContract(assetsContractToBeSigned, time).encodeABI();
+    let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
     })
-
 });
 
 /*更換用戶address */
@@ -250,7 +251,7 @@ router.post('/POST/changeAssetOwner', async function (req, res, next) {
     let encodedData = assetContract.methods.changeAssetOwner(newOwner, time).encodeABI();
 
     /**由後端送出交易 */
-    let result = await signTx(backendAddr, backendAddrPrivateKey, contractAddr, encodedData);
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -258,21 +259,19 @@ router.post('/POST/changeAssetOwner', async function (req, res, next) {
 
 });
 
-/*更換第三方address */
+/*更換背書人assetContractAdd*/
 router.post('/POST/changeEndorsers', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = 20180131;
+    let oldEndorser = req.body.oldEndorser;
+    let newEndorser = req.body.newEndorser;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用手機keychain 抓公私鑰*/
-    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
     let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-    let newEndorsers = req.body.newEndorsers;
-
-    let encodedData = assetContract.methods.changeEndorsers(newEndorsers, time).encodeABI();
-
-    /**由平台方送出交易 */
+    let encodedData = assetContract.methods.changeEndorsers(oldEndorser, newEndorser, time).encodeABI();
     let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -281,21 +280,37 @@ router.post('/POST/changeEndorsers', async function (req, res, next) {
 
 });
 
-/**To do */
+/**新增背書人assetContractAddr*/
 router.post('/POST/addEndorser', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let time = 20180131;
+    let newEndorser = req.body.newEndorser;
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+
+    let encodedData = assetContract.methods.addEndorser(newEndorser, time).encodeABI();
+    let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
 
 });
 
 /*新增資產到assetContract（由erc721Contract Trigger!）*/
 router.post('/POST/addAsset', async function (req, res, next) {
     let contractAddr = req.body.address;
+    let time = 20180131;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
-    let encodedData = assetContract.methods.addAsset(req.body.ERC721Addr).encodeABI();
 
-    /*privatekey 到時候會去底層keycahin sign*/
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
     let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
+    let encodedData = assetContract.methods.addAsset(req.body.ERC721Addr, time).encodeABI();
     let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -307,6 +322,7 @@ router.post('/POST/addAsset', async function (req, res, next) {
 router.get('/GET/getAsset', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
+
     let asset = await assetContract.methods.getAsset(req.query.ERC721Addr).call({ from: backendAddr });
 
     res.send({
@@ -340,13 +356,14 @@ router.get('/GET/getAssetIndex', async function (req, res, next) {
 /*轉移token */
 router.post('/POST/transferAsset', async function (req, res, next) {
     let contractAddr = req.body.address;
+    let time = 20180131;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
-    let encodedData = assetContract.methods.transferAsset(req.body.ERC721Addr, req.body.token_id, req.body.to).encodeABI()
 
-    /*privatekey 到時候會去底層keycahin sign*/
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
     let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
+    let encodedData = assetContract.methods.transferAsset(req.body.ERC721Addr, req.body.token_id, req.body.to, time).encodeABI();
     let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -356,10 +373,7 @@ router.post('/POST/transferAsset', async function (req, res, next) {
 
 });
 
-/**To do */
-router.post('/POST/signAssetContract', async function (req, res, next) {
 
-});
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {

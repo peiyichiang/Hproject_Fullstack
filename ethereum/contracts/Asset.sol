@@ -39,7 +39,7 @@ contract multiSig {
     }
 
     /** @dev 執行更換eth地址前，三人中有兩人須簽章 */
-    function AssetsOwnerSign(uint256 _time) public isAssetsOwner {
+    function assetsOwnerSign(uint256 _time) public isAssetsOwner {
         assetsOwner_flag = 1;
         emit assetsOwnerSignEvent(msg.sender, _time);
     }
@@ -78,6 +78,11 @@ contract multiSig {
     /** @dev 新增endorser */
     function addEndorser(address _newEndorser, uint256 _time) public isAssetsOwner{
         require(endorsersContractAddr.length < 3, "背書者人數上限為三人");
+        if(endorsersContractAddr.length!=0){
+            for(uint i = 0; i < endorsersContractAddr.length; i++){
+                require(endorsersContractAddr[i] != _newEndorser, "背書人重複加入");
+            }
+        }
         endorsersContractAddr.push(_newEndorser);
 
         emit addEndorsersEvent(_newEndorser, _time);
