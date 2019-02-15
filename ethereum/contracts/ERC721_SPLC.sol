@@ -35,7 +35,7 @@ $ The URI MAY be mutable (i.e. it changes from time to time).
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
-import "./Registry.sol";
+//import "./Registry.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
 interface ERC721 {
@@ -114,8 +114,12 @@ interface ERC721 {
   function isApprovedForAll(address _owner, address _operator) external view returns (bool);
 }
 
-/*A wallet/broker/auction application MUST implement the wallet interface if it will 
-accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.
+//RegistryContract(addrRegistry).isCtAddrApproved(_to)
+interface RegistryContract {
+    function isCtAddrApproved(address assetCtAddr) external view returns (bool);
+}
+
+/*A wallet/broker/auction application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.
 */
 interface ERC721TokenReceiver {
     /* $notice Handle the receipt of an NFT
@@ -153,41 +157,11 @@ contract SupportsInterface is ERC165 {
     }
 }
 
-/*==================
-https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Metadata.sol
- */
-interface ERC721Metadata {
-    function name() external view returns (string memory _name);//get token name of the contract
-    function symbol() external view returns (string memory _symbol);// get symbol of the contract
-    function tokenURI(uint256 _tokenId) external view returns (string memory);// get token URI of certain tokenId
-}
-
-//https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Enumerable.sol
-interface ERC721Enumerable {
-  /** 
-   * @dev Returns a count of valid NFTs tracked by this contract, where each one of them has an
-   * assigned and queryable owner not equal to the zero address. */
-  function totalSupply() external view returns (uint256);
-
-  /**
-   * @dev Returns the token identifier for the `_index`th NFT. Sort order is not specified.
-   * @param _index A counter less than `totalSupply()`. */
-  function tokenByIndex(uint256 _index) external view returns (uint256);
-
-  /**
-   * @dev Returns the token identifier for the `_index`th NFT assigned to `_owner`. Sort order is
-   * not specified. It throws if `_index` >= `balanceOf(_owner)` or if `_owner` is the zero address,
-   * representing invalid NFTs.
-   * @param _owner An address where we are interested in NFTs owned by them.
-   * @param _index A counter less than `balanceOf(_owner)`.*/
-  function tokenOfOwnerByIndex(address _owner, uint256 _index) external view
-    returns (uint256);
-}
 
 
-//=> Add our own get_ownerToIds()
+
 //==================
-contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC721Enumerable {
+contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     using SafeMath for uint256;
     using AddressUtils for address;
 
@@ -196,21 +170,23 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     mapping(address => uint256) internal ownerToNFTokenCount;//owner address to count of his tokens
     mapping(address => mapping (address => bool)) internal ownerToOperators;
     /** $dev Magic value of a smart contract that can recieve NFT.
-    * Equal to: keccak256("onERC721Received(address,uint256,bytes)").   */
+    * Equal to: keccak256("onERC721Received(address,uint256,bytes)") */
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
 
     //ERC721Enumerable
-    //uint256[] internal tokens;//Array of all NFT IDs.
+    //uint256[] internal tokens;//Array of all NFT IDs ... not used
     //mapping(uint256 => uint256) internal idToIndex;
-    //ID to index in global tokens array; index 0 is reserved for no such token id
+
+    //Token ID to index in owner tokens list; 0 is reserved for not in list!
     mapping(uint256 => uint256) internal idToOwnerIndexPlus1;
-    //ID to index in owner tokens list; 0 is reserved for not in list!
-    mapping(address => uint256[]) internal ownerToIds;//owner to list of owned NFT IDs.
+
+    //owner to his NFT IDs
+    mapping(address => uint256[]) internal ownerToIds;
 
     //-------------==H token specifics
-    mapping(uint256 => Asset) internal idToAsset;//NFT ID to token assets
+    mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         string name;// NCCU site No.1(2018)
         string symbol;//NCCU1801... 4 characters + yy for year + ss serial number
@@ -222,14 +198,14 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     uint public tokenId;//first id will be 1
     uint public siteSizeInKW;// 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
-    uint public totalValidToken;//total generated tokens - destroyed tokens
+    uint public totalSupply;//total generated tokens - destroyed tokens
     uint public initialAssetPricing;// 17000
     string public pricingCurrency;// for the initialAssetPricing: NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
 
     uint public currentTime;//201903310000
-    uint public TokenValidTime;
-    uint public TokenUnlockTime = 201901310000;// the time when the token is minted
+    uint public TokenValidTime;//token expiry time 203903310000
+    uint public TokenUnlockTime;//201901310000;
     bool public isLaunched;//
     address public addrRegistry;
 
@@ -239,39 +215,42 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         uint, uint, uint, uint, bool) {
         return (
             tokenId, siteSizeInKW, maxTotalSupply,
-        totalValidToken, initialAssetPricing, pricingCurrency,
+        totalSupply, initialAssetPricing, pricingCurrency,
         IRR20yrx100, currentTime, TokenValidTime, TokenUnlockTime, isLaunched);
     }
 
     //==================Metadata
-    string internal nftName;//descriptive name for a collection of NFTs
-    string internal nftSymbol;//abbreviated name for NFTokens
-    //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
+    /**
+    https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Metadata.sol
 
-    function name() external view returns (string memory _name) {
-        _name = nftName;
-    }
-    function symbol() external view returns (string memory _symbol) {
-        _symbol = nftSymbol;
-    }
+    interface ERC721Metadata {
+        function name() external view returns (string memory _name);//get token name of the contract
+        function symbol() external view returns (string memory _symbol);// get symbol of the contract
+        function tokenURI(uint256 _tokenId) external view returns (string memory);// get token URI of certain tokenId
+    }*/
+
+    string public name;//descriptive name for a collection of NFTs
+    string public symbol;//abbreviated name for NFTokens
+
+    //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
     function tokenURI(uint256 _tokenId) external validNFToken(_tokenId) view returns (string memory) {
         return idToAsset[_tokenId].uri;//idToUri[_tokenId];
     }
-    /*function _setTokenUri(uint256 _tokenId, string _uri) internal validNFToken(_tokenId) onlyOwner {
-        idToAsset[_tokenId].uri = _uri;//idToUri[_tokenId] = _uri;
-    }*/
+
     //==================
-    /*4566010 gas
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "01312038"
-    Deployed in Rinkeby
-    0x1DB86a2B9Ab01024333Bd335B6D67cc30d50324f
+    //4566010 gas
+    /** Contract code size over limit of 24576 bytes.
+    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
+    203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
     constructor(
-        string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
-        uint _initialAssetPricing, string memory _pricingCurrency, uint _IRR20yrx100,
-        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime, address _addrRegistry) public {
-        nftName = _nftName;
-        nftSymbol = _nftSymbol;
+        string memory _name, string memory _symbol, uint _siteSizeInKW, 
+        uint _maxTotalSupply, uint _initialAssetPricing, 
+        string memory _pricingCurrency, uint _IRR20yrx100,
+        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime, 
+        address _addrRegistry) public {
+        name = _name;
+        symbol = _symbol;
         siteSizeInKW = _siteSizeInKW;
         maxTotalSupply = _maxTotalSupply;
         initialAssetPricing = _initialAssetPricing;
@@ -300,12 +279,14 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
     */
     
+    //For TimeServer injecting current time
     event SetCurrentTime(uint _currentTime);
     function setCurrentTime(uint _currentTime) external onlyAdmin ckTime(_currentTime){
-        currentTime = _currentTime;//For TimeServer injecting current time
+        currentTime = _currentTime;
         emit SetCurrentTime(_currentTime);
     }
 
+    //To extend valid time if token operation is paused
     event SetTokenValidTime(uint _validTime);
     function setTokenValidTime(uint _validTime) external onlyAdmin ckTime(_validTime) ckLaunched {
         TokenValidTime = _validTime;
@@ -326,19 +307,19 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
 
     // event SetLegalCompliance(uint _addrLegalCompliance);
     // function setLegalCompliance(uint _addrLegalCompliance) external onlyAdmin ckAddr(_addrLegalCompliance) {
-    //     addrLegalCompliance = _addrLegalCompliance;//For TimeServer injecting current time
+    //     addrLegalCompliance = _addrLegalCompliance;
     //     LegalCompliance legalCompliance = LegalCompliance(_addrLegalCompliance);
     //     emit SetLegalCompliance(_addrLegalCompliance);
     // }
 
-    event SetRegistry(address _addrRegistry);
-    function setRegistry(address _addrRegistry) external onlyAdmin ckAddr(_addrRegistry){
-        addrRegistry = _addrRegistry;//For TimeServer injecting current time
-        emit SetRegistry(_addrRegistry);
-    }
+    // event SetRegistry(address _addrRegistry);
+    // function setRegistry(address _addrRegistry) external onlyAdmin ckAddr(_addrRegistry){
+    //     addrRegistry = _addrRegistry;
+    //     emit SetRegistry(_addrRegistry);
+    // }
 
     modifier ckTime(uint _time) {
-        require(_time > 201901310000, "_time has to be in the format of yyyymmddhhmm");
+        require(_time > 201902150000, "_time has to be in the format of yyyymmddhhmm");
         _;
     }
     modifier ckLaunched() {
@@ -368,15 +349,33 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     function get_idToOwnerIndexPlus1(uint _tokenId) public view returns (uint){
         return idToOwnerIndexPlus1[_tokenId];
     }
+
     //-------------------==Enumerable
-    function totalSupply() external view returns (uint256) {
-        return totalValidToken;//edit
+    /**
+    //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Enumerable.sol
+    interface ERC721Enumerable {
+      * @dev Returns a count of valid NFTs tracked by this contract, where each one of them has an
+      * assigned and queryable owner not equal to the zero address.
+      function totalSupply() external view returns (uint256);
+
+      * @dev Returns the token identifier for the `_index`th NFT. Sort order is not specified.
+      * @param _index A counter less than `totalSupply()`.
+      function tokenByIndex(uint256 _index) external view returns (uint256);
+
+      * @dev Returns the token identifier for the `_index`th NFT assigned to `_owner`. Sort order is
+      * not specified. It throws if `_index` >= `balanceOf(_owner)` or if `_owner` is the zero address,
+      * representing invalid NFTs.
+      * @param _owner An address where we are interested in NFTs owned by them.
+      * @param _index A counter less than `balanceOf(_owner)`.
+      function tokenOfOwnerByIndex(address _owner, uint256 _index) external view
+        returns (uint256);
     }
-    //no array so no token should be found by array index => returning the tokenId(token identifier)
-    function tokenByIndex(uint256 _index) external view returns (uint256) {
-        return _index;
-    }
+     */
+
+    uint public tokenByIndex = 999999999;//no array so no token should be found by array index => returning the tokenId(token identifier)
     //-------------------==End of Enumerable interface
+
+    //-------------------==Helium Cryptic code
     function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory) {
         //maxTokenId = tokenId - 1;
         require(idStart + idCount - 1 <= tokenId, "idStart is too big for idCount");
@@ -387,34 +386,35 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         return addrArray;
     }
 
-    event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
+    event MintSerialNFT(uint tokenId, string name, string symbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, string calldata _uri) external onlyAdmin {
 
         //Legal Compliance
-        require(RegistryContract(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+        require(RegistryContract(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
 
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //tokenId <= maxTotalSupply
-        idToAsset[tokenId] = Asset(nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
+        idToAsset[tokenId] = Asset(name, symbol, pricingCurrency, _uri, initialAssetPricing);
 
         //uint256 length = tokens.push(_tokenId);//Enumerable
         //idToIndex[tokenId] = length;//.sub(1);//Enumerable, starting form 1
 
         _mint(_to, tokenId);
         //_setTokenUri(tokenId, _uri);
-        emit MintSerialNFT(tokenId, nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
-        totalValidToken = totalValidToken.add(1);
+        emit MintSerialNFT(tokenId, name, symbol, pricingCurrency, _uri, initialAssetPricing);
+        totalSupply = totalSupply.add(1);
     }
-    event BurnNFT(address _owner, uint _tokenId, address msgsender);
-    function burnNFT(address _owner, uint256 _tokenId) external onlyAdmin {
-        delete idToAsset[_tokenId];
-        _burn(_owner, _tokenId);
-        totalValidToken = totalValidToken.sub(1);
-        emit BurnNFT(_owner, _tokenId, msg.sender);
-    }
+    // event BurnNFT(address _owner, uint _tokenId, address msgsender);
+    // function burnNFT(address _owner, uint256 _tokenId) external onlyAdmin {
+    //     delete idToAsset[_tokenId];
+    //     _burn(_owner, _tokenId);
+    //     totalSupply = totalSupply.sub(1);
+    //     emit BurnNFT(_owner, _tokenId, msg.sender);
+    // }
 
-    function() external payable { revert("should not send any ether directly"); } //should not send any ether directly
+    //function() external payable { revert("should not send any ether directly"); }
+    //should not send any ether directly
 
 
     //====================Copied code
@@ -609,8 +609,8 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         address from = idToOwner[_tokenId];
 
         //Legal Compliance
-        require(RegistryContract(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
-        require(RegistryContract(addrRegistry).isAddrApproved(from), "from is not in compliance");
+        require(RegistryContract(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
+        require(RegistryContract(addrRegistry).isCtAddrApproved(from), "from is not in compliance");
         //require(Registry(addrRegistry).isUnderCompliance(_to, from, 1), "not under compliance");
 
         clearApproval(_tokenId);

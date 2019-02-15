@@ -33,103 +33,9 @@ $ The URI MAY be mutable (i.e. it changes from time to time).
 
 */
 
-contract Ownable {
-    address public owner;
-    address public chairman;
-    address public director;
-    address public manager;
-    address public admin;
-    uint public ownerVote;
-    uint public chairmanVote;
-    uint public directorVote;
-    uint public managerVote;
-    uint public adminVote;
-    uint public minVotes = 3;
-    uint public maxVotes = 5;
-    constructor() public {
-        owner = msg.sender;
-        chairman = msg.sender;
-        director = msg.sender;
-        manager = msg.sender;
-        admin = msg.sender;
-    }
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only owner can call this function");
-        _;
-    }
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "only admin can call this function");
-        _;
-    }
-    bool public locked;// initialized as false
-    modifier noReentrancy() {
-        require(!locked, "noReentrancy failed");
-        locked = true;
-        _;
-        locked = false;
-    }
-    event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
-
-    function ownerSign() external {
-        require(msg.sender == owner, "restricted to owner");
-        ownerVote = 1;
-    }
-    function chairmanSign() external {
-        require(msg.sender == chairman, "restricted to chairman");
-        chairmanVote = 1;
-    }
-    function directorSign() external {
-        require(msg.sender == director, "restricted to director");
-        directorVote = 1;
-    }
-    function managerSign() external {
-        require(msg.sender == manager, "restricted to manager");
-        managerVote = 1;
-    }
-    function adminSign() external {
-        require(msg.sender == admin, "restricted to admin");
-        adminVote = 1;
-    }
-    modifier isMultiSig(){
-        require(ownerVote + chairmanVote + directorVote + managerVote + adminVote >= minVotes, "isMultiSig failed due to not enough votes");
-        _;
-    }
-    function resetSignStatus() internal {
-        ownerVote = 0;
-        chairmanVote = 0;
-        directorVote = 0;
-        managerVote = 0;
-        adminVote = 0;
-    }
-
-    function setManagement(uint8 managementIdx, address addrNew) external isMultiSig noReentrancy{
-        require(
-            msg.sender == owner || msg.sender == chairman || msg.sender == director || msg.sender == manager || msg.sender == admin, "only management team can access");
-        require(managementIdx > 0 && managementIdx <= maxVotes, "managementIdx is out of range");
-        require(addrNew != address(0), "new address cannot be zero");
-        if (managementIdx == 1) {
-            owner = addrNew;
-            emit SetManagement(owner, addrNew, managementIdx);
-        } else if (managementIdx == 2) {
-            chairman = addrNew;
-            emit SetManagement(chairman, addrNew, managementIdx);
-        } else if (managementIdx == 3) {
-            director = addrNew;
-            emit SetManagement(director, addrNew, managementIdx);
-        } else if (managementIdx == 4) {
-            manager = addrNew;
-            emit SetManagement(manager, addrNew, managementIdx);
-        } else if (managementIdx == 5) {
-            admin = addrNew;
-            emit SetManagement(admin, addrNew, managementIdx);
-
-        } else {require(false, "not valid option");}
-        resetSignStatus();
-    }
-    function getVotes() public view returns(uint,uint,uint,uint,uint){
-        return (ownerVote, chairmanVote, directorVote, managerVote, adminVote);
-    }
-}
+import "./Ownable.sol";
+import "./SafeMath.sol";
+import "./Registry.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
 interface ERC721 {
@@ -277,6 +183,8 @@ interface ERC721Enumerable {
   function tokenOfOwnerByIndex(address _owner, uint256 _index) external view
     returns (uint256);
 }
+
+
 //=> Add our own get_ownerToIds()
 //==================
 contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC721Enumerable {
@@ -320,9 +228,10 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
 
     uint public currentTime;//201903310000
-    uint public TokenValidTime;
-    uint public TokenUnlockTime = 201901310000;// the time when the token is minted
+    uint public TokenValidTime;//token expiry time 203903310000
+    uint public TokenUnlockTime;//201901310000;
     bool public isLaunched;//
+    address public addrRegistry;
 
     function getCtrtDetails() public view returns (
         uint, uint, uint,
@@ -352,15 +261,17 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         idToAsset[_tokenId].uri = _uri;//idToUri[_tokenId] = _uri;
     }*/
     //==================
-    /*4566010 gas
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "01312038"
-    Deployed in Rinkeby
-    0x1DB86a2B9Ab01024333Bd335B6D67cc30d50324f
+    //4566010 gas
+    /**
+    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
+    203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
     constructor(
-        string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
-        uint _initialAssetPricing, string memory _pricingCurrency, uint _IRR20yrx100,
-        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime) public {
+        string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, 
+        uint _maxTotalSupply, uint _initialAssetPricing, 
+        string memory _pricingCurrency, uint _IRR20yrx100,
+        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime, 
+        address _addrRegistry) public {
         nftName = _nftName;
         nftSymbol = _nftSymbol;
         siteSizeInKW = _siteSizeInKW;
@@ -372,6 +283,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         currentTime = _currentTime;
         TokenValidTime = _TokenValidTime;
         TokenUnlockTime = _TokenUnlockTime;
+        addrRegistry = _addrRegistry;
 
         supportedInterfaces[0x80ac58cd] = true;// ERC721
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
@@ -414,12 +326,29 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         emit SetLaunchTime(_launchTime);
     }
 
+    // event SetLegalCompliance(uint _addrLegalCompliance);
+    // function setLegalCompliance(uint _addrLegalCompliance) external onlyAdmin ckAddr(_addrLegalCompliance) {
+    //     addrLegalCompliance = _addrLegalCompliance;//For TimeServer injecting current time
+    //     LegalCompliance legalCompliance = LegalCompliance(_addrLegalCompliance);
+    //     emit SetLegalCompliance(_addrLegalCompliance);
+    // }
+
+    event SetRegistry(address _addrRegistry);
+    function setRegistry(address _addrRegistry) external onlyAdmin ckAddr(_addrRegistry){
+        addrRegistry = _addrRegistry;//For TimeServer injecting current time
+        emit SetRegistry(_addrRegistry);
+    }
+
     modifier ckTime(uint _time) {
         require(_time > 201901310000, "_time has to be in the format of yyyymmddhhmm");
         _;
     }
     modifier ckLaunched() {
         require(!isLaunched, "only allowed before launch time");
+        _;
+    }
+    modifier ckAddr(address addr) {
+        require(addr != address(0), "addr should not be zero");
         _;
     }
 
@@ -462,6 +391,10 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, string calldata _uri) external onlyAdmin {
+
+        //Legal Compliance
+        require(RegistryContract(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //tokenId <= maxTotalSupply
@@ -676,10 +609,15 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     * $param _tokenId The NFT that is being transferred.   */
     function _transfer(address _to, uint256 _tokenId) private {
         address from = idToOwner[_tokenId];
+
+        //Legal Compliance
+        require(RegistryContract(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+        require(RegistryContract(addrRegistry).isAddrApproved(from), "from is not in compliance");
+        //require(Registry(addrRegistry).isUnderCompliance(_to, from, 1), "not under compliance");
+
         clearApproval(_tokenId);
         removeNFToken(from, _tokenId, 1);
         addNFToken(_to, _tokenId);
-
         emit Transfer(from, _to, _tokenId);
     }
 
@@ -778,38 +716,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
 }
 
 
-//==================
-/*https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/NFTokenMetadata.sol
-contract SPLC is NFToken, ERC721Metadata {
-}*/
-
-library SafeMath {
-    function mul(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        if (_a == 0) {
-            return 0;
-        }
-        uint256 c = _a * _b;
-        require(c / _a == _b, "safeMath mul failed");
-        return c;
-    }
-    function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        uint256 c = _a / _b;
-        // require(b > 0); // Solidity automatically throws when dividing by 0
-        // require(a == b * c + a % b); // There is no case in which this doesn't hold
-        return c;
-    }
-    function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        require(_b <= _a, "safeMath sub failed");
-        return _a - _b;
-    }
-    function add(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        uint256 c = _a + _b;
-        require(c >= _a, "safeMath add failed");
-        return c;
-    }
-}
-
-
+//--------------------==
 library AddressUtils {
     function isContract(address _addr) internal view returns (bool) {
         uint256 size;
