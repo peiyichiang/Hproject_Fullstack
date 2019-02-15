@@ -16,6 +16,15 @@ function getCrowdfundingContractAddress(cb) {
     })
 }
 
+function getRentContractAddress(cb) {
+    pool.query('SELECT sc_rentContractaddress FROM smart_contracts', function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        cb(rows);
+    })
+}
+
 function getOrderDate(cb) {
     pool.query('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
         if (err) {
@@ -26,5 +35,6 @@ function getOrderDate(cb) {
 }
 module.exports = {
     getCrowdfundingContractAddress,
-    getOrderDate
+    getRentContractAddress,
+    getOrderDate,
 }

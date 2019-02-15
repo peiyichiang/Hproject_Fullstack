@@ -12,9 +12,17 @@ function createServer() {
 
         c.on("data", (data) => {
             // 接收時間後的動作
-            /*let addr = "";
-            contract.sendTimeToRentContract(addr, data.toString());
-            */
+            mysql.getRentContractAddress(function (result) {
+                if (result.length == 0) {
+                    console.log('nothing')
+                }
+                else {
+                    for (let i in result) {
+                        console.log(result[i].sc_rentContractaddress, data.toString());
+                        contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
+                    }
+                }
+            })
         });
 
         c.on("end", () => {

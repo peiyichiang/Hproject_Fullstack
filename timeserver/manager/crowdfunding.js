@@ -20,7 +20,7 @@ function createServer() {
                 else {
                     for (let i in result) {
                         console.log(result[i].sc_crowdsaleaddress, data.toString());
-                        //contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString());
+                        contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString());
                     }
                 }
             })
