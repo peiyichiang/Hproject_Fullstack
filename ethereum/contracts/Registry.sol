@@ -161,8 +161,8 @@ contract RegistryContract is Ownable {
     }
 
     /**@dev check if asset contract address is approved, by finding its uid then checking it */
-    function isAddrApproved(address assetCtAddr) public view 
-      ckAssetCtAddr(assetCtAddr) returns (bool) {
+    function isCtAddrApproved(address assetCtAddr) external view returns (bool) {
+        require(assetCtAddr != address(0), "assetCtAddr should not be zero");
         string memory uid = assetCtAddrToUid[assetCtAddr];
         return isUserApproved(uid);
     }
@@ -171,7 +171,7 @@ contract RegistryContract is Ownable {
     /**@dev check token transfer in compliance by using isApproved() */
     // function isUnderCompliance(address to, address from, uint amount) external view 
     //   ckAddr(to) ckAddr(from) returns (bool) {
-    //     return (isAddrApproved(to) && isAddrApproved(from) && amountLegalMin <= amount && amount <= amountLegalMax);
+    //     return (isCtAddrApproved(to) && isCtAddrApproved(from) && amountLegalMin <= amount && amount <= amountLegalMax);
     // }
     
 /**@dev 尚未支援回傳string[] */

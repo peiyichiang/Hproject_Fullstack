@@ -228,8 +228,8 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
 
     uint public currentTime;//201903310000
-    uint public TokenValidTime;
-    uint public TokenUnlockTime = 201901310000;// the time when the token is minted
+    uint public TokenValidTime;//token expiry time 203903310000
+    uint public TokenUnlockTime;//201901310000;
     bool public isLaunched;//
     address public addrRegistry;
 
@@ -261,15 +261,17 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface, ERC721Metadata, ERC7
         idToAsset[_tokenId].uri = _uri;//idToUri[_tokenId] = _uri;
     }*/
     //==================
-    /*4566010 gas
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "01312038"
-    Deployed in Rinkeby
-    0x1DB86a2B9Ab01024333Bd335B6D67cc30d50324f
+    //4566010 gas
+    /**
+    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
+    203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
     constructor(
-        string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, uint _maxTotalSupply, 
-        uint _initialAssetPricing, string memory _pricingCurrency, uint _IRR20yrx100,
-        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime, address _addrRegistry) public {
+        string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, 
+        uint _maxTotalSupply, uint _initialAssetPricing, 
+        string memory _pricingCurrency, uint _IRR20yrx100,
+        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime, 
+        address _addrRegistry) public {
         nftName = _nftName;
         nftSymbol = _nftSymbol;
         siteSizeInKW = _siteSizeInKW;

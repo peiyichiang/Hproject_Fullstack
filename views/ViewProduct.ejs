@@ -33,21 +33,28 @@
             <th class="nowrap">Token代號</th>
             <th class="nowrap">產品名稱</th>
             <th class="nowrap">產品所在地</th>
-            <th class="nowrap">單片售價</th>
+            <th class="nowrap">產品定價</th>
+            <th class="nowrap">幣別</th>
             <th class="nowrap">專案年期</th>
-            <th class="nowrap">貨幣種類</th>
-            <th class="nowrap">投報率</th>
-            <th class="nowrap">發行日</th>
-            <th class="nowrap">到期日</th>
-            <th class="nowrap">案場規模</th>
-            <th class="nowrap">總發行量</th>
+            <th class="nowrap">投報率</th>                
+            <!--  -->
+            <th class="nowrap">專案開始日期</th>
+            <th class="nowrap">FMA審核通過的日期</th>
+            <th class="nowrap">PA審核通過的日期</th>
+            <th class="nowrap">開始購買/眾籌日期</th>
+            <th class="nowrap">結束購買/眾籌日期</th>
+            <!--  -->
+            <th class="nowrap">Token發行日</th>
+            <th class="nowrap">Token到期日</th>
+            <th class="nowrap">案場規模(kw)</th>
+            <th class="nowrap">總發行量(token)</th>
             <th class="nowrap">發行專案的產品經理</th>
             <th class="nowrap">該專案處理狀態</th>
             <th class="nowrap">預估平均年收益</th>
             <th class="nowrap">預估回收金額</th>
-            <th class="nowrap">租金支付週期</th>
+            <th class="nowrap">租金支付週期每幾個月</th>
             <th class="nowrap">預估回收年限</th>
-            <th class="nowrap">預估進度圖</th>
+            <!-- <th class="nowrap">預估進度圖</th> -->
             <th class="nowrap">產品文件</th>
             <th class="nowrap">產品icon</th>
         </tr>
@@ -66,15 +73,31 @@
                     <%= data[i].p_pricing  %>
                 </td>
                 <td>
-                    <%= data[i].p_duration  %>
-                </td>
-                <td>
                     <%= data[i].p_currency  %>
                 </td>
                 <td>
-                    <%= data[i].p_irr  %>
+                    <%= data[i].p_duration  %>
                 </td>
-
+                <td>
+                    <%= data[i].p_irr  %>
+                </td>                    
+                <!--  -->
+                <td>
+                    <%= data[i].p_PSD  %>
+                </td>
+                <td>
+                    <%= data[i].p_FMXAdate  %>
+                </td>
+                <td>
+                    <%= data[i].p_PAdate  %>
+                </td>
+                <td>
+                    <%= data[i].p_CFSD  %>
+                </td>
+                <td>
+                    <%= data[i].p_CFED  %>
+                </td>
+                <!--  -->
                 <td>
                     <%= data[i].p_releasedate  %>
                 </td>
@@ -105,9 +128,9 @@
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                         <a target="_blank" href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
