@@ -17,10 +17,12 @@ function createServer() {
                     console.log('nothing')
                 }
                 else {
+		    console.log("現在時間", data.toString());
                     for (let i in result) {
-                        //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
-                        console.log(result[i].o_purchaseDate)
-                        console.log(result[i].o_purchaseDate.add3Day())
+                        if(typeof result[i].o_purchaseDate !== 'undefined') {
+			    //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
+			    console.log("繳費期限", result[i].o_purchaseDate.add3Day())
+			}
                     }
                 }
             })
@@ -76,12 +78,12 @@ function createServer() {
     });
 }
 
-Object.prototype.add3Day = function () {
-    let year = this.toString().slice(0, 4);
-    let month = this.toString().slice(4, 6);
-    let day = this.toString().slice(6, 8);
-    let hour = this.toString().slice(8, 10);
-    let minute = this.toString().slice(10, 12);
+Number.prototype.add3Day = function () {
+    let year = parseInt(this.toString().slice(0, 4));
+    let month = parseInt(this.toString().slice(4, 6));
+    let day = parseInt(this.toString().slice(6, 8));
+    let hour = parseInt(this.toString().slice(8, 10));
+    let minute = parseInt(this.toString().slice(10, 12));
     return new Date(year, month - 1, day + 3, hour, minute).myFormat();
 }
 

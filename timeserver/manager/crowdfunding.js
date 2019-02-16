@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const mysql = require('../lib/mysql.js');
-const contract = require('../lib/contractAPI.js');
+//const contract = require('../lib/contractAPI.js');
 
 createServer()
 
