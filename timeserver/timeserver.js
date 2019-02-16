@@ -11,10 +11,6 @@ schedule.scheduleJob('0 * * * * *', function () {
     sendTime(date)
 });
 
-Date.prototype.myFormat = function () {
-    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g,'-').replace(/(\.(.*)Z)/g,'').split('-').join('').slice(0,12);
-};
-
 function sendTime(date) {
 
     if (os.platform() == 'win32') {
@@ -33,3 +29,7 @@ function sendTime(date) {
     client.write(date)
     client.end();
 }
+
+Date.prototype.myFormat = function () {
+    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g,'-').replace(/(\.(.*)Z)/g,'').split('-').join('').slice(0,12);
+};

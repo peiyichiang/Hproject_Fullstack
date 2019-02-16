@@ -3,7 +3,8 @@ const net = require("net");
 const path = require('path');
 const fs = require('fs');
 
-//const contract = require('../lib/contractAPI.js')
+const mysql = require('../lib/mysql.js');
+const contract = require('../lib/contractAPI.js');
 
 createServer()
 
@@ -18,7 +19,7 @@ function createServer() {
                 }
                 else {
                     for (let i in result) {
-                        console.log(result[i].sc_rentContractaddress, data.toString());
+                        //console.log(result[i].sc_rentContractaddress, data.toString());
                         contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
                     }
                 }

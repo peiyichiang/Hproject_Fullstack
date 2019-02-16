@@ -1,9 +1,8 @@
 const os = require('os');
-
 const net = require("net");
 const path = require('path');
-
 const fs = require('fs');
+
 const mysql = require('../lib/mysql.js');
 
 createServer()
@@ -12,13 +11,15 @@ function createServer() {
     const server = net.createServer(c => {
 
         c.on("data", (data) => {
+            // 接收時間後的動作
             mysql.getOrderDate(function (result) {
                 if (result.length == 0) {
                     console.log('nothing')
                 }
                 else {
                     for (let i in result) {
-                        console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
+                        //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
+                        console.log(result[i].o_purchaseDate)
                         console.log(result[i].o_purchaseDate.add3Day())
                     }
                 }
@@ -75,7 +76,15 @@ function createServer() {
     });
 }
 
-Object.prototype.add3Day = function(){
-    let date = this
-    return date;
+Object.prototype.add3Day = function () {
+    let year = this.toString().slice(0, 4);
+    let month = this.toString().slice(4, 6);
+    let day = this.toString().slice(6, 8);
+    let hour = this.toString().slice(8, 10);
+    let minute = this.toString().slice(10, 12);
+    return new Date(year, month - 1, day + 3, hour, minute).myFormat();
 }
+
+Date.prototype.myFormat = function () {
+    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g,'-').replace(/(\.(.*)Z)/g,'').split('-').join('').slice(0,12);
+};
