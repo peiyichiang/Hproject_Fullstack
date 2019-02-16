@@ -17,12 +17,12 @@ function createServer() {
                     console.log('nothing')
                 }
                 else {
-		    console.log("現在時間", data.toString());
+                    console.log("現在時間", data.toString());
                     for (let i in result) {
-                        if(typeof result[i].o_purchaseDate !== 'undefined') {
-			    //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
-			    console.log("繳費期限", result[i].o_purchaseDate.add3Day())
-			}
+                        if (typeof result[i].o_purchaseDate !== 'undefined') {
+                            //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
+                            console.log("繳費期限", result[i].o_purchaseDate.add3Day())
+                        }
                     }
                 }
             })
@@ -88,5 +88,5 @@ Number.prototype.add3Day = function () {
 }
 
 Date.prototype.myFormat = function () {
-    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g,'-').replace(/(\.(.*)Z)/g,'').split('-').join('').slice(0,12);
+    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };

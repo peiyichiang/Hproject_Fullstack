@@ -36,21 +36,21 @@ function createServer() {
     server.on('error', function (e) {
         if (e.code == 'EADDRINUSE') {
             var clientSocket = new net.Socket();
-            clientSocket.on('error', function(e) {
+            clientSocket.on('error', function (e) {
                 if (e.code == 'ECONNREFUSED') {
                     fs.unlinkSync('./rent.ipc');
-                    server.listen('./rent.ipc', function() {
+                    server.listen('./rent.ipc', function () {
                         console.log('server recovered');
                     });
                 }
             });
-            clientSocket.connect({path: './rent.ipc'}, function() { 
+            clientSocket.connect({ path: './rent.ipc' }, function () {
                 console.log('Server running, giving up...');
                 process.exit();
             });
         }
     });
-    
+
     if (os.platform() == 'win32') {
         server.listen(path.join('\\\\?\\pipe', process.cwd(), 'rent'), () => {
             console.log("server bound");
