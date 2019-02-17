@@ -1,7 +1,7 @@
 pragma solidity ^0.5.3;
 
-import "./Asset.sol";
-//import "browser/asset.sol";
+//import "./Asset.sol";
+import "browser/asset.sol";
 
 
 contract Platform{
@@ -46,7 +46,8 @@ contract Platform{
 
     //新增admin
     function addPlatformAdmin(address _adminAddr, string memory _id, uint _time) public isOwner(){
-
+        require(platforms[_id].platformAdminAddr != _adminAddr, "此管理員已存在");
+        
         platforms[_id].platformAdminId = _id;
         platforms[_id].platformAdminAddr = _adminAddr;
         platformsIndex.push(_id);

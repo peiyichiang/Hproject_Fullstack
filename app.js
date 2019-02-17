@@ -21,6 +21,8 @@ var orderRouter = require('./routes/Order');
 var paymentGWRouter = require('./routes/paymentGW');
 var registryContractAPIRouter = require('./routes/registryContractAPI');
 var assetContractAPIRouter = require('./routes/assetContractAPI');
+var platformContractAPIRouter = require('./routes/platformContractAPI');
+
 
 
 // var usersRouter = require('./routes/users');
@@ -143,6 +145,8 @@ app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
 app.use('/registryContractAPI', registryContractAPIRouter);
 app.use('/assetContractAPI', assetContractAPIRouter);
+app.use('/platformContractAPI', platformContractAPIRouter);
+
 
 // app.use('/users', usersRouter);
 

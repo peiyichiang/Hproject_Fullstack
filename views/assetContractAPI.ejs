@@ -72,12 +72,12 @@
     }
 
     //let assetContract = "0x8D5A91BA7e07419F610D3a6793D8582Bb11F6fFa";
-    let assetContract = "0x4AfC23A23139890F5e5881F990703d21B02Bb5C6";
+    let assetContract = "0xC263876E5e750982D6c6869E16b32b3734A3aF94";
 
 
     $('#deploy').on('click', function () {
         assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-        platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        platform = "0x0923A1F643C6C88b967538D2ae2eE53546479a51";
         log("deploying");
 
         $.post('/assetContractAPI/POST/deploy', {
@@ -91,7 +91,7 @@
     })
 
     $('#load').on('click', function () {
-        assetContract = "0x8D5A91BA7e07419F610D3a6793D8582Bb11F6fFa";
+        assetContract = "0xC263876E5e750982D6c6869E16b32b3734A3aF94";
         log(assetContract);
     })
 
@@ -189,7 +189,7 @@
         address = assetContract;
         let oldEndorser = "0x4AfC23A23139890F5e5881F990703d21B02Bb5C6";
         let newEndorser = "0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C";
-        /* TODO (oldEndorser)*/
+
         $.post('/assetContractAPI/POST/changeEndorsers', {
             address: address,
             newEndorser: newEndorser,
@@ -203,7 +203,7 @@
     $('#addEndorser').on('click', function () {
         address = assetContract;
         let newEndorser = "0x4AfC23A23139890F5e5881F990703d21B02Bb5C6";
-        /* TODO (oldEndorser)*/
+
         $.post('/assetContractAPI/POST/addEndorser', {
             address: address,
             newEndorser: newEndorser,
