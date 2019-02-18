@@ -1,8 +1,7 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
 
-//import "browser/ERC721_SPLC6.sol";
-import "./ERC721_SPLC6.sol";
+import "./ERC721_SPLC.sol";
 
 contract multiSig {
     address internal assetsOwner; /** @dev 用戶 address */

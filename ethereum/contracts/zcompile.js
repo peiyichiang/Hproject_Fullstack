@@ -18,8 +18,8 @@ fs.ensureDirSync(buildPath);//if the build folder does not exist, make it existi
 //   }
 // });
 
-console.log('check1');
-const fileList = ['Campaign', 'Crowdfunding', 'SafeMath', 'Ownable', 'Registry', 'ERC721_SPLC6', 'Asset'];
+console.log('check1: Set which Solidity files to compile...');
+const fileList = ['Campaign', 'CrowdFunding', 'SafeMath', 'Ownable', 'Registry', 'ERC721_SPLC', 'Asset', 'IncomeManagement'];
 
 for (let idx in fileList) {
   const solFileName = fileList[idx];
@@ -84,13 +84,13 @@ for (let idx in fileList) {
     
     const abi = ctrt.abi;// Note: This is now called 'abi' and not 'interface'
     if (abi === undefined || abi === '') {
-      console.log('\n[Error] abi is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix');
+      console.log('[Error] abi is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix <======================================');
     } else {console.log('[Good] '+ctrtName+' abi is found');}
     //console.log('abi', abi);
     
     const bytecode = ctrt.evm.bytecode.object;
     if (bytecode === undefined || bytecode === '') {
-      console.log('\n[Error] bytecode is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix');
+      console.log('[Error] bytecode is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix <======================================');
     } else {console.log('[Good] '+ctrtName+' bytecode is found');}
     
     console.log('writing to abi and bytecode files');

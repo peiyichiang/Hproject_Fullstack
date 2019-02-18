@@ -42,8 +42,8 @@ contract NFTokenSPLC {
 
 */
 import "./Ownable.sol";
-import "./Crowdsale.sol";
-import "./ERC721_SPLC5.sol";
+import "./CrowdFunding.sol";
+import "./ERC721_SPLC.sol";
 
 contract ERC721_SPLC_Manager is Ownable {
     using SafeMath for uint256;

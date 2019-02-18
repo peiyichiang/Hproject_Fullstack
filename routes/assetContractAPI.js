@@ -14,8 +14,8 @@ var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
 var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-/*asset contract address*/
-const contract = require('../ethereum/contracts/Asset.json');
+/*registry contract address*/
+const contract = require('../ethereum/contracts/build/AssetContract.json');
 
 
 

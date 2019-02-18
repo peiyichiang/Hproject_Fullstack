@@ -109,31 +109,34 @@ var storage = multer.diskStorage({
 //生成的專門處理上傳的一個工具，可以傳入storage、limits等配置
 var upload = multer({ storage: storage });
 //接收上傳圖片請求的接口
-var cpUpload = upload.fields([{ name: 'file', maxCount: 1 }, { name: 'icon', maxCount: 1 }])
+var cpUpload = upload.fields([{ name: 'file', maxCount: 1 }, { name: 'icon', maxCount: 1 }, { name: 'image1', maxCount: 1 }, { name: 'image2', maxCount: 1 }, { name: 'image3', maxCount: 1 }, { name: 'image4', maxCount: 1 }, { name: 'image5', maxCount: 1 }, { name: 'image6', maxCount: 1 }, { name: 'image7', maxCount: 1 }, { name: 'image8', maxCount: 1 }, { name: 'image9', maxCount: 1 }, { name: 'image10', maxCount: 1 }])
 app.post('/upload', cpUpload, function (req, res, next) {
     console.log(req.files);
+    res.json({
+        filePath: req.files
+    })
     // 兩種文件有沒有上傳的三種情況
-    if (typeof (req.files['file']) != 'undefined' && typeof (req.files['icon']) != 'undefined') {
-        res.json({
-            filePath: req.files['file'][0].path,
-            iconPath: req.files['icon'][0].path
-        })
-    } else if (typeof (req.files['file']) == 'undefined' && typeof (req.files['icon']) != 'undefined') {
-        res.json({
-            filePath: "",
-            iconPath: req.files['icon'][0].path
-        })
-    } else if (typeof (req.files['file']) != 'undefined' && typeof (req.files['icon']) == 'undefined') {
-        res.json({
-            filePath: req.files['file'][0].path,
-            iconPath: ""
-        })
-    } else if (typeof (req.files['file']) == 'undefined' && typeof (req.files['icon']) == 'undefined') {
-        res.json({
-            filePath: "",
-            iconPath: ""
-        })
-    }
+    // if (typeof (req.files['file']) != 'undefined' && typeof (req.files['icon']) != 'undefined') {
+    //     res.json({
+    //         filePath: req.files['file'][0].path,
+    //         iconPath: req.files['icon'][0].path
+    //     })
+    // } else if (typeof (req.files['file']) == 'undefined' && typeof (req.files['icon']) != 'undefined') {
+    //     res.json({
+    //         filePath: "",
+    //         iconPath: req.files['icon'][0].path
+    //     })
+    // } else if (typeof (req.files['file']) != 'undefined' && typeof (req.files['icon']) == 'undefined') {
+    //     res.json({
+    //         filePath: req.files['file'][0].path,
+    //         iconPath: ""
+    //     })
+    // } else if (typeof (req.files['file']) == 'undefined' && typeof (req.files['icon']) == 'undefined') {
+    //     res.json({
+    //         filePath: "",
+    //         iconPath: ""
+    //     })
+    // }
 
 });
 
