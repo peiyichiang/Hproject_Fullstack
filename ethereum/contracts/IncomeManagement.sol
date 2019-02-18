@@ -2,7 +2,7 @@ pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
 import "./Ownable.sol";
 
-contract Htoken {
+contract ERC721SPLC {
     function getTokenOwners(uint idStart, uint idCount) external returns(address[] memory) {}
 }
 

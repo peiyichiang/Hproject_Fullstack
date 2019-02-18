@@ -1,9 +1,9 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
 
-import "./ERC721_SPLC.sol";
+import "./ERC721SPLC.sol";
 
-contract multiSig {
+contract MultiSig {
     address internal assetsOwner; /** @dev 用戶 address */
     address internal platformContractAddr; /** @dev 平台方 platformContractAddr */
     address[] internal endorsersContractAddr; /** @dev 背書者的 assetContractAddr (一到三個人) */
@@ -126,7 +126,7 @@ contract multiSig {
 }
 
 
-contract AssetContract is multiSig{
+contract AssetContract is MultiSig {
 
     /** @dev asset資料結構 */
     struct Asset{
@@ -159,7 +159,7 @@ contract AssetContract is multiSig{
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
     function addAsset(address _tokenAddr, uint256 _time) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
+        ERC721SPLC _erc721 = ERC721SPLC(address(uint160(_tokenAddr)));
 
         assets[_tokenAddr].tokenAddr = _tokenAddr;
         assets[_tokenAddr].tokenSymbol = _erc721.symbol();
@@ -172,7 +172,7 @@ contract AssetContract is multiSig{
 
     /** @dev 提領token */
     function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _time) public isAssetsOwner {
-        NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
+        ERC721SPLC _erc721 = ERC721SPLC(address(uint160(_tokenAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
         uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);
@@ -185,7 +185,7 @@ contract AssetContract is multiSig{
 
     /** @dev get tokenAmount */
     function getAsset(address _tokenAddr) public view returns (uint, uint[] memory){
-        NFTokenSPLC _erc721 = NFTokenSPLC(address(uint160(_tokenAddr)));
+        ERC721SPLC _erc721 = ERC721SPLC(address(uint160(_tokenAddr)));
 
         return (assets[_tokenAddr].tokenAmount, _erc721.get_ownerToIds(address(this)));
     }

@@ -4,7 +4,7 @@ $ yarn run test
 */
 const assert = require('assert');
 const ganache = require('ganache-cli');
-const options = { gasLimit: 12000000 };
+const options = { gasLimit: 9000000 };
 /**https://github.com/trufflesuite/ganache-cli#using-ganache-cli
  -g or --gasPrice: The price of gas in wei (defaults to 20000000000)
  -l or --gasLimit: The block gas limit (defaults to 0x6691b7)
@@ -26,12 +26,66 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 
 //--------------------==
 console.log('Load contract json file compiled from sol file');
-const NFTokenSPLC = require('../ethereum/contracts/build/NFTokenSPLC.json');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
-if (NFTokenSPLC === undefined){console.log('[Error] NFTokenSPLC is NOT defined');
-} else {console.log('[Good] NFTokenSPLC is defined');
-    //console.log(NFTokenSPLC);
+const Registry = require('../ethereum/contracts/build/Registry.json');
+if (Registry === undefined){
+  console.log('[Error] Registry is NOT defined');
+} else {
+  console.log('[Good] Registry is defined');
+  if (Registry.abi === undefined){
+    console.log('[Error] Registry.abi is NOT defined');
+  } else {
+    console.log('[Good] Registry.abi is defined');
+      //console.log('Registry.abi:', Registry.abi);
+  }
+  if (Registry.bytecode === undefined || Registry.bytecode.length < 10){
+    console.log('[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Registry.bytecode is defined');
+      //console.log('Registry.bytecode:', Registry.bytecode);
+  }
+  //console.log(Registry);
+}
+
+const ERC721SPLC_Controller = require('../ethereum/contracts/build/ERC721SPLC_Controller.json');
+if (ERC721SPLC_Controller === undefined){
+  console.log('[Error] ERC721SPLC_Controller is NOT defined');
+} else {
+  console.log('[Good] ERC721SPLC_Controller is defined');
+  if (ERC721SPLC_Controller.abi === undefined){
+    console.log('[Error] ERC721SPLC_Controller.abi is NOT defined');
+  } else {
+    console.log('[Good] ERC721SPLC_Controller.abi is defined');
+      //console.log('ERC721SPLC_Controller.abi:', ERC721SPLC_Controller.abi);
+  }
+  if (ERC721SPLC_Controller.bytecode === undefined || ERC721SPLC_Controller.bytecode.length < 10){
+    console.log('[Error] ERC721SPLC_Controller.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] ERC721SPLC_Controller.bytecode is defined');
+      //console.log('ERC721SPLC_Controller.bytecode:', ERC721SPLC_Controller.bytecode);
+  }
+  //console.log(ERC721SPLC_Controller);
+}
+
+const ERC721SPLC = require('../ethereum/contracts/build/ERC721SPLC.json');
+if (ERC721SPLC === undefined){
+  console.log('[Error] ERC721SPLC is NOT defined');
+} else {
+  console.log('[Good] ERC721SPLC is defined');
+  if (ERC721SPLC.abi === undefined){
+    console.log('[Error] ERC721SPLC.abi is NOT defined');
+  } else {
+    console.log('[Good] ERC721SPLC.abi is defined');
+      //console.log('ERC721SPLC.abi:', ERC721SPLC.abi);
+  }
+  if (ERC721SPLC.bytecode === undefined || ERC721SPLC.bytecode.length < 10){
+    console.log('[Error] ERC721SPLC.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] ERC721SPLC.bytecode is defined');
+      //console.log('ERC721SPLC.bytecode:', ERC721SPLC.bytecode);
+  }
+  //console.log(ERC721SPLC);
 }
 
 //Mocha starts > BeforeEach: Deploy a new contract
@@ -40,7 +94,10 @@ if (NFTokenSPLC === undefined){console.log('[Error] NFTokenSPLC is NOT defined')
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
 let accounts;
-let instNFTokenSPLC; let addrNFTokenSPLC;
+let instRegistry; let addrRegistry;
+let instERC721SPLC_Controller; let addrERC721SPLC_Controller;
+let instERC721SPLC; let addrERC721SPLC;
+
 let acc0; let acc1; let acc2; let acc4;
 let balance0; let balance1; let balance2;
 let balance1A; let balance2A;
@@ -65,9 +122,36 @@ beforeEach( async () => {
         console.log('acc2',  acc2, balance2);
     }
 
-    // console.log('\nacc0, from addr, owner, or accounts[0]');
+    console.log('\n', acc0, ' = acc0');
     // console.log('acc1, to addr, or accounts[1]');
     // console.log('acc2, accounts[2]');
+
+    console.log('Deploying contracts...');
+
+    //check if json file is too small like 500B
+    instRegistry =  await new web3.eth.Contract(JSON.parse(Registry.abi))
+    .deploy({ data: Registry.bytecode })
+    .send({ from: acc0, gas: '7000000', gasPrice: '1000000000' })
+    .then(console.log);
+    console.log('Registry.sol has been deployed');
+    if (instRegistry === undefined){
+      console.log('[Error] instRegistry is NOT defined');
+      } else {console.log('[Good] instRegistry is defined');}
+    instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+
+    
+    //Deploying ERC721SPLC_Controller contract...
+    const argsERC721SPLC_Controller = [
+      _currentTime, _TokenLaunchTime, _TokenUnlockTime, _TokenValidTime ]
+    instERC721SPLC_Controller = await new web3.eth.Contract(ERC721SPLC_Controller.abi)
+    .deploy({ data: ERC721SPLC_Controller.bytecode, arguments: argsERC721SPLC_Controller })
+    .send({ from: acc0, gas: '7000000', gasPrice: '1000000000' });
+    console.log('ERC721SPLC_Controller.sol has been deployed');
+    if (instERC721SPLC_Controller === undefined){
+      console.log('[Error] instERC721SPLC_Controller is NOT defined');
+      } else {console.log('[Good] instERC721SPLC_Controller is defined');}
+    instERC721SPLC_Controller.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+  
 
     //"NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "01312038"
     const _nftName = "NCCU site No.1(2018)";
@@ -79,37 +163,24 @@ beforeEach( async () => {
     const _TokenValidTime = 203903310000;
     const _TokenUnlockTime = 201901310000; 
     const _addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
+    const _addrERC721SPLC_Controller = "0x39523jt032";
     /**
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
 
-    if (NFTokenSPLC.abi === undefined){
-      console.log('[Error] NFTokenSPLC.abi is NOT defined');
-    } else {
-      console.log('[Good] NFTokenSPLC.abi is defined; NFTokenSPLC.abi:');
-        //console.log(NFTokenSPLC.abi);
-    }
-    if (NFTokenSPLC.bytecode === undefined){
-      console.log('[Error] NFTokenSPLC.bytecode is NOT defined');
-    } else {
-      console.log('[Good] NFTokenSPLC.bytecode is defined; NFTokenSPLC.bytecode:');
-        //console.log(NFTokenSPLC.bytecode);
-    }
 
     //https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
     const args = [
         _nftName, _nftSymbol, _siteSizeInKW, _maxTotalSupply, 
         _initialAssetPricing, _pricingCurrency, _IRR20yrx100,
-        _currentTime, _TokenValidTime, _TokenUnlockTime, 
-        _addrRegistry
-    ]
-    instNFTokenSPLC = await new web3.eth.Contract(NFTokenSPLC.abi)
-      .deploy({ data: NFTokenSPLC.bytecode, arguments: args
+        _addrRegistry, _addrERC721SPLC_Controller ]
+    instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
+      .deploy({ data: ERC721SPLC.bytecode, arguments: args
     })
-    .send({ from: acc0, gas: '11000000', gasPrice: '1000000000' });
+    .send({ from: acc0, gas: '9000000', gasPrice: '1000000000' });
     /**
-    instNFTokenSPLC = await new web3.eth.Contract(JSON.parse(NFTokenSPLC.interface))
+    instERC721SPLC = await new web3.eth.Contract(JSON.parse(ERC721SPLC.interface))
         string memory _nftName, string memory _nftSymbol, uint _siteSizeInKW, 
         uint _maxTotalSupply, uint _initialAssetPricing, 
         string memory _pricingCurrency, uint _IRR20yrx100,
@@ -121,43 +192,43 @@ beforeEach( async () => {
     value: web3.utils.toWei('10','ether')
      */
     //5940682 gas
-  if (instNFTokenSPLC === undefined){
-    console.log('[Error] instNFTokenSPLC is NOT defined');
-    } else {console.log('[Good] instNFTokenSPLC is defined');}
-  instNFTokenSPLC.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+  if (instERC721SPLC === undefined){
+    console.log('[Error] instERC721SPLC is NOT defined');
+    } else {console.log('[Good] instERC721SPLC is defined');}
+  instERC721SPLC.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
 
 });
 
-describe('NFTokenSPLC_Functional_Test', () => {
-  it('check NFTokenSPLC deployment test', async () => {
-    assert.ok(instNFTokenSPLC.options.address);
+describe('ERC721SPLC_Functional_Test', () => {
+  it('check ERC721SPLC deployment test', async () => {
+    assert.ok(instERC721SPLC.options.address);
     //test if the instanceCtrt has a property options, which has a property of address
     //test if such value exists or is not undefined
-    addrNFTokenSPLC = instNFTokenSPLC.options.address;
-    console.log('addrNFTokenSPLC', addrNFTokenSPLC);
+    addrERC721SPLC = instERC721SPLC.options.address;
+    console.log('addrERC721SPLC', addrERC721SPLC);
 
     //console.log(instanceCtrt);
     //console.log(accounts);
   });
 
 
-  it('ERC721_SPLC_H_Token read functions test', async () => {
-    addrNFTokenSPLC = instNFTokenSPLC.options.address;//!!!!!!!!! different EVERY it()!!!
-    console.log('addrNFTokenSPLC', addrNFTokenSPLC);
+  it('ERC721SPLC_H_Token read functions test', async () => {
+    addrERC721SPLC = instERC721SPLC.options.address;//!!!!!!!!! different EVERY it()!!!
+    console.log('addrERC721SPLC', addrERC721SPLC);
 
     let givenAssetName = "NCCU site No.1(2018)";
     let givenAssetSymbol = "NCCU1801";
 
-    // await instNFTokenSPLC.methods.set_admin(acc1, acc0).send({
+    // await instERC721SPLC.methods.set_admin(acc1, acc0).send({
     //   value: '0', from: acc0, gas: '1000000'
     // });//set_tokenDump(address _tokenDump, address vendor)
 
-    let owner = await instNFTokenSPLC.methods.owner().call();
-    let ownerNew = await instNFTokenSPLC.methods.ownerNew().call();
-    let manager = await instNFTokenSPLC.methods.manager().call();
-    let admin = await instNFTokenSPLC.methods.admin().call();
-    let chairman = await instNFTokenSPLC.methods.chairman().call();
-    let director = await instNFTokenSPLC.methods.director().call();
+    let owner = await instERC721SPLC.methods.owner().call();
+    let ownerNew = await instERC721SPLC.methods.ownerNew().call();
+    let manager = await instERC721SPLC.methods.manager().call();
+    let admin = await instERC721SPLC.methods.admin().call();
+    let chairman = await instERC721SPLC.methods.chairman().call();
+    let director = await instERC721SPLC.methods.director().call();
     assert.equal(owner, acc0);
     assert.equal(ownerNew, addr0);
     assert.equal(manager, acc0);
@@ -165,18 +236,18 @@ describe('NFTokenSPLC_Functional_Test', () => {
     assert.equal(chairman, acc0);
     assert.equal(director, acc0);
 
-    let name = await instNFTokenSPLC.methods.name().call();
-    let symbol = await instNFTokenSPLC.methods.symbol().call();
-    let initialAssetPricing = await instNFTokenSPLC.methods.initialAssetPricing().call();
-    let IRR20yrx100 = await instNFTokenSPLC.methods.IRR20yrx100().call();
-    let isPreDelivery = await instNFTokenSPLC.methods.isPreDelivery().call();
-    let maxTotalSupply = await instNFTokenSPLC.methods.maxTotalSupply().call();
-    let pricingCurrency = await instNFTokenSPLC.methods.pricingCurrency().call();
-    let SafeVault = await instNFTokenSPLC.methods.SafeVault().call();
-    let SafeVaultNew = await instNFTokenSPLC.methods.SafeVaultNew().call();
-    let siteSizeInKW = await instNFTokenSPLC.methods.siteSizeInKW().call();
-    let nextTokenId = await instNFTokenSPLC.methods.nextTokenId().call();
-    let ValidDate = await instNFTokenSPLC.methods.ValidDate().call();
+    let name = await instERC721SPLC.methods.name().call();
+    let symbol = await instERC721SPLC.methods.symbol().call();
+    let initialAssetPricing = await instERC721SPLC.methods.initialAssetPricing().call();
+    let IRR20yrx100 = await instERC721SPLC.methods.IRR20yrx100().call();
+    let isPreDelivery = await instERC721SPLC.methods.isPreDelivery().call();
+    let maxTotalSupply = await instERC721SPLC.methods.maxTotalSupply().call();
+    let pricingCurrency = await instERC721SPLC.methods.pricingCurrency().call();
+    let SafeVault = await instERC721SPLC.methods.SafeVault().call();
+    let SafeVaultNew = await instERC721SPLC.methods.SafeVaultNew().call();
+    let siteSizeInKW = await instERC721SPLC.methods.siteSizeInKW().call();
+    let nextTokenId = await instERC721SPLC.methods.nextTokenId().call();
+    let ValidDate = await instERC721SPLC.methods.ValidDate().call();
     assert.equal(name, givenAssetName);
     assert.equal(symbol, givenAssetSymbol);
     assert.equal(initialAssetPricing, 17000);
@@ -190,65 +261,65 @@ describe('NFTokenSPLC_Functional_Test', () => {
     assert.equal(nextTokenId, 1);
     assert.equal(ValidDate, "01312038");
 
-    let supportsInterface0x80ac58cd = await instNFTokenSPLC.methods.supportsInterface("0x80ac58cd").call();
+    let supportsInterface0x80ac58cd = await instERC721SPLC.methods.supportsInterface("0x80ac58cd").call();
     assert.equal(supportsInterface0x80ac58cd, true);
-    let supportsInterface0x5b5e139f = await instNFTokenSPLC.methods.supportsInterface("0x5b5e139f").call();
+    let supportsInterface0x5b5e139f = await instERC721SPLC.methods.supportsInterface("0x5b5e139f").call();
     assert.equal(supportsInterface0x5b5e139f, true);
-    let supportsInterface0x780e9d63 = await instNFTokenSPLC.methods.supportsInterface("0x780e9d63").call();
+    let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
 
     //-------------==set NewOwner to acc4
-    await instNFTokenSPLC.methods.addNewOwner(acc4).send({
+    await instERC721SPLC.methods.addNewOwner(acc4).send({
       value: '0', from: acc0, gas: '1000000'
     });//
-    ownerNew = await instNFTokenSPLC.methods.ownerNew().call();
+    ownerNew = await instERC721SPLC.methods.ownerNew().call();
     assert.equal(ownerNew, acc4);
-    await instNFTokenSPLC.methods.transferOwnership().send({
+    await instERC721SPLC.methods.transferOwnership().send({
       value: '0', from: acc4, gas: '1000000'
     });//
-    owner = await instNFTokenSPLC.methods.owner().call();
+    owner = await instERC721SPLC.methods.owner().call();
     assert.equal(owner, acc4);
 
   });
 
   it('mintSerialNFT -> safeTransferFrom & transferFrom initiated by owner', async () => {
-    addrNFTokenSPLC = instNFTokenSPLC.options.address;
-    console.log('addrNFTokenSPLC', addrNFTokenSPLC);
+    addrERC721SPLC = instERC721SPLC.options.address;
+    console.log('addrERC721SPLC', addrERC721SPLC);
 
     //-------------==balances
-    const balance0A = await instNFTokenSPLC.methods.balanceOf(acc0).call();
+    const balance0A = await instERC721SPLC.methods.balanceOf(acc0).call();
     assert.equal(balance0A, 0);
-    const balance1A = await instNFTokenSPLC.methods.balanceOf(acc1).call();
+    const balance1A = await instERC721SPLC.methods.balanceOf(acc1).call();
     assert.equal(balance1A, 0);
-    const balance3A = await instNFTokenSPLC.methods.balanceOf(acc3).call();
+    const balance3A = await instERC721SPLC.methods.balanceOf(acc3).call();
     assert.equal(balance3A, 0);
     // assert(balance3B > 1000);
 
     //-------------==set SafeVault to acc1
-    await instNFTokenSPLC.methods.addNewSafeVault(acc1).send({
+    await instERC721SPLC.methods.addNewSafeVault(acc1).send({
       value: '0', from: acc0, gas: '1000000'
     });//
-    let SafeVaultNew = await instNFTokenSPLC.methods.SafeVaultNew().call();
+    let SafeVaultNew = await instERC721SPLC.methods.SafeVaultNew().call();
     assert.equal(SafeVaultNew, acc1);
 
-    await instNFTokenSPLC.methods.setNewSafeVault().send({
+    await instERC721SPLC.methods.setNewSafeVault().send({
       value: '0', from: acc1, gas: '1000000'
     });//
-    let SafeVault = await instNFTokenSPLC.methods.SafeVault().call();
+    let SafeVault = await instERC721SPLC.methods.SafeVault().call();
     assert.equal(SafeVault, acc1);
 
     //-------------==
-    nextTokenId = await instNFTokenSPLC.methods.nextTokenId().call();
+    nextTokenId = await instERC721SPLC.methods.nextTokenId().call();
     assert.equal(nextTokenId, 1);
 
     const URI_tokenId01 = "nccu01";
-    await instNFTokenSPLC.methods.mintSerialNFT(URI_tokenId01).send({
+    await instERC721SPLC.methods.mintSerialNFT(URI_tokenId01).send({
       value: '0', from: acc0, gas: '1000000'
     });//
-    nextTokenId = await instNFTokenSPLC.methods.nextTokenId().call();
+    nextTokenId = await instERC721SPLC.methods.nextTokenId().call();
     assert.equal(nextTokenId, 2);
 
-    let asset1 = await instNFTokenSPLC.methods.getNFT(1).call();
+    let asset1 = await instERC721SPLC.methods.getNFT(1).call();
     console.log('asset1', asset1);
 
     let givenAssetName = "NCCU site No.1(2018)";
@@ -259,37 +330,37 @@ describe('NFTokenSPLC_Functional_Test', () => {
     assert.equal(asset1[3], URI_tokenId01);
     assert.equal(asset1[4], 17000);
 
-    let tokenURI = await instNFTokenSPLC.methods.tokenURI(1).call();
+    let tokenURI = await instERC721SPLC.methods.tokenURI(1).call();
     assert.equal(tokenURI, URI_tokenId01);
-    let tokenOwner = await instNFTokenSPLC.methods.ownerOf(1).call();
+    let tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
     assert.equal(tokenOwner, acc1);
-    let balanceOf1B = await instNFTokenSPLC.methods.balanceOf(acc1).call();
+    let balanceOf1B = await instERC721SPLC.methods.balanceOf(acc1).call();
     assert.equal(balanceOf1B, 1);
 
     //-------------==Lockup for token transfers
-    let LockUpPeriod = await instNFTokenSPLC.methods.LockUpPeriod().call();
+    let LockUpPeriod = await instERC721SPLC.methods.LockUpPeriod().call();
     assert.equal(LockUpPeriod, 300);
-    let tokenMintTime = await instNFTokenSPLC.methods.tokenMintTime().call();
+    let tokenMintTime = await instERC721SPLC.methods.tokenMintTime().call();
     assert.equal(tokenMintTime, 1);
-    const lockupUntil = await instNFTokenSPLC.methods.get_lockupUntil().call();
+    const lockupUntil = await instERC721SPLC.methods.get_lockupUntil().call();
     assert.equal(lockupUntil, 301);
     console.log("lockupUntil = ", lockupUntil);
-    const nowTime = await instNFTokenSPLC.methods.get_now().call();
+    const nowTime = await instERC721SPLC.methods.get_now().call();
     console.log("nowTime = ", nowTime);//now =  1542250964
     assert(parseInt(nowTime) > parseInt(lockupUntil));
 
-    await instNFTokenSPLC.methods.setTokenMintTime(parseInt(nowTime)).send({
+    await instERC721SPLC.methods.setTokenMintTime(parseInt(nowTime)).send({
       value: '0', from: acc0, gas: '1000000'
     });//
-    tokenMintTime = await instNFTokenSPLC.methods.tokenMintTime().call();
+    tokenMintTime = await instERC721SPLC.methods.tokenMintTime().call();
     assert.equal(tokenMintTime, parseInt(nowTime));
 
     let _LockUpPeriod_inMins = 1; let _LockUpPeriod_inWeeks = 1;//1wk: 604800
-    await instNFTokenSPLC.methods.setLockUpPeriod(_LockUpPeriod_inMins, _LockUpPeriod_inWeeks).send({
+    await instERC721SPLC.methods.setLockUpPeriod(_LockUpPeriod_inMins, _LockUpPeriod_inWeeks).send({
       value: '0', from: acc0, gas: '1000000'
     });//
     let lockupperiod = _LockUpPeriod_inMins * 60 + _LockUpPeriod_inWeeks * 60 * 60 * 24 * 7;
-    LockUpPeriod = await instNFTokenSPLC.methods.LockUpPeriod().call();
+    LockUpPeriod = await instERC721SPLC.methods.LockUpPeriod().call();
     assert.equal(LockUpPeriod, lockupperiod);
 
     console.log("after changing lockup time");
@@ -298,109 +369,109 @@ describe('NFTokenSPLC_Functional_Test', () => {
     // console.log(typeof nowTime);
 
 
-    await instNFTokenSPLC.methods.setTokenMintTime(1).send({
+    await instERC721SPLC.methods.setTokenMintTime(1).send({
       value: '0', from: acc0, gas: '1000000'
     });//
 
     //-------------==isAfterLockup: Open Lockup for token transfers
-    // let isAfterLockup = await instNFTokenSPLC.methods.isAfterLockup().call();
+    // let isAfterLockup = await instERC721SPLC.methods.isAfterLockup().call();
     // assert.equal(isAfterLockup, false);
-    // await instNFTokenSPLC.methods.set_isAfterLockup().send({
+    // await instERC721SPLC.methods.set_isAfterLockup().send({
     //   value: '0', from: acc0, gas: '1000000'
     // });//
-    // isAfterLockup = await instNFTokenSPLC.methods.isAfterLockup().call();
+    // isAfterLockup = await instERC721SPLC.methods.isAfterLockup().call();
     // assert.equal(isAfterLockup, true);
 
     //-------------==safeTransferFrom by owner
     console.log("safeTransferFrom by owner1");
     let _from = acc1; let _to = acc2; let _tokenId = 1;
-    await instNFTokenSPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
+    await instERC721SPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
       value: '0', from: acc1, gas: '1000000'
     });//
-    tokenOwner = await instNFTokenSPLC.methods.ownerOf(1).call();
+    tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
     assert.equal(tokenOwner, acc2);
 
-    let balanceOf1C = await instNFTokenSPLC.methods.balanceOf(acc1).call();
+    let balanceOf1C = await instERC721SPLC.methods.balanceOf(acc1).call();
     assert.equal(balanceOf1C, 0);
-    let balanceOf2C = await instNFTokenSPLC.methods.balanceOf(acc2).call();
+    let balanceOf2C = await instERC721SPLC.methods.balanceOf(acc2).call();
     assert.equal(balanceOf2C, 1);
 
     //-------------==transferFrom by owner
     console.log("transferFrom by owner");
-    let balanceOf3C = await instNFTokenSPLC.methods.balanceOf(acc3).call();
+    let balanceOf3C = await instERC721SPLC.methods.balanceOf(acc3).call();
     assert.equal(balanceOf3C, 0);
     _from = acc2; _to = acc3; _tokenId = 1;
 
     console.log("transferFrom by owner2");
-    await instNFTokenSPLC.methods.transferFrom(_from, _to, _tokenId).send({
+    await instERC721SPLC.methods.transferFrom(_from, _to, _tokenId).send({
       value: '0', from: acc2, gas: '1000000'
     });//
-    balanceOf2C = await instNFTokenSPLC.methods.balanceOf(acc2).call();
+    balanceOf2C = await instERC721SPLC.methods.balanceOf(acc2).call();
     assert.equal(balanceOf2C, 0);
     console.log("transferFrom by owner3");
-    let balanceOf3D = await instNFTokenSPLC.methods.balanceOf(acc3).call();
+    let balanceOf3D = await instERC721SPLC.methods.balanceOf(acc3).call();
     assert.equal(balanceOf3D, 1);
 
     //-------------==owner approves, then the approved transfers via safeTransferFrom
     console.log("owner approves. the approved transfers via safeTransferFrom");
     const _approved = acc2; _tokenId = 1;
-    await instNFTokenSPLC.methods.approve(_approved, _tokenId).send({
+    await instERC721SPLC.methods.approve(_approved, _tokenId).send({
       value: '0', from: acc3, gas: '1000000'
     });// 
-    let isApproved = await instNFTokenSPLC.methods.getApproved(_tokenId).call();
+    let isApproved = await instERC721SPLC.methods.getApproved(_tokenId).call();
     assert.equal(isApproved, acc2);
 
     //safeTransferFrom by the approved
     _from = acc3; _to = acc2; _tokenId = 1;
-    await instNFTokenSPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
+    await instERC721SPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
       value: '0', from: acc2, gas: '1000000'
     });//
-    tokenOwner = await instNFTokenSPLC.methods.ownerOf(1).call();
+    tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
     assert.equal(tokenOwner, acc2);
-    let balanceOf3E = await instNFTokenSPLC.methods.balanceOf(acc3).call();
+    let balanceOf3E = await instERC721SPLC.methods.balanceOf(acc3).call();
     assert.equal(balanceOf3E, 0);
-    let balanceOf2E = await instNFTokenSPLC.methods.balanceOf(acc2).call();
+    let balanceOf2E = await instERC721SPLC.methods.balanceOf(acc2).call();
     assert.equal(balanceOf2E, 1);
 
 
     //-------------==acc3 to set acc4 as operator
     console.log("operator transfers");
     let _owner = acc2; let _operator = acc4;
-    isApproved = await instNFTokenSPLC.methods.isApprovedForAll(_owner, _operator).call();
+    isApproved = await instERC721SPLC.methods.isApprovedForAll(_owner, _operator).call();
     assert.equal(isApproved, false);
 
-    await instNFTokenSPLC.methods.setApprovalForAll(_operator, true).send({
+    await instERC721SPLC.methods.setApprovalForAll(_operator, true).send({
       value: '0', from: acc2, gas: '1000000'
     });//
-    isApproved = await instNFTokenSPLC.methods.isApprovedForAll(_owner, _operator).call();
+    isApproved = await instERC721SPLC.methods.isApprovedForAll(_owner, _operator).call();
     assert.equal(isApproved, true);
     
     //safeTransferFrom by the operator
     _from = acc2; _to = acc1; _tokenId = 1;
-    await instNFTokenSPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
+    await instERC721SPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
       value: '0', from: acc4, gas: '1000000'
     });//
-    tokenOwner = await instNFTokenSPLC.methods.ownerOf(1).call();
+    tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
     assert.equal(tokenOwner, acc1);
-    let balanceOf2F = await instNFTokenSPLC.methods.balanceOf(acc2).call();
+    let balanceOf2F = await instERC721SPLC.methods.balanceOf(acc2).call();
     assert.equal(balanceOf2F, 0);
-    let balanceOf1E = await instNFTokenSPLC.methods.balanceOf(acc1).call();
+    let balanceOf1E = await instERC721SPLC.methods.balanceOf(acc1).call();
     assert.equal(balanceOf1E, 1); 
 
     //-------------==burn()
     _owner = acc1; _tokenId = 1;
-    await instNFTokenSPLC.methods.burnNFT(_owner, _tokenId).send({
+    await instERC721SPLC.methods.burnNFT(_owner, _tokenId).send({
       value: '0', from: acc0, gas: '1000000'
     });//
     console.log("after burnNFT");
     if (1===2){//The code below will fail ... but that is what we want to see, because
       //burned tokens will have owner == 0x0, which is not allowed!
-      tokenOwner = await instNFTokenSPLC.methods.ownerOf(1).call();
+      tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
       assert.equal(tokenOwner, addr0);
     }
-    let balanceOf2G = await instNFTokenSPLC.methods.balanceOf(acc2).call();
+    let balanceOf2G = await instERC721SPLC.methods.balanceOf(acc2).call();
     assert.equal(balanceOf2G, 0);
-    let balanceOf1G = await instNFTokenSPLC.methods.balanceOf(acc1).call();
+    let balanceOf1G = await instERC721SPLC.methods.balanceOf(acc1).call();
     assert.equal(balanceOf1G, 0); 
 
     /**

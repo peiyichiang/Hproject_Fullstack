@@ -1,11 +1,10 @@
-//透過平台平台asset contract deploy
-
 pragma solidity ^0.5.3;
+//透過平台平台asset contract deploy
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract CrowdSale is Ownable{
+contract CrowdFunding is Ownable{
     using SafeMath for uint256;
     
     event showState(string _state);

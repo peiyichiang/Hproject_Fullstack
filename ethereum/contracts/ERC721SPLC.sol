@@ -33,9 +33,8 @@ $ The URI MAY be mutable (i.e. it changes from time to time).
 
 */
 
-import "./Ownable.sol";
+//import "./Ownable.sol";
 import "./SafeMath.sol";
-//import "./Registry.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
 interface ERC721 {
@@ -114,11 +113,6 @@ interface ERC721 {
   function isApprovedForAll(address _owner, address _operator) external view returns (bool);
 }
 
-//RegistryContract(addrRegistry).isCtAddrApproved(_to)
-interface RegistryContract {
-    function isCtAddrApproved(address assetCtAddr) external view returns (bool);
-}
-
 /*A wallet/broker/auction application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.
 */
 interface ERC721TokenReceiver {
@@ -157,11 +151,20 @@ contract SupportsInterface is ERC165 {
     }
 }
 
+//Registry(addrRegistry).isCtAddrApproved(_to);
+interface Registry {
+    function isCtAddrApproved(address assetCtAddr) external view returns (bool);
+}
 
+//ERC721SPLC_Controller(addrERC721SPLC_Controller).isAdmin(msg.sender);
+interface ERC721SPLC_Controller {
+    function isAdmin(address sender) external view returns (bool);
+    function isUnlockedValid() external view returns (bool);
+}
 
 
 //==================
-contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
+contract ERC721SPLC is ERC721, SupportsInterface {
     using SafeMath for uint256;
     using AddressUtils for address;
 
@@ -203,21 +206,9 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     string public pricingCurrency;// for the initialAssetPricing: NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
 
-    uint public currentTime;//201903310000
-    uint public TokenValidTime;//token expiry time 203903310000
-    uint public TokenUnlockTime;//201901310000;
-    bool public isLaunched;//
     address public addrRegistry;
+    address public addrERC721SPLC_Controller;
 
-    function getCtrtDetails() public view returns (
-        uint, uint, uint,
-        uint, uint, string memory, 
-        uint, uint, uint, uint, bool) {
-        return (
-            tokenId, siteSizeInKW, maxTotalSupply,
-        totalSupply, initialAssetPricing, pricingCurrency,
-        IRR20yrx100, currentTime, TokenValidTime, TokenUnlockTime, isLaunched);
-    }
 
     //==================Metadata
     /**
@@ -240,27 +231,25 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     //==================
     //4566010 gas
     /** Contract code size over limit of 24576 bytes.
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
-    203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
+    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
+    "0xbbf289d846208c16edc8474705c748aff07732db"
     */
     constructor(
-        string memory _name, string memory _symbol, uint _siteSizeInKW, 
-        uint _maxTotalSupply, uint _initialAssetPricing, 
+        string memory _name, string memory _symbol, 
+        uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         string memory _pricingCurrency, uint _IRR20yrx100,
-        uint _currentTime, uint _TokenValidTime, uint _TokenUnlockTime, 
-        address _addrRegistry) public {
+        address _addrRegistry, address _addrERC721SPLC_Controller) public {
         name = _name;
         symbol = _symbol;
+
         siteSizeInKW = _siteSizeInKW;
         maxTotalSupply = _maxTotalSupply;
         initialAssetPricing = _initialAssetPricing;
         pricingCurrency = _pricingCurrency;
         IRR20yrx100 = _IRR20yrx100;
-
-        currentTime = _currentTime;
-        TokenValidTime = _TokenValidTime;
-        TokenUnlockTime = _TokenUnlockTime;
+        
         addrRegistry = _addrRegistry;
+        addrERC721SPLC_Controller = _addrERC721SPLC_Controller;
 
         supportedInterfaces[0x80ac58cd] = true;// ERC721
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
@@ -279,62 +268,16 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
     */
     
-    //For TimeServer injecting current time
-    event SetCurrentTime(uint _currentTime);
-    function setCurrentTime(uint _currentTime) external onlyAdmin ckTime(_currentTime){
-        currentTime = _currentTime;
-        emit SetCurrentTime(_currentTime);
+    function getHTokenDetails() public view returns (
+        uint, uint, uint,
+        uint, uint, string memory, uint) {
+        return (
+            tokenId, siteSizeInKW, maxTotalSupply,
+        totalSupply, initialAssetPricing, pricingCurrency,IRR20yrx100);
     }
 
-    //To extend valid time if token operation is paused
-    event SetTokenValidTime(uint _validTime);
-    function setTokenValidTime(uint _validTime) external onlyAdmin ckTime(_validTime) ckLaunched {
-        TokenValidTime = _validTime;
-        emit SetTokenValidTime(_validTime);
-    }
-
-    event SetTokenUnlockTime(uint _unlockTime);
-    function setTokenUnlockTime(uint _unlockTime) external onlyAdmin ckTime(_unlockTime) ckLaunched {
-        TokenUnlockTime = _unlockTime;
-        emit SetTokenUnlockTime(_unlockTime);
-    }
-
-    event SetLaunchTime(uint _launchTime);
-    function setLaunchTime(uint _launchTime) external onlyAdmin ckTime(_launchTime) ckLaunched {
-        isLaunched = true;
-        emit SetLaunchTime(_launchTime);
-    }
-
-    // event SetLegalCompliance(uint _addrLegalCompliance);
-    // function setLegalCompliance(uint _addrLegalCompliance) external onlyAdmin ckAddr(_addrLegalCompliance) {
-    //     addrLegalCompliance = _addrLegalCompliance;
-    //     LegalCompliance legalCompliance = LegalCompliance(_addrLegalCompliance);
-    //     emit SetLegalCompliance(_addrLegalCompliance);
-    // }
-
-    // event SetRegistry(address _addrRegistry);
-    // function setRegistry(address _addrRegistry) external onlyAdmin ckAddr(_addrRegistry){
-    //     addrRegistry = _addrRegistry;
-    //     emit SetRegistry(_addrRegistry);
-    // }
-
-    modifier ckTime(uint _time) {
-        require(_time > 201902150000, "_time has to be in the format of yyyymmddhhmm");
-        _;
-    }
-    modifier ckLaunched() {
-        require(!isLaunched, "only allowed before launch time");
-        _;
-    }
     modifier ckAddr(address addr) {
         require(addr != address(0), "addr should not be zero");
-        _;
-    }
-
-    modifier onlyUnlockedValid() {
-        //will block all token tranfers either before the lockup time, 
-        //or until a time when SPLC's power plant contract is finished
-        require(TokenUnlockTime < currentTime && currentTime < TokenValidTime, "token in lockup time or over valid date");
         _;
     }
 
@@ -387,10 +330,11 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     }
 
     event MintSerialNFT(uint tokenId, string name, string symbol, string pricingCurrency, string uri, uint initialAssetPricing);
-    function mintSerialNFT(address _to, string calldata _uri) external onlyAdmin {
+    function mintSerialNFT(address _to, string calldata _uri) external {
+        require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
 
         //Legal Compliance
-        require(RegistryContract(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
+        require(Registry(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
 
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
@@ -413,7 +357,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     //     emit BurnNFT(_owner, _tokenId, msg.sender);
     // }
 
-    //function() external payable { revert("should not send any ether directly"); }
+    function() external payable { revert("should not send any ether directly"); }
     //should not send any ether directly
 
 
@@ -498,7 +442,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     * $param _data Additional data with no specified format, sent in call to `_to`.   */
     function safeTransferFrom(
         address _from, address _to, uint256 _tokenId, bytes calldata _data) 
-        external onlyUnlockedValid {
+        external {
         _safeTransferFrom(_from, _to, _tokenId, _data);
     }
 
@@ -508,9 +452,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     * $param _from The current owner of the NFT.
     * $param _to The new owner.
     * $param _tokenId The NFT to transfer.   */
-    function safeTransferFrom(
-        address _from, address _to, uint256 _tokenId) external 
-        onlyUnlockedValid {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external {
         _safeTransferFrom(_from, _to, _tokenId, "");
     }
 
@@ -524,8 +466,8 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     * $param _tokenId The NFT to transfer.   */
     function transferFrom(
         address _from, address _to, uint256 _tokenId) external 
-        onlyUnlockedValid
         canTransfer(_tokenId) validNFToken(_tokenId) {
+
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be equal to _from");
         require(_to != address(0), "_to should not be 0x0");
@@ -588,6 +530,8 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     function _safeTransferFrom(
         address _from, address _to, uint256 _tokenId, bytes memory _data)
         internal canTransfer(_tokenId) validNFToken(_tokenId) {
+
+        require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isUnlockedValid(),'token cannot be transferred');
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be _from");
         require(_to != address(0), "_to should not be 0x0");
@@ -608,9 +552,10 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
     function _transfer(address _to, uint256 _tokenId) private {
         address from = idToOwner[_tokenId];
 
+        require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isUnlockedValid(),'token cannot be transferred');
         //Legal Compliance
-        require(RegistryContract(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
-        require(RegistryContract(addrRegistry).isCtAddrApproved(from), "from is not in compliance");
+        require(Registry(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
+        require(Registry(addrRegistry).isCtAddrApproved(from), "from is not in compliance");
         //require(Registry(addrRegistry).isUnderCompliance(_to, from, 1), "not under compliance");
 
         clearApproval(_tokenId);
@@ -665,7 +610,7 @@ contract NFTokenSPLC is Ownable, ERC721, SupportsInterface {
         if (mode == 1) {//transfer
             require(idToOwner[_tokenId] == _from, "tokenId should match _from");
         } else if (mode == 9) {//burn
-            require(msg.sender == admin, "only admin can call this function");
+            require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
             //only contract owner can destroy the token
         }
         require(ownerToNFTokenCount[_from] > 0, "ownerToNFTokenCount[_from] should be > 0");

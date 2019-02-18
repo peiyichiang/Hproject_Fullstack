@@ -19,7 +19,7 @@ fs.ensureDirSync(buildPath);//if the build folder does not exist, make it existi
 // });
 
 console.log('check1: Set which Solidity files to compile...');
-const fileList = ['Campaign', 'CrowdFunding', 'SafeMath', 'Ownable', 'Registry', 'ERC721_SPLC', 'Asset', 'IncomeManagement'];
+const fileList = ['Campaign', 'CrowdFunding', 'SafeMath', 'Ownable', 'Registry', 'ERC721SPLC', 'ERC721SPLC_Controller', 'Asset', 'IncomeManagement'];
 
 for (let idx in fileList) {
   const solFileName = fileList[idx];

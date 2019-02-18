@@ -4,7 +4,7 @@ pragma solidity ^0.5.3;
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract RegistryContract is Ownable {
+contract Registry is Ownable {
     using SafeMath for uint256;
 
     /**@dev 資料結構 */
@@ -26,6 +26,9 @@ contract RegistryContract is Ownable {
 
     //Legal/Regulation Compliance
     mapping (address => string) public assetCtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
+
+    constructor() public {
+    }
 
     /**@dev check uid value */
     modifier ckUid(string memory uid) {
@@ -65,7 +68,7 @@ contract RegistryContract is Ownable {
     /**@dev 新增user */
     function setNewUser(
         string calldata uid, address assetCtAddr, address extoAddr, uint time) external 
-        onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
+        onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
         
         require(users[uid].assetCtAddr == address(0), "user already exists: assetCtAddr not empty");
         require(users[uid].extoAddr == address(0), "user already exists: extoAddr not empty");
@@ -82,7 +85,7 @@ contract RegistryContract is Ownable {
     /**@dev set user的 information */
     function setOldUser(
         string calldata uid, address assetCtAddr, address extoAddr, uint status, uint time)
-        external onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) 
+        external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) 
         uidExists(uid) {
 
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
@@ -97,7 +100,7 @@ contract RegistryContract is Ownable {
 
     /**@dev 設定user的 assetCtAddr */
     function setAssetCtAddr(string calldata uid, address assetCtAddr, uint time) external 
-      onlyOwner ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(time) uidExists(uid) {
+      onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(time) uidExists(uid) {
         
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
@@ -108,14 +111,14 @@ contract RegistryContract is Ownable {
 
     /**@dev 設定user的以太帳號 */
     function setExtoAddr(string calldata uid, address extoAddr, uint time) external 
-      onlyOwner ckUid(uid) ckExtoAddr(extoAddr) ckTime(time) uidExists(uid) {
+      onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) ckTime(time) uidExists(uid) {
         users[uid].extoAddr = extoAddr;
         emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, time);
     }
 
     /**@dev 設定user的狀態 */
     function setUserStatus(string calldata uid, uint status, uint time) external 
-      onlyOwner ckUid(uid) ckTime(time) uidExists(uid) {
+      onlyAdmin ckUid(uid) ckTime(time) uidExists(uid) {
         users[uid].status = status;
         emit SetUserStatus(uid, status, time);
     }
