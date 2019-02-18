@@ -21,7 +21,7 @@ function createServer() {
                     for (let i in result) {
                         if (typeof result[i].o_purchaseDate !== 'undefined') {
                             //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
-                            console.log("繳費期限", result[i].o_purchaseDate.add3Day())
+                            console.log(result[i].o_id, "繳費期限", result[i].o_purchaseDate.add3Day())
                         }
                     }
                 }
