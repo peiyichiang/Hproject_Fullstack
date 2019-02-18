@@ -19,8 +19,8 @@ function createServer() {
                 }
                 else {
                     for (let i in result) {
-                        //console.log(result[i].sc_rentContractaddress, data.toString());
-                        contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
+                        console.log(result[i].sc_rentContractaddress, data.toString());
+                        //contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
                     }
                 }
             })

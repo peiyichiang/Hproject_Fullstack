@@ -15,13 +15,16 @@ function createServer() {
             mysql.getOrderDate(function (result) {
                 if (result.length == 0) {
                     console.log('nothing')
-                }
-                else {
+                } else {
                     console.log("現在時間", data.toString());
                     for (let i in result) {
                         if (typeof result[i].o_purchaseDate !== 'undefined') {
-                            //console.log(data.toString(), result[i].o_id, result[i].o_purchaseDate);
-                            console.log(result[i].o_id, "繳費期限", result[i].o_purchaseDate.add3Day())
+                            if (data.toString() >= result[i].o_purchaseDate.add3Day()) {
+                                console.log(123)
+                                mysql.setOrderExpired(result[i].o_id, function (result) {
+                                    console.log(result[i].o_id, "已修改");
+                                })
+                            }
                         }
                     }
                 }
@@ -46,7 +49,9 @@ function createServer() {
                     });
                 }
             });
-            clientSocket.connect({ path: './order.ipc' }, function () {
+            clientSocket.connect({
+                path: './order.ipc'
+            }, function () {
                 console.log('Server running, giving up...');
                 process.exit();
             });
@@ -57,8 +62,7 @@ function createServer() {
         server.listen(path.join('\\\\?\\pipe', process.cwd(), 'order'), () => {
             console.log("server bound");
         });
-    }
-    else {
+    } else {
         server.listen("./order.ipc", () => {
             console.log("server bound");
         });
@@ -69,8 +73,7 @@ function createServer() {
 
         if (os.platform() == 'win32') {
             process.exit();
-        }
-        else {
+        } else {
             fs.unlinkSync("./order.ipc")
             console.log("檔案刪除");
             process.exit();
