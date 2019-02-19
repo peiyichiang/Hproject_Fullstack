@@ -1,5 +1,6 @@
 pragma solidity ^0.5.3;
 //透過平台平台asset contract deploy
+//deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
@@ -37,7 +38,9 @@ contract CrowdFunding is Ownable {
     enum pauseState{Active, Pause} 
     pauseState pausestate;
 
-    /*  at initialization, setup the owner */
+    /*  at initialization, setup the owner 
+    "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
+    */
     constructor  (
         string memory _htokenSYMBOL,
         uint _tokenprice,

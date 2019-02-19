@@ -28,13 +28,33 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
+const Asset = require('../ethereum/contracts/build/AssetContract.json');
+if (Asset === undefined){
+  console.log('[Error] Asset is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] Asset is defined');
+  if (Asset.abi === undefined){
+    console.log('[Error] Asset.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Asset.abi is defined');
+      //console.log('Asset.abi:', Asset.abi);
+  }
+  if (Asset.bytecode === undefined || Asset.bytecode.length < 10){
+    console.log('[Error] Asset.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Asset.bytecode is defined');
+      //console.log('Asset.bytecode:', Asset.bytecode);
+  }
+  //console.log(Asset);
+}
+
 const Registry = require('../ethereum/contracts/build/Registry.json');
 if (Registry === undefined){
-  console.log('[Error] Registry is NOT defined');
+  console.log('[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] Registry is defined');
   if (Registry.abi === undefined){
-    console.log('[Error] Registry.abi is NOT defined');
+    console.log('[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] Registry.abi is defined');
       //console.log('Registry.abi:', Registry.abi);
@@ -50,11 +70,11 @@ if (Registry === undefined){
 
 const ERC721SPLC_Controller = require('../ethereum/contracts/build/ERC721SPLC_Controller.json');
 if (ERC721SPLC_Controller === undefined){
-  console.log('[Error] ERC721SPLC_Controller is NOT defined');
+  console.log('[Error] ERC721SPLC_Controller is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] ERC721SPLC_Controller is defined');
   if (ERC721SPLC_Controller.abi === undefined){
-    console.log('[Error] ERC721SPLC_Controller.abi is NOT defined');
+    console.log('[Error] ERC721SPLC_Controller.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] ERC721SPLC_Controller.abi is defined');
       //console.log('ERC721SPLC_Controller.abi:', ERC721SPLC_Controller.abi);
@@ -68,13 +88,13 @@ if (ERC721SPLC_Controller === undefined){
   //console.log(ERC721SPLC_Controller);
 }
 
-const ERC721SPLC = require('../ethereum/contracts/build/ERC721SPLC.json');
+const ERC721SPLC = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
 if (ERC721SPLC === undefined){
-  console.log('[Error] ERC721SPLC is NOT defined');
+  console.log('[Error] ERC721SPLC is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] ERC721SPLC is defined');
   if (ERC721SPLC.abi === undefined){
-    console.log('[Error] ERC721SPLC.abi is NOT defined');
+    console.log('[Error] ERC721SPLC.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] ERC721SPLC.abi is defined');
       //console.log('ERC721SPLC.abi:', ERC721SPLC.abi);
@@ -88,15 +108,80 @@ if (ERC721SPLC === undefined){
   //console.log(ERC721SPLC);
 }
 
+const CrowdFunding = require('../ethereum/contracts/build/CrowdFunding.json');
+if (CrowdFunding === undefined){
+  console.log('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] CrowdFunding is defined');
+  if (CrowdFunding.abi === undefined){
+    console.log('[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] CrowdFunding.abi is defined');
+      //console.log('CrowdFunding.abi:', CrowdFunding.abi);
+  }
+  if (CrowdFunding.bytecode === undefined || CrowdFunding.bytecode.length < 10){
+    console.log('[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] CrowdFunding.bytecode is defined');
+      //console.log('CrowdFunding.bytecode:', CrowdFunding.bytecode);
+  }
+  //console.log(CrowdFunding);
+}
+
+const IncomeManagement = require('../ethereum/contracts/build/IncomeManagement.json');
+if (IncomeManagement === undefined){
+  console.log('[Error] IncomeManagement is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] IncomeManagement is defined');
+  if (IncomeManagement.abi === undefined){
+    console.log('[Error] IncomeManagement.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] IncomeManagement.abi is defined');
+      //console.log('IncomeManagement.abi:', IncomeManagement.abi);
+  }
+  if (IncomeManagement.bytecode === undefined || IncomeManagement.bytecode.length < 10){
+    console.log('[Error] IncomeManagement.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] IncomeManagement.bytecode is defined');
+      //console.log('IncomeManagement.bytecode:', IncomeManagement.bytecode);
+  }
+  //console.log(IncomeManagement);
+}
+
+const System = require('../ethereum/contracts/build/System.json');
+if (System === undefined){
+  console.log('[Error] System is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] System is defined');
+  if (System.abi === undefined){
+    console.log('[Error] System.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] System.abi is defined');
+      //console.log('System.abi:', System.abi);
+  }
+  if (System.bytecode === undefined || System.bytecode.length < 10){
+    console.log('[Error] System.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] System.bytecode is defined');
+      //console.log('System.bytecode:', System.bytecode);
+  }
+  //console.log(System);
+}
+
+
 //Mocha starts > BeforeEach: Deploy a new contract
 // > it: Manipulate the contract > it: make an assertion > repeat
 
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
 let accounts;
+let instAsset; let addrAsset;
 let instRegistry; let addrRegistry;
 let instERC721SPLC_Controller; let addrERC721SPLC_Controller;
 let instERC721SPLC; let addrERC721SPLC;
+let instCrowdFunding; let addrCrowdFunding;
+let instIncomeManagement; let addrIncomeManagement;
+let instSystem; let addrSystem;
 
 let acc0; let acc1; let acc2; let acc4;
 let balance0; let balance1; let balance2;
@@ -105,7 +190,7 @@ let balance1A; let balance2A;
 //const rate = new BigNumber('1e22').mul(value);
 const addr0 = "0x0000000000000000000000000000000000000000";
 beforeEach( async () => {
-    //use one of these accounts to deploy the contract
+    console.log('\n------------==New beforeEach cycle');
     accounts = await web3.eth.getAccounts();
     acc0 = accounts[0];
     acc1 = accounts[1];

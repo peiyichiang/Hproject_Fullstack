@@ -1,10 +1,11 @@
 pragma solidity ^0.5.3;
 /*
+deploy parameters: none
 */
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract ERC721SPLC_Manager is Ownable {
+contract System is Ownable {
     using SafeMath for uint256;
 
     // ERC721SPLC erc721SPLC;

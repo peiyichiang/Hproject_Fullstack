@@ -11,7 +11,7 @@ contract ERC721SPLC_Controller is Ownable {
     uint public TokenValidTime;//token expiry time 203903310000
     bool public isLaunched;//
 
-    // 201902180900, 201902180901, 201902180902, 201902180907
+    // 201902190900, 201902190901, 201902190902, 201902191745
     constructor(uint _currentTime, uint _TokenLaunchTime, 
       uint _TokenUnlockTime, uint _TokenValidTime) public {
         currentTime = _currentTime;

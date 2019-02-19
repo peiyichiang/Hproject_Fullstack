@@ -1,5 +1,6 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
+//deploy parameters: "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
@@ -28,6 +29,8 @@ contract IncomeManagement is Ownable {
         uint8 errorCode;//0 to 255
         bool isErrorResolved;//default = true
     }
+
+    // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
     constructor(uint _releaseDate, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
         require(_releaseDate > 99999999999, "_releaseDate has to be in the format of yyyymmddhhmm");
         releaseDate = _releaseDate;//201903010900

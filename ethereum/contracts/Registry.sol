@@ -1,6 +1,6 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
-
+//deploy parameters: none
 import "./Ownable.sol";
 import "./SafeMath.sol";
 

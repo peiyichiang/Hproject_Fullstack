@@ -1,5 +1,7 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
+//deploy parameters: "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
+import "./SafeMath.sol";//not used i++ is assumed not to be too big
 
 interface ERC721SPLCITF_asset {
     function balanceOf(address _owner) external view returns (uint256);
@@ -28,6 +30,7 @@ interface ERC721SPLCITF_asset {
 }
 
 contract MultiSig {
+    //using SafeMath for uint256;
     address internal assetsOwner; /** @dev 用戶 address */
     address internal platformContractAddr; /** @dev 平台方 platformContractAddr */
     address[] internal endorsersContractAddr; /** @dev 背書者的 assetContractAddr (一到三個人) */
@@ -168,6 +171,7 @@ contract AssetContract is MultiSig {
     event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
     event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
+    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
     constructor (address _assetsOwner, address _platform, uint256 _time) public {
         assetsOwner = _assetsOwner;
         platformContractAddr = _platform;
@@ -198,8 +202,8 @@ contract AssetContract is MultiSig {
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
-        require(_operator != address(0), 'operator address should not be zero');
-        require(_from != address(0), 'from address should not be zero');
+        //require(_operator != address(0), 'operator address should not be zero');
+        //require(_from != address(0), 'from address should not be zero');
         //require(_from == address(this), 'from address should be from this contract');
         return MAGIC_ON_ERC721_RECEIVED;
     }
