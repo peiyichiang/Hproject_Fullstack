@@ -1,7 +1,31 @@
 pragma solidity ^0.5.3;
 //pragma experimental ABIEncoderV2;
 
-import "./ERC721SPLC.sol";
+interface ERC721SPLCITF_asset {
+    function balanceOf(address _owner) external view returns (uint256);
+    function ownerOf(uint256 _tokenId) external view returns (address);
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external;
+    function transferFrom(address _from, address _to, uint256 _tokenId) external;
+
+    function approve(address _approved, uint256 _tokenId) external;
+    function setApprovalForAll(address _operator, bool _approved) external;
+    function getApproved(uint256 _tokenId) external view returns (address);
+    function isApprovedForAll(address _owner, address _operator) external view returns (bool);
+
+    function supportsInterface(bytes4 _interfaceID) external view returns (bool);
+    
+    function name() external view returns (string memory _name);
+    function symbol() external view returns (string memory _symbol);
+    function tokenURI(uint256 _tokenId) external view returns (string memory);
+
+    function getNFT(uint _id) external view returns (string memory, string memory, string memory, string memory, uint);
+    function get_ownerToIds(address _owner) external view returns (uint[] memory);
+    function get_idToOwnerIndexPlus1(uint _tokenId) external view returns (uint);
+
+    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
+    function mintSerialNFT(address _to, string calldata _uri) external;
+}
 
 contract MultiSig {
     address internal assetsOwner; /** @dev 用戶 address */
@@ -159,7 +183,7 @@ contract AssetContract is MultiSig {
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
     function addAsset(address _tokenAddr, uint256 _time) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        ERC721SPLC _erc721 = ERC721SPLC(address(uint160(_tokenAddr)));
+        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
 
         assets[_tokenAddr].tokenAddr = _tokenAddr;
         assets[_tokenAddr].tokenSymbol = _erc721.symbol();
@@ -170,13 +194,23 @@ contract AssetContract is MultiSig {
         emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _time);
     }
 
+    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
+    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
+        require(_operator != address(0), 'operator address should not be zero');
+        require(_from != address(0), 'from address should not be zero');
+        //require(_from == address(this), 'from address should be from this contract');
+        return MAGIC_ON_ERC721_RECEIVED;
+    }
+
     /** @dev 提領token */
     function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _time) public isAssetsOwner {
-        ERC721SPLC _erc721 = ERC721SPLC(address(uint160(_tokenAddr)));
+        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
         uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);
-        _erc721.transferFrom(address(this), _to, _tokenId);
+        _erc721.safeTransferFrom(address(this), _to, _tokenId);
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
 
@@ -185,7 +219,7 @@ contract AssetContract is MultiSig {
 
     /** @dev get tokenAmount */
     function getAsset(address _tokenAddr) public view returns (uint, uint[] memory){
-        ERC721SPLC _erc721 = ERC721SPLC(address(uint160(_tokenAddr)));
+        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
 
         return (assets[_tokenAddr].tokenAmount, _erc721.get_ownerToIds(address(this)));
     }

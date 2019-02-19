@@ -1,6 +1,8 @@
 pragma solidity ^0.5.3;
 /* => Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!! => use 3rd party to freeze token transfer
 
+Add ITF to distingush interface json from compiled contracts json
+
 ONLY use external account to deploy this contract
 https://github.com/0xcert/ethereum-erc721
 A contract that implements ERC721Metadata or ERC721Enumerable SHALL also implement ERC721. ERC-721 implements the requirements of interface ERC-165.
@@ -25,7 +27,7 @@ calling approve with a non-zero _approved if it was previously the zero address,
 if it was previously a non-zero address, require payment when calling any transfer function, require transfer parameter _to to equal msg.sender, 
 require transfer parameter _to to be the approved address for the NFT
 
-# Read only NFT registry — always throw from unsafeTransfer, transferFrom, approve and setApprovalForAll
+# Read only NFT RegistryITF — always throw from unsafeTransfer, transferFrom, approve and setApprovalForAll
 
 $ only allow two-step ERC-20 style transaction, require that transfer functions never throw, require all functions to return a boolean indicating the success of the operation.
 
@@ -37,7 +39,7 @@ $ The URI MAY be mutable (i.e. it changes from time to time).
 import "./SafeMath.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
-interface ERC721 {
+interface ERC721ITF {
   /** $dev Emits when ownership of any NFT changes by any mechanism. This event emits 
   when NFTs are created (`from` == 0) and destroyed (`to` == 0). Exception: during contract 
   creation, any number of NFTs may be created and assigned without emitting Transfer. 
@@ -115,7 +117,7 @@ interface ERC721 {
 
 /*A wallet/broker/auction application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.
 */
-interface ERC721TokenReceiver {
+interface ERC721TokenReceiverITF {
     /* $notice Handle the receipt of an NFT
      $dev The ERC721 smart contract calls this function on the recipient
       after a `transfer`. This function MAY throw to revert and reject the
@@ -128,11 +130,11 @@ interface ERC721TokenReceiver {
      $param _data Additional data with no specified format
      $return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
       unless throwing*/
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external returns(bytes4);
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
 }
 
 //supportsInterface[0x01ffc9a7] will be true, must not set element 0xffffffff to true!!!!!
-interface ERC165 {
+interface ERC165ITF {
   /** $dev Checks if the smart contract includes a specific interface.
    * $notice This function uses less than 30,000 gas.
    * $param _interfaceID The interface identifier, as specified in ERC-165.
@@ -141,30 +143,30 @@ interface ERC165 {
    * $notice You must not set element 0xffffffff to true!!!!!  */
   function supportsInterface(bytes4 _interfaceID) external view returns (bool);
 }
-contract SupportsInterface is ERC165 {
+contract SupportsInterface is ERC165ITF {
     mapping(bytes4 => bool) internal supportedInterfaces;
     constructor() public {
-        supportedInterfaces[0x01ffc9a7] = true; // ERC165, must not set element 0xffffffff to true!!!!!
+        supportedInterfaces[0x01ffc9a7] = true; // ERC165ITF, must not set element 0xffffffff to true!!!!!
     }
     function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
         return supportedInterfaces[_interfaceID];
     }
 }
 
-//Registry(addrRegistry).isCtAddrApproved(_to);
-interface Registry {
+//RegistryITF(addrRegistryITF).isCtAddrApproved(_to);
+interface RegistryITF {
     function isCtAddrApproved(address assetCtAddr) external view returns (bool);
 }
 
-//ERC721SPLC_Controller(addrERC721SPLC_Controller).isAdmin(msg.sender);
-interface ERC721SPLC_Controller {
+//ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender);
+interface ERC721SPLC_ControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
 
 
 //==================
-contract ERC721SPLC is ERC721, SupportsInterface {
+contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     using SafeMath for uint256;
     using AddressUtils for address;
 
@@ -206,8 +208,8 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     string public pricingCurrency;// for the initialAssetPricing: NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
 
-    address public addrRegistry;
-    address public addrERC721SPLC_Controller;
+    address public addrRegistryITF;
+    address public addrERC721SPLC_ControllerITF;
 
 
     //==================Metadata
@@ -219,12 +221,20 @@ contract ERC721SPLC is ERC721, SupportsInterface {
         function symbol() external view returns (string memory _symbol);// get symbol of the contract
         function tokenURI(uint256 _tokenId) external view returns (string memory);// get token URI of certain tokenId
     }*/
-
-    string public name;//descriptive name for a collection of NFTs
-    string public symbol;//abbreviated name for NFTokens
-
+    string internal nftName;//descriptive name for a collection of NFTs
+    string internal nftSymbol;//abbreviated name for NFTokens
     //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
-    function tokenURI(uint256 _tokenId) external validNFToken(_tokenId) view returns (string memory) {
+
+    function name() external view returns (string memory _name) {
+        _name = nftName;
+    }
+    function symbol() external view returns (string memory _symbol) {
+        _symbol = nftSymbol;
+    }
+    //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
+    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+        //validNFToken(_tokenId)
+        require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
         return idToAsset[_tokenId].uri;//idToUri[_tokenId];
     }
 
@@ -235,12 +245,12 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     "0xbbf289d846208c16edc8474705c748aff07732db"
     */
     constructor(
-        string memory _name, string memory _symbol, 
+        string memory _nftName, string memory _nftSymbol, 
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         string memory _pricingCurrency, uint _IRR20yrx100,
-        address _addrRegistry, address _addrERC721SPLC_Controller) public {
-        name = _name;
-        symbol = _symbol;
+        address _addrRegistryITF, address _addrERC721SPLC_ControllerITF) public {
+        nftName = _nftName;
+        nftSymbol = _nftSymbol;
 
         siteSizeInKW = _siteSizeInKW;
         maxTotalSupply = _maxTotalSupply;
@@ -248,10 +258,10 @@ contract ERC721SPLC is ERC721, SupportsInterface {
         pricingCurrency = _pricingCurrency;
         IRR20yrx100 = _IRR20yrx100;
         
-        addrRegistry = _addrRegistry;
-        addrERC721SPLC_Controller = _addrERC721SPLC_Controller;
+        addrRegistryITF = _addrRegistryITF;
+        addrERC721SPLC_ControllerITF = _addrERC721SPLC_ControllerITF;
 
-        supportedInterfaces[0x80ac58cd] = true;// ERC721
+        supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
@@ -268,7 +278,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
     */
     
-    function getHTokenDetails() public view returns (
+    function getHTokenDetails() external view returns (
         uint, uint, uint,
         uint, uint, string memory, uint) {
         return (
@@ -289,7 +299,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     function get_ownerToIds(address _owner) external view returns (uint[] memory) {
         return ownerToIds[_owner];
     }
-    function get_idToOwnerIndexPlus1(uint _tokenId) public view returns (uint){
+    function get_idToOwnerIndexPlus1(uint _tokenId) external view returns (uint) {
         return idToOwnerIndexPlus1[_tokenId];
     }
 
@@ -324,29 +334,29 @@ contract ERC721SPLC is ERC721, SupportsInterface {
         require(idStart + idCount - 1 <= tokenId, "idStart is too big for idCount");
         address[] memory addrArray;
         for(uint i = idStart; i <= tokenId; i = i.add(1)) {
-            addrArray[i] = ownerOf(i);
+            addrArray[i] = idToOwner[i];
         }
         return addrArray;
     }
 
-    event MintSerialNFT(uint tokenId, string name, string symbol, string pricingCurrency, string uri, uint initialAssetPricing);
+    event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, string calldata _uri) external {
-        require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
+        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
 
         //Legal Compliance
-        require(Registry(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
+        require(RegistryITF(addrRegistryITF).isCtAddrApproved(_to), "_to is not in compliance");
 
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //tokenId <= maxTotalSupply
-        idToAsset[tokenId] = Asset(name, symbol, pricingCurrency, _uri, initialAssetPricing);
+        idToAsset[tokenId] = Asset(nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
 
         //uint256 length = tokens.push(_tokenId);//Enumerable
         //idToIndex[tokenId] = length;//.sub(1);//Enumerable, starting form 1
 
         _mint(_to, tokenId);
         //_setTokenUri(tokenId, _uri);
-        emit MintSerialNFT(tokenId, name, symbol, pricingCurrency, _uri, initialAssetPricing);
+        emit MintSerialNFT(tokenId, nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
         totalSupply = totalSupply.add(1);
     }
     // event BurnNFT(address _owner, uint _tokenId, address msgsender);
@@ -356,6 +366,11 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     //     totalSupply = totalSupply.sub(1);
     //     emit BurnNFT(_owner, _tokenId, msg.sender);
     // }
+
+    function getApprovedInternal(uint256 _tokenId) public view
+        validNFToken(_tokenId) returns (address) {
+        return idToApprovals[_tokenId];
+    }
 
     function() external payable { revert("should not send any ether directly"); }
     //should not send any ether directly
@@ -404,7 +419,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     modifier canTransfer(uint256 _tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || getApproved(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
+            tokenOwner == msg.sender || getApprovedInternal(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
         _;
     }
 
@@ -428,7 +443,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     * invalid, and queries about them do throw.
     * $param _tokenId The identifier for an NFT.   */
     function ownerOf(uint256 _tokenId) 
-        public view returns (address _owner) {
+        external view returns (address _owner) {
         _owner = idToOwner[_tokenId];
         require(_owner != address(0), "_owner should not be 0x0");
     }
@@ -465,10 +480,15 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     * $param _to The new owner.
     * $param _tokenId The NFT to transfer.   */
     function transferFrom(
-        address _from, address _to, uint256 _tokenId) external 
-        canTransfer(_tokenId) validNFToken(_tokenId) {
-
+        address _from, address _to, uint256 _tokenId) external {
+        //canTransfer(_tokenId)
         address tokenOwner = idToOwner[_tokenId];
+        require(
+            tokenOwner == msg.sender || getApprovedInternal(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
+
+        //validNFToken(_tokenId)
+        require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
+
         require(tokenOwner == _from, "tokenOwner should be equal to _from");
         require(_to != address(0), "_to should not be 0x0");
         _transfer(_to, _tokenId);
@@ -480,12 +500,19 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     * the current NFT owner, or an authorized operator of the current owner.
     * $param _approved Address to be approved for the given NFT ID.
     * $param _tokenId ID of the token to be approved.   */
-    function approve(address _approved, uint256 _tokenId) external
-        canOperate(_tokenId) validNFToken(_tokenId) {
+    function approve(address _approved, uint256 _tokenId) external {
+        //canOperate(_tokenId)
         address tokenOwner = idToOwner[_tokenId];
+        require(
+            tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender],
+            "tokenOwner should be either msg.sender or is an approved operator");
+
+        //validNFToken(_tokenId)
+        require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
+
         require(_approved != tokenOwner, "_approved should not be tokenOwner");
         // require(
-        //     !(getApproved(_tokenId) == address(0) && _approved == address(0)), 
+        //     !(getApprovedInternal(_tokenId) == address(0) && _approved == address(0)), 
         //     "approved address and _approved should not be 0x0");
 
         idToApprovals[_tokenId] = _approved;
@@ -507,8 +534,9 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     /** $dev Get the approved address for a single NFT.
     * $notice Throws if `_tokenId` is not a valid NFT.
     * $param _tokenId ID of the NFT to query the approval of.   */
-    function getApproved(uint256 _tokenId) public view
-        validNFToken(_tokenId) returns (address) {
+    function getApproved(uint256 _tokenId) external view returns (address) {
+        //validNFToken(_tokenId)
+        require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
         return idToApprovals[_tokenId];
     }
 
@@ -531,7 +559,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
         address _from, address _to, uint256 _tokenId, bytes memory _data)
         internal canTransfer(_tokenId) validNFToken(_tokenId) {
 
-        require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isUnlockedValid(),'token cannot be transferred');
+        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred');
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be _from");
         require(_to != address(0), "_to should not be 0x0");
@@ -539,7 +567,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
         _transfer(_to, _tokenId);
 
         if (_to.isContract()) {
-            bytes4 retval = ERC721TokenReceiver(_to).onERC721Received(
+            bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
                 msg.sender, _from, _tokenId, _data);
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
@@ -552,11 +580,11 @@ contract ERC721SPLC is ERC721, SupportsInterface {
     function _transfer(address _to, uint256 _tokenId) private {
         address from = idToOwner[_tokenId];
 
-        require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isUnlockedValid(),'token cannot be transferred');
+        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred');
         //Legal Compliance
-        require(Registry(addrRegistry).isCtAddrApproved(_to), "_to is not in compliance");
-        require(Registry(addrRegistry).isCtAddrApproved(from), "from is not in compliance");
-        //require(Registry(addrRegistry).isUnderCompliance(_to, from, 1), "not under compliance");
+        require(RegistryITF(addrRegistryITF).isCtAddrApproved(_to), "_to is not in compliance");
+        require(RegistryITF(addrRegistryITF).isCtAddrApproved(from), "from is not in compliance");
+        //require(RegistryITF(addrRegistryITF).isUnderCompliance(_to, from, 1), "not under compliance");
 
         clearApproval(_tokenId);
         removeNFToken(from, _tokenId, 1);
@@ -610,7 +638,7 @@ contract ERC721SPLC is ERC721, SupportsInterface {
         if (mode == 1) {//transfer
             require(idToOwner[_tokenId] == _from, "tokenId should match _from");
         } else if (mode == 9) {//burn
-            require(ERC721SPLC_Controller(addrERC721SPLC_Controller).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
+            require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
             //only contract owner can destroy the token
         }
         require(ownerToNFTokenCount[_from] > 0, "ownerToNFTokenCount[_from] should be > 0");

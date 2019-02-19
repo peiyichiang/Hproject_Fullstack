@@ -4,7 +4,7 @@ pragma solidity ^0.5.3;
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract CrowdFunding is Ownable{
+contract CrowdFunding is Ownable {
     using SafeMath for uint256;
     
     event showState(string _state);
@@ -57,7 +57,10 @@ contract CrowdFunding is Ownable{
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
 
-    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
+    function Invest(
+        uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) 
+        internal checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform {
+
         if(_serverTime > deadline && amountRaised < fundingGoal){
             salestate = saleState.goalnotReached;//專案失敗
             emit showState(ProjectState());
@@ -91,7 +94,7 @@ contract CrowdFunding is Ownable{
         
     }
 
-    function ProjectState() public view returns(string memory _return){
+    function ProjectState() public view returns(string memory _return) {
         if(salestate == saleState.Funding) _return = "募資中!";
         else if(salestate == saleState.goalReached) _return = "已達標，尚有太陽能板可購買！";
         else if(salestate == saleState.projectClosed && amountRaised == totalamount) _return = "專案已結束，完售";
@@ -110,13 +113,13 @@ contract CrowdFunding is Ownable{
     }
     
     //檢視專案進度，賣出了多少太陽能板
-    function Progress() public view returns(uint){
+    function Progress() public view returns(uint) {
         return (totalamount - amountRaised);
     }
     
     modifier checkState(uint _serverTime) {
         updateState(_serverTime);
-        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active);
+        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
         _;
         updateState(_serverTime);
         emit showState(ProjectState());
@@ -128,7 +131,7 @@ contract CrowdFunding is Ownable{
     }
     
     modifier checkPlatform() {
-        require(msg.sender == platformAddress);
+        require(msg.sender == platformAddress, "checkPlatform failed");
         _;
     }
 }
