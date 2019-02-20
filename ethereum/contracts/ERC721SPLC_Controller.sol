@@ -5,19 +5,19 @@ import "./Ownable.sol";
 
 contract ERC721SPLC_Controller is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
-    uint public currentTime;
-    uint public TokenLaunchTime;
-    uint public TokenUnlockTime;
-    uint public TokenValidTime;//token expiry time 203903310000
+    uint public TimeCurrent;
+    uint public TimeTokenLaunch;
+    uint public TimeTokenUnlock;
+    uint public TimeTokenValid;//token expiry time 203903310000
     bool public isLaunched;//
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _currentTime, uint _TokenLaunchTime, 
-      uint _TokenUnlockTime, uint _TokenValidTime) public {
-        currentTime = _currentTime;
-        TokenLaunchTime = _TokenLaunchTime;
-        TokenUnlockTime = _TokenUnlockTime;
-        TokenValidTime = _TokenValidTime;
+    constructor(uint _TimeCurrent, uint _TimeTokenLaunch, 
+      uint _TimeTokenUnlock, uint _TimeTokenValid) public {
+        TimeCurrent = _TimeCurrent;
+        TimeTokenLaunch = _TimeTokenLaunch;
+        TimeTokenUnlock = _TimeTokenUnlock;
+        TimeTokenValid = _TimeTokenValid;
     }
 
     modifier ckLaunched() {
@@ -31,44 +31,44 @@ contract ERC721SPLC_Controller is Ownable {
     modifier onlyUnlockedValid() {
         //will block all token tranfers either before the lockup time, 
         //or until a time when SPLC's power plant contract is finished
-        require(TokenUnlockTime < currentTime && currentTime < TokenValidTime, "token in lockup time or over valid date");
+        require(TimeTokenUnlock < TimeCurrent && TimeCurrent < TimeTokenValid, "token in lockup time or over valid date");
         _;
     }
     function isUnlockedValid() external view returns (bool){
-        return (TokenUnlockTime < currentTime && currentTime < TokenValidTime);
+        return (TimeTokenUnlock < TimeCurrent && TimeCurrent < TimeTokenValid);
     }
 
     function getHTokenControllerDetails() public view returns (
         uint, uint, uint, uint, bool) {
         return (
-            currentTime, TokenLaunchTime, TokenUnlockTime, TokenValidTime, isLaunched);
+            TimeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, isLaunched);
     }
 
     //For TimeServer injecting current time
-    //event SetCurrentTime(uint _currentTime);
-    function setCurrentTime(uint _currentTime) external onlyAdmin ckTime(_currentTime){
-        currentTime = _currentTime;
-        //emit SetCurrentTime(_currentTime);
+    //event SetTimeCurrent(uint _TimeCurrent);
+    function setTimeCurrent(uint _TimeCurrent) external onlyAdmin ckTime(_TimeCurrent){
+        TimeCurrent = _TimeCurrent;
+        //emit SetTimeCurrent(_TimeCurrent);
     }
 
     //To extend valid time if token operation is paused
-    //event SetTokenValidTime(uint _TokenValidTime);
-    function setTokenValidTime(uint _TokenValidTime) external onlyAdmin ckTime(_TokenValidTime) ckLaunched {
-        TokenValidTime = _TokenValidTime;
-        //emit SetTokenValidTime(_TokenValidTime);
+    //event SetTimeTokenValid(uint _TimeTokenValid);
+    function setTimeTokenValid(uint _TimeTokenValid) external onlyAdmin ckTime(_TimeTokenValid) ckLaunched {
+        TimeTokenValid = _TimeTokenValid;
+        //emit SetTimeTokenValid(_TimeTokenValid);
     }
 
-    //event SetTokenUnlockTime(uint _TokenUnlockTime);
-    function setTokenUnlockTime(uint _TokenUnlockTime) external onlyAdmin ckTime(_TokenUnlockTime) ckLaunched {
-        TokenUnlockTime = _TokenUnlockTime;
-        //emit SetTokenUnlockTime(_TokenUnlockTime);
+    //event SetTimeTokenUnlock(uint _TimeTokenUnlock);
+    function setTimeTokenUnlock(uint _TimeTokenUnlock) external onlyAdmin ckTime(_TimeTokenUnlock) ckLaunched {
+        TimeTokenUnlock = _TimeTokenUnlock;
+        //emit SetTimeTokenUnlock(_TimeTokenUnlock);
     }
 
-    //event SetLaunchTime(uint _TokenLaunchTime);
-    function setLaunchTime(uint _TokenLaunchTime) external onlyAdmin ckTime(_TokenLaunchTime) ckLaunched {
-        TokenLaunchTime = _TokenLaunchTime;
+    //event SetLaunchTime(uint _TimeTokenLaunch);
+    function setLaunchTime(uint _TimeTokenLaunch) external onlyAdmin ckTime(_TimeTokenLaunch) ckLaunched {
+        TimeTokenLaunch = _TimeTokenLaunch;
         isLaunched = true;
-        //emit SetLaunchTime(_TokenLaunchTime);
+        //emit SetLaunchTime(_TimeTokenLaunch);
     }
 
     // event SetLegalCompliance(uint _addrLegalCompliance);

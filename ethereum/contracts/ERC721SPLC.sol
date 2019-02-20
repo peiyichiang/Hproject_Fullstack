@@ -153,9 +153,9 @@ contract SupportsInterface is ERC165ITF {
     }
 }
 
-//RegistryITF(addrRegistryITF).isCtAddrApproved(_to);
+//RegistryITF(addrRegistryITF).isAddrApproved(_to);
 interface RegistryITF {
-    function isCtAddrApproved(address assetCtAddr) external view returns (bool);
+    function isAddrApproved(address assetCtAddr) external view returns (bool);
 }
 
 //ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender);
@@ -344,7 +344,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
 
         //Legal Compliance
-        require(RegistryITF(addrRegistryITF).isCtAddrApproved(_to), "_to is not in compliance");
+        require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
 
         tokenId = tokenId.add(1);
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
@@ -582,8 +582,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
         require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred');
         //Legal Compliance
-        require(RegistryITF(addrRegistryITF).isCtAddrApproved(_to), "_to is not in compliance");
-        require(RegistryITF(addrRegistryITF).isCtAddrApproved(from), "from is not in compliance");
+        require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
+        require(RegistryITF(addrRegistryITF).isAddrApproved(from), "from is not in compliance");
         //require(RegistryITF(addrRegistryITF).isUnderCompliance(_to, from, 1), "not under compliance");
 
         clearApproval(_tokenId);

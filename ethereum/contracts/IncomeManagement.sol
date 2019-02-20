@@ -7,12 +7,12 @@ import "./SafeMath.sol";
 //re-entry attack: prevented by noReentrancy
 contract IncomeManagement is Ownable {
     using SafeMath for uint256;
-    uint public releaseDate;//basis of time reference, format: 201903010900
+    uint public TimeAnchor;//basis of time reference, format: 201903010900
     address public tokenCtrt;
     uint public scheduleIndex;//index of the next scheduled date for income payment
 
-    address public PA_Ctrt;//
-    address public FMXA_Ctrt;//FMXA
+    address public PA_Ctrt;//Platform Auditor
+    address public FMXA_Ctrt;//Fund Manager Auditor
     address public platformCtrt;
     //uint public dateNow;//201903010900
     uint public startingDate = 201901220900;
@@ -31,9 +31,9 @@ contract IncomeManagement is Ownable {
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(uint _releaseDate, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
-        require(_releaseDate > 99999999999, "_releaseDate has to be in the format of yyyymmddhhmm");
-        releaseDate = _releaseDate;//201903010900
+    constructor(uint _TimeAnchor, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
+        require(_TimeAnchor > 99999999999, "_TimeAnchor has to be in the format of yyyymmddhhmm");
+        TimeAnchor = _TimeAnchor;//201903010900
         tokenCtrt = _tokenCtrt;
         PA_Ctrt = _PA_Ctrt;
         FMXA_Ctrt = _FMXA_Ctrt;

@@ -6,6 +6,7 @@ import "./SafeMath.sol";
 
 contract Registry is Ownable {
     using SafeMath for uint256;
+    using AddressUtils for address;
 
     /**@dev 資料結構 */
     struct User{
@@ -15,11 +16,11 @@ contract Registry is Ownable {
     }
 
     /**@dev 註冊相關event */
-    event SetNewUser(string uid, address assetCtAddr, address extoAddr, uint status, uint time);
-    event SetOldUser(string uid, address assetCtAddr, address extoAddr, uint status, uint time);
-    event SetUserStatus(string uid, uint status, uint time);
-    event SetAssetCtAddr(string uid, address assetCtAddr, uint time);
-    event SetExtoAddr(string uid, address assetCtAddr, address extoAddr, uint status, uint time);
+    event SetNewUser(string uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent);
+    event SetOldUser(string uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent);
+    event SetUserStatus(string uid, uint status, uint timeCurrent);
+    event SetAssetCtAddr(string uid, address assetCtAddr, uint timeCurrent);
+    event SetExtoAddr(string uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent);
 
     mapping (string => User) users;//string: 2 letters for country + 身分證字號, SSN, SIN
     uint public userCount;//count the number of users
@@ -48,8 +49,8 @@ contract Registry is Ownable {
         _;
     }
     /**@dev check time */
-    modifier ckTime(uint time) {
-        require(time > 201902010000, "time should be greater than 201902010000");
+    modifier ckTime(uint timeCurrent) {
+        require(timeCurrent > 201902010000, "timeCurrent should be greater than 201902010000");
         _;
     }
     /**@dev check address value not zero */
@@ -66,9 +67,9 @@ contract Registry is Ownable {
     }
 
     /**@dev 新增user */
-    function setNewUser(
-        string calldata uid, address assetCtAddr, address extoAddr, uint time) external 
-        onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) {
+    function addNewUser(
+        string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external 
+        onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) {
         
         require(users[uid].assetCtAddr == address(0), "user already exists: assetCtAddr not empty");
         require(users[uid].extoAddr == address(0), "user already exists: extoAddr not empty");
@@ -79,13 +80,13 @@ contract Registry is Ownable {
         users[uid].status = 0;
 
         assetCtAddrToUid[assetCtAddr] = uid;
-        emit SetNewUser(uid, assetCtAddr, extoAddr, 0, time);
+        emit SetNewUser(uid, assetCtAddr, extoAddr, 0, timeCurrent);
     }
 
     /**@dev set user的 information */
     function setOldUser(
-        string calldata uid, address assetCtAddr, address extoAddr, uint status, uint time)
-        external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(time) 
+        string calldata uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent)
+        external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) 
         uidExists(uid) {
 
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
@@ -95,32 +96,32 @@ contract Registry is Ownable {
         users[uid].status = status;
 
         assetCtAddrToUid[assetCtAddr] = uid;
-        emit SetOldUser(uid, assetCtAddr, extoAddr, status, time);
+        emit SetOldUser(uid, assetCtAddr, extoAddr, status, timeCurrent);
     }
 
     /**@dev 設定user的 assetCtAddr */
-    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint time) external 
-      onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(time) uidExists(uid) {
+    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint timeCurrent) external 
+      onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(timeCurrent) uidExists(uid) {
         
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
         assetCtAddrToUid[assetCtAddr] = uid;
         users[uid].assetCtAddr = assetCtAddr;
-        emit SetAssetCtAddr(uid, assetCtAddr, time);
+        emit SetAssetCtAddr(uid, assetCtAddr, timeCurrent);
     }
 
     /**@dev 設定user的以太帳號 */
-    function setExtoAddr(string calldata uid, address extoAddr, uint time) external 
-      onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) ckTime(time) uidExists(uid) {
+    function setExtoAddr(string calldata uid, address extoAddr, uint timeCurrent) external 
+      onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
         users[uid].extoAddr = extoAddr;
-        emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, time);
+        emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, timeCurrent);
     }
 
     /**@dev 設定user的狀態 */
-    function setUserStatus(string calldata uid, uint status, uint time) external 
-      onlyAdmin ckUid(uid) ckTime(time) uidExists(uid) {
+    function setUserStatus(string calldata uid, uint status, uint timeCurrent) external 
+      onlyAdmin ckUid(uid) ckTime(timeCurrent) uidExists(uid) {
         users[uid].status = status;
-        emit SetUserStatus(uid, status, time);
+        emit SetUserStatus(uid, status, timeCurrent);
     }
 
     /**@dev 取得user數量 */
@@ -164,7 +165,8 @@ contract Registry is Ownable {
     }
 
     /**@dev check if asset contract address is approved, by finding its uid then checking it */
-    function isCtAddrApproved(address assetCtAddr) external view returns (bool) {
+    function isAddrApproved(address assetCtAddr) external view returns (bool) {
+        require(assetCtAddr.isContract(), "assetCtAddr should contain contract code");
         require(assetCtAddr != address(0), "assetCtAddr should not be zero");
         string memory uid = assetCtAddrToUid[assetCtAddr];
         return isUserApproved(uid);
@@ -198,4 +200,17 @@ contract Registry is Ownable {
     }
 */
 
+}
+//--------------------==
+library AddressUtils {
+    function isContract(address _addr) internal view returns (bool) {
+        uint256 size;
+        /* XXX Currently there is no better way to check if there is a contract in an address than to
+        * check the size of the code at that address.
+        * See https://ethereum.stackexchange.com/a/14016/36603 for more details about how this works.
+        * TODO: Check this again before the Serenity release, because all addresses will be
+        * contracts then.*/
+        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        return size > 0;
+    }
 }

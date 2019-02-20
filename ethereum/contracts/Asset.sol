@@ -65,19 +65,19 @@ contract MultiSig {
     }
 
     /** @dev 執行更換eth地址前，三人中有兩人須簽章 */
-    function AssetsOwnerSign(uint256 _time) public isAssetsOwner {
+    function AssetsOwnerSign(uint256 _timeCurrent) public isAssetsOwner {
         assetsOwner_flag = 1;
-        emit assetsOwnerSignEvent(msg.sender, _time);
+        emit assetsOwnerSignEvent(msg.sender, _timeCurrent);
     }
 
-    function platformSign(uint256 _time) public isPlatform {
+    function platformSign(uint256 _timeCurrent) public isPlatform {
         platform_flag = 1;
-        emit platformSignEvent(msg.sender, _time);
+        emit platformSignEvent(msg.sender, _timeCurrent);
     }
 
-    function endorsersSign(uint256 _time) public isEndorsers {
+    function endorsersSign(uint256 _timeCurrent) public isEndorsers {
         endorsers_flag = 1;
-        emit endorserSignEvent(msg.sender, _time);
+        emit endorserSignEvent(msg.sender, _timeCurrent);
     }
 
     modifier isMultiSignature(){
@@ -93,28 +93,28 @@ contract MultiSig {
     }
 
     /** @dev 更換assetOwner */
-    function changeAssetOwner(address _to, uint256 _time) public isMultiSignature{
+    function changeAssetOwner(address _to, uint256 _timeCurrent) public isMultiSignature{
         address _oldAssetOwner = assetsOwner;
         assetsOwner = _to;
         resetSignStatus();
 
-        emit changeAssetOwnerEvent(_oldAssetOwner, assetsOwner, _time);
+        emit changeAssetOwnerEvent(_oldAssetOwner, assetsOwner, _timeCurrent);
     }
 
     /** @dev 新增endorser */
-    function addEndorser(address _newEndorser, uint256 _time) public isAssetsOwner{
+    function addEndorser(address _newEndorser, uint256 _timeCurrent) public isAssetsOwner{
         require(endorsersContractAddr.length < 3, "背書者人數上限為三人");
         endorsersContractAddr.push(_newEndorser);
 
-        emit addEndorsersEvent(_newEndorser, _time);
+        emit addEndorsersEvent(_newEndorser, _timeCurrent);
     }
 
     /** @dev 更換endorser */
-    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _time) public isAssetsOwner{
+    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _timeCurrent) public isAssetsOwner{
         for(uint i = 0;  i < endorsersContractAddr.length; i++){
             if(endorsersContractAddr[i] == _oldEndorser){
                 endorsersContractAddr[i] = _newEndorser;
-                emit changeEndorsersEvent(_oldEndorser, _newEndorser, _time);
+                emit changeEndorsersEvent(_oldEndorser, _newEndorser, _timeCurrent);
             }
         }
     }
@@ -171,12 +171,11 @@ contract AssetContract is MultiSig {
     event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
     event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
-    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor (address _assetsOwner, address _platform, uint256 _time) public {
+    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902201045
+    constructor (address _assetsOwner, address _platform, uint256 _timeCurrent) public {
         assetsOwner = _assetsOwner;
         platformContractAddr = _platform;
-
-        emit createAssetContractEvent(_assetsOwner, _platform, _time);
+        emit createAssetContractEvent(_assetsOwner, _platform, _timeCurrent);
     }
 
     modifier isAssetsOwner(){
@@ -185,7 +184,7 @@ contract AssetContract is MultiSig {
     }
 
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
-    function addAsset(address _tokenAddr, uint256 _time) public {
+    function addAsset(address _tokenAddr, uint256 _timeCurrent) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
         ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
 
@@ -195,21 +194,12 @@ contract AssetContract is MultiSig {
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
         assetIndex.push(_tokenAddr);
 
-        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _time);
+        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
-    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
-    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
-        //require(_operator != address(0), 'operator address should not be zero');
-        //require(_from != address(0), 'from address should not be zero');
-        //require(_from == address(this), 'from address should be from this contract');
-        return MAGIC_ON_ERC721_RECEIVED;
-    }
 
     /** @dev 提領token */
-    function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _time) public isAssetsOwner {
+    function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _timeCurrent) public isAssetsOwner {
         ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
@@ -218,7 +208,7 @@ contract AssetContract is MultiSig {
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
 
-        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _time);
+        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
     /** @dev get tokenAmount */
@@ -239,12 +229,20 @@ contract AssetContract is MultiSig {
     }
 
     /** @dev sign AssetContract's endorserSign */
-    function signAssetContract(address _assetContractAddr, uint256 _time) public isAssetsOwner{
+    function signAssetContract(address _assetContractAddr, uint256 _timeCurrent) public isAssetsOwner{
         AssetContract _multiSig = AssetContract(address(uint160(_assetContractAddr)));
-        _multiSig.endorsersSign(_time);
+        _multiSig.endorsersSign(_timeCurrent);
     }
 
-
+    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
+    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
+        require(_operator != address(0), 'operator address should not be zero');
+        require(_from != address(0), 'from address should not be zero');
+        require(_tokenId > 0, 'tokenId should be greater than zero');
+        return MAGIC_ON_ERC721_RECEIVED;
+    }
 /** @dev string[] 不能回傳 */
 /*
     //get all assets
