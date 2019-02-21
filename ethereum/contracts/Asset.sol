@@ -65,12 +65,13 @@ contract MultiSig {
     }
 
     /** @dev 執行更換eth地址前，三人中有兩人須簽章 */
-    function AssetsOwnerSign(uint256 _timeCurrent) public isAssetsOwner {
+    function AssetsOwnerSign(uint256 _timeCurrent) external isAssetsOwner {
         assetsOwner_flag = 1;
         emit assetsOwnerSignEvent(msg.sender, _timeCurrent);
     }
 
-    function platformSign(uint256 _timeCurrent) public isPlatform {
+    function platformSign(uint256 _timeCurrent) external {
+        require(msg.sender == platformContractAddr, "請檢查是否為平台方合約地址");
         platform_flag = 1;
         emit platformSignEvent(msg.sender, _timeCurrent);
     }
