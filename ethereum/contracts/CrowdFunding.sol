@@ -1,11 +1,11 @@
-//透過平台平台asset contract deploy
-
 pragma solidity ^0.5.3;
+//透過平台平台asset contract deploy
+//deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract CrowdSale is Ownable{
+contract CrowdFunding is Ownable {
     using SafeMath for uint256;
     
     event showState(string _state);
@@ -38,7 +38,9 @@ contract CrowdSale is Ownable{
     enum pauseState{Active, Pause} 
     pauseState pausestate;
 
-    /*  at initialization, setup the owner */
+    /*  at initialization, setup the owner 
+    "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
+    */
     constructor  (
         string memory _htokenSYMBOL,
         uint _tokenprice,
@@ -58,7 +60,10 @@ contract CrowdSale is Ownable{
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
 
-    function Invest(uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) public checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform{
+    function Invest(
+        uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) 
+        internal checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform {
+
         if(_serverTime > deadline && amountRaised < fundingGoal){
             salestate = saleState.goalnotReached;//專案失敗
             emit showState(ProjectState());
@@ -92,7 +97,7 @@ contract CrowdSale is Ownable{
         
     }
 
-    function ProjectState() public view returns(string memory _return){
+    function ProjectState() public view returns(string memory _return) {
         if(salestate == saleState.Funding) _return = "募資中!";
         else if(salestate == saleState.goalReached) _return = "已達標，尚有太陽能板可購買！";
         else if(salestate == saleState.projectClosed && amountRaised == totalamount) _return = "專案已結束，完售";
@@ -111,13 +116,13 @@ contract CrowdSale is Ownable{
     }
     
     //檢視專案進度，賣出了多少太陽能板
-    function Progress() public view returns(uint){
+    function Progress() public view returns(uint) {
         return (totalamount - amountRaised);
     }
     
     modifier checkState(uint _serverTime) {
         updateState(_serverTime);
-        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active);
+        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
         _;
         updateState(_serverTime);
         emit showState(ProjectState());
@@ -129,7 +134,7 @@ contract CrowdSale is Ownable{
     }
     
     modifier checkPlatform() {
-        require(msg.sender == platformAddress);
+        require(msg.sender == platformAddress, "checkPlatform failed");
         _;
     }
 }

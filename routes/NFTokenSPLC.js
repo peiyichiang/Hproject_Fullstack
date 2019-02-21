@@ -15,7 +15,7 @@ web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/
 var fromAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var privateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
 var ctrtAddr ="0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
-const contract = require('../ethereum/contracts/build/NFTokenSPLC.json');
+const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
 
 //https://rinkeby.etherscan.io/address/0x844f88dd745c5f4069184c7eea40cae44dd9826d#code
 var ctrtInst = new web3js.eth.Contract(contract.abi,ctrtAddr);

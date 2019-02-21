@@ -1,11 +1,11 @@
 pragma solidity ^0.5.3;
 
-//import "./Asset.sol";
-import "browser/asset.sol";
-
+import "./Asset.sol";
+//import "browser/asset.sol";
+import "./SafeMath.sol";
 
 contract Platform{
-
+    using SafeMath for uint256;
     address owner;
     uint adminNumber = 0;
     struct Platforms{
