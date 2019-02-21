@@ -20,14 +20,15 @@ contract Ownable {
         manager = msg.sender;
         admin = msg.sender;
     }
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only owner can call this function");
-        _;
-    }
+
     modifier onlyAdmin() {
         require(msg.sender == admin, "only admin can call this function");
         _;
     }
+    function isAdmin(address sender) external view returns (bool){
+        return (sender == admin);
+    }
+
     bool public locked;// initialized as false
     modifier noReentrancy() {
         require(!locked, "noReentrancy failed");

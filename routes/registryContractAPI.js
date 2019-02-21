@@ -18,7 +18,7 @@ var privateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E
 var contractAddr = '0x2B208eAcEfDcE78983d29C115CB10291C6095bba';//POA
 
 /*contract info*/
-const contract = require('../contract/Registry.json');
+const contract = require('../ethereum/contracts/build/Registry.json');
 var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
 
