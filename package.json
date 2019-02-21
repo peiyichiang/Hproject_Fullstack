@@ -9,7 +9,8 @@
     "rent": "node timeserver/manager/rent.js",
     "crowdfunding": "node timeserver/manager/crowdfunding.js",
     "order": "node timeserver/manager/order.js",
-    "time": "concurrently -n timeserver,manager,rent,crowdfunding,order \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\"",
+    "erc721splc": "node timeserver/manager/erc721splc.js",
+    "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,erc721splc \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run erc721splc\"",
     "test": "mocha"
   },
   "dependencies": {
@@ -33,7 +34,6 @@
     "web3": "1.0.0-beta.37"
   },
   "devDependencies": {
-    "@babel/runtime": "^7.3.1",
     "async": "^2.6.1",
     "ganache-cli": "^6.3.0",
     "solc": "^0.5.3"

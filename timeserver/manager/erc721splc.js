@@ -13,19 +13,7 @@ function createServer() {
 
         c.on("data", (data) => {
             // 接收時間後的動作
-            mysql.getCrowdfundingContractAddress(function (result) {
-                if (result.length == 0) {
-                    console.log('nothing')
-                }
-                else {
-                    for (let i in result) {
-                        if (typeof result[i].sc_crowdsaleaddress !== 'undefined') {
-                            console.log(result[i].sc_crowdsaleaddress, data.toString());
-                            contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString());
-                        }
-                    }
-                }
-            })
+            console.log("no address")
         });
 
         c.on("end", () => {
@@ -40,13 +28,13 @@ function createServer() {
             var clientSocket = new net.Socket();
             clientSocket.on('error', function (e) {
                 if (e.code == 'ECONNREFUSED') {
-                    fs.unlinkSync('./crowdfunding.ipc');
-                    server.listen('./crowdfunding.ipc', function () {
+                    fs.unlinkSync('./erc721splc.ipc');
+                    server.listen('./erc721splc.ipc', function () {
                         console.log('server recovered');
                     });
                 }
             });
-            clientSocket.connect({ path: './crowdfunding.ipc' }, function () {
+            clientSocket.connect({ path: './erc721splc.ipc' }, function () {
                 console.log('Server running, giving up...');
                 process.exit();
             });
@@ -54,12 +42,12 @@ function createServer() {
     });
 
     if (os.platform() == 'win32') {
-        server.listen(path.join('\\\\?\\pipe', process.cwd(), 'crowdfunding'), () => {
+        server.listen(path.join('\\\\?\\pipe', process.cwd(), 'erc721splc'), () => {
             console.log("server bound");
         });
     }
     else {
-        server.listen("./crowdfunding.ipc", () => {
+        server.listen("./erc721splc.ipc", () => {
             console.log("server bound");
         });
     }
@@ -71,7 +59,7 @@ function createServer() {
             process.exit();
         }
         else {
-            fs.unlinkSync("./crowdfunding.ipc")
+            fs.unlinkSync("./erc721splc.ipc")
             console.log("檔案刪除");
             process.exit();
         }

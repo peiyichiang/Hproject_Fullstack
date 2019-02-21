@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const mysql = require('../lib/mysql.js');
-//const contract = require('../lib/contractAPI.js');
+const contract = require('../lib/contractAPI.js');
 
 createServer()
 
@@ -16,11 +16,13 @@ function createServer() {
             mysql.getRentContractAddress(function (result) {
                 if (result.length == 0) {
                     console.log('nothing')
-                }
-                else {
+                } else {
+                    console.log("現在時間", data.toString());
                     for (let i in result) {
-                        console.log(result[i].sc_rentContractaddress, data.toString());
-                        //contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
+                        if (typeof result[i].sc_rentContractaddress !== 'undefined') {
+                            console.log(result[i].sc_rentContractaddress, data.toString());
+                            contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
+                        }
                     }
                 }
             })

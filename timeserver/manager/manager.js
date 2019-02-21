@@ -12,6 +12,7 @@ function createServer() {
             sendTimeToCrowdfunding(data.toString())
             sendTimeToRent(data.toString())
             sendTimeToOrder(data.toString())
+            sendTimeToERC721SPLC(data.toString())
         });
 
         c.on("end", () => {
@@ -114,6 +115,25 @@ function sendTimeToOrder(data) {
         var client = net.createConnection("./order.ipc");
         client.on("error", err => {
             console.log('order 連結錯誤')
+        });
+    }
+
+    client.write(data)
+    client.end()
+}
+
+function sendTimeToERC721SPLC(data) {
+
+    if (os.platform() == 'win32') {
+        var client = net.createConnection(path.join('\\\\?\\pipe', process.cwd(), 'erc721splc'));
+        client.on("error", err => {
+            console.log('erc721splc 連結錯誤')
+        });
+    }
+    else {
+        var client = net.createConnection("./erc721splc.ipc");
+        client.on("error", err => {
+            console.log('erc721splc 連結錯誤')
         });
     }
 
