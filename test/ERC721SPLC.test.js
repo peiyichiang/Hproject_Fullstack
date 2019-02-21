@@ -194,10 +194,10 @@ let balance2A; let balance2B;
 const addrZero = "0x0000000000000000000000000000000000000000";
 
 let AssetsOwner1; let AssetsOwner2; let Platform;
-const TimeCurrent = 201902201040;
-const TimeTokenLaunch = TimeCurrent+3;
-const TimeTokenUnlock = TimeCurrent+4; 
-const TimeTokenValid =  TimeCurrent+9;
+let timeCurrent = 201902281040;
+const TimeTokenLaunch = timeCurrent+3;
+const TimeTokenUnlock = timeCurrent+4; 
+const TimeTokenValid =  timeCurrent+9;
 let argsAsset1; let argsAsset2;
 
 const nftName = "NCCU site No.1(2018)";
@@ -211,23 +211,25 @@ const IRR20yrx100 = 470;
 //const addrERC721SPLC_Controller = "0x39523jt032";
 
 const argsERC721SPLC_Controller = [
-  TimeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid ];
+  timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid ];
 
-const _htokenSYMBOL = nftSymbol;
-const _tokenprice = initialAssetPricing;
-const _totalamount = maxTotalSupply;
+const htokenSYMBOL = nftSymbol;
+const tokenprice = initialAssetPricing;
+const totalamount = maxTotalSupply;
 const TargetPercents = 95;
-const CrowdFundingDeadline = TimeCurrent+2;
-const CrowdFundingStartTime = TimeCurrent+1;
-const argsCrowdFunding = [_htokenSYMBOL, _tokenprice, _totalamount, TargetPercents, CrowdFundingDeadline, CrowdFundingStartTime];
+const CrowdFundingDeadline = timeCurrent+2;
+const CrowdFundingStartTime = timeCurrent+1;
+const argsCrowdFunding = [htokenSYMBOL, tokenprice, totalamount, TargetPercents, CrowdFundingDeadline, CrowdFundingStartTime];
 
 const TimeAnchor = TimeTokenLaunch;
 let addrPA_Ctrt; let addrFMXA_Ctrt; let addrPlatformCtrt;
 let uid1; let uid2; let assetCtAddr1; let assetCtAddr2;
 let extoAddr1; let extoAddr2;
 
-let tokenId; let to; let _to; let _from; let _tokenId; let uri; let tokenOwner; let tokenOwnerM;
-let timeCurrent;
+let tokenId; let to; let _from; let uri; let tokenOwner; let tokenOwnerM;
+let tokenControllerDetail; let timeCurrentM;
+let TimeTokenLaunchM; let TimeTokenUnlockM; let TimeTokenValidM; let isLaunchedM;
+let bool1; let bool2;
 
 beforeEach( async () => {
     console.log('\n--------==New beforeEach cycle');
@@ -255,8 +257,8 @@ beforeEach( async () => {
     AssetsOwner1 = acc1;
     AssetsOwner2 = acc2;
     Platform = acc0;
-    argsAsset1 = [AssetsOwner1, Platform, TimeCurrent];
-    argsAsset2 = [AssetsOwner2, Platform, TimeCurrent];
+    argsAsset1 = [AssetsOwner1, Platform, timeCurrent];
+    argsAsset2 = [AssetsOwner2, Platform, timeCurrent];
 
     console.log('\nDeploying contracts...');
 
@@ -412,7 +414,9 @@ describe('ERC721SPLC_Functional_Test', () => {
 
   it('Asset, Registry, ERC721SPLC_H_Token functions test', async () => {
     //----------------==Check Asset contract
-    console.log('Asset contract 1 & 2');
+    console.log('------------==Check Asset contract 1 & 2');
+    console.log('addrAsset1', addrAsset1);
+    console.log('addrAsset2', addrAsset2);
     let assetsOwnerM1 = await instAsset1.methods.getAssetsOwner().call();
     assert.equal(assetsOwnerM1, AssetsOwner1);
     let assetsOwnerM2 = await instAsset2.methods.getAssetsOwner().call();
@@ -428,14 +432,20 @@ describe('ERC721SPLC_Functional_Test', () => {
     let assetsMeasured2 = await instAsset2.methods.getAsset(tokenAddr).call();
     console.log('assetsMeasured1', assetsMeasured1);
     console.log('assetsMeasured2', assetsMeasured2);
-    assert.equal(assetsMeasured1[0], 0);
-    assert.equal(assetsMeasured2[0], 0);
+    assert.equal(assetsMeasured1[0], '');
+    assert.equal(assetsMeasured2[0], '');
+    assert.equal(assetsMeasured1[1], 0);
+    assert.equal(assetsMeasured2[1], 0);
+    assert.equal(assetsMeasured1[2].length, 0);
+    assert.equal(assetsMeasured2[2].length, 0);
+
 
     //----------------==Registry contract
-    console.log('Registry contract');
+    console.log('\n------------==Registry contract: add asset contracts 1 & 2');
+    console.log('addrRegistry', addrRegistry);
     uid1 = "A500000001"; assetCtAddr = addrAsset1; extoAddr = acc1;
-    await instRegistry.methods.addNewUser(
-      uid1, assetCtAddr, extoAddr, TimeCurrent)
+    await instRegistry.methods.addUser(
+      uid1, assetCtAddr, extoAddr, timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
 
     let user1M = await instRegistry.methods.getUser(uid1).call();
@@ -443,10 +453,11 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(user1M[1], assetCtAddr);
     assert.equal(user1M[2], extoAddr);
     assert.equal(user1M[3], 0);
+    console.log('user1M', user1M);
 
     uid2 = "A500000002"; assetCtAddr = addrAsset2; extoAddr = acc2;
-    await instRegistry.methods.addNewUser(
-      uid2, assetCtAddr, extoAddr, TimeCurrent)
+    await instRegistry.methods.addUser(
+      uid2, assetCtAddr, extoAddr, timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
 
     let user2M = await instRegistry.methods.getUser(uid2).call();
@@ -454,70 +465,16 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(user2M[1], assetCtAddr);
     assert.equal(user2M[2], extoAddr);
     assert.equal(user2M[3], 0);
+    console.log('user2M', user2M);
 
-    //----------------==Mint s token
-    console.log('Mint tokenId = 1');
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
-    assert.equal(tokenIdM, 0);
-
-    to = addrAsset1; uri = "https://heliumcryptic.com/nccu01";
-    await instERC721SPLC.methods.mintSerialNFT(to, uri).send({
-      value: '0', from: acc0, gas: '1000000'
-    });
-
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
-    assert.equal(tokenIdM, 1);
-
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwnerM, addrAsset1);
-
-    tokenInfo = await instERC721SPLC.methods.getNFT(1).call();
-    console.log('tokenInfo', tokenInfo);
-    /**
-    const nftName = "NCCU site No.1(2018)";
-    const nftSymbol = "NCCU1801";
-    const siteSizeInKW = 300; const maxTotalSupply = 800; 
-    const initialAssetPricing = 17000; const pricingCurrency = "NTD";
-    const IRR20yrx100 = 470;
-     */
-    assert.equal(tokenInfo[0], nftName);
-    assert.equal(tokenInfo[1], nftSymbol);
-    assert.equal(tokenInfo[2], pricingCurrency);
-    assert.equal(tokenInfo[3], uri);
-    assert.equal(tokenInfo[4], initialAssetPricing);
-
-    //----------------==Send tokens from assetCtrt1 to assetCtrt2
-    console.log('Send tokens from assetCtrt1 to assetCtrt2');
-    tokenId = 1; timeCurrent = TimeCurrent;
-    _from = addrAsset1; _to = addrAsset2; _tokenId = 1;
-
-    await instERC721SPLC.methods.safeTransferFrom(_from, to, _tokenId)
-    .send({ value: '0', from: acc1, gas: '1000000' });
-
-    await instAsset1.methods.addAsset(tokenAddr, TimeCurrent)
-    .send({ value: '0', from: acc0, gas: '1000000' });
-
-    await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent).send({ value: '0', from: acc0, gas: '1000000' });
 
     //----------------==
-    console.log('Test ERC721SPLC');
+    console.log('\n------------==Check ERC721SPLC parameters');
     console.log('addrERC721SPLC', addrERC721SPLC);
 
     // await instERC721SPLC.methods.set_admin(acc1, acc0).send({
     //   value: '0', from: acc0, gas: '1000000'
     // });//set_tokenDump(address _tokenDump, address vendor)
-
-    let owner = await instERC721SPLC_Controller.methods.owner().call();
-    let chairman = await instERC721SPLC_Controller.methods.chairman().call();
-    let director = await instERC721SPLC_Controller.methods.director().call();
-    let manager = await instERC721SPLC_Controller.methods.manager().call();
-    let admin = await instERC721SPLC_Controller.methods.admin().call();
-
-    assert.equal(owner, acc0);
-    assert.equal(manager, acc0);
-    assert.equal(admin, acc0);
-    assert.equal(chairman, acc0);
-    assert.equal(director, acc0);
 
     let nameM = await instERC721SPLC.methods.name().call();
     let symbolM = await instERC721SPLC.methods.symbol().call();
@@ -546,6 +503,142 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(supportsInterface0x5b5e139f, true);
     let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
+
+    //----------------==Mint token
+    console.log('\n------------==Mint token: tokenId = 1');
+    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    assert.equal(tokenIdM, 0);
+
+    to = addrAsset1; uri = "https://heliumcryptic.com/nccu01";
+    await instERC721SPLC.methods.mintSerialNFT(to, uri).send({
+      value: '0', from: acc0, gas: '1000000'
+    });
+
+    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    assert.equal(tokenIdM, 1);
+
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(1).call();
+    assert.equal(tokenOwnerM, addrAsset1);
+
+    tokenInfo = await instERC721SPLC.methods.getNFT(1).call();
+    console.log('tokenInfo from ERC721SPLC', tokenInfo);
+    /**
+    const nftName = "NCCU site No.1(2018)";
+    const nftSymbol = "NCCU1801";
+    const siteSizeInKW = 300; const maxTotalSupply = 800; 
+    const initialAssetPricing = 17000; const pricingCurrency = "NTD";
+    const IRR20yrx100 = 470;
+     */
+    assert.equal(tokenInfo[0], nftName);
+    assert.equal(tokenInfo[1], nftSymbol);
+    assert.equal(tokenInfo[2], pricingCurrency);
+    assert.equal(tokenInfo[3], uri);
+    assert.equal(tokenInfo[4], initialAssetPricing);
+
+    await instAsset1.methods.addAsset(tokenAddr, timeCurrent)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
+    console.log('assetsMeasured1', assetsMeasured1);
+    assert.equal(assetsMeasured1[0], 'NCCU1801');
+    assert.equal(assetsMeasured1[1], 1);
+    assert.equal(assetsMeasured1[2].length, 1);
+
+
+    //-----------------==Check Token Controller: time
+    console.log('\n------------==Check ERC721SPLC_Controller parameters: time');
+    console.log('addrERC721SPLC_Controller', addrERC721SPLC_Controller);
+    let owner = await instERC721SPLC_Controller.methods.owner().call();
+    let chairman = await instERC721SPLC_Controller.methods.chairman().call();
+    let director = await instERC721SPLC_Controller.methods.director().call();
+    let manager = await instERC721SPLC_Controller.methods.manager().call();
+    let admin = await instERC721SPLC_Controller.methods.admin().call();
+
+    assert.equal(owner, acc0);
+    assert.equal(manager, acc0);
+    assert.equal(admin, acc0);
+    assert.equal(chairman, acc0);
+    assert.equal(director, acc0);
+
+    tokenControllerDetail = await instERC721SPLC_Controller.methods.getHTokenControllerDetails().call(); 
+    timeCurrentM = tokenControllerDetail[0];
+    TimeTokenLaunchM = tokenControllerDetail[1];
+    TimeTokenUnlockM = tokenControllerDetail[2];
+    TimeTokenValidM = tokenControllerDetail[3];
+    isLaunchedM = tokenControllerDetail[4];
+    console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLaunched', isLaunchedM);
+
+    //----------------==Send tokens before Unlock Time
+    console.log('\n------------==Send tokens before Unlock Time');
+    timeCurrent = TimeTokenUnlock;
+    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    assert.equal(bool1, false);
+
+    tokenId = 1; _from = addrAsset1; to = addrAsset2;
+    let error = false;
+    try {
+      await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
+      .send({ value: '0', from: acc1, gas: '1000000' });
+      error = true;
+    } catch (err) {
+      console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed because of not meeting the condition: timeCurrent < TimeTokenUnlock', timeCurrent, TimeTokenUnlock);
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+    //----------------==Send tokens from assetCtrt1 to assetCtrt2
+    console.log('\n------------==Send tokens from assetCtrt1 to assetCtrt2');
+    tokenId = 1; _from = addrAsset1; to = addrAsset2;
+
+    timeCurrent = 201902281045;
+    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    assert.equal(bool1, true);
+
+    await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
+    .send({ value: '0', from: acc1, gas: '1000000' });
+    //await instERC721SPLC.methods.safeTransferFrom(from, to, tokenId)
+    //.send({ value: '0', from: _from, gas: '1000000' });
+
+    await instAsset1.methods.addAsset(tokenAddr, timeCurrent)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
+    assert.equal(assetsMeasured1[1], 0);//amount of token
+    assert.equal(assetsMeasured1[2].length, 0);//tokens Ids
+    console.log('assetsMeasured1', assetsMeasured1);
+
+    await instAsset2.methods.addAsset(tokenAddr, timeCurrent)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    assetsMeasured2 = await instAsset2.methods.getAsset(tokenAddr).call();
+    assert.equal(assetsMeasured2[1], 1);//amount of token
+    assert.equal(assetsMeasured2[2][0], 1);//Ids of tokens
+    console.log('assetsMeasured2', assetsMeasured2);
+
+
+    //----------------==Send tokens after valid time
+    console.log('\n------------==Send tokens after valid date');
+    timeCurrent = TimeTokenValid;
+    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    assert.equal(bool1, false);
+
+    to = addrAsset1;
+    error = false;
+    try {
+      await instAsset2.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
+      .send({ value: '0', from: acc2, gas: '1000000' });
+      error = true;
+    } catch (err) {
+      console.log('[Success] sending tokenId 1 from assetCtrt2 to assetCtrt1 failed because of not meeting the condition: timeCurrent > TimeTokenValid', timeCurrent, TimeTokenValid);
+      assert(err);
+    }
+    if (error) {assert(false);}
+
 
     //-------------==set NewOwner to acc4
     // await instERC721SPLC.methods.addNewOwner(acc4).send({
@@ -645,8 +738,8 @@ describe('ERC721SPLC_Functional_Test', () => {
 
     //-------------==safeTransferFrom by owner
     console.log("safeTransferFrom by owner1");
-    let _from = acc1; let _to = acc2; let _tokenId = 1;
-    await instERC721SPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
+    _from = acc1; let to = acc2; let tokenId = 1;
+    await instERC721SPLC.methods.safeTransferFrom(_from, to, tokenId).send({
       value: '0', from: acc1, gas: '1000000'
     });//
     tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
@@ -661,10 +754,10 @@ describe('ERC721SPLC_Functional_Test', () => {
     console.log("transferFrom by owner");
     let balanceOf3C = await instERC721SPLC.methods.balanceOf(acc3).call();
     assert.equal(balanceOf3C, 0);
-    _from = acc2; _to = acc3; _tokenId = 1;
+    _from = acc2; to = acc3; tokenId = 1;
 
     console.log("transferFrom by owner2");
-    await instERC721SPLC.methods.transferFrom(_from, _to, _tokenId).send({
+    await instERC721SPLC.methods.transferFrom(_from, to, tokenId).send({
       value: '0', from: acc2, gas: '1000000'
     });//
     balanceOf2C = await instERC721SPLC.methods.balanceOf(acc2).call();
@@ -675,16 +768,16 @@ describe('ERC721SPLC_Functional_Test', () => {
 
     //-------------==owner approves, then the approved transfers via safeTransferFrom
     console.log("owner approves. the approved transfers via safeTransferFrom");
-    const _approved = acc2; _tokenId = 1;
-    await instERC721SPLC.methods.approve(_approved, _tokenId).send({
+    const _approved = acc2; tokenId = 1;
+    await instERC721SPLC.methods.approve(_approved, tokenId).send({
       value: '0', from: acc3, gas: '1000000'
     });// 
-    let isApproved = await instERC721SPLC.methods.getApproved(_tokenId).call();
+    let isApproved = await instERC721SPLC.methods.getApproved(tokenId).call();
     assert.equal(isApproved, acc2);
 
     //safeTransferFrom by the approved
-    _from = acc3; _to = acc2; _tokenId = 1;
-    await instERC721SPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
+    _from = acc3; to = acc2; tokenId = 1;
+    await instERC721SPLC.methods.safeTransferFrom(_from, to, tokenId).send({
       value: '0', from: acc2, gas: '1000000'
     });//
     tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
@@ -708,8 +801,8 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(isApproved, true);
     
     //safeTransferFrom by the operator
-    _from = acc2; _to = acc1; _tokenId = 1;
-    await instERC721SPLC.methods.safeTransferFrom(_from, _to, _tokenId).send({
+    _from = acc2; to = acc1; tokenId = 1;
+    await instERC721SPLC.methods.safeTransferFrom(_from, to, tokenId).send({
       value: '0', from: acc4, gas: '1000000'
     });//
     tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
@@ -720,8 +813,8 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(balanceOf1E, 1); 
 
     //-------------==burn()
-    _owner = acc1; _tokenId = 1;
-    await instERC721SPLC.methods.burnNFT(_owner, _tokenId).send({
+    _owner = acc1; tokenId = 1;
+    await instERC721SPLC.methods.burnNFT(_owner, tokenId).send({
       value: '0', from: acc0, gas: '1000000'
     });//
     console.log("after burnNFT");
@@ -754,11 +847,11 @@ owner sets C as the operator, then C transfer owner's tokens
 -> canOperate(tokenId)... used only once in approve
     tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender]
 
--> approve(_approved, _tokenId) external canOperate(tokenId)... set approved address
-    idToApprovals[_tokenId] = _approved;
--> getApproved(_tokenId) ... check the approved address
+-> approve(_approved, tokenId) external canOperate(tokenId)... set approved address
+    idToApprovals[tokenId] = _approved;
+-> getApproved(tokenId) ... check the approved address
 
 -> canTransfer(tokenId) ... used in transferFrom and safeTransferFrom
-    tokenOwner == msg.sender || getApproved(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender]
+    tokenOwner == msg.sender || getApproved(tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender]
 */
     //-------------==

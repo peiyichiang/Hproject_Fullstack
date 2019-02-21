@@ -66,8 +66,8 @@ interface ERC721ITF {
   function ownerOf(uint256 _tokenId) external view returns (address);
 
   /** $dev Transfers the ownership of an NFT from one address to another address.
-   * $notice Throws unless `msg.sender` is the current owner, an authorized operator, or the
-   * approved address for this NFT. Throws if `_from` is not the current owner. Throws if `_to` is the zero address. Throws if `_tokenId` is not a valid NFT. When transfer is complete, this function checks if `_to` is a smart contract (code size > 0). If so, it calls `onERC721Received` on `_to` and throws if the return value is not `bytes4(keccak256("onERC721Received(address,uint256,bytes)"))`.
+   * $notice Throws unless `msg.sender` is the current owner, an authorized operator, or the approved address for this NFT. 
+   Throws if `_from` is not the current owner. Throws if `_to` is the zero address. Throws if `_tokenId` is not a valid NFT. When transfer is complete, this function checks if `_to` is a smart contract (code size > 0). If so, it calls `onERC721Received` on `_to` and throws if the return value is not `bytes4(keccak256("onERC721Received(address,uint256,bytes)"))`.
    * $param _from The current owner of the NFT.
    * $param _to The new owner.
    * $param _tokenId The NFT to transfer.
@@ -347,6 +347,13 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
 
         tokenId = tokenId.add(1);
+
+        if (_to.isContract()) {
+            bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
+                msg.sender, address(this), tokenId, "");
+            require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
+        }
+
         require(tokenId <= maxTotalSupply, "max allowed token amount has been reached");
         //tokenId <= maxTotalSupply
         idToAsset[tokenId] = Asset(nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
@@ -559,7 +566,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         address _from, address _to, uint256 _tokenId, bytes memory _data)
         internal canTransfer(_tokenId) validNFToken(_tokenId) {
 
-        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred');
         address tokenOwner = idToOwner[_tokenId];
         require(tokenOwner == _from, "tokenOwner should be _from");
         require(_to != address(0), "_to should not be 0x0");
@@ -580,7 +586,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function _transfer(address _to, uint256 _tokenId) private {
         address from = idToOwner[_tokenId];
 
-        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred');
+        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
         require(RegistryITF(addrRegistryITF).isAddrApproved(from), "from is not in compliance");

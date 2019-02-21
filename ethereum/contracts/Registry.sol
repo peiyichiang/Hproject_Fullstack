@@ -67,7 +67,7 @@ contract Registry is Ownable {
     }
 
     /**@dev 新增user */
-    function addNewUser(
+    function addUser(
         string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external 
         onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) {
         
@@ -83,11 +83,11 @@ contract Registry is Ownable {
         emit SetNewUser(uid, assetCtAddr, extoAddr, 0, timeCurrent);
     }
 
-    /**@dev set user的 information */
-    function setOldUser(
-        string calldata uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent)
-        external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) 
-        uidExists(uid) {
+    /**@dev set existing user 的 information */
+    function setUser(
+        string calldata uid, address assetCtAddr, address extoAddr, 
+        uint status, uint timeCurrent)
+        external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
 
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
 

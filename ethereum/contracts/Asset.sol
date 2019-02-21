@@ -178,10 +178,6 @@ contract AssetContract is MultiSig {
         emit createAssetContractEvent(_assetsOwner, _platform, _timeCurrent);
     }
 
-    modifier isAssetsOwner(){
-        require(msg.sender == assetsOwner, "請檢查是否為合約擁有者");
-        _;
-    }
 
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
     function addAsset(address _tokenAddr, uint256 _timeCurrent) public {
@@ -211,11 +207,9 @@ contract AssetContract is MultiSig {
         emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
-    /** @dev get tokenAmount */
-    function getAsset(address _tokenAddr) public view returns (uint, uint[] memory){
-        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
-
-        return (assets[_tokenAddr].tokenAmount, _erc721.get_ownerToIds(address(this)));
+    /** @dev get assets info */
+    function getAsset(address _tokenAddr) public view returns (string memory, uint, uint[] memory){
+        return (assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids);
     }
 
     /** @dev get asset number */
@@ -235,12 +229,30 @@ contract AssetContract is MultiSig {
     }
 
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
-    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    /* $notice Handle the receipt of an NFT
+     $dev The ERC721 smart contract calls this function on the recipient
+      after a `transfer`. This function MAY throw to revert and reject the
+      transfer. Return of other than the magic value MUST result in the
+      transaction being reverted.
+      Note: the contract address is always the message sender.
+     $param _operator The address which called `safeTransferFrom` function
+     $param _from The address which previously owned the token
+     $param _tokenId The NFT identifier which is being transferred
+     $param _data Additional data with no specified format
+     $return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+      unless throwing
+      which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    */
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
         require(_operator != address(0), 'operator address should not be zero');
-        require(_from != address(0), 'from address should not be zero');
+        require(_from != address(0), 'from address should not be zero');// _from address is contract address if minting tokens
         require(_tokenId > 0, 'tokenId should be greater than zero');
+        /*the following will fail if data is empty!!!
+        uint32 u = uint32(data[3]) + (uint32(data[2]) << 8) + (uint32(data[1]) << 16) + (uint32(data[0]) << 24);
+        tkn.sig = bytes4(u);//tkn.sig is 4 bytes signature of function
+        if data of token transaction is a function execution
+        TKN has element of bytes4 sig;
+        */
         return MAGIC_ON_ERC721_RECEIVED;
     }
 /** @dev string[] 不能回傳 */
