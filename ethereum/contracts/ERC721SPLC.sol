@@ -239,7 +239,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
 
     //==================
-    //4566010 gas
+    //6122295 gas. 
     /** Contract code size over limit of 24576 bytes.
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
     "0xbbf289d846208c16edc8474705c748aff07732db"

@@ -8,6 +8,12 @@ import "./SafeMath.sol";
 contract CrowdFunding is Ownable {
     using SafeMath for uint256;
     
+    /** TO BE REMOVED AFTER TESTING!!!
+    
+    function setAmountRaised(uint _amountRaised) public {
+        amountRaised = _amountRaised;
+    } */
+
     event showState(string _state);
     event updateTime(uint _time);
     event startFunding(string indexed _htokenSYMBOL, uint _fundingGoal, uint _time);
@@ -33,13 +39,13 @@ contract CrowdFunding is Ownable {
 
     ///募款中、已達標(未到期)、已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
     enum saleState{Funding, goalReached, projectClosed, goalnotReached}
-    saleState salestate;
+    saleState public salestate;
     
     enum pauseState{Active, Pause} 
-    pauseState pausestate;
+    pauseState public pausestate;
 
     /*  at initialization, setup the owner 
-    "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
+    "hTaipei001", 17000, 300, 98, 201902191810, 201902191800
     */
     constructor  (
         string memory _htokenSYMBOL,
@@ -62,7 +68,10 @@ contract CrowdFunding is Ownable {
 
     function Invest(
         uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) 
-        internal checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform {
+        external checkAmount(_tokenInvest) checkPlatform {
+
+        updateState(_serverTime);
+        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
 
         if(_serverTime > deadline && amountRaised < fundingGoal){
             salestate = saleState.goalnotReached;//專案失敗
@@ -78,10 +87,13 @@ contract CrowdFunding is Ownable {
             amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
             emit FundTransfer(msg.sender, amount, _serverTime);
         }
+
+        updateState(_serverTime);
+        emit showState(ProjectState());
     }
     
     /* checks if the goal or time limit has been reached and ends the campaign */
-    function updateState(uint _serverTime) private{
+    function updateState(uint _serverTime) public checkPlatform {
         if(_serverTime <= deadline && amountRaised >= fundingGoal){
             emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
             salestate = saleState.goalReached;
@@ -98,11 +110,16 @@ contract CrowdFunding is Ownable {
     }
 
     function ProjectState() public view returns(string memory _return) {
-        if(salestate == saleState.Funding) _return = "募資中!";
-        else if(salestate == saleState.goalReached) _return = "已達標，尚有太陽能板可購買！";
-        else if(salestate == saleState.projectClosed && amountRaised == totalamount) _return = "專案已結束，完售";
-        else if(salestate == saleState.projectClosed && amountRaised >= fundingGoal) _return = "專案已結束，達標";
-        else if(salestate == saleState.goalnotReached) _return = "募款失敗";
+        if(salestate == saleState.Funding) 
+            _return = "during funding";
+        else if(salestate == saleState.goalReached) 
+            _return = "goal reached, but funding amount not reached";
+        else if(salestate == saleState.projectClosed && amountRaised == totalamount)
+            _return = "goal reached and funding amount reached";
+        else if(salestate == saleState.projectClosed && amountRaised >= fundingGoal) 
+            _return = "goal reached, and funding amount is over";
+        else if(salestate == saleState.goalnotReached) 
+            _return = "goal not reached";
         else revert("ProjectState() failed");
     }
     
@@ -118,14 +135,6 @@ contract CrowdFunding is Ownable {
     //檢視專案進度，賣出了多少太陽能板
     function Progress() public view returns(uint) {
         return (totalamount - amountRaised);
-    }
-    
-    modifier checkState(uint _serverTime) {
-        updateState(_serverTime);
-        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
-        _;
-        updateState(_serverTime);
-        emit showState(ProjectState());
     }
     
     modifier checkAmount(uint _tokencount){

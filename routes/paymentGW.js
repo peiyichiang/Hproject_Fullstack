@@ -71,7 +71,7 @@ router.post('/POST/updateOrder', function (req, res, next) {
 
 });
 
-router.post('/POST/sendPayedMail', function (req, res, next) {
+router.post('/POST/sendPaidMail', function (req, res, next) {
 
     var mailInfo = JSON.parse(req.body.mailInfo);
 
