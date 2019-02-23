@@ -52,5 +52,14 @@ yarn run test
 
 ## 7. Live Preview
 
-http://heliumcryptic.website/backend
-http://rinkeby.etherscan.com/smartcontract
+Backend User Login:
+http://140.119.101.130:3000/BackendUser/GET/BackendUserLogin
+
+Backend Roles:
+Platform_Admin
+Platform_Auditor
+Platform_CustomerService
+Company_FundManagerN
+Company_FundManagerA
+
+http://heliumcryptic.website

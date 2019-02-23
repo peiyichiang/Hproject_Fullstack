@@ -216,13 +216,14 @@ const IRR20yrx100 = 470;
 const argsERC721SPLC_Controller = [
   timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid ];
 
-const htokenSYMBOL = nftSymbol;
-const tokenprice = initialAssetPricing;
-const totalamount = maxTotalSupply;
-const TargetPercents = 95;
-const CrowdFundingDeadline = timeCurrent+2;
-const CrowdFundingStartTime = timeCurrent+1;
-const argsCrowdFunding = [htokenSYMBOL, tokenprice, totalamount, TargetPercents, CrowdFundingDeadline, CrowdFundingStartTime];
+const _tokenSymbol = nftSymbol;
+const _tokenPrice = initialAssetPricing;
+const _quantityMax = maxTotalSupply;
+const _goalInPercentage = 95;
+const _CFSD2 = timeCurrent+1;
+const _CFED2 = timeCurrent+10;
+let _serverTime = timeCurrent;
+const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime];
 
 const TimeAnchor = TimeTokenLaunch;
 let addrPA_Ctrt; let addrFMXA_Ctrt; let addrPlatformCtrt;
@@ -483,6 +484,76 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(user2M[2], extoAddr);
     assert.equal(user2M[3], 0);
     console.log('user2M', user2M);
+
+
+    //----------------==
+    console.log('\n------------==Check CrowdFunding parameters');
+    console.log('addrCrowdFunding', addrCrowdFunding);
+    await instCrowdFunding.methods.updateState()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    let serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('serverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281040);
+
+    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "prefunding: not started yet");
+
+    let salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 0);
+
+    //const _CFSD2 = timeCurrent+1;
+    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('serverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281041);
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "funding: with goal not reached yet");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 1);
+
+    if (1==2){
+    //const _CFED2 = timeCurrent+10;
+    await instCrowdFunding.methods.setServerTime(_CFED2)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('serverTimeM', serverTimeM);
+    assert.equal(serverTimeM, _CFED2);//201902281050
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 5);
+    }
+
+    /**
+    const nftSymbol = "NCCU1801";
+    const siteSizeInKW = 300;
+    const maxTotalSupply = 800; 
+    const initialAssetPricing = 17000;
+     */
+    await instCrowdFunding.methods.startFunding()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+     await instCrowdFunding.methods.invest(addrAsset1, _quantityMax)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 4);
 
 
     //----------------==
