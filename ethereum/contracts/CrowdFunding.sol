@@ -9,7 +9,6 @@ contract CrowdFunding is Ownable {
     using SafeMath for uint256;
     
     /** TO BE REMOVED AFTER TESTING!!!
-    
     function setAmountRaised(uint _amountRaised) public {
         amountRaised = _amountRaised;
     } */
@@ -38,7 +37,7 @@ contract CrowdFunding is Ownable {
     mapping(address => Balance) public balanceOf;
 
     ///募款中、已達標(未到期)、已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
-    enum saleState{Funding, goalReached, projectClosed, goalnotReached}
+    enum saleState{funding, goalReached, projectClosed, goalnotReached}
     saleState public salestate;
     
     enum pauseState{Active, Pause} 
@@ -61,7 +60,7 @@ contract CrowdFunding is Ownable {
         totalamount = _totalamount;//專案總量
         fundingGoal = totalamount.mul(_percents).div(100);//專案達標數量
         deadline = _deadline;// yyyymmddhhmm
-        salestate = saleState.Funding;//init the project state
+        salestate = saleState.funding;//init the project state
         pausestate = pauseState.Active;
         emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
     }
@@ -71,7 +70,7 @@ contract CrowdFunding is Ownable {
         external checkAmount(_tokenInvest) checkPlatform {
 
         updateState(_serverTime);
-        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
+        require((salestate == saleState.funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
 
         if(_serverTime > deadline && amountRaised < fundingGoal){
             salestate = saleState.goalnotReached;//專案失敗
@@ -110,7 +109,7 @@ contract CrowdFunding is Ownable {
     }
 
     function ProjectState() public view returns(string memory _return) {
-        if(salestate == saleState.Funding) 
+        if(salestate == saleState.funding) 
             _return = "during funding";
         else if(salestate == saleState.goalReached) 
             _return = "goal reached, but funding amount not reached";

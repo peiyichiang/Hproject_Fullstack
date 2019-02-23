@@ -8,6 +8,7 @@ yarn.lock
 package-lock.json
 archives/
 ethereum/contracts/build/
+.vscode/
 
 #ReactJs
 out/
