@@ -5,7 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+/*ganache*/
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -13,7 +15,7 @@ var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC
 var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /*platform contract address*/
-const contract = require('../ethereum/contracts/Platform.json');
+const contract = require('../ethereum/contracts/build/Platform.json');
 
 router.get('/', function (req, res, next) {
     res.render('platformContractAPI');
@@ -21,7 +23,11 @@ router.get('/', function (req, res, next) {
 
 //deploy asset contract
 router.post('/POST/deploy', function (req, res, next) {
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    /**POA */
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    /**ganache */
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+
     const web3deploy = new Web3(provider);
 
     let platformContract = new web3deploy.eth.Contract(contract.abi);
@@ -31,7 +37,8 @@ router.post('/POST/deploy', function (req, res, next) {
         })
         .send({
             from: backendAddr,
-            gas: 4700000
+            gas: 4700000,
+            gasPrice: '0'
         })
         .on('receipt', function (receipt) {
             res.send(receipt);
@@ -46,7 +53,7 @@ router.post('/POST/addPlatformAdminAddr', async function (req, res, next) {
     let contractAddr = req.body.address;
     let newAdminAddr = req.body.newAdminAddr;
     let id = req.body.id;
-    let time = 20180217;
+    let time = req.body.time;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
@@ -60,11 +67,11 @@ router.post('/POST/addPlatformAdminAddr', async function (req, res, next) {
 });
 
 /** 更改平台方管理員Addr*/
-router.post('/POST/changePlatformAdminAddr', async function (req, res, next) {
+router.patch('/PATCH/changePlatformAdminAddr', async function (req, res, next) {
     let contractAddr = req.body.address;
     let newAdminAddr = req.body.newAdminAddr;
     let id = req.body.id;
-    let time = 20180217;
+    let time = req.body.time;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
@@ -78,10 +85,10 @@ router.post('/POST/changePlatformAdminAddr', async function (req, res, next) {
 });
 
 /** 刪除平台方管理員*/
-router.post('/POST/deletePlatformAdmin', async function (req, res, next) {
+router.delete('/DELETE/deletePlatformAdmin', async function (req, res, next) {
     let contractAddr = req.body.address;
     let id = req.body.id;
-    let time = 20180217;
+    let time = req.body.time;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
@@ -119,14 +126,14 @@ router.get('/GET/getPlatformAdminNumber', async function (req, res, next) {
     })
 });
 
+
 /*平台方簽名（Ａ是Ｂ的平台方=> 由Ｂ的assetContract去簽Ａ */
 router.post('/POST/signAssetContract', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let time = 20180131;
+    let contractAddr = req.body.platformContract;
+    let time = req.body.time;
     let id = req.body.id;
     let assetsContractToBeSigned = req.body.assetsContractToBeSigned;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
-
 
     /*用手機keychain 抓管理員公私鑰*/
     let platformAdmin = '0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590';
@@ -139,6 +146,7 @@ router.post('/POST/signAssetContract', async function (req, res, next) {
         result: result
     })
 });
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {

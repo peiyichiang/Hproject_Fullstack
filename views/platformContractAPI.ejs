@@ -55,7 +55,7 @@
         }
     }
 
-    let platformContract = "0x0923A1F643C6C88b967538D2ae2eE53546479a51";
+    let platformContract = "0x3787d65b3F4156Cf1CB215C2EDecF4E6e588E5Fb";
 
     $('#deploy').on('click', function () {
         log("deploying");
@@ -67,14 +67,14 @@
     })
 
     $('#load').on('click', function () {
-        platformContract = "0x0923A1F643C6C88b967538D2ae2eE53546479a51";
+        platformContract = "0x817A172521472fad991ddDa107C725Ed321e716C";
         log(platformContract);
     })
 
     /*新增admin*/
     $('#addPlatformAdminAddr').on('click', function () {
         address = platformContract;
-        let newAdminAddr = "0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590";
+        let newAdminAddr = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
         let id = "A12345678";
 
         $.post('/platformContractAPI/POST/addPlatformAdminAddr', {
@@ -89,10 +89,10 @@
     /*修改admin*/
     $('#changePlatformAdminAddr').on('click', function () {
         address = platformContract;
-        let newAdminAddr = "0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C";
+        let newAdminAddr = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
         let id = "A12345678";
 
-        $.post('/platformContractAPI/POST/changePlatformAdminAddr', {
+        $.patch('/platformContractAPI/PATCH/changePlatformAdminAddr', {
             address: address,
             newAdminAddr: newAdminAddr,
             id: id
@@ -106,7 +106,7 @@
         address = platformContract;
         let id = "A12345678";
 
-        $.post('/platformContractAPI/POST/deletePlatformAdmin', {
+        $.delete('/platformContractAPI/DELETE/deletePlatformAdmin', {
             address: address,
             id: id
         }, function (result) {
@@ -138,7 +138,7 @@
 
     $('#signAssetContract').on('click', function () {
         address = platformContract;
-        let assetsContractToBeSigned = '0xC263876E5e750982D6c6869E16b32b3734A3aF94';
+        let assetsContractToBeSigned = '0x30C3835045FcbDD02C89Af78Cad5d15b3963b9E0';
         let id = "A12345678";
 
         //log(assetContract);

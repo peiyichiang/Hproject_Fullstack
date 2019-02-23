@@ -7,21 +7,17 @@ var router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+/*ganache*/
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
-/*平台方公私鑰*/
-var userAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
-var privateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
-
-/*registry contract address*/
-//var contractAddr = '0x806e5435281eb8f03959edefbf02b802dcadfa16';//ropsten
-var contractAddr = '0x2B208eAcEfDcE78983d29C115CB10291C6095bba';//POA
+/*後台公私鑰*/
+var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
+var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /*contract info*/
 const contract = require('../ethereum/contracts/build/Registry.json');
-var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-
 
 
 
@@ -31,20 +27,22 @@ router.get('/', function (req, res, next) {
 
 /*deploy registryContract*/
 router.post('/POST/deploy', function (req, res, next) {
-    var privateKeyDeploy = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
+    /**POA */
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    /**ganache */
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
-    //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
-    const provider = new PrivateKeyProvider(privateKeyDeploy, 'http://140.119.101.130:8545');
     const web3deploy = new Web3(provider);
 
-    let registryContractDeploy = new web3deploy.eth.Contract(contract.abi);
+    let registryContract = new web3deploy.eth.Contract(contract.abi);
 
-    registryContractDeploy.deploy({
+    registryContract.deploy({
         data: contract.bytecode
-    })
+        })
         .send({
-            from: userAddr,
-            gas: 3400000
+            from: backendAddr,
+            gas: 6000000,
+            gasPrice: '0'
         })
         .on('receipt', function (receipt) {
             res.send(receipt);
@@ -54,18 +52,14 @@ router.post('/POST/deploy', function (req, res, next) {
         })
 });
 
-/*get registryContract owner*/
-router.get('/GET/getOwner', async function (req, res, next) {
-    let owner = await registryContract.methods.getOwner().call({ from: userAddr })
-
-    res.send({
-        owner: owner
-    })
-});
 
 /*get 會員數量 */
 router.get('/GET/getUserCount', async function (req, res, next) {
-    let count = await registryContract.methods.getUserCount().call({ from: userAddr })
+    let contractAddr = req.query.address;
+
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let count = await registryContract.methods.getUserCount().call({ from: backendAddr })
 
     res.send({
         count: count
@@ -75,7 +69,25 @@ router.get('/GET/getUserCount', async function (req, res, next) {
 /*get 會員資訊 */
 router.get('/GET/getUserInfo', async function (req, res, next) {
     let u_id = req.query.u_id;
-    let userInfo = await registryContract.methods.getUserInfo(u_id).call({ from: userAddr });
+    let contractAddr = req.query.address;
+
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let userInfo = await registryContract.methods.getUser(u_id).call({ from: backendAddr });
+
+    res.send({
+        userInfo: userInfo
+    })
+});
+
+/*get uid by assetCtrAddr */
+router.get('/GET/getUidFromAssetCtAddr', async function (req, res, next) {
+    let assetCtAddr = req.query.assetCtAddr;
+    let contractAddr = req.query.address;
+
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let userInfo = await registryContract.methods.getUidFromAssetCtAddr(assetCtAddr).call({ from: backendAddr });
 
     res.send({
         userInfo: userInfo
@@ -83,14 +95,38 @@ router.get('/GET/getUserInfo', async function (req, res, next) {
 });
 
 /*註冊新會員 */
-router.post('/POST/registerUser', async function (req, res, next) {
+router.post('/POST/addUser', async function (req, res, next) {
+    let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetAddr = req.body.assetAddr;
     let ethAddr = req.body.ethAddr;
+    let time = req.body.time;
 
-    let encodedData = registryContract.methods.registerUser(u_id, assetAddr, ethAddr).encodeABI();
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await signTx(userAddr, privateKey, contractAddr, encodedData);
+    let encodedData = registryContract.methods.addUser(u_id, assetAddr, ethAddr, time).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/*設定會員info */
+router.patch('/PATCH/setUser', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let u_id = req.body.u_id;
+    let assetCtAddr = req.body.assetCtAddr;
+    let ethAddr = req.body.ethAddr;
+    let status = req.body.status;
+    let time = req.body.time;
+
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let encodedData = registryContract.methods.setUser(u_id, assetCtAddr, ethAddr, status, time).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -98,13 +134,17 @@ router.post('/POST/registerUser', async function (req, res, next) {
 });
 
 /*設定會員狀態 */
-router.post('/POST/setAccountStatus', async function (req, res, next) {
-    let u_id = "A123";
-    let AccountStatus = 1;
+router.patch('/PATCH/setUserStatus', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let u_id = req.body.u_id;
+    let accountStatus = req.body.accountStatus;
+    let time = req.body.time;
 
-    let encodedData = registryContract.methods.setAccountStatus(u_id, AccountStatus).encodeABI();
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await signTx(userAddr, privateKey, contractAddr, encodedData);
+    let encodedData = registryContract.methods.setUserStatus(u_id, accountStatus, time).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -112,13 +152,35 @@ router.post('/POST/setAccountStatus', async function (req, res, next) {
 });
 
 /*設定會員eth address */
-router.post('/POST/setEthAddr', async function (req, res, next) {
-    let u_id = "A123";
-    let EthAddr = "0xca35b7d915458ef540ade6068dfe2f44e8fa733c";
+router.patch('/PATCH/setEthAddr', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let u_id = req.body.u_id;
+    let ethAddr = req.body.ethAddr;
+    let time = req.body.time;
 
-    let encodedData = registryContract.methods.setEthAddr(u_id, EthAddr).encodeABI();
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await signTx(userAddr, privateKey, contractAddr, encodedData);
+    let encodedData = registryContract.methods.setExtoAddr(u_id, ethAddr, time).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/*設定會員assetCtr address */
+router.patch('/PATCH/setAssetCtAddr', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let u_id = req.body.u_id;
+    let assetCtAddr = req.body.assetCtAddr;
+    let time = req.body.time;
+
+    var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let encodedData = registryContract.methods.setAssetCtAddr(u_id, assetCtAddr, time).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -126,7 +188,7 @@ router.post('/POST/setEthAddr', async function (req, res, next) {
 });
 
 /*將註冊新會員資訊更新至資料庫 */
-router.post('/POST/updateUserDB', function (req, res, next) {
+router.post('/POST/updateUserToDB', function (req, res, next) {
 
     var u_email = req.body.email;
     var mysqlPoolQuery = req.pool;
@@ -170,7 +232,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                     gas: 300000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
-                    //gasLimit: web3.utils.toHex(3400000),
+                    gasLimit: web3.utils.toHex(3400000),
                     to: contractAddr,
                     value: 0,
                     data: encodedData
