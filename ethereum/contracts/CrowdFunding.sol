@@ -61,7 +61,7 @@ contract CrowdFunding is Ownable {
         require(_tokenPrice > 0, "_tokenPrice should be greater than 0");
         tokenPrice = _tokenPrice;
         quantityMax = _quantityMax;//專案總量
-        quantityGoal = quantityMax.mul(_goalInPercentage).div(100);//專案達標數量
+        quantityGoal = quantityMax.mul(_goalInPercentage).div(100);//專案達標數量, Solidity division will truncates results
 
         require(quantityGoal < quantityMax, "quantityGoal should be lesser than quantityMax");
         require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");

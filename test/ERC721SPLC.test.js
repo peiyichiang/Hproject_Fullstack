@@ -700,9 +700,10 @@ describe('Tests on CrowdFunding', () => {
     console.log('quantityMaxM', quantityMaxM);
     assert.equal(quantityMaxM, 773);
 
+    const quantityTargetGoal = 749;
     let quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
     console.log('quantityGoalM', quantityGoalM);
-    assert.equal(quantityGoalM, 749);
+    assert.equal(quantityGoalM, quantityTargetGoal);
 
     let CFSD2M = await instCrowdFunding.methods.CFSD2().call();
     console.log('CFSD2M', CFSD2M);
@@ -733,7 +734,7 @@ describe('Tests on CrowdFunding', () => {
     .send({ value: '0', from: acc0, gas: '1000000' });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, 201902281041);
+    assert.equal(serverTimeM, _CFSD2);
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -758,12 +759,13 @@ describe('Tests on CrowdFunding', () => {
       salestateM = await instCrowdFunding.methods.salestate().call();
       console.log('salestateM', salestateM);
       assert.equal(salestateM, 5);
+      process.exit(1);
     }
 
     /**
     const nftSymbol = "NCCU1801";
     const maxTotalSupply = 773; 
-    const _goalInPercentage = 97;//  773* 0.97 = 749.81
+    const _goalInPercentage = 97;//  773* 0.97 = 749.81 ... 24
     const initialAssetPricing = 17000;
     */
     // serverTimeM = await instCrowdFunding.methods.serverTime().call();
@@ -773,19 +775,90 @@ describe('Tests on CrowdFunding', () => {
     await instCrowdFunding.methods.startFunding()
     .send({ value: '0', from: acc0, gas: '1000000' });
 
-    await instCrowdFunding.methods.invest(addrAsset1, maxTotalSupply)
+    await instCrowdFunding.methods.invest(addrAsset1, quantityTargetGoal)
     .send({ value: '0', from: acc0, gas: '1000000' });
+    console.log('\nafter investing the target goal amount');
 
+    //------------------==Set time to prefunding
+    await instCrowdFunding.methods.setServerTime(_CFSD2-1)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('serverTimeM', serverTimeM);
+    assert.equal(serverTimeM, _CFSD2-1);//201902281039
+    
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+    assert.equal(stateDescriptionM, "prefunding: goal reached already");
 
     salestateM = await instCrowdFunding.methods.salestate().call();
     console.log('salestateM', salestateM);
-    assert.equal(salestateM, 4);
+    assert.equal(salestateM, 0);
+
+    //------------------==Back to _CFSD2
+    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, _CFSD2);
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingWithGoalReached: still funding and has reached goal");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 3);
 
 
-    //--------------------==
+    //------------------==Overbuying
+    let quantityAvailable = maxTotalSupply - quantityTargetGoal;//24
+
+    let error = false;
+    try {
+      console.log('\nTrying to invest quantityAvailable+1');
+      await instCrowdFunding.methods.invest(addrAsset1, quantityAvailable+1)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+      error = true;
+    } catch (err) {
+      console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    if(1==2){
+      //-------------------==Buying the available quantity
+      console.log('\nTrying to invest quantityAvailable');
+      await instCrowdFunding.methods.invest(addrAsset1, quantityAvailable)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+
+      salestateM = await instCrowdFunding.methods.salestate().call();
+      console.log('salestateM', salestateM);
+      assert.equal(salestateM, 4);
+
+    } else {
+      //-------------------==CFED2 has been reached
+      console.log('\nCFED2 has been reached');
+      await instCrowdFunding.methods.setServerTime(_CFED2)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+      serverTimeM = await instCrowdFunding.methods.serverTime().call();
+      console.log('serverTimeM', serverTimeM);
+      assert.equal(serverTimeM, _CFED2);//201902281050
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "hasSucceeded: ended with unsold items");
+
+      salestateM = await instCrowdFunding.methods.salestate().call();
+      console.log('salestateM', salestateM);
+      assert.equal(salestateM, 4);
+    }
+
+
+    //------------------==
     /*
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
