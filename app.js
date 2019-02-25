@@ -22,6 +22,8 @@ var paymentGWRouter = require('./routes/paymentGW');
 var registryContractAPIRouter = require('./routes/registryContractAPI');
 var assetContractAPIRouter = require('./routes/assetContractAPI');
 var platformContractAPIRouter = require('./routes/platformContractAPI');
+var ERC721ContractAPIRouter = require('./routes/ERC721ContractAPI');
+var ERC721ControllerContractAPIRouter = require('./routes/ERC721ControllerContractAPI');
 
 
 
@@ -149,6 +151,10 @@ app.use('/paymentGW', paymentGWRouter);
 app.use('/registryContractAPI', registryContractAPIRouter);
 app.use('/assetContractAPI', assetContractAPIRouter);
 app.use('/platformContractAPI', platformContractAPIRouter);
+app.use('/ERC721ContractAPI', ERC721ContractAPIRouter);
+app.use('/ERC721ControllerContractAPI', ERC721ControllerContractAPIRouter);
+
+
 
 
 // app.use('/users', usersRouter);

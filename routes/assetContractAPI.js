@@ -35,7 +35,6 @@ router.post('/POST/deploy', function (req, res, next) {
     /**ganache */
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
-
     const web3deploy = new Web3(provider);
 
     let assetOwner = req.body.assetOwner;
@@ -254,12 +253,13 @@ router.post('/POST/addEndorser', async function (req, res, next) {
 /*新增資產到assetContract（由erc721Contract Trigger!）*/
 router.post('/POST/addAsset', async function (req, res, next) {
     let contractAddr = req.body.address;
+    let ERC721Addr = req.body.ERC721Addr
     let time = req.body.time;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
-    let encodedData = assetContract.methods.addAsset(req.body.ERC721Addr, time).encodeABI();
-    let result = await signTx(backendAddr, backendPrivateKey, contractAddr, encodedData);
+    let encodedData = assetContract.methods.addAsset(ERC721Addr, time).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
@@ -269,9 +269,10 @@ router.post('/POST/addAsset', async function (req, res, next) {
 /*輸入erc721tokenAddr，取得token相關資訊*/
 router.get('/GET/getAsset', async function (req, res, next) {
     let contractAddr = req.query.address;
+    let ERC721Addr = req.query.ERC721Addr
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let asset = await assetContract.methods.getAsset(req.query.ERC721Addr).call({ from: backendAddr });
+    let asset = await assetContract.methods.getAsset(ERC721Addr).call({ from: backendAddr });
 
     res.send({
         asset: asset
@@ -301,17 +302,20 @@ router.get('/GET/getAssetIndex', async function (req, res, next) {
 
 });
 
-/*轉移token */
-router.post('/POST/transferAsset', async function (req, res, next) {
+/**approve token被移轉 */
+router.post('/POST/approve', async function (req, res, next) {
     let contractAddr = req.body.address;
+    let tokenAddr = req.body.tokenAddr;
+    let approved = req.body.approved;
+    let tokenId = req.body.tokenId;
     let time = req.body.time;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用手機keychain 抓公私鑰*/
-    let assetsOwner = await assetContract.methods.getAssetsOwner().call({ from: backendAddr });
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
     let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-    let encodedData = assetContract.methods.transferAsset(req.body.ERC721Addr, req.body.token_id, req.body.to, time).encodeABI();
+    let encodedData = assetContract.methods.approve(tokenAddr, approved, tokenId, time).encodeABI();
     let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -321,7 +325,30 @@ router.post('/POST/transferAsset', async function (req, res, next) {
 
 });
 
+/*轉移token */
+router.post('/POST/transferAsset', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let tokenAddr = req.body.tokenAddr;
+    let to = req.body.to;
+    let tokenId = req.body.tokenId;
+    let time = req.body.time;
+    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
 
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+
+    let encodedData = assetContract.methods.transferAsset(tokenAddr, to, tokenId, time).encodeABI();
+    let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+
+});
+
+/**approve token */
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {

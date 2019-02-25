@@ -174,6 +174,7 @@ contract AssetContract is MultiSig {
     /** @dev asset相關event */
     event createAssetContractEvent(address assetsOwner, address platformContractAddr, uint timestamp);
     event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
+    event approvedEvent(address tokenAddr, address approveTo, uint _tokenId, uint timestamp);
     event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902201045
@@ -189,18 +190,28 @@ contract AssetContract is MultiSig {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
         ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
 
+        if(assets[_tokenAddr].tokenAddr != _tokenAddr){
+            assetIndex.push(_tokenAddr);
+        }
         assets[_tokenAddr].tokenAddr = _tokenAddr;
         assets[_tokenAddr].tokenSymbol = _erc721.symbol();
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
-        assetIndex.push(_tokenAddr);
 
         emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
+    /**approve 轉帳到 _to 這個帳號 */
+    function approve(address _tokenAddr, address _approved, uint _tokenId, uint256 _timeCurrent) public{
+        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
+        _erc721.approve(_approved, _tokenId);
+
+        emit approvedEvent(_tokenAddr, _approved, _tokenId, _timeCurrent);
+    }
+
 
     /** @dev 提領token */
-    function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _timeCurrent) public isAssetsOwner {
+    function transferAsset(address _tokenAddr, address _to, uint _tokenId, uint256 _timeCurrent) public isAssetsOwner {
         ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
@@ -208,16 +219,22 @@ contract AssetContract is MultiSig {
         _erc721.safeTransferFrom(address(this), _to, _tokenId);
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
+        for(uint i = 0; i < assetIndex.length; i++){
+            if(assets[assetIndex[i]].tokenAmount == 0){
+                delete assets[assetIndex[i]];
+                delete assetIndex[i];
+            }
+        }
 
         emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
     /** @dev get assets info */
-    function getAsset(address _tokenAddr) public view returns (string memory, uint, uint[] memory){
+    function getAsset(address _tokenAddr) public view returns (string memory tokenSymbol, uint tokenAmount, uint[] memory ids){
         return (assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids);
     }
 
-    /** @dev get asset number */
+    /** @dev get asset 種類 */
     function getAssetCount() public view returns(uint assetCount){
         return assetIndex.length;
     }
