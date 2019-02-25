@@ -11,7 +11,14 @@
     "order": "node timeserver/manager/order.js",
     "erc721splc": "node timeserver/manager/erc721splc.js",
     "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,erc721splc \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run erc721splc\"",
-    "test": "mocha"
+    "test": "mocha",
+    "testcf": "mocha --grep CrowdFunding",
+    "test721": "mocha --grep ERC721SPLC",
+    "test721c": "mocha --grep ERC721SPLC_Controller",
+    "testasset": "mocha --grep Asset",
+    "testregistry": "mocha --grep Registry",
+    "testsystem": "mocha --grep System",
+    "testim": "mocha --grep IncomeManagement"
   },
   "dependencies": {
     "bcrypt": "^3.0.2",

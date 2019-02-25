@@ -206,7 +206,7 @@ const TimeTokenValid =  timeCurrent+9;
 const nftName = "NCCU site No.1(2018)";
 const nftSymbol = "NCCU1801";
 const siteSizeInKW = 300;
-const maxTotalSupply = 800; 
+const maxTotalSupply = 773; 
 const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
@@ -219,7 +219,7 @@ const argsERC721SPLC_Controller = [
 const _tokenSymbol = nftSymbol;
 const _tokenPrice = initialAssetPricing;
 const _quantityMax = maxTotalSupply;
-const _goalInPercentage = 95;
+const _goalInPercentage = 97;
 const _CFSD2 = timeCurrent+1;
 const _CFED2 = timeCurrent+10;
 let _serverTime = timeCurrent;
@@ -407,7 +407,7 @@ beforeEach( async () => {
 });
 
 console.log('----------------==');
-describe('ERC721SPLC_Functional_Test', () => {
+describe('Tests on ERC721SPLC', () => {
   it('check ERC721SPLC deployment test', async () => {
     //!!!!!!!!! New contract instance for EVERY it() => Different contract addresses!!!
     //addrAsset = instAsset1.options.address;
@@ -430,7 +430,7 @@ describe('ERC721SPLC_Functional_Test', () => {
   //   console.log('addrAsset1', addrAsset1);
   // });
 
-  it('Asset, Registry, ERC721SPLC_H_Token functions test', async () => {
+  it('Asset, Registry, ERC721SPLC HToken functions test', async () => {
     //----------------==Check Asset contract
     console.log('------------==Check Asset contract 1 & 2');
     console.log('addrAsset1', addrAsset1);
@@ -485,75 +485,6 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(user2M[3], 0);
     console.log('user2M', user2M);
 
-
-    //----------------==
-    console.log('\n------------==Check CrowdFunding parameters');
-    console.log('addrCrowdFunding', addrCrowdFunding);
-    await instCrowdFunding.methods.updateState()
-    .send({ value: '0', from: acc0, gas: '1000000' });
-
-    let serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('serverTimeM', serverTimeM);
-    assert.equal(serverTimeM, 201902281040);
-
-    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "prefunding: not started yet");
-
-    let salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 0);
-
-    //const _CFSD2 = timeCurrent+1;
-    await instCrowdFunding.methods.setServerTime(_CFSD2)
-    .send({ value: '0', from: acc0, gas: '1000000' });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('serverTimeM', serverTimeM);
-    assert.equal(serverTimeM, 201902281041);
-    
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "funding: with goal not reached yet");
-
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 1);
-
-    if (1==2){
-    //const _CFED2 = timeCurrent+10;
-    await instCrowdFunding.methods.setServerTime(_CFED2)
-    .send({ value: '0', from: acc0, gas: '1000000' });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('serverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFED2);//201902281050
-    
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
-
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 5);
-    }
-
-    /**
-    const nftSymbol = "NCCU1801";
-    const siteSizeInKW = 300;
-    const maxTotalSupply = 800; 
-    const initialAssetPricing = 17000;
-     */
-    await instCrowdFunding.methods.startFunding()
-    .send({ value: '0', from: acc0, gas: '1000000' });
-
-     await instCrowdFunding.methods.invest(addrAsset1, _quantityMax)
-    .send({ value: '0', from: acc0, gas: '1000000' });
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
-
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 4);
 
 
     //----------------==
@@ -730,9 +661,155 @@ describe('ERC721SPLC_Functional_Test', () => {
 
   });
 
+});
 
+
+//-----------------------------------------==
+describe('Tests on CrowdFunding', () => {
+
+  it('CrowdFunding functions test', async () => {
+    console.log('\n------------==Check CrowdFunding parameters');
+    console.log('addrCrowdFunding', addrCrowdFunding);
+    console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
+    // timeCurrent = 201902281040;
+    // const _CFSD2 = timeCurrent+1;
+    // const _CFED2 = timeCurrent+10;
+    /**
+    const nftSymbol = "NCCU1801";
+    const maxTotalSupply = 773; 
+    const _goalInPercentage = 97;//  773* 0.97 = 749.81
+    const initialAssetPricing = 17000;
+
+    string public tokenSymbol; //專案erc721合約
+    uint public tokenPrice; //每片太陽能板定價
+    uint public quantityMax; //專案總token數
+    uint public quantityGoal; //專案達標數目
+    uint public quantitySold; //累積賣出數目
+    uint public CFSD2; //start date yyyymmddhhmm
+    uint public CFED2; //截止日期 yyyymmddhhmm
+    */
+    let tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    console.log('\ntokenSymbolM', tokenSymbolM);
+    assert.equal(tokenSymbolM, nftSymbol);
+
+    let tokenPriceM = await instCrowdFunding.methods.tokenPrice().call();
+    console.log('tokenPriceM', tokenPriceM);
+    assert.equal(tokenPriceM, 17000);
+
+    let quantityMaxM = await instCrowdFunding.methods.quantityMax().call();
+    console.log('quantityMaxM', quantityMaxM);
+    assert.equal(quantityMaxM, 773);
+
+    let quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
+    console.log('quantityGoalM', quantityGoalM);
+    assert.equal(quantityGoalM, 749);
+
+    let CFSD2M = await instCrowdFunding.methods.CFSD2().call();
+    console.log('CFSD2M', CFSD2M);
+    assert.equal(CFSD2M, _CFSD2);
+
+    let CFED2M = await instCrowdFunding.methods.CFED2().call();
+    console.log('CFED2M', CFED2M);
+    assert.equal(CFED2M, _CFED2);
+
+    //------------==
+    await instCrowdFunding.methods.updateState()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    let serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281040);
+
+    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "prefunding: not started yet");
+
+    let salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 0);
+
+    //const _CFSD2 = timeCurrent+1;
+    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281041);
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "funding: with goal not reached yet");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 1);
+
+    if (1==2){
+      //const _CFED2 = timeCurrent+10;
+      await instCrowdFunding.methods.setServerTime(_CFED2)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+      serverTimeM = await instCrowdFunding.methods.serverTime().call();
+      console.log('serverTimeM', serverTimeM);
+      assert.equal(serverTimeM, _CFED2);//201902281050
+      
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
+
+      salestateM = await instCrowdFunding.methods.salestate().call();
+      console.log('salestateM', salestateM);
+      assert.equal(salestateM, 5);
+    }
+
+    /**
+    const nftSymbol = "NCCU1801";
+    const maxTotalSupply = 773; 
+    const _goalInPercentage = 97;//  773* 0.97 = 749.81
+    const initialAssetPricing = 17000;
+    */
+    // serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    // console.log('\nserverTimeM', serverTimeM);
+    // assert.equal(serverTimeM, 201902281041);
+
+    await instCrowdFunding.methods.startFunding()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    await instCrowdFunding.methods.invest(addrAsset1, maxTotalSupply)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 4);
+
+
+    //--------------------==
+    /*
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281041);
+
+    await instCrowdFunding.methods.startFunding()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    await instCrowdFunding.methods.invest(addrAsset1, maxTotalSupply)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 4);
+    */
+
+  });
 
 });
+
 //-------------==
 /*
 Three ways to transfer 721 tokens

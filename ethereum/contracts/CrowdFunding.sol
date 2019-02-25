@@ -170,7 +170,7 @@ contract CrowdFunding is Ownable {
         require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
 
         require(isActive, "funding is not active");
-        require(!isTerminated, "Force Terminated");
+        require(!isTerminated, "crowdFunding has been terminated");
         require(quantitySold.add(_quantityToInvest) <= quantityMax, "insufficient available token quantity");
 
         // serverTime = _serverTime;
