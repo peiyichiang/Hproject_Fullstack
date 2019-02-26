@@ -33,8 +33,18 @@ function getOrderDate(cb) {
         cb(rows);
     })
 }
+
+function getERC721ControllerContractAddress(cb) {
+    pool.query('SELECT sc_erc721Controller FROM smart_contracts', function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        cb(rows);
+    })
+}
 module.exports = {
     getCrowdfundingContractAddress,
     getRentContractAddress,
     getOrderDate,
+    getERC721ControllerContractAddress,
 }
