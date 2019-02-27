@@ -7,9 +7,9 @@
 git clone git@gitlab.com:zSukhoi57/Hproject_Fullstack.git Hproject_Fullstack
 ```
 
-Repository will be downloaded into `Hproject_Fullstack/` folder
+Repository will be downloaded into `Hproject_Fullstack` folder
 
-### 2. Instal dependencies
+### 2. Install dependencies
 
 Go to the downloaded repository folder and run:
 ```
@@ -18,22 +18,20 @@ yarn global add mocha
 yarn global add nodemon
 ```
 
+### 3. Compile Solidity smart contracts
 
-### 3. Run the app
+Compile and build smart contract ABI and bytecode:
+```
+yarn run solc
+```
+
+### 4. Run the app
 
 ```
 yarn run start
 ```
 
 App will be opened in browser at `http://localhost:3000/`
-
-### 4. Compile Solidity smart contracts
-
-Go to the ethereum/contracts folder under the project
-Compile and build smart contract ABI and bytecode:
-```
-node zcompile.js
-```
 
 ### 5. Install web3 version 1.0.0-beta.37
 
@@ -49,7 +47,6 @@ Write tests inside project root directory -> test folder
 
 Install Mocha, a JavaScript test framework
 ```
-yarn global add mocha
 yarn run test
 ```
 
