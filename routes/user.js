@@ -210,7 +210,7 @@ router.post('/post_image', upload.single('image'), function (req, res) {
 
 //-----------------------==
 //http://localhost:3000/user/POST/AddUser
-router.post('/POST/AddUser', function (req, res, next) {
+router.post('/AddUser', function (req, res, next) {
     console.log('------------------------==\n@user/POST/AddUser');
     const qstr1 = 'INSERT INTO htoken.user SET ?';
     var mysqlPoolQuery = req.pool;
@@ -272,7 +272,7 @@ router.post('/POST/AddUser', function (req, res, next) {
 
 
 //http://localhost:3000/user/Get/UserByUserId
-router.get('/GET/UserByUserId', function (req, res, next) {
+router.get('/UserByUserId', function (req, res, next) {
     console.log('------------------------==\n@Order/GET/UserByUserId');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_eth_add = ?';
     var mysqlPoolQuery = req.pool;
@@ -303,7 +303,7 @@ router.get('/GET/UserByUserId', function (req, res, next) {
 
 
 //http://localhost:3000/user/Get/UserLogin
-router.get('/GET/UserLogin', function (req, res, next) {
+router.get('/UserLogin', function (req, res, next) {
     console.log('------------------------==\n@Order/GET/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
@@ -385,7 +385,7 @@ router.get('/GET/UserLogin', function (req, res, next) {
 });
 
 // 獲取Endorser
-router.get('/GET/GetEndorser',function(req, res, next) {
+router.get('/GetEndorser',function(req, res, next) {
     var token=req.query.JWT_Token;
       if (token) {
           // 驗證JWT token
@@ -439,7 +439,7 @@ router.get('/GET/GetEndorser',function(req, res, next) {
 });
 
 // 編輯Endorser
-router.post('/POST/EditEndorser', function (req, res, next) {
+router.post('/EditEndorser', function (req, res, next) {
     // console.log('------------------------==\n@user/POST/EditEndorser');
     // console.log(req.body.EndorserEmail1);
     // console.log(req.body.EndorserEmail2);
