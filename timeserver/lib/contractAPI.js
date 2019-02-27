@@ -20,7 +20,7 @@ function sendTimeToCrowdfundingContract(addr, time) {
     return web3.eth.getAccounts()
         .then(function (accounts) {
             let contract = new web3.eth.Contract(CrowdFunding.abi, addr);
-            return contract.methods.updateState(time)
+            return contract.methods.setServerTime(time)
                 .send({
                     from: accounts[0],
                     gasPrice: 0
