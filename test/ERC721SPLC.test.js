@@ -68,24 +68,24 @@ if (Registry === undefined){
   //console.log(Registry);
 }
 
-const ERC721SPLC_Controller = require('../ethereum/contracts/build/ERC721SPLC_Controller.json');
-if (ERC721SPLC_Controller === undefined){
-  console.log('[Error] ERC721SPLC_Controller is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const TokenController = require('../ethereum/contracts/build/TokenController.json');
+if (TokenController === undefined){
+  console.log('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] ERC721SPLC_Controller is defined');
-  if (ERC721SPLC_Controller.abi === undefined){
-    console.log('[Error] ERC721SPLC_Controller.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] TokenController is defined');
+  if (TokenController.abi === undefined){
+    console.log('[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC_Controller.abi is defined');
-      //console.log('ERC721SPLC_Controller.abi:', ERC721SPLC_Controller.abi);
+    console.log('[Good] TokenController.abi is defined');
+      //console.log('TokenController.abi:', TokenController.abi);
   }
-  if (ERC721SPLC_Controller.bytecode === undefined || ERC721SPLC_Controller.bytecode.length < 10){
-    console.log('[Error] ERC721SPLC_Controller.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (TokenController.bytecode === undefined || TokenController.bytecode.length < 10){
+    console.log('[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC_Controller.bytecode is defined');
-      //console.log('ERC721SPLC_Controller.bytecode:', ERC721SPLC_Controller.bytecode);
+    console.log('[Good] TokenController.bytecode is defined');
+      //console.log('TokenController.bytecode:', TokenController.bytecode);
   }
-  //console.log(ERC721SPLC_Controller);
+  //console.log(TokenController);
 }
 
 const ERC721SPLC = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
@@ -148,24 +148,24 @@ if (IncomeManagement === undefined){
   //console.log(IncomeManagement);
 }
 
-const System = require('../ethereum/contracts/build/System.json');
-if (System === undefined){
-  console.log('[Error] System is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const ProductManager = require('../ethereum/contracts/build/ProductManager.json');
+if (ProductManager === undefined){
+  console.log('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] System is defined');
-  if (System.abi === undefined){
-    console.log('[Error] System.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] ProductManager is defined');
+  if (ProductManager.abi === undefined){
+    console.log('[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] System.abi is defined');
-      //console.log('System.abi:', System.abi);
+    console.log('[Good] ProductManager.abi is defined');
+      //console.log('ProductManager.abi:', ProductManager.abi);
   }
-  if (System.bytecode === undefined || System.bytecode.length < 10){
-    console.log('[Error] System.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (ProductManager.bytecode === undefined || ProductManager.bytecode.length < 10){
+    console.log('[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] System.bytecode is defined');
-      //console.log('System.bytecode:', System.bytecode);
+    console.log('[Good] ProductManager.bytecode is defined');
+      //console.log('ProductManager.bytecode:', ProductManager.bytecode);
   }
-  //console.log(System);
+  //console.log(ProductManager);
 }
 
 
@@ -175,13 +175,12 @@ if (System === undefined){
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
 let accounts;
-let instAsset1; let instAsset2; let addrAsset1; let addrAsset2;
 let instRegistry; let addrRegistry;
-let instERC721SPLC_Controller; let addrERC721SPLC_Controller;
+let instTokenController; let addrTokenController;
 let instERC721SPLC; let addrERC721SPLC;
 let instCrowdFunding; let addrCrowdFunding;
 let instIncomeManagement; let addrIncomeManagement;
-let instSystem; let addrSystem;
+let instProductManager; let addrProductManager;
 
 let acc0; let acc1; let acc2; let acc3; let acc4;
 let balance0; let balance1; let balance2;
@@ -193,33 +192,38 @@ let balance2A; let balance2B;
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
 
-let AssetsOwner1; let AssetsOwner2; let Platform;
+let AssetsOwner1; let AssetsOwner2; let AssetsOwner3; let AssetsOwner4; 
+let argsAsset1; let argsAsset2; let argsAsset3; let argsAsset4;
+let instAsset1; let instAsset2; let instAsset3; let instAsset4; 
+let addrAsset1; let addrAsset2; let addrAsset3; let addrAsset4;
+
+let Platform;
 let timeCurrent = 201902281040;
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
 const TimeTokenValid =  timeCurrent+9;
-let argsAsset1; let argsAsset2;
 
 const nftName = "NCCU site No.1(2018)";
 const nftSymbol = "NCCU1801";
 const siteSizeInKW = 300;
-const maxTotalSupply = 800; 
+const maxTotalSupply = 773; 
 const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
-//const addrERC721SPLC_Controller = "0x39523jt032";
+//const addrTokenController = "0x39523jt032";
 
-const argsERC721SPLC_Controller = [
+const argsTokenController = [
   timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid ];
 
-const htokenSYMBOL = nftSymbol;
-const tokenprice = initialAssetPricing;
-const totalamount = maxTotalSupply;
-const TargetPercents = 95;
-const CrowdFundingDeadline = timeCurrent+2;
-const CrowdFundingStartTime = timeCurrent+1;
-const argsCrowdFunding = [htokenSYMBOL, tokenprice, totalamount, TargetPercents, CrowdFundingDeadline, CrowdFundingStartTime];
+const _tokenSymbol = nftSymbol;
+const _tokenPrice = initialAssetPricing;
+const _quantityMax = maxTotalSupply;
+const _goalInPercentage = 97;
+const _CFSD2 = timeCurrent+1;
+const _CFED2 = timeCurrent+10;
+let _serverTime = timeCurrent;
+const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime];
 
 const TimeAnchor = TimeTokenLaunch;
 let addrPA_Ctrt; let addrFMXA_Ctrt; let addrPlatformCtrt;
@@ -256,10 +260,12 @@ beforeEach( async () => {
 
     AssetsOwner1 = acc1;
     AssetsOwner2 = acc2;
+    AssetsOwner3 = acc3;
+
     Platform = acc0;
     argsAsset1 = [AssetsOwner1, Platform, timeCurrent];
     argsAsset2 = [AssetsOwner2, Platform, timeCurrent];
-
+    argsAsset3 = [AssetsOwner3, Platform, timeCurrent];
     console.log('\nDeploying contracts...');
 
     //Deploying Asset contract... 
@@ -289,6 +295,18 @@ beforeEach( async () => {
     addrAsset2 = instAsset2.options.address;
     console.log('addrAsset2:', addrAsset2);
 
+    instAsset3 =  await new web3.eth.Contract(Asset.abi)
+    .deploy({ data: Asset.bytecode, arguments: argsAsset3 })
+    .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
+    //.then(console.log);
+    console.log('Asset.sol has been deployed');
+    if (instAsset3 === undefined) {
+      console.log('[Error] instAsset3 is NOT defined');
+      } else {console.log('[Good] instAsset3 is defined');}
+    instAsset3.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrAsset3 = instAsset3.options.address;
+    console.log('addrAsset3:', addrAsset3);
+
     
     //Deploying Registry contract...
     instRegistry =  await new web3.eth.Contract(Registry.abi)
@@ -303,17 +321,17 @@ beforeEach( async () => {
     addrRegistry = instRegistry.options.address;
     console.log('addrRegistry:', addrRegistry);
     
-    //Deploying ERC721SPLC_Controller contract...
-    instERC721SPLC_Controller = await new web3.eth.Contract(ERC721SPLC_Controller.abi)
-    .deploy({ data: ERC721SPLC_Controller.bytecode, arguments: argsERC721SPLC_Controller })
+    //Deploying TokenController contract...
+    instTokenController = await new web3.eth.Contract(TokenController.abi)
+    .deploy({ data: TokenController.bytecode, arguments: argsTokenController })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
-    console.log('ERC721SPLC_Controller.sol has been deployed');
-    if (instERC721SPLC_Controller === undefined) {
-      console.log('[Error] instERC721SPLC_Controller is NOT defined');
-      } else {console.log('[Good] instERC721SPLC_Controller is defined');}
-    instERC721SPLC_Controller.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrERC721SPLC_Controller = instERC721SPLC_Controller.options.address;
-    console.log('addrERC721SPLC_Controller:', addrERC721SPLC_Controller);
+    console.log('TokenController.sol has been deployed');
+    if (instTokenController === undefined) {
+      console.log('[Error] instTokenController is NOT defined');
+      } else {console.log('[Good] instTokenController is defined');}
+    instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrTokenController = instTokenController.options.address;
+    console.log('addrTokenController:', addrTokenController);
 
     //Deploying ERC721SPLC contract...
     /** https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
@@ -323,11 +341,11 @@ beforeEach( async () => {
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
-    addrRegistry, addrERC721SPLC_Controller ];
+    addrRegistry, addrTokenController ];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
-    // address _addrRegistryITF, address _addrERC721SPLC_ControllerITF
+    // address _addrRegistryITF, address _addrTokenControllerITF
   
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
     .deploy({ data: ERC721SPLC.bytecode, arguments: argsERC721SPLC })
@@ -369,16 +387,16 @@ beforeEach( async () => {
     addrIncomeManagement = instIncomeManagement.options.address;
     console.log('addrIncomeManagement:', addrIncomeManagement);
 
-    instSystem = await new web3.eth.Contract(System.abi)
-    .deploy({ data: System.bytecode })
+    instProductManager = await new web3.eth.Contract(ProductManager.abi)
+    .deploy({ data: ProductManager.bytecode })
     .send({ from: acc0, gas: '9000000', gasPrice: '20000000000' });
-    console.log('System.sol has been deployed');
-    if (instSystem === undefined) {
-      console.log('[Error] instSystem is NOT defined');
-      } else {console.log('[Good] instSystem is defined');}
-    instSystem.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrSystem = instSystem.options.address;
-    console.log('addrSystem:', addrSystem);
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      console.log('[Error] instProductManager is NOT defined');
+      } else {console.log('[Good] instProductManager is defined');}
+    instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrProductManager = instProductManager.options.address;
+    console.log('addrProductManager:', addrProductManager);
     */
 
     addrPA_Ctrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
@@ -389,14 +407,14 @@ beforeEach( async () => {
 });
 
 console.log('----------------==');
-describe('ERC721SPLC_Functional_Test', () => {
+describe('Tests on ERC721SPLC', () => {
   it('check ERC721SPLC deployment test', async () => {
     //!!!!!!!!! New contract instance for EVERY it() => Different contract addresses!!!
     //addrAsset = instAsset1.options.address;
     assert.ok(addrAsset1);
     assert.ok(addrAsset2);
     assert.ok(addrRegistry);
-    assert.ok(addrERC721SPLC_Controller);
+    assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
     //assert.ok(addrCrowdFunding);
     //assert.ok(addrIncomeManagement);
@@ -412,7 +430,7 @@ describe('ERC721SPLC_Functional_Test', () => {
   //   console.log('addrAsset1', addrAsset1);
   // });
 
-  it('Asset, Registry, ERC721SPLC_H_Token functions test', async () => {
+  it('Asset, Registry, ERC721SPLC HToken functions test', async () => {
     //----------------==Check Asset contract
     console.log('------------==Check Asset contract 1 & 2');
     console.log('addrAsset1', addrAsset1);
@@ -468,6 +486,7 @@ describe('ERC721SPLC_Functional_Test', () => {
     console.log('user2M', user2M);
 
 
+
     //----------------==
     console.log('\n------------==Check ERC721SPLC parameters');
     console.log('addrERC721SPLC', addrERC721SPLC);
@@ -493,7 +512,7 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(siteSizeInKWM, siteSizeInKW);
     assert.equal(tokenIdM, 0);
 
-    let isUnlockedValid = await instERC721SPLC_Controller.methods.isUnlockedValid().call();
+    let isUnlockedValid = await instTokenController.methods.isUnlockedValid().call();
     assert.equal(isUnlockedValid, false);
 
 
@@ -546,13 +565,13 @@ describe('ERC721SPLC_Functional_Test', () => {
 
 
     //-----------------==Check Token Controller: time
-    console.log('\n------------==Check ERC721SPLC_Controller parameters: time');
-    console.log('addrERC721SPLC_Controller', addrERC721SPLC_Controller);
-    let owner = await instERC721SPLC_Controller.methods.owner().call();
-    let chairman = await instERC721SPLC_Controller.methods.chairman().call();
-    let director = await instERC721SPLC_Controller.methods.director().call();
-    let manager = await instERC721SPLC_Controller.methods.manager().call();
-    let admin = await instERC721SPLC_Controller.methods.admin().call();
+    console.log('\n------------==Check TokenController parameters: time');
+    console.log('addrTokenController', addrTokenController);
+    let owner = await instTokenController.methods.owner().call();
+    let chairman = await instTokenController.methods.chairman().call();
+    let director = await instTokenController.methods.director().call();
+    let manager = await instTokenController.methods.manager().call();
+    let admin = await instTokenController.methods.admin().call();
 
     assert.equal(owner, acc0);
     assert.equal(manager, acc0);
@@ -560,7 +579,7 @@ describe('ERC721SPLC_Functional_Test', () => {
     assert.equal(chairman, acc0);
     assert.equal(director, acc0);
 
-    tokenControllerDetail = await instERC721SPLC_Controller.methods.getHTokenControllerDetails().call(); 
+    tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
     timeCurrentM = tokenControllerDetail[0];
     TimeTokenLaunchM = tokenControllerDetail[1];
     TimeTokenUnlockM = tokenControllerDetail[2];
@@ -571,9 +590,9 @@ describe('ERC721SPLC_Functional_Test', () => {
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
     timeCurrent = TimeTokenUnlock;
-    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
-    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
     tokenId = 1; _from = addrAsset1; to = addrAsset2;
@@ -594,9 +613,9 @@ describe('ERC721SPLC_Functional_Test', () => {
     tokenId = 1; _from = addrAsset1; to = addrAsset2;
 
     timeCurrent = 201902281045;
-    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
-    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, true);
 
     await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
@@ -622,9 +641,9 @@ describe('ERC721SPLC_Functional_Test', () => {
     //----------------==Send tokens after valid time
     console.log('\n------------==Send tokens after valid date');
     timeCurrent = TimeTokenValid;
-    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
-    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
     to = addrAsset1;
@@ -640,198 +659,230 @@ describe('ERC721SPLC_Functional_Test', () => {
     if (error) {assert(false);}
 
 
-    //-------------==set NewOwner to acc4
-    // await instERC721SPLC.methods.addNewOwner(acc4).send({
-    //   value: '0', from: acc0, gas: '1000000'
-    // });//
-    // ownerNew = await instERC721SPLC.methods.ownerNew().call();
-    // assert.equal(ownerNew, acc4);
-    // await instERC721SPLC.methods.transferOwnership().send({
-    //   value: '0', from: acc4, gas: '1000000'
-    // });//
-    // owner = await instERC721SPLC.methods.owner().call();
-    // assert.equal(owner, acc4);
-
   });
-
-  /*
-  it('mintSerialNFT -> safeTransferFrom & transferFrom initiated by owner', async () => {
-    addrERC721SPLC = instERC721SPLC.options.address;
-    console.log('addrERC721SPLC', addrERC721SPLC);
-
-    //-------------==balances
-    const balance0A = await instERC721SPLC.methods.balanceOf(acc0).call();
-    assert.equal(balance0A, 0);
-    const balance1A = await instERC721SPLC.methods.balanceOf(acc1).call();
-    assert.equal(balance1A, 0);
-    const balance3A = await instERC721SPLC.methods.balanceOf(acc3).call();
-    assert.equal(balance3A, 0);
-    // assert(balance3B > 1000);
-
-    //-------------==
-
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
-    assert.equal(tokenIdM, 2);
-
-    let asset1 = await instERC721SPLC.methods.getNFT(1).call();
-    console.log('asset1', asset1);
-
-    let givenAssetName = "NCCU site No.1(2018)";
-    let givenAssetSymbol = "NCCU1801";
-    assert.equal(asset1[0], givenAssetName);
-    assert.equal(asset1[1], givenAssetSymbol);
-    assert.equal(asset1[2], "NTD");
-    assert.equal(asset1[3], URI_tokenId01);
-    assert.equal(asset1[4], 17000);
-
-    let tokenURI = await instERC721SPLC.methods.tokenURI(1).call();
-    assert.equal(tokenURI, URI_tokenId01);
-    let tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwner, acc1);
-    let balanceOf1B = await instERC721SPLC.methods.balanceOf(acc1).call();
-    assert.equal(balanceOf1B, 1);
-
-    //-------------==Lockup for token transfers
-    let LockUpPeriod = await instERC721SPLC.methods.LockUpPeriod().call();
-    assert.equal(LockUpPeriod, 300);
-    let tokenMintTime = await instERC721SPLC.methods.tokenMintTime().call();
-    assert.equal(tokenMintTime, 1);
-    const lockupUntil = await instERC721SPLC.methods.get_lockupUntil().call();
-    assert.equal(lockupUntil, 301);
-    console.log("lockupUntil = ", lockupUntil);
-    const nowTime = await instERC721SPLC.methods.get_now().call();
-    console.log("nowTime = ", nowTime);//now =  1542250964
-    assert(parseInt(nowTime) > parseInt(lockupUntil));
-
-    await instERC721SPLC.methods.setTokenMintTime(parseInt(nowTime)).send({
-      value: '0', from: acc0, gas: '1000000'
-    });//
-    tokenMintTime = await instERC721SPLC.methods.tokenMintTime().call();
-    assert.equal(tokenMintTime, parseInt(nowTime));
-
-    let _LockUpPeriod_inMins = 1; let _LockUpPeriod_inWeeks = 1;//1wk: 604800
-    await instERC721SPLC.methods.setLockUpPeriod(_LockUpPeriod_inMins, _LockUpPeriod_inWeeks).send({
-      value: '0', from: acc0, gas: '1000000'
-    });//
-    let lockupperiod = _LockUpPeriod_inMins * 60 + _LockUpPeriod_inWeeks * 60 * 60 * 24 * 7;
-    LockUpPeriod = await instERC721SPLC.methods.LockUpPeriod().call();
-    assert.equal(LockUpPeriod, lockupperiod);
-
-    console.log("after changing lockup time");
-    // assert(balance3B > 1000);
-    // assert(true);
-    // console.log(typeof nowTime);
-
-
-    await instERC721SPLC.methods.setTokenMintTime(1).send({
-      value: '0', from: acc0, gas: '1000000'
-    });//
-    
-    //-------------==isAfterLockup: Open Lockup for token transfers
-    // let isAfterLockup = await instERC721SPLC.methods.isAfterLockup().call();
-    // assert.equal(isAfterLockup, false);
-    // await instERC721SPLC.methods.set_isAfterLockup().send({
-    //   value: '0', from: acc0, gas: '1000000'
-    // });//
-    // isAfterLockup = await instERC721SPLC.methods.isAfterLockup().call();
-    // assert.equal(isAfterLockup, true);
-
-    //-------------==safeTransferFrom by owner
-    console.log("safeTransferFrom by owner1");
-    _from = acc1; let to = acc2; let tokenId = 1;
-    await instERC721SPLC.methods.safeTransferFrom(_from, to, tokenId).send({
-      value: '0', from: acc1, gas: '1000000'
-    });//
-    tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwner, acc2);
-
-    let balanceOf1C = await instERC721SPLC.methods.balanceOf(acc1).call();
-    assert.equal(balanceOf1C, 0);
-    let balanceOf2C = await instERC721SPLC.methods.balanceOf(acc2).call();
-    assert.equal(balanceOf2C, 1);
-
-    //-------------==transferFrom by owner
-    console.log("transferFrom by owner");
-    let balanceOf3C = await instERC721SPLC.methods.balanceOf(acc3).call();
-    assert.equal(balanceOf3C, 0);
-    _from = acc2; to = acc3; tokenId = 1;
-
-    console.log("transferFrom by owner2");
-    await instERC721SPLC.methods.transferFrom(_from, to, tokenId).send({
-      value: '0', from: acc2, gas: '1000000'
-    });//
-    balanceOf2C = await instERC721SPLC.methods.balanceOf(acc2).call();
-    assert.equal(balanceOf2C, 0);
-    console.log("transferFrom by owner3");
-    let balanceOf3D = await instERC721SPLC.methods.balanceOf(acc3).call();
-    assert.equal(balanceOf3D, 1);
-
-    //-------------==owner approves, then the approved transfers via safeTransferFrom
-    console.log("owner approves. the approved transfers via safeTransferFrom");
-    const _approved = acc2; tokenId = 1;
-    await instERC721SPLC.methods.approve(_approved, tokenId).send({
-      value: '0', from: acc3, gas: '1000000'
-    });// 
-    let isApproved = await instERC721SPLC.methods.getApproved(tokenId).call();
-    assert.equal(isApproved, acc2);
-
-    //safeTransferFrom by the approved
-    _from = acc3; to = acc2; tokenId = 1;
-    await instERC721SPLC.methods.safeTransferFrom(_from, to, tokenId).send({
-      value: '0', from: acc2, gas: '1000000'
-    });//
-    tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwner, acc2);
-    let balanceOf3E = await instERC721SPLC.methods.balanceOf(acc3).call();
-    assert.equal(balanceOf3E, 0);
-    let balanceOf2E = await instERC721SPLC.methods.balanceOf(acc2).call();
-    assert.equal(balanceOf2E, 1);
-
-
-    //-------------==acc3 to set acc4 as operator
-    console.log("operator transfers");
-    let _owner = acc2; let _operator = acc4;
-    isApproved = await instERC721SPLC.methods.isApprovedForAll(_owner, _operator).call();
-    assert.equal(isApproved, false);
-
-    await instERC721SPLC.methods.setApprovalForAll(_operator, true).send({
-      value: '0', from: acc2, gas: '1000000'
-    });//
-    isApproved = await instERC721SPLC.methods.isApprovedForAll(_owner, _operator).call();
-    assert.equal(isApproved, true);
-    
-    //safeTransferFrom by the operator
-    _from = acc2; to = acc1; tokenId = 1;
-    await instERC721SPLC.methods.safeTransferFrom(_from, to, tokenId).send({
-      value: '0', from: acc4, gas: '1000000'
-    });//
-    tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwner, acc1);
-    let balanceOf2F = await instERC721SPLC.methods.balanceOf(acc2).call();
-    assert.equal(balanceOf2F, 0);
-    let balanceOf1E = await instERC721SPLC.methods.balanceOf(acc1).call();
-    assert.equal(balanceOf1E, 1); 
-
-    //-------------==burn()
-    _owner = acc1; tokenId = 1;
-    await instERC721SPLC.methods.burnNFT(_owner, tokenId).send({
-      value: '0', from: acc0, gas: '1000000'
-    });//
-    console.log("after burnNFT");
-    if (1===2){//The code below will fail ... but that is what we want to see, because
-      //burned tokens will have owner == 0x0, which is not allowed!
-      tokenOwner = await instERC721SPLC.methods.ownerOf(1).call();
-      assert.equal(tokenOwner, addrZero);
-    }
-    let balanceOf2G = await instERC721SPLC.methods.balanceOf(acc2).call();
-    assert.equal(balanceOf2G, 0);
-    let balanceOf1G = await instERC721SPLC.methods.balanceOf(acc1).call();
-    assert.equal(balanceOf1G, 0); 
-
-  });
-    */
 
 });
+
+
+//-----------------------------------------==
+describe('Tests on CrowdFunding', () => {
+
+  it('CrowdFunding functions test', async () => {
+    console.log('\n------------==Check CrowdFunding parameters');
+    console.log('addrCrowdFunding', addrCrowdFunding);
+    console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
+    // timeCurrent = 201902281040;
+    // const _CFSD2 = timeCurrent+1;
+    // const _CFED2 = timeCurrent+10;
+    /**
+    const nftSymbol = "NCCU1801";
+    const maxTotalSupply = 773; 
+    const _goalInPercentage = 97;//  773* 0.97 = 749.81
+    const initialAssetPricing = 17000;
+
+    string public tokenSymbol; //專案erc721合約
+    uint public tokenPrice; //每片太陽能板定價
+    uint public quantityMax; //專案總token數
+    uint public quantityGoal; //專案達標數目
+    uint public quantitySold; //累積賣出數目
+    uint public CFSD2; //start date yyyymmddhhmm
+    uint public CFED2; //截止日期 yyyymmddhhmm
+    */
+    let tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    console.log('\ntokenSymbolM', tokenSymbolM);
+    assert.equal(tokenSymbolM, nftSymbol);
+
+    let tokenPriceM = await instCrowdFunding.methods.tokenPrice().call();
+    console.log('tokenPriceM', tokenPriceM);
+    assert.equal(tokenPriceM, 17000);
+
+    let quantityMaxM = await instCrowdFunding.methods.quantityMax().call();
+    console.log('quantityMaxM', quantityMaxM);
+    assert.equal(quantityMaxM, 773);
+
+    const quantityTargetGoal = 749;
+    let quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
+    console.log('quantityGoalM', quantityGoalM);
+    assert.equal(quantityGoalM, quantityTargetGoal);
+
+    let CFSD2M = await instCrowdFunding.methods.CFSD2().call();
+    console.log('CFSD2M', CFSD2M);
+    assert.equal(CFSD2M, _CFSD2);
+
+    let CFED2M = await instCrowdFunding.methods.CFED2().call();
+    console.log('CFED2M', CFED2M);
+    assert.equal(CFED2M, _CFED2);
+
+    //------------==
+    await instCrowdFunding.methods.updateState()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    let serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281040);
+
+    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "initial: not started yet");
+
+    let salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 0);
+
+    //const _CFSD2 = timeCurrent+1;
+    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, _CFSD2);
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "funding: with goal not reached yet");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 1);
+
+    if (1==2){
+      //const _CFED2 = timeCurrent+10;
+      await instCrowdFunding.methods.setServerTime(_CFED2)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+      serverTimeM = await instCrowdFunding.methods.serverTime().call();
+      console.log('serverTimeM', serverTimeM);
+      assert.equal(serverTimeM, _CFED2);//201902281050
+      
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
+
+      salestateM = await instCrowdFunding.methods.salestate().call();
+      console.log('salestateM', salestateM);
+      assert.equal(salestateM, 5);
+      process.exit(1);
+    }
+
+    /**
+    const nftSymbol = "NCCU1801";
+    const maxTotalSupply = 773; 
+    const _goalInPercentage = 97;//  773* 0.97 = 749.81 ... 24
+    const initialAssetPricing = 17000;
+    */
+    // serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    // console.log('\nserverTimeM', serverTimeM);
+    // assert.equal(serverTimeM, 201902281041);
+
+    await instCrowdFunding.methods.startFunding()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    await instCrowdFunding.methods.invest(addrAsset1, quantityTargetGoal)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    console.log('\nafter investing the target goal amount');
+
+    //------------------==Set time to initial
+    await instCrowdFunding.methods.setServerTime(_CFSD2-1)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('serverTimeM', serverTimeM);
+    assert.equal(serverTimeM, _CFSD2-1);//201902281039
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "initial: goal reached already");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 0);
+
+    //------------------==Back to _CFSD2
+    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, _CFSD2);
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingWithGoalReached: still funding and has reached goal");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 3);
+
+
+    //------------------==Overbuying
+    let quantityAvailable = maxTotalSupply - quantityTargetGoal;//24
+
+    let error = false;
+    try {
+      console.log('\nTrying to invest quantityAvailable+1');
+      await instCrowdFunding.methods.invest(addrAsset1, quantityAvailable+1)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+      error = true;
+    } catch (err) {
+      console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    if(1==2){
+      //-------------------==Buying the available quantity
+      console.log('\nTrying to invest quantityAvailable');
+      await instCrowdFunding.methods.invest(addrAsset1, quantityAvailable)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+
+      salestateM = await instCrowdFunding.methods.salestate().call();
+      console.log('salestateM', salestateM);
+      assert.equal(salestateM, 4);
+
+    } else {
+      //-------------------==CFED2 has been reached
+      console.log('\nCFED2 has been reached');
+      await instCrowdFunding.methods.setServerTime(_CFED2)
+      .send({ value: '0', from: acc0, gas: '1000000' });
+      serverTimeM = await instCrowdFunding.methods.serverTime().call();
+      console.log('serverTimeM', serverTimeM);
+      assert.equal(serverTimeM, _CFED2);//201902281050
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "hasSucceeded: ended with unsold items");
+
+      salestateM = await instCrowdFunding.methods.salestate().call();
+      console.log('salestateM', salestateM);
+      assert.equal(salestateM, 4);
+    }
+
+
+    //------------------==
+    /*
+    serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    console.log('\nserverTimeM', serverTimeM);
+    assert.equal(serverTimeM, 201902281041);
+
+    await instCrowdFunding.methods.startFunding()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    await instCrowdFunding.methods.invest(addrAsset1, maxTotalSupply)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+
+    salestateM = await instCrowdFunding.methods.salestate().call();
+    console.log('salestateM', salestateM);
+    assert.equal(salestateM, 4);
+    */
+
+  });
+
+});
+
 //-------------==
 /*
 Three ways to transfer 721 tokens

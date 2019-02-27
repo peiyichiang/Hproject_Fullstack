@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
 //deploy parameters: "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
 import "./Ownable.sol";

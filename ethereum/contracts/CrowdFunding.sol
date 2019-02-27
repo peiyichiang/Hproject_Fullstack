@@ -1,140 +1,210 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 //透過平台平台asset contract deploy
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
+interface ERC721TokenReceiverITF_CF {
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
+}
+
 contract CrowdFunding is Ownable {
     using SafeMath for uint256;
-    
-    event showState(string _state);
-    event updateTime(uint _time);
-    event startFunding(string indexed _htokenSYMBOL, uint _fundingGoal, uint _time);
-    event goalReached(string indexed _htokenSYMBOL, uint _amountRaised, uint _time);
-    event fundingClosing(string indexed _htokenSYMBOL, uint _time);
-    event FundTransfer(address _investor, uint _amount, uint _time);
-    
-    address private platformAddress;
-    string public HTokenSYMBOL; //專案erc721合約
-    uint public token_price; //每片太陽能板定價
-    uint public totalamount; //專案總token數
-    uint public fundingGoal; //專案達標數目
-    uint public amountRaised; //累積賣出數目
-    uint public deadline; //截止日期 yyyymmddhhmm
-    
-    struct Balance {
-        address userAssetcontract; //
-        uint256 token_balance; //購買的token總數
-        uint256 fund_balance; //
-    }
-    
-    mapping(address => Balance) public balanceOf;
+    using AddressUtils for address;
 
-    ///募款中、已達標(未到期)、已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
-    enum saleState{Funding, goalReached, projectClosed, goalnotReached}
-    saleState salestate;
+    event ShowState(string _state);
+    event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, saleState indexed _salestate, string _stateDescription);
+    event TokenReserved(address indexed _userAssetContract, uint _quantityToInvest, uint _serverTime);
     
-    enum pauseState{Active, Pause} 
-    pauseState pausestate;
+    uint public serverTime;
+    address private platformAddress;
+    string public tokenSymbol; //專案erc721合約
+    uint public tokenPrice; //每片太陽能板定價
+    uint public quantityMax; //專案總token數
+    uint public quantityGoal; //專案達標數目
+    uint public quantitySold; //累積賣出數目
+    uint public CFSD2; //start date yyyymmddhhmm
+    uint public CFED2; //截止日期 yyyymmddhhmm
+    
+    struct UserAccount {
+        address assetContract; //
+        uint256 tokenBalance; //購買的token總數
+        uint256 fundBalance; //
+    }
+    mapping(address => UserAccount) public userAccount;
+
+    //hasSucceeded: quantityMax is reached or CFED2 is reached with quantitySold > quantityGoal
+    //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
+    enum saleState{initial, funding, paused, fundingWithGoalReached, hasSucceeded, hasFailed, forceTerminated}
+    saleState public salestate;
+    bool public isActive;
+    bool public isTerminated;
+    string public stateDescription;
+    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
 
     /*  at initialization, setup the owner 
-    "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
+    "hTaipei001", 17000, 300, 98, 201902191810, 201902191800
     */
     constructor  (
-        string memory _htokenSYMBOL,
-        uint _tokenprice,
-        uint _totalamount,
-        uint _percents,
-        uint _deadline,//time format yyyymmddhhmm
-        uint _startTime
+        string memory _tokenSymbol,
+        uint _tokenPrice,
+        uint _quantityMax,
+        uint _goalInPercentage,
+        uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED2,//CrowdFunding End Date
+        uint _serverTime
+
     ) public {
-        platformAddress = msg.sender;
-        HTokenSYMBOL = _htokenSYMBOL;//設定專案專案erc721合約
-        token_price = _tokenprice;
-        totalamount = _totalamount;//專案總量
-        fundingGoal = totalamount.mul(_percents).div(100);//專案達標數量
-        deadline = _deadline;// yyyymmddhhmm
-        salestate = saleState.Funding;//init the project state
-        pausestate = pauseState.Active;
-        emit startFunding(_htokenSYMBOL, fundingGoal, _startTime);
+        ckStringLength(_tokenSymbol);
+        tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
+        require(_tokenPrice > 0, "_tokenPrice should be greater than 0");
+        tokenPrice = _tokenPrice;
+        quantityMax = _quantityMax;//專案總量
+        quantityGoal = quantityMax.mul(_goalInPercentage).div(100);//專案達標數量, Solidity division will truncates results
+
+        require(quantityGoal < quantityMax, "quantityGoal should be lesser than quantityMax");
+        require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
+        require(_serverTime < _CFSD2, "CFSD2 should be greater than 201902250000");
+        CFSD2 = _CFSD2;
+        CFED2 = _CFED2;// yyyymmddhhmm
+        salestate = saleState.initial;//init the project state
+        require(_serverTime > 201902250000, "_serverTime should be greater than default time");
+        serverTime = _serverTime;
+        emit UpdateState(tokenSymbol, quantitySold, _serverTime, salestate, "deployed");
     }
 
-    function Invest(
-        uint _serverTime, address _assetContrcatAddr, uint _tokenInvest) 
-        internal checkAmount(_tokenInvest) checkState(_serverTime) checkPlatform {
+    //event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, uint indexed _salestate, string memory _stateDescription);
 
-        if(_serverTime > deadline && amountRaised < fundingGoal){
-            salestate = saleState.goalnotReached;//專案失敗
-            emit showState(ProjectState());
-        }
-        else{
-            uint amount = _tokenInvest;
-            balanceOf[_assetContrcatAddr].userAssetcontract = _assetContrcatAddr;
-            uint tokenBalance = balanceOf[_assetContrcatAddr].token_balance;
-            tokenBalance = tokenBalance.add(amount);//用mapping記錄每個投資人的token數目
-            uint fundBalance = balanceOf[_assetContrcatAddr].fund_balance;
-            fundBalance = fundBalance.add(_tokenInvest.mul(token_price));
-            amountRaised = amountRaised.add(_tokenInvest);//紀錄已經賣了多少token
-            emit FundTransfer(msg.sender, amount, _serverTime);
-        }
+    function addServerTime(uint _additionalTime) external onlyAdmin {
+        require(_additionalTime > 0, "_additionalTime should be greater than zero");
+        serverTime = serverTime.add(_additionalTime);
+        updateState();
     }
-    
+    //for time server to input _serverTime
+    function setServerTime(uint _serverTime) external onlyAdmin {
+        require(_serverTime > 201902250000, "_serverTime should be greater than default time");
+        serverTime = _serverTime;
+        updateState();
+    }
+
     /* checks if the goal or time limit has been reached and ends the campaign */
-    function updateState(uint _serverTime) private{
-        if(_serverTime <= deadline && amountRaised >= fundingGoal){
-            emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
-            salestate = saleState.goalReached;
+    function updateState() public onlyAdmin {
+
+        //enum saleState{initial, funding, paused, fundingWithGoalReached, hasSucceeded, hasFailed, forceTerminated}
+        //quantitySold has only addition operation, so it is a more reliable variable to do if statement
+        if(quantitySold == quantityMax){
+            isTerminated = true;
+            salestate = saleState.hasSucceeded;
+            stateDescription = "hasSucceeded: sold out";
+
+        } else if(quantitySold >= quantityGoal){
+            if (serverTime >= CFED2){
+                salestate = saleState.hasSucceeded;
+                stateDescription = "hasSucceeded: ended with unsold items";
+            } else if (serverTime >= CFSD2){
+                salestate = saleState.fundingWithGoalReached;
+                stateDescription = "fundingWithGoalReached: still funding and has reached goal";
+            } else {
+                salestate = saleState.initial;
+                stateDescription = "initial: goal reached already";
+            }
+
+        } else {
+            if (serverTime >= CFED2){
+                isTerminated = true;
+                salestate = saleState.hasFailed;
+                stateDescription = "hasFailed: ended with goal not reached";
+            } else if (serverTime >= CFSD2){
+                salestate = saleState.funding;
+                stateDescription = "funding: with goal not reached yet";
+            } else {
+                salestate = saleState.initial;
+                stateDescription = "initial: not started yet";
+            }
         }
-        if(amountRaised == totalamount){
-            salestate = saleState.projectClosed;//賣完及結案
-            emit goalReached(HTokenSYMBOL, amountRaised, _serverTime);
-        }
-        if ((_serverTime >= deadline) && (amountRaised >= fundingGoal || amountRaised == totalamount)){
-            salestate = saleState.projectClosed;//到期後有達標，無論是否賣完都算結案
-            emit fundingClosing(HTokenSYMBOL, _serverTime);
-        }
-        
+        emit UpdateState(tokenSymbol, quantitySold, serverTime, salestate, stateDescription);
     }
 
-    function ProjectState() public view returns(string memory _return) {
-        if(salestate == saleState.Funding) _return = "募資中!";
-        else if(salestate == saleState.goalReached) _return = "已達標，尚有太陽能板可購買！";
-        else if(salestate == saleState.projectClosed && amountRaised == totalamount) _return = "專案已結束，完售";
-        else if(salestate == saleState.projectClosed && amountRaised >= fundingGoal) _return = "專案已結束，達標";
-        else if(salestate == saleState.goalnotReached) _return = "募款失敗";
-        else revert("ProjectState() failed");
+    //event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, uint indexed state);
+    function startFunding() external onlyAdmin {
+        isActive = true;
+        emit UpdateState(tokenSymbol, quantitySold, serverTime, salestate, "StartFunding");
     }
-    
-    function pauseSale() public checkPlatform {
-        pausestate = pauseState.Pause;
+    function pauseFunding() external onlyAdmin {
+        isActive = false;
+        salestate = saleState.paused;
+        emit UpdateState(tokenSymbol, quantitySold, serverTime, salestate, "pauseFunding");
     }
-    
-    function resumeSale(uint _resetDeadline) public checkPlatform {
-        pausestate = pauseState.Active;
-        deadline = _resetDeadline;
+    event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _quantityMax);
+    function resumeFunding(uint _CFED2, uint _quantityMax) external onlyAdmin {
+        require(_CFED2 > CFSD2, "_CFED2 should be greater than CDSD2");
+        require(_quantityMax >= quantitySold, "_quantityMax should be greater than quantitySold");
+        isActive = true;
+        CFED2 = _CFED2;
+        quantityMax = _quantityMax;
+        emit ResumeFunding(tokenSymbol, _CFED2, _quantityMax);
+        updateState();
     }
-    
-    //檢視專案進度，賣出了多少太陽能板
-    function Progress() public view returns(uint) {
-        return (totalamount - amountRaised);
+    function forceTerminated(string calldata _reason) external onlyAdmin {
+        ckStringLength(_reason);
+        isTerminated = true;
+        salestate = saleState.forceTerminated;
+        stateDescription = "forceTerminated";
+        updateState();
+        emit UpdateState(tokenSymbol, quantitySold, serverTime, salestate, append("forceTerminated:", _reason));
     }
-    
-    modifier checkState(uint _serverTime) {
-        updateState(_serverTime);
-        require((salestate == saleState.Funding || salestate == saleState.goalReached) && pausestate == pauseState.Active, "checkState modifier failed");
-        _;
-        updateState(_serverTime);
-        emit showState(ProjectState());
+
+    function invest(address _userAssetContract, uint _quantityToInvest) 
+        external onlyAdmin {
+        // uint _serverTime, 
+        // require(_serverTime > serverTime, "_serverTime should be greater than existing serverTime");
+
+        if (_userAssetContract.isContract()) {
+            bytes4 retval = ERC721TokenReceiverITF_CF(_userAssetContract).onERC721Received(
+                msg.sender, msg.sender, 1, "");// assume tokenId = 1;
+            require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
+        } else {
+            require(false,"_userAssetContract address should contain ERC721 compatible asset contract");
+        }
+
+        require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
+
+        require(isActive, "funding is not active");
+        require(!isTerminated, "crowdFunding has been terminated");
+        require(quantitySold.add(_quantityToInvest) <= quantityMax, "insufficient available token quantity");
+
+        // serverTime = _serverTime;
+        // updateState();
+        require(salestate == saleState.funding || salestate == saleState.fundingWithGoalReached, "funding is terminated or not started yet");
+
+        userAccount[_userAssetContract].assetContract = _userAssetContract;
+
+        uint tokenBalance = userAccount[_userAssetContract].tokenBalance;
+        tokenBalance = tokenBalance.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
+
+        uint fundBalance = userAccount[_userAssetContract].fundBalance;
+        fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
+
+        quantitySold = quantitySold.add(_quantityToInvest);//紀錄已經賣了多少token
+        emit TokenReserved(_userAssetContract, _quantityToInvest, serverTime);
+        //event TokenReserved(address indexed _userAssetContract, uint _quantityToInvest, uint _serverTime);
+
+        updateState();
     }
-    
-    modifier checkAmount(uint _tokencount){
-        require(_tokencount.add(amountRaised) <= totalamount, "checkAmount failed");
-        _;
+
+    function append(string memory a, string memory b) public pure returns (string memory) {
+        return string(abi.encodePacked(a, b));
     }
-    
-    modifier checkPlatform() {
-        require(msg.sender == platformAddress, "checkPlatform failed");
-        _;
+    function ckStringLength(string memory _str) public pure {
+        require(bytes(_str).length > 0, "input string should not be empty");
+    }
+
+}
+library AddressUtils {
+    function isContract(address _addr) internal view returns (bool) {
+        uint256 size;
+        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        return size > 0;
     }
 }

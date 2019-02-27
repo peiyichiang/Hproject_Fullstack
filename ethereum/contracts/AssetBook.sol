@@ -1,9 +1,9 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
 //deploy parameters: "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
 import "./SafeMath.sol";//not used i++ is assumed not to be too big
 
-interface ERC721SPLCITF_asset {
+interface ERC721SPLCITF_assetbook {
     function balanceOf(address _owner) external view returns (uint256);
     function ownerOf(uint256 _tokenId) external view returns (address);
     function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
@@ -65,12 +65,13 @@ contract MultiSig {
     }
 
     /** @dev 執行更換eth地址前，三人中有兩人須簽章 */
-    function assetsOwnerSign(uint256 _timeCurrent) public isAssetsOwner {
+    function AssetsOwnerSign(uint256 _timeCurrent) external isAssetsOwner {
         assetsOwner_flag = 1;
         emit assetsOwnerSignEvent(msg.sender, _timeCurrent);
     }
 
-    function platformSign(uint256 _timeCurrent) public isPlatform {
+    function platformSign(uint256 _timeCurrent) external {
+        require(msg.sender == platformContractAddr, "請檢查是否為平台方合約地址");
         platform_flag = 1;
         emit platformSignEvent(msg.sender, _timeCurrent);
     }
@@ -104,11 +105,6 @@ contract MultiSig {
     /** @dev 新增endorser */
     function addEndorser(address _newEndorser, uint256 _timeCurrent) public isAssetsOwner{
         require(endorsersContractAddr.length < 3, "背書者人數上限為三人");
-        if(endorsersContractAddr.length!=0){
-            for(uint i = 0; i < endorsersContractAddr.length; i++){
-                require(endorsersContractAddr[i] != _newEndorser, "背書人重複加入");
-            }
-        }
         endorsersContractAddr.push(_newEndorser);
 
         emit addEndorsersEvent(_newEndorser, _timeCurrent);
@@ -174,7 +170,6 @@ contract AssetContract is MultiSig {
     /** @dev asset相關event */
     event createAssetContractEvent(address assetsOwner, address platformContractAddr, uint timestamp);
     event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
-    event approvedEvent(address tokenAddr, address approveTo, uint _tokenId, uint timestamp);
     event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902201045
@@ -188,53 +183,37 @@ contract AssetContract is MultiSig {
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
     function addAsset(address _tokenAddr, uint256 _timeCurrent) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
+        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_tokenAddr)));
 
-        if(assets[_tokenAddr].tokenAddr != _tokenAddr){
-            assetIndex.push(_tokenAddr);
-        }
         assets[_tokenAddr].tokenAddr = _tokenAddr;
         assets[_tokenAddr].tokenSymbol = _erc721.symbol();
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
+        assetIndex.push(_tokenAddr);
 
         emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
-    /**approve 轉帳到 _to 這個帳號 */
-    function approve(address _tokenAddr, address _approved, uint _tokenId, uint256 _timeCurrent) public{
-        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
-        _erc721.approve(_approved, _tokenId);
-
-        emit approvedEvent(_tokenAddr, _approved, _tokenId, _timeCurrent);
-    }
-
 
     /** @dev 提領token */
-    function transferAsset(address _tokenAddr, address _to, uint _tokenId, uint256 _timeCurrent) public isAssetsOwner {
-        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
+    function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _timeCurrent) public isAssetsOwner {
+        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_tokenAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
         uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);
         _erc721.safeTransferFrom(address(this), _to, _tokenId);
         assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
         assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
-        for(uint i = 0; i < assetIndex.length; i++){
-            if(assets[assetIndex[i]].tokenAmount == 0){
-                delete assets[assetIndex[i]];
-                delete assetIndex[i];
-            }
-        }
 
         emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _timeCurrent);
     }
 
     /** @dev get assets info */
-    function getAsset(address _tokenAddr) public view returns (string memory tokenSymbol, uint tokenAmount, uint[] memory ids){
+    function getAsset(address _tokenAddr) public view returns (string memory, uint, uint[] memory){
         return (assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids);
     }
 
-    /** @dev get asset 種類 */
+    /** @dev get asset number */
     function getAssetCount() public view returns(uint assetCount){
         return assetIndex.length;
     }
@@ -249,18 +228,6 @@ contract AssetContract is MultiSig {
         AssetContract _multiSig = AssetContract(address(uint160(_assetContractAddr)));
         _multiSig.endorsersSign(_timeCurrent);
     }
-
-/*    function remove(uint index)  public returns(address[] memory) {
-        //if (index >= assetIndex.length) return;
-
-        for (uint i = index; i<assetIndex.length-1; i++){
-            assetIndex[i] = assetIndex[i+1];
-        }
-        delete assetIndex[assetIndex.length-1];
-        assetIndex.length--;
-        return assetIndex;
-    }
-*/
 
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
     /* $notice Handle the receipt of an NFT

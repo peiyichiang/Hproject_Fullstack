@@ -1,9 +1,9 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
 
 import "./Ownable.sol";
 
-contract ERC721SPLC_Controller is Ownable {
+contract TokenController is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
     uint public timeCurrent;
     uint public TimeTokenLaunch;

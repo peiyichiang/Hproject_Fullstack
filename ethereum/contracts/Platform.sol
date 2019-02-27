@@ -1,8 +1,10 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 
-import "./Asset.sol";
-//import "browser/asset.sol";
 import "./SafeMath.sol";
+
+interface AssetBookITF_Platform {
+  function platformSign(uint256 _timeCurrent) external;
+}
 
 contract Platform{
     using SafeMath for uint256;
@@ -40,7 +42,7 @@ contract Platform{
 
     //sign assetContract 的 multiSig
     function signAssetContract(address _assetContractAddr, string memory _id, uint256 _time) public isPlatformAdmin(_id){
-        AssetContract _multiSig = AssetContract(address(uint160(_assetContractAddr)));
+        AssetBookITF_Platform _multiSig = AssetBookITF_Platform(address(uint160(_assetContractAddr)));
         _multiSig.platformSign(_time);
     }
 

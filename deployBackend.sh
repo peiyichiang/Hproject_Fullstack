@@ -9,6 +9,9 @@ echo "app.js: custom ip => localhost"
 sed -i 's/localhost/140.119.101.130/g' routes/user.js
 sed -i 's/localhost/140.119.101.130/g' routes/verify_fail.html
 sed -i 's/localhost/140.119.101.130/g' routes/verify_success.html
+
+sed -i 's/127.0.0.1/140.119.101.130/g' views/*.ejs
+sed -i 's/127.0.0.1/140.119.101.130/g' public/js/SignOut.js
 echo "routes/user.js, verify_fail and verify_success: localhost => custom ip"
 
 echo "script finished"

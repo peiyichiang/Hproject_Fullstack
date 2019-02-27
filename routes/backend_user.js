@@ -2,6 +2,7 @@ var express = require('express');
 var crypto = require('crypto');
 var request = require('request');
 var jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 var router = express.Router();
 
@@ -78,47 +79,70 @@ router.get('/GET/AddBackendUser', function (req, res, next) {
     res.render('AddBackendUser', { title: 'Add Backend User' });
 });
 
-//新增後端使用者資料：接收資料的post(無權限設置，大家都可以訪問)
+//＊＊新增後端使用者資料：接收資料的post(無權限設置，大家都可以訪問)
 router.post('/POST/AddBackendUser', function (req, res, next) {
-    // console.log("＊：" + JSON.stringify(req.session.m_permission));
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_Admin"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
-
-
     var mysqlPoolQuery = req.pool;
 
-
     //前端傳明文密碼過來，將salt與明文密碼做sha256
-    var password = req.body.m_passwordhash;
-    req.body.m_passwordhash = crypto.createHash('sha256').update(req.body.m_salt + password).digest('hex');
-    var sql = {
-        m_id: req.body.m_id,
-        m_salt: req.body.m_salt,
-        m_passwordhash: req.body.m_passwordhash,
-        m_company: req.body.m_company,
-        m_permission: "NA"
-    };
+    // var password = req.body.m_passwordhash;
+    // req.body.m_passwordhash = crypto.createHash('sha256').update(req.body.m_salt + password).digest('hex');
+    // var sql = {
+    //     m_id: req.body.m_id,
+    //     m_salt: req.body.m_salt,
+    //     m_passwordhash: req.body.m_passwordhash,
+    //     m_company: req.body.m_company,
+    //     m_permission: "NA"
+    // };
+
+    // console.log("*:" + sql);
+
+    // var qur = mysqlPoolQuery('INSERT INTO backend_user SET ?', sql, function (err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //         res.render('error', { message: '帳號重複', error: '' });
+    //     } else {
+    //         // res.setHeader('Content-Type', 'application/json');
+    //         // res.redirect('/BackendUser/GET/backend_user');
+    //         res.render('error', { message: '註冊成功', error: '' });
+    //     }
+    // });
+
+    const saltRounds = 10;
+    bcrypt
+    .genSalt(saltRounds)
+    .then(salt => {
+        console.log(`Salt: ${salt}`);
+        return bcrypt.hash(req.body.m_passwordhash, salt);
+    })
+    .then(hash  => {
+        console.log(`Hash: ${hash}`);
+        req.body.m_passwordhash=hash;
+        var sql = {
+            m_id: req.body.m_id,
+            m_salt: '0',
+            m_passwordhash: hash,
+            m_company: req.body.m_company,
+            m_permission: "NA"
+        };
+
+        console.log("###" + JSON.stringify(sql));
+
+        var qur = mysqlPoolQuery('INSERT INTO backend_user SET ?', sql, function (err, rows) {
+            if (err) {
+                console.log(err);
+                res.render('error', { message: '帳號重複', error: '' });
+            } else {
+                // res.setHeader('Content-Type', 'application/json');
+                // res.redirect('/BackendUser/GET/backend_user');
+                res.render('error', { message: '註冊成功', error: '' });
+            }
+        });
+
+    })
+    .catch(err => console.error(err.message));
 
 
-    console.log("*:" + sql);
 
-    var qur = mysqlPoolQuery('INSERT INTO backend_user SET ?', sql, function (err, rows) {
-        if (err) {
-            console.log(err);
-            res.render('error', { message: '帳號重複', error: '' });
-        } else {
-            // res.setHeader('Content-Type', 'application/json');
-            // res.redirect('/BackendUser/GET/backend_user');
-            res.render('error', { message: '註冊成功', error: '' });
-        }
-    });
 
 });
 
@@ -282,7 +306,7 @@ router.get('/GET/BackendUserLogin', function (req, res, next) {
     res.render('BackendUserLogin');
 });
 
-//接收後端使用者登入資料
+//＊＊＊接收後端使用者登入資料
 router.post('/POST/BackendUserLogin', function (req, res, next) {
 
     //   var db = req.con;
@@ -290,57 +314,100 @@ router.post('/POST/BackendUserLogin', function (req, res, next) {
     var ID = req.body.m_id;
     var Password = req.body.m_password;
 
-    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }
-        // console.log(rows.length);
+        console.log(rows.length);
 
         //查無此帳號
         if (rows.length == 0) {
             res.render('error', { message: '查無此帳號', error: '' });
         } else {
-            //檢查密碼是否正確
-            var hash = crypto.createHash('sha256').update(rows[0].m_salt + Password).digest('hex');
-            if (hash != rows[0].m_passwordhash) {
-                res.render('error', { message: '密碼錯誤', error: '' });
-            } else if (hash == rows[0].m_passwordhash) {
-                // 改用JWT
-                //將該user登入狀態、username、所屬公司、權限存到session中
-                // req.session.login=true;
-                // req.session.m_id=rows[0].m_id;
-                // req.session.m_company=rows[0].m_company;
-                // req.session.m_permission=rows[0].m_permission;
+            // console.log("Password:" + Password);
+            // console.log( rows[0].m_passwordhash);
 
-                //JWT
-                const payload = {
-                    m_id: rows[0].m_id,
-                    m_company: rows[0].m_company,
-                    m_permission: rows[0].m_permission
-                };
-                const token = jwt.sign({ payload, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'my_secret_key');
-                // console.log(token);
-                // 把JWT token存到cookie中
-                res.cookie('access_token', token);
+            bcrypt
+            .compare(Password, rows[0].m_passwordhash)
+            .then(compareResult => {
+                console.log(compareResult);
+                if (compareResult) {
+                    //JWT
+                    const payload = {
+                        m_id: rows[0].m_id,
+                        m_company: rows[0].m_company,
+                        m_permission: rows[0].m_permission
+                    };
+                    const token = jwt.sign({ payload, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'my_secret_key');
+                    // console.log(token);
+                    // 把JWT token存到cookie中
+                    res.cookie('access_token', token);
 
-                //各種權限分流到不同頁面
-                if (rows[0].m_permission == "Platform_Admin") {
-                    // res.setHeader('Content-Type', 'application/json');
-                    res.redirect('/BackendUser/GET/backend_user');
-                } else if (rows[0].m_permission == "Platform_Auditor") {
-                    // res.setHeader('Content-Type', 'application/json');
-                    res.redirect('/BackendUser/GET/BackendUser_Platform_Auditor');
-                } else if (rows[0].m_permission == "Platform_CustomerService") {
-                    // res.setHeader('Content-Type', 'application/json');
-                    res.redirect('/BackendUser/GET/BackendUser_CustomerService');
-                } else if (rows[0].m_permission == "Company_FundManagerN") {
-                    res.redirect('/product/GET/ProductByFMN');
-                } else if (rows[0].m_permission == "Company_FundManagerA") {
-                    res.redirect('/product/GET/ProductByFMA');
-                } else if (rows[0].m_permission == "NA") {
-                    res.render('error', { message: 'NA', error: '' });
+                    //各種權限分流到不同頁面
+                    if (rows[0].m_permission == "Platform_Admin") {
+                        // res.setHeader('Content-Type', 'application/json');
+                        res.redirect('/BackendUser/GET/backend_user');
+                    } else if (rows[0].m_permission == "Platform_Auditor") {
+                        // res.setHeader('Content-Type', 'application/json');
+                        res.redirect('/BackendUser/GET/BackendUser_Platform_Auditor');
+                    } else if (rows[0].m_permission == "Platform_CustomerService") {
+                        // res.setHeader('Content-Type', 'application/json');
+                        res.redirect('/BackendUser/GET/BackendUser_CustomerService');
+                    } else if (rows[0].m_permission == "Company_FundManagerN") {
+                        res.redirect('/product/GET/ProductByFMN');
+                    } else if (rows[0].m_permission == "Company_FundManagerA") {
+                        res.redirect('/product/GET/ProductByFMA');
+                    } else if (rows[0].m_permission == "NA") {
+                        res.render('error', { message: 'NA', error: '' });
+                    }
+                } else {
+                    res.render('error', { message: '密碼錯誤', error: '' });
                 }
-            }
+            }).catch(err => console.error('Error at compare password & pwHash', err.message));
+            
+            
+            
+            //檢查密碼是否正確
+            // var hash = crypto.createHash('sha256').update(rows[0].m_salt + Password).digest('hex');
+            // if (hash != rows[0].m_passwordhash) {
+            //     res.render('error', { message: '密碼錯誤', error: '' });
+            // } else if (hash == rows[0].m_passwordhash) {
+            //     // 改用JWT
+            //     //將該user登入狀態、username、所屬公司、權限存到session中
+            //     // req.session.login=true;
+            //     // req.session.m_id=rows[0].m_id;
+            //     // req.session.m_company=rows[0].m_company;
+            //     // req.session.m_permission=rows[0].m_permission;
+
+            //     //JWT
+            //     const payload = {
+            //         m_id: rows[0].m_id,
+            //         m_company: rows[0].m_company,
+            //         m_permission: rows[0].m_permission
+            //     };
+            //     const token = jwt.sign({ payload, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'my_secret_key');
+            //     // console.log(token);
+            //     // 把JWT token存到cookie中
+            //     res.cookie('access_token', token);
+
+            //     //各種權限分流到不同頁面
+            //     if (rows[0].m_permission == "Platform_Admin") {
+            //         // res.setHeader('Content-Type', 'application/json');
+            //         res.redirect('/BackendUser/GET/backend_user');
+            //     } else if (rows[0].m_permission == "Platform_Auditor") {
+            //         // res.setHeader('Content-Type', 'application/json');
+            //         res.redirect('/BackendUser/GET/BackendUser_Platform_Auditor');
+            //     } else if (rows[0].m_permission == "Platform_CustomerService") {
+            //         // res.setHeader('Content-Type', 'application/json');
+            //         res.redirect('/BackendUser/GET/BackendUser_CustomerService');
+            //     } else if (rows[0].m_permission == "Company_FundManagerN") {
+            //         res.redirect('/product/GET/ProductByFMN');
+            //     } else if (rows[0].m_permission == "Company_FundManagerA") {
+            //         res.redirect('/product/GET/ProductByFMA');
+            //     } else if (rows[0].m_permission == "NA") {
+            //         res.render('error', { message: 'NA', error: '' });
+            //     }
+            // }
         }
 
 

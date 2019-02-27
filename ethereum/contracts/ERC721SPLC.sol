@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 /* => Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!! => use 3rd party to freeze token transfer
 
 Add ITF to distingush interface json from compiled contracts json
@@ -158,8 +158,8 @@ interface RegistryITF {
     function isAddrApproved(address assetCtAddr) external view returns (bool);
 }
 
-//ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender);
-interface ERC721SPLC_ControllerITF {
+//TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender);
+interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
@@ -209,7 +209,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     uint public IRR20yrx100;// 470 represents 4.7; // IRR 20 years rental x100 (per year 年);
 
     address public addrRegistryITF;
-    address public addrERC721SPLC_ControllerITF;
+    address public addrTokenControllerITF;
 
 
     //==================Metadata
@@ -239,7 +239,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
 
     //==================
-    //4566010 gas
+    //6122295 gas. 
     /** Contract code size over limit of 24576 bytes.
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
     "0xbbf289d846208c16edc8474705c748aff07732db"
@@ -248,7 +248,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         string memory _nftName, string memory _nftSymbol, 
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         string memory _pricingCurrency, uint _IRR20yrx100,
-        address _addrRegistryITF, address _addrERC721SPLC_ControllerITF) public {
+        address _addrRegistryITF, address _addrTokenControllerITF) public {
         nftName = _nftName;
         nftSymbol = _nftSymbol;
 
@@ -259,7 +259,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         IRR20yrx100 = _IRR20yrx100;
         
         addrRegistryITF = _addrRegistryITF;
-        addrERC721SPLC_ControllerITF = _addrERC721SPLC_ControllerITF;
+        addrTokenControllerITF = _addrTokenControllerITF;
 
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
@@ -341,7 +341,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, string calldata _uri) external {
-        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
+        require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
 
         //Legal Compliance
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
@@ -586,7 +586,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function _transfer(address _to, uint256 _tokenId) private {
         address from = idToOwner[_tokenId];
 
-        require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
+        require(TokenControllerITF(addrTokenControllerITF).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
         require(RegistryITF(addrRegistryITF).isAddrApproved(from), "from is not in compliance");
@@ -644,7 +644,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         if (mode == 1) {//transfer
             require(idToOwner[_tokenId] == _from, "tokenId should match _from");
         } else if (mode == 9) {//burn
-            require(ERC721SPLC_ControllerITF(addrERC721SPLC_ControllerITF).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
+            require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
             //only contract owner can destroy the token
         }
         require(ownerToNFTokenCount[_from] > 0, "ownerToNFTokenCount[_from] should be > 0");
