@@ -19,9 +19,9 @@ function createServer() {
                 }
                 else {
                     for (let i in result) {
-                        if (typeof result[i].sc_crowdsaleaddress !== 'undefined') {
+                        if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
                             console.log(result[i].sc_crowdsaleaddress, data.toString());
-                            contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString());
+                            contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString()).then(console.log)
                         }
                     }
                 }

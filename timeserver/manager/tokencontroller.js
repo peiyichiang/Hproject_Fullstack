@@ -17,11 +17,10 @@ function createServer() {
                 if (result.length == 0) {
                     console.log('nothing')
                 } else {
-                    console.log("現在時間", data.toString());
                     for (let i in result) {
-                        if (typeof result[i].sc_erc721Controller !== 'undefined') {
+                        if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
                             console.log(result[i].sc_erc721Controller, data.toString());
-                            contract.sendTimeToERC721SPLC(result[i].sc_erc721Controller, data.toString());
+                            contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString()).then(console.log)
                         }
                     }
                 }
