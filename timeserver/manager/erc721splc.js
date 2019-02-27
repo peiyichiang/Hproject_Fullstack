@@ -13,7 +13,19 @@ function createServer() {
 
         c.on("data", (data) => {
             // 接收時間後的動作
-            console.log("no address")
+            mysql.getERC721ControllerContractAddress(function (result) {
+                if (result.length == 0) {
+                    console.log('nothing')
+                } else {
+                    console.log("現在時間", data.toString());
+                    for (let i in result) {
+                        if (typeof result[i].sc_erc721Controller !== 'undefined') {
+                            console.log(result[i].sc_erc721Controller, data.toString());
+                            contract.sendTimeToERC721SPLC(result[i].sc_erc721Controller, data.toString());
+                        }
+                    }
+                }
+            })
         });
 
         c.on("end", () => {

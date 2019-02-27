@@ -20,8 +20,7 @@ function createServer() {
                     for (let i in result) {
                         if (typeof result[i].o_purchaseDate !== 'undefined') {
                             if (data.toString() >= result[i].o_purchaseDate.add3Day()) {
-                                console.log(123)
-                                mysql.setOrderExpired(result[i].o_id, function (result) {
+                                mysql.setOrderExpired(result[i].o_id, function () {
                                     console.log(result[i].o_id, "已修改");
                                 })
                             }
