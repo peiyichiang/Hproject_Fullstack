@@ -6,10 +6,10 @@ import "./Ownable.sol";
 contract TokenController is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
     uint public timeCurrent;
-    uint public TimeTokenRelease;
+    uint public TimeTokenRelease;// Release Date
     uint public TimeTokenUnlock;
-    uint public TimeTokenValid;//token expiry time 203903310000
-    bool public isLaunched;//
+    uint public TimeTokenValid;// Valid Date or token expiry time 203903310000
+    bool public isReleased;//
 
     // 201902190900, 201902190901, 201902190902, 201902191745
     constructor(uint _timeCurrent, uint _TimeTokenRelease, 
@@ -21,7 +21,7 @@ contract TokenController is Ownable {
     }
 
     modifier ckLaunched() {
-        require(!isLaunched, "only allowed before launch time");
+        require(!isReleased, "only allowed before launch time");
         _;
     }
     modifier ckTime(uint _time) {
@@ -41,7 +41,7 @@ contract TokenController is Ownable {
     function getHTokenControllerDetails() public view returns (
         uint, uint, uint, uint, bool) {
         return (
-            timeCurrent, TimeTokenRelease, TimeTokenUnlock, TimeTokenValid, isLaunched);
+            timeCurrent, TimeTokenRelease, TimeTokenUnlock, TimeTokenValid, isReleased);
     }
 
     //For TimeServer injecting current time
@@ -67,7 +67,7 @@ contract TokenController is Ownable {
     //event SetLaunchTime(uint _TimeTokenRelease);
     function setLaunchTime(uint _TimeTokenRelease) external onlyAdmin ckTime(_TimeTokenRelease) ckLaunched {
         TimeTokenRelease = _TimeTokenRelease;
-        isLaunched = true;
+        isReleased = true;
         //emit SetLaunchTime(_TimeTokenRelease);
     }
 

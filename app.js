@@ -164,5 +164,5 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
-console.log('end of server code, http://localhost:3000/Product/GET/ProductList');
+console.log('end of server code, http://localhost:3000/Product/ProductList');
 module.exports = app;
