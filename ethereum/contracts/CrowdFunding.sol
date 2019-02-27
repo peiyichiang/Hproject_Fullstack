@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 //透過平台平台asset contract deploy
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
@@ -36,7 +36,7 @@ contract CrowdFunding is Ownable {
 
     //hasSucceeded: quantityMax is reached or CFED2 is reached with quantitySold > quantityGoal
     //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
-    enum saleState{prefunding, funding, paused, fundingWithGoalReached, hasSucceeded, hasFailed, forceTerminated}
+    enum saleState{initial, funding, paused, fundingWithGoalReached, hasSucceeded, hasFailed, forceTerminated}
     saleState public salestate;
     bool public isActive;
     bool public isTerminated;
@@ -68,7 +68,7 @@ contract CrowdFunding is Ownable {
         require(_serverTime < _CFSD2, "CFSD2 should be greater than 201902250000");
         CFSD2 = _CFSD2;
         CFED2 = _CFED2;// yyyymmddhhmm
-        salestate = saleState.prefunding;//init the project state
+        salestate = saleState.initial;//init the project state
         require(_serverTime > 201902250000, "_serverTime should be greater than default time");
         serverTime = _serverTime;
         emit UpdateState(tokenSymbol, quantitySold, _serverTime, salestate, "deployed");
@@ -91,9 +91,9 @@ contract CrowdFunding is Ownable {
     /* checks if the goal or time limit has been reached and ends the campaign */
     function updateState() public onlyAdmin {
 
-        //enum saleState{prefunding, funding, paused, fundingWithGoalReached, hasSucceeded, hasFailed, forceTerminated}
+        //enum saleState{initial, funding, paused, fundingWithGoalReached, hasSucceeded, hasFailed, forceTerminated}
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
-        if(quantitySold >= quantityMax){
+        if(quantitySold == quantityMax){
             isTerminated = true;
             salestate = saleState.hasSucceeded;
             stateDescription = "hasSucceeded: sold out";
@@ -106,20 +106,21 @@ contract CrowdFunding is Ownable {
                 salestate = saleState.fundingWithGoalReached;
                 stateDescription = "fundingWithGoalReached: still funding and has reached goal";
             } else {
-                salestate = saleState.prefunding;
-                stateDescription = "prefunding: goal reached already";
+                salestate = saleState.initial;
+                stateDescription = "initial: goal reached already";
             }
 
         } else {
             if (serverTime >= CFED2){
+                isTerminated = true;
                 salestate = saleState.hasFailed;
                 stateDescription = "hasFailed: ended with goal not reached";
             } else if (serverTime >= CFSD2){
                 salestate = saleState.funding;
                 stateDescription = "funding: with goal not reached yet";
             } else {
-                salestate = saleState.prefunding;
-                stateDescription = "prefunding: not started yet";
+                salestate = saleState.initial;
+                stateDescription = "initial: not started yet";
             }
         }
         emit UpdateState(tokenSymbol, quantitySold, serverTime, salestate, stateDescription);

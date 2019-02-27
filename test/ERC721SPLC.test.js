@@ -68,24 +68,24 @@ if (Registry === undefined){
   //console.log(Registry);
 }
 
-const ERC721SPLC_Controller = require('../ethereum/contracts/build/ERC721SPLC_Controller.json');
-if (ERC721SPLC_Controller === undefined){
-  console.log('[Error] ERC721SPLC_Controller is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const TokenController = require('../ethereum/contracts/build/TokenController.json');
+if (TokenController === undefined){
+  console.log('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] ERC721SPLC_Controller is defined');
-  if (ERC721SPLC_Controller.abi === undefined){
-    console.log('[Error] ERC721SPLC_Controller.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] TokenController is defined');
+  if (TokenController.abi === undefined){
+    console.log('[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC_Controller.abi is defined');
-      //console.log('ERC721SPLC_Controller.abi:', ERC721SPLC_Controller.abi);
+    console.log('[Good] TokenController.abi is defined');
+      //console.log('TokenController.abi:', TokenController.abi);
   }
-  if (ERC721SPLC_Controller.bytecode === undefined || ERC721SPLC_Controller.bytecode.length < 10){
-    console.log('[Error] ERC721SPLC_Controller.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (TokenController.bytecode === undefined || TokenController.bytecode.length < 10){
+    console.log('[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC_Controller.bytecode is defined');
-      //console.log('ERC721SPLC_Controller.bytecode:', ERC721SPLC_Controller.bytecode);
+    console.log('[Good] TokenController.bytecode is defined');
+      //console.log('TokenController.bytecode:', TokenController.bytecode);
   }
-  //console.log(ERC721SPLC_Controller);
+  //console.log(TokenController);
 }
 
 const ERC721SPLC = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
@@ -148,24 +148,24 @@ if (IncomeManagement === undefined){
   //console.log(IncomeManagement);
 }
 
-const System = require('../ethereum/contracts/build/System.json');
-if (System === undefined){
-  console.log('[Error] System is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const ProductManager = require('../ethereum/contracts/build/ProductManager.json');
+if (ProductManager === undefined){
+  console.log('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] System is defined');
-  if (System.abi === undefined){
-    console.log('[Error] System.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] ProductManager is defined');
+  if (ProductManager.abi === undefined){
+    console.log('[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] System.abi is defined');
-      //console.log('System.abi:', System.abi);
+    console.log('[Good] ProductManager.abi is defined');
+      //console.log('ProductManager.abi:', ProductManager.abi);
   }
-  if (System.bytecode === undefined || System.bytecode.length < 10){
-    console.log('[Error] System.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (ProductManager.bytecode === undefined || ProductManager.bytecode.length < 10){
+    console.log('[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] System.bytecode is defined');
-      //console.log('System.bytecode:', System.bytecode);
+    console.log('[Good] ProductManager.bytecode is defined');
+      //console.log('ProductManager.bytecode:', ProductManager.bytecode);
   }
-  //console.log(System);
+  //console.log(ProductManager);
 }
 
 
@@ -176,11 +176,11 @@ if (System === undefined){
 
 let accounts;
 let instRegistry; let addrRegistry;
-let instERC721SPLC_Controller; let addrERC721SPLC_Controller;
+let instTokenController; let addrTokenController;
 let instERC721SPLC; let addrERC721SPLC;
 let instCrowdFunding; let addrCrowdFunding;
 let instIncomeManagement; let addrIncomeManagement;
-let instSystem; let addrSystem;
+let instProductManager; let addrProductManager;
 
 let acc0; let acc1; let acc2; let acc3; let acc4;
 let balance0; let balance1; let balance2;
@@ -211,9 +211,9 @@ const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
-//const addrERC721SPLC_Controller = "0x39523jt032";
+//const addrTokenController = "0x39523jt032";
 
-const argsERC721SPLC_Controller = [
+const argsTokenController = [
   timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid ];
 
 const _tokenSymbol = nftSymbol;
@@ -321,17 +321,17 @@ beforeEach( async () => {
     addrRegistry = instRegistry.options.address;
     console.log('addrRegistry:', addrRegistry);
     
-    //Deploying ERC721SPLC_Controller contract...
-    instERC721SPLC_Controller = await new web3.eth.Contract(ERC721SPLC_Controller.abi)
-    .deploy({ data: ERC721SPLC_Controller.bytecode, arguments: argsERC721SPLC_Controller })
+    //Deploying TokenController contract...
+    instTokenController = await new web3.eth.Contract(TokenController.abi)
+    .deploy({ data: TokenController.bytecode, arguments: argsTokenController })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
-    console.log('ERC721SPLC_Controller.sol has been deployed');
-    if (instERC721SPLC_Controller === undefined) {
-      console.log('[Error] instERC721SPLC_Controller is NOT defined');
-      } else {console.log('[Good] instERC721SPLC_Controller is defined');}
-    instERC721SPLC_Controller.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrERC721SPLC_Controller = instERC721SPLC_Controller.options.address;
-    console.log('addrERC721SPLC_Controller:', addrERC721SPLC_Controller);
+    console.log('TokenController.sol has been deployed');
+    if (instTokenController === undefined) {
+      console.log('[Error] instTokenController is NOT defined');
+      } else {console.log('[Good] instTokenController is defined');}
+    instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrTokenController = instTokenController.options.address;
+    console.log('addrTokenController:', addrTokenController);
 
     //Deploying ERC721SPLC contract...
     /** https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
@@ -341,11 +341,11 @@ beforeEach( async () => {
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
-    addrRegistry, addrERC721SPLC_Controller ];
+    addrRegistry, addrTokenController ];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
-    // address _addrRegistryITF, address _addrERC721SPLC_ControllerITF
+    // address _addrRegistryITF, address _addrTokenControllerITF
   
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
     .deploy({ data: ERC721SPLC.bytecode, arguments: argsERC721SPLC })
@@ -387,16 +387,16 @@ beforeEach( async () => {
     addrIncomeManagement = instIncomeManagement.options.address;
     console.log('addrIncomeManagement:', addrIncomeManagement);
 
-    instSystem = await new web3.eth.Contract(System.abi)
-    .deploy({ data: System.bytecode })
+    instProductManager = await new web3.eth.Contract(ProductManager.abi)
+    .deploy({ data: ProductManager.bytecode })
     .send({ from: acc0, gas: '9000000', gasPrice: '20000000000' });
-    console.log('System.sol has been deployed');
-    if (instSystem === undefined) {
-      console.log('[Error] instSystem is NOT defined');
-      } else {console.log('[Good] instSystem is defined');}
-    instSystem.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrSystem = instSystem.options.address;
-    console.log('addrSystem:', addrSystem);
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      console.log('[Error] instProductManager is NOT defined');
+      } else {console.log('[Good] instProductManager is defined');}
+    instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrProductManager = instProductManager.options.address;
+    console.log('addrProductManager:', addrProductManager);
     */
 
     addrPA_Ctrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
@@ -414,7 +414,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.ok(addrAsset1);
     assert.ok(addrAsset2);
     assert.ok(addrRegistry);
-    assert.ok(addrERC721SPLC_Controller);
+    assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
     //assert.ok(addrCrowdFunding);
     //assert.ok(addrIncomeManagement);
@@ -512,7 +512,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(siteSizeInKWM, siteSizeInKW);
     assert.equal(tokenIdM, 0);
 
-    let isUnlockedValid = await instERC721SPLC_Controller.methods.isUnlockedValid().call();
+    let isUnlockedValid = await instTokenController.methods.isUnlockedValid().call();
     assert.equal(isUnlockedValid, false);
 
 
@@ -565,13 +565,13 @@ describe('Tests on ERC721SPLC', () => {
 
 
     //-----------------==Check Token Controller: time
-    console.log('\n------------==Check ERC721SPLC_Controller parameters: time');
-    console.log('addrERC721SPLC_Controller', addrERC721SPLC_Controller);
-    let owner = await instERC721SPLC_Controller.methods.owner().call();
-    let chairman = await instERC721SPLC_Controller.methods.chairman().call();
-    let director = await instERC721SPLC_Controller.methods.director().call();
-    let manager = await instERC721SPLC_Controller.methods.manager().call();
-    let admin = await instERC721SPLC_Controller.methods.admin().call();
+    console.log('\n------------==Check TokenController parameters: time');
+    console.log('addrTokenController', addrTokenController);
+    let owner = await instTokenController.methods.owner().call();
+    let chairman = await instTokenController.methods.chairman().call();
+    let director = await instTokenController.methods.director().call();
+    let manager = await instTokenController.methods.manager().call();
+    let admin = await instTokenController.methods.admin().call();
 
     assert.equal(owner, acc0);
     assert.equal(manager, acc0);
@@ -579,7 +579,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(chairman, acc0);
     assert.equal(director, acc0);
 
-    tokenControllerDetail = await instERC721SPLC_Controller.methods.getHTokenControllerDetails().call(); 
+    tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
     timeCurrentM = tokenControllerDetail[0];
     TimeTokenLaunchM = tokenControllerDetail[1];
     TimeTokenUnlockM = tokenControllerDetail[2];
@@ -590,9 +590,9 @@ describe('Tests on ERC721SPLC', () => {
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
     timeCurrent = TimeTokenUnlock;
-    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
-    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
     tokenId = 1; _from = addrAsset1; to = addrAsset2;
@@ -613,9 +613,9 @@ describe('Tests on ERC721SPLC', () => {
     tokenId = 1; _from = addrAsset1; to = addrAsset2;
 
     timeCurrent = 201902281045;
-    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
-    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, true);
 
     await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
@@ -641,9 +641,9 @@ describe('Tests on ERC721SPLC', () => {
     //----------------==Send tokens after valid time
     console.log('\n------------==Send tokens after valid date');
     timeCurrent = TimeTokenValid;
-    await instERC721SPLC_Controller.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
-    bool1 = await instERC721SPLC_Controller.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
     to = addrAsset1;
@@ -723,7 +723,7 @@ describe('Tests on CrowdFunding', () => {
 
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "prefunding: not started yet");
+    assert.equal(stateDescriptionM, "initial: not started yet");
 
     let salestateM = await instCrowdFunding.methods.salestate().call();
     console.log('salestateM', salestateM);
@@ -779,7 +779,7 @@ describe('Tests on CrowdFunding', () => {
     .send({ value: '0', from: acc0, gas: '1000000' });
     console.log('\nafter investing the target goal amount');
 
-    //------------------==Set time to prefunding
+    //------------------==Set time to initial
     await instCrowdFunding.methods.setServerTime(_CFSD2-1)
     .send({ value: '0', from: acc0, gas: '1000000' });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
@@ -788,7 +788,7 @@ describe('Tests on CrowdFunding', () => {
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "prefunding: goal reached already");
+    assert.equal(stateDescriptionM, "initial: goal reached already");
 
     salestateM = await instCrowdFunding.methods.salestate().call();
     console.log('salestateM', salestateM);

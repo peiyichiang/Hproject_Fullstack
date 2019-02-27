@@ -1,11 +1,11 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 /*
 deploy parameters: none
 */
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract System is Ownable {
+contract ProductManager is Ownable {
     using SafeMath for uint256;
 
     // ERC721SPLC erc721SPLC;

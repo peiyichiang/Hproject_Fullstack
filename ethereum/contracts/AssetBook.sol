@@ -1,9 +1,9 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
 //deploy parameters: "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
 import "./SafeMath.sol";//not used i++ is assumed not to be too big
 
-interface ERC721SPLCITF_asset {
+interface ERC721SPLCITF_assetbook {
     function balanceOf(address _owner) external view returns (uint256);
     function ownerOf(uint256 _tokenId) external view returns (address);
     function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
@@ -183,7 +183,7 @@ contract AssetContract is MultiSig {
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
     function addAsset(address _tokenAddr, uint256 _timeCurrent) public {
         //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
+        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_tokenAddr)));
 
         assets[_tokenAddr].tokenAddr = _tokenAddr;
         assets[_tokenAddr].tokenSymbol = _erc721.symbol();
@@ -197,7 +197,7 @@ contract AssetContract is MultiSig {
 
     /** @dev 提領token */
     function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _timeCurrent) public isAssetsOwner {
-        ERC721SPLCITF_asset _erc721 = ERC721SPLCITF_asset(address(uint160(_tokenAddr)));
+        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_tokenAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
         uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);

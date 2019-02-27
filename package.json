@@ -14,7 +14,7 @@
     "test": "mocha",
     "testcf": "mocha --grep CrowdFunding",
     "test721": "mocha --grep ERC721SPLC",
-    "test721c": "mocha --grep ERC721SPLC_Controller",
+    "testtokencontroller": "mocha --grep TokenController",
     "testasset": "mocha --grep Asset",
     "testregistry": "mocha --grep Registry",
     "testsystem": "mocha --grep System",
@@ -43,6 +43,6 @@
   "devDependencies": {
     "async": "^2.6.1",
     "ganache-cli": "^6.3.0",
-    "solc": "^0.5.3"
+    "solc": "^0.5.4"
   }
 }

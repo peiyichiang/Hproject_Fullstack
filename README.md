@@ -14,7 +14,10 @@ Repository will be downloaded into `Hproject_Fullstack/` folder
 Go to the downloaded repository folder and run:
 ```
 yarn install
+yarn global add mocha
+yarn global add nodemon
 ```
+
 
 ### 3. Run the app
 
