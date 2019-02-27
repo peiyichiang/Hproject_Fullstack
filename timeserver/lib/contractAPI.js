@@ -2,7 +2,7 @@ const web3 = require('./web3.js');
 
 const IncomeManagement = require('../../ethereum/contracts/build/IncomeManagement.json');
 const CrowdFunding = require('../../ethereum/contracts/build/CrowdFunding.json');
-const ERC721SPLC_Controller = require('../../ethereum/contracts/build/ERC721SPLC_Controller.json');
+const TokenController = require('../../ethereum/contracts/build/TokenController.json');
 
 function sendTimeToRentContract(addr, time) {
     let contract = new web3.eth.Contract(IncomeManagement.abi, addr);
@@ -34,10 +34,10 @@ function sendTimeToCrowdfundingContract(addr, time) {
         })
 }
 
-function sendTimeToERC721SPLC(addr, time) {
+function sendTimeToTokenController(addr, time) {
     return web3.eth.getAccounts()
         .then(function (accounts) {
-            let contract = new web3.eth.Contract(ERC721SPLC_Controller.abi, addr);
+            let contract = new web3.eth.Contract(TokenController.abi, addr);
             return contract.methods.setTimeCurrent(time)
                 .send({
                     from: accounts[0],
@@ -55,5 +55,5 @@ function sendTimeToERC721SPLC(addr, time) {
 module.exports = {
     sendTimeToRentContract,
     sendTimeToCrowdfundingContract,
-    sendTimeToERC721SPLC,
+    sendTimeToTokenController,
 }

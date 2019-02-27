@@ -17,11 +17,10 @@ function createServer() {
                 if (result.length == 0) {
                     console.log('nothing')
                 } else {
-                    console.log("現在時間", data.toString());
                     for (let i in result) {
-                        if (typeof result[i].sc_rentContractaddress !== 'undefined') {
+                        if (typeof result[i].sc_rentContractaddress !== 'undefined' && result[i].sc_rentContractaddress != null) {
                             console.log(result[i].sc_rentContractaddress, data.toString());
-                            contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString());
+                            contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString()).then(console.log)
                         }
                     }
                 }
