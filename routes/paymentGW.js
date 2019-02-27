@@ -20,7 +20,7 @@ router.get('/', function (req, res, next) {
 
 });
 
-router.get('/GET/pay', async function (req, res, next) {
+router.get('/pay', async function (req, res, next) {
     res.render('payByCreditCard', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"] });
 });
 
@@ -30,7 +30,7 @@ router.get('/GET/bank', async function (req, res, next) {
 });
 */
 
-router.post('/POST/postToBank', async function (req, res, next) {
+router.post('/postToBank', async function (req, res, next) {
     var paymentInfo = JSON.parse(req.body.JSONtoBank)
     console.log(paymentInfo)
     //console.log(paymentInfo)
@@ -44,7 +44,7 @@ router.post('/POST/postToBank', async function (req, res, next) {
     }, 3000);
 });
 
-router.post('/POST/updateOrder', function (req, res, next) {
+router.post('/updateOrder', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     var order = JSON.parse(req.body.o_IDs);
@@ -71,7 +71,7 @@ router.post('/POST/updateOrder', function (req, res, next) {
 
 });
 
-router.post('/POST/sendPaidMail', function (req, res, next) {
+router.post('/sendPaidMail', function (req, res, next) {
 
     var mailInfo = JSON.parse(req.body.mailInfo);
 
@@ -109,11 +109,11 @@ router.post('/POST/sendPaidMail', function (req, res, next) {
 })
 
 ///////////匯款部分//////////
-router.get('/GET/bank', async function (req, res, next) {
+router.get('/bank', async function (req, res, next) {
     res.json({ v_account: "822-03113250581281" });
 });
 
-router.post('/POST/sendTransferInfoMail', function (req, res, next) {
+router.post('/sendTransferInfoMail', function (req, res, next) {
 
     var mailInfo = JSON.parse(req.body.mailInfo);
 
@@ -150,7 +150,7 @@ router.post('/POST/sendTransferInfoMail', function (req, res, next) {
     });
 })
 
-router.post('/POST/bindOrder', function (req, res, next) {
+router.post('/bindOrder', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     var order = JSON.parse(req.body.o_IDs);
