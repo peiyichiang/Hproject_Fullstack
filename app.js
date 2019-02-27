@@ -24,6 +24,7 @@ var assetContractAPIRouter = require('./routes/assetContractAPI');
 var platformContractAPIRouter = require('./routes/platformContractAPI');
 var ERC721ContractAPIRouter = require('./routes/ERC721ContractAPI');
 var ERC721ControllerContractAPIRouter = require('./routes/ERC721ControllerContractAPI');
+var crowdFundingContractAPIRouter = require('./routes/crowdFundingContractAPI');
 
 
 
@@ -153,6 +154,7 @@ app.use('/assetContractAPI', assetContractAPIRouter);
 app.use('/platformContractAPI', platformContractAPIRouter);
 app.use('/ERC721ContractAPI', ERC721ContractAPIRouter);
 app.use('/ERC721ControllerContractAPI', ERC721ControllerContractAPIRouter);
+app.use('/crowdFundingContractAPI', crowdFundingContractAPIRouter);
 
 
 

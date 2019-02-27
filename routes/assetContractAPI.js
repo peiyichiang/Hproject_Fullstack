@@ -7,9 +7,9 @@ var router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -20,20 +20,13 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 const contract = require('../ethereum/contracts/build/AssetContract.json');
 
 
-
-
-router.get('/', function (req, res, next) {
-    res.render('assetContractAPI');
-});
-
-
 //deploy asset contract
-router.post('/POST/deploy', function (req, res, next) {
+router.post('/deploy', function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -59,10 +52,8 @@ router.post('/POST/deploy', function (req, res, next) {
         })
 });
 
-
-
 /*取得用戶address */
-router.get('/GET/getAssetsOwner', async function (req, res, next) {
+router.get('/assetBook/OwnerEthAddr', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -74,7 +65,7 @@ router.get('/GET/getAssetsOwner', async function (req, res, next) {
 });
 
 /*取得平台方address */
-router.get('/GET/getPlatform', async function (req, res, next) {
+router.get('/assetBook/PlatformContractAddr', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -86,7 +77,7 @@ router.get('/GET/getPlatform', async function (req, res, next) {
 });
 
 /*取得背書人address */
-router.get('/GET/getEndorsers', async function (req, res, next) {
+router.get('/assetBook/endorsersContractAddr', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -98,7 +89,7 @@ router.get('/GET/getEndorsers', async function (req, res, next) {
 });
 
 /*取得用戶簽名 */
-router.get('/GET/getAssetsOwnerSign', async function (req, res, next) {
+router.get('/assetBook/multiSig/isOwnerSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -110,7 +101,7 @@ router.get('/GET/getAssetsOwnerSign', async function (req, res, next) {
 });
 
 /*取得平台方簽名 */
-router.get('/GET/getPlatformSign', async function (req, res, next) {
+router.get('/assetBook/multiSig/isPlatformSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -122,7 +113,7 @@ router.get('/GET/getPlatformSign', async function (req, res, next) {
 });
 
 /*取得背書人簽名 */
-router.get('/GET/getEndorsersSign', async function (req, res, next) {
+router.get('/assetBook/multiSig/isEndorsersSign', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -134,7 +125,7 @@ router.get('/GET/getEndorsersSign', async function (req, res, next) {
 });
 
 /*用戶簽名 */
-router.post('/POST/assetsOwnerSign', async function (req, res, next) {
+router.post('/assetBook/multiSig/ownerSign', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = req.body.time;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -152,27 +143,8 @@ router.post('/POST/assetsOwnerSign', async function (req, res, next) {
 
 });
 
-/*平台方簽名 => 到時候要由platform合約來簽*/
-router.post('/POST/platformSign', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let time = req.body.time;
-    let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用手機keychain 抓公私鑰*/
-    let platform = '0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2';
-    let platformPrivateKey = '0x87AC7D120EADA31D3EF487451A373D49CB4E206678B9DDE79BD78132EEA7EF18';
-
-    let encodedData = assetContract.methods.platformSign(time).encodeABI();
-    let result = await signTx(platform, platformPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
 /*背書人簽名（Ａ是Ｂ的背書人=> 由Ｂ的assetContract去簽Ａ */
-router.post('/POST/signAssetContract', async function (req, res, next) {
+router.post('/assetBook/multiSig/signAssetBook', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = req.body.time;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -191,7 +163,7 @@ router.post('/POST/signAssetContract', async function (req, res, next) {
 });
 
 /*更換用戶address */
-router.patch('/PATCH/changeAssetOwner', async function (req, res, next) {
+router.patch('/assetBook/changeOwner', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = req.body.time;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -210,7 +182,7 @@ router.patch('/PATCH/changeAssetOwner', async function (req, res, next) {
 });
 
 /*更換背書人assetContractAdd*/
-router.patch('/PATCH/changeEndorsers', async function (req, res, next) {
+router.patch('/assetBook/changeEndorser', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = req.body.time;
     let oldEndorser = req.body.oldEndorser;
@@ -231,7 +203,7 @@ router.patch('/PATCH/changeEndorsers', async function (req, res, next) {
 });
 
 /**新增背書人assetContractAddr*/
-router.post('/POST/addEndorser', async function (req, res, next) {
+router.post('/assetBook/addEndorser', async function (req, res, next) {
     let contractAddr = req.body.address;
     let time = req.body.time;
     let newEndorser = req.body.newEndorser;
@@ -251,7 +223,7 @@ router.post('/POST/addEndorser', async function (req, res, next) {
 });
 
 /*新增資產到assetContract（由erc721Contract Trigger!）*/
-router.post('/POST/addAsset', async function (req, res, next) {
+router.post('/assetBook/asset/addAsset', async function (req, res, next) {
     let contractAddr = req.body.address;
     let ERC721Addr = req.body.ERC721Addr
     let time = req.body.time;
@@ -267,7 +239,7 @@ router.post('/POST/addAsset', async function (req, res, next) {
 });
 
 /*輸入erc721tokenAddr，取得token相關資訊*/
-router.get('/GET/getAsset', async function (req, res, next) {
+router.get('/assetBook/asset/assetInfo', async function (req, res, next) {
     let contractAddr = req.query.address;
     let ERC721Addr = req.query.ERC721Addr
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -280,7 +252,7 @@ router.get('/GET/getAsset', async function (req, res, next) {
 });
 
 /*取得有幾種erc721token */
-router.get('/GET/getAssetCount', async function (req, res, next) {
+router.get('/assetBook/asset/assetAmount', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let assetCount = await assetContract.methods.getAssetCount().call({ from: backendAddr });
@@ -291,7 +263,7 @@ router.get('/GET/getAssetCount', async function (req, res, next) {
 });
 
 /*取得assetContract所擁有的所有erc721token address */
-router.get('/GET/getAssetIndex', async function (req, res, next) {
+router.get('/assetBook/asset/assetIndex', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetContract = new web3.eth.Contract(contract.abi, contractAddr);
     let assetIndex = await assetContract.methods.getAssetIndex().call({ from: backendAddr });
@@ -303,7 +275,7 @@ router.get('/GET/getAssetIndex', async function (req, res, next) {
 });
 
 /**approve token被移轉 */
-router.post('/POST/approve', async function (req, res, next) {
+router.post('/assetBook/asset/approve', async function (req, res, next) {
     let contractAddr = req.body.address;
     let tokenAddr = req.body.tokenAddr;
     let approved = req.body.approved;
@@ -326,7 +298,7 @@ router.post('/POST/approve', async function (req, res, next) {
 });
 
 /*轉移token */
-router.post('/POST/transferAsset', async function (req, res, next) {
+router.post('/assetBook/asset/transfer', async function (req, res, next) {
     let contractAddr = req.body.address;
     let tokenAddr = req.body.tokenAddr;
     let to = req.body.to;

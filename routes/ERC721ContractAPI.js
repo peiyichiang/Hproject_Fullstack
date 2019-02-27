@@ -5,9 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -19,11 +19,11 @@ const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
 
 
 //deploy asset contract
-router.post('/POST/deploy', function (req, res, next) {
+router.post('/deploy', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -56,7 +56,7 @@ router.post('/POST/deploy', function (req, res, next) {
         })
 });
 
-router.post('/POST/name', async function (req, res, next) {
+router.post('/name', async function (req, res, next) {
     let contractAddr = req.body.address;
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
 
@@ -68,7 +68,7 @@ router.post('/POST/name', async function (req, res, next) {
     })
 });
 
-router.post('/POST/symbol', async function (req, res, next) {
+router.post('/symbol', async function (req, res, next) {
     let contractAddr = req.body.address;
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
 
@@ -80,22 +80,10 @@ router.post('/POST/symbol', async function (req, res, next) {
     })
 });
 
-router.post('/POST/tokenURI', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let tokenId = req.body.tokenId;
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let encodedData = ERC721SPLC_HToken.methods.tokenURI(tokenId).encodeABI();
-
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-});
 
 /**mint token */
-router.post('/POST/mintSerialNFT', async function (req, res, next) {
+router.post('/mintSerialNFT', async function (req, res, next) {
     let contractAddr = req.body.address;
     let to = req.body.to;
     let uri = req.body.uri;
@@ -111,7 +99,7 @@ router.post('/POST/mintSerialNFT', async function (req, res, next) {
 });
 
 /*取得721token資訊*/
-router.get('/GET/getNFT', async function (req, res, next) {
+router.get('/token/NFTInfo', async function (req, res, next) {
     let contractAddr = req.query.address;
     let id = req.query.id;
 
@@ -125,7 +113,7 @@ router.get('/GET/getNFT', async function (req, res, next) {
 });
 
 /*查看用戶有哪些721token*/
-router.get('/GET/get_ownerToIds', async function (req, res, next) {
+router.get('/owner/IDs', async function (req, res, next) {
     let contractAddr = req.query.address;
     let owner = req.query.owner;
 
@@ -138,7 +126,7 @@ router.get('/GET/get_ownerToIds', async function (req, res, next) {
     })
 });
 
-router.get('/GET/get_idToOwnerIndexPlus1', async function (req, res, next) {
+router.get('/owner/ownerIndex', async function (req, res, next) {
     let contractAddr = req.query.address;
     let tokenId = req.query.tokenId;
 
@@ -151,7 +139,7 @@ router.get('/GET/get_idToOwnerIndexPlus1', async function (req, res, next) {
     })
 });
 
-router.get('/GET/getTokenOwners', async function (req, res, next) {
+router.get('/token/tokenOwner', async function (req, res, next) {
     let contractAddr = req.query.address;
     let idStart = req.query.idStart;
     let idCount = req.query.idCount;
@@ -165,20 +153,20 @@ router.get('/GET/getTokenOwners', async function (req, res, next) {
     })
 });
 
-router.get('/GET/getApprovedInternal', async function (req, res, next) {
-    let contractAddr = req.query.address;
-    let tokenId = req.query.tokenId;
+router.get('/token/tokenURI', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let tokenId = req.body.tokenId;
 
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.getApprovedInternal(tokenId).call({ from: backendAddr })
+    let result = await ERC721SPLC_HToken.methods.tokenURI(tokenId).call({ from: backendAddr })
 
     res.send({
         result: result
     })
 });
 
-router.get('/GET/balanceOf', async function (req, res, next) {
+router.get('/owner/balanceOf', async function (req, res, next) {
     let contractAddr = req.query.address;
     let owner = req.query.owner;
 
@@ -191,7 +179,7 @@ router.get('/GET/balanceOf', async function (req, res, next) {
     })
 });
 
-router.get('/GET/ownerOf', async function (req, res, next) {
+router.get('/token/ownerOf', async function (req, res, next) {
     let contractAddr = req.query.address;
     let tokenId = req.query.tokenId;
 
@@ -204,7 +192,7 @@ router.get('/GET/ownerOf', async function (req, res, next) {
     })
 });
 
-router.get('/GET/getApproved', async function (req, res, next) {
+router.get('/token/isApproved', async function (req, res, next) {
     let contractAddr = req.query.address;
     let tokenId = req.query.tokenId;
 

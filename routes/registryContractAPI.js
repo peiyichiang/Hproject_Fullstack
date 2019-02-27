@@ -7,9 +7,9 @@ var router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -20,17 +20,12 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 const contract = require('../ethereum/contracts/build/Registry.json');
 
 
-
-router.get('/', function (req, res, next) {
-    res.render('registryContractAPI');
-});
-
 /*deploy registryContract*/
-router.post('/POST/deploy', function (req, res, next) {
+router.post('/deploy', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -41,7 +36,7 @@ router.post('/POST/deploy', function (req, res, next) {
         })
         .send({
             from: backendAddr,
-            gas: 6000000,
+            gas: 8000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
@@ -54,7 +49,7 @@ router.post('/POST/deploy', function (req, res, next) {
 
 
 /*get 會員數量 */
-router.get('/GET/getUserCount', async function (req, res, next) {
+router.get('/userAmount', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -67,7 +62,7 @@ router.get('/GET/getUserCount', async function (req, res, next) {
 });
 
 /*get 會員資訊 */
-router.get('/GET/getUserInfo', async function (req, res, next) {
+router.get('/userInfo', async function (req, res, next) {
     let u_id = req.query.u_id;
     let contractAddr = req.query.address;
 
@@ -81,7 +76,7 @@ router.get('/GET/getUserInfo', async function (req, res, next) {
 });
 
 /*get uid by assetCtrAddr */
-router.get('/GET/getUidFromAssetCtAddr', async function (req, res, next) {
+router.get('/userID', async function (req, res, next) {
     let assetCtAddr = req.query.assetCtAddr;
     let contractAddr = req.query.address;
 
@@ -95,7 +90,7 @@ router.get('/GET/getUidFromAssetCtAddr', async function (req, res, next) {
 });
 
 /*註冊新會員 */
-router.post('/POST/addUser', async function (req, res, next) {
+router.post('/addUser', async function (req, res, next) {
     let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetAddr = req.body.assetAddr;
@@ -114,7 +109,7 @@ router.post('/POST/addUser', async function (req, res, next) {
 });
 
 /*設定會員info */
-router.patch('/PATCH/setUser', async function (req, res, next) {
+router.patch('/setUser', async function (req, res, next) {
     let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetCtAddr = req.body.assetCtAddr;
@@ -134,7 +129,7 @@ router.patch('/PATCH/setUser', async function (req, res, next) {
 });
 
 /*設定會員狀態 */
-router.patch('/PATCH/setUserStatus', async function (req, res, next) {
+router.patch('/setUserStatus', async function (req, res, next) {
     let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let accountStatus = req.body.accountStatus;
@@ -152,7 +147,7 @@ router.patch('/PATCH/setUserStatus', async function (req, res, next) {
 });
 
 /*設定會員eth address */
-router.patch('/PATCH/setEthAddr', async function (req, res, next) {
+router.patch('/setUserEthAddr', async function (req, res, next) {
     let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let ethAddr = req.body.ethAddr;
@@ -170,7 +165,7 @@ router.patch('/PATCH/setEthAddr', async function (req, res, next) {
 });
 
 /*設定會員assetCtr address */
-router.patch('/PATCH/setAssetCtAddr', async function (req, res, next) {
+router.patch('/setUserAssetCtAddr', async function (req, res, next) {
     let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetCtAddr = req.body.assetCtAddr;
@@ -188,7 +183,7 @@ router.patch('/PATCH/setAssetCtAddr', async function (req, res, next) {
 });
 
 /*將註冊新會員資訊更新至資料庫 */
-router.post('/POST/updateUserToDB', function (req, res, next) {
+router.post('/updateUser', function (req, res, next) {
 
     var u_email = req.body.email;
     var mysqlPoolQuery = req.pool;

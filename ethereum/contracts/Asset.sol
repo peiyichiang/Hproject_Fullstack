@@ -250,6 +250,18 @@ contract AssetContract is MultiSig {
         _multiSig.endorsersSign(_timeCurrent);
     }
 
+/*    function remove(uint index)  public returns(address[] memory) {
+        //if (index >= assetIndex.length) return;
+
+        for (uint i = index; i<assetIndex.length-1; i++){
+            assetIndex[i] = assetIndex[i+1];
+        }
+        delete assetIndex[assetIndex.length-1];
+        assetIndex.length--;
+        return assetIndex;
+    }
+*/
+
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
     /* $notice Handle the receipt of an NFT
      $dev The ERC721 smart contract calls this function on the recipient

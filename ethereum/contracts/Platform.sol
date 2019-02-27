@@ -70,10 +70,10 @@ contract Platform{
     //更改admin address
     function changePlatformAdmin(address _newAdminAddr, string memory _id, uint _time) public isOwner(){
 
-        address _oldAdminNumber = platforms[_id].platformAdminAddr;
+        address _oldAdminAddr = platforms[_id].platformAdminAddr;
         platforms[_id].platformAdminAddr = _newAdminAddr;
 
-        emit changePlatformAdminEvent(_oldAdminNumber, _newAdminAddr, _id, _time);
+        emit changePlatformAdminEvent(_oldAdminAddr, _newAdminAddr, _id, _time);
     }
 
     function getPlatformAdminNumber() public view returns(uint platformAdminNumber){

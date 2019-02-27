@@ -5,9 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -22,11 +22,11 @@ router.get('/', function (req, res, next) {
 });
 
 //deploy asset contract
-router.post('/POST/deploy', function (req, res, next) {
+router.post('/deploy', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -49,7 +49,7 @@ router.post('/POST/deploy', function (req, res, next) {
 });
 
 /**新增平台方管理員Addr*/
-router.post('/POST/addPlatformAdminAddr', async function (req, res, next) {
+router.post('/addAdmin', async function (req, res, next) {
     let contractAddr = req.body.address;
     let newAdminAddr = req.body.newAdminAddr;
     let id = req.body.id;
@@ -67,7 +67,7 @@ router.post('/POST/addPlatformAdminAddr', async function (req, res, next) {
 });
 
 /** 更改平台方管理員Addr*/
-router.patch('/PATCH/changePlatformAdminAddr', async function (req, res, next) {
+router.patch('/changeAdminAddr', async function (req, res, next) {
     let contractAddr = req.body.address;
     let newAdminAddr = req.body.newAdminAddr;
     let id = req.body.id;
@@ -85,7 +85,7 @@ router.patch('/PATCH/changePlatformAdminAddr', async function (req, res, next) {
 });
 
 /** 刪除平台方管理員*/
-router.delete('/DELETE/deletePlatformAdmin', async function (req, res, next) {
+router.delete('/deleteAdmin', async function (req, res, next) {
     let contractAddr = req.body.address;
     let id = req.body.id;
     let time = req.body.time;
@@ -102,7 +102,7 @@ router.delete('/DELETE/deletePlatformAdmin', async function (req, res, next) {
 });
 
 /*get平台方管理員資訊 */
-router.get('/GET/getPlatformAdmin', async function (req, res, next) {
+router.get('/adminInfo', async function (req, res, next) {
     let contractAddr = req.query.address;
     let id = req.query.id;
 
@@ -115,7 +115,7 @@ router.get('/GET/getPlatformAdmin', async function (req, res, next) {
 });
 
 /*get平台方管理員數量 */
-router.get('/GET/getPlatformAdminNumber', async function (req, res, next) {
+router.get('/adminAmount', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
@@ -128,7 +128,7 @@ router.get('/GET/getPlatformAdminNumber', async function (req, res, next) {
 
 
 /*平台方簽名（Ａ是Ｂ的平台方=> 由Ｂ的assetContract去簽Ａ */
-router.post('/POST/signAssetContract', async function (req, res, next) {
+router.post('/signAssetBookContract', async function (req, res, next) {
     let contractAddr = req.body.platformContract;
     let time = req.body.time;
     let id = req.body.id;

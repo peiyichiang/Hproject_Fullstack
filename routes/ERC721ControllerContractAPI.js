@@ -5,9 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -19,11 +19,11 @@ const contract = require('../ethereum/contracts/build/ERC721SPLC_Controller.json
 
 
 //deploy asset contract
-router.post('/POST/deploy', function (req, res, next) {
+router.post('/deploy', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -51,7 +51,7 @@ router.post('/POST/deploy', function (req, res, next) {
         })
 });
 
-router.get('/GET/isUnlockedValid', async function (req, res, next) {
+router.get('/isUnlockedValid', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -63,7 +63,7 @@ router.get('/GET/isUnlockedValid', async function (req, res, next) {
     })
 });
 
-router.get('/GET/getHTokenControllerDetails', async function (req, res, next) {
+router.get('/HTokenControllerDetails', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -75,7 +75,7 @@ router.get('/GET/getHTokenControllerDetails', async function (req, res, next) {
     })
 });
 
-router.get('/GET/admin', async function (req, res, next) {
+router.get('/admin', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -87,7 +87,7 @@ router.get('/GET/admin', async function (req, res, next) {
     })
 });
 
-router.get('/GET/owner', async function (req, res, next) {
+router.get('/owner', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -99,7 +99,7 @@ router.get('/GET/owner', async function (req, res, next) {
     })
 });
 
-router.post('/POST/setTimeCurrent', async function (req, res, next) {
+router.post('/setTimeCurrent', async function (req, res, next) {
     let contractAddr = req.body.address;
     let timeCurrent = req.body.timeCurrent;
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -113,7 +113,7 @@ router.post('/POST/setTimeCurrent', async function (req, res, next) {
     })
 });
 
-router.post('/POST/setTimeTokenValid', async function (req, res, next) {
+router.post('/setTimeTokenValid', async function (req, res, next) {
     let contractAddr = req.body.address;
     let TimeTokenValid = req.body.TimeTokenValid;
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -127,7 +127,7 @@ router.post('/POST/setTimeTokenValid', async function (req, res, next) {
     })
 });
 
-router.post('/POST/setTimeTokenUnlock', async function (req, res, next) {
+router.post('/setTimeTokenUnlock', async function (req, res, next) {
     let contractAddr = req.body.address;
     let TimeTokenUnlock = req.body.TimeTokenUnlock;
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
@@ -141,7 +141,7 @@ router.post('/POST/setTimeTokenUnlock', async function (req, res, next) {
     })
 });
 
-router.post('/POST/setLaunchTime', async function (req, res, next) {
+router.post('/setLaunchTime', async function (req, res, next) {
     let contractAddr = req.body.address;
     let TimeTokenLaunch = req.body.TimeTokenLaunch;
     let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
