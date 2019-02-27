@@ -28,7 +28,7 @@ router.get('/', function (req, res, next) {
 
 
 //deploy crowdFunding contract
-router.post('/POST/deploy', function (req, res, next) {
+router.post('/deploy', function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
@@ -43,6 +43,8 @@ router.post('/POST/deploy', function (req, res, next) {
     let percents = req.body.percents;
     let deadline = req.body.deadline;
     let startTime = req.body.startTime;
+    let serverTime = req.body.serverTime;
+    
     /*let assetOwner = req.body.assetOwner;
     let platform = req.body.platform;
     let time = req.body.time;*/
@@ -51,7 +53,7 @@ router.post('/POST/deploy', function (req, res, next) {
 
     crowdFundingContract.deploy({
         data: contract.bytecode,
-        arguments: [HTokenSYMBOL, token_price, totalamount, percents, deadline, startTime]
+        arguments: [HTokenSYMBOL, token_price, totalamount, percents, deadline, startTime, serverTime]
         //arguments: [assetOwner, platform, time]
     })
         .send({

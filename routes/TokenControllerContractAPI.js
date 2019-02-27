@@ -15,7 +15,7 @@ var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC
 var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /*platform contract address*/
-const contract = require('../ethereum/contracts/build/ERC721SPLC_Controller.json');
+const contract = require('../ethereum/contracts/build/TokenController.json');
 
 
 //deploy asset contract
