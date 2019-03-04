@@ -59,12 +59,12 @@ contract CrowdFunding is Ownable {
         uint _serverTime
 
     ) public {
-        ckStringLength(_tokenSymbol, 3);
+        ckStringLength(_tokenSymbol, 3, 32);
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
         require(_tokenPrice > 0, "_tokenPrice should be greater than 0");
         tokenPrice = _tokenPrice;
 
-        ckStringLength(_currency, 3);
+        ckStringLength(_currency, 3, 32);
         currency = _currency;
         quantityMax = _quantityMax;//專案總量
         quantityGoal = quantityMax.mul(_goalInPercentage).div(100);//專案達標數量, Solidity division will truncates results
@@ -153,7 +153,7 @@ contract CrowdFunding is Ownable {
         updateState();
     }
     function forceTerminated(string calldata _reason) external onlyAdmin {
-        ckStringLength(_reason, 7);
+        ckStringLength(_reason, 7, 32);
         isTerminated = true;
         salestate = saleState.forceTerminated;
         stateDescription = "forceTerminated";
@@ -203,8 +203,8 @@ contract CrowdFunding is Ownable {
     function append(string memory a, string memory b) public pure returns (string memory) {
         return string(abi.encodePacked(a, b));
     }
-    function ckStringLength(string memory _str, uint _minLength) public pure {
-        require(bytes(_str).length > _minLength, "input string should not be lesser than mimimun length");
+    function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure {
+        require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
     }
 
 }

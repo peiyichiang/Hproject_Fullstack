@@ -157,22 +157,26 @@ contract MultiSig {
 
 
 contract AssetContract is MultiSig {
+    using SafeMath for uint256;
 
     /** @dev asset資料結構 */
     struct Asset{
-        address tokenAddr; //token合約位址
-        string tokenSymbol; //tokenSymbol
-        uint tokenAmount; //Token數量
+        address assetAddr; //token合約位址
+        uint assetAddrIndex; // starting from 1
+        string assetSymbol; //assetSymbol
         uint[] ids; //擁有的TokenId
+        uint assetAmount; //Token數量
     }
 
-    mapping (address => Asset) assets;
-    address[] assetIndex; //token address list
+    mapping (address => Asset) assets;//assetAddress
+    uint public assetCindex;//count and index of assets, and each asset has an assetAddr
+    //address[] assetAddrList; //asset address list ... list will need for loop to check each one to prevent duplicated entries!
+    mapping (uint => address) assetIndexToAddr;//each assset address has an unique index in this asset contract
 
     /** @dev asset相關event */
     event createAssetContractEvent(address assetsOwner, address platformContractAddr, uint timestamp);
-    event addAssetEvent(address tokenAddr, string tokenSymbol, uint tokenAmount, uint[] ids ,uint timestamp);
-    event transferAssetEvent(address to, string tokenSymbol, uint _tokenId, uint remainAmount, uint[] remainIDs, uint timestamp);
+    //event addAssetEvent(address assetAddr, string assetSymbol, uint assetAmount, uint[] ids ,uint timestamp);
+    event transferAssetEvent(address to, string assetSymbol, uint _assetId, uint remainAmount, uint[] remainIDs, uint timestamp);
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902201045
     constructor (address _assetsOwner, address _platform, uint256 _timeCurrent) public {
@@ -181,50 +185,93 @@ contract AssetContract is MultiSig {
         emit createAssetContractEvent(_assetsOwner, _platform, _timeCurrent);
     }
 
-
+    /*
+    struct Asset{
+        address assetAddr; //asset合約位址
+        uint assetAddrIndex; // starting from 1
+        string assetSymbol; //assetSymbol
+        uint[] ids; //擁有的TokenId
+        uint assetAmount; //Token數量
+    }*/
     /** @dev 新增token(當 erc721_token 分配到 AssetContract 的時候記錄起來) */
-    function addAsset(address _tokenAddr, uint256 _timeCurrent) public {
-        //use ERC721TOKEN's function (balanceof, getTokenSymbol)
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_tokenAddr)));
+    function updateAsset(address _assetAddr) public {
+        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
-        assets[_tokenAddr].tokenAddr = _tokenAddr;
-        assets[_tokenAddr].tokenSymbol = _erc721.symbol();
-        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
-        assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
-        assetIndex.push(_tokenAddr);
+        if (assets[_assetAddr].assetAmount < _erc721.balanceOf(address(this))){
+            //increase in amount
+            if (assets[_assetAddr].assetAmount == 0) {
+                //adding a new asset address
+                assets[_assetAddr].assetAddr = _assetAddr;
+                assets[_assetAddr].assetSymbol = _erc721.symbol();
 
-        emit addAssetEvent(assets[_tokenAddr].tokenAddr, assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids, _timeCurrent);
+                assetCindex = assetCindex.add(1);
+                assets[_assetAddr].assetAddrIndex = assetCindex;
+                assetIndexToAddr[assetCindex] = _assetAddr;
+                //assetAddrList.push(_assetAddr);
+            }
+            assets[_assetAddr].ids = _erc721.get_ownerToIds(address(this));
+            assets[_assetAddr].assetAmount = _erc721.balanceOf(address(this));
+        } else {
+            if (assets[_assetAddr].assetAmount > _erc721.balanceOf(address(this))){
+                //decrease in amount
+                if (_erc721.balanceOf(address(this)) == 0) {
+                    //deleting an asset address
+                    assetIndexToAddr[assets[_assetAddr].assetAddrIndex] = assetIndexToAddr[assetCindex];
+                    delete assetIndexToAddr[assetCindex];
+                    assetCindex = assetCindex.sub(1);
+                    delete assets[_assetAddr].assetAddrIndex;
+                    delete assets[_assetAddr].assetAddr;
+                    delete assets[_assetAddr].assetSymbol;
+                    delete assets[_assetAddr].ids;
+                    delete assets[_assetAddr].assetAmount;
+                } else {
+                    assets[_assetAddr].ids = _erc721.get_ownerToIds(address(this));
+                    assets[_assetAddr].assetAmount = _erc721.balanceOf(address(this));
+                }
+            }
+        }
+        // emit addAssetEvent(assets[_assetAddr].assetAddr, assets[_assetAddr].assetSymbol, assets[_assetAddr].assetAmount, assets[_assetAddr].ids, _timeCurrent);
     }
 
 
     /** @dev 提領token */
-    function transferAsset(address _tokenAddr, uint _tokenId, address _to, uint256 _timeCurrent) public isAssetsOwner {
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_tokenAddr)));
+    //=> start from the minimum index according to First In First Out principle!!!
+    function transferAsset(address _assetAddr, uint _tokenId, address _to, uint256 _timeCurrent) public isAssetsOwner {
+        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
 
-        uint remainAmount = _erc721.balanceOf(address(this));//_tokenAddr.balances(this);
+        uint remainAmount = _erc721.balanceOf(address(this));//_assetAddr.balances(this);
         _erc721.safeTransferFrom(address(this), _to, _tokenId);
-        assets[_tokenAddr].tokenAmount = _erc721.balanceOf(address(this));
-        assets[_tokenAddr].ids = _erc721.get_ownerToIds(address(this));
-
-        emit transferAssetEvent(_to, assets[_tokenAddr].tokenSymbol, _tokenId, remainAmount, assets[_tokenAddr].ids, _timeCurrent);
+        updateAsset(_assetAddr);
+        emit transferAssetEvent(_to, assets[_assetAddr].assetSymbol, _tokenId, remainAmount, assets[_assetAddr].ids, _timeCurrent);
     }
 
     /** @dev get assets info */
-    function getAsset(address _tokenAddr) public view returns (string memory, uint, uint[] memory){
-        return (assets[_tokenAddr].tokenSymbol, assets[_tokenAddr].tokenAmount, assets[_tokenAddr].ids);
+    function getAsset(address _assetAddr) public view returns (string memory, uint, uint[] memory){
+        return (assets[_assetAddr].assetSymbol, assets[_assetAddr].assetAmount, assets[_assetAddr].ids);
     }
 
     /** @dev get asset number */
     function getAssetCount() public view returns(uint assetCount){
-        return assetIndex.length;
+        return assetCindex;//assetAddrList.length;
     }
 
     /** @dev get all assetAddr */
-    function getAssetIndex() public view returns(address[] memory){
-        return (assetIndex);
+    function getAssetAddrList() public view returns(address[] memory){
+        address[] memory assetAddrList = new address[](assetCindex);
+        for(uint i=0; i < assetCindex; i++) {
+            assetAddrList[i] = assetIndexToAddr[i+1];
+        }
+        return (assetAddrList);
     }
-
+    function getAssetAddrList(uint start, uint num) public view returns(address[] memory){
+        address[] memory assetAddrList = new address[](num);
+        for(uint i=start; i < start.add(num); i++) {
+            assetAddrList[i] = assetIndexToAddr[i+1];
+        }
+        return (assetAddrList);
+    }
+    
     /** @dev sign AssetContract's endorserSign */
     function signAssetContract(address _assetContractAddr, uint256 _timeCurrent) public isAssetsOwner{
         AssetContract _multiSig = AssetContract(address(uint160(_assetContractAddr)));
@@ -262,18 +309,18 @@ contract AssetContract is MultiSig {
 /*
     //get all assets
     function getAllAssets() public isAssetsOwner returns (address[], string[], uint[] ){
-        address[] memory tokenAddrs = new address[](assetIndex.length);
-        string[] memory tokenSymbols = new string[](assetIndex.length);
-        uint[]    memory tokenAmounts = new uint[](assetsIndex.length);
+        address[] memory assetAddrs = new address[](assetAddrList.length);
+        string[] memory assetSymbols = new string[](assetAddrList.length);
+        uint[]    memory assetAmounts = new uint[](assetsIndex.length);
 
-        for (uint i = 0; i < assetIndex.length; i++) {
-            Asset storage asset = assets[assetIndex[i]];
-            tokenAddrs[i] = asset.tokenAddr;
-            tokenSymbols[i] = asset.tokenSymbol;
-            tokenAmounts[i] = asset.tokenAmount;
+        for (uint i = 0; i < assetAddrList.length; i++) {
+            Asset storage asset = assets[assetAddrList[i]];
+            assetAddrs[i] = asset.assetAddr;
+            assetSymbols[i] = asset.assetSymbol;
+            assetAmounts[i] = asset.assetAmount;
         }
 
-        return (tokenAddrs, tokenSymbols, tokenAmounts);
+        return (assetAddrs, assetSymbols, assetAmounts);
     }
 
 */

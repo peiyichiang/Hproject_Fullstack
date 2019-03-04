@@ -342,7 +342,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, bytes32 uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, bytes32 _uri) public {
-        //ckStringLength(_uri, 32);
         require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
 
         //Legal Compliance
@@ -707,11 +706,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256) {
         require(_index < ownerToIds[_owner].length, "_index should be < ownerToIds[_owner].length");
         return ownerToIds[_owner][_index];
-    }
-
-    //-------------------==
-    function ckStringLength(string memory _str, uint _minLength) public pure {
-        require(bytes(_str).length > _minLength, "input string should not be lesser than mimimun length");
     }
 
 }

@@ -231,7 +231,7 @@ let addrPA_Ctrt; let addrFMXA_Ctrt; let addrPlatformCtrt;
 let uid1; let uid2; let assetCtAddr1; let assetCtAddr2;
 let extoAddr1; let extoAddr2;
 
-let tokenId; let to; let _from; let uri; let tokenOwner; let tokenOwnerM;
+let tokenId; let to; let _from; let uriStr; let uriBytes32; let uriStrB; let tokenOwner; let tokenOwnerM;
 let tokenControllerDetail; let timeCurrentM;
 let TimeTokenLaunchM; let TimeTokenUnlockM; let TimeTokenValidM; let isLaunchedM;
 let bool1; let bool2;
@@ -524,13 +524,17 @@ describe('Tests on ERC721SPLC', () => {
     let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
 
-    //----------------==Mint token
+    //----------------==Mint Token
     console.log('\n------------==Mint token: tokenId = 1');
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 0);
 
-    to = addrAsset1; uri = "https://heliumcryptic.com/nccu01";
-    await instERC721SPLC.methods.mintSerialNFT(to, uri).send({
+    const uriBase = "https://heliumcryptic.com/nccu0";
+    to = addrAsset1; uriStr = uriBase+"1";
+    uriBytes32 = web3.utils.fromAscii(uriStr);
+    uriStrB = web3.utils.toAscii(uriBytes32);
+    console.log('uriStr', uriStr, 'uriBytes32', uriBytes32, 'uriStrB', uriStrB);
+    await instERC721SPLC.methods.mintSerialNFT(to, uriBytes32).send({
       value: '0', from: acc0, gas: '1000000'
     });
 
@@ -552,7 +556,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(tokenInfo[0], nftName);
     assert.equal(tokenInfo[1], nftSymbol);
     assert.equal(tokenInfo[2], pricingCurrency);
-    assert.equal(tokenInfo[3], uri);
+    assert.equal(web3.utils.toAscii(tokenInfo[3]), uriStr);
     assert.equal(tokenInfo[4], initialAssetPricing);
 
     await instAsset1.methods.addAsset(tokenAddr, timeCurrent)
@@ -563,6 +567,60 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetsMeasured1[0], 'NCCU1801');
     assert.equal(assetsMeasured1[1], 1);
     assert.equal(assetsMeasured1[2].length, 1);
+
+
+    //-----------------==Mint Token Batch
+    console.log('\n------------==Mint Token in Batch: tokenId = 2, 3, 4');
+    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    assert.equal(tokenIdM, 1);
+
+    to = addrAsset1;
+    let _tos = [addrAsset1, addrAsset1, addrAsset1];
+    let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
+    const strToBytes32 = str => web3.utils.fromAscii(str);
+    let _uriBytes32s = _uriStrs.map(strToBytes32);
+    console.log('_uriStrs', _uriStrs);
+    console.log('_uriBytes32s', _uriBytes32s);
+    await instERC721SPLC.methods.mintSerialNFTBatch(_tos, _uriBytes32s).send({
+      value: '0', from: acc0, gas: '1000000'
+    });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
+
+    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    assert.equal(tokenIdM, 4);
+
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(2).call();
+    assert.equal(tokenOwnerM, addrAsset1);
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(3).call();
+    assert.equal(tokenOwnerM, addrAsset1);
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(4).call();
+    assert.equal(tokenOwnerM, addrAsset1);
+
+    tokenInfo = await instERC721SPLC.methods.getNFT(2).call();
+    console.log('tokenInfo from ERC721SPLC id = 2:', tokenInfo);
+    /**
+    const nftName = "NCCU site No.1(2018)";
+    const nftSymbol = "NCCU1801";
+    const siteSizeInKW = 300; const maxTotalSupply = 800; 
+    const initialAssetPricing = 17000; const pricingCurrency = "NTD";
+    const IRR20yrx100 = 470;
+     */
+    assert.equal(tokenInfo[0], nftName);
+    assert.equal(tokenInfo[1], nftSymbol);
+    assert.equal(tokenInfo[2], pricingCurrency);
+    assert.equal(tokenInfo[4], initialAssetPricing);
+    assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[0]);
+
+    console.log('check uri of Id 2, 3, 4');
+    tokenInfo = await instERC721SPLC.methods.getNFT(3).call();
+    assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[1]);
+    tokenInfo = await instERC721SPLC.methods.getNFT(4).call();
+    assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
+
+    assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
+    console.log('assetsMeasured1', assetsMeasured1);
+    assert.equal(assetsMeasured1[0], 'NCCU1801');
+    assert.equal(assetsMeasured1[1], 4);//total amount
+    assert.equal(assetsMeasured1[2].length, 4);
 
 
     //-----------------==Check Token Controller: time
