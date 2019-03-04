@@ -374,9 +374,16 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //     emit BurnNFT(_owner, _tokenId, msg.sender);
     // }
 
-    function getApprovedInternal(uint256 _tokenId) public view
+    function getIdToApprovals(uint256 _tokenId) public view
         validNFToken(_tokenId) returns (address) {
         return idToApprovals[_tokenId];
+    }
+    function safeTransferFromBatch(address[] calldata _froms, address[] calldata _tos, uint[] calldata _tokenIds) external {
+        uint num = _tokenIds.length;
+        require(_froms.length == num && _tos.length == num, "_froms.length and _tos.length must be the same as _tokenIds.length");
+        for(uint i=0; i<num; i++) {
+            _safeTransferFrom(_froms[i], _tos[i], _tokenIds[i], "");
+        }
     }
 
     function() external payable { revert("should not send any ether directly"); }
@@ -426,7 +433,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     modifier canTransfer(uint256 _tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || getApprovedInternal(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
+            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
         _;
     }
 
@@ -491,7 +498,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //canTransfer(_tokenId)
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || getApprovedInternal(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
+            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
 
         //validNFToken(_tokenId)
         require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
@@ -519,7 +526,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
         require(_approved != tokenOwner, "_approved should not be tokenOwner");
         // require(
-        //     !(getApprovedInternal(_tokenId) == address(0) && _approved == address(0)), 
+        //     !(getIdToApprovals(_tokenId) == address(0) && _approved == address(0)), 
         //     "approved address and _approved should not be 0x0");
 
         idToApprovals[_tokenId] = _approved;
