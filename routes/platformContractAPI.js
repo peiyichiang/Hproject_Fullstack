@@ -30,10 +30,12 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
+    let platformCtAdmin = req.body.platformCtAdmin;
     let platformContract = new web3deploy.eth.Contract(contract.abi);
 
     platformContract.deploy({
-        data: contract.bytecode
+        data: contract.bytecode,
+        arguments: [platformCtAdmin]
         })
         .send({
             from: backendAddr,
@@ -48,16 +50,34 @@ router.post('/deploy', function (req, res, next) {
         })
 });
 
-/**新增平台方管理員Addr*/
-router.post('/addAdmin', async function (req, res, next) {
+
+/** 更改平台方權限者Addr*/
+router.patch('/setPlatformContractAdmin', async function (req, res, next) {
     let contractAddr = req.body.address;
-    let newAdminAddr = req.body.newAdminAddr;
+    let platformCtAdmin = req.body.platformCtAdmin;
+
+    let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = platformContract.methods.setPlatformCtAdmin(platformCtAdmin).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/**新增平台方管理員Addr*/
+router.post('/addPlatformManager', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let newManagerAddr = req.body.newManagerAddr;
     let id = req.body.id;
     let time = req.body.time;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
-    let encodedData = platformContract.methods.addPlatformAdmin(newAdminAddr, id, time).encodeABI();
+    let encodedData = platformContract.methods.addPlatformManager(newManagerAddr, id, time).encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -67,15 +87,15 @@ router.post('/addAdmin', async function (req, res, next) {
 });
 
 /** 更改平台方管理員Addr*/
-router.patch('/changeAdminAddr', async function (req, res, next) {
+router.patch('/changePlatformManagerAddr', async function (req, res, next) {
     let contractAddr = req.body.address;
-    let newAdminAddr = req.body.newAdminAddr;
+    let newManagerAddr = req.body.newManagerAddr;
     let id = req.body.id;
     let time = req.body.time;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
-    let encodedData = platformContract.methods.changePlatformAdmin(newAdminAddr, id, time).encodeABI();
+    let encodedData = platformContract.methods.changePlatformManager(newManagerAddr, id, time).encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -85,14 +105,14 @@ router.patch('/changeAdminAddr', async function (req, res, next) {
 });
 
 /** 刪除平台方管理員*/
-router.delete('/deleteAdmin', async function (req, res, next) {
+router.delete('/deletePlatformManager', async function (req, res, next) {
     let contractAddr = req.body.address;
     let id = req.body.id;
     let time = req.body.time;
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
-    let encodedData = platformContract.methods.deletePlatformAdmin(id, time).encodeABI();
+    let encodedData = platformContract.methods.deletePlatformManager(id, time).encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -102,27 +122,27 @@ router.delete('/deleteAdmin', async function (req, res, next) {
 });
 
 /*get平台方管理員資訊 */
-router.get('/adminInfo', async function (req, res, next) {
+router.get('/platformManagerInfo', async function (req, res, next) {
     let contractAddr = req.query.address;
     let id = req.query.id;
 
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let platformAdmin = await platformContract.methods.getPlatformAdminInfo(id).call({ from: backendAddr })
+    let platformManager = await platformContract.methods.getPlatformManagerInfo(id).call({ from: backendAddr })
 
     res.send({
-        platformAdmin: platformAdmin
+        platformManager: platformManager
     })
 });
 
 /*get平台方管理員數量 */
-router.get('/adminAmount', async function (req, res, next) {
+router.get('/platformManagerAmount', async function (req, res, next) {
     let contractAddr = req.query.address;
 
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let platformAdminNumber = await platformContract.methods.getPlatformAdminNumber().call({ from: backendAddr })
+    let platformManagerNumber = await platformContract.methods.getPlatformManagerAmount().call({ from: backendAddr })
 
     res.send({
-        platformAdminNumber: platformAdminNumber
+        platformManagerNumber: platformManagerNumber
     })
 });
 
@@ -136,11 +156,11 @@ router.post('/signAssetBookContract', async function (req, res, next) {
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用手機keychain 抓管理員公私鑰*/
-    let platformAdmin = '0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590';
-    let platformAdminPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
+    let platformManager = '0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590';
+    let platformManagerPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
 
     let encodedData = platformContract.methods.signAssetContract(assetsContractToBeSigned, id, time).encodeABI();
-    let result = await signTx(platformAdmin, platformAdminPrivateKey, contractAddr, encodedData);
+    let result = await signTx(platformManager, platformManagerPrivateKey, contractAddr, encodedData);
 
     res.send({
         result: result
