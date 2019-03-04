@@ -15,12 +15,13 @@ contract CrowdFunding is Ownable {
 
     event ShowState(string _state);
     event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, saleState indexed _salestate, string _stateDescription);
-    event TokenReserved(address indexed _userAssetContract, uint _quantityToInvest, uint _serverTime);
+    event TokenReserved(address indexed _AssetBookAddr, uint _quantityToInvest, uint _serverTime);
     
     uint public serverTime;
     address private platformAddress;
     string public tokenSymbol; //專案erc721合約
     uint public tokenPrice; //每片太陽能板定價
+    string public currency; // NTD, USD, RMB, etc...
     uint public quantityMax; //專案總token數
     uint public quantityGoal; //專案達標數目
     uint public quantitySold; //累積賣出數目
@@ -28,9 +29,10 @@ contract CrowdFunding is Ownable {
     uint public CFED2; //截止日期 yyyymmddhhmm
     
     struct UserAccount {
-        address assetContract; //
-        uint256 tokenBalance; //購買的token總數
-        uint256 fundBalance; //
+        address assetBook;//assetBook addr
+        uint256 tokenBalance;//購買的token總數
+        uint256 fundBalance;//
+        string currency;
     }
     mapping(address => UserAccount) public userAccount;
 
@@ -49,6 +51,7 @@ contract CrowdFunding is Ownable {
     constructor  (
         string memory _tokenSymbol,
         uint _tokenPrice,
+        string memory _currency,// NTD or USD or RMB ...
         uint _quantityMax,
         uint _goalInPercentage,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
@@ -56,10 +59,13 @@ contract CrowdFunding is Ownable {
         uint _serverTime
 
     ) public {
-        ckStringLength(_tokenSymbol);
+        ckStringLength(_tokenSymbol, 3);
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
         require(_tokenPrice > 0, "_tokenPrice should be greater than 0");
         tokenPrice = _tokenPrice;
+
+        ckStringLength(_currency, 3);
+        currency = _currency;
         quantityMax = _quantityMax;//專案總量
         quantityGoal = quantityMax.mul(_goalInPercentage).div(100);//專案達標數量, Solidity division will truncates results
 
@@ -147,7 +153,7 @@ contract CrowdFunding is Ownable {
         updateState();
     }
     function forceTerminated(string calldata _reason) external onlyAdmin {
-        ckStringLength(_reason);
+        ckStringLength(_reason, 7);
         isTerminated = true;
         salestate = saleState.forceTerminated;
         stateDescription = "forceTerminated";
@@ -155,17 +161,17 @@ contract CrowdFunding is Ownable {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, salestate, append("forceTerminated:", _reason));
     }
 
-    function invest(address _userAssetContract, uint _quantityToInvest) 
+    function invest(address _AssetBookAddr, uint _quantityToInvest) 
         external onlyAdmin {
         // uint _serverTime, 
         // require(_serverTime > serverTime, "_serverTime should be greater than existing serverTime");
 
-        if (_userAssetContract.isContract()) {
-            bytes4 retval = ERC721TokenReceiverITF_CF(_userAssetContract).onERC721Received(
+        if (_AssetBookAddr.isContract()) {
+            bytes4 retval = ERC721TokenReceiverITF_CF(_AssetBookAddr).onERC721Received(
                 msg.sender, msg.sender, 1, "");// assume tokenId = 1;
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         } else {
-            require(false,"_userAssetContract address should contain ERC721 compatible asset contract");
+            require(false,"_AssetBookAddr address should contain ERC721 compatible asset contract");
         }
 
         require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
@@ -174,21 +180,22 @@ contract CrowdFunding is Ownable {
         require(!isTerminated, "crowdFunding has been terminated");
         require(quantitySold.add(_quantityToInvest) <= quantityMax, "insufficient available token quantity");
 
-        // serverTime = _serverTime;
-        // updateState();
         require(salestate == saleState.funding || salestate == saleState.fundingWithGoalReached, "funding is terminated or not started yet");
 
-        userAccount[_userAssetContract].assetContract = _userAssetContract;
+        userAccount[_AssetBookAddr].assetBook = _AssetBookAddr;
 
-        uint tokenBalance = userAccount[_userAssetContract].tokenBalance;
+        uint tokenBalance = userAccount[_AssetBookAddr].tokenBalance;
         tokenBalance = tokenBalance.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
+        userAccount[_AssetBookAddr].tokenBalance = tokenBalance;
 
-        uint fundBalance = userAccount[_userAssetContract].fundBalance;
+        uint fundBalance = userAccount[_AssetBookAddr].fundBalance;
         fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
+        userAccount[_AssetBookAddr].fundBalance = fundBalance;
+        userAccount[_AssetBookAddr].currency = currency;
 
         quantitySold = quantitySold.add(_quantityToInvest);//紀錄已經賣了多少token
-        emit TokenReserved(_userAssetContract, _quantityToInvest, serverTime);
-        //event TokenReserved(address indexed _userAssetContract, uint _quantityToInvest, uint _serverTime);
+        emit TokenReserved(_AssetBookAddr, _quantityToInvest, serverTime);
+        //event TokenReserved(address indexed _AssetBookAddr, uint _quantityToInvest, uint _serverTime);
 
         updateState();
     }
@@ -196,8 +203,8 @@ contract CrowdFunding is Ownable {
     function append(string memory a, string memory b) public pure returns (string memory) {
         return string(abi.encodePacked(a, b));
     }
-    function ckStringLength(string memory _str) public pure {
-        require(bytes(_str).length > 0, "input string should not be empty");
+    function ckStringLength(string memory _str, uint _minLength) public pure {
+        require(bytes(_str).length > _minLength, "input string should not be lesser than mimimun length");
     }
 
 }

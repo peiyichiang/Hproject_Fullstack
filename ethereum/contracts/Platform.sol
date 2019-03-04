@@ -1,22 +1,23 @@
 pragma solidity ^0.5.4;
 
 import "./SafeMath.sol";
+import "./Ownable.sol";
 
 interface AssetBookITF_Platform {
   function platformSign(uint256 _timeCurrent) external;
 }
 
-contract Platform{
+contract Platform is Ownable {
     using SafeMath for uint256;
-    address owner;
-    uint adminNumber = 0;
+    uint public adminNumber;
+    address public platformCtAdmin;
+
     struct Platforms{
         string platformAdminId; //platform admin id
         address platformAdminAddr; //platform admin address
     }
-
     mapping(string => Platforms) platforms;
-    string[] platformsIndex; //platform address list
+    string[] platformAdminIds; //platform address list
 
 
     event addPlatformAdminEvent(address indexed adminAddr,string id, uint256 timestamp);
@@ -24,24 +25,28 @@ contract Platform{
     event changePlatformAdminEvent(address indexed oldAdminAddr, address indexed newAdminAddr, string id, uint256 timestamp);
 
 
-    constructor() public{
-        owner = msg.sender;
+    constructor(address _platformCtAdmin) public{
+        platformCtAdmin = _platformCtAdmin;
     }
 
-    //檢查是否為owner
-    modifier isOwner(){
-        require(msg.sender == owner, "請檢查是否為合約擁有者");
+    //檢查是否為 platformCtAdmin
+    modifier isPlatformCtAdmin(){
+        require(msg.sender == platformCtAdmin, "請檢查是否為合約 platformCtAdmin");
         _;
     }
-
     //檢查是否為platformAdmin
     modifier isPlatformAdmin(string memory _id){
-        require(msg.sender == platforms[_id].platformAdminAddr || msg.sender == owner, "請檢查是否為平台管理員");
+        require(msg.sender == platforms[_id].platformAdminAddr || msg.sender == platformCtAdmin, "請檢查是否為平台管理員");
         _;
+    }
+
+    function setPlatformCtAdmin(address _platformCtAdmin) public onlyAdmin {
+        platformCtAdmin = _platformCtAdmin;
     }
 
     //sign assetContract 的 multiSig
     function signAssetContract(address _assetContractAddr, string memory _id, uint256 _time) public isPlatformAdmin(_id){
+
         AssetBookITF_Platform _multiSig = AssetBookITF_Platform(address(uint160(_assetContractAddr)));
         _multiSig.platformSign(_time);
     }
@@ -53,24 +58,24 @@ contract Platform{
 
         platforms[_id].platformAdminId = _id;
         platforms[_id].platformAdminAddr = _adminAddr;
-        platformsIndex.push(_id);
-        adminNumber++;
+        platformAdminIds.push(_id);
+        adminNumber = adminNumber.add(1);
 
         emit addPlatformAdminEvent(_adminAddr, _id, _time);
     }
 
     //移除admin
-    function deletePlatformAdmin(string memory _id, uint _time) public isOwner(){
+    function deletePlatformAdmin(string memory _id, uint _time) public isPlatformCtAdmin{
 
         address _adminAddr = platforms[_id].platformAdminAddr;
-        adminNumber--;
+        adminNumber = adminNumber.sub(1);
         delete platforms[_id];
 
         emit deletePlatformAdminEvent(_adminAddr, _id, _time);
     }
 
     //更改admin address
-    function changePlatformAdmin(address _newAdminAddr, string memory _id, uint _time) public isOwner(){
+    function changePlatformAdmin(address _newAdminAddr, string memory _id, uint _time) public isPlatformCtAdmin{
 
         address _oldAdminAddr = platforms[_id].platformAdminAddr;
         platforms[_id].platformAdminAddr = _newAdminAddr;
@@ -78,9 +83,9 @@ contract Platform{
         emit changePlatformAdminEvent(_oldAdminAddr, _newAdminAddr, _id, _time);
     }
 
-    function getPlatformAdminNumber() public view returns(uint platformAdminNumber){
-        return adminNumber;
-    }
+    // function getPlatformAdminNumber() public view returns(uint platformAdminNumber){
+    //     return adminNumber;
+    // }
 
     function getPlatformAdminInfo(string memory _id) public view returns(address platformAdminAddr){
         return platforms[_id].platformAdminAddr;

@@ -206,7 +206,7 @@ const TimeTokenValid =  timeCurrent+9;
 const nftName = "NCCU site No.1(2018)";
 const nftSymbol = "NCCU1801";
 const siteSizeInKW = 300;
-const maxTotalSupply = 773; 
+const maxTotalSupply = 773;
 const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
@@ -218,12 +218,13 @@ const argsTokenController = [
 
 const _tokenSymbol = nftSymbol;
 const _tokenPrice = initialAssetPricing;
+const _currency = pricingCurrency;
 const _quantityMax = maxTotalSupply;
 const _goalInPercentage = 97;
 const _CFSD2 = timeCurrent+1;
 const _CFED2 = timeCurrent+10;
 let _serverTime = timeCurrent;
-const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime];
+const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime];
 
 const TimeAnchor = TimeTokenLaunch;
 let addrPA_Ctrt; let addrFMXA_Ctrt; let addrPlatformCtrt;
