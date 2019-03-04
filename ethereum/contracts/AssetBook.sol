@@ -26,7 +26,9 @@ interface ERC721SPLCITF_assetbook {
     function get_idToOwnerIndexPlus1(uint _tokenId) external view returns (uint);
 
     function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
-    function mintSerialNFT(address _to, string calldata _uri) external;
+    function mintSerialNFTOne(address _to, bytes32 _uri) external;
+    function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris) external;
+    function safeTransferFromBatch(address[] calldata _froms, address[] calldata _tos, uint[] calldata _tokenIds) external;
 }
 
 contract MultiSig {

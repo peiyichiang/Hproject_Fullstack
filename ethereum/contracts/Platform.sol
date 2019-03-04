@@ -13,16 +13,16 @@ contract Platform is Ownable {
     address public platformCtAdmin;
 
     struct Platforms{
-        string platformAdminId; //platform admin id
-        address platformAdminAddr; //platform admin address
+        string platformManagerId; //platform admin id
+        address platformManagerAddr; //platform admin address
     }
     mapping(string => Platforms) platforms;
-    string[] platformAdminIds; //platform address list
+    string[] platformManagerIds; //platform address list
 
 
-    event addPlatformAdminEvent(address indexed adminAddr,string id, uint256 timestamp);
-    event deletePlatformAdminEvent(address indexed adminAddr, string id, uint256 timestamp);
-    event changePlatformAdminEvent(address indexed oldAdminAddr, address indexed newAdminAddr, string id, uint256 timestamp);
+    event addPlatformManagerEvent(address indexed adminAddr,string id, uint256 timestamp);
+    event deletePlatformManagerEvent(address indexed adminAddr, string id, uint256 timestamp);
+    event changePlatformManagerEvent(address indexed oldAdminAddr, address indexed newAdminAddr, string id, uint256 timestamp);
 
 
     constructor(address _platformCtAdmin) public{
@@ -34,9 +34,9 @@ contract Platform is Ownable {
         require(msg.sender == platformCtAdmin, "請檢查是否為合約 platformCtAdmin");
         _;
     }
-    //檢查是否為platformAdmin
-    modifier isPlatformAdmin(string memory _id){
-        require(msg.sender == platforms[_id].platformAdminAddr || msg.sender == platformCtAdmin, "請檢查是否為平台管理員");
+    //檢查是否為platformManager
+    modifier isPlatformManager(string memory _id){
+        require(msg.sender == platforms[_id].platformManagerAddr || msg.sender == platformCtAdmin, "請檢查是否為平台管理員");
         _;
     }
 
@@ -45,48 +45,48 @@ contract Platform is Ownable {
     }
 
     //sign assetContract 的 multiSig
-    function signAssetContract(address _assetContractAddr, string memory _id, uint256 _time) public isPlatformAdmin(_id){
+    function signAssetContract(address _assetContractAddr, string memory _id, uint256 _time) public isPlatformManager(_id){
 
         AssetBookITF_Platform _multiSig = AssetBookITF_Platform(address(uint160(_assetContractAddr)));
         _multiSig.platformSign(_time);
     }
 
     //新增admin
-    function addPlatformAdmin(address _adminAddr, string memory _id, uint _time) public isPlatformCtAdmin{
+    function addPlatformManager(address _adminAddr, string memory _id, uint _time) public isPlatformCtAdmin{
 
-        platforms[_id].platformAdminId = _id;
-        platforms[_id].platformAdminAddr = _adminAddr;
-        platformAdminIds.push(_id);
+        platforms[_id].platformManagerId = _id;
+        platforms[_id].platformManagerAddr = _adminAddr;
+        platformManagerIds.push(_id);
         adminNumber = adminNumber.add(1);
 
-        emit addPlatformAdminEvent(_adminAddr, _id, _time);
+        emit addPlatformManagerEvent(_adminAddr, _id, _time);
     }
 
     //移除admin
-    function deletePlatformAdmin(string memory _id, uint _time) public isPlatformCtAdmin{
+    function deletePlatformManager(string memory _id, uint _time) public isPlatformCtAdmin{
 
-        address _adminAddr = platforms[_id].platformAdminAddr;
+        address _adminAddr = platforms[_id].platformManagerAddr;
         adminNumber = adminNumber.sub(1);
         delete platforms[_id];
 
-        emit deletePlatformAdminEvent(_adminAddr, _id, _time);
+        emit deletePlatformManagerEvent(_adminAddr, _id, _time);
     }
 
     //更改admin address
-    function changePlatformAdmin(address _newAdminAddr, string memory _id, uint _time) public isPlatformCtAdmin{
+    function changePlatformManager(address _newAdminAddr, string memory _id, uint _time) public isPlatformCtAdmin{
 
-        address _oldAdminNumber = platforms[_id].platformAdminAddr;
-        platforms[_id].platformAdminAddr = _newAdminAddr;
+        address _oldAdminNumber = platforms[_id].platformManagerAddr;
+        platforms[_id].platformManagerAddr = _newAdminAddr;
 
-        emit changePlatformAdminEvent(_oldAdminNumber, _newAdminAddr, _id, _time);
+        emit changePlatformManagerEvent(_oldAdminNumber, _newAdminAddr, _id, _time);
     }
 
-    // function getPlatformAdminNumber() public view returns(uint platformAdminNumber){
+    // function getPlatformManagerNumber() public view returns(uint platformManagerNumber){
     //     return adminNumber;
     // }
 
-    function getPlatformAdminInfo(string memory _id) public view returns(address platformAdminAddr){
-        return platforms[_id].platformAdminAddr;
+    function getPlatformManagerInfo(string memory _id) public view returns(address platformManagerAddr){
+        return platforms[_id].platformManagerAddr;
     }
 
 }
