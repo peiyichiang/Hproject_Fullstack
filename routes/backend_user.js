@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 var router = express.Router();
 
 //撈取前台、後台使用者資料(Platform_Admin可訪問頁面，其他不行)
-router.get('/GET/backend_user', function (req, res, next) {
+router.get('/backend_user', function (req, res, next) {
     // console.log("＊：" + JSON.stringify(req.session.m_permission));
     // console.log(req.cookies.access_token);
     var token = req.cookies.access_token;
@@ -65,7 +65,7 @@ router.get('/GET/backend_user', function (req, res, next) {
 });
 
 //新增後端使用者資料:註冊頁面(無權限設置，大家都可以訪問)
-router.get('/GET/AddBackendUser', function (req, res, next) {
+router.get('/AddBackendUser', function (req, res, next) {
     // if(req.session.login!=true){
     //     res.render('error', { message: '請先登入帳號', error: '' });
     //     return;
@@ -80,7 +80,7 @@ router.get('/GET/AddBackendUser', function (req, res, next) {
 });
 
 //＊＊新增後端使用者資料：接收資料的post(無權限設置，大家都可以訪問)
-router.post('/POST/AddBackendUser', function (req, res, next) {
+router.post('/AddBackendUser', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
 
     //前端傳明文密碼過來，將salt與明文密碼做sha256
@@ -102,7 +102,7 @@ router.post('/POST/AddBackendUser', function (req, res, next) {
     //         res.render('error', { message: '帳號重複', error: '' });
     //     } else {
     //         // res.setHeader('Content-Type', 'application/json');
-    //         // res.redirect('/BackendUser/GET/backend_user');
+    //         // res.redirect('/BackendUser/backend_user');
     //         res.render('error', { message: '註冊成功', error: '' });
     //     }
     // });
@@ -133,7 +133,7 @@ router.post('/POST/AddBackendUser', function (req, res, next) {
                 res.render('error', { message: '帳號重複', error: '' });
             } else {
                 // res.setHeader('Content-Type', 'application/json');
-                // res.redirect('/BackendUser/GET/backend_user');
+                // res.redirect('/BackendUser/backend_user');
                 res.render('error', { message: '註冊成功', error: '' });
             }
         });
@@ -147,7 +147,7 @@ router.post('/POST/AddBackendUser', function (req, res, next) {
 });
 
 //刪除後端使用者資料：獲取網址上的參數
-router.get('/GET/DeleteBackendUser', function (req, res, next) {
+router.get('/DeleteBackendUser', function (req, res, next) {
     var token = req.cookies.access_token;
     if (token) {
         // 驗證JWT token
@@ -186,12 +186,12 @@ router.get('/GET/DeleteBackendUser', function (req, res, next) {
         if (err) {
             console.log(err);
         }
-        res.redirect('/BackendUser/GET/backend_user');
+        res.redirect('/BackendUser/backend_user');
     });
 });
 
 //修改後端使用者資料：撈取原有資料到修改頁面
-router.get('/GET/EditBackendUser', function (req, res, next) {
+router.get('/EditBackendUser', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
     if (token) {
@@ -241,7 +241,7 @@ router.get('/GET/EditBackendUser', function (req, res, next) {
 });
 
 //修改後端使用者資料：將修改後的資料傳到資料庫
-router.post('/POST/EditBackendUser', function (req, res, next) {
+router.post('/EditBackendUser', function (req, res, next) {
     // console.log("＊：" + JSON.stringify(req.session.m_permission));
     var token = req.cookies.access_token;
     if (token) {
@@ -296,18 +296,18 @@ router.post('/POST/EditBackendUser', function (req, res, next) {
         }
 
         // res.setHeader('Content-Type', 'application/json');
-        res.redirect('/BackendUser/GET/backend_user');
+        res.redirect('/BackendUser/backend_user');
     });
 
 });
 
 //後端使用者登入頁面
-router.get('/GET/BackendUserLogin', function (req, res, next) {
+router.get('/BackendUserLogin', function (req, res, next) {
     res.render('BackendUserLogin');
 });
 
 //＊＊＊接收後端使用者登入資料
-router.post('/POST/BackendUserLogin', function (req, res, next) {
+router.post('/BackendUserLogin', function (req, res, next) {
 
     //   var db = req.con;
     var mysqlPoolQuery = req.pool;
@@ -346,17 +346,17 @@ router.post('/POST/BackendUserLogin', function (req, res, next) {
                     //各種權限分流到不同頁面
                     if (rows[0].m_permission == "Platform_Admin") {
                         // res.setHeader('Content-Type', 'application/json');
-                        res.redirect('/BackendUser/GET/backend_user');
+                        res.redirect('/BackendUser/backend_user');
                     } else if (rows[0].m_permission == "Platform_Auditor") {
                         // res.setHeader('Content-Type', 'application/json');
-                        res.redirect('/BackendUser/GET/BackendUser_Platform_Auditor');
+                        res.redirect('/BackendUser/BackendUser_Platform_Auditor');
                     } else if (rows[0].m_permission == "Platform_CustomerService") {
                         // res.setHeader('Content-Type', 'application/json');
-                        res.redirect('/BackendUser/GET/BackendUser_CustomerService');
+                        res.redirect('/BackendUser/BackendUser_CustomerService');
                     } else if (rows[0].m_permission == "Company_FundManagerN") {
-                        res.redirect('/product/GET/ProductByFMN');
+                        res.redirect('/product/ProductByFMN');
                     } else if (rows[0].m_permission == "Company_FundManagerA") {
-                        res.redirect('/product/GET/ProductByFMA');
+                        res.redirect('/product/ProductByFMA');
                     } else if (rows[0].m_permission == "NA") {
                         res.render('error', { message: 'NA', error: '' });
                     }
@@ -393,17 +393,17 @@ router.post('/POST/BackendUserLogin', function (req, res, next) {
             //     //各種權限分流到不同頁面
             //     if (rows[0].m_permission == "Platform_Admin") {
             //         // res.setHeader('Content-Type', 'application/json');
-            //         res.redirect('/BackendUser/GET/backend_user');
+            //         res.redirect('/BackendUser/backend_user');
             //     } else if (rows[0].m_permission == "Platform_Auditor") {
             //         // res.setHeader('Content-Type', 'application/json');
-            //         res.redirect('/BackendUser/GET/BackendUser_Platform_Auditor');
+            //         res.redirect('/BackendUser/BackendUser_Platform_Auditor');
             //     } else if (rows[0].m_permission == "Platform_CustomerService") {
             //         // res.setHeader('Content-Type', 'application/json');
-            //         res.redirect('/BackendUser/GET/BackendUser_CustomerService');
+            //         res.redirect('/BackendUser/BackendUser_CustomerService');
             //     } else if (rows[0].m_permission == "Company_FundManagerN") {
-            //         res.redirect('/product/GET/ProductByFMN');
+            //         res.redirect('/product/ProductByFMN');
             //     } else if (rows[0].m_permission == "Company_FundManagerA") {
-            //         res.redirect('/product/GET/ProductByFMA');
+            //         res.redirect('/product/ProductByFMA');
             //     } else if (rows[0].m_permission == "NA") {
             //         res.render('error', { message: 'NA', error: '' });
             //     }
@@ -417,7 +417,7 @@ router.post('/POST/BackendUserLogin', function (req, res, next) {
 });
 
 //CustomerService登入後跳轉到該頁面
-router.get('/GET/BackendUser_CustomerService', function (req, res, next) {
+router.get('/BackendUser_CustomerService', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
     if (token) {
@@ -470,7 +470,7 @@ router.get('/GET/BackendUser_CustomerService', function (req, res, next) {
 });
 
 //BackendUser_Platform_Auditor登入後跳轉到該頁面
-router.get('/GET/BackendUser_Platform_Auditor', function (req, res, next) {
+router.get('/BackendUser_Platform_Auditor', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
     if (token) {
@@ -523,7 +523,7 @@ router.get('/GET/BackendUser_Platform_Auditor', function (req, res, next) {
 });
 
 //Company_FundManagerN登入後跳轉到該頁面(根據公司與產品階段撈取資料)
-router.post('/POST/BackendUser_Company_FundManagerN', function (req, res, next) {
+router.post('/BackendUser_Company_FundManagerN', function (req, res, next) {
     var token = req.cookies.access_token;
     if (token) {
         // 驗證JWT token

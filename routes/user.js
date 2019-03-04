@@ -114,8 +114,8 @@ router.post('/send_email', function (req, res) {
         from: ' <user3@heliumcryptic.club>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: '請點以下連結以完成驗證： http://localhost:3000/user/verify_email?email=' + email, // plain text body
-        // text: '請點以下連結以完成驗證： http://localhost:8000/user/verify_email?email=' + email, // plain text body
+        text: '請點以下連結以完成驗證： http://140.119.101.130:3000/user/verify_email?email=' + email, // plain text body
+        // text: '請點以下連結以完成驗證： http://140.119.101.130:8000/user/verify_email?email=' + email, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
@@ -209,7 +209,7 @@ router.post('/post_image', upload.single('image'), function (req, res) {
 });
 
 //-----------------------==
-//http://localhost:3000/user/POST/AddUser
+//http://140.119.101.130:3000/user/POST/AddUser
 router.post('/AddUser', function (req, res, next) {
     console.log('------------------------==\n@user/POST/AddUser');
     const qstr1 = 'INSERT INTO htoken.user SET ?';
@@ -271,7 +271,7 @@ router.post('/AddUser', function (req, res, next) {
 });
 
 
-//http://localhost:3000/user/Get/UserByUserId
+//http://140.119.101.130:3000/user/Get/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
     console.log('------------------------==\n@Order/GET/UserByUserId');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_eth_add = ?';
@@ -302,7 +302,7 @@ router.get('/UserByUserId', function (req, res, next) {
 
 
 
-//http://localhost:3000/user/Get/UserLogin
+//http://140.119.101.130:3000/user/Get/UserLogin
 router.get('/UserLogin', function (req, res, next) {
     console.log('------------------------==\n@Order/GET/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
