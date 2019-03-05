@@ -29,6 +29,7 @@ contract Registry is Ownable {
     mapping (address => string) public assetCtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
 
     constructor() public {
+        owner = msg.sender;
     }
 
     /**@dev check uid value */
@@ -66,11 +67,12 @@ contract Registry is Ownable {
         _;
     }
 
+
     /**@dev 新增user */
     function addUser(
-        string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external 
+        string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external
         onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) {
-        
+
         require(users[uid].assetCtAddr == address(0), "user already exists: assetCtAddr not empty");
         require(users[uid].extoAddr == address(0), "user already exists: extoAddr not empty");
         userCount = userCount.add(1);
@@ -85,7 +87,7 @@ contract Registry is Ownable {
 
     /**@dev set existing user 的 information */
     function setUser(
-        string calldata uid, address assetCtAddr, address extoAddr, 
+        string calldata uid, address assetCtAddr, address extoAddr,
         uint status, uint timeCurrent)
         external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
 
@@ -100,9 +102,9 @@ contract Registry is Ownable {
     }
 
     /**@dev 設定user的 assetCtAddr */
-    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint timeCurrent) external 
-      onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(timeCurrent) uidExists(uid) {
-        
+    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint timeCurrent) external
+    onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(timeCurrent) uidExists(uid) {
+
         assetCtAddrToUid[users[uid].assetCtAddr] = "";
 
         assetCtAddrToUid[assetCtAddr] = uid;
@@ -111,33 +113,33 @@ contract Registry is Ownable {
     }
 
     /**@dev 設定user的以太帳號 */
-    function setExtoAddr(string calldata uid, address extoAddr, uint timeCurrent) external 
-      onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
+    function setExtoAddr(string calldata uid, address extoAddr, uint timeCurrent) external
+    onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
         users[uid].extoAddr = extoAddr;
         emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, timeCurrent);
     }
 
     /**@dev 設定user的狀態 */
-    function setUserStatus(string calldata uid, uint status, uint timeCurrent) external 
-      onlyAdmin ckUid(uid) ckTime(timeCurrent) uidExists(uid) {
+    function setUserStatus(string calldata uid, uint status, uint timeCurrent) external
+    onlyAdmin ckUid(uid) ckTime(timeCurrent) uidExists(uid) {
         users[uid].status = status;
         emit SetUserStatus(uid, status, timeCurrent);
     }
 
     /**@dev 取得user數量 */
-    function getUserCount() public view returns(uint){
+    function getUserCount() public view returns(uint userCount){
         return userCount;
     }
 
     /**@dev get user information */
-    function getUser(string memory uid) public view ckUid(uid) returns (
-        string memory, address, address, uint) {
-        return(uid, users[uid].assetCtAddr, users[uid].extoAddr, users[uid].status);
+    function getUser(string memory u_id) public view ckUid(u_id) returns (
+        string memory uid, address assetCtAddr, address extoAddr, uint userStatus) {
+        return(u_id, users[u_id].assetCtAddr, users[u_id].extoAddr, users[u_id].status);
     }
 
     /**@dev get uid from Asset contract address */
     function getUidFromAssetCtAddr(address assetCtAddr) public view 
-        ckAssetCtAddr(assetCtAddr) returns (string memory) {
+        ckAssetCtAddr(assetCtAddr) returns (string memory u_id) {
         return assetCtAddrToUid[assetCtAddr];
     }
 

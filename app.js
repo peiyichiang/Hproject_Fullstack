@@ -19,8 +19,13 @@ var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
 var orderRouter = require('./routes/Order');
 //冠毅
 var paymentGWRouter = require('./routes/paymentGW');
-var registryContractAPIRouter = require('./routes/registryContractAPI');
-var assetContractAPIRouter = require('./routes/assetContractAPI');
+var RegistryContractAPIRouter = require('./routes/RegistryContractAPI');
+var AssetBookContractAPIRouter = require('./routes/AssetBookContractAPI');
+var PlatformContractAPIRouter = require('./routes/PlatformContractAPI');
+var ERC721ContractAPIRouter = require('./routes/ERC721ContractAPI');
+var TokenControllerContractAPIRouter = require('./routes/TokenControllerContractAPI');
+var CrowdFundingContractAPIRouter = require('./routes/CrowdFundingContractAPI');
+
 
 
 // var usersRouter = require('./routes/users');
@@ -144,8 +149,15 @@ app.use('/user', userRouter);
 app.use('/NFTokenSPLC', NFTokenSPLCRouter);
 app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
-app.use('/registryContractAPI', registryContractAPIRouter);
-app.use('/assetContractAPI', assetContractAPIRouter);
+app.use('/RegistryContractAPI', RegistryContractAPIRouter);
+app.use('/AssetBookContractAPI', AssetBookContractAPIRouter);
+app.use('/PlatformContractAPI', PlatformContractAPIRouter);
+app.use('/ERC721ContractAPI', ERC721ContractAPIRouter);
+app.use('/TokenControllerContractAPI', TokenControllerContractAPIRouter);
+app.use('/CrowdFundingContractAPI', CrowdFundingContractAPIRouter);
+
+
+
 
 // app.use('/users', usersRouter);
 
