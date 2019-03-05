@@ -18,14 +18,6 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*registry contract address*/
 const contract = require('../ethereum/contracts/build/CrowdFunding.json');
-//const contract = require('../ethereum/contracts/build/AssetContract.json');
-//const contract = require('../ethereum/contracts/CrowdFunding.json');
-
-
-router.get('/', function (req, res, next) {
-    res.render('crowdFundingContractAPI');
-});
-
 
 //deploy crowdFunding contract
 router.post('/deploy', function (req, res, next) {
@@ -37,28 +29,29 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
-    let HTokenSYMBOL = req.body.HTokenSYMBOL;
-    let token_price = req.body.token_price;
-    let totalamount = req.body.totalamount;
-    let percents = req.body.percents;
-    let deadline = req.body.deadline;
-    let startTime = req.body.startTime;
+    let tokenSymbol = req.body.tokenSymbol;
+    let tokenPrice = req.body.tokenPrice;
+    let currency= req.body.currency;
+    let quantityMax = req.body.quantityMax;
+    let goalInPercentage = req.body.goalInPercentage;
+    let CFSD2 = req.body.CFSD2;
+    let CFED2 = req.body.CFED2;
     let serverTime = req.body.serverTime;
-    
+
     /*let assetOwner = req.body.assetOwner;
     let platform = req.body.platform;
     let time = req.body.time;*/
     let crowdFundingContract = new web3deploy.eth.Contract(contract.abi);
-    console.log(startTime);
+    console.log(tokenSymbol);
 
     crowdFundingContract.deploy({
         data: contract.bytecode,
-        arguments: [HTokenSYMBOL, token_price, totalamount, percents, deadline, startTime, serverTime]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime]
         //arguments: [assetOwner, platform, time]
     })
         .send({
             from: backendAddr,
-            gas: 4700000,
+            gas: 7000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
@@ -68,6 +61,134 @@ router.post('/deploy', function (req, res, next) {
             res.send(error.toString());
         })
 });
+
+/**給server多的時間*/
+router.post('/addServerTime', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let additionalTime = req.body.additionalTime;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.addServerTime(additionalTime).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/**設定新的server時間*/
+router.patch('/setServerTime', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let serverTime = req.body.serverTime;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.setServerTime(serverTime).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+
+/**updateState*/
+router.post('/updateState', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.updateState().encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/**startFunding*/
+router.post('/startFunding', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.startFunding().encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/**pauseFunding*/
+router.post('/pauseFunding', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.pauseFunding().encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/**resumeFunding*/
+router.post('/resumeFunding', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let CFED2 = req.body.CFED2;
+    let quantityMax = req.body.quantityMax;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.resumeFunding(CFED2, quantityMax).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+/**forceTerminated*/
+router.post('/forceTerminated', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let reason = req.body.reason;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.forceTerminated(reason).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/**invest*/
+router.post('/invest', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let assetBookAddr = req.body.assetBookAddr;
+    let quantityToInvest = req.body.quantityToInvest;
+    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = crowdFundingContract.methods.invest(assetBookAddr, quantityToInvest).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
