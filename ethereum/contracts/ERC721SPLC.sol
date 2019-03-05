@@ -163,7 +163,10 @@ interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
-
+//AssetBookCtrtITF(addrAssetBookCtrtITF).addAsset(_assetAddr);
+interface AssetBookCtrtITF {
+    function addAsset(address _assetAddr) external;
+}
 
 //==================
 contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
@@ -331,6 +334,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //-------------------==Helium Cryptic code
     function mintSerialNFTOne(address _to, bytes32 _uri) external {
         mintSerialNFT(_to, _uri);
+        AssetBookCtrtITF(addrAssetBookCtrtITF).addAsset(_assetAddr);
     }
     function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris) external {
         uint num = _tos.length;
@@ -338,6 +342,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         for(uint i=0; i<num; i++) {
             mintSerialNFT(_tos[i], _uris[i]);
         }
+        AssetBookCtrtITF(addrAssetBookCtrtITF).addAsset(_assetAddr);
     }
     
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, bytes32 uri, uint initialAssetPricing);
