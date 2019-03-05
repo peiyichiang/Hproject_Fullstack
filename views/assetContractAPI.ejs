@@ -42,12 +42,13 @@
     <div>
         <button id="assetsOwnerSign">assetsOwnerSign</button>
         <button id="platformSign">platformSign</button>
-        <button id="endorsersSign">endorsersSign</button>
+        <button id="signAssetContract">signAssetContract</button>
     </div>
     <hr>
     <div>
         <button id="changeAssetOwner">changeAssetOwner</button>
-        <input id="changeEndorsers">changeEndorsers</button>
+        <button id="changeEndorsers">changeEndorsers</button>
+        <button id="addEndorser">addEndorser</button>
     </div>
 
     <div class="item" style="width:500px;">
@@ -70,11 +71,13 @@
         }
     }
 
-    let assetContract = "0xd22ef24a86df0ff56ed5151a0ffffec5650b6ce9";
+    //let assetContract = "0x8D5A91BA7e07419F610D3a6793D8582Bb11F6fFa";
+    let assetContract = "0x30C3835045FcbDD02C89Af78Cad5d15b3963b9E0";
+
 
     $('#deploy').on('click', function () {
         assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-        platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        platform = "0x817A172521472fad991ddDa107C725Ed321e716C";
         log("deploying");
 
         $.post('/assetContractAPI/deploy', {
@@ -82,11 +85,13 @@
             platform: platform,
         }, function (result) {
             log(result);
+            assetContract = result.contractAddress;
+            log(assetContract);
         })
     })
 
     $('#load').on('click', function () {
-        assetContract = "0xd22ef24a86df0ff56ed5151a0ffffec5650b6ce9";
+        assetContract = "0x30C3835045FcbDD02C89Af78Cad5d15b3963b9E0";
         log(assetContract);
     })
 
@@ -143,7 +148,7 @@
     /*簽名*/
     $('#assetsOwnerSign').on('click', function () {
         address = assetContract;
-        owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+        //owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
         //log(assetContract);
         $.post('/assetContractAPI/assetsOwnerSign', { address: address }, function (result) {
             log(result);
@@ -152,17 +157,17 @@
 
     $('#platformSign').on('click', function () {
         address = assetContract;
-        platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        //platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
         //log(assetContract);
         $.post('/assetContractAPI/platformSign', { address: address }, function (result) {
             log(result);
         })
     })
 
-    $('#endorsersSign').on('click', function () {
+    $('#signAssetContract').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.post('/assetContractAPI/endorsersSign', { address: address }, function (result) {
+        $.post('/assetContractAPI/POST/signAssetContract', { address: address }, function (result) {
             log(result);
         })
     })
@@ -179,13 +184,29 @@
         })
     })
 
+    /*變更背書人*/
     $('#changeEndorsers').on('click', function () {
         address = assetContract;
+        let oldEndorser = "0x4AfC23A23139890F5e5881F990703d21B02Bb5C6";
         let newEndorser = "0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C";
-        /* TODO (oldEndorser)*/
-        $.post('/assetContractAPI/changeEndorsers', {
+
+        $.post('/assetContractAPI/POST/changeEndorsers', {
             address: address,
-            newEndorser: newEndorser
+            newEndorser: newEndorser,
+            oldEndorser: oldEndorser
+        }, function (result) {
+            log(result);
+        })
+    })
+
+    /*新增endorser*/
+    $('#addEndorser').on('click', function () {
+        address = assetContract;
+        let newEndorser = "0x4AfC23A23139890F5e5881F990703d21B02Bb5C6";
+
+        $.post('/assetContractAPI/POST/addEndorser', {
+            address: address,
+            newEndorser: newEndorser,
         }, function (result) {
             log(result);
         })
@@ -197,7 +218,7 @@
         ERC721Addr = "0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
         $.post('/assetContractAPI/addAsset', {
             address: address,
-            ERC721Addr: ERC721Addrv
+            ERC721Addr: ERC721Addr
         }, function (result) {
             log(result);
         })

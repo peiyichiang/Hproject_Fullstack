@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>platformContractAPI</title>
+    <style>
+        .flex {
+            display: flex;
+        }
+
+        .item {
+            flex: 1;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <button id="deploy">部署合約</button>
+        <button id="load">載入合約</button>
+    </div>
+    <hr>
+    <div>
+        <button id="addPlatformAdminAddr">新增平台方管理者</button>
+        <button id="changePlatformAdminAddr">修改平台方管理者</button>
+        <button id="deletePlatformAdmin">刪除平台方管理者</button>
+        <button id="getPlatformAdmin">獲得平台方管理者資訊</button>
+        <button id="getPlatformAdminNumber">獲得平台方管理者數量</button>
+    </div>
+    <hr>
+    <div>
+        <button id="signAssetContract">signAssetContract</button>
+    </div>
+
+
+    <div class="item" style="width:500px;">
+        <h3>活動紀錄</h3>
+        <pre id="logger"></pre>
+    </div>
+
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+</body>
+
+<script>
+    let logger = $('#logger');
+    //把log印在網頁上
+    function log(...inputs) {
+        for (let input of inputs) {
+            if (typeof input === 'object') {
+                input = JSON.stringify(input, null, 2)
+            }
+            logger.html(input + '\n' + logger.html())
+        }
+    }
+
+    let platformContract = "0x3787d65b3F4156Cf1CB215C2EDecF4E6e588E5Fb";
+
+    $('#deploy').on('click', function () {
+        log("deploying");
+        $.post('/platformContractAPI/POST/deploy', function (result) {
+            log(result);
+            platformContract = result.contractAddress;
+            log(platformContract);
+        })
+    })
+
+    $('#load').on('click', function () {
+        platformContract = "0x817A172521472fad991ddDa107C725Ed321e716C";
+        log(platformContract);
+    })
+
+    /*新增admin*/
+    $('#addPlatformAdminAddr').on('click', function () {
+        address = platformContract;
+        let newAdminAddr = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        let id = "A12345678";
+
+        $.post('/platformContractAPI/POST/addPlatformAdminAddr', {
+            address: address,
+            newAdminAddr: newAdminAddr,
+            id: id
+        }, function (result) {
+            log(result);
+        })
+    })
+
+    /*修改admin*/
+    $('#changePlatformAdminAddr').on('click', function () {
+        address = platformContract;
+        let newAdminAddr = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
+        let id = "A12345678";
+
+        $.patch('/platformContractAPI/PATCH/changePlatformAdminAddr', {
+            address: address,
+            newAdminAddr: newAdminAddr,
+            id: id
+        }, function (result) {
+            log(result);
+        })
+    })
+
+    /*刪除admin*/
+    $('#deletePlatformAdmin').on('click', function () {
+        address = platformContract;
+        let id = "A12345678";
+
+        $.delete('/platformContractAPI/DELETE/deletePlatformAdmin', {
+            address: address,
+            id: id
+        }, function (result) {
+            log(result);
+        })
+    })
+
+    /*get admin*/
+    $('#getPlatformAdmin').on('click', function () {
+        address = platformContract;
+        let id = "A12345678";
+
+        $.get('/platformContractAPI/GET/getPlatformAdmin', {
+            address: address,
+            id: id
+        }, function (result) {
+            log(result);
+        })
+    })
+
+    /*get admin number*/
+    $('#getPlatformAdminNumber').on('click', function () {
+        address = platformContract;
+
+        $.get('/platformContractAPI/GET/getPlatformAdminNumber', {address: address}, function (result) {
+            log(result);
+        })
+    })
+
+    $('#signAssetContract').on('click', function () {
+        address = platformContract;
+        let assetsContractToBeSigned = '0x30C3835045FcbDD02C89Af78Cad5d15b3963b9E0';
+        let id = "A12345678";
+
+        //log(assetContract);
+        $.post('/platformContractAPI/POST/signAssetContract', {
+            address: address,
+            assetsContractToBeSigned: assetsContractToBeSigned,
+            id: id
+        }, function (result) {
+            log(result);
+        })
+    })
+
+</script>
+
+
+
+</html>
