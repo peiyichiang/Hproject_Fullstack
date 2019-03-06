@@ -37,6 +37,12 @@ contract TokenController is Ownable {
     function isUnlockedValid() external view returns (bool){
         return (TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid);
     }
+    function isUnlocked() external view returns (bool){
+        return (TimeTokenUnlock < timeCurrent);
+    }
+    function isValid() external view returns (bool){
+        return (timeCurrent < TimeTokenValid);
+    }
 
     function getHTokenControllerDetails() public view returns (
         uint, uint, uint, uint, bool) {
