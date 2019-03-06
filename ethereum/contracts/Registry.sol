@@ -127,7 +127,7 @@ contract Registry is Ownable {
     }
 
     /**@dev 取得user數量 */
-    function getUserCount() public view returns(uint userCount){
+    function getUserCount() public view returns(uint){
         return userCount;
     }
 

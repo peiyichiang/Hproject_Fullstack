@@ -163,9 +163,9 @@ interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
-//AssetBookCtrtITF(addrAssetBookCtrtITF).addAsset(_assetAddr);
-interface AssetBookCtrtITF {
-    function addAsset(address _assetAddr) external;
+//AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
+interface AssetBookITF {
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external;
 }
 
 //==================
@@ -263,7 +263,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         
         addrRegistryITF = _addrRegistryITF;
         addrTokenControllerITF = _addrTokenControllerITF;
-
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
@@ -334,15 +333,13 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //-------------------==Helium Cryptic code
     function mintSerialNFTOne(address _to, bytes32 _uri) external {
         mintSerialNFT(_to, _uri);
-        AssetBookCtrtITF(addrAssetBookCtrtITF).addAsset(_assetAddr);
     }
     function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris) external {
-        uint num = _tos.length;
-        require(num == _uris.length, "_tos.length and _uris.length must be the same");
-        for(uint i=0; i<num; i++) {
+        uint toLength = _tos.length;
+        require(toLength == _uris.length, "_tos.length and _uris.length must be the same");
+        for(uint i=0; i<toLength; i++) {
             mintSerialNFT(_tos[i], _uris[i]);
         }
-        AssetBookCtrtITF(addrAssetBookCtrtITF).addAsset(_assetAddr);
     }
     
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, bytes32 uri, uint initialAssetPricing);
@@ -395,9 +392,9 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         return idToApprovals[_tokenId];
     }
     function safeTransferFromBatch(address[] calldata _froms, address[] calldata _tos, uint[] calldata _tokenIds) external {
-        uint num = _tokenIds.length;
-        require(_froms.length == num && _tos.length == num, "_froms.length and _tos.length must be the same as _tokenIds.length");
-        for(uint i=0; i<num; i++) {
+        uint toLength = _tokenIds.length;
+        require(_froms.length == toLength && _tos.length == toLength, "_froms.length and _tos.length must be the same as _tokenIds.length");
+        for(uint i = 0; i < toLength; i++) {
             _safeTransferFrom(_froms[i], _tos[i], _tokenIds[i], "");
         }
     }
@@ -702,6 +699,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //-----------==Enumerable
         uint256 length = ownerToIds[_to].push(_tokenId);
         idToOwnerIndexPlus1[_tokenId] = length;//.sub(1);// - 1;
+        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId, length);
     }
 
     //-------------------==Enumerable

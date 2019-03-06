@@ -33,122 +33,121 @@ interface ERC721SPLCITF_assetbook {
 
 contract MultiSig {
     //using SafeMath for uint256;
-    address internal assetsOwner; /** @dev 用戶 address */
-    address internal platformContractAddr; /** @dev 平台方 platformContractAddr */
-    address[] internal endorsersContractAddr; /** @dev 背書者的 assetContractAddr (一到三個人) */
-    uint private assetsOwner_flag;
-    uint private platform_flag;
-    uint private endorsers_flag;
+    using AddressUtils for address;
+
+    address public assetOwner; /** @dev 用戶 address */
+    address public platformContractAddr; /** @dev 平台方 platformContractAddr */
+    address[] public endorsersContractAddr; /** @dev 背書者的 assetContractAddr (一到三個人) */
+    uint public assetOwner_flag;
+    uint public platform_flag;
+    uint public endorsers_flag;
 
     /** @dev multiSig相關event */
-    event changeAssetOwnerEvent(address indexed oldAssetsOwner, address indexed newAssetsOwner, uint256 timestamp);
-    event changeEndorsersEvent(address indexed oldEndorsers, address indexed newEndorsers, uint256 timestamp);
-    event addEndorsersEvent(address indexed endorsers, uint256 timestamp);
-    event assetsOwnerVoteEvent(address assetsOwner, uint256 timestamp);
-    event platformVoteEvent(address platformContractAddr, uint256 timestamp);
-    event endorserVoteEvent(address endorserContractAddr, uint256 timestamp);
+    event ChangeAssetOwnerEvent(address indexed oldAssetOwner, address indexed newAssetOwner, uint256 timestamp);
+    event ChangeEndorsersEvent(address indexed oldEndorsers, address indexed newEndorsers, uint256 timestamp);
+    event AddEndorsersEvent(address indexed endorsers, uint256 timestamp);
+    event AssetOwnerVoteEvent(address indexed assetOwner, uint256 timestamp);
+    event PlatformVoteEvent(address indexed platformContractAddr, uint256 timestamp);
+    event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
 
+    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c"
+    constructor (address _assetOwner, address _platformContractAddr) public {
+        assetOwner = _assetOwner;
+        platformContractAddr = _platformContractAddr;
+    }
     /** @dev 檢查是否為合約擁有者 */
-    modifier ckAssetsOwner(){
-        require(msg.sender == assetsOwner, "請檢查是否為合約擁有者");
+    modifier ckAssetOwner(){
+        require(msg.sender == assetOwner, "sender must be assetOwner");
         _;
     }
-    modifier ckPlatform(){
-        require(msg.sender == platformContractAddr, "請檢查是否為平台方合約地址");
+    modifier ckAssetAddr(address _assetAddr) {
+        require(_assetAddr != address(0), "_assetAddr should not be zero");
+        require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
         _;
     }
 
     /** @dev 執行更換eth地址前，三人中有兩人須簽章 */
-    function AssetsOwnerVote(uint256 _timeCurrent) external ckAssetsOwner {
-        assetsOwner_flag = 1;
-        emit assetsOwnerVoteEvent(msg.sender, _timeCurrent);
+    function AssetOwnerVote(uint256 _timeCurrent) external ckAssetOwner {
+        assetOwner_flag = 1;
+        emit AssetOwnerVoteEvent(msg.sender, _timeCurrent);
     }
 
-    function platformVote(uint256 _timeCurrent) external ckPlatform {
+    function platformVote(uint256 _timeCurrent) external {
+        require(msg.sender == platformContractAddr, "sender must be Platform Contract");
         platform_flag = 1;
-        emit platformVoteEvent(msg.sender, _timeCurrent);
+        emit PlatformVoteEvent(msg.sender, _timeCurrent);
     }
 
-    function endorsersVote(uint256 _timeCurrent) public {
-        require(endorsersContractAddr[0] == msg.sender || endorsersContractAddr[1] == msg.sender || endorsersContractAddr[2] == msg.sender, "請檢查是否為背書人合約地址");
+    function endorsersVote(uint256 _timeCurrent) external {
+        require(endorsersContractAddr[0] == msg.sender || endorsersContractAddr[1] == msg.sender || endorsersContractAddr[2] == msg.sender, "sender must be one of the endorsers");
         endorsers_flag = 1;
-        emit endorserVoteEvent(msg.sender, _timeCurrent);
+        emit EndorserVoteEvent(msg.sender, _timeCurrent);
     }
 
     function calculateVotes() public view returns (uint) {
-        return (assetsOwner_flag + platform_flag + endorsers_flag);
+        return (assetOwner_flag + platform_flag + endorsers_flag);
     }
     /** @dev 重置簽章狀態 */
     function resetVoteStatus() internal {
-        assetsOwner_flag = 0;
+        assetOwner_flag = 0;
         platform_flag = 0;
         endorsers_flag = 0;
     }
 
     /** @dev 更換assetOwner */
-    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) public {
-        require(calculateVotes() >= 2, "請確認是否完成多重簽章");
-        address _oldAssetOwner = assetsOwner;
-        assetsOwner = _assetOwnerNew;
+    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external {
+        require(calculateVotes() >= 2, "vote count must be > 2");
+        address _oldAssetOwner = assetOwner;
+        assetOwner = _assetOwnerNew;
         resetVoteStatus();
-        emit changeAssetOwnerEvent(_oldAssetOwner, assetsOwner, _timeCurrent);
+        emit ChangeAssetOwnerEvent(_oldAssetOwner, assetOwner, _timeCurrent);
     }
 
     /** @dev 新增endorser */
-    function addEndorser(address _newEndorser, uint256 _timeCurrent) public ckAssetsOwner{
-        require(endorsersContractAddr.length <= 3, "背書者人數上限為三人");
+    function addEndorser(address _newEndorser, uint256 _timeCurrent) public ckAssetOwner{
+        require(endorsersContractAddr.length <= 3, "endorser count must be <= 3");
         endorsersContractAddr.push(_newEndorser);
-
-        emit addEndorsersEvent(_newEndorser, _timeCurrent);
+        emit AddEndorsersEvent(_newEndorser, _timeCurrent);
     }
 
     /** @dev 更換endorser */
-    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _timeCurrent) public ckAssetsOwner{
+    function changeEndorsers(address _oldEndorser, address _newEndorser, uint256 _timeCurrent) public ckAssetOwner{
         for(uint i = 0;  i < endorsersContractAddr.length; i++){
             if(endorsersContractAddr[i] == _oldEndorser){
                 endorsersContractAddr[i] = _newEndorser;
-                emit changeEndorsersEvent(_oldEndorser, _newEndorser, _timeCurrent);
+                emit ChangeEndorsersEvent(_oldEndorser, _newEndorser, _timeCurrent);
             }
         }
     }
-
-    /** @dev 取得vote */
-    function getAssetsOwnerVote() public view returns(uint){
-        return assetsOwner_flag;
+    function voteAssetContract(address _assetAddr, uint256 _timeCurrent) public ckAssetOwner ckAssetAddr(_assetAddr){
+        MultiSig multiSig = MultiSig(address(uint160(_assetAddr)));
+        multiSig.endorsersVote(_timeCurrent);
     }
 
-    function getPlatformVote() public view returns(uint){
-        return platform_flag;
+    function getAssetOwner() external view returns(address){
+        return assetOwner;
     }
-
-    function getEndorsersVote() public view returns(uint){
-        return endorsers_flag;
-    }
-
-    /** @dev 取得person */
-    function getAssetsOwner() public view returns(address){
-        return assetsOwner;
-    }
-
-    function getPlatformContractAddr() public view returns(address){
+    function getPlatformContractAddr() external view returns(address){
         return platformContractAddr;
     }
-
     function getEndorsers() public view returns(address[] memory){
-        address[] memory _endorsers = new address[](endorsersContractAddr.length);
-        for (uint i = 0; i < endorsersContractAddr.length; i++) {
-            _endorsers[i] = endorsersContractAddr[i];
-        }
-
-        return _endorsers;
+        return endorsersContractAddr;
     }
 
 }
 
+interface MultiSigITF_assetbook {
+    function getAssetOwner() external view returns(address);
+    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external;
+    function getPlatformContractAddr() external view returns(address);
+}
 
-contract AssetBook is MultiSig {
+contract AssetBook {
     using SafeMath for uint256;
     using AddressUtils for address;
+    address public assetOwner;
+    address public multiSigContract;
+    address public platformContractAddr;
 
     /** @dev asset資料結構 */
     struct Asset{
@@ -160,43 +159,50 @@ contract AssetBook is MultiSig {
         mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
         uint timeIndexStart;
         uint timeIndexEnd;
-        bool isWriteApproved;
+        bool isApprovedToWrite;//by platform to approve writing from the asset contract
         bool isInitialized;
     }
     mapping (address => Asset) assets;//assetAddress
     uint public assetCindex;//count and index of assets, and each asset has an assetAddr
     //address[] assetAddrList; //asset address list ... list will need for loop to check each one to prevent duplicated entries!
-    mapping (uint => address) assetIndexToAddr;//each assset address has an unique index in this asset contract
+    mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
 
     /** @dev asset相關event */
-    event createAssetContractEvent(address assetsOwner, address platformContractAddr, uint timestamp);
+    event DeployAssetContractEvent(address assetOwner, address multiSigContractAddr, address platformContractAddr, uint timestamp);
     //event addAssetEvent(address assetAddr, string assetSymbol, uint assetAmount, uint[] ids ,uint timestamp);
-    event transferAssetEvent(address to, string assetSymbol, uint _assetId, uint tokenBalance, uint[] remainIDs, uint timestamp);
-    event transferAssetEventBatch(address to, string assetSymbol, uint[] _assetId, uint tokenBalance, uint[] remainIDs, uint timestamp);
+    event TransferAssetEvent(address to, string assetSymbol, uint _assetId, uint tokenBalance, uint timestamp);
+    event TransferAssetBatchEvent(address to, string assetSymbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
-    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902201045
-    constructor (address _assetsOwner, address _platform, uint256 _timeCurrent) public {
-        assetsOwner = _assetsOwner;
-        platformContractAddr = _platform;
-        emit createAssetContractEvent(_assetsOwner, _platform, _timeCurrent);
+
+    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
+    constructor (address _multiSigContract, uint256 _timeCurrent) public {
+        multiSigContract = _multiSigContract;
+        emit DeployAssetContractEvent(assetOwner, _multiSigContract, platformContractAddr, _timeCurrent);
     }
-
+    function updateAssetOwner() external {
+        MultiSigITF_assetbook multiSig = MultiSigITF_assetbook(address(uint160(multiSigContract)));
+        assetOwner = multiSig.getAssetOwner();
+        platformContractAddr = multiSig.getPlatformContractAddr();
+    }
     modifier ckAssetAddr(address _assetAddr) {
         require(_assetAddr != address(0), "_assetAddr should not be zero");
         require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
         _;
     }
     modifier restricted() {
-        require(msg.sender == platformContractAddr || msg.sender == assetsOwner, "check if sender is approved");
+        require(msg.sender == platformContractAddr || msg.sender == assetOwner, "check if sender is approved");
         _;
     }
-
+    modifier ckAssetOwner(){
+        require(msg.sender == assetOwner, "sender must be assetOwner");
+        _;
+    }
     function ckAssetAdded(address _assetAddr) public view {
         require(assets[_assetAddr].assetAddr != address(0), "_assetAddr should have been added into the AssetBook smart contract");
     }
-
-    function setAssetCtrtApproval(address _assetAddr, bool _isWriteApproved) public ckPlatform {
-        assets[_assetAddr].isWriteApproved = _isWriteApproved;
+    function setAssetCtrtApproval(address _assetAddr, bool _isApprovedToWrite) external {
+        require(msg.sender == platformContractAddr, "sender must be Platform Contract");
+        assets[_assetAddr].isApprovedToWrite = _isApprovedToWrite;
     }
 
     /*
@@ -209,29 +215,27 @@ contract AssetBook is MultiSig {
         mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
         uint timeIndexStart;
         uint timeIndexEnd;
-        bool isWriteApproved;
         bool isInitialized;
     }*/
     /** @dev 新增token(當 erc721_token 分配到 AssetBookCtrt 的時候記錄起來)
-    For ERC721SPLC to call this when minting new tokens */
-    function addAsset(address _assetAddr) external {
-        require(msg.sender == platformContractAddr || assets[msg.sender].isWriteApproved, "only approved asset contract can call this function");
-        require(!assets[_assetAddr].isInitialized, "this _assetAddr has been initialized already");
-        assets[_assetAddr].isInitialized = true;
+    For ERC721SPLC-addNFToken(address _to, uint256 _tokenId) to call this when minting new tokens */
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external {
+        require(assets[_assetAddr].isApprovedToWrite || msg.sender == platformContractAddr, "Platform must approve writing from asset contract, or platformContractAddr can call this function");
         require(_assetAddr != address(0), "_assetAddr should not be zero");
         require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
 
-        //add an asset address
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        assets[_assetAddr].assetAddr = _assetAddr;
-        assets[_assetAddr].assetSymbol = _erc721.symbol();
+        if(!assets[_assetAddr].isInitialized){
+            assets[_assetAddr].isInitialized = true;
+            assets[_assetAddr].assetAddr = _assetAddr;
+            assets[_assetAddr].assetSymbol = _symbol;
+        }
 
         assetCindex = assetCindex.add(1);
         assets[_assetAddr].assetAddrIndex = assetCindex;
         assetIndexToAddr[assetCindex] = _assetAddr;
 
-        assets[_assetAddr].ids = _erc721.get_ownerToIds(address(this));
-        assets[_assetAddr].assetAmount = _erc721.balanceOf(address(this));
+        assets[_assetAddr].ids.push(_tokenId);
+        assets[_assetAddr].assetAmount = _balance;
 
         uint assetIdsLength = assets[_assetAddr].ids.length;
         require(assetIdsLength > 0, "assets[_assetAddr].ids has to be none empty");
@@ -255,23 +259,32 @@ contract AssetBook is MultiSig {
         delete assets[_assetAddr].assetAmount;
     }
     //copy asset contract info without preserving buy/sell sequence for FIFO accounting purpose
-    function updateReset(address _assetAddr) public ckAssetAddr(_assetAddr){
-        require(msg.sender == platformContractAddr || assets[msg.sender].isWriteApproved, "only approved asset contract can call this function");
+    function updateReset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
 
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         assets[_assetAddr].assetAddr = _assetAddr;
-        assets[_assetAddr].assetSymbol = _erc721.symbol();
+        assets[_assetAddr].assetSymbol = erc721.symbol();
         //assets[_assetAddr].assetAddrIndex; ???
-        assets[_assetAddr].ids = _erc721.get_ownerToIds(address(this));
-        assets[_assetAddr].assetAmount = _erc721.balanceOf(address(this));
+        uint assetIdsLengthOld = assets[_assetAddr].ids.length;
+        assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
+        assets[_assetAddr].assetAmount = erc721.balanceOf(address(this));
 
         uint assetIdsLength = assets[_assetAddr].ids.length;
-        require(assetIdsLength > 0, "assets[_assetAddr].ids has to be none empty");
-        for(uint i = 0; i < assetIdsLength; i++) {
-            assets[_assetAddr].timeIndexToTokenId[i] = assets[_assetAddr].ids[i];
+        if (assetIdsLength > 0) {
+            for(uint i = 0; i < assetIdsLength; i++) {
+                assets[_assetAddr].timeIndexToTokenId[i] = assets[_assetAddr].ids[i];
+            }
+            assets[_assetAddr].timeIndexEnd = assetIdsLength.sub(1);
+        } else {
+            assets[_assetAddr].timeIndexEnd = 0;
         }
         assets[_assetAddr].timeIndexStart = 0;
-        assets[_assetAddr].timeIndexEnd = assetIdsLength.sub(1);
+
+        if (assetIdsLengthOld > assetIdsLength){
+            for(uint i = assetIdsLength; i < assetIdsLengthOld; i++) {
+                delete assets[_assetAddr].timeIndexToTokenId[i];
+            }
+        }
     }
     /*struct Asset{
         address assetAddr; //token合約位址
@@ -282,33 +295,38 @@ contract AssetBook is MultiSig {
         mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
         uint timeIndexStart;
         uint timeIndexEnd;
-        bool isWriteApproved;
         bool isInitialized;
     }*/
 
     //preserving buy/sell sequence for FIFO accounting purpose
     //to receive assets and give timeIndex to each received asset
-    function updateAssetSymbol(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-            assets[_assetAddr].assetSymbol = _erc721.symbol();
+    function updateAssetTokenDetails(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+        assets[_assetAddr].assetSymbol = erc721.symbol();
+        assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
+        assets[_assetAddr].assetAmount = erc721.balanceOf(address(this));
     }
-    function updateReceivedAsset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        assets[_assetAddr].assetAmount = _erc721.balanceOf(address(this));
 
-        if(_erc721.balanceOf(address(this)) > assets[_assetAddr].assetAmount) {
-            uint increase = _erc721.balanceOf(address(this)).sub(assets[_assetAddr].assetAmount);
-            assets[_assetAddr].timeIndexEnd = assets[_assetAddr].timeIndexEnd.add(increase);
+    function updateReceivedAsset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+
+        uint tokenBalanceOf = erc721.balanceOf(address(this));
+        if(tokenBalanceOf > assets[_assetAddr].assetAmount) {
 
             uint assetIdsLengthOld = assets[_assetAddr].ids.length;
-            uint[] memory assetIds = _erc721.get_ownerToIds(address(this));
+            uint[] memory assetIds = erc721.get_ownerToIds(address(this));
             uint assetIdsLength = assetIds.length;
-
-            //address[] memory outTokenIds = new address[](increase);
-            for(uint i=assetIdsLengthOld; i <= assetIdsLength.sub(1); i++) {
+            for(uint i = assetIdsLengthOld; i < assetIdsLength; i++) {
                 assets[_assetAddr].timeIndexToTokenId[i] = assetIds[i];
             }
-            assets[_assetAddr].ids = _erc721.get_ownerToIds(address(this));
+
+            uint increase1 = assetIdsLength.sub(assetIdsLengthOld);
+            uint increase2 = tokenBalanceOf.sub(assets[_assetAddr].assetAmount);
+            require(increase1 == increase2, "increased amounts have to be the same in the token contract");
+            //uint timeIndexEndOld = assets[_assetAddr].timeIndexEnd
+            assets[_assetAddr].timeIndexEnd = assetIdsLength.sub(1);
+            assets[_assetAddr].ids = assetIds;
+            assets[_assetAddr].assetAmount = tokenBalanceOf;
         }
     }
 
@@ -321,50 +339,57 @@ contract AssetBook is MultiSig {
         mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
         uint timeIndexStart;
         uint timeIndexEnd;
-        bool isWriteApproved;
         bool isInitialized;
     }*/
     /** @dev 提領token: will break token sequence => updateReset to reset asset sequence!!! */
-    //=> start from the minimum index according to First In First Out principle!!!
     function transferAsset(address _assetAddr, uint _tokenId, address _to, uint256 _timeCurrent) 
-        public ckAssetsOwner ckAssetAddr(_assetAddr){
+        public ckAssetOwner ckAssetAddr(_assetAddr){
         ckAssetAdded(_assetAddr);
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        require(_erc721.ownerOf(_tokenId) == address(this), "請確認欲轉移的token_id");
-        uint tokenBalance = _erc721.balanceOf(address(this));//_assetAddr.balances(this);
-        require(tokenBalance > 0, "tokenBalance should be > 0");
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+        require(erc721.ownerOf(_tokenId) == address(this), "check if this contract owns this tokenId");
 
-        _erc721.safeTransferFrom(address(this), _to, _tokenId);
-        updateReset(_assetAddr);
-        emit transferAssetEvent(_to, assets[_assetAddr].assetSymbol, _tokenId, tokenBalance, assets[_assetAddr].ids, _timeCurrent);
+        uint tokenBalanceOf = erc721.balanceOf(address(this));
+        require(tokenBalanceOf > 0, "tokenBalanceOf should be > 0");
+
+        erc721.safeTransferFrom(address(this), _to, _tokenId);
+        updateAssetTokenDetails(_assetAddr);
+        emit TransferAssetEvent(_to, assets[_assetAddr].assetSymbol, _tokenId, tokenBalanceOf, _timeCurrent);
     }
-    function transferAssetBatch(address _assetAddr, uint _amount, address _to, uint256 _timeCurrent) 
-        public ckAssetsOwner ckAssetAddr(_assetAddr){
-        ckAssetAdded(_assetAddr);
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        uint tokenBalance = _erc721.balanceOf(address(this));
-        require(_amount > 0, "_amount must be > 0");
-        require(tokenBalance > 0, "tokenBalance must be > 0");
-        require(_amount <= tokenBalance, "_amount must be <= tokenBalance");
 
-        uint timeIndexEndReq = assets[_assetAddr].timeIndexStart.add(_amount).sub(1);
-        require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, "not enough assets to send _amount from timeIndexStart to timeIndexEndReq");
+    //transfer from the minimum timeIndex according to First In First Out principle
+    function transferAssetBatch(address _assetAddr, uint amount, address _to, uint256 _timeCurrent) 
+        public ckAssetOwner ckAssetAddr(_assetAddr){
+        ckAssetAdded(_assetAddr);
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+
+        uint tokenBalanceOf = erc721.balanceOf(address(this));
+        require(amount > 0, "amount must be > 0");
+        require(tokenBalanceOf > 0, "tokenBalanceOf must be > 0");
+        require(amount <= tokenBalanceOf, "amount must be <= tokenBalanceOf");
+
+        //---------------==transfer + updateTokenIds
+        uint timeIndexStart = assets[_assetAddr].timeIndexStart;
+        uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
+        require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, "not enough assets to send amount from timeIndexStart to timeIndexEndReq");
         //timeIndexStart + amount - 1 <= timeIndexEnd
 
-        uint[] memory tokenIds;
-        for(uint i = assets[_assetAddr].timeIndexStart; i <= timeIndexEndReq; i++) {
+        uint[] memory tokenIdsSent = new uint[](amount);
+        for(uint i = timeIndexStart; i <= timeIndexEndReq; i++) {
+
             uint tokenId = assets[_assetAddr].timeIndexToTokenId[i];
             require(tokenId > 0, "tokenId > 0");
-            require(_erc721.ownerOf(tokenId) == address(this), "請確認欲轉移的token_id");
-            _erc721.safeTransferFrom(address(this), _to, tokenId);
+            require(erc721.ownerOf(tokenId) == address(this), "check if this contract owns this tokenId");
+            
+            erc721.safeTransferFrom(address(this), _to, tokenId);
             delete assets[_assetAddr].timeIndexToTokenId[i];
-            tokenIds[i.sub(assets[_assetAddr].timeIndexStart)] = tokenId;
+            tokenIdsSent[i.sub(timeIndexStart)] = tokenId;
+            //timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
         }
         assets[_assetAddr].timeIndexStart = timeIndexEndReq.add(1);
-        assets[_assetAddr].ids = _erc721.get_ownerToIds(address(this));
-        assets[_assetAddr].assetAmount = _erc721.balanceOf(address(this));
+        assets[_assetAddr].ids = getAssetTimeIndexedTokenIds(_assetAddr);
+        assets[_assetAddr].assetAmount = assets[_assetAddr].assetAmount.sub(amount);
 
-        emit transferAssetEventBatch(_to, assets[_assetAddr].assetSymbol, tokenIds, tokenBalance, assets[_assetAddr].ids, _timeCurrent);
+        emit TransferAssetBatchEvent(_to, assets[_assetAddr].assetSymbol, tokenIdsSent, tokenBalanceOf, _timeCurrent);
     }
 
     /*struct Asset{
@@ -376,74 +401,61 @@ contract AssetBook is MultiSig {
         mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
         uint timeIndexStart;
         uint timeIndexEnd;
-        bool isWriteApproved;
         bool isInitialized;
     }*/
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory, uint, uint, uint, uint, bool, bool){
+    returns (string memory, uint, uint, uint, uint, bool){
         Asset memory asset = assets[_assetAddr];
         return (asset.assetSymbol, asset.assetAddrIndex, 
-        asset.assetAmount,  
-        asset.timeIndexStart, 
-        asset.timeIndexEnd, asset.isWriteApproved, asset.isInitialized);
+        asset.assetAmount, asset.timeIndexStart, 
+        asset.timeIndexEnd, asset.isInitialized);
     }
     function getAssetIds(address _assetAddr) public view ckAssetAddr(_assetAddr) 
     returns (uint[] memory, uint[] memory) {
-        ERC721SPLCITF_assetbook _erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        return (assets[_assetAddr].ids, _erc721.get_ownerToIds(address(this))); 
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+        return (assets[_assetAddr].ids, erc721.get_ownerToIds(address(this))); 
     }
-    function getAssetTimeIndexedTokenIds(address _assetAddr, uint _timeIndexStart, uint _num) 
+    function getAssetTimeIndexedTokenIds(address _assetAddr, uint timeIndexStart, uint amount) 
     public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-        require(_num > 0, "_num must be > 0");
-        require(_timeIndexStart.add(_num).sub(1) <= assets[_assetAddr].timeIndexEnd, 
-        "_timeIndexStart.add(_num).sub(1) must be equal to/lesser than timeIndexEnd");
-        uint[] memory outTokenIds = new uint[](_num);
-        for(uint i=0; i < _timeIndexStart.add(_num); i++) {
-            outTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[_timeIndexStart.add(i)];
+        require(amount > 0, "amount must be > 0");
+        uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
+        require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, 
+        "timeIndexEndReq must be equal to/lesser than timeIndexEnd");
+        uint[] memory timeIndexedTokenIds = new uint[](amount);
+        for(uint i = 0; i <= timeIndexEndReq; i++) {
+            timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
         }
-        return outTokenIds;
+        return timeIndexedTokenIds;
     }
     function getAssetTimeIndexedTokenIds(address _assetAddr) 
     public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-        uint _num = assets[_assetAddr].assetAmount;
-        uint _timeIndexStart = assets[_assetAddr].timeIndexStart;
-        require(_num > 0, "_num must be > 0");
-        require(_timeIndexStart.add(_num).sub(1) <= assets[_assetAddr].timeIndexEnd, 
-        "_timeIndexStart.add(_num).sub(1) must be equal to/lesser than timeIndexEnd");
-        uint[] memory outTokenIds = new uint[](_num);
-        for(uint i=0; i < _timeIndexStart.add(_num); i++) {
-            outTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[_timeIndexStart.add(i)];
-        }
-        return outTokenIds;
+        uint amount = assets[_assetAddr].assetAmount;
+        uint timeIndexStart = assets[_assetAddr].timeIndexStart;
+        getAssetTimeIndexedTokenIds(_assetAddr, timeIndexStart, amount);
     }
 
     /** @dev get asset number */
-    function getAssetCount() public view returns(uint assetCount){
+    function getAssetCount() public view returns(uint){
         return assetCindex;//assetAddrList.length;
     }
 
     /** @dev get all assetAddr */
     function getAssetAddrList() public view returns(address[] memory){
-        address[] memory assetAddrList = new address[](assetCindex);
-        for(uint i=0; i < assetCindex; i++) {
-            assetAddrList[i] = assetIndexToAddr[i+1];
+        address[] memory assetAddrList = new address[](assetCindex.add(1));
+        for(uint i = 1; i <= assetCindex; i++) {
+            assetAddrList[i] = assetIndexToAddr[i];
         }
-        return (assetAddrList);
+        return assetAddrList;
     }
     function getAssetAddrList(uint start, uint num) public view returns(address[] memory){
         address[] memory assetAddrList = new address[](num);
-        for(uint i=start; i < start.add(num); i++) {
-            assetAddrList[i] = assetIndexToAddr[i+1];
+        for(uint i = 0; i < num; i++) {
+            assetAddrList[i] = assetIndexToAddr[i.add(start)];
         }
-        return (assetAddrList);
+        return assetAddrList;
     }
     
-    /** @dev AssetBookCtrt's endorserVote */
-    function voteAssetContract(address _assetAddr, uint256 _timeCurrent) public ckAssetsOwner ckAssetAddr(_assetAddr){
-        AssetBook assetBook = AssetBook(address(uint160(_assetAddr)));
-        assetBook.endorsersVote(_timeCurrent);
-    }
 
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
     /* $notice Handle the receipt of an NFT
@@ -475,7 +487,7 @@ contract AssetBook is MultiSig {
 /** @dev string[] 不能回傳 */
 /*
     //get all assets
-    function getAllAssets() public ckAssetsOwner returns (address[], string[], uint[] ){
+    function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
         address[] memory assetAddrs = new address[](assetAddrList.length);
         string[] memory assetSymbols = new string[](assetAddrList.length);
         uint[]    memory assetAmounts = new uint[](assetsIndex.length);

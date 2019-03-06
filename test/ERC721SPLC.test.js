@@ -28,25 +28,67 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
-const Asset = require('../ethereum/contracts/build/AssetContract.json');
-if (Asset === undefined){
-  console.log('[Error] Asset is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const Platform = require('../ethereum/contracts/build/Platform.json');
+if (Platform === undefined){
+  console.log('[Error] Platform is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] Asset is defined');
-  if (Asset.abi === undefined){
-    console.log('[Error] Asset.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] Platform is defined');
+  if (Platform.abi === undefined){
+    console.log('[Error] Platform.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Asset.abi is defined');
-      //console.log('Asset.abi:', Asset.abi);
+    console.log('[Good] Platform.abi is defined');
+      //console.log('Platform.abi:', Platform.abi);
   }
-  if (Asset.bytecode === undefined || Asset.bytecode.length < 10){
-    console.log('[Error] Asset.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (Platform.bytecode === undefined || Platform.bytecode.length < 10){
+    console.log('[Error] Platform.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Asset.bytecode is defined');
-      //console.log('Asset.bytecode:', Asset.bytecode);
+    console.log('[Good] Platform.bytecode is defined');
+      //console.log('Platform.bytecode:', Platform.bytecode);
   }
-  //console.log(Asset);
+  //console.log(Platform);
 }
+
+const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
+if (MultiSig === undefined){
+  console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] MultiSig is defined');
+  if (MultiSig.abi === undefined){
+    console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] MultiSig.abi is defined');
+      //console.log('MultiSig.abi:', MultiSig.abi);
+  }
+  if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
+    console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] MultiSig.bytecode is defined');
+      //console.log('MultiSig.bytecode:', MultiSig.bytecode);
+  }
+  //console.log(MultiSig);
+}
+
+const AssetBook = require('../ethereum/contracts/build/AssetBook.json');
+if (AssetBook === undefined){
+  console.log('[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] AssetBook is defined');
+  if (AssetBook.abi === undefined){
+    console.log('[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] AssetBook.abi is defined');
+      //console.log('AssetBook.abi:', AssetBook.abi);
+  }
+  if (AssetBook.bytecode === undefined || AssetBook.bytecode.length < 10){
+    console.log('[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] AssetBook.bytecode is defined');
+      //console.log('AssetBook.bytecode:', AssetBook.bytecode);
+  }
+  //console.log(AssetBook);
+}
+
+
 
 const Registry = require('../ethereum/contracts/build/Registry.json');
 if (Registry === undefined){
@@ -184,6 +226,8 @@ let instProductManager; let addrProductManager;
 
 let acc0; let acc1; let acc2; let acc3; let acc4;
 let balance0; let balance1; let balance2;
+let AssetOwner1; let AssetOwner2;
+let platformCtAdmin;
 
 let balance0A; let balance0B;
 let balance1A; let balance1B;
@@ -192,12 +236,11 @@ let balance2A; let balance2B;
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
 
-let AssetsOwner1; let AssetsOwner2; let AssetsOwner3; let AssetsOwner4; 
-let argsAsset1; let argsAsset2; let argsAsset3; let argsAsset4;
-let instAsset1; let instAsset2; let instAsset3; let instAsset4; 
-let addrAsset1; let addrAsset2; let addrAsset3; let addrAsset4;
+let argsAsset1; let argsAssetBook2; let argsAsset3; let argsAsset4;
+let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
+let addrAssetBook1; let addrAssetBook2; let addrAsset3; let addrAsset4;
 
-let Platform;
+
 let timeCurrent = 201902281040;
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
@@ -259,57 +302,86 @@ beforeEach( async () => {
         console.log('acc2',  acc2, balance2);
     }
 
-    AssetsOwner1 = acc1;
-    AssetsOwner2 = acc2;
-    AssetsOwner3 = acc3;
-
-    Platform = acc0;
-    argsAsset1 = [AssetsOwner1, Platform, timeCurrent];
-    argsAsset2 = [AssetsOwner2, Platform, timeCurrent];
-    argsAsset3 = [AssetsOwner3, Platform, timeCurrent];
     console.log('\nDeploying contracts...');
-
-    //Deploying Asset contract... 
     //JSON.parse() is not needed because the abi and bytecode are already objects
 
-    instAsset1 =  await new web3.eth.Contract(Asset.abi)
-    .deploy({ data: Asset.bytecode, arguments: argsAsset1 })
+    //Deploying Platform contract...
+    platformCtAdmin = acc0;
+    console.log('\nDeploying Platform contract...');
+    instPlatform =  await new web3.eth.Contract(Platform.abi)
+    .deploy({ data: Platform.bytecode, arguments: [platformCtAdmin] })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
     //.then(console.log);
-    console.log('Asset.sol has been deployed');
-    if (instAsset1 === undefined) {
-      console.log('[Error] instAsset1 is NOT defined');
-      } else {console.log('[Good] instAsset1 is defined');}
-    instAsset1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrAsset1 = instAsset1.options.address;
-    console.log('addrAsset1:', addrAsset1);
+    console.log('Platform.sol has been deployed');
+    if (instPlatform === undefined) {
+      console.log('[Error] instPlatform is NOT defined');
+      } else {console.log('[Good] instPlatform is defined');}
+    instPlatform.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrPlatformContract = instPlatform.options.address;
+    console.log('addrPlatformContract:', addrPlatformContract);
 
-    instAsset2 =  await new web3.eth.Contract(Asset.abi)
-    .deploy({ data: Asset.bytecode, arguments: argsAsset2 })
-    .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
-    //.then(console.log);
-    console.log('Asset.sol has been deployed');
-    if (instAsset2 === undefined) {
-      console.log('[Error] instAsset2 is NOT defined');
-      } else {console.log('[Good] instAsset2 is defined');}
-    instAsset2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrAsset2 = instAsset2.options.address;
-    console.log('addrAsset2:', addrAsset2);
 
-    instAsset3 =  await new web3.eth.Contract(Asset.abi)
-    .deploy({ data: Asset.bytecode, arguments: argsAsset3 })
+    AssetOwner1 = acc1; AssetOwner2 = acc2;
+    let argsMultiSig1 = [AssetOwner1, addrPlatformContract];
+    let argsMultiSig2 = [AssetOwner2, addrPlatformContract];
+
+    console.log('\nDeploying multiSig contracts...');
+    instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
+    .deploy({ data: MultiSig.bytecode, arguments: argsMultiSig1 })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
     //.then(console.log);
-    console.log('Asset.sol has been deployed');
-    if (instAsset3 === undefined) {
-      console.log('[Error] instAsset3 is NOT defined');
-      } else {console.log('[Good] instAsset3 is defined');}
-    instAsset3.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrAsset3 = instAsset3.options.address;
-    console.log('addrAsset3:', addrAsset3);
+    console.log('MultiSig1 has been deployed');
+    if (instMultiSig1 === undefined) {
+      console.log('[Error] instMultiSig1 is NOT defined');
+      } else {console.log('[Good] instMultiSig1 is defined');}
+    instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrMultiSig1 = instMultiSig1.options.address;
+    console.log('addrMultiSig1:', addrMultiSig1);
+
+    instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
+    .deploy({ data: MultiSig.bytecode, arguments: argsMultiSig2 })
+    .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
+    //.then(console.log);
+    console.log('MultiSig2 has been deployed');
+    if (instMultiSig2 === undefined) {
+      console.log('[Error] instMultiSig2 is NOT defined');
+      } else {console.log('[Good] instMultiSig2 is defined');}
+    instMultiSig2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrMultiSig2 = instMultiSig2.options.address;
+    console.log('addrMultiSig2:', addrMultiSig2);
+
+    argsAssetBook1 = [addrMultiSig1, timeCurrent];
+    argsAssetBook2 = [addrMultiSig2, timeCurrent];
+
+    //Deploying AssetBook contract... 
+    console.log('\nDeploying AssetBook contracts...');
+    instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
+    .deploy({ data: AssetBook.bytecode, arguments: argsAssetBook1 })
+    .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
+    //.then(console.log);
+    console.log('AssetBook.sol has been deployed');
+    if (instAssetBook1 === undefined) {
+      console.log('[Error] instAssetBook1 is NOT defined');
+      } else {console.log('[Good] instAssetBook1 is defined');}
+    instAssetBook1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrAssetBook1 = instAssetBook1.options.address;
+    console.log('addrAssetBook1:', addrAssetBook1);
+
+    instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
+    .deploy({ data: AssetBook.bytecode, arguments: argsAssetBook2 })
+    .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
+    //.then(console.log);
+    console.log('AssetBook.sol has been deployed');
+    if (instAssetBook2 === undefined) {
+      console.log('[Error] instAssetBook2 is NOT defined');
+      } else {console.log('[Good] instAssetBook2 is defined');}
+    instAssetBook2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrAssetBook2 = instAssetBook2.options.address;
+    console.log('addrAssetBook2:', addrAssetBook2);
 
     
     //Deploying Registry contract...
+    console.log('\nDeploying Registry contract...');
     instRegistry =  await new web3.eth.Contract(Registry.abi)
     .deploy({ data: Registry.bytecode })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
@@ -323,6 +395,7 @@ beforeEach( async () => {
     console.log('addrRegistry:', addrRegistry);
     
     //Deploying TokenController contract...
+    console.log('\nDeploying TokenController contract...');
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: TokenController.bytecode, arguments: argsTokenController })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
@@ -342,12 +415,13 @@ beforeEach( async () => {
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
-    addrRegistry, addrTokenController ];
+    addrRegistry, addrTokenController];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
     // address _addrRegistryITF, address _addrTokenControllerITF
   
+    console.log('\nDeploying ERC721SPLC contract...');
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
     .deploy({ data: ERC721SPLC.bytecode, arguments: argsERC721SPLC })
     .send({ from: acc0, gas: '9000000', gasPrice: '20000000000' });
@@ -363,7 +437,8 @@ beforeEach( async () => {
     value: web3.utils.toWei('10','ether')
     */
 
-    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
+   console.log('\nDeploying CrowdFunding contract...');
+   instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
     .deploy({ data: CrowdFunding.bytecode, arguments: argsCrowdFunding })
     .send({ from: acc0, gas: '9000000', gasPrice: '20000000000' });
     console.log('CrowdFunding.sol has been deployed');
@@ -407,17 +482,19 @@ beforeEach( async () => {
     console.log('--------==BeforeEach is finished');
 });
 
-console.log('----------------==');
+console.log('\n----------------==');
 describe('Tests on ERC721SPLC', () => {
-  it('check ERC721SPLC deployment test', async () => {
+  /*it('check ERC721SPLC deployment test', async () => {
     //!!!!!!!!! New contract instance for EVERY it() => Different contract addresses!!!
-    //addrAsset = instAsset1.options.address;
-    assert.ok(addrAsset1);
-    assert.ok(addrAsset2);
+    //addrAsset = instAssetBook1.options.address;
+    assert.ok(addrMultiSig1);
+    assert.ok(addrMultiSig2);
+    assert.ok(addrAssetBook1);
+    assert.ok(addrAssetBook2);
     assert.ok(addrRegistry);
     assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
-    //assert.ok(addrCrowdFunding);
+    assert.ok(addrCrowdFunding);
     //assert.ok(addrIncomeManagement);
 
     //console.log('instERC721SPLC', instERC721SPLC);
@@ -425,44 +502,59 @@ describe('Tests on ERC721SPLC', () => {
 
     //console.log(instanceCtrt);
     //console.log(accounts);
-  });
+  });*/
 
-  // it('Asset contract test', async () => {
-  //   console.log('addrAsset1', addrAsset1);
+  // it('AssetBook contract test', async () => {
+  //   console.log('addrAssetBook1', addrAssetBook1);
   // });
 
-  it('Asset, Registry, ERC721SPLC HToken functions test', async () => {
-    //----------------==Check Asset contract
-    console.log('------------==Check Asset contract 1 & 2');
-    console.log('addrAsset1', addrAsset1);
-    console.log('addrAsset2', addrAsset2);
-    let assetsOwnerM1 = await instAsset1.methods.getAssetsOwner().call();
-    assert.equal(assetsOwnerM1, AssetsOwner1);
-    let assetsOwnerM2 = await instAsset2.methods.getAssetsOwner().call();
-    assert.equal(assetsOwnerM2, AssetsOwner2);
+  it('AssetBook, Registry, ERC721SPLC HToken functions test', async () => {
 
-    let platformM1 = await instAsset1.methods.getPlatformContractAddr().call();
-    assert.equal(platformM1, Platform);
-    let platformM2 = await instAsset2.methods.getPlatformContractAddr().call();
-    assert.equal(platformM2, Platform);
+    console.log('\n------------==Check deployment');
+    assert.ok(addrPlatformContract);
+    assert.ok(addrMultiSig1);
+    assert.ok(addrMultiSig2);
+    assert.ok(addrAssetBook1);
+    assert.ok(addrAssetBook2);
+    assert.ok(addrRegistry);
+    assert.ok(addrTokenController);
+    assert.ok(addrERC721SPLC);
+    assert.ok(addrCrowdFunding);
+    console.log('Deployment Check: Good');
+
+    //----------------==Check MultiSig & AssetBook contracts
+    console.log('\n------------==Check MultiSig contract 1 & 2');
+    console.log('addrMultiSig1', addrMultiSig1);
+    console.log('addrMultiSig2', addrMultiSig2);
+    let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
+    assert.equal(assetOwnerM1, AssetOwner1);
+    let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
+    assert.equal(assetOwnerM2, AssetOwner2);
+
+    console.log('\nCheck getPlatformContractAddr()');
+    let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
+    assert.equal(platformM1, addrPlatformContract);
+    let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
+    assert.equal(platformM2, addrPlatformContract);
+
+    console.log('\n------------==Check AssetBook contract 1 & 2');
+    console.log('addrAssetBook1', addrAssetBook1);
+    console.log('addrAssetBook2', addrAssetBook2);
 
     let tokenAddr = addrERC721SPLC;
-    let assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
-    let assetsMeasured2 = await instAsset2.methods.getAsset(tokenAddr).call();
+    let assetsMeasured1 = await instAssetBook1.methods.getAsset(tokenAddr).call();
+    let assetsMeasured2 = await instAssetBook2.methods.getAsset(tokenAddr).call();
     console.log('assetsMeasured1', assetsMeasured1);
     console.log('assetsMeasured2', assetsMeasured2);
-    assert.equal(assetsMeasured1[0], '');
-    assert.equal(assetsMeasured2[0], '');
-    assert.equal(assetsMeasured1[1], 0);
-    assert.equal(assetsMeasured2[1], 0);
-    assert.equal(assetsMeasured1[2].length, 0);
-    assert.equal(assetsMeasured2[2].length, 0);
+    // return (AssetBook.assetSymbol, AssetBook.assetAddrIndex, 
+    //   AssetBook.assetAmount, AssetBook.timeIndexStart, 
+    //   AssetBook.timeIndexEnd, AssetBook.isInitialized);
 
 
     //----------------==Registry contract
-    console.log('\n------------==Registry contract: add asset contracts 1 & 2');
+    console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
     console.log('addrRegistry', addrRegistry);
-    uid1 = "A500000001"; assetCtAddr = addrAsset1; extoAddr = acc1;
+    uid1 = "A500000001"; assetCtAddr = addrAssetBook1; extoAddr = acc1;
     await instRegistry.methods.addUser(
       uid1, assetCtAddr, extoAddr, timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
@@ -474,7 +566,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(user1M[3], 0);
     console.log('user1M', user1M);
 
-    uid2 = "A500000002"; assetCtAddr = addrAsset2; extoAddr = acc2;
+    uid2 = "A500000002"; assetCtAddr = addrAssetBook2; extoAddr = acc2;
     await instRegistry.methods.addUser(
       uid2, assetCtAddr, extoAddr, timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
@@ -524,17 +616,39 @@ describe('Tests on ERC721SPLC', () => {
     let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
 
-    //----------------==Mint Token
+    //----------------==Mint Token One
     console.log('\n------------==Mint token: tokenId = 1');
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 0);
 
     const uriBase = "https://heliumcryptic.com/nccu0";
-    to = addrAsset1; uriStr = uriBase+"1";
+    uriStr = uriBase+"1";
+    console.log('uriStr', uriStr);
+
     uriBytes32 = web3.utils.fromAscii(uriStr);
+    console.log('uriBytes32', uriBytes32);
+
     uriStrB = web3.utils.toAscii(uriBytes32);
-    console.log('uriStr', uriStr, 'uriBytes32', uriBytes32, 'uriStrB', uriStrB);
-    await instERC721SPLC.methods.mintSerialNFT(to, uriBytes32).send({
+    console.log('uriStrB', uriStrB);
+
+    //let assetsMeasured1 = await instAssetBook1.methods.getAsset(tokenAddr).call();
+    //addrPlatformContract
+    console.log('from Platform contract to ');
+    await instAssetBook1.methods.updateAssetOwner()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    await instPlatform.methods.setAssetCtrtApproval(addrAssetBook1, addrERC721SPLC, true)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    console.log('check1');
+    await instAssetBook2.methods.updateAssetOwner()
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    await instPlatform.methods.setAssetCtrtApproval(addrAssetBook2, addrERC721SPLC, true)
+    .send({ value: '0', from: acc0, gas: '1000000' });
+
+    console.log('start minting tokenId 1 to ');
+    await instERC721SPLC.methods.mintSerialNFT(addrAssetBook1, uriBytes32).send({
       value: '0', from: acc0, gas: '1000000'
     });
 
@@ -542,7 +656,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(tokenIdM, 1);
 
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwnerM, addrAsset1);
+    assert.equal(tokenOwnerM, addrAssetBook1);
 
     tokenInfo = await instERC721SPLC.methods.getNFT(1).call();
     console.log('tokenInfo from ERC721SPLC', tokenInfo);
@@ -559,28 +673,30 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(web3.utils.toAscii(tokenInfo[3]), uriStr);
     assert.equal(tokenInfo[4], initialAssetPricing);
 
-    await instAsset1.methods.addAsset(tokenAddr, timeCurrent)
+    /*
+    await instAssetBook1.methods.addAsset(tokenAddr, timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
 
-    assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
+    assetsMeasured1 = await instAssetBook1.methods.getAsset(tokenAddr).call();
     console.log('assetsMeasured1', assetsMeasured1);
     assert.equal(assetsMeasured1[0], 'NCCU1801');
     assert.equal(assetsMeasured1[1], 1);
     assert.equal(assetsMeasured1[2].length, 1);
-
+    */
 
     //-----------------==Mint Token Batch
     console.log('\n------------==Mint Token in Batch: tokenId = 2, 3, 4');
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    to = addrAsset1;
-    let _tos = [addrAsset1, addrAsset1, addrAsset1];
+    to = addrAssetBook1;
+    let _tos = [addrAssetBook1, addrAssetBook1, addrAssetBook1];
     let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
     const strToBytes32 = str => web3.utils.fromAscii(str);
     let _uriBytes32s = _uriStrs.map(strToBytes32);
     console.log('_uriStrs', _uriStrs);
     console.log('_uriBytes32s', _uriBytes32s);
+
     await instERC721SPLC.methods.mintSerialNFTBatch(_tos, _uriBytes32s).send({
       value: '0', from: acc0, gas: '1000000'
     });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
@@ -589,11 +705,11 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(tokenIdM, 4);
 
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(2).call();
-    assert.equal(tokenOwnerM, addrAsset1);
+    assert.equal(tokenOwnerM, addrAssetBook1);
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(3).call();
-    assert.equal(tokenOwnerM, addrAsset1);
+    assert.equal(tokenOwnerM, addrAssetBook1);
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(4).call();
-    assert.equal(tokenOwnerM, addrAsset1);
+    assert.equal(tokenOwnerM, addrAssetBook1);
 
     tokenInfo = await instERC721SPLC.methods.getNFT(2).call();
     console.log('tokenInfo from ERC721SPLC id = 2:', tokenInfo);
@@ -616,12 +732,26 @@ describe('Tests on ERC721SPLC', () => {
     tokenInfo = await instERC721SPLC.methods.getNFT(4).call();
     assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
 
-    assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
+    assetsMeasured1 = await instAssetBook1.methods.getAsset(tokenAddr).call();
+    // return (asset.assetSymbol, asset.assetAddrIndex, 
+    //   asset.assetAmount, asset.timeIndexStart, 
+    //   asset.timeIndexEnd, asset.isInitialized);
     console.log('assetsMeasured1', assetsMeasured1);
     assert.equal(assetsMeasured1[0], 'NCCU1801');
-    assert.equal(assetsMeasured1[1], 4);//total amount
-    assert.equal(assetsMeasured1[2].length, 4);
+    assert.equal(assetsMeasured1[1], 4);//duplicated assetAddrIndex!!!??
+    assert.equal(assetsMeasured1[2], 4);//amount
+    assert.equal(assetsMeasured1[3], 0);//timeIndexStart
+    assert.equal(assetsMeasured1[4], 3);//timeIndexEnd
+    assert.equal(assetsMeasured1[5], true);//isInitialized
 
+    /*
+    assert.equal(assetsMeasured1[0], '');
+    assert.equal(assetsMeasured2[0], '');
+    assert.equal(assetsMeasured1[1], 0);
+    assert.equal(assetsMeasured2[1], 0);
+    assert.equal(assetsMeasured1[2].length, 0);
+    assert.equal(assetsMeasured2[2].length, 0);
+    */
 
     //-----------------==Check Token Controller: time
     console.log('\n------------==Check TokenController parameters: time');
@@ -654,10 +784,10 @@ describe('Tests on ERC721SPLC', () => {
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
-    tokenId = 1; _from = addrAsset1; to = addrAsset2;
+    tokenId = 1; _from = addrAssetBook1; to = addrAssetBook2;
     let error = false;
     try {
-      await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
+      await instAssetBook1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
       .send({ value: '0', from: acc1, gas: '1000000' });
       error = true;
     } catch (err) {
@@ -669,7 +799,7 @@ describe('Tests on ERC721SPLC', () => {
 
     //----------------==Send tokens from assetCtrt1 to assetCtrt2
     console.log('\n------------==Send tokens from assetCtrt1 to assetCtrt2');
-    tokenId = 1; _from = addrAsset1; to = addrAsset2;
+    tokenId = 1; _from = addrAssetBook1; to = addrAssetBook2;
 
     timeCurrent = 201902281045;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
@@ -677,24 +807,10 @@ describe('Tests on ERC721SPLC', () => {
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, true);
 
-    await instAsset1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
+    await instAssetBook1.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
     .send({ value: '0', from: acc1, gas: '1000000' });
     //await instERC721SPLC.methods.safeTransferFrom(from, to, tokenId)
     //.send({ value: '0', from: _from, gas: '1000000' });
-
-    await instAsset1.methods.addAsset(tokenAddr, timeCurrent)
-    .send({ value: '0', from: acc0, gas: '1000000' });
-    assetsMeasured1 = await instAsset1.methods.getAsset(tokenAddr).call();
-    assert.equal(assetsMeasured1[1], 0);//amount of token
-    assert.equal(assetsMeasured1[2].length, 0);//tokens Ids
-    console.log('assetsMeasured1', assetsMeasured1);
-
-    await instAsset2.methods.addAsset(tokenAddr, timeCurrent)
-    .send({ value: '0', from: acc0, gas: '1000000' });
-    assetsMeasured2 = await instAsset2.methods.getAsset(tokenAddr).call();
-    assert.equal(assetsMeasured2[1], 1);//amount of token
-    assert.equal(assetsMeasured2[2][0], 1);//Ids of tokens
-    console.log('assetsMeasured2', assetsMeasured2);
 
 
     //----------------==Send tokens after valid time
@@ -705,10 +821,10 @@ describe('Tests on ERC721SPLC', () => {
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
-    to = addrAsset1;
+    to = addrAssetBook1;
     error = false;
     try {
-      await instAsset2.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
+      await instAssetBook2.methods.transferAsset(tokenAddr, tokenId, to, timeCurrent)
       .send({ value: '0', from: acc2, gas: '1000000' });
       error = true;
     } catch (err) {
@@ -834,7 +950,7 @@ describe('Tests on CrowdFunding', () => {
     await instCrowdFunding.methods.startFunding()
     .send({ value: '0', from: acc0, gas: '1000000' });
 
-    await instCrowdFunding.methods.invest(addrAsset1, quantityTargetGoal)
+    await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal)
     .send({ value: '0', from: acc0, gas: '1000000' });
     console.log('\nafter investing the target goal amount');
 
@@ -875,7 +991,7 @@ describe('Tests on CrowdFunding', () => {
     let error = false;
     try {
       console.log('\nTrying to invest quantityAvailable+1');
-      await instCrowdFunding.methods.invest(addrAsset1, quantityAvailable+1)
+      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1)
       .send({ value: '0', from: acc0, gas: '1000000' });
       error = true;
     } catch (err) {
@@ -887,7 +1003,7 @@ describe('Tests on CrowdFunding', () => {
     if(1==2){
       //-------------------==Buying the available quantity
       console.log('\nTrying to invest quantityAvailable');
-      await instCrowdFunding.methods.invest(addrAsset1, quantityAvailable)
+      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable)
       .send({ value: '0', from: acc0, gas: '1000000' });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
@@ -926,7 +1042,7 @@ describe('Tests on CrowdFunding', () => {
     await instCrowdFunding.methods.startFunding()
     .send({ value: '0', from: acc0, gas: '1000000' });
 
-    await instCrowdFunding.methods.invest(addrAsset1, maxTotalSupply)
+    await instCrowdFunding.methods.invest(addrAssetBook1, maxTotalSupply)
     .send({ value: '0', from: acc0, gas: '1000000' });
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();

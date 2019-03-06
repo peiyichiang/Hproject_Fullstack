@@ -3,8 +3,14 @@ pragma solidity ^0.5.4;
 import "./SafeMath.sol";
 import "./Ownable.sol";
 
+//MultiSigITF_Platform(addrMultiSigITF_Platform).platformVote(_timeCurrent)
+interface MultiSigITF_Platform {
+    function platformVote(uint256 _timeCurrent) external;
+}
+
+//AssetBookITF_Platform(addrMultiSigITF_Platform).setAssetCtrtApproval(_assetAddr, _isApprovedToWrite)
 interface AssetBookITF_Platform {
-  function platformSign(uint256 _timeCurrent) external;
+    function setAssetCtrtApproval(address _assetAddr, bool _isApprovedToWrite) external;
 }
 
 contract Platform is Ownable {
@@ -44,15 +50,17 @@ contract Platform is Ownable {
         platformCtAdmin = _platformCtAdmin;
     }
 
-    //sign assetContract 的 multiSig
-    function signAssetContract(address _assetContractAddr, string memory _id, uint256 _time) public isPlatformManager(_id){
-
-        AssetBookITF_Platform _multiSig = AssetBookITF_Platform(address(uint160(_assetContractAddr)));
-        _multiSig.platformSign(_time);
+    //vote MultiSig
+    function voteMultiSigContract(address _multiSigContractAddr, string memory _id, uint256 _timeCurrent) public isPlatformManager(_id){
+        MultiSigITF_Platform multiSig = MultiSigITF_Platform(address(uint160(_multiSigContractAddr)));
+        multiSig.platformVote(_timeCurrent);
     }
 
-    //新增admin
-    function addPlatformAdmin(address _adminAddr, string memory _id, uint _time) public isPlatformCtAdmin{
+    //approve asset/token contract to write to AssetBook contract
+    function setAssetCtrtApproval(address _addrAssetBook, address _assetAddr, bool _isApprovedToWrite) public {
+        AssetBookITF_Platform assetBook = AssetBookITF_Platform(address(uint160(_addrAssetBook)));
+        assetBook.setAssetCtrtApproval(_assetAddr, _isApprovedToWrite);
+    }
 
     //新增manager
     function addPlatformManager(address _managerAddr, string memory _id, uint _time) public isPlatformCtAdmin{

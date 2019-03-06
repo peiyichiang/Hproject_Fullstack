@@ -14,7 +14,7 @@ contract CrowdFunding is Ownable {
     using AddressUtils for address;
 
     event ShowState(string _state);
-    event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, fundingState indexed _fundingState, string _stateDescription);
+    event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, FundingState indexed _fundingState, string _stateDescription);
     event TokenReserved(address indexed _assetBookAddr, uint _quantityToInvest, uint _serverTime);
     
     uint public serverTime;
@@ -74,7 +74,7 @@ contract CrowdFunding is Ownable {
         require(_serverTime < _CFSD2, "CFSD2 should be greater than 201902250000");
         CFSD2 = _CFSD2;
         CFED2 = _CFED2;// yyyymmddhhmm
-        fundingState = fundingState.initial;//init the project state
+        fundingState = FundingState.initial;//init the project state
         require(_serverTime > 201902250000, "_serverTime should be greater than default time");
         serverTime = _serverTime;
         emit UpdateState(tokenSymbol, quantitySold, _serverTime, fundingState, "deployed");
@@ -101,31 +101,31 @@ contract CrowdFunding is Ownable {
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         if(quantitySold == quantityMax){
             isTerminated = true;
-            fundingState = fundingState.hasSucceeded;
+            fundingState = FundingState.hasSucceeded;
             stateDescription = "hasSucceeded: sold out";
 
         } else if(quantitySold >= quantityGoal){
             if (serverTime >= CFED2){
-                fundingState = fundingState.hasSucceeded;
+                fundingState = FundingState.hasSucceeded;
                 stateDescription = "hasSucceeded: ended with unsold items";
             } else if (serverTime >= CFSD2){
-                fundingState = fundingState.fundingWithGoalReached;
+                fundingState = FundingState.fundingWithGoalReached;
                 stateDescription = "fundingWithGoalReached: still funding and has reached goal";
             } else {
-                fundingState = fundingState.initial;
+                fundingState = FundingState.initial;
                 stateDescription = "initial: goal reached already";
             }
 
         } else {
             if (serverTime >= CFED2){
                 isTerminated = true;
-                fundingState = fundingState.hasFailed;
+                fundingState = FundingState.hasFailed;
                 stateDescription = "hasFailed: ended with goal not reached";
             } else if (serverTime >= CFSD2){
-                fundingState = fundingState.funding;
+                fundingState = FundingState.funding;
                 stateDescription = "funding: with goal not reached yet";
             } else {
-                fundingState = fundingState.initial;
+                fundingState = FundingState.initial;
                 stateDescription = "initial: not started yet";
             }
         }
@@ -139,7 +139,7 @@ contract CrowdFunding is Ownable {
     }
     function pauseFunding() external onlyAdmin {
         isActive = false;
-        fundingState = fundingState.paused;
+        fundingState = FundingState.paused;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
     }
     event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _quantityMax);
@@ -155,7 +155,7 @@ contract CrowdFunding is Ownable {
     function forceTerminated(string calldata _reason) external onlyAdmin {
         ckStringLength(_reason, 7, 32);
         isTerminated = true;
-        fundingState = fundingState.forceTerminated;
+        fundingState = FundingState.forceTerminated;
         stateDescription = "forceTerminated";
         updateState();
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, append("forceTerminated:", _reason));
@@ -180,7 +180,7 @@ contract CrowdFunding is Ownable {
         require(!isTerminated, "crowdFunding has been terminated");
         require(quantitySold.add(_quantityToInvest) <= quantityMax, "insufficient available token quantity");
 
-        require(fundingState == fundingState.funding || fundingState == fundingState.fundingWithGoalReached, "funding is terminated or not started yet");
+        require(fundingState == FundingState.funding || fundingState == FundingState.fundingWithGoalReached, "funding is terminated or not started yet");
 
         userAccount[_assetBookAddr].assetBook = _assetBookAddr;
 
