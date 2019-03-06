@@ -21,8 +21,8 @@ contract ProductManager is Ownable {
     }
 
     function addNewCtrtPair(
-        address _addrCrowdFundingCtrt, address _addrControllerCtrt, 
-        address _addrTokenCtrt, address _addrIncomeManagementCtrt) 
+        address _addrCrowdFundingCtrt, address _addrControllerCtrt,
+        address _addrTokenCtrt, address _addrIncomeManagementCtrt)
         external onlyAdmin {
         pairId = pairId.add(1);
         idToCtrtPair[pairId] = CtrtPair(_addrCrowdFundingCtrt, _addrControllerCtrt, _addrTokenCtrt, _addrIncomeManagementCtrt);

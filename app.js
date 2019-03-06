@@ -25,6 +25,8 @@ var PlatformContractAPIRouter = require('./routes/PlatformContractAPI');
 var ERC721ContractAPIRouter = require('./routes/ERC721ContractAPI');
 var TokenControllerContractAPIRouter = require('./routes/TokenControllerContractAPI');
 var CrowdFundingContractAPIRouter = require('./routes/CrowdFundingContractAPI');
+var ProductManagerContractAPIRouter = require('./routes/ProductManagerContractAPI');
+var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContractAPI');
 
 
 
@@ -155,6 +157,8 @@ app.use('/PlatformContractAPI', PlatformContractAPIRouter);
 app.use('/ERC721ContractAPI', ERC721ContractAPIRouter);
 app.use('/TokenControllerContractAPI', TokenControllerContractAPIRouter);
 app.use('/CrowdFundingContractAPI', CrowdFundingContractAPIRouter);
+app.use('/ProductManagerContractAPI', ProductManagerContractAPIRouter);
+app.use('/IncomeManagementContractAPI', IncomeManagementContractAPIRouter);
 
 
 

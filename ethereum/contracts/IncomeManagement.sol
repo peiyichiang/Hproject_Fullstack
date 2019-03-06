@@ -119,6 +119,7 @@ contract IncomeManagement is Ownable {
         }
         emit RemoveIncomeSchedule(rsIndex);
     }
+
     // function getIncomePaymentScheduleList(uint[] calldata _paymentDates) external view returns (IncomeSchedule[] memory) {
     //     // require(incomeStartDate + incomeCount - 1 < scheduleIndex, "incomeStartDate is too big for incomeCount");
     //     IncomeSchedule[] memory incomeSchedule;
@@ -147,7 +148,7 @@ contract IncomeManagement is Ownable {
         }
         emit SetPaymentReleaseResults(_paymentDate, boolValue, _errorCode);
     }
-    
+
     /**設定isErrorResolved */
     function setErrResolution(uint _paymentDate, bool boolValue) external onlyPA noReentrancy{
         schedules[dateToScheduleIndex[_paymentDate]].isErrorResolved = boolValue;
