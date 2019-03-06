@@ -32,7 +32,7 @@ router.post('/deploy', function (req, res, next) {
     let TimeTokenLaunch = req.body.TimeTokenLaunch;
     let TimeTokenUnlock = req.body.TimeTokenUnlock;
     let TimeTokenValid = req.body.TimeTokenValid;
-
+    console.log(timeCurrent)
 
     ERC721SPLC_Controller.deploy({
         data: contract.bytecode,

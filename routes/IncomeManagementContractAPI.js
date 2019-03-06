@@ -17,7 +17,7 @@ var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC
 var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /*registry contract address*/
-const contract = require('../ethereum/contracts/build/CrowdFunding.json');
+const contract = require('../ethereum/contracts/build/IncomeManagement.json');
 
 //deploy crowdFunding contract
 router.post('/deploy', function (req, res, next) {
@@ -29,25 +29,17 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
-    let tokenSymbol = req.body.tokenSymbol;
-    let tokenPrice = req.body.tokenPrice;
-    let currency= req.body.currency;
-    let quantityMax = req.body.quantityMax;
-    let goalInPercentage = req.body.goalInPercentage;
-    let CFSD2 = req.body.CFSD2;
-    let CFED2 = req.body.CFED2;
-    let serverTime = req.body.serverTime;
+    let TimeAnchor = req.body.TimeAnchor;
+    let tokenCtrt = req.body.tokenCtrt;
+    let PA_Ctrt= req.body.PA_Ctrt;
+    let FMXA_Ctrt = req.body.FMXA_Ctrt;
+    let platformCtrt = req.body.platformCtrt;
 
-    /*let assetOwner = req.body.assetOwner;
-    let platform = req.body.platform;
-    let time = req.body.time;*/
-    let crowdFundingContract = new web3deploy.eth.Contract(contract.abi);
-    console.log(tokenSymbol);
+    let IncomeManagementContract = new web3deploy.eth.Contract(contract.abi);
 
-    crowdFundingContract.deploy({
+    IncomeManagementContract.deploy({
         data: contract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime]
-        //arguments: [assetOwner, platform, time]
+        arguments: [TimeAnchor, tokenCtrt, PA_Ctrt, FMXA_Ctrt, platformCtrt]
     })
         .send({
             from: backendAddr,
@@ -62,109 +54,15 @@ router.post('/deploy', function (req, res, next) {
         })
 });
 
-/**給server多的時間*/
-router.post('/addServerTime', async function (req, res, next) {
+/**makeIncomeSchedule*/
+router.post('/makeIncomeSchedule', async function (req, res, next) {
     let contractAddr = req.body.address;
-    let additionalTime = req.body.additionalTime;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+    let paymentDate = req.body.paymentDate;
+    let paymentAmount = req.body.paymentAmount;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.addServerTime(additionalTime).encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
-/**設定新的server時間*/
-router.patch('/setServerTime', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let serverTime = req.body.serverTime;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.setServerTime(serverTime).encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
-
-/**updateState*/
-router.post('/updateState', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.updateState().encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
-/**startFunding*/
-router.post('/startFunding', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.startFunding().encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
-/**pauseFunding*/
-router.post('/pauseFunding', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.pauseFunding().encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
-/**resumeFunding*/
-router.post('/resumeFunding', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let CFED2 = req.body.CFED2;
-    let quantityMax = req.body.quantityMax;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.resumeFunding(CFED2, quantityMax).encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-    res.send({
-        result: result
-    })
-
-});
-
-/**forceTerminated*/
-router.post('/forceTerminated', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let reason = req.body.reason;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-
-    /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.forceTerminated(reason).encodeABI();
+    let encodedData = IncomeManagementContract.methods.makeIncomeSchedule(paymentDate, paymentAmount).encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -172,15 +70,16 @@ router.post('/forceTerminated', async function (req, res, next) {
     })
 });
 
-/**invest*/
-router.post('/invest', async function (req, res, next) {
+/**setPaymentReleaseResults*/
+router.post('/setPaymentReleaseResults', async function (req, res, next) {
     let contractAddr = req.body.address;
-    let assetBookAddr = req.body.assetBookAddr;
-    let quantityToInvest = req.body.quantityToInvest;
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
+    let paymentDate = req.body.paymentDate;
+    let boolValue = req.body.boolValue;
+    let errorCode = req.body.errorCode;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
 
     /*用後台公私鑰sign*/
-    let encodedData = crowdFundingContract.methods.invest(assetBookAddr, quantityToInvest).encodeABI();
+    let encodedData = IncomeManagementContract.methods.setPaymentReleaseResults(paymentDate, boolValue, errorCode).encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -188,17 +87,113 @@ router.post('/invest', async function (req, res, next) {
     })
 });
 
-/*salestate */
-router.get('/salestate', async function (req, res, next) {
+/**setErrResolution*/
+router.post('/setErrResolution', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let paymentDate = req.body.paymentDate;
+    let boolValue = req.body.boolValue;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = IncomeManagementContract.methods.setErrResolution(paymentDate, boolValue).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/**editIncomeSchedule*/
+router.patch('/editIncomeSchedule', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let index = req.body.index;
+    let paymentDate = req.body.paymentDate;
+    let paymentAmount = req.body.paymentAmount;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = IncomeManagementContract.methods.editIncomeSchedule(index, paymentDate, paymentAmount).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/**removeIncomeSchedule*/
+router.delete('/removeIncomeSchedule', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let index = req.body.index;
+    let paymentDate = req.body.paymentDate;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = IncomeManagementContract.methods.removeIncomeSchedule(index, paymentDate).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/*isIncomeReadyForRelease */
+router.get('/isIncomeReadyForRelease', async function (req, res, next) {
     let contractAddr = req.query.address;
+    let dateToday = req.query.dateToday;
 
-    let crowdFundingContract = new web3.eth.Contract(contract.abi, contractAddr);
-    let salestate = await crowdFundingContract.methods.salestate().call({ from: backendAddr })
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+    let salestate = await IncomeManagementContract.methods.isIncomeReadyForRelease(dateToday).call({ from: backendAddr })
 
     res.send({
         salestate: salestate
     })
 });
+
+/**setIsApproved*/
+router.patch('/setIsApproved', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let boolValue = req.body.boolValue;
+    let paymentDate = req.body.paymentDate;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = IncomeManagementContract.methods.setIsApproved(paymentDate, boolValue).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+
+/**changeFMXA*/
+router.patch('/changeFMXA', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let FMXA_new = req.body.FMXA_new;
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = IncomeManagementContract.methods.changeFMXA(FMXA_new).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/*getIncomePaymentSchedule */
+router.get('/getIncomePaymentSchedule', async function (req, res, next) {
+    let contractAddr = req.query.address;
+    let paymentDate = req.query.paymentDate;
+
+    let IncomeManagementContract = new web3.eth.Contract(contract.abi, contractAddr);
+    let salestate = await IncomeManagementContract.methods.getIncomePaymentSchedule(paymentDate).call({ from: backendAddr })
+
+    res.send({
+        salestate: salestate
+    })
+});
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
