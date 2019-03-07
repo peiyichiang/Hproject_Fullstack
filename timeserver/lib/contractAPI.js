@@ -1,4 +1,5 @@
 const web3 = require('./web3.js');
+const Tx = require('ethereumjs-tx');
 
 const IncomeManagement = require('../../ethereum/contracts/build/IncomeManagement.json');
 const CrowdFunding = require('../../ethereum/contracts/build/CrowdFunding.json');
@@ -6,7 +7,7 @@ const TokenController = require('../../ethereum/contracts/build/TokenController.
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
-var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
+var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 function sendTimeToRentContract(addr, time) {
     let contract = new web3.eth.Contract(IncomeManagement.abi, addr);
@@ -25,7 +26,7 @@ async function sendTimeToCrowdfundingContract(addr, time) {
     let CrowdFundingContract = new web3.eth.Contract(CrowdFunding.abi, addr);
     let encodedData = CrowdFundingContract.methods.setServerTime(time).encodeABI();
 
-    let result = await signTx(backendAddr, backendPrivateKey, addr, encodedData);
+    let result = await signTx(backendAddr, backendRawPrivateKey, addr, encodedData);
     
     return result;
     /*
