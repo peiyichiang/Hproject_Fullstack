@@ -31,8 +31,14 @@ contract Platform is Ownable {
     event changePlatformManagerEvent(address indexed oldManagerAddr, address indexed newManagerAddr, string id, uint256 timestamp);
 
 
-    constructor(address _platformCtAdmin) public{
+    constructor(address _platformCtAdmin, address[] memory management) public{
         platformCtAdmin = _platformCtAdmin;
+        require(management.length > 4, "management.length should be > 4");
+        owner = management[0];
+        chairman = management[1];
+        director = management[2];
+        manager = management[3];
+        admin = management[4];
     }
 
     //檢查是否為 platformCtAdmin

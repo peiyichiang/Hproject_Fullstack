@@ -31,13 +31,22 @@ contract IncomeManagement is Ownable {
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(uint _TimeAnchor, address _tokenCtrt, address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt) public {
+    constructor(uint _TimeAnchor, address _tokenCtrt, 
+        address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt,
+        address[] memory management) public {
         require(_TimeAnchor > 99999999999, "_TimeAnchor has to be in the format of yyyymmddhhmm");
         TimeAnchor = _TimeAnchor;//201903010900
         tokenCtrt = _tokenCtrt;
         PA_Ctrt = _PA_Ctrt;
         FMXA_Ctrt = _FMXA_Ctrt;
         platformCtrt = _platformCtrt;
+
+        require(management.length > 4, "management.length should be > 4");
+        owner = management[0];
+        chairman = management[1];
+        director = management[2];
+        manager = management[3];
+        admin = management[4];
     }
     modifier onlyPA() {
         require(msg.sender == PA_Ctrt, "only PA_Ctrt can call this function");

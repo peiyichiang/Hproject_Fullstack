@@ -28,8 +28,13 @@ contract Registry is Ownable {
     //Legal/Regulation Compliance
     mapping (address => string) public assetCtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
 
-    constructor() public {
-        owner = msg.sender;
+    constructor(address[] memory management) public {
+        require(management.length > 4, "management.length should be > 4");
+        owner = management[0];
+        chairman = management[1];
+        director = management[2];
+        manager = management[3];
+        admin = management[4];
     }
 
     /**@dev check uid value */

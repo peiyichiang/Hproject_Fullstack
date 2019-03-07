@@ -9,23 +9,32 @@ contract TokenController is Ownable {
     uint public TimeTokenRelease;// Release Date
     uint public TimeTokenUnlock;
     uint public TimeTokenValid;// Valid Date or token expiry time 203903310000
-    bool public isReleased;//
+    bool public isReleased;
+    bool public isActive;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
     constructor(uint _timeCurrent, uint _TimeTokenRelease, 
-      uint _TimeTokenUnlock, uint _TimeTokenValid) public {
+      uint _TimeTokenUnlock, uint _TimeTokenValid,
+      address[] memory management) public {
         timeCurrent = _timeCurrent;
         TimeTokenRelease = _TimeTokenRelease;
         TimeTokenUnlock = _TimeTokenUnlock;
         TimeTokenValid = _TimeTokenValid;
+        isActive = true;
+        require(management.length > 4, "management.length should be > 4");
+        owner = management[0];
+        chairman = management[1];
+        director = management[2];
+        manager = management[3];
+        admin = management[4];
     }
 
-    modifier ckLaunched() {
-        require(!isReleased, "only allowed before launch time");
+    modifier ckReleased() {
+        require(!isReleased, "only allowed before Release time");
         _;
     }
     modifier ckTime(uint _time) {
-        require(_time > 201902150000, "_time has to be in the format of yyyymmddhhmm");
+        require(_time > 201903070000, "_time has to be in the format of yyyymmddhhmm");
         _;
     }
     modifier onlyUnlockedValid() {
@@ -35,7 +44,7 @@ contract TokenController is Ownable {
         _;
     }
     function isUnlockedValid() external view returns (bool){
-        return (TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid);
+        return (TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid && isActive);
     }
     function isUnlocked() external view returns (bool){
         return (TimeTokenUnlock < timeCurrent);
@@ -59,22 +68,27 @@ contract TokenController is Ownable {
 
     //To extend valid time if token operation is paused
     //event SetTimeTokenValid(uint _TimeTokenValid);
-    function setTimeTokenValid(uint _TimeTokenValid) external onlyAdmin ckTime(_TimeTokenValid) ckLaunched {
+    function setTimeTokenValid(uint _TimeTokenValid) external onlyAdmin ckTime(_TimeTokenValid) ckReleased {
         TimeTokenValid = _TimeTokenValid;
         //emit SetTimeTokenValid(_TimeTokenValid);
     }
 
     //event SetTimeTokenUnlock(uint _TimeTokenUnlock);
-    function setTimeTokenUnlock(uint _TimeTokenUnlock) external onlyAdmin ckTime(_TimeTokenUnlock) ckLaunched {
+    function setTimeTokenUnlock(uint _TimeTokenUnlock) external onlyAdmin ckTime(_TimeTokenUnlock) ckReleased {
         TimeTokenUnlock = _TimeTokenUnlock;
         //emit SetTimeTokenUnlock(_TimeTokenUnlock);
     }
 
-    //event SetLaunchTime(uint _TimeTokenRelease);
-    function setLaunchTime(uint _TimeTokenRelease) external onlyAdmin ckTime(_TimeTokenRelease) ckLaunched {
+    //event SetReleaseTime(uint _TimeTokenRelease);
+    function setReleaseTime(uint _TimeTokenRelease) external onlyAdmin ckTime(_TimeTokenRelease) ckReleased {
         TimeTokenRelease = _TimeTokenRelease;
         isReleased = true;
-        //emit SetLaunchTime(_TimeTokenRelease);
+        //emit SetReleaseTime(_TimeTokenRelease);
+    }
+
+    function setIsActive(bool _isActive) external onlyAdmin ckReleased {
+        isActive = _isActive;
+        //emit SetReleaseTime(_TimeTokenRelease);
     }
 
     // event SetLegalCompliance(uint _addrLegalCompliance);

@@ -457,7 +457,7 @@ contract AssetBook {
     }*/
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory, uint, uint, uint, uint, bool, uint[] memory, uint[] memory){
+    returns (string memory symbol, uint assetAddrIndex, uint amount, uint timeIndexStart, uint timeIndexEnd, bool isInitialized, uint[] memory assetIdsFromAssetBook, uint[] memory assetIdsFromERC721){
         Asset memory asset = assets[_assetAddr];
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 

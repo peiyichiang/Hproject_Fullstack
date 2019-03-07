@@ -14,11 +14,11 @@ contract Ownable {
     uint public minVotes = 3;
 
     constructor() public {
-        owner = msg.sender;
-        chairman = msg.sender;
-        director = msg.sender;
-        manager = msg.sender;
-        admin = msg.sender;
+        // owner = msg.sender;
+        // chairman = msg.sender;
+        // director = msg.sender;
+        // manager = msg.sender;
+        // admin = msg.sender;
     }
 
     modifier onlyAdmin() {
