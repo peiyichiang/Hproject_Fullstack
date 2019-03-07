@@ -171,12 +171,12 @@ router.get('/verify_email', function (req, res) {
 
 
 /* test post image function */
-router.post('/post_image', upload.single('image'), function (req, res) {
+router.post('/post_IDImage', uploadIDImages.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
     var email = req.body.email
     var imageLocation = req.body.imageLocation
 
-    if (req.body.front_back == "front") {
+    if (req.body.picture == "IDfront") {
         mysqlPoolQuery('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
             if (err) {
                 res.status(400)
@@ -188,10 +188,10 @@ router.post('/post_image', upload.single('image'), function (req, res) {
                 res.status(200);
                 res.json({
                     "message": "新增照片地址成功！"
-                });
+                })
             }
-        });
-    } else {
+        })
+    } else if (req.body.picture == "IDback") {
         mysqlPoolQuery('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
             if (err) {
                 res.status(400)
@@ -203,9 +203,9 @@ router.post('/post_image', upload.single('image'), function (req, res) {
                 res.status(200);
                 res.json({
                     "message": "新增照片地址成功！"
-                });
+                })
             }
-        });
+        })
     }
 
     /* error handling for image upload*/
@@ -217,7 +217,27 @@ router.post('/post_image', upload.single('image'), function (req, res) {
     //     }
     //     console.log('照片上傳成功！')
     // });
-});
+})
+
+router.post('/post_BookletImage', uploadBookletImage.single('image'), function (req, res) {
+    let mysqlPoolQuery = req.pool;
+    var email = req.body.email
+    var imageLocation = req.body.imageLocation
+    mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+        if (err) {
+            res.status(400)
+            res.json({
+                "message": "新增照片地址失敗" + err
+            })
+        }
+        else {
+            res.status(200);
+            res.json({
+                "message": "新增照片地址成功！"
+            })
+        }
+    })
+})
 
 //-----------------------==
 //http://localhost:3000/user/POST/AddUser
