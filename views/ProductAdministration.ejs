@@ -478,7 +478,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script>
         function Edit(SYMBOL,State) {
-            window.location.href = "/Product/GET/EditProductByPlatformAuditor?symbol=" + SYMBOL + "&State=" + State;
+            window.location.href = "/Product/EditProductByPlatformAuditor?symbol=" + SYMBOL + "&State=" + State;
         }
 
         // 用來記錄當前被點到退回按鈕的產品SYMBOL
@@ -495,7 +495,7 @@
             var NOTE=document.getElementById('message-text').value;
             // alert(SYMBOL);
             // alert(NOTE);
-            window.location.href = "/Product/GET/SetPANoteAndReturnByPA?symbol=" + SYMBOL + "&note=" + NOTE;
+            window.location.href = "/Product/SetPANoteAndReturnByPA?symbol=" + SYMBOL + "&note=" + NOTE;
         }
 
         // Modal觸發

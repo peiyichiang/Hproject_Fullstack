@@ -9,7 +9,7 @@
   </head>
   <body>
     <!-- <h1>Product - List</h1> -->
-    <!-- <input type='submit' value='Add' onclick="javascript: location.href='/Product/GET/AddProductByFMN'"> -->
+    <!-- <input type='submit' value='Add' onclick="javascript: location.href='/Product/AddProductByFMN'"> -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="border-bottom:1px solid white;">
             <a class="navbar-brand sticky-top" href="#">HeliumCryptic</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,7 +21,7 @@
                     歡迎<%= UserID %>
                 </span>
                 <li class="nav-item">
-                    <a class="nav-link" href="/Product/GET/AddProductByFMN">新增產品</a>
+                    <a class="nav-link" href="/Product/AddProductByFMN">新增產品</a>
                   </li>
                 <li class="nav-item" id="SignOut">
                   <a class="nav-link" href="#">登出</a>
@@ -298,15 +298,15 @@
 
     <script>
         function Send(SYMBOL){
-            window.location.href = "/Product/GET/SetProductCreationByFMN?symbol=" + SYMBOL;
+            window.location.href = "/Product/SetProductCreationByFMN?symbol=" + SYMBOL;
         }
         function Edit(SYMBOL) {
-            window.location.href = "/Product/GET/EditProductByFMN?symbol=" + SYMBOL;
+            window.location.href = "/Product/EditProductByFMN?symbol=" + SYMBOL;
         }
         function Delete(SYMBOL) {
             var rs = confirm('Confirm to delete?');
             if (rs) {
-                window.location.href = "/Product/GET/DeleteProduct?symbol=" + SYMBOL;
+                window.location.href = "/Product/DeleteProduct?symbol=" + SYMBOL;
             }
         }
     </script>

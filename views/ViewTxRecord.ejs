@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Tx Record - List</h1>
-    <input type='submit' value='Add' onclick="javascript: location.href='/GET/AddTxRecord'">
+    <input type='submit' value='Add' onclick="javascript: location.href='/AddTxRecord'">
     <table>
         <tr>
             <th>tx_hash</th>
@@ -45,12 +45,12 @@
 
     <script>
         function Edit(tx_hash) {
-            window.location.href = "/GET/EditTxRecord?tx_hash=" + tx_hash;
+            window.location.href = "/EditTxRecord?tx_hash=" + tx_hash;
         }
         function Delete(txhash) {
             var rs = confirm('Confirm to delete?');
             if (rs) {
-                window.location.href = "/GET/DeleteTxRecord?tx_hash=" + txhash;
+                window.location.href = "/DeleteTxRecord?tx_hash=" + txhash;
             }
         }
     </script>

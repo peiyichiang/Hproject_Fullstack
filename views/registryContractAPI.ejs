@@ -50,43 +50,43 @@
     $('#deploy').on('click', function () {
         log("deploying");
 
-        $.post('/registryContractAPI/POST/deploy' , function (result) {
+        $.post('/registryContractAPI/deploy' , function (result) {
             log(result);
         })
     })
 
     $('#getOwner').on('click', function () {
-        $.get('/registryContractAPI/GET/getOwner', function (result) {
+        $.get('/registryContractAPI/getOwner', function (result) {
             log(result);
         })
     })
 
     $('#getUserCount').on('click', function () {
-        $.get('/registryContractAPI/GET/getUserCount', function (result) {
+        $.get('/registryContractAPI/getUserCount', function (result) {
             log(result);
         })
     })
 
     $('#getUserInfo').on('click', function () {
-        $.get('/registryContractAPI/GET/getUserInfo', function (result) {
+        $.get('/registryContractAPI/getUserInfo', function (result) {
             log(result);
         })
     })
 
     $('#registerUser').on('click', function () {
-        $.post('/registryContractAPI/POST/registerUser', function (result) {
+        $.post('/registryContractAPI/registerUser', function (result) {
             log(result);
         })
     })
 
     $('#setAccountStatus').on('click', function () {
-        $.post('/registryContractAPI/POST/setAccountStatus', function (result) {
+        $.post('/registryContractAPI/setAccountStatus', function (result) {
             log(result);
         })
     })
 
     $('#setEthAddr').on('click', function () {
-        $.post('/registryContractAPI/POST/setEthAddr', function (result) {
+        $.post('/registryContractAPI/setEthAddr', function (result) {
             log(result);
         })
     })

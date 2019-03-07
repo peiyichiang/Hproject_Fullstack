@@ -163,7 +163,10 @@ interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
-
+//AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
+interface AssetBookITF {
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external;
+}
 
 //==================
 contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
@@ -196,7 +199,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         string name;// NCCU site No.1(2018)
         string symbol;//NCCU1801... 4 characters + yy for year + ss serial number
         string currency;// NTD or USD or ...
-        string uri;//token specific information
+        bytes32 uri;//token specific information
         uint pricing;// pricing in the "currency" type above
     }
 
@@ -232,7 +235,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         _symbol = nftSymbol;
     }
     //mapping (uint256 => string) internal idToUri;//NFT ID to metadata uri
-    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+    function tokenURI(uint256 _tokenId) external view returns (bytes32) {
         //validNFToken(_tokenId)
         require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
         return idToAsset[_tokenId].uri;//idToUri[_tokenId];
@@ -260,7 +263,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         
         addrRegistryITF = _addrRegistryITF;
         addrTokenControllerITF = _addrTokenControllerITF;
-
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
@@ -292,7 +294,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
 
     //--------------------==Copied code
-    function getNFT(uint _id) external view returns (string memory, string memory, string memory, string memory, uint) {
+    function getNFT(uint _id) external view returns (string memory, string memory, string memory, bytes32, uint) {
         return (idToAsset[_id].name, idToAsset[_id].symbol,
         idToAsset[_id].currency, idToAsset[_id].uri, idToAsset[_id].pricing);
     }
@@ -329,18 +331,19 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //-------------------==End of Enumerable interface
 
     //-------------------==Helium Cryptic code
-    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory) {
-        //maxTokenId = tokenId - 1;
-        require(idStart + idCount - 1 <= tokenId, "idStart is too big for idCount");
-        address[] memory addrArray;
-        for(uint i = idStart; i <= tokenId; i = i.add(1)) {
-            addrArray[i] = idToOwner[i];
-        }
-        return addrArray;
+    function mintSerialNFTOne(address _to, bytes32 _uri) external {
+        mintSerialNFT(_to, _uri);
     }
-
-    event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, string uri, uint initialAssetPricing);
-    function mintSerialNFT(address _to, string calldata _uri) external {
+    function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris) external {
+        uint toLength = _tos.length;
+        require(toLength == _uris.length, "_tos.length and _uris.length must be the same");
+        for(uint i=0; i<toLength; i++) {
+            mintSerialNFT(_tos[i], _uris[i]);
+        }
+    }
+    
+    event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, bytes32 uri, uint initialAssetPricing);
+    function mintSerialNFT(address _to, bytes32 _uri) public {
         require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
 
         //Legal Compliance
@@ -366,6 +369,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         emit MintSerialNFT(tokenId, nftName, nftSymbol, pricingCurrency, _uri, initialAssetPricing);
         totalSupply = totalSupply.add(1);
     }
+
     // event BurnNFT(address _owner, uint _tokenId, address msgsender);
     // function burnNFT(address _owner, uint256 _tokenId) external onlyAdmin {
     //     delete idToAsset[_tokenId];
@@ -374,14 +378,23 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //     emit BurnNFT(_owner, _tokenId, msg.sender);
     // }
 
+    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory) {
+        //maxTokenId = tokenId - 1;
+        require(idStart + idCount - 1 <= tokenId, "idStart is too big for idCount");
+        address[] memory addrArray;
+        for(uint i = idStart; i <= tokenId; i = i.add(1)) {
+            addrArray[i] = idToOwner[i];
+        }
+        return addrArray;
+    }
     function getIdToApprovals(uint256 _tokenId) public view
         validNFToken(_tokenId) returns (address) {
         return idToApprovals[_tokenId];
     }
     function safeTransferFromBatch(address[] calldata _froms, address[] calldata _tos, uint[] calldata _tokenIds) external {
-        uint num = _tokenIds.length;
-        require(_froms.length == num && _tos.length == num, "_froms.length and _tos.length must be the same as _tokenIds.length");
-        for(uint i=0; i<num; i++) {
+        uint toLength = _tokenIds.length;
+        require(_froms.length == toLength && _tos.length == toLength, "_froms.length and _tos.length must be the same as _tokenIds.length");
+        for(uint i = 0; i < toLength; i++) {
             _safeTransferFrom(_froms[i], _tos[i], _tokenIds[i], "");
         }
     }
@@ -686,6 +699,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //-----------==Enumerable
         uint256 length = ownerToIds[_to].push(_tokenId);
         idToOwnerIndexPlus1[_tokenId] = length;//.sub(1);// - 1;
+        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId, length);
     }
 
     //-------------------==Enumerable

@@ -80,7 +80,7 @@
         platform = "0x817A172521472fad991ddDa107C725Ed321e716C";
         log("deploying");
 
-        $.post('/assetContractAPI/POST/deploy', {
+        $.post('/assetContractAPI/deploy', {
             assetOwner: assetOwner,
             platform: platform,
         }, function (result) {
@@ -99,7 +99,7 @@
     $('#getAssetsOwner').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getAssetsOwner', { address: address }, function (result) {
+        $.get('/assetContractAPI/getAssetsOwner', { address: address }, function (result) {
             log(result);
         })
     })
@@ -107,7 +107,7 @@
     $('#getPlatform').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getPlatform', { address: address }, function (result) {
+        $.get('/assetContractAPI/getPlatform', { address: address }, function (result) {
             log(result);
         })
     })
@@ -115,7 +115,7 @@
     $('#getEndorsers').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getEndorsers', { address: address }, function (result) {
+        $.get('/assetContractAPI/getEndorsers', { address: address }, function (result) {
             log(result);
         })
     })
@@ -124,7 +124,7 @@
     $('#getAssetsOwnerSign').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getAssetsOwnerSign', { address: address }, function (result) {
+        $.get('/assetContractAPI/getAssetsOwnerSign', { address: address }, function (result) {
             log(result);
         })
     })
@@ -132,7 +132,7 @@
     $('#getPlatformSign').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getPlatformSign', { address: address }, function (result) {
+        $.get('/assetContractAPI/getPlatformSign', { address: address }, function (result) {
             log(result);
         })
     })
@@ -140,7 +140,7 @@
     $('#getEndorsersSign').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getEndorsersSign', { address: address }, function (result) {
+        $.get('/assetContractAPI/getEndorsersSign', { address: address }, function (result) {
             log(result);
         })
     })
@@ -150,7 +150,7 @@
         address = assetContract;
         //owner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
         //log(assetContract);
-        $.post('/assetContractAPI/POST/assetsOwnerSign', { address: address }, function (result) {
+        $.post('/assetContractAPI/assetsOwnerSign', { address: address }, function (result) {
             log(result);
         })
     })
@@ -159,7 +159,7 @@
         address = assetContract;
         //platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
         //log(assetContract);
-        $.post('/assetContractAPI/POST/platformSign', { address: address }, function (result) {
+        $.post('/assetContractAPI/platformSign', { address: address }, function (result) {
             log(result);
         })
     })
@@ -176,7 +176,7 @@
     $('#changeAssetOwner').on('click', function () {
         address = assetContract;
         let newOwner = '0xadD8E8884f935E6Dbdaace2506001Cb7D163c19C';
-        $.post('/assetContractAPI/POST/changeAssetOwner', {
+        $.post('/assetContractAPI/changeAssetOwner', {
             address: address,
             newOwner: newOwner
         }, function (result) {
@@ -216,7 +216,7 @@
     $('#addAsset').on('click', function () {
         address = assetContract;
         ERC721Addr = "0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
-        $.post('/assetContractAPI/POST/addAsset', {
+        $.post('/assetContractAPI/addAsset', {
             address: address,
             ERC721Addr: ERC721Addr
         }, function (result) {
@@ -229,7 +229,7 @@
         address = assetContract;
         ERC721Addr = "0xad3ff162e1cecdc1d8eb8a1f9dee903fc6189b8d";
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getAsset', { address: address, ERC721Addr: ERC721Addr }, function (result) {
+        $.get('/assetContractAPI/getAsset', { address: address, ERC721Addr: ERC721Addr }, function (result) {
             log(result);
         })
     })
@@ -238,7 +238,7 @@
     $('#getAssetCount').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getAssetCount', { address: address }, function (result) {
+        $.get('/assetContractAPI/getAssetCount', { address: address }, function (result) {
             log(result);
         })
     })
@@ -247,7 +247,7 @@
     $('#getAssetIndex').on('click', function () {
         address = assetContract;
         //log(assetContract);
-        $.get('/assetContractAPI/GET/getAssetIndex', { address: address }, function (result) {
+        $.get('/assetContractAPI/getAssetIndex', { address: address }, function (result) {
             log(result);
         })
     })
@@ -259,7 +259,7 @@
         token_id = 3;
         to = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
         //log(assetContract);
-        $.post('/assetContractAPI/POST/transferAsset', {
+        $.post('/assetContractAPI/transferAsset', {
             address: address,
             ERC721Addr: ERC721Addr,
             token_id: token_id,

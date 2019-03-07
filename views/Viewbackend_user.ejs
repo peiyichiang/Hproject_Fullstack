@@ -12,7 +12,7 @@
 
 <body>
     <!-- <h1>Backend User - List</h1> -->
-    <!-- <input type='submit' value='Add' onclick="javascript: location.href='/BackendUser/GET/AddBackendUser'"> -->
+    <!-- <input type='submit' value='Add' onclick="javascript: location.href='/BackendUser/AddBackendUser'"> -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <a class="navbar-brand" href="#">HeliumCryptic</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
@@ -143,12 +143,12 @@
 
     <script>
         function Edit(ID) {
-            window.location.href = "/BackendUser/GET/EditBackendUser?ID=" + ID;
+            window.location.href = "/BackendUser/EditBackendUser?ID=" + ID;
         }
         function Delete(ID) {
             var rs = confirm('Confirm to delete?');
             if (rs) {
-                window.location.href = "/BackendUser/GET/DeleteBackendUser?ID=" + ID;
+                window.location.href = "/BackendUser/DeleteBackendUser?ID=" + ID;
             }
         }
 
@@ -162,7 +162,7 @@
             let thirdparty = "0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590";
             /*部署assetContract*/
             console.log("deploying...");
-            $.post("http://localhost:3000/assetContractAPI/POST/deploy", {
+            $.post("http://localhost:3000/assetContractAPI/deploy", {
                 assetOwner: assetOwner,
                 platform: platform,
                 thirdparty: thirdparty
@@ -174,7 +174,7 @@
                 /*檢查是否部署成功*/
                 if (result.status == true) {
                     /*部署成功後，註冊會員白名單*/
-                    $.post("http://localhost:3000/registryContractAPI/POST/registerUser", {
+                    $.post("http://localhost:3000/registryContractAPI/registerUser", {
                         u_id: ID,
                         assetAddr: result.contractAddress,
                         ethAddr: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"
@@ -185,7 +185,7 @@
                         /*檢查是否註冊會員白名單成功*/
                         if (result.result.status == true) {
                             /*註冊會員白名單成功後，取得會員資訊*/
-                            $.get("http://localhost:3000/registryContractAPI/GET/getUserInfo", {
+                            $.get("http://localhost:3000/registryContractAPI/getUserInfo", {
                                 u_id: ID,
                             }, function (result) {
                                 //var result = JSON.parse(resultJSON);
@@ -194,7 +194,7 @@
                                 console.log(result.userInfo.assetAccount);
                                 console.log(result.userInfo.etherAddr);
                                 console.log(result.userInfo.accountStatus);
-                                $.post("http://localhost:3000/registryContractAPI/POST/updateUserDB", {
+                                $.post("http://localhost:3000/registryContractAPI/updateUserDB", {
                                     email: email,
                                     assetContractAddr: result.userInfo.assetAccount,
                                     status: result.userInfo.accountStatus,
