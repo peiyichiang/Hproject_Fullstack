@@ -11,20 +11,31 @@ const jwt = require('jsonwebtoken')
 
 /* images management */
 var multer = require('multer');
-const storage = multer.diskStorage({
+const IDStorage = multer.diskStorage({
     destination: function (req, file, cb) {
+        // if (req.body.picture == "IDfront" || "IDback") {
         cb(null, './images/ID/')
+        // }
+        // else{
+        // cb(null, './images/bank_booklet/')
+        // }
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname)
     }
 })
-const upload = multer({ storage: storage })
-// .single('image');
-// const images = [
-//     { name: 'front' },
-//     { name: 'back' }
-// ]
+const uploadIDImages = multer({ storage: IDStorage })
+const BookletStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './images/bank_booklet/')
+
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+})
+const uploadBookletImage = multer({ storage: BookletStorage })
+
 
 // const path = require('path');
 // const fs = require('fs');
@@ -59,41 +70,41 @@ router.post('/signIn', function (req, res) {
 })
 
 /* 寄送註冊表單 */
-router.post('/user_information', function (req, res) {
-    console.log(req.files)
+// router.post('/user_information', function (req, res) {
+//     console.log(req.files)
 
-    let mysqlPoolQuery = req.pool;
-    let insertData = {
-        u_email: req.body.email,
-        u_salt: req.body.salt,
-        u_password_hash: req.body.password_hash,
-        u_cellphone: req.body.phone_number,
-        u_eth_add: req.body.eth_account,
-        u_name: req.body.user_name,
-        u_verify_status: req.body.verify_status,
-        u_imagef: req.body.imageURLF,
-        u_imageb: req.body.imageURLB,
-    };
+//     let mysqlPoolQuery = req.pool;
+//     let insertData = {
+//         u_email: req.body.email,
+//         u_salt: req.body.salt,
+//         u_password_hash: req.body.password_hash,
+//         u_cellphone: req.body.phone_number,
+//         u_eth_add: req.body.eth_account,
+//         u_name: req.body.user_name,
+//         u_verify_status: req.body.verify_status,
+//         u_imagef: req.body.imageURLF,
+//         u_imageb: req.body.imageURLB,
+//     };
 
-    let query = mysqlPoolQuery('INSERT INTO user SET ?', insertData, function (err) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "新增帳戶失敗:" + err
-            })
-        }
-        else {
-            res.status(200);
-            // res.set({
-            //     'Content-Type': 'application/json',
-            //     'Access-Control-Allow-Origin': '*'
-            // });
-            res.json({
-                "message": "新增帳戶成功！"
-            });
-        }
-    });
-});
+//     let query = mysqlPoolQuery('INSERT INTO user SET ?', insertData, function (err) {
+//         if (err) {
+//             res.status(400)
+//             res.json({
+//                 "message": "新增帳戶失敗:" + err
+//             })
+//         }
+//         else {
+//             res.status(200);
+//             // res.set({
+//             //     'Content-Type': 'application/json',
+//             //     'Access-Control-Allow-Origin': '*'
+//             // });
+//             res.json({
+//                 "message": "新增帳戶成功！"
+//             });
+//         }
+//     });
+// });
 
 //寄驗證信
 router.post('/send_email', function (req, res) {
@@ -160,12 +171,12 @@ router.get('/verify_email', function (req, res) {
 
 
 /* test post image function */
-router.post('/post_image', upload.single('image'), function (req, res) {
+router.post('/post_IDImage', uploadIDImages.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
     var email = req.body.email
     var imageLocation = req.body.imageLocation
 
-    if (req.body.front_back == "front") {
+    if (req.body.picture == "IDfront") {
         mysqlPoolQuery('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
             if (err) {
                 res.status(400)
@@ -177,10 +188,10 @@ router.post('/post_image', upload.single('image'), function (req, res) {
                 res.status(200);
                 res.json({
                     "message": "新增照片地址成功！"
-                });
+                })
             }
-        });
-    } else {
+        })
+    } else if (req.body.picture == "IDback") {
         mysqlPoolQuery('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
             if (err) {
                 res.status(400)
@@ -192,9 +203,9 @@ router.post('/post_image', upload.single('image'), function (req, res) {
                 res.status(200);
                 res.json({
                     "message": "新增照片地址成功！"
-                });
+                })
             }
-        });
+        })
     }
 
     /* error handling for image upload*/
@@ -206,7 +217,27 @@ router.post('/post_image', upload.single('image'), function (req, res) {
     //     }
     //     console.log('照片上傳成功！')
     // });
-});
+})
+
+router.post('/post_BookletImage', uploadBookletImage.single('image'), function (req, res) {
+    let mysqlPoolQuery = req.pool;
+    var email = req.body.email
+    var imageLocation = req.body.imageLocation
+    mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+        if (err) {
+            res.status(400)
+            res.json({
+                "message": "新增照片地址失敗" + err
+            })
+        }
+        else {
+            res.status(200);
+            res.json({
+                "message": "新增照片地址成功！"
+            })
+        }
+    })
+})
 
 //-----------------------==
 //http://localhost:3000/user/POST/AddUser
@@ -229,20 +260,22 @@ router.post('/AddUser', function (req, res, next) {
         .genSalt(saltRounds)
         .then(salt => {
             console.log(`Salt: ${salt}`);
+            user.salt = salt;
             return bcrypt.hash(user.password, salt);
         })
         .then(hash => {
             console.log(`Hash: ${hash}`);
             let userNew = {
                 u_email: user.email,
-                u_salt: 0,
+                u_salt: user.salt,
                 u_password_hash: hash,
-                u_identityNumber: user.nationalId,
+                u_identityNumber: user.ID,
                 u_imagef: user.imageURLF,
                 u_imageb: user.imageURLB,
-                u_eth_add: '0x'+Math.random().toString(36).substring(2, 15),
+                u_bankBooklet: user.bankBooklet,
+                u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
-                u_cellphone: user.phone,
+                u_cellphone: user.phoneNumber,
                 u_name: user.name,
             };//Math.random().toString(36).substring(2, 15)
 
