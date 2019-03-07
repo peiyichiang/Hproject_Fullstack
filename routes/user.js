@@ -271,9 +271,9 @@ router.post('/AddUser', function (req, res, next) {
 });
 
 
-//http://localhost:3000/user/Get/UserByUserId
+//http://localhost:3000/user/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/UserByUserId');
+    console.log('------------------------==\n@Order/UserByUserId');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_eth_add = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -302,9 +302,9 @@ router.get('/UserByUserId', function (req, res, next) {
 
 
 
-//http://localhost:3000/user/Get/UserLogin
+//http://localhost:3000/user/UserLogin
 router.get('/UserLogin', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/UserLogin');
+    console.log('------------------------==\n@Order/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -383,6 +383,62 @@ router.get('/UserLogin', function (req, res, next) {
         }
     });
 });
+
+//http://localhost:3000/user/UserLogin
+router.get('/UserDetails', function (req, res, next) {
+  console.log('------------------------==\n@Order/UserDetails');
+  let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
+  var mysqlPoolQuery = req.pool;
+  console.log('req.query', req.query, 'req.body', req.body);
+  let email, password;
+  if (req.body.email) {
+      email = req.body.email; password = req.body.password;
+  } else { email = req.query.email; password = req.query.password; }
+
+  var qur = mysqlPoolQuery(qstr1, email, function (err, result) {
+      if (err) {
+          console.log(err);
+          res.status(400);
+          res.json({
+              "message": "[Error] db to/from DB :\n" + err,
+              "success": false
+          });
+      } else {
+          res.status(200);
+          if (result.length === 0) {
+              res.json({
+                  "message": "[Error] email Not found",
+                  "result": result,
+                  "success": false
+              });
+          } else if (result.length === 1) {
+              console.log("1 email is found", result);
+              var data = {
+                  u_email: result[0].u_email,
+                  //u_assetbookAddr: result[0].u_assetbookAddr
+              };
+              token = jwt.sign(data, 'privatekey', time);
+              res.json({
+                  "message": "[Success] password is correct",
+                  "result": result,
+                  "success": true,
+                  "data": data,
+                  "jwt": token
+              });
+
+          } else {
+              res.json({
+                  "message": "[Error] Duplicate Entries are found",
+                  "result": result,
+                  "success": false
+              });
+          }
+
+      }
+  });
+});
+
+
 
 // 獲取Endorser
 router.get('/GetEndorser',function(req, res, next) {
