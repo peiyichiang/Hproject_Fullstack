@@ -27,6 +27,7 @@ var TokenControllerContractAPIRouter = require('./routes/TokenControllerContract
 var CrowdFundingContractAPIRouter = require('./routes/CrowdFundingContractAPI');
 var ProductManagerContractAPIRouter = require('./routes/ProductManagerContractAPI');
 var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContractAPI');
+var MultiSigContractAPIRouter = require('./routes/MultiSigContractAPI');
 
 
 
@@ -159,6 +160,7 @@ app.use('/TokenControllerContractAPI', TokenControllerContractAPIRouter);
 app.use('/CrowdFundingContractAPI', CrowdFundingContractAPIRouter);
 app.use('/ProductManagerContractAPI', ProductManagerContractAPIRouter);
 app.use('/IncomeManagementContractAPI', IncomeManagementContractAPIRouter);
+app.use('/MultiSigContractAPI', MultiSigContractAPIRouter);
 
 
 
