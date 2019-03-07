@@ -855,11 +855,11 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('sending tokens via transferAssetBatch()...');
     let _assetAddr = addrERC721SPLC; let amount = 1; 
-    let _to = addrAssetBook1; let _timeCurrent = timeCurrent;
+    let _to = addrAssetBook1;
     await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
     .send({value: '0', from: AssetOwner2, gas: '1000000'
     });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
-
+    //Part of the transferAssetBatch code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling transferAssetBatch()!!!
     await instAssetBook2.methods.fixTimeIndexedIds(_assetAddr, amount)
     .send({value: '0', from: AssetOwner2, gas: '1000000'
     });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)

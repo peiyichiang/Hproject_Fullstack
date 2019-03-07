@@ -396,6 +396,7 @@ contract AssetBook {
         }
         //string memory assetSymbol = assets[_assetAddr].assetSymbol;
 
+        //The following code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling this function!!!
         // ArrayCalcITF_assetbook arrayCalc = ArrayCalcITF_assetbook(address(uint160(arrayCalcAddr)));
         // assets[_assetAddr].timeIndexStart = timeIndexStart.add(amount);
         // assets[_assetAddr].assetAmount = tokenBalanceOf.sub(amount);
@@ -404,10 +405,29 @@ contract AssetBook {
         // emit TransferAssetBatchEvent(_to, assetSymbol, tokenIdsSent, tokenBalanceOf, _timeCurrent);
     }
 
+    // function sliceA(address _assetAddr, uint timeIndexStart, uint amount) 
+    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
+    //     require(amount > 0, "amount must be > 0");
+    //     uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
+    //     require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, 
+    //     "timeIndexEndReq must be equal to/lesser than timeIndexEnd");
+    //     uint[] memory timeIndexedTokenIds = new uint[](amount);
+    //     for(uint i = 0; i <= timeIndexEndReq; i++) {
+    //         timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
+    //     }
+    //     return timeIndexedTokenIds;
+    // }
+    // function sliceA(address _assetAddr) 
+    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
+    //     uint amount = assets[_assetAddr].assetAmount;
+    //     uint timeIndexStart = assets[_assetAddr].timeIndexStart;
+    //     return sliceA(_assetAddr, timeIndexStart, amount);
+    // }
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
     function fixTimeIndexedIds(address _assetAddr, uint amount) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
 
+        require(amount > 0, "amount must be > 0");
         uint timeIndexStart = assets[_assetAddr].timeIndexStart;
         uint timeIndexEnd = assets[_assetAddr].timeIndexEnd;
         uint timeIndexStartNew = timeIndexStart.add(amount);
@@ -451,24 +471,6 @@ contract AssetBook {
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         return (assets[_assetAddr].ids, erc721.get_ownerToIds(address(this))); 
     }
-    // function getAssetTimeIndexedTokenIds(address _assetAddr, uint timeIndexStart, uint amount) 
-    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-    //     require(amount > 0, "amount must be > 0");
-    //     uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
-    //     require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, 
-    //     "timeIndexEndReq must be equal to/lesser than timeIndexEnd");
-    //     uint[] memory timeIndexedTokenIds = new uint[](amount);
-    //     for(uint i = 0; i <= timeIndexEndReq; i++) {
-    //         timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
-    //     }
-    //     return timeIndexedTokenIds;
-    // }
-    // function getAssetTimeIndexedTokenIds(address _assetAddr) 
-    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-    //     uint amount = assets[_assetAddr].assetAmount;
-    //     uint timeIndexStart = assets[_assetAddr].timeIndexStart;
-    //     return getAssetTimeIndexedTokenIds(_assetAddr, timeIndexStart, amount);
-    // }
 
     /** @dev get asset number */
     function getAssetCount() public view returns(uint){
@@ -519,33 +521,29 @@ contract AssetBook {
         */
         return MAGIC_ON_ERC721_RECEIVED;
     }
-/** @dev string[] 不能回傳 */
-/*
-    //get all assets
-    function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
-        address[] memory assetAddrs = new address[](assetAddrList.length);
-        string[] memory assetSymbols = new string[](assetAddrList.length);
-        uint[]    memory assetAmounts = new uint[](assetsIndex.length);
-
-        for (uint i = 0; i < assetAddrList.length; i++) {
-            Asset storage asset = assets[assetAddrList[i]];
-            assetAddrs[i] = asset.assetAddr;
-            assetSymbols[i] = asset.assetSymbol;
-            assetAmounts[i] = asset.assetAmount;
-        }
-
-        return (assetAddrs, assetSymbols, assetAmounts);
-    }
-
-*/
 }
 
 contract ArrayCalc {
     using SafeMath for uint256;
     mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
 
-    function splice(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external returns (uint[] memory) {
+    function sliceA(uint[] memory array, uint idxStart, uint idxEnd, uint amount) 
+        public pure returns (uint[] memory){
+        //ckAssetAddr(_assetAddr)
+        require(amount > 0, "amount must be > 0");
+        uint idxEndReq = idxStart.add(amount).sub(1);
+        require(idxEndReq <= idxEnd, 
+        "idxEndReq must be equal to/lesser than idxEnd");
+        uint[] memory arrayOut = new uint[](amount);
+        for(uint i = 0; i <= idxEndReq; i++) {
+            arrayOut[i] = array[idxStart.add(i)];
+        }
+        return arrayOut;
+    }
+
+    //sliceB gives the 2nd part of input array
+    function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure returns (uint[] memory) {
 
         uint idxStartOut = idxStart.add(amount);
         uint arrLenOut = array.length.sub(amount);
@@ -572,3 +570,22 @@ library AddressUtils {
         return size > 0;
     }
 }
+/** @dev string[] 不能回傳 */
+/*
+    //get all assets
+    function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
+        address[] memory assetAddrs = new address[](assetAddrList.length);
+        string[] memory assetSymbols = new string[](assetAddrList.length);
+        uint[]    memory assetAmounts = new uint[](assetsIndex.length);
+
+        for (uint i = 0; i < assetAddrList.length; i++) {
+            Asset storage asset = assets[assetAddrList[i]];
+            assetAddrs[i] = asset.assetAddr;
+            assetSymbols[i] = asset.assetSymbol;
+            assetAmounts[i] = asset.assetAmount;
+        }
+
+        return (assetAddrs, assetSymbols, assetAmounts);
+    }
+
+*/
