@@ -34,11 +34,11 @@ contract Platform is Ownable {
     constructor(address _platformCtAdmin, address[] memory management) public{
         platformCtAdmin = _platformCtAdmin;
         require(management.length > 4, "management.length should be > 4");
-        owner = management[0];
-        chairman = management[1];
+        owner = management[4];
+        chairman = management[3];
         director = management[2];
-        manager = management[3];
-        admin = management[4];
+        manager = management[1];
+        admin = management[0];
     }
 
     //檢查是否為 platformCtAdmin

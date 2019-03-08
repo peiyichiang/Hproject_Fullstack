@@ -22,11 +22,11 @@ contract TokenController is Ownable {
         TimeTokenValid = _TimeTokenValid;
         isActive = true;
         require(management.length > 4, "management.length should be > 4");
-        owner = management[0];
-        chairman = management[1];
+        owner = management[4];
+        chairman = management[3];
         director = management[2];
-        manager = management[3];
-        admin = management[4];
+        manager = management[1];
+        admin = management[0];
     }
 
     modifier ckReleased() {
@@ -34,13 +34,13 @@ contract TokenController is Ownable {
         _;
     }
     modifier ckTime(uint _time) {
-        require(_time > 201903070000, "_time has to be in the format of yyyymmddhhmm");
+        require(_time > 201903070000, "_time is <= 201903070000 or not in the format of yyyymmddhhmm");
         _;
     }
     modifier onlyUnlockedValid() {
         //will block all token tranfers either before the lockup time, 
         //or until a time when SPLC's power plant contract is finished
-        require(TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid, "token in lockup time or over valid date");
+        require(TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid && isActive, "token in lockup time or over valid date or not active");
         _;
     }
     function isUnlockedValid() external view returns (bool){

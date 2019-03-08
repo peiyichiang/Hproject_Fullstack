@@ -30,11 +30,11 @@ contract Registry is Ownable {
 
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
-        owner = management[0];
-        chairman = management[1];
+        owner = management[4];
+        chairman = management[3];
         director = management[2];
-        manager = management[3];
-        admin = management[4];
+        manager = management[1];
+        admin = management[0];
     }
 
     /**@dev check uid value */

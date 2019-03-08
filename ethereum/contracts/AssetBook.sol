@@ -142,17 +142,20 @@ interface MultiSigITF_assetbook {
     function getPlatformContractAddr() external view returns(address);
 }
 
-interface ArrayCalcITF_assetbook {
-    function splice(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external returns (uint[] memory);
+interface ArrayUtilsITF_assetbook {
+    function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure;
+    function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure;
 }
+
 contract AssetBook {
     using SafeMath for uint256;
     using AddressUtils for address;
     address public assetOwner;
     address public multiSigContract;
     address public platformContractAddr;
-    address public arrayCalcAddr;
+    address public arrayUtilsAddr;
 
     /** @dev asset資料結構 */
     struct Asset{
@@ -179,9 +182,11 @@ contract AssetBook {
     event TransferAssetBatchEvent(address to, string assetSymbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
-    constructor (address _multiSigContract, uint256 _timeCurrent) public {
+    constructor (address _multiSigContract, address _assetOwner, address _platformContractAddr, uint256 _timeCurrent) public {//, address _arrayUtilsAddr
         multiSigContract = _multiSigContract;
-        //arrayCalcAddr = _arrayCalcAddr;//, address _arrayCalcAddr
+        assetOwner = _assetOwner;
+        platformContractAddr = _platformContractAddr;
+        //arrayUtilsAddr = _arrayUtilsAddr;
         emit DeployAssetContractEvent(assetOwner, _multiSigContract, platformContractAddr, _timeCurrent);
     }
     function updateAssetOwner() external {
@@ -405,46 +410,45 @@ contract AssetBook {
         // emit TransferAssetBatchEvent(_to, assetSymbol, tokenIdsSent, tokenBalanceOf, _timeCurrent);
     }
 
-    // function sliceA(address _assetAddr, uint timeIndexStart, uint amount) 
-    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-    //     require(amount > 0, "amount must be > 0");
-    //     uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
-    //     require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, 
-    //     "timeIndexEndReq must be equal to/lesser than timeIndexEnd");
-    //     uint[] memory timeIndexedTokenIds = new uint[](amount);
-    //     for(uint i = 0; i <= timeIndexEndReq; i++) {
-    //         timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
-    //     }
-    //     return timeIndexedTokenIds;
-    // }
-    // function sliceA(address _assetAddr) 
-    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-    //     uint amount = assets[_assetAddr].assetAmount;
-    //     uint timeIndexStart = assets[_assetAddr].timeIndexStart;
-    //     return sliceA(_assetAddr, timeIndexStart, amount);
-    // }
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
     function fixTimeIndexedIds(address _assetAddr, uint amount) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
 
         require(amount > 0, "amount must be > 0");
-        uint timeIndexStart = assets[_assetAddr].timeIndexStart;
-        uint timeIndexEnd = assets[_assetAddr].timeIndexEnd;
-        uint timeIndexStartNew = timeIndexStart.add(amount);
-        assets[_assetAddr].timeIndexStart = timeIndexStartNew;
-        uint assetAmount = assets[_assetAddr].assetAmount;
-        uint balance = assetAmount.sub(amount);
-        assets[_assetAddr].assetAmount = balance;
+        uint idxStart = assets[_assetAddr].timeIndexStart;
+        uint idxEnd = assets[_assetAddr].timeIndexEnd;
+        uint idxStartOut = idxStart.add(amount);
+        uint arrayLength = assets[_assetAddr].ids.length;
+        uint arrLenOut = arrayLength.sub(amount);//token balance
 
-        uint[] memory timeIndexedTokenIds = new uint[](balance);
-        require(timeIndexStartNew <= timeIndexEnd, "timeIndexStartNew must be <= than timeIndexEnd");
-        require(timeIndexEnd.sub(timeIndexStartNew).add(1) == balance, "balance, start, end");
-        for(uint i = timeIndexStartNew; i <= timeIndexEnd; i++) {
-            timeIndexedTokenIds[i.sub(timeIndexStartNew)] = assets[_assetAddr].timeIndexToTokenId[i];
-        }
-        assets[_assetAddr].ids = timeIndexedTokenIds;
+        assets[_assetAddr].assetAmount = arrLenOut;
+        uint[] memory arrayOut = new uint[](arrLenOut);
+
+            //---------------==Using ArrayUtils contract's logic
+            //uint assetAmount = assets[_assetAddr].assetAmount;
+            //require(assetAmount == arrayLength, "assetAmount == arrayLength");//checked by ERC721 logic
+            require(arrayLength == idxEnd.add(1), "array length should be equal to idxEnd+1");
+            require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+            require(amount > 0, "amount must be > 0");
+
+            require(idxEnd.sub(idxStartOut).add(1) == arrLenOut, "arrLenOut, start, end");
+            require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
+
+            for(uint i = idxStartOut; i <= idxEnd; i++) {
+                arrayOut[i.sub(idxStartOut)] = assets[_assetAddr].timeIndexToTokenId[i];
+            }
+            //---------------==Using external ArrayUtils contract
+            //VM cannot read variable-sized data from external function calls. 
+            // ArrayUtilsITF_assetbook arrayUtils = ArrayUtilsITF_assetbook(address(uint160(arrayUtilsAddr)));
+            // uint[] memory tokenIds = assets[_assetAddr].ids;
+            // arrayOut = arrayUtils.sliceB(tokenIds, idxStart, idxEnd, amount);
+
+        assets[_assetAddr].ids = arrayOut;
+        assets[_assetAddr].timeIndexStart = idxStartOut;
+
     }
-    /*struct Asset{
+    /*
+    struct Asset{
         address assetAddr; //token合約位址
         string assetSymbol; //assetSymbol
         uint assetAddrIndex; // starting from 1
@@ -523,17 +527,23 @@ contract AssetBook {
     }
 }
 
-contract ArrayCalc {
+
+contract ArrayUtils {
     using SafeMath for uint256;
     mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
 
-    function sliceA(uint[] memory array, uint idxStart, uint idxEnd, uint amount) 
-        public pure returns (uint[] memory){
+    //[0, 1, 2, 3, 4], 0, 4, 3
+    //sliceA gives the 1st part of the input array
+    function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure returns (uint[] memory){
         //ckAssetAddr(_assetAddr)
+        require(array.length == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
         require(amount > 0, "amount must be > 0");
+
         uint idxEndReq = idxStart.add(amount).sub(1);
-        require(idxEndReq <= idxEnd, 
-        "idxEndReq must be equal to/lesser than idxEnd");
+        require(idxEndReq <= idxEnd, "idxEndReq must be equal to/lesser than idxEnd");
+        require(idxEndReq >= 0, "idxEndReq should be >= 0");
         uint[] memory arrayOut = new uint[](amount);
         for(uint i = 0; i <= idxEndReq; i++) {
             arrayOut[i] = array[idxStart.add(i)];
@@ -541,16 +551,21 @@ contract ArrayCalc {
         return arrayOut;
     }
 
-    //sliceB gives the 2nd part of input array
+    //[0, 1, 2, 3, 4], 0, 4, 3
+    //sliceB gives the 2nd part of the input array
     function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
         external pure returns (uint[] memory) {
 
+        require(array.length == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+        require(amount > 0, "amount must be > 0");
         uint idxStartOut = idxStart.add(amount);
         uint arrLenOut = array.length.sub(amount);
 
         uint[] memory arrayOut = new uint[](arrLenOut);
-        require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
         require(idxEnd.sub(idxStartOut).add(1) == arrLenOut, "arrLenOut, start, end");
+
+        require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
         for(uint i = idxStartOut; i <= idxEnd; i++) {
             arrayOut[i.sub(idxStartOut)] = array[i];
         }
