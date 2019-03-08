@@ -349,8 +349,8 @@ beforeEach( async () => {
     addrMultiSig2 = instMultiSig2.options.address;
     console.log('addrMultiSig2:', addrMultiSig2);
 
-    argsAssetBook1 = [addrMultiSig1, AssetOwner1, addrPlatformContract, timeCurrent];
-    argsAssetBook2 = [addrMultiSig2, AssetOwner2, addrPlatformContract, timeCurrent];
+    argsAssetBook1 = [ AssetOwner1, addrMultiSig1, addrPlatformContract, timeCurrent];
+    argsAssetBook2 = [ AssetOwner2, addrMultiSig2, addrPlatformContract, timeCurrent];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');

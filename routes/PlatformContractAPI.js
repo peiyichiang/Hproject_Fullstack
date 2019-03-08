@@ -50,6 +50,10 @@ router.post('/deploy', function (req, res, next) {
         })
 });
 
+/**@todo */
+/**
+ *setAssetCtrtApproval
+ */
 
 /** 更改平台方權限者Addr*/
 router.patch('/setPlatformContractAdmin', async function (req, res, next) {
@@ -148,7 +152,7 @@ router.get('/platformManagerAmount', async function (req, res, next) {
 
 
 /*平台方簽名（Ａ是Ｂ的平台方=> 由Ｂ的assetContract去簽Ａ */
-router.post('/signAssetBookContract', async function (req, res, next) {
+router.post('/platformVote', async function (req, res, next) {
     let contractAddr = req.body.platformContract;
     let time = req.body.time;
     let id = req.body.id;
@@ -159,7 +163,7 @@ router.post('/signAssetBookContract', async function (req, res, next) {
     let platformManager = '0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590';
     let platformManagerPrivateKey = '0x9B1A94F6A12261E5F4B9A446680A297ADBA95FA5C4CD72B1AF1E58A1208E3DE7';
 
-    let encodedData = platformContract.methods.signAssetContract(assetsContractToBeSigned, id, time).encodeABI();
+    let encodedData = platformContract.methods.platformVote(assetsContractToBeSigned, id, time).encodeABI();
     let result = await signTx(platformManager, platformManagerPrivateKey, contractAddr, encodedData);
 
     res.send({

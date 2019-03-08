@@ -56,6 +56,12 @@ router.post('/deploy', function (req, res, next) {
         })
 });
 
+
+/**@todo */
+/**
+ *mintSerialNFTBatch
+ */
+
 router.post('/name', async function (req, res, next) {
     let contractAddr = req.body.address;
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
