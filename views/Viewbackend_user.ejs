@@ -89,6 +89,9 @@
                 <th>姓名</th>
                 <th>Email</th>
                 <th>身分證字號</th>
+                <th>身分證正面</th>
+                <th>身分證反面</th>
+                <th>存摺照片</th>
                 <th>手機</th>
                 <th>以太坊地址</th>
                 <th>資產合約地址</th>
@@ -96,30 +99,49 @@
                 <th>審核通過</th>
             </tr>
             <tbody>
+                <% console.log(FrontEnd_data) %>
                 <% for ( var i = 0 ; i < FrontEnd_data.length ; i++){ %>
                 <tr>
-                    <td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_name  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_email  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_identityNumber  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
+                        <%if (FrontEnd_data[i].u_imagef != null && FrontEnd_data[i].u_imagef !="") { %>
+                            <p style="width:150px;"></p>
+                            <img src="http://127.0.0.1:3000/<%= FrontEnd_data[i].u_imagef %>" alt="" style="width:100%;">
+                        <% } %>
+                    </td>
+                    <td class="align-middle">
+                        <%if (FrontEnd_data[i].u_imageb != null && FrontEnd_data[i].u_imageb !="") { %>
+                            <p style="width:150px;"></p>
+                            <img src="http://127.0.0.1:3000/<%= FrontEnd_data[i].u_imageb %>" alt="" style="width:100%;">
+                        <% } %>
+                    </td>
+                    <td class="align-middle">
+                        <%if (FrontEnd_data[i].u_bankBooklet != null && FrontEnd_data[i].u_bankBooklet !="") { %>
+                            <p style="width:150px;"></p>
+                            <img src="http://127.0.0.1:3000/<%= FrontEnd_data[i].u_bankBooklet %>" alt="" style="width:100%;">
+                        <% } %>
+                    </td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_cellphone  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_eth_add  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_address  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_verify_status  %>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         <button type="button" id="approve" class="btn btn-success" name="Approve" value="Approve"
                             onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>');">Approve</button>
                     </td>
