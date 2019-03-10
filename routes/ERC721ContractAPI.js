@@ -56,12 +56,6 @@ router.post('/deploy', function (req, res, next) {
         })
 });
 
-
-/**@todo */
-/**
- *mintSerialNFTBatch
- */
-
 router.post('/name', async function (req, res, next) {
     let contractAddr = req.body.address;
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
@@ -86,8 +80,6 @@ router.post('/symbol', async function (req, res, next) {
     })
 });
 
-
-
 /**mint token */
 router.post('/mintSerialNFT', async function (req, res, next) {
     let contractAddr = req.body.address;
@@ -96,6 +88,22 @@ router.post('/mintSerialNFT', async function (req, res, next) {
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
 
     let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, uri).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/**mint token batch*/
+router.post('/mintSerialNFTBatch', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let tos = req.body.tos;
+    let uris = req.body.uris;
+    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFTBatch(tos, uris).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 

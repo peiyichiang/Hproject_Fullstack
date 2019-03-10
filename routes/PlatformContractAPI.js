@@ -50,11 +50,6 @@ router.post('/deploy', function (req, res, next) {
         })
 });
 
-/**@todo */
-/**
- *setAssetCtrtApproval
- */
-
 /** 更改平台方權限者Addr*/
 router.patch('/setPlatformContractAdmin', async function (req, res, next) {
     let contractAddr = req.body.address;
@@ -64,6 +59,24 @@ router.patch('/setPlatformContractAdmin', async function (req, res, next) {
 
     /*用後台公私鑰sign*/
     let encodedData = platformContract.methods.setPlatformCtAdmin(platformCtAdmin).encodeABI();
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+});
+
+router.patch('/setAssetCtrtApproval', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let addrAssetBook = req.body.addrAssetBook;
+    let assetAddr = req.body.assetAddr;
+    let isApprovedToWrite = req.body.isApprovedToWrite;
+
+    let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    /*用後台公私鑰sign*/
+    let encodedData = platformContract.methods.setAssetCtrtApproval(addrAssetBook, assetAddr, isApprovedToWrite).encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({

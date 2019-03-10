@@ -339,7 +339,7 @@ contract AssetBook {
     }
 
     //transfer from the minimum timeIndex according to First In First Out principle
-    function transferAssetBatch(address _assetAddr, uint amount, address _to) 
+    function transferAssetBatch(address _assetAddr, uint amount, address _to, uint256 _timeCurrent) 
         public ckAssetOwner ckAssetAddr(_assetAddr){//, uint256 _timeCurrent
         require(_to != address(this), "_to cannot be this AssetBook!");
         ckAssetAdded(_assetAddr);
@@ -364,11 +364,15 @@ contract AssetBook {
             uint tokenId = assets[_assetAddr].timeIndexToTokenId[i];
             require(tokenId > 0, "tokenId > 0");
             require(erc721.ownerOf(tokenId) == address(this), "check if this contract owns this tokenId");
-            
+
             erc721.safeTransferFrom(address(this), _to, tokenId);
             delete assets[_assetAddr].timeIndexToTokenId[i];
             tokenIdsSent[i.sub(timeIndexStart)] = tokenId;
+
             //timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
+            updateAssetTokenDetails(_assetAddr);
+            emit TransferAssetEvent(_to, assets[_assetAddr].assetSymbol, tokenId, tokenBalanceOf, _timeCurrent);
+
         }
         //string memory assetSymbol = assets[_assetAddr].assetSymbol;
 
