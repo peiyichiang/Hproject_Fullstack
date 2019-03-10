@@ -18,6 +18,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*contract info*/
 const contract = require('../ethereum/contracts/build/Registry.json');
+let contractAddr = "0x7C25AE8cBDA3E45926BB24c2174a7f1Eab906059";
 
 
 /*deploy registryContract*/
@@ -50,7 +51,7 @@ router.post('/deploy', function (req, res, next) {
 
 /*get 會員數量 */
 router.get('/userAmount', async function (req, res, next) {
-    let contractAddr = req.query.address;
+    //let contractAddr = req.query.address;
 
     var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
@@ -64,7 +65,7 @@ router.get('/userAmount', async function (req, res, next) {
 /*get 會員資訊 */
 router.get('/userInfo', async function (req, res, next) {
     let u_id = req.query.u_id;
-    let contractAddr = req.query.address;
+    //let contractAddr = req.query.address;
 
     var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
@@ -78,7 +79,7 @@ router.get('/userInfo', async function (req, res, next) {
 /*get uid by assetCtrAddr */
 router.get('/userID', async function (req, res, next) {
     let assetCtAddr = req.query.assetCtAddr;
-    let contractAddr = req.query.address;
+    //let contractAddr = req.query.address;
 
     var registryContract = new web3.eth.Contract(contract.abi, contractAddr);
 
@@ -91,7 +92,7 @@ router.get('/userID', async function (req, res, next) {
 
 /*註冊新會員 */
 router.post('/addUser', async function (req, res, next) {
-    let contractAddr = req.body.address;
+    //let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetAddr = req.body.assetAddr;
     let ethAddr = req.body.ethAddr;
@@ -110,7 +111,7 @@ router.post('/addUser', async function (req, res, next) {
 
 /*設定會員info */
 router.patch('/setUser', async function (req, res, next) {
-    let contractAddr = req.body.address;
+    //let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetCtAddr = req.body.assetCtAddr;
     let ethAddr = req.body.ethAddr;
@@ -130,7 +131,7 @@ router.patch('/setUser', async function (req, res, next) {
 
 /*設定會員狀態 */
 router.patch('/setUserStatus', async function (req, res, next) {
-    let contractAddr = req.body.address;
+    //let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let accountStatus = req.body.accountStatus;
     let time = req.body.time;
@@ -148,7 +149,7 @@ router.patch('/setUserStatus', async function (req, res, next) {
 
 /*設定會員eth address */
 router.patch('/setUserEthAddr', async function (req, res, next) {
-    let contractAddr = req.body.address;
+    //let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let ethAddr = req.body.ethAddr;
     let time = req.body.time;
@@ -166,7 +167,7 @@ router.patch('/setUserEthAddr', async function (req, res, next) {
 
 /*設定會員assetCtr address */
 router.patch('/setUserAssetCtAddr', async function (req, res, next) {
-    let contractAddr = req.body.address;
+    //let contractAddr = req.body.address;
     let u_id = req.body.u_id;
     let assetCtAddr = req.body.assetCtAddr;
     let time = req.body.time;

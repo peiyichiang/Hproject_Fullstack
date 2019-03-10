@@ -19,7 +19,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
 
 //deploy asset contract
-router.post('/deploy', function (req, res, next) {
+router.post('/deploy', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
@@ -28,15 +28,18 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
-    let assetOwner = req.body.assetOwner;
+    //let assetOwner = req.body.assetOwner;
     let multiSigContractAddr = req.body.multiSigContractAddr;
     let platformContractAddr = req.body.platformContractAddr;
     let time = req.body.time;
     let assetBook = new web3deploy.eth.Contract(assetBookContract.abi);
 
+    let account = await web3.eth.accounts.create();
+    console.log(account.address);
+
     assetBook.deploy({
         data: assetBookContract.bytecode,
-        arguments: [assetOwner, multiSigContractAddr, platformContractAddr, time]
+        arguments: [account.address, multiSigContractAddr, platformContractAddr, time]
     })
         .send({
             from: backendAddr,
@@ -44,7 +47,10 @@ router.post('/deploy', function (req, res, next) {
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
-            res.send(receipt);
+            res.send({
+                receipt: receipt,
+                address: account.address
+            });
         })
         .on('error', function (error) {
             res.send(error.toString());

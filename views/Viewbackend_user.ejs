@@ -180,26 +180,31 @@
 			1. 創立個人eth account
 		    */
             let assetOwner = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"; //由平台幫使用者創立的ethAddr
-            let platform = "0x7E2004635c5e0df37A439AE331CDfF5b41ce24d2";
-            let thirdparty = "0xDe9c22ef1fd3132024B63Ed570ead5d35fF3d590";
+            let multiSigContractAddr = "0x2adEb96C9103379cC85e695618b7b465F8267E97";
+            let platformContractAddr = "0xb39F50f2fE0105217796d7823Df443D460720724";
+            let time = 201903110000;
             /*部署assetContract*/
             console.log("deploying...");
-            $.post("http://localhost:3000/assetContractAPI/deploy", {
-                assetOwner: assetOwner,
-                platform: platform,
-                thirdparty: thirdparty
+            $.post("http://localhost:3000/AssetBookContractAPI/deploy", {
+                //assetOwner: assetOwner,
+                multiSigContractAddr: multiSigContractAddr,
+                platformContractAddr: platformContractAddr,
+                time: time
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
-                console.log(result.contractAddress);
+                console.log(result.receipt.contractAddress);
+                console.log(result.address);
 
                 /*檢查是否部署成功*/
-                if (result.status == true) {
+                if (result.receipt.status == true) {
+                    let time = 201903110000;
                     /*部署成功後，註冊會員白名單*/
-                    $.post("http://localhost:3000/registryContractAPI/registerUser", {
+                    $.post("http://localhost:3000/RegistryContractAPI/addUser", {
                         u_id: ID,
-                        assetAddr: result.contractAddress,
-                        ethAddr: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"
+                        assetAddr: result.receipt.contractAddress,
+                        ethAddr: result.address,
+                        time: time
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);
                         console.log(result);
@@ -207,23 +212,24 @@
                         /*檢查是否註冊會員白名單成功*/
                         if (result.result.status == true) {
                             /*註冊會員白名單成功後，取得會員資訊*/
-                            $.get("http://localhost:3000/registryContractAPI/getUserInfo", {
+                            $.get("http://localhost:3000/RegistryContractAPI/userInfo", {
                                 u_id: ID,
                             }, function (result) {
                                 //var result = JSON.parse(resultJSON);
                                 console.log(result.userInfo);
-                                console.log(result.userInfo.u_id);
-                                console.log(result.userInfo.assetAccount);
-                                console.log(result.userInfo.etherAddr);
-                                console.log(result.userInfo.accountStatus);
-                                $.post("http://localhost:3000/registryContractAPI/updateUserDB", {
+                                console.log(result.userInfo.uid);
+                                console.log(result.userInfo.assetCtAddr);
+                                console.log(result.userInfo.extoAddr);
+                                console.log(result.userInfo.userStatus);
+                                $.post("http://localhost:3000/RegistryContractAPI/updateUser", {
                                     email: email,
-                                    assetContractAddr: result.userInfo.assetAccount,
+                                    assetContractAddr: result.userInfo.assetCtAddr,
                                     status: result.userInfo.accountStatus,
-                                    ethAddr: '0xKAppaBomo1051'//result.userInfo.etherAddr
+                                    ethAddr: result.userInfo.extoAddr
                                 }, function (result) {
                                     //var result = JSON.parse(resultJSON);
                                     console.log(result);
+                                    location.reload();
                                 });
                             });
                         }
