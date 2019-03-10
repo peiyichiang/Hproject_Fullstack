@@ -47,6 +47,8 @@ Write tests inside project root directory -> test folder
 
 Install Mocha, a JavaScript test framework
 ```
+yarn run test721
+OR
 yarn run test
 ```
 

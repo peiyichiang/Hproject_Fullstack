@@ -19,7 +19,14 @@ contract ProductManager is Ownable {
         address addrTokenCtrt;
         address addrIncomeManagementCtrt;
     }
-
+    constructor(address[] memory management) public {
+        require(management.length > 4, "management.length should be > 4");
+        owner = management[4];
+        chairman = management[3];
+        director = management[2];
+        manager = management[1];
+        admin = management[0];
+    }
     function addNewCtrtPair(
         address _addrCrowdFundingCtrt, address _addrControllerCtrt,
         address _addrTokenCtrt, address _addrIncomeManagementCtrt)

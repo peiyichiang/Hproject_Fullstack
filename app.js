@@ -18,7 +18,7 @@ var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
-var paymentGWRouter = require('./routes/paymentGW');
+var paymentGWRouter = require('./routes/PaymentGW');
 var RegistryContractAPIRouter = require('./routes/RegistryContractAPI');
 var AssetBookContractAPIRouter = require('./routes/AssetBookContractAPI');
 var PlatformContractAPIRouter = require('./routes/PlatformContractAPI');

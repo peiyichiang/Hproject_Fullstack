@@ -194,6 +194,7 @@
                     <th class="nowrap">產品icon</th>
                     <th class="nowrap">退回</th>
                     <th class="nowrap">募資</th>
+                    <th class="nowrap">發放Token</th>
                     <!-- <th class="nowrap">達標</th> -->
                 </tr>
                 <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -292,6 +293,9 @@
                             <!-- <td>
                                 <button type="button" class="btn btn-success" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');">達標</button>
                             </td> -->
+                            <td>
+                                <button type="button" class="btn btn-success" name="release" value="release" >發放Token</button>
+                            </td>
                         </tr>
                     <% } %>
                 <% } %>

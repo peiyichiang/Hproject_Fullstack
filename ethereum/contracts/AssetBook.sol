@@ -142,9 +142,11 @@ interface MultiSigITF_assetbook {
     function getPlatformContractAddr() external view returns(address);
 }
 
-interface ArrayCalcITF_assetbook {
-    function splice(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external returns (uint[] memory);
+interface ArrayUtilsITF_assetbook {
+    function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure;
+    function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure;
 }
 
 contract AssetBook {
@@ -153,7 +155,7 @@ contract AssetBook {
     address public assetOwner;
     address public multiSigContractAddr;
     address public platformContractAddr;
-    address public arrayCalcAddr;
+    //address public arrayUtilsAddr;
 
     /** @dev asset資料結構 */
     struct Asset{
@@ -182,10 +184,9 @@ contract AssetBook {
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
     constructor (address _assetOwner, address _multiSigContractAddr, address _platformContractAddr, uint256 _timeCurrent) public {
         multiSigContractAddr = _multiSigContractAddr;
-        platformContractAddr = _platformContractAddr;
         assetOwner = _assetOwner;
-        //arrayCalcAddr = _arrayCalcAddr;//, address _arrayCalcAddr
-        emit DeployAssetContractEvent(_assetOwner, _multiSigContractAddr, _platformContractAddr, _timeCurrent);
+        platformContractAddr = _platformContractAddr;
+        emit DeployAssetContractEvent(assetOwner, _multiSigContractAddr, platformContractAddr, _timeCurrent);
     }
 
     function updateAssetOwner() external {
@@ -371,6 +372,7 @@ contract AssetBook {
         }
         //string memory assetSymbol = assets[_assetAddr].assetSymbol;
 
+        //The following code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling this function!!!
         // ArrayCalcITF_assetbook arrayCalc = ArrayCalcITF_assetbook(address(uint160(arrayCalcAddr)));
         // assets[_assetAddr].timeIndexStart = timeIndexStart.add(amount);
         // assets[_assetAddr].assetAmount = tokenBalanceOf.sub(amount);
@@ -383,26 +385,42 @@ contract AssetBook {
     function fixTimeIndexedIds(address _assetAddr, uint amount) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
 
-        uint timeIndexStart = assets[_assetAddr].timeIndexStart;
-        uint timeIndexEnd = assets[_assetAddr].timeIndexEnd;
-        uint timeIndexStartNew = timeIndexStart.add(amount);
-        assets[_assetAddr].timeIndexStart = timeIndexStartNew;
-        uint assetAmount = assets[_assetAddr].assetAmount;
-        uint balance = assetAmount.sub(amount);
-        assets[_assetAddr].assetAmount = balance;
+        require(amount > 0, "amount must be > 0");
+        uint idxStart = assets[_assetAddr].timeIndexStart;
+        uint idxEnd = assets[_assetAddr].timeIndexEnd;
+        uint idxStartOut = idxStart.add(amount);
+        uint arrayLength = assets[_assetAddr].ids.length;
+        uint arrLenOut = arrayLength.sub(amount);//token balance
 
-        uint[] memory timeIndexedTokenIds = new uint[](balance);
-        require(timeIndexStartNew <= timeIndexEnd, "timeIndexStartNew must be <= than timeIndexEnd");
-        require(timeIndexEnd.sub(timeIndexStartNew).add(1) == balance, "balance, start, end");
-        for(uint i = timeIndexStartNew; i <= timeIndexEnd; i++) {
-            timeIndexedTokenIds[i.sub(timeIndexStartNew)] = assets[_assetAddr].timeIndexToTokenId[i];
-        }
-        assets[_assetAddr].ids = timeIndexedTokenIds;
+        assets[_assetAddr].assetAmount = arrLenOut;
+        uint[] memory arrayOut = new uint[](arrLenOut);
+
+            //---------------==Using ArrayUtils contract's logic
+            //uint assetAmount = assets[_assetAddr].assetAmount;
+            //require(assetAmount == arrayLength, "assetAmount == arrayLength");//checked by ERC721 logic
+            require(arrayLength == idxEnd.add(1), "array length should be equal to idxEnd+1");
+            require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+            require(amount > 0, "amount must be > 0");
+
+            require(idxEnd.sub(idxStartOut).add(1) == arrLenOut, "arrLenOut, start, end");
+            require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
+
+            for(uint i = idxStartOut; i <= idxEnd; i++) {
+                arrayOut[i.sub(idxStartOut)] = assets[_assetAddr].timeIndexToTokenId[i];
+            }
+            //---------------==Using external ArrayUtils contract
+            //VM cannot read variable-sized data from external function calls. 
+            // ArrayUtilsITF_assetbook arrayUtils = ArrayUtilsITF_assetbook(address(uint160(arrayUtilsAddr)));
+            // uint[] memory tokenIds = assets[_assetAddr].ids;
+            // arrayOut = arrayUtils.sliceB(tokenIds, idxStart, idxEnd, amount);
+
+        assets[_assetAddr].ids = arrayOut;
+        assets[_assetAddr].timeIndexStart = idxStartOut;
+
     }
-
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory, uint, uint, uint, uint, bool, uint[] memory, uint[] memory){
+    returns (string memory symbol, uint assetAddrIndex, uint amount, uint timeIndexStart, uint timeIndexEnd, bool isInitialized, uint[] memory assetIdsFromAssetBook, uint[] memory assetIdsFromERC721){
         Asset memory asset = assets[_assetAddr];
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
@@ -417,24 +435,6 @@ contract AssetBook {
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         return (assets[_assetAddr].ids, erc721.get_ownerToIds(address(this))); 
     }
-    // function getAssetTimeIndexedTokenIds(address _assetAddr, uint timeIndexStart, uint amount) 
-    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-    //     require(amount > 0, "amount must be > 0");
-    //     uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
-    //     require(timeIndexEndReq <= assets[_assetAddr].timeIndexEnd, 
-    //     "timeIndexEndReq must be equal to/lesser than timeIndexEnd");
-    //     uint[] memory timeIndexedTokenIds = new uint[](amount);
-    //     for(uint i = 0; i <= timeIndexEndReq; i++) {
-    //         timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
-    //     }
-    //     return timeIndexedTokenIds;
-    // }
-    // function getAssetTimeIndexedTokenIds(address _assetAddr) 
-    // public view ckAssetAddr(_assetAddr) returns (uint[] memory){
-    //     uint amount = assets[_assetAddr].assetAmount;
-    //     uint timeIndexStart = assets[_assetAddr].timeIndexStart;
-    //     return getAssetTimeIndexedTokenIds(_assetAddr, timeIndexStart, amount);
-    // }
 
     /** @dev get asset number */
     function getAssetCount() public view returns(uint){
@@ -486,40 +486,47 @@ contract AssetBook {
         */
         return MAGIC_ON_ERC721_RECEIVED;
     }
-/** @dev string[] 不能回傳 */
-/*
-    //get all assets
-    function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
-        address[] memory assetAddrs = new address[](assetAddrList.length);
-        string[] memory assetSymbols = new string[](assetAddrList.length);
-        uint[]    memory assetAmounts = new uint[](assetsIndex.length);
-
-        for (uint i = 0; i < assetAddrList.length; i++) {
-            Asset storage asset = assets[assetAddrList[i]];
-            assetAddrs[i] = asset.assetAddr;
-            assetSymbols[i] = asset.assetSymbol;
-            assetAmounts[i] = asset.assetAmount;
-        }
-
-        return (assetAddrs, assetSymbols, assetAmounts);
-    }
-
-*/
 }
 
-contract ArrayCalc {
+
+contract ArrayUtils {
     using SafeMath for uint256;
     mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
 
-    function splice(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external returns (uint[] memory) {
+    //[0, 1, 2, 3, 4], 0, 4, 3
+    //sliceA gives the 1st part of the input array
+    function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure returns (uint[] memory){
+        //ckAssetAddr(_assetAddr)
+        require(array.length == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+        require(amount > 0, "amount must be > 0");
 
+        uint idxEndReq = idxStart.add(amount).sub(1);
+        require(idxEndReq <= idxEnd, "idxEndReq must be equal to/lesser than idxEnd");
+        require(idxEndReq >= 0, "idxEndReq should be >= 0");
+        uint[] memory arrayOut = new uint[](amount);
+        for(uint i = 0; i <= idxEndReq; i++) {
+            arrayOut[i] = array[idxStart.add(i)];
+        }
+        return arrayOut;
+    }
+
+    //[0, 1, 2, 3, 4], 0, 4, 3
+    //sliceB gives the 2nd part of the input array
+    function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+        external pure returns (uint[] memory) {
+
+        require(array.length == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+        require(amount > 0, "amount must be > 0");
         uint idxStartOut = idxStart.add(amount);
         uint arrLenOut = array.length.sub(amount);
 
         uint[] memory arrayOut = new uint[](arrLenOut);
-        require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
         require(idxEnd.sub(idxStartOut).add(1) == arrLenOut, "arrLenOut, start, end");
+
+        require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
         for(uint i = idxStartOut; i <= idxEnd; i++) {
             arrayOut[i.sub(idxStartOut)] = array[i];
         }
@@ -539,3 +546,22 @@ library AddressUtils {
         return size > 0;
     }
 }
+/** @dev string[] 不能回傳 */
+/*
+    //get all assets
+    function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
+        address[] memory assetAddrs = new address[](assetAddrList.length);
+        string[] memory assetSymbols = new string[](assetAddrList.length);
+        uint[]    memory assetAmounts = new uint[](assetsIndex.length);
+
+        for (uint i = 0; i < assetAddrList.length; i++) {
+            Asset storage asset = assets[assetAddrList[i]];
+            assetAddrs[i] = asset.assetAddr;
+            assetSymbols[i] = asset.assetSymbol;
+            assetAmounts[i] = asset.assetAmount;
+        }
+
+        return (assetAddrs, assetSymbols, assetAmounts);
+    }
+
+*/

@@ -225,6 +225,7 @@ let instIncomeManagement; let addrIncomeManagement;
 let instProductManager; let addrProductManager;
 
 let acc0; let acc1; let acc2; let acc3; let acc4;
+let management;
 let balance0; let balance1; let balance2;
 let AssetOwner1; let AssetOwner2;
 let platformCtAdmin;
@@ -236,12 +237,12 @@ let balance2A; let balance2B;
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
 
-let argsAsset1; let argsAssetBook2; let argsAsset3; let argsAsset4;
+let argsAssetBook1; let argsAssetBook2;
 let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
 let addrAssetBook1; let addrAssetBook2; let addrAsset3; let addrAsset4;
 
 
-let timeCurrent = 201902281040;
+let timeCurrent = 201903081040;
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
 const TimeTokenValid =  timeCurrent+9;
@@ -256,9 +257,6 @@ const IRR20yrx100 = 470;
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
 //const addrTokenController = "0x39523jt032";
 
-const argsTokenController = [
-  timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid ];
-
 const _tokenSymbol = nftSymbol;
 const _tokenPrice = initialAssetPricing;
 const _currency = pricingCurrency;
@@ -267,7 +265,6 @@ const _goalInPercentage = 97;
 const _CFSD2 = timeCurrent+1;
 const _CFED2 = timeCurrent+10;
 let _serverTime = timeCurrent;
-const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime];
 
 const TimeAnchor = TimeTokenLaunch;
 let addrPA_Ctrt; let addrFMXA_Ctrt; let addrPlatformCtrt;
@@ -287,6 +284,7 @@ beforeEach( async () => {
     acc2 = accounts[2];
     acc3 = accounts[3];
     acc4 = accounts[4];
+    management = [acc0, acc1, acc2, acc3, acc4];
     console.log('acc0', acc0);
     console.log('acc1', acc1);
     console.log('acc2', acc2);
@@ -307,9 +305,10 @@ beforeEach( async () => {
 
     //Deploying Platform contract...
     platformCtAdmin = acc0;
+    const argsPlatform = [platformCtAdmin, management];
     console.log('\nDeploying Platform contract...');
     instPlatform =  await new web3.eth.Contract(Platform.abi)
-    .deploy({ data: Platform.bytecode, arguments: [platformCtAdmin] })
+    .deploy({ data: Platform.bytecode, arguments: argsPlatform })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
     //.then(console.log);
     console.log('Platform.sol has been deployed');
@@ -322,8 +321,8 @@ beforeEach( async () => {
 
 
     AssetOwner1 = acc1; AssetOwner2 = acc2;
-    let argsMultiSig1 = [AssetOwner1, addrPlatformContract];
-    let argsMultiSig2 = [AssetOwner2, addrPlatformContract];
+    const argsMultiSig1 = [AssetOwner1, addrPlatformContract];
+    const argsMultiSig2 = [AssetOwner2, addrPlatformContract];
 
     console.log('\nDeploying multiSig contracts...');
     instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
@@ -350,8 +349,8 @@ beforeEach( async () => {
     addrMultiSig2 = instMultiSig2.options.address;
     console.log('addrMultiSig2:', addrMultiSig2);
 
-    argsAssetBook1 = [addrMultiSig1, timeCurrent];
-    argsAssetBook2 = [addrMultiSig2, timeCurrent];
+    argsAssetBook1 = [ AssetOwner1, addrMultiSig1, addrPlatformContract, timeCurrent];
+    argsAssetBook2 = [ AssetOwner2, addrMultiSig2, addrPlatformContract, timeCurrent];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
@@ -382,8 +381,9 @@ beforeEach( async () => {
     
     //Deploying Registry contract...
     console.log('\nDeploying Registry contract...');
+    const argsRegistry = [management];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
-    .deploy({ data: Registry.bytecode })
+    .deploy({ data: Registry.bytecode, arguments: argsRegistry })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
     //.then(console.log);
     console.log('Registry.sol has been deployed');
@@ -396,6 +396,8 @@ beforeEach( async () => {
     
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
+    const argsTokenController = [
+      timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: TokenController.bytecode, arguments: argsTokenController })
     .send({ from: acc0, gas: '7000000', gasPrice: '20000000000' });
@@ -438,6 +440,7 @@ beforeEach( async () => {
     */
 
    console.log('\nDeploying CrowdFunding contract...');
+   const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, management];
    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
     .deploy({ data: CrowdFunding.bytecode, arguments: argsCrowdFunding })
     .send({ from: acc0, gas: '9000000', gasPrice: '20000000000' });
@@ -561,6 +564,7 @@ describe('Tests on ERC721SPLC', () => {
       uid1, assetCtAddr, extoAddr, timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
 
+    console.log('Registry: getUser()');
     let user1M = await instRegistry.methods.getUser(uid1).call();
     assert.equal(user1M[0], uid1);
     assert.equal(user1M[1], assetCtAddr);
@@ -809,11 +813,17 @@ describe('Tests on ERC721SPLC', () => {
     let manager = await instTokenController.methods.manager().call();
     let admin = await instTokenController.methods.admin().call();
 
-    assert.equal(owner, acc0);
-    assert.equal(manager, acc0);
+    assert.equal(owner, acc4);
+    assert.equal(chairman, acc3);
+    assert.equal(director, acc2);
+    assert.equal(manager, acc1);
     assert.equal(admin, acc0);
-    assert.equal(chairman, acc0);
-    assert.equal(director, acc0);
+
+    // owner = management[4];
+    // chairman = management[3];
+    // director = management[2];
+    // manager = management[1];
+    // admin = management[0];
 
     tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
     timeCurrentM = tokenControllerDetail[0];
@@ -847,7 +857,7 @@ describe('Tests on ERC721SPLC', () => {
     //-------------------------==Send tokens
     //-----------------==Send Token One
     console.log('\n------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
-    timeCurrent = 201902281045;
+    timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: '1000000' });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
@@ -855,11 +865,11 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('sending tokens via transferAssetBatch()...');
     let _assetAddr = addrERC721SPLC; let amount = 1; 
-    let _to = addrAssetBook1; let _timeCurrent = timeCurrent;
+    let _to = addrAssetBook1;
     await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
     .send({value: '0', from: AssetOwner2, gas: '1000000'
     });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
-
+    //Part of the transferAssetBatch code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling transferAssetBatch()!!!
     await instAssetBook2.methods.fixTimeIndexedIds(_assetAddr, amount)
     .send({value: '0', from: AssetOwner2, gas: '1000000'
     });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)

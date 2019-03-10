@@ -56,7 +56,8 @@ contract CrowdFunding is Ownable {
         uint _goalInPercentage,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
-        uint _serverTime
+        uint _serverTime,
+        address[] memory management
 
     ) public {
         ckStringLength(_tokenSymbol, 3, 32);
@@ -77,6 +78,14 @@ contract CrowdFunding is Ownable {
         fundingState = FundingState.initial;//init the project state
         require(_serverTime > 201902250000, "_serverTime should be greater than default time");
         serverTime = _serverTime;
+
+        require(management.length > 4, "management.length should be > 4");
+        owner = management[4];
+        chairman = management[3];
+        director = management[2];
+        manager = management[1];
+        admin = management[0];
+
         emit UpdateState(tokenSymbol, quantitySold, _serverTime, fundingState, "deployed");
     }
 
