@@ -31,11 +31,12 @@ router.post('/deploy', function (req, res, next) {
     const web3deploy = new Web3(provider);
 
     let platformCtAdmin = req.body.platformCtAdmin;
+    let management = req.body.management;
     let platformContract = new web3deploy.eth.Contract(contract.abi);
 
     platformContract.deploy({
         data: contract.bytecode,
-        arguments: [platformCtAdmin]
+        arguments: [platformCtAdmin, management]
         })
         .send({
             from: backendAddr,

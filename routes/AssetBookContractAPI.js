@@ -28,18 +28,16 @@ router.post('/deploy', async function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
-    //let assetOwner = req.body.assetOwner;
+    let assetOwner = req.body.assetOwner;
     let multiSigContractAddr = req.body.multiSigContractAddr;
     let platformContractAddr = req.body.platformContractAddr;
     let time = req.body.time;
     let assetBook = new web3deploy.eth.Contract(assetBookContract.abi);
 
-    let account = await web3.eth.accounts.create();
-    console.log(account.address);
 
     assetBook.deploy({
         data: assetBookContract.bytecode,
-        arguments: [account.address, multiSigContractAddr, platformContractAddr, time]
+        arguments: [assetOwner, multiSigContractAddr, platformContractAddr, time]
     })
         .send({
             from: backendAddr,
@@ -47,10 +45,7 @@ router.post('/deploy', async function (req, res, next) {
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
-            res.send({
-                receipt: receipt,
-                address: account.address
-            });
+            res.send(receipt);
         })
         .on('error', function (error) {
             res.send(error.toString());

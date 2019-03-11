@@ -18,7 +18,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*contract info*/
 const contract = require('../ethereum/contracts/build/Registry.json');
-let contractAddr = "0x7C25AE8cBDA3E45926BB24c2174a7f1Eab906059";
+let contractAddr = "0x9c18C594A1F1BF33F5230Eaa2605799f6ccE9dBE";
 
 
 /*deploy registryContract*/
@@ -30,10 +30,12 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
+    let management = req.body.management;
     let registryContract = new web3deploy.eth.Contract(contract.abi);
 
     registryContract.deploy({
-        data: contract.bytecode
+        data: contract.bytecode,
+        arguments: [management]
         })
         .send({
             from: backendAddr,
