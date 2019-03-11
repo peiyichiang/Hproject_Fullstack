@@ -31,7 +31,7 @@ router.post('/deploy', async function (req, res, next) {
     let assetOwner = req.body.assetOwner;
     let multiSigContractAddr = req.body.multiSigContractAddr;
     let platformContractAddr = req.body.platformContractAddr;
-    let time = req.body.time;
+    let time = 201902250001;
     let assetBook = new web3deploy.eth.Contract(assetBookContract.abi);
 
 

@@ -186,14 +186,12 @@
 
             let multiSigContractAddr = "0x2adEb96C9103379cC85e695618b7b465F8267E97";
             let platformContractAddr = "0xb39F50f2fE0105217796d7823Df443D460720724";
-            let time = 201903110000;
             /*部署assetContract*/
             console.log("deploying...");
             $.post("http://localhost:3000/AssetBookContractAPI/deploy", {
                 assetOwner: ethAddr,
                 multiSigContractAddr: multiSigContractAddr,
-                platformContractAddr: platformContractAddr,
-                time: time
+                platformContractAddr: platformContractAddr
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);

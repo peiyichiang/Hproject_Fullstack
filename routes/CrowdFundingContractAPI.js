@@ -29,29 +29,31 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
-    let tokenSymbol = req.body.tokenSymbol;
+    let management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
+    let tokenSymbol = req.body.tokenSymbol;;
     let tokenPrice = req.body.tokenPrice;
     let currency= req.body.currency;
     let quantityMax = req.body.quantityMax;
     let goalInPercentage = req.body.goalInPercentage;
-    let CFSD2 = req.body.CFSD2;
-    let CFED2 = req.body.CFED2;
-    let serverTime = req.body.serverTime;
+    let CFSD2 = parseInt(req.body.CFSD2);
+    let CFED2 = parseInt(req.body.CFED2);
+    let serverTime = 201902250001;
 
     /*let assetOwner = req.body.assetOwner;
     let platform = req.body.platform;
     let time = req.body.time;*/
     let crowdFundingContract = new web3deploy.eth.Contract(contract.abi);
-    console.log(tokenSymbol);
+
+    console.log(typeof(CFSD2));
 
     crowdFundingContract.deploy({
         data: contract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime, management]
         //arguments: [assetOwner, platform, time]
     })
         .send({
             from: backendAddr,
-            gas: 7000000,
+            gas: 9000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
