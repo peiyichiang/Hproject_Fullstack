@@ -28,15 +28,17 @@ router.post('/deploy', function (req, res, next) {
     const web3deploy = new Web3(provider);
 
     let ERC721SPLC_Controller = new web3deploy.eth.Contract(contract.abi);
-    let timeCurrent = req.body.timeCurrent;
+    let timeCurrent = 201902230902;
     let TimeTokenLaunch = req.body.TimeTokenLaunch;
     let TimeTokenUnlock = req.body.TimeTokenUnlock;
     let TimeTokenValid = req.body.TimeTokenValid;
+    let management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
+
     console.log(timeCurrent)
 
     ERC721SPLC_Controller.deploy({
         data: contract.bytecode,
-        arguments: [timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid]
+        arguments: [timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
     })
         .send({
             from: backendAddr,

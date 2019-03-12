@@ -16,6 +16,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
+var registryContractAddr = "0x9c18C594A1F1BF33F5230Eaa2605799f6ccE9dBE";
 
 
 //deploy asset contract
@@ -35,7 +36,7 @@ router.post('/deploy', function (req, res, next) {
     let initialAssetPricing = req.body.initialAssetPricing;
     let pricingCurrency = req.body.pricingCurrency;
     let IRR20yrx100 = req.body.IRR20yrx100;
-    let addrRegistryITF = req.body.addrRegistryITF;
+    let addrRegistryITF = registryContractAddr;
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
 
 
@@ -221,9 +222,61 @@ router.get('/token/isApproved', async function (req, res, next) {
 
 
 
+/*將合約資訊更新至資料庫 */
+router.post('/updateUser', function (req, res, next) {
+
+    var nftSymbol = req.body.nftSymbol;
+    var mysqlPoolQuery = req.pool;
+    var sql = {
+        sc_erc721address: req.body.ERC721ContractAddr,
+        sc_erc721Controller: req.body.tokenControllerContractAddr
+    };
 
 
+    console.log(nftSymbol)
+    mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: "fail",
+            });
+        }
+        else {
+            res.send({
+                status: "success",
+                u_email: req.body.email,
+                u_address: req.body.assetContractAddr,
+                u_verify_status: req.body.status
+            });
+        }
+    });
 
+});
+
+/*get ERC721ContractAddr and CrowdFundingContractAddr by tokenSymble*/
+router.get('/contractAddr', function (req, res, next) {
+
+    var nftSymbol = req.query.nftSymbol;
+    var mysqlPoolQuery = req.pool;
+    console.log(nftSymbol);
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+        //console.log(result);
+        if (err) {
+            //console.log(err);
+            res.send({
+                status: "fail"
+            });
+        }
+        else {
+            res.send({
+                status: "success",
+                result: result[0]
+            });
+        }
+    });
+
+});
 
 
 

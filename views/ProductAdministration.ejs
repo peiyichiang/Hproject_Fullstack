@@ -205,8 +205,8 @@
                 <th class="nowrap">產品icon</th>
                 <th class="nowrap">退回</th>
                 <th class="nowrap">募資</th>
+                <th class="nowrap">達標</th>
                 <th class="nowrap">發放Token</th>
-                <!-- <th class="nowrap">達標</th> -->
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
             <%if (data[i].p_state =="funding" ) { %>
@@ -303,13 +303,15 @@
                 <td>
                     <!-- <input type="button" name="funding" value="funding" onclick="Edit('<%= data[i].p_SYMBOL  %>','funding');" /> -->
                     <button type="button" class="btn btn-success" name="funding" value="funding"
-                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','funding');">募資</button>
+                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].sc_fundingGoal  %>','funding');">募資</button>
                 </td>
-                <!-- <td>
-                                <button type="button" class="btn btn-success" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');">達標</button>
-                            </td> -->
                 <td>
-                    <button type="button" class="btn btn-success" name="release" value="release">發放Token</button>
+                    <button type="button" class="btn btn-success" name="archive" value="archive"
+                        onclick="FundingComplete('<%= data[i].p_name  %>','<%= data[i].p_SYMBOL  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_size  %>','<%= data[i].p_irr  %>','funding');">達標</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success" name="release" value="release"
+                        onclick="Release('<%= data[i].p_SYMBOL  %>');">發放Token</button>
                 </td>
             </tr>
             <% } %>
@@ -537,30 +539,100 @@
             // modal.find('.modal-body input').val(recipient)
         })
 
-        function Fund(tokenSymbol, tokenPrice, currency, quantityMax, CFSD2, CFED2) {
+        function Fund(tokenSymbol, tokenPrice, currency, quantityMax, CFSD2, CFED2, fundingGoal) {
             console.log(tokenSymbol);
 
-            let goalInPercentage = 90;
             let management = JSON.stringify(["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"]);
             /*部署CrowdFundingContract*/
             console.log("deploying...");
+            console.log(fundingGoal);
 
             $.post("http://localhost:3000/CrowdFundingContractAPI/deploy", {
                 tokenSymbol: tokenSymbol,
                 tokenPrice: tokenPrice,
                 currency: currency,
                 quantityMax: quantityMax,
-                goalInPercentage: goalInPercentage,
                 CFSD2: CFSD2,
                 CFED2: CFED2,
-                //management: management
+                fundingGoal: fundingGoal
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
                 console.log(result.contractAddress);
+                console.log(result.status);
+
+                if (result.status == true) {
+                    $.post("http://localhost:3000/CrowdFundingContractAPI/updateUser", {
+                        tokenSymbol: tokenSymbol,
+                        contractAddress: result.contractAddress,
+                        quantityMax: quantityMax
+                    }, function (result) {
+                        console.log(result)
+                    })
+                }
             });
 
         }
+
+        function FundingComplete(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, IRR20yrx100) {
+            console.log(nftSymbol);
+
+            let management = JSON.stringify(["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"]);
+            /*部署CrowdFundingContract*/
+            console.log("deploying...");
+
+            $.post("http://localhost:3000/TokenControllerContractAPI/deploy", {
+                TimeTokenLaunch: 201902230901,
+                TimeTokenUnlock: 201902230900,
+                TimeTokenValid: 201902280907
+            }, function (result) {
+                //var result = JSON.parse(resultJSON);
+                console.log(result);
+                console.log(result.contractAddress);
+                let tokencontrollerContract = result.contractAddress;
+
+                if (result.status == true) {
+                    $.post("http://localhost:3000/ERC721ContractAPI/deploy", {
+                        nftName: nftName,
+                        nftSymbol: nftSymbol,
+                        siteSizeInKW: siteSizeInKW,
+                        maxTotalSupply: maxTotalSupply,
+                        initialAssetPricing: initialAssetPricing,
+                        pricingCurrency: pricingCurrency,
+                        IRR20yrx100: IRR20yrx100,
+                        addrERC721SPLC_ControllerITF: tokencontrollerContract
+                    }, function (result) {
+                        //var result = JSON.parse(resultJSON);
+                        console.log(result);
+                        console.log(result.contractAddress);
+                        if (result.status == true) {
+                            $.post("http://localhost:3000/ERC721ContractAPI/updateUser", {
+                                ERC721ContractAddr: result.contractAddress,
+                                tokenControllerContractAddr: tokencontrollerContract,
+                                nftSymbol: nftSymbol
+                            }, function (result) {
+                                console.log(result)
+                            })
+                        }
+                    });
+                }
+            });
+
+        }
+
+        function Release(nftSymbol) {
+            console.log(nftSymbol);
+
+            $.get("http://localhost:3000/ERC721ContractAPI/contractAddr", {
+                nftSymbol: nftSymbol
+            }, function (result) {
+                //var result = JSON.parse(resultJSON);
+                console.log(result);
+
+            });
+
+        }
+
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
         integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"

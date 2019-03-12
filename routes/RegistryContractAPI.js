@@ -36,7 +36,7 @@ router.post('/deploy', function (req, res, next) {
     registryContract.deploy({
         data: contract.bytecode,
         arguments: [management]
-        })
+    })
         .send({
             from: backendAddr,
             gas: 8000000,
@@ -205,13 +205,14 @@ router.post('/updateUser', function (req, res, next) {
                 status: "fail",
             });
         }
-    });
-
-    res.send({
-        status: "success",
-        u_email: req.body.email,
-        u_address: req.body.assetContractAddr,
-        u_verify_status: req.body.status
+        else {
+            res.send({
+                status: "success",
+                u_email: req.body.email,
+                u_address: req.body.assetContractAddr,
+                u_verify_status: req.body.status
+            });
+        }
     });
 
 });

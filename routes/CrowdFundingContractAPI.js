@@ -34,7 +34,7 @@ router.post('/deploy', function (req, res, next) {
     let tokenPrice = req.body.tokenPrice;
     let currency= req.body.currency;
     let quantityMax = req.body.quantityMax;
-    let goalInPercentage = req.body.goalInPercentage;
+    let goalInPercentage = Math.floor(req.body.fundingGoal / quantityMax * 100);
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
     let serverTime = 201902250001;
@@ -44,7 +44,10 @@ router.post('/deploy', function (req, res, next) {
     let time = req.body.time;*/
     let crowdFundingContract = new web3deploy.eth.Contract(contract.abi);
 
-    console.log(typeof(CFSD2));
+    console.log(typeof(goalInPercentage));
+    console.log(goalInPercentage);
+    console.log(req.body.fundingGoal);
+    console.log(quantityMax);
 
     crowdFundingContract.deploy({
         data: contract.bytecode,
@@ -201,6 +204,36 @@ router.get('/salestate', async function (req, res, next) {
         salestate: salestate
     })
 });
+
+/*將合約資訊更新至資料庫 */
+router.post('/updateUser', function (req, res, next) {
+
+    var mysqlPoolQuery = req.pool;
+    let tokenSymbol = req.body.tokenSymbol;
+    let contractAddress = req.body.contractAddress;
+    let quantityMax = req.body.quantityMax;
+
+    //console.log(element)
+    mysqlPoolQuery("INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_totalsupply, sc_remaining) VALUES (?,?,?,?)", [tokenSymbol, contractAddress, quantityMax, quantityMax], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: "fail",
+            });
+        }
+        else{
+            res.send({
+                status: "success",
+                p_SYMBOL: req.body.tokenSymbol,
+                crowdingFundingContractAddr: req.body.contractAddress,
+                quantityMax: quantityMax,
+                remaining: quantityMax
+            });
+        }
+    });
+
+});
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
