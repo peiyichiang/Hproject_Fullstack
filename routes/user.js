@@ -240,9 +240,9 @@ router.post('/post_BookletImage', uploadBookletImage.single('image'), function (
 })
 
 //-----------------------==
-//http://localhost:3000/user/POST/AddUser
+//http://localhost:3000/user/AddUser
 router.post('/AddUser', function (req, res, next) {
-    console.log('------------------------==\n@user/POST/AddUser');
+    console.log('------------------------==\n@user/AddUser');
     const qstr1 = 'INSERT INTO htoken.user SET ?';
     var mysqlPoolQuery = req.pool;
 
@@ -289,6 +289,7 @@ router.post('/AddUser', function (req, res, next) {
                         "success": false,
                     });
                 } else {
+                    console.log("[Success] /AddUser");
                     res.status(200);
                     res.json({
                         "message": "[Success] Success",
@@ -302,37 +303,6 @@ router.post('/AddUser', function (req, res, next) {
         .catch(err => console.error(err.message));
 
 });
-
-
-//http://localhost:3000/user/UserByUserId
-router.get('/UserByUserId', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserByUserId');
-    let qstr1 = 'SELECT * FROM htoken.user WHERE u_eth_add = ?';
-    var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
-    let status, userId, qstrz;
-    if (req.body.userId) {
-        userId = req.body.userId;
-    } else { userId = req.query.userId; }
-    var qur = mysqlPoolQuery(qstr1, userId, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.status(400);
-            res.json({
-                "message": "[Error] Failure :\n" + err,
-                "success": false,
-            });
-        } else {
-            res.status(200);
-            res.json({
-                "message": "[Success] Success",
-                "result": result,
-                "success": true,
-            });
-        }
-    });
-});
-
 
 
 //http://localhost:3000/user/UserLogin
@@ -357,13 +327,14 @@ router.get('/UserLogin', function (req, res, next) {
         } else {
             res.status(200);
             if (result.length === 0) {
-                res.json({
-                    "message": "[Error] email Not found",
+              console.log("[Not Valid] No email is found", result);
+              res.json({
+                    "message": "[Error] No email is found",
                     "result": result,
                     "success": false
                 });
             } else if (result.length === 1) {
-                console.log("1 email is found", result);
+                console.log("[Good] 1 Email is found", result);
                 const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
                 const timeExpiry = timeLogin + 60 * 60;
                 console.log('timeLogin', timeLogin, 'timeExpiry', timeExpiry);
@@ -388,6 +359,7 @@ router.get('/UserLogin', function (req, res, next) {
                             // console.log("＊＊JWT token:" + token);
                             // var decoded = jwt.verify(token, 'privatekey');
                             // console.log("＊@Decoded：" + JSON.stringify(decoded));
+                            console.log("[Success] Passwords are matched");
                             res.json({
                                 "message": "[Success] password is correct",
                                 "result": result,
@@ -397,6 +369,7 @@ router.get('/UserLogin', function (req, res, next) {
                             });
 
                         } else {
+                            console.log("[Not Valid] password is not correct");
                             res.json({
                                 "message": "[Not Valid] password is not correct",
                                 "result": result,
@@ -406,8 +379,9 @@ router.get('/UserLogin', function (req, res, next) {
                     }).catch(err => console.error('Error at compare password & pwHash', err.message));
 
             } else {
-                res.json({
-                    "message": "[Error] Duplicate Entries are found",
+              console.log("[Duplicated] Duplicate Entries are found");
+              res.json({
+                    "message": "[Duplicated] Duplicate Entries are found",
                     "result": result,
                     "success": false
                 });
@@ -417,18 +391,71 @@ router.get('/UserLogin', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/user/UserLogin
-router.get('/UserDetails', function (req, res, next) {
-  console.log('------------------------==\n@Order/UserDetails');
-  let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
+//http://localhost:3000/user/UserByEmail
+router.get('/UserByEmail', function (req, res, next) {
+    console.log('------------------------==\n@Order/User');
+    let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
+    var mysqlPoolQuery = req.pool;
+    console.log('req.query', req.query, 'req.body', req.body);
+    let email, password;
+    if (req.body.email) {
+        email = req.body.email; password = req.body.password;
+    } else { email = req.query.email; password = req.query.password; }
+
+    var qur = mysqlPoolQuery(qstr1, email, function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] db to/from DB :\n" + err,
+                "success": false
+            });
+        } else {
+            res.status(200);
+            if (result.length === 0) {
+                console.log("[Not Valid] No email is found", result);
+                res.json({
+                    "message": "[Error] email Not found",
+                    "result": result,
+                    "success": false
+                });
+            } else if (result.length === 1) {
+                console.log("[Good] 1 Email is found", result, 'result[0]', result[0], 'result[0].u_assetbookContractAddress', result[0].u_assetbookContractAddress);
+                // var data = {
+                //     "u_assetbookContractAddress": result[0].u_assetbookContractAddress
+                // };
+                //token = jwt.sign(data, 'privatekey', time);
+                res.json({
+                    "message": "[Success] password is correct",
+                    "result": result[0].u_assetbookContractAddress,
+                    "success": true,
+                    //"jwt": token
+                });
+
+            } else {
+                console.log("[Duplicated] Duplicate Entries are found");
+                res.json({
+                    "message": "[Error] Duplicate Entries are found",
+                    "result": result,
+                    "success": false
+                });
+            }
+        }
+    });
+});
+
+//http://localhost:3000/user/UserByCellphone
+router.get('/UserByCellphone', function (req, res, next) {
+  console.log('------------------------==\n@Order/UserByCellphone');
+  let qstr1 = 'SELECT * FROM htoken.user WHERE u_cellphone = ?';
   var mysqlPoolQuery = req.pool;
   console.log('req.query', req.query, 'req.body', req.body);
-  let email, password;
-  if (req.body.email) {
-      email = req.body.email; password = req.body.password;
-  } else { email = req.query.email; password = req.query.password; }
+  let cellphone, password;
+  if (req.body.cellphone) {
+      cellphone = req.body.cellphone; password = req.body.password;
+  } else { cellphone = req.query.cellphone; password = req.query.password; }
 
-  var qur = mysqlPoolQuery(qstr1, email, function (err, result) {
+  var qur = mysqlPoolQuery(qstr1, cellphone, function (err, result) {
       if (err) {
           console.log(err);
           res.status(400);
@@ -439,39 +466,86 @@ router.get('/UserDetails', function (req, res, next) {
       } else {
           res.status(200);
           if (result.length === 0) {
+              console.log("[Not Valid] No cellphone is found", result);
               res.json({
-                  "message": "[Error] email Not found",
+                  "message": "[Error] cellphone Not found",
                   "result": result,
                   "success": false
               });
           } else if (result.length === 1) {
-              console.log("1 email is found", result);
-              var data = {
-                  u_email: result[0].u_email,
-                  //u_assetbookAddr: result[0].u_assetbookAddr
-              };
-              token = jwt.sign(data, 'privatekey', time);
+              console.log("[Good] 1 cellphone is found", result);
               res.json({
                   "message": "[Success] password is correct",
-                  "result": result,
+                  "result": result[0].u_assetbookContractAddress,
                   "success": true,
-                  "data": data,
-                  "jwt": token
+                  //"jwt": token
               });
 
+
           } else {
+              console.log("[Duplicated] Duplicate Entries are found");
               res.json({
                   "message": "[Error] Duplicate Entries are found",
                   "result": result,
                   "success": false
               });
           }
-
       }
   });
 });
 
 
+//http://localhost:3000/user/UserByUserId
+router.get('/UserByUserId', function (req, res, next) {
+  console.log('------------------------==\n@Order/UserByUserId');
+  let qstr1 = 'SELECT * FROM htoken.user WHERE u_identityNumber = ?';
+  var mysqlPoolQuery = req.pool;
+  console.log('req.query', req.query, 'req.body', req.body);
+  let status, userId, qstrz;
+  if (req.body.userId) {
+      userId = req.body.userId;
+  } else { userId = req.query.userId; }
+  var qur = mysqlPoolQuery(qstr1, userId, function (err, result) {
+      if (err) {
+          console.log(err);
+          res.status(400);
+          res.json({
+              "message": "[Error] Failure :\n" + err,
+              "success": false,
+          });
+      } else {
+          res.status(200);
+          if (result.length === 0) {
+            console.log("[Not Valid] No UserId is found", result);
+            res.json({
+                "message": "[Not Valid] UserId Not found",
+                "result": result,
+                "success": false
+            });
+        } else if (result.length === 1) {
+          console.log("[Good] 1 UserId is found", result);
+          var data = {
+            u_identityNumber: result[0].u_identityNumber,
+          };
+          token = jwt.sign(data, 'privatekey', time);
+          res.json({
+              "message": "[Success] Success",
+              "result": result,
+              "success": true,
+              "data": data,
+              "jwt": token
+            });
+        } else {
+          console.log("[Duplicated] Duplicate Entries are found");
+          res.json({
+                "message": "[Duplicated] Duplicate Entries are found",
+                "result": result,
+                "success": false
+            });
+        }
+      }
+  });
+});
 
 // 獲取Endorser
 router.get('/GetEndorser',function(req, res, next) {
@@ -529,7 +603,7 @@ router.get('/GetEndorser',function(req, res, next) {
 
 // 編輯Endorser
 router.post('/EditEndorser', function (req, res, next) {
-    // console.log('------------------------==\n@user/POST/EditEndorser');
+    // console.log('------------------------==\n@user/EditEndorser');
     // console.log(req.body.EndorserEmail1);
     // console.log(req.body.EndorserEmail2);
     // console.log(req.body.EndorserEmail3);
