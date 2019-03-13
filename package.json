@@ -15,6 +15,7 @@
     "test": "mocha",
     "testcf": "mocha --grep CrowdFunding",
     "test721": "mocha --grep ERC721SPLC",
+    "test721r": "mocha --grep ERC721SPLC",
     "test721controller": "mocha --grep TokenController",
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
