@@ -379,9 +379,9 @@ router.get('/UserLogin', function (req, res, next) {
                     }).catch(err => console.error('Error at compare password & pwHash', err.message));
 
             } else {
-              console.log("[Duplicated] Duplicate Entries are found");
+              console.log("[Duplicated] Duplicate entries are found");
               res.json({
-                    "message": "[Duplicated] Duplicate Entries are found",
+                    "message": "[Duplicated] Duplicate entries are found",
                     "result": result,
                     "success": false
                 });
@@ -404,7 +404,7 @@ router.get('/UserByEmail', function (req, res, next) {
 
     var qur = mysqlPoolQuery(qstr1, email, function (err, result) {
         if (err) {
-            console.log(err);
+            console.log("[Error] db to/from DB :\n", err);
             res.status(400);
             res.json({
                 "message": "[Error] db to/from DB :\n" + err,
@@ -415,27 +415,27 @@ router.get('/UserByEmail', function (req, res, next) {
             if (result.length === 0) {
                 console.log("[Not Valid] No email is found", result);
                 res.json({
-                    "message": "[Error] email Not found",
+                    "message": "[Not Valid] email Not found",
                     "result": result,
                     "success": false
                 });
             } else if (result.length === 1) {
-                console.log("[Good] 1 Email is found", result, 'result[0]', result[0], 'result[0].u_assetbookContractAddress', result[0].u_assetbookContractAddress);
+                console.log("[Success] 1 Email is found", result, 'result[0]', result[0], 'result[0].u_assetbookContractAddress', result[0].u_assetbookContractAddress);
                 // var data = {
                 //     "u_assetbookContractAddress": result[0].u_assetbookContractAddress
                 // };
                 //token = jwt.sign(data, 'privatekey', time);
                 res.json({
-                    "message": "[Success] password is correct",
+                    "message": "[Success] The entered email is found",
                     "result": result[0].u_assetbookContractAddress,
                     "success": true,
                     //"jwt": token
                 });
 
             } else {
-                console.log("[Duplicated] Duplicate Entries are found");
+                console.log("[Duplicated] Duplicate entries are found");
                 res.json({
-                    "message": "[Error] Duplicate Entries are found",
+                    "message": "[Duplicated] Duplicate entries are found",
                     "result": result,
                     "success": false
                 });
@@ -457,7 +457,7 @@ router.get('/UserByCellphone', function (req, res, next) {
 
   var qur = mysqlPoolQuery(qstr1, cellphone, function (err, result) {
       if (err) {
-          console.log(err);
+          console.log("[Error] db to/from DB :\n", err);
           res.status(400);
           res.json({
               "message": "[Error] db to/from DB :\n" + err,
@@ -468,24 +468,24 @@ router.get('/UserByCellphone', function (req, res, next) {
           if (result.length === 0) {
               console.log("[Not Valid] No cellphone is found", result);
               res.json({
-                  "message": "[Error] cellphone Not found",
+                  "message": "[Not Valid] No cellphone is found",
                   "result": result,
                   "success": false
               });
+
           } else if (result.length === 1) {
-              console.log("[Good] 1 cellphone is found", result);
+              console.log("[Success] 1 cellphone is found", result);
               res.json({
-                  "message": "[Success] password is correct",
+                  "message": "[Success] The entered cellphone is found",
                   "result": result[0].u_assetbookContractAddress,
                   "success": true,
                   //"jwt": token
               });
 
-
           } else {
-              console.log("[Duplicated] Duplicate Entries are found");
+              console.log("[Duplicated] Duplicate entries are found");
               res.json({
-                  "message": "[Error] Duplicate Entries are found",
+                  "message": "[Duplicated] Duplicate entries are found",
                   "result": result,
                   "success": false
               });
@@ -507,7 +507,7 @@ router.get('/UserByUserId', function (req, res, next) {
   } else { userId = req.query.userId; }
   var qur = mysqlPoolQuery(qstr1, userId, function (err, result) {
       if (err) {
-          console.log(err);
+          console.log("[Error] Failure :\n", err);
           res.status(400);
           res.json({
               "message": "[Error] Failure :\n" + err,
@@ -518,27 +518,27 @@ router.get('/UserByUserId', function (req, res, next) {
           if (result.length === 0) {
             console.log("[Not Valid] No UserId is found", result);
             res.json({
-                "message": "[Not Valid] UserId Not found",
+                "message": "[Not Valid] No UserId is found",
                 "result": result,
                 "success": false
             });
         } else if (result.length === 1) {
-          console.log("[Good] 1 UserId is found", result);
+          console.log("[Success] 1 UserId is found", result);
           var data = {
             u_identityNumber: result[0].u_identityNumber,
           };
           token = jwt.sign(data, 'privatekey', time);
           res.json({
-              "message": "[Success] Success",
+              "message": "[Success] The UseId is found",
               "result": result,
               "success": true,
               "data": data,
               "jwt": token
             });
         } else {
-          console.log("[Duplicated] Duplicate Entries are found");
+          console.log("[Duplicated] Duplicate entries are found");
           res.json({
-                "message": "[Duplicated] Duplicate Entries are found",
+                "message": "[Duplicated] Duplicate entries are found",
                 "result": result,
                 "success": false
             });
