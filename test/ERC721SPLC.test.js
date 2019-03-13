@@ -1010,15 +1010,15 @@ describe('Tests on CrowdFunding', () => {
 
     let serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, 201902281040);
+    assert.equal(serverTimeM, timeCurrent);
 
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "initial: not started yet");
 
-    let salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 0);
+    let fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 0);
 
     //const _CFSD2 = timeCurrent+1;
     await instCrowdFunding.methods.setServerTime(_CFSD2)
@@ -1031,9 +1031,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "funding: with goal not reached yet");
 
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 1);
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 1);
 
     if (1==2){
       //const _CFED2 = timeCurrent+10;
@@ -1047,9 +1047,9 @@ describe('Tests on CrowdFunding', () => {
       console.log('stateDescriptionM', stateDescriptionM);
       assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
 
-      salestateM = await instCrowdFunding.methods.salestate().call();
-      console.log('salestateM', salestateM);
-      assert.equal(salestateM, 5);
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 5);
       process.exit(1);
     }
 
@@ -1063,7 +1063,7 @@ describe('Tests on CrowdFunding', () => {
     // console.log('\nserverTimeM', serverTimeM);
     // assert.equal(serverTimeM, 201902281041);
 
-    await instCrowdFunding.methods.startFunding()
+    await instCrowdFunding.methods.makeFundingActive()
     .send({ value: '0', from: acc0, gas: '1000000' });
 
     await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal)
@@ -1081,9 +1081,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "initial: goal reached already");
 
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 0);
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 0);
 
     //------------------==Back to _CFSD2
     await instCrowdFunding.methods.setServerTime(_CFSD2)
@@ -1096,9 +1096,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "fundingWithGoalReached: still funding and has reached goal");
 
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 3);
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 3);
 
 
     //------------------==Overbuying
@@ -1126,9 +1126,9 @@ describe('Tests on CrowdFunding', () => {
       console.log('stateDescriptionM', stateDescriptionM);
       assert.equal(stateDescriptionM, "hasSucceeded: sold out");
 
-      salestateM = await instCrowdFunding.methods.salestate().call();
-      console.log('salestateM', salestateM);
-      assert.equal(salestateM, 4);
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 4);
 
     } else {
       //-------------------==CFED2 has been reached
@@ -1143,9 +1143,9 @@ describe('Tests on CrowdFunding', () => {
       console.log('stateDescriptionM', stateDescriptionM);
       assert.equal(stateDescriptionM, "hasSucceeded: ended with unsold items");
 
-      salestateM = await instCrowdFunding.methods.salestate().call();
-      console.log('salestateM', salestateM);
-      assert.equal(salestateM, 4);
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 4);
     }
 
 
@@ -1165,9 +1165,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "hasSucceeded: sold out");
 
-    salestateM = await instCrowdFunding.methods.salestate().call();
-    console.log('salestateM', salestateM);
-    assert.equal(salestateM, 4);
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 4);
     */
 
   });

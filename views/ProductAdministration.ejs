@@ -628,10 +628,42 @@
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
+                console.log(result.result.sc_erc721address);
+                let erc721address = result.result.sc_erc721address;
+
+                let assetBookAddrs = ["0x4E20FF2D65f3C7D525FDcd69dcD9FFA0876Bfa8b", "0x4289517141f81C20126Ef58990FEE20FBE94770D"];
+                console.log(assetBookAddrs);
+
+                console.log("approving...");
+                $.post("http://localhost:3000/PlatformContractAPI/setAssetCtrtApproval", {
+                    assetBookAddrs: JSON.stringify(assetBookAddrs),
+                    erc721address: erc721address,
+                    isApprovedToWrite: true
+                }, function (result) {
+                    console.log(result);
+
+                    if (result.result == true) {
+                        var uris = ["0x414141","0x424242"];
+                        console.log("minting...");
+                        $.post("http://localhost:3000/ERC721ContractAPI/mintSerialNFTBatch", {
+                            assetBookAddrs: JSON.stringify(assetBookAddrs),
+                            erc721address: erc721address,
+                            uris: JSON.stringify(uris)
+                        }, function (result) {
+                            console.log(result);
+
+                            if (result.result == true) {
+
+                            }
+                        });
+                    }
+                });
 
             });
 
         }
+
+
 
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"

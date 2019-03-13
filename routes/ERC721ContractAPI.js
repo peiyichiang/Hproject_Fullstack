@@ -16,7 +16,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
-var registryContractAddr = "0x9c18C594A1F1BF33F5230Eaa2605799f6ccE9dBE";
+var registryContractAddr = "0xa360073AeE6Cc7F9b8ffc8D4B05d8D75C9F84F12";
 
 
 //deploy asset contract
@@ -81,6 +81,20 @@ router.post('/symbol', async function (req, res, next) {
     })
 });
 
+
+router.get('/addrRegistryITF', async function (req, res, next) {
+    let contractAddr = req.query.address;
+
+    let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let result = await ERC721SPLC_Controller.methods.addrRegistryITF().call({ from: backendAddr })
+
+    res.send({
+        result: result
+    })
+});
+
+
 /**mint token */
 router.post('/mintSerialNFT', async function (req, res, next) {
     let contractAddr = req.body.address;
@@ -99,10 +113,15 @@ router.post('/mintSerialNFT', async function (req, res, next) {
 
 /**mint token batch*/
 router.post('/mintSerialNFTBatch', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let tos = req.body.tos;
-    let uris = req.body.uris;
+    let contractAddr = req.body.erc721address;
+    let tos = JSON.parse(req.body.assetBookAddrs);
+    let uris = JSON.parse(req.body.uris);
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    console.log(tos[0]);
+    console.log(uris[0]);
+    console.log(tos[1]);
+    console.log(uris[1]);
+
 
     let encodedData = ERC721SPLC_HToken.methods.mintSerialNFTBatch(tos, uris).encodeABI();
 

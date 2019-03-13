@@ -16,6 +16,8 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/Platform.json');
+let platformContractAddr = "0x855D969CeBb094DA1505De9af407100e35A292f6";
+
 
 router.get('/', function (req, res, next) {
     res.render('platformContractAPI');
@@ -37,7 +39,7 @@ router.post('/deploy', function (req, res, next) {
     platformContract.deploy({
         data: contract.bytecode,
         arguments: [platformCtAdmin, management]
-        })
+    })
         .send({
             from: backendAddr,
             gas: 4700000,
@@ -68,20 +70,32 @@ router.patch('/setPlatformContractAdmin', async function (req, res, next) {
 
 });
 
-router.patch('/setAssetCtrtApproval', async function (req, res, next) {
-    let contractAddr = req.body.address;
-    let addrAssetBook = req.body.addrAssetBook;
-    let assetAddr = req.body.assetAddr;
+router.post('/setAssetCtrtApproval', async function (req, res, next) {
+    let contractAddr = platformContractAddr;
+    let assetBookAddrs = JSON.parse(req.body.assetBookAddrs);
+    let erc721address = req.body.erc721address;
     let isApprovedToWrite = req.body.isApprovedToWrite;
+
+    console.log(req.body);
+    console.log(assetBookAddrs);
+
 
     let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
 
-    /*用後台公私鑰sign*/
-    let encodedData = platformContract.methods.setAssetCtrtApproval(addrAssetBook, assetAddr, isApprovedToWrite).encodeABI();
-    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
+    for (var i = 0; i < assetBookAddrs.length; i++) {
+        /*用後台公私鑰sign*/
+        let encodedData = platformContract.methods.setAssetCtrtApproval(assetBookAddrs[i], erc721address, isApprovedToWrite).encodeABI();
+        let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+        console.log(result);
+        if(result.status == false){
+            res.send({
+                result: "error",
+                assetBookAddr: assetBookAddrs[i]
+            })
+        }
+    }
     res.send({
-        result: result
+        result: true
     })
 
 });

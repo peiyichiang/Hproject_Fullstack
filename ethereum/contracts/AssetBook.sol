@@ -420,13 +420,14 @@ contract AssetBook {
     }
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory symbol, uint assetAddrIndex, uint amount, uint timeIndexStart, uint timeIndexEnd, bool isInitialized, uint[] memory assetIdsFromAssetBook, uint[] memory assetIdsFromERC721){
+    returns (string memory symbol, uint assetAddrIndex, uint amount, uint timeIndexStart, uint timeIndexEnd, bool isInitialized, bool isApproved, uint[] memory assetIdsFromAssetBook, uint[] memory assetIdsFromERC721){
         Asset memory asset = assets[_assetAddr];
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
         return (asset.assetSymbol, asset.assetAddrIndex, 
         asset.assetAmount, asset.timeIndexStart, 
         asset.timeIndexEnd, asset.isInitialized, 
+        asset.isApprovedToWrite,
         asset.ids, erc721.get_ownerToIds(address(this)));
     }
 

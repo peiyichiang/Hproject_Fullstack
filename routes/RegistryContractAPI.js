@@ -18,7 +18,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*contract info*/
 const contract = require('../ethereum/contracts/build/Registry.json');
-let contractAddr = "0x9c18C594A1F1BF33F5230Eaa2605799f6ccE9dBE";
+let contractAddr = "0xa360073AeE6Cc7F9b8ffc8D4B05d8D75C9F84F12";
 
 
 /*deploy registryContract*/
@@ -191,7 +191,8 @@ router.post('/updateUser', function (req, res, next) {
     var u_email = req.body.email;
     var mysqlPoolQuery = req.pool;
     var sql = {
-        u_address: req.body.assetContractAddr,
+        u_assetbookContractAddress: req.body.assetContractAddr,
+        u_multisigContractAddress: req.body.multiSigContractAddr,
         u_verify_status: req.body.status,
         u_eth_add: req.body.ethAddr
     };
@@ -209,7 +210,9 @@ router.post('/updateUser', function (req, res, next) {
             res.send({
                 status: "success",
                 u_email: req.body.email,
-                u_address: req.body.assetContractAddr,
+                assetContractAddr: req.body.assetContractAddr,
+                ethAddr: req.body.ethAddr,
+                multiSigContractAddr: req.body.multiSigContractAddr,
                 u_verify_status: req.body.status
             });
         }

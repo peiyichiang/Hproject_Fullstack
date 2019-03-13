@@ -99,6 +99,7 @@
                 <th>手機</th>
                 <th>以太坊地址</th>
                 <th>資產合約地址</th>
+                <th>多重簽章合約地址</th>
                 <th>狀態</th>
                 <th>審核通過</th>
             </tr>
@@ -141,7 +142,10 @@
                         <%= FrontEnd_data[i].u_eth_add  %>
                     </td>
                     <td class="align-middle">
-                        <%= FrontEnd_data[i].u_address  %>
+                        <%= FrontEnd_data[i].u_assetbookContractAddress  %>
+                    </td>
+                    <td class="align-middle">
+                        <%= FrontEnd_data[i].u_multisigContractAddress  %>
                     </td>
                     <td class="align-middle">
                         <%= FrontEnd_data[i].u_verify_status  %>
@@ -183,63 +187,71 @@
 
         function Approve(ID, email, ethAddr) {
             console.log(ethAddr);
+            let platformContractAddr = "0x855D969CeBb094DA1505De9af407100e35A292f6";
 
-            let multiSigContractAddr = "0x2adEb96C9103379cC85e695618b7b465F8267E97";
-            let platformContractAddr = "0xb39F50f2fE0105217796d7823Df443D460720724";
-            /*部署assetContract*/
-            console.log("deploying...");
-            $.post("http://localhost:3000/AssetBookContractAPI/deploy", {
-                assetOwner: ethAddr,
-                multiSigContractAddr: multiSigContractAddr,
-                platformContractAddr: platformContractAddr
+            console.log("multiSigContract deploying...");
+            $.post("http://localhost:3000/MultiSigContractAPI/deploy", {
+                platform: platformContractAddr,
+                assetOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB",//ethAddr,(key chain開發未完成)
             }, function (result) {
-                //var result = JSON.parse(resultJSON);
                 console.log(result);
                 console.log(result.contractAddress);
+                let multiSigContractAddr = result.contractAddress;
 
-                /*檢查是否部署成功*/
                 if (result.status == true) {
-                    let time = 201903110000;
-                    /*部署成功後，註冊會員白名單*/
-                    $.post("http://localhost:3000/RegistryContractAPI/addUser", {
-                        u_id: ID,
-                        assetAddr: result.contractAddress,
-                        ethAddr: ethAddr,
-                        time: time
+                    /*部署assetContract*/
+                    console.log("assetBookContract deploying...");
+                    $.post("http://localhost:3000/AssetBookContractAPI/deploy", {
+                        assetOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB",//ethAddr,(key chain開發未完成)
+                        multiSigContractAddr: multiSigContractAddr,
+                        platformContractAddr: platformContractAddr
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);
                         console.log(result);
+                        console.log(result.contractAddress);
 
-                        /*檢查是否註冊會員白名單成功*/
-                        if (result.result.status == true) {
-                            /*註冊會員白名單成功後，取得會員資訊*/
-                            $.get("http://localhost:3000/RegistryContractAPI/userInfo", {
+                        /*檢查是否部署成功*/
+                        if (result.status == true) {
+                            let time = 201903110000;
+                            /*部署成功後，註冊會員白名單*/
+                            console.log("registering...");
+                            $.post("http://localhost:3000/RegistryContractAPI/addUser", {
                                 u_id: ID,
+                                assetAddr: result.contractAddress,
+                                ethAddr: ethAddr,
+                                time: time
                             }, function (result) {
                                 //var result = JSON.parse(resultJSON);
-                                console.log(result.userInfo);
-                                console.log(result.userInfo.uid);
-                                console.log(result.userInfo.assetCtAddr);
-                                console.log(result.userInfo.extoAddr);
-                                console.log(result.userInfo.userStatus);
-                                $.post("http://localhost:3000/RegistryContractAPI/updateUser", {
-                                    email: email,
-                                    assetContractAddr: result.userInfo.assetCtAddr,
-                                    status: result.userInfo.accountStatus,
-                                    ethAddr: result.userInfo.extoAddr
-                                }, function (result) {
-                                    //var result = JSON.parse(resultJSON);
-                                    console.log(result);
-                                    location.reload();
-                                });
+                                console.log(result);
+
+                                /*檢查是否註冊會員白名單成功*/
+                                if (result.result.status == true) {
+                                    /*註冊會員白名單成功後，取得會員資訊*/
+                                    $.get("http://localhost:3000/RegistryContractAPI/userInfo", {
+                                        u_id: ID,
+                                    }, function (result) {
+                                        //var result = JSON.parse(resultJSON);
+                                        console.log(result.userInfo);
+                                        console.log(result.userInfo.uid);
+                                        console.log(result.userInfo.assetCtAddr);
+                                        console.log(result.userInfo.extoAddr);
+                                        console.log(result.userInfo.userStatus);
+                                        $.post("http://localhost:3000/RegistryContractAPI/updateUser", {
+                                            email: email,
+                                            assetContractAddr: result.userInfo.assetCtAddr,
+                                            status: result.userInfo.accountStatus,
+                                            ethAddr: result.userInfo.extoAddr,
+                                            multiSigContractAddr: multiSigContractAddr
+                                        }, function (result) {
+                                            //var result = JSON.parse(resultJSON);
+                                            console.log(result);
+                                            //location.reload();
+                                        });
+                                    });
+                                }
                             });
                         }
                     });
-
-
-                }
-                else {
-                    console.log("something wrong on blockchain");
                 }
             });
 
