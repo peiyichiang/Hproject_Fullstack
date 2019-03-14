@@ -7,8 +7,10 @@ const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
 
-let provider, web3, gasLimitValue, gasPriceValue;
-const choice = 1;//1: virtual blockchain, 2: POA private chain, 3: POW private chain
+let provider, web3, gasLimitValue, gasPriceValue, bytecodeprefix = '';
+const choice = 1;
+console.log('choice = ', choice);
+//1: virtual blockchain, 2: POA private chain, 3: POW private chain, 4: POW Infura Rinkeby chain
 if (choice === 1) {
   //1: virtual blockchain
   const options = { gasLimit: 9000000 };
@@ -25,19 +27,19 @@ if (choice === 1) {
   // });
   web3 = new Web3(provider);//lower case web3 means it is an instance
 
-} else if (choice === 2) {
-  //gasLimitValue = 0 for POA private chain
+} else if (choice === 2) {//POA private chain
   const options = { gasLimit: 0 };
-  gasLimitValue = '0';
-  gasPriceValue = '20000000000';//100000000000000000
+  gasLimitValue = '5000000';//intrinsic gas too low
+  gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
   provider = ganache.provider(options);
   const nodeUrl = "http://140.119.101.130:8545";
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+  bytecodeprefix = '0x';
 
 } else if (choice === 3) {
   //gasLimitValue = 5000000 for POW private chain
-  const options = { gasLimit: 5000000 };
-  gasLimitValue = '5000000';
+  const options = { gasLimit: 9000000 };
+  gasLimitValue = '9000000';
   gasPriceValue = '20000000000';//100000000000000000
   provider = ganache.provider(options);
   const nodeUrl = "http://140.119.101.130:8540";
@@ -45,12 +47,14 @@ if (choice === 1) {
 
 } else if (choice === 4) {
   //gasLimitValue = 5000000 for POW Infura Rinkeby chain
-  const options = { gasLimit: 5000000 };
-  gasLimitValue = '5000000';
+  const options = { gasLimit: 7000000 };
+  gasLimitValue = '7000000';
   gasPriceValue = '20000000000';//100000000000000000
   provider = ganache.provider(options);
   const nodeUrl = "https://rinkeby.infura.io/v3/b789f67c3ef041a8ade1433c4b33de0f";
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+} else {
+  console.log('choice is out of range. choice =', choice);
 }
 
 require('events').EventEmitter.defaultMaxListeners = 30;
@@ -313,12 +317,37 @@ let bool1; let bool2;
 
 beforeEach( async () => {
     console.log('\n--------==New beforeEach cycle');
-    accounts = await web3.eth.getAccounts();
-    acc0 = accounts[0];
-    acc1 = accounts[1];
-    acc2 = accounts[2];
-    acc3 = accounts[3];
-    acc4 = accounts[4];
+    //1: virtual blockchain, 2: POA private chain, 3: POW private chain, 4: POW Infura Rinkeby chain
+    if (choice === 1) {
+      accounts = await web3.eth.getAccounts();
+      acc0 = accounts[0];
+      acc1 = accounts[1];
+      acc2 = accounts[2];
+      acc3 = accounts[3];
+      acc4 = accounts[4];
+    } else if (choice === 2) {//POA
+      acc0 = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
+      acc1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
+      acc2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
+      acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
+      acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
+    } else if (choice === 3) {
+      accounts = await web3.eth.getAccounts();
+      acc0 = accounts[0];
+      acc1 = accounts[1];
+      acc2 = accounts[2];
+      acc3 = accounts[3];
+      acc4 = accounts[4];
+    } else if (choice === 4) {
+      accounts = await web3.eth.getAccounts();
+      acc0 = accounts[0];
+      acc1 = accounts[1];
+      acc2 = accounts[2];
+      acc3 = accounts[3];
+      acc4 = accounts[4];
+    } else {
+      console.log('choice is out of range. choice = ', choice);
+    }
     management = [acc0, acc1, acc2, acc3, acc4];
     console.log('acc0', acc0);
     console.log('acc1', acc1);
@@ -341,13 +370,13 @@ beforeEach( async () => {
 
     console.log('\nDeploying contracts...');
     //JSON.parse() is not needed because the abi and bytecode are already objects
-
+    console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
     //Deploying Platform contract...
     platformCtAdmin = acc0;
     const argsPlatform = [platformCtAdmin, management];
     console.log('\nDeploying Platform contract...');
     instPlatform =  await new web3.eth.Contract(Platform.abi)
-    .deploy({ data: Platform.bytecode, arguments: argsPlatform })
+    .deploy({ data: bytecodeprefix+Platform.bytecode, arguments: argsPlatform })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Platform.sol has been deployed');
@@ -365,7 +394,7 @@ beforeEach( async () => {
 
     console.log('\nDeploying multiSig contracts...');
     instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
-    .deploy({ data: MultiSig.bytecode, arguments: argsMultiSig1 })
+    .deploy({ data: bytecodeprefix+MultiSig.bytecode, arguments: argsMultiSig1 })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('MultiSig1 has been deployed');
@@ -377,7 +406,7 @@ beforeEach( async () => {
     console.log('addrMultiSig1:', addrMultiSig1);
 
     instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
-    .deploy({ data: MultiSig.bytecode, arguments: argsMultiSig2 })
+    .deploy({ data: bytecodeprefix+MultiSig.bytecode, arguments: argsMultiSig2 })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('MultiSig2 has been deployed');
@@ -394,7 +423,7 @@ beforeEach( async () => {
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
     instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
-    .deploy({ data: AssetBook.bytecode, arguments: argsAssetBook1 })
+    .deploy({ data: bytecodeprefix+AssetBook.bytecode, arguments: argsAssetBook1 })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
@@ -406,7 +435,7 @@ beforeEach( async () => {
     console.log('addrAssetBook1:', addrAssetBook1);
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
-    .deploy({ data: AssetBook.bytecode, arguments: argsAssetBook2 })
+    .deploy({ data: bytecodeprefix+AssetBook.bytecode, arguments: argsAssetBook2 })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
@@ -422,7 +451,7 @@ beforeEach( async () => {
     console.log('\nDeploying Registry contract...');
     const argsRegistry = [management];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
-    .deploy({ data: Registry.bytecode, arguments: argsRegistry })
+    .deploy({ data: bytecodeprefix+Registry.bytecode, arguments: argsRegistry })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Registry.sol has been deployed');
@@ -438,7 +467,7 @@ beforeEach( async () => {
     const argsTokenController = [
       timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
-    .deploy({ data: TokenController.bytecode, arguments: argsTokenController })
+    .deploy({ data: bytecodeprefix+TokenController.bytecode, arguments: argsTokenController })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('TokenController.sol has been deployed');
     if (instTokenController === undefined) {
@@ -464,7 +493,7 @@ beforeEach( async () => {
   
     console.log('\nDeploying ERC721SPLC contract...');
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
-    .deploy({ data: ERC721SPLC.bytecode, arguments: argsERC721SPLC })
+    .deploy({ data: bytecodeprefix+ERC721SPLC.bytecode, arguments: argsERC721SPLC })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('ERC721SPLC.sol has been deployed');
     if (instERC721SPLC === undefined) {
@@ -481,7 +510,7 @@ beforeEach( async () => {
    console.log('\nDeploying CrowdFunding contract...');
    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, management];
    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
-    .deploy({ data: CrowdFunding.bytecode, arguments: argsCrowdFunding })
+    .deploy({ data: bytecodeprefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('CrowdFunding.sol has been deployed');
     if (instCrowdFunding === undefined) {

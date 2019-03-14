@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "solc": "cd ethereum/contracts;node zcompile.js",
+    "deploy": "cd ethereum/contracts;node zdeploy.js",
+    "testlive1": "cd ethereum/contracts;node zERC721SPLC_test.js",
     "start": "nodemon ./bin/www",
     "timeserver": "node timeserver/timeserver.js",
     "manager": "node timeserver/manager/manager.js",
