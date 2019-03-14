@@ -17,8 +17,8 @@ if (process.argv.length < 4) {
 } else {
   chain = parseInt(process.argv[3]);;
 }
-let timeCurrent = 201903081040;
-console.log('chain = ', chain, ', timeCurrent =', timeCurrent);
+let timeCurrent = 201903081040; let txnNum = 1;
+console.log('chain = ', chain, ', txnNum =', txnNum, ', timeCurrent =', timeCurrent);
 
 let acc0; let acc1; let acc2; let acc3; let acc4;
 let backendAddr; let AssetOwner1; let AssetOwner2;
@@ -26,7 +26,7 @@ let addrPlatformContract, addrMultiSig1, addrMultiSig2, addrAssetBook1, addrAsse
 let backendPrivateKey, backendRawPrivateKey;
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
-
+  console.log('inside chain === 1');
   addrPlatformContract = "0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9";
   addrMultiSig1 = "0xAF5065cD6A1cCe522D8ce712A5C7C52682740565";
   addrMultiSig2 = "0xc993fD11a829d96015Cea876D46ac67B5aADCAF1";
@@ -55,10 +55,12 @@ if (chain === 1) {//POA private chain
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
   console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
 
+  Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
   const nodeUrl = "http://140.119.101.130:8545";
   provider = new PrivateKeyProvider(backendPrivateKey, nodeUrl);
   web3 = new Web3(provider);
   prefix = '0x';
+  console.log('leaving chain === 1');
 
 } else if (chain === 2) {
   //gasLimitValue = 5000000 for POW private chain
@@ -335,7 +337,7 @@ const checkEq = (value1, value2) => {
     if (value1 === value2) {
       console.log('checked ok');
     } else {
-      console.log("\x1b[31m", '[Error]', value1, 'vs', value2, typeof value1, typeof value2);
+      console.log("\x1b[31m", '[Error] _'+ value1+'<vs>'+value2+'_', typeof value1, typeof value2);
       process.exit(1);
     }
 }
@@ -553,7 +555,7 @@ const testDeployedCtrt = async () => {
 
     const uriBase = "nccu0".trim();
     //https://heliumcryptic.com/nccu011 is OVER bytes32!!! Error!!!
-    uriStr = uriBase+""+(tokenIdX+1);
+    uriStr = uriBase+(tokenIdX+1);
     console.log('uriStr', uriStr);
 
     uriBytes32 = web3.utils.fromAscii(uriStr);
@@ -561,6 +563,7 @@ const testDeployedCtrt = async () => {
 
     uriStrB = web3.utils.toAscii(uriBytes32);
     console.log('uriStrB', uriStrB);
+    checkEq(uriStrB, uriStr);
 
     //let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     //addrPlatformContract
@@ -623,7 +626,7 @@ const testDeployedCtrt = async () => {
 
     addrAssetBookX = addrAssetBook1;
     let _tos = [addrAssetBookX, addrAssetBookX, addrAssetBookX];
-    let _uriStrs = [uriBase+""+(tokenIdX+1), uriBase+""+(tokenIdX+2), uriBase+""+(tokenIdX+3)];
+    let _uriStrs = [uriBase+(tokenIdX+1), uriBase+(tokenIdX+2), uriBase+(tokenIdX+3)];
     const strToBytes32 = str => web3.utils.fromAscii(str);
     let _uriBytes32s = _uriStrs.map(strToBytes32);
     console.log('_uriStrs', _uriStrs);
@@ -685,7 +688,7 @@ const testDeployedCtrt = async () => {
     console.log('\n------------==Mint Token in Batch: tokenId = ', tokenIdX+1, tokenIdX+2, tokenIdX+3, 'to AssetBook2');
     addrAssetBookX = addrAssetBook2;
     _tos = [addrAssetBookX, addrAssetBookX, addrAssetBookX];
-    _uriStrs = [uriBase+""+(tokenIdX+1), uriBase+""+(tokenIdX+2), uriBase+""+(tokenIdX+3)];
+    _uriStrs = [uriBase+(tokenIdX+1), uriBase+(tokenIdX+2), uriBase+(tokenIdX+3)];
     _uriBytes32s = _uriStrs.map(strToBytes32);
     console.log('_uriStrs', _uriStrs);
     console.log('_uriBytes32s', _uriBytes32s);
@@ -768,18 +771,28 @@ const testDeployedCtrt = async () => {
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     checkEq(bool1, false);
 
+    let _assetAddr = addrERC721SPLC; let amount = 1; 
+    let _to = addrAssetBook1;
     tokenId = 1; _from = addrAssetBook1; to = addrAssetBook2;
+    fromAddr = AssetOwner2, ctrtAddr = addrAssetBook2;
+    privateKey = backendPrivateKey;
     let error = false;
     try {
-      await instAssetBook1.methods.transferAsset(assetAddr, tokenId, to, timeCurrent)
-      .send({ value: '0', from: acc1, gas: gasLimitValue, gasPrice: gasPriceValue });
-      error = true;
+      if (txnNum===1) {
+        encodedData = instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to).encodeABI();
+        signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+    
+      } else {
+        await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
+        .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
+        error = true;
+      }
     } catch (err) {
       console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed because of not meeting the condition: timeCurrent < TimeTokenUnlock', timeCurrent, TimeTokenUnlock);
       //assert(err);
     }
     if (error) {
-      console.log('[Error] Why did not this fail???', error);
+      console.log("\x1b[31m", '[Error] Why did not this fail???', error);
       process.exit(1);
     }
 
@@ -794,16 +807,32 @@ const testDeployedCtrt = async () => {
     checkEq(bool1, true);
 
     console.log('sending tokens via transferAssetBatch()...');
-    let _assetAddr = addrERC721SPLC; let amount = 1; 
-    let _to = addrAssetBook1;
-    await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
-    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
 
+    if (txnNum===1) {
+      fromAddr = AssetOwner2, ctrtAddr = addrAssetBook2;
+      privateKey = backendPrivateKey;
+      encodedData = instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+
+    } else {
+      await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
+      .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+    }
+
+    console.log('transferAssetBatch is finished');
     //ERROR: Unknown address - unable to sign transaction for AssetOwner2!
 
     //Part of the transferAssetBatch code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling transferAssetBatch()!!!
-    await instAssetBook2.methods.fixTimeIndexedIds(_assetAddr, amount)
-    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+    if (txnNum===1) {
+      fromAddr = AssetOwner2, ctrtAddr = addrAssetBook2;
+      privateKey = backendPrivateKey;
+      encodedData = instAssetBook2.methods.fixTimeIndexedIds(_assetAddr, amount).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+
+    } else {
+      await instAssetBook2.methods.fixTimeIndexedIds(_assetAddr, amount)
+      .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+    }
 
     console.log('Check AssetBook2 after txn...');
     assetsMeasured1 = await instAssetBook2.methods.getAsset(assetAddr).call();
@@ -819,8 +848,16 @@ const testDeployedCtrt = async () => {
     //   asset.ids, erc721.get_ownerToIds(address(this)));
 
     console.log('AssetBook1 to receive tokens...');
-    await instAssetBook1.methods.updateReceivedAsset(assetAddr) 
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    if (txnNum===1) {
+      fromAddr = AssetOwner1, ctrtAddr = addrAssetBook1;
+      privateKey = backendPrivateKey;
+      encodedData = instAssetBook1.methods.updateReceivedAsset(assetAddr).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+
+    } else {
+      await instAssetBook1.methods.updateReceivedAsset(assetAddr) 
+      .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
+    }
     assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('getAsset(assetAddr):', assetsMeasured1);
     checkEq(assetsMeasured1[2], ''+(amountInitAB1+5));//amount
@@ -834,14 +871,30 @@ const testDeployedCtrt = async () => {
     console.log('sending tokens via transferAssetBatch()...');
     amount = 3; _to = addrAssetBook2;
 
-    await instAssetBook1.methods.transferAssetBatch(_assetAddr, amount, _to)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
-    //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+    if (txnNum===1) {
+      fromAddr = AssetOwner1, ctrtAddr = addrAssetBook1;
+      privateKey = backendPrivateKey;
+      encodedData = instAssetBook1.methods.transferAssetBatch(_assetAddr, amount, _to).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
 
-    await instAssetBook1.methods.fixTimeIndexedIds(_assetAddr, amount)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    } else {
+      await instAssetBook1.methods.transferAssetBatch(_assetAddr, amount, _to)
+      .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
     //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+    }
+    console.log('transferAssetBatch is finished');
 
+    if (txnNum===1) {
+      fromAddr = AssetOwner1, ctrtAddr = addrAssetBook1;
+      privateKey = backendPrivateKey;
+      encodedData = instAssetBook1.methods.fixTimeIndexedIds(_assetAddr, amount).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+
+    } else {
+      await instAssetBook1.methods.fixTimeIndexedIds(_assetAddr, amount)
+      .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
+      //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+    }
     console.log('Check AssetBook1 after txn...');
     assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('getAsset(assetAddr):', assetsMeasured1);
@@ -856,8 +909,16 @@ const testDeployedCtrt = async () => {
     //   asset.ids, erc721.get_ownerToIds(address(this)));
 
     console.log('AssetBook2 to receive tokens...');
-    await instAssetBook2.methods.updateReceivedAsset(assetAddr) 
-    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+    if (txnNum===1) {
+      fromAddr = AssetOwner2, ctrtAddr = addrAssetBook2;
+      privateKey = backendPrivateKey;
+      encodedData = instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+
+    } else {
+      await instAssetBook2.methods.updateReceivedAsset(assetAddr) 
+      .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+    }
     assetsMeasured1 = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('getAsset(assetAddr):', assetsMeasured1);
     checkEq(assetsMeasured1[2], (amountInitAB2+5).toString());//amount
@@ -874,18 +935,26 @@ const testDeployedCtrt = async () => {
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     checkEq(bool1, false);
 
-    to = addrAssetBook1;
+    amount = 1; to = addrAssetBook1;
     error = false;
     try {
-      await instAssetBook2.methods.transferAsset(assetAddr, tokenId, to, timeCurrent)
-      .send({ value: '0', from: acc2, gas: gasLimitValue, gasPrice: gasPriceValue });
-      error = true;
+      if (txnNum===1) {
+        fromAddr = AssetOwner2, ctrtAddr = addrAssetBook2;
+        privateKey = backendPrivateKey;
+        encodedData = instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to).encodeABI();
+        signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+  
+      } else {
+        await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
+        .send({ value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
+        error = true;
+      }
     } catch (err) {
       console.log('[Success] sending tokenId 1 from assetCtrt2 to assetCtrt1 failed because of not meeting the condition: timeCurrent > TimeTokenValid', timeCurrent, TimeTokenValid);
       //assert(err);
     }
     if (error) {
-      console.log('[Error] Why did not this fail???', error);
+      console.log("\x1b[31m", '[Error] Why did not this fail???', error);
       process.exit(1);
     }
 
