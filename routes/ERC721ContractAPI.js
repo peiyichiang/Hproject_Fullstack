@@ -16,7 +16,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
-var registryContractAddr = "0xa360073AeE6Cc7F9b8ffc8D4B05d8D75C9F84F12";
+var registryContractAddr = "0xFB86A8045ff376e658109A9F4CE45D9A986117C1";
 
 
 //deploy asset contract
@@ -310,7 +310,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 300000,
+                    gas: 2000000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),

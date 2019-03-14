@@ -16,7 +16,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/Platform.json');
-let platformContractAddr = "0x855D969CeBb094DA1505De9af407100e35A292f6";
+let platformContractAddr = "0x7832fC91Bc8f4977da9AB974a4F5ADD4f78bA54C";
 
 
 router.get('/', function (req, res, next) {
