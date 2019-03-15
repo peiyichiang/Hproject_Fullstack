@@ -291,7 +291,7 @@ contract AssetBook {
 
     //preserving buy/sell sequence for FIFO accounting purpose
     //to receive assets and give timeIndex to each received asset
-    function updateAssetTokenDetails(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
+    function resetAssetBook(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         assets[_assetAddr].assetSymbol = erc721.symbol();
         assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));

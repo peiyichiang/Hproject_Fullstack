@@ -53,8 +53,14 @@ yarn run deploy --chain 1 --ctrtName contractName
 ```
 where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain
 
+### 7. Test deployed smart contracts
+```
+yarn run testlive1 --chain C --func F
+```
+C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
+F = 0: testDeployedCtrt, 1: checking AssetBook1, 2: checking AssetBook2
 
-### 7. Run the app
+### 8. Run the app
 
 ```
 yarn run start
@@ -62,7 +68,7 @@ yarn run start
 
 App will be opened in browser at `http://localhost:3000/`
 
-## 8. Live Preview
+## 9. Live Preview
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin
