@@ -46,17 +46,16 @@ router.post('/deploy', function (req, res, next) {
 
     console.log(typeof(goalInPercentage));
     console.log(goalInPercentage);
-    console.log(req.body.fundingGoal);
+    console.log(req.body);
     console.log(quantityMax);
 
     crowdFundingContract.deploy({
         data: contract.bytecode,
         arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime, management]
-        //arguments: [assetOwner, platform, time]
     })
         .send({
             from: backendAddr,
-            gas: 9000000,
+            gas: 10000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {

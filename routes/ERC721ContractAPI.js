@@ -310,7 +310,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 2000000,
+                    gas: 7000000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),

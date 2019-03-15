@@ -377,6 +377,7 @@ router.get('/UserLogin', function (req, res, next) {
 
                             var data = {
                                 u_email: result[0].u_email,
+                                u_assetbookContractAddress: result[0].u_assetbookContractAddress,
                                 u_identityNumber: result[0].u_identityNumber
                             };
                             time = {

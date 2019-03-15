@@ -2,6 +2,7 @@ const express = require('express');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+const jwt = require('jsonwebtoken');
 var router = express.Router();
 
 /*Infura HttpProvider Endpoint*/
@@ -166,7 +167,7 @@ router.get('/assetAmount', async function (req, res, next) {
     })
 });
 
-/*取得assetBook 在這張erc721 contract裡面，所擁有的全部合約 */
+/*取得assetBook 在這張erc721 contract裡面，所擁有的全部token */
 router.get('/getAssetIds', async function (req, res, next) {
     let contractAddr = req.query.address;
     let assetAddr = req.query.assetAddr;
@@ -258,6 +259,123 @@ router.post('/transferAssetBatch', async function (req, res, next) {
     })
 
 
+});
+
+//通過User ID獲取Completed Order
+router.get('/myAsset', async function (req, res, next) {
+    var token = req.query.JWT_Token;
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "privatekey", async function (err, decoded) {
+            if (err) {
+                //JWT token驗證失敗
+                console.log("＊:JWT token驗證失敗");
+                console.log(err);
+                res.json({
+                    "message": "JWT token is invalid.",
+                    "success": false
+                });
+                return;
+            } else {
+                //JWT token驗證成功
+
+                console.log(decoded.u_assetbookContractAddress);
+                let contractAddr = decoded.u_assetbookContractAddress;
+                let assetBook = new web3.eth.Contract(assetBookContract.abi, contractAddr);
+                let tokenAddressIndex = await assetBook.methods.getAssetAddrList().call({ from: backendAddr });
+                console.log(tokenAddressIndex);
+
+                var symbols = [];
+                var data = {};
+                for(var i=0 ; i<tokenAddressIndex.length; i++){
+                    if(tokenAddressIndex[i]!="0x0000000000000000000000000000000000000000"){
+                        console.log(tokenAddressIndex[i]);
+                        let assetInfo = await assetBook.methods.getAsset(tokenAddressIndex[i]).call({ from: backendAddr });
+                        console.log(assetInfo.symbol);
+                        symbols.push(assetInfo.symbol);
+                        console.log(assetInfo.amount);
+                        data[assetInfo.symbol] = assetInfo.amount;
+                    }
+                }
+                res.json({
+                    "message": "[Success] 查找資產成功",
+                    "success": true,
+                    "MyAsset": data,
+                    "AssetSymbols": symbols
+                });
+
+                ///////////////////////////////
+                var mysqlPoolQuery = req.pool;
+                /*
+                mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_userIdentityNumber = ? AND o_paymentStatus = ?', [decoded.u_identityNumber, "completed"], async function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                        res.json({
+                            "message": "[Success] 查找資產失敗",
+                            "success": false,
+                        });
+                    } else {
+                        // 生成sql查詢語句
+                        sqls = [];
+                        symbols = [];
+                        for (var i = 0; i < rows.length; i++) {
+                            sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_userIdentityNumber = "' + decoded.u_identityNumber + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "completed"');
+                            symbols.push(rows[i].o_symbol);
+                        }
+
+                        // 使用async.eachSeries執行sql查詢語句(確保上一句執行完後才執行下一句)
+                        var count = -1;
+                        var data = {};
+                        async.eachSeries(sqls, function (item, callback) {
+                            // 遍历每条SQL并执行
+                            mysqlPoolQuery(item, function (err, results) {
+                                if (err) {
+                                    // 异常后调用callback并传入err
+                                    callback(err);
+                                } else {
+                                    count++;
+                                    data[symbols[count]] = results[0].total;
+                                    // 执行完成后也要调用callback，不需要参数
+                                    callback();
+                                }
+                            });
+                        }, function (err) {
+                            // 所有SQL执行完成后回调
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                //console.log("SQL全部执行成功");
+                                res.json({
+                                    "message": "[Success] 查找資產成功",
+                                    "success": true,
+                                    "MyAsset": data,
+                                    "AssetSymbols": symbols
+                                });
+                            }
+                        });
+                    }
+
+                });*/
+
+
+            }
+        })
+    } else {
+        //不存在JWT token
+        console.log("＊:不存在JWT token");
+        res.json({
+            "message": "No JWT Token.Please login.",
+            "success": false
+        });
+        return;
+    }
+
+    function objectify(key, value) {
+        console.log("＊＊＊:" + { [key]: value });
+        return {
+            [key]: value
+        };
+    }
 });
 
 
