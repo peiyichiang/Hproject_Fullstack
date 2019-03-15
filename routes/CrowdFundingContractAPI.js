@@ -55,7 +55,7 @@ router.post('/deploy', function (req, res, next) {
     })
         .send({
             from: backendAddr,
-            gas: 10000000,
+            gas: 6500000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
@@ -205,7 +205,7 @@ router.get('/salestate', async function (req, res, next) {
 });
 
 /*將合約資訊更新至資料庫 */
-router.post('/updateUser', function (req, res, next) {
+router.post('/updateAddr', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     let tokenSymbol = req.body.tokenSymbol;

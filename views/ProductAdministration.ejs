@@ -562,7 +562,7 @@
                 console.log(result.status);
 
                 if (result.status == true) {
-                    $.post("http://localhost:3000/CrowdFundingContractAPI/updateUser", {
+                    $.post("http://localhost:3000/CrowdFundingContractAPI/updateAddr", {
                         tokenSymbol: tokenSymbol,
                         contractAddress: result.contractAddress,
                         quantityMax: quantityMax
@@ -578,8 +578,8 @@
             console.log(nftSymbol);
 
             let management = JSON.stringify(["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"]);
-            /*部署CrowdFundingContract*/
-            console.log("deploying...");
+
+            console.log("TokenController deploying...");
 
             $.post("http://localhost:3000/TokenControllerContractAPI/deploy", {
                 TimeTokenLaunch: 201902230901,
@@ -606,7 +606,7 @@
                         console.log(result);
                         console.log(result.contractAddress);
                         if (result.status == true) {
-                            $.post("http://localhost:3000/ERC721ContractAPI/updateUser", {
+                            $.post("http://localhost:3000/ERC721ContractAPI/updateAddr", {
                                 ERC721ContractAddr: result.contractAddress,
                                 tokenControllerContractAddr: tokencontrollerContract,
                                 nftSymbol: nftSymbol
@@ -631,7 +631,7 @@
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
 
-                let assetBookAddrs = ["0xB6f87704c5E60497FaA20ABe362bf9277254231E", "0x5189969d43df6be574fe751596e520c97f1Aa077"];
+                let assetBookAddrs = ["0xB6f87704c5E60497FaA20ABe362bf9277254231E","0xB6f87704c5E60497FaA20ABe362bf9277254231E", "0x5189969d43df6be574fe751596e520c97f1Aa077"];
                 console.log(assetBookAddrs);
 
                 console.log("approving...");
@@ -643,7 +643,7 @@
                     console.log(result);
 
                     if (result.result == true) {
-                        var uris = ["0x414141","0x424242"];
+                        var uris = ["0x414141","0x424242","0x424242"];
                         console.log("minting...");
                         $.post("http://localhost:3000/ERC721ContractAPI/mintSerialNFTBatch", {
                             assetBookAddrs: JSON.stringify(assetBookAddrs),

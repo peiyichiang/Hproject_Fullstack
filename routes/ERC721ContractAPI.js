@@ -242,7 +242,7 @@ router.get('/token/isApproved', async function (req, res, next) {
 
 
 /*將合約資訊更新至資料庫 */
-router.post('/updateUser', function (req, res, next) {
+router.post('/updateAddr', function (req, res, next) {
 
     var nftSymbol = req.body.nftSymbol;
     var mysqlPoolQuery = req.pool;
