@@ -334,7 +334,7 @@ contract AssetBook {
         require(tokenBalanceOf > 0, "tokenBalanceOf should be > 0");
 
         erc721.safeTransferFrom(address(this), _to, _tokenId);
-        updateAssetTokenDetails(_assetAddr);
+        resetAssetBook(_assetAddr);
         emit TransferAssetEvent(_to, assets[_assetAddr].assetSymbol, _tokenId, tokenBalanceOf, _timeCurrent);
     }
 

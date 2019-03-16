@@ -341,11 +341,12 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             mintSerialNFT(_tos[i], _uris[i]);
         }
     }
-    // function mintSerialNFTBatchToOne(address _to, bytes32[] calldata _uris) external {
-    //     for(uint i=0; i < _uris.length; i++) {
-    //         mintSerialNFT(_to, _uris[i]);
-    //     }
-    // }
+    
+    function mintSerialNFTBatchToOne(address _to, bytes32[] calldata _uris) external {
+        for(uint i=0; i < _uris.length; i++) {
+            mintSerialNFT(_to, _uris[i]);
+        }
+    }
 
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, bytes32 uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, bytes32 _uri) public {

@@ -9,7 +9,7 @@ console.log('process.argv', process.argv);
 if (process.argv.length < 6) {
   console.log('not enough arguments. Make it like: yarn run deploy --chain 1 --ctrtName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('ctrtName = platform, multisig, assetbook, registry,    erc721splc, crowdfunding');
+  console.log('ctrtName = platform, multisig, assetbook, registry, erc721splc, crowdfunding');
   process.exit(1);
 }
 const chain = parseInt(process.argv[3]);//0;
@@ -17,29 +17,62 @@ const ctrtName = process.argv[5];//'assetbook';
 let timeCurrent = 201903081040;
 console.log('chain = ', chain, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
 
-let acc0; let acc1; let acc2; let acc3; let acc4;
-let backendAddr; let AssetOwner1; let AssetOwner2;
+let Backend, AssetOwner1, AssetOwner2, acc3, acc4;
+let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw;
+let addrPlatform, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
+let addrERC721SPLC, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
-  acc0 = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-  let backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
-  let backendRawPrivateKey = '0x'+backendPrivateKey;
+  /**https://iancoleman.io/bip39
+m/44'/60'/0'/0/0 	0xa6cc621A179f01A719ee57dB4637A4A1f603A442 	0x02afa51468bfb825ddfa794b360f42c016da3dba10df065a11650b63799befed45 	0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
 
-  //acc0 = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
-  acc1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
-  acc2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
-  acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
-  acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
-  backendAddr = acc0;
-  AssetOwner1 = acc1; AssetOwner2 = acc2;
+m/44'/60'/0'/0/1 	0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2 	0x025e0eaf152f741fc91f437d0b6dfdaf96c076ad98010a0d60ba0490c05a46bbdd 	0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca
+
+m/44'/60'/0'/0/2 	0x470Dea51542017db8D352b8B36B798a4B6d92c2E 	0x0384a124835b166c5b3fceec66c861959843eeccb92e18de938be272328692d33f 	0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2
+
+m/44'/60'/0'/0/3 	0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61 	0x034d315e0adb4a832b692b51478feb1b81e761b9834aaf35f83cd23c43239027ed 	0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45
+
+m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
+   */
+  Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
+  BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
+  AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
+  AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
+  AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
+  AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
+  acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
+  acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
+
+  /** deployed contracts
+   * 'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
+   */
+  addrPlatform = "0x2F706dd9955FfE3A0655846b9f5058D16A9B5Fa5";
+  addrMultiSig1 = "0xb5C37059C85c5F5d59755226B9fa08bec3B2B47c";
+  addrMultiSig2 = "0xf6B7d36EBdeb036b308d30b93C4F34a6902f5828";
+  addrAssetBook1 = "0x3614d6068aC16b7Cc4eb34b70c7a9BB6fb9e9B43";
+  addrAssetBook2 = "0x9CEEb4137F0FeDF180afeaDD2A49Bcc555e03EeF";
+  addrRegistry = "0x7b376c71A04Bc487F3Cf2B5938DdDAe8EdB33bb3";
+  addrTokenController = "0xd1b8609793DC685e25c34343c37F547c457145eb";
+  addrERC721SPLC = "0xACEf03ac42CE601CF8921ccBEcE7f12A80Df5778";
+  //addrIncomeManagement = "";
+  //addrProductManager = "";  
+
+  // let backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
+  // let backendRawPrivateKey = '0x'+backendPrivateKey;
+
+  // Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
+  // AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
+  // AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
+  // acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
+  // acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
 
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
   console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
 
   const nodeUrl = "http://140.119.101.130:8545";
-  provider = new PrivateKeyProvider(backendPrivateKey, nodeUrl);
+  provider = new PrivateKeyProvider(BackendpkRaw.substr(2), nodeUrl);
   web3 = new Web3(provider);
   prefix = '0x';
   
@@ -265,12 +298,12 @@ if (ProductManager === undefined){
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
 let accounts;
-let instRegistry; let addrRegistry;
-let instTokenController; let addrTokenController;
-let instERC721SPLC; let addrERC721SPLC;
-let instCrowdFunding; let addrCrowdFunding;
-let instIncomeManagement; let addrIncomeManagement;
-let instProductManager; let addrProductManager;
+let instRegistry; 
+let instTokenController; 
+let instERC721SPLC; 
+let instCrowdFunding; 
+let instIncomeManagement;
+let instProductManager;
 
 let management;
 let balance0; let balance1; let balance2;
@@ -285,7 +318,6 @@ const addrZero = "0x0000000000000000000000000000000000000000";
 
 let argsAssetBook1; let argsAssetBook2;
 let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
-let addrAssetBook1; let addrAssetBook2; let addrAsset3; let addrAsset4;
 
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
@@ -312,21 +344,21 @@ let _serverTime = timeCurrent;
 const deploy = async () => {
     console.log('\n--------==To deploy');
 
-    management = [acc0, acc1, acc2, acc3, acc4];
-    console.log('acc0', acc0);
-    console.log('acc1', acc1);
-    console.log('acc2', acc2);
+    management = [Backend, AssetOwner1, AssetOwner2, acc3, acc4];
+    console.log('Backend', Backend);
+    console.log('AssetOwner1', AssetOwner1);
+    console.log('AssetOwner2', AssetOwner2);
     console.log('acc3', acc3);
     console.log('acc4', acc4);
     console.log('management', management);
 
     if (2===1) {
-        balance0 = await web3.eth.getBalance(acc0);//returns strings!
-        balance1 = await web3.eth.getBalance(acc1);//returns strings!
-        balance2 = await web3.eth.getBalance(acc2);//returns strings!
-        console.log('acc0',  acc0, balance0);//100,00000000,0000000000
-        console.log('acc1',  acc1, balance1);
-        console.log('acc2',  acc2, balance2);
+        balance0 = await web3.eth.getBalance(Backend);//returns strings!
+        balance1 = await web3.eth.getBalance(AssetOwner1);//returns strings!
+        balance2 = await web3.eth.getBalance(AssetOwner2);//returns strings!
+        console.log('Backend',  Backend, balance0);//100,00000000,0000000000
+        console.log('AssetOwner1',  AssetOwner1, balance1);
+        console.log('AssetOwner2',  AssetOwner2, balance2);
     }
 
     console.log('\nDeploying contracts...');
@@ -334,30 +366,30 @@ const deploy = async () => {
 
     if (ctrtName === 'platform') {
       //Deploying Platform contract...
-      platformCtAdmin = acc0;
+      platformCtAdmin = Backend;
       const argsPlatform = [platformCtAdmin, management];
       console.log('\nDeploying Platform contract...');
       instPlatform =  await new web3.eth.Contract(Platform.abi)
       .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-      .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
       //.then(console.log);
       console.log('Platform.sol has been deployed');
       if (instPlatform === undefined) {
         console.log('[Error] instPlatform is NOT defined');
         } else {console.log('[Good] instPlatform is defined');}
       instPlatform.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      addrPlatformContract = instPlatform.options.address;
-      console.log('addrPlatformContract:', addrPlatformContract);
+      addrPlatform = instPlatform.options.address;
+      console.log('addrPlatform:', addrPlatform);
 
     } else if (ctrtName === 'multisig') {
 
-      const argsMultiSig1 = [AssetOwner1, addrPlatformContract];
-      const argsMultiSig2 = [AssetOwner2, addrPlatformContract];
+      const argsMultiSig1 = [AssetOwner1, addrPlatform];
+      const argsMultiSig2 = [AssetOwner2, addrPlatform];
 
       console.log('\nDeploying multiSig contracts...');
       instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-      .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
       //.then(console.log);
       console.log('MultiSig1 has been deployed');
       if (instMultiSig1 === undefined) {
@@ -366,10 +398,11 @@ const deploy = async () => {
       instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       addrMultiSig1 = instMultiSig1.options.address;
       console.log('addrMultiSig1:', addrMultiSig1);
+      console.log('waiting for addrMultiSig2...');
 
       instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-      .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
       //.then(console.log);
       console.log('MultiSig2 has been deployed');
       if (instMultiSig2 === undefined) {
@@ -382,16 +415,16 @@ const deploy = async () => {
   } else if (ctrtName === 'assetbook') {
     // addrMultiSig1 = '0xAF5065cD6A1cCe522D8ce712A5C7C52682740565';
     // addrMultiSig2 = '0xc993fD11a829d96015Cea876D46ac67B5aADCAF1';
-    // addrPlatformContract = '0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9';
-    argsAssetBook1 = [ AssetOwner1, addrMultiSig1, addrPlatformContract, timeCurrent];
-    argsAssetBook2 = [ AssetOwner2, addrMultiSig2, addrPlatformContract, timeCurrent];
+    // addrPlatform = '0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9';
+    argsAssetBook1 = [ AssetOwner1, addrMultiSig1, addrPlatform, timeCurrent];
+    argsAssetBook2 = [ AssetOwner2, addrMultiSig2, addrPlatform, timeCurrent];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
     
     instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook1 })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -403,10 +436,11 @@ const deploy = async () => {
     //instAssetBook1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrAssetBook1 = instAssetBook1.options.address;
     console.log('addrAssetBook1:', addrAssetBook1);
+    console.log('waiting for addrAssetBook2...');
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -429,7 +463,7 @@ const deploy = async () => {
     const argsRegistry = [management];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -452,7 +486,7 @@ const deploy = async () => {
       timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -470,12 +504,12 @@ const deploy = async () => {
 
   } else if (ctrtName === 'erc721splc') {
     //Deploying ERC721SPLC contract...
-    /** https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
+    /**
+     * 
+     * https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
-    addrRegistry = '0x7192FCdDE5A7ad37E4F316fEca7EbE98b1634956';
-    addrTokenController = '0xcc3903eb32b16C6Fd646BE9D2cda035F28e2BB3e';
 
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
@@ -489,7 +523,7 @@ const deploy = async () => {
     console.log('\nDeploying ERC721SPLC contract...');
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
     .deploy({ data: prefix+ERC721SPLC.bytecode, arguments: argsERC721SPLC })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -505,7 +539,7 @@ const deploy = async () => {
     addrERC721SPLC = instERC721SPLC.options.address;
     console.log('addrERC721SPLC:', addrERC721SPLC);
     /**
-    value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue
+    value: '0', from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3.utils.toWei('10','ether')
     */
 
@@ -514,7 +548,7 @@ const deploy = async () => {
    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, management];
    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
     .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -537,7 +571,7 @@ const deploy = async () => {
 
     instIncomeManagement = await new web3.eth.Contract(IncomeManagement.abi)
     .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -557,7 +591,7 @@ const deploy = async () => {
   } else if (ctrtName === 'productmanager') {
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
