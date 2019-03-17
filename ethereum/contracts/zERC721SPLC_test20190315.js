@@ -55,72 +55,52 @@ let timeCurrent = timeInitial, txnNum = 1, isShowCompiledCtrt = false;
 console.log('chain = ', chain, ', txnNum =', txnNum, ', timeCurrent =', timeCurrent);
 
 let Backend, AssetOwner1, AssetOwner2, acc3, acc4;
-let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, acc3pkRaw, acc4pkRaw;
-let Backendpk, AssetOwner1pk, AssetOwner2pk, acc3pk, acc4pk;
-let addrPlatform, addrMultiSig1, addrMultiSig2, addrAssetBook1, addrAssetBook2, addrRegistry, addrTokenController, addrERC721SPLC, addrCrowdFunding;
+let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, acc3privateKeyRaw, acc4privateKeyRaw;
+let Backendpk, AssetOwner1pk, AssetOwner2pk, acc3privateKey, acc4privateKey;
+let addrPlatformContract, addrMultiSig1, addrMultiSig2, addrAssetBook1, addrAssetBook2, addrRegistry, addrTokenController, addrERC721SPLC, addrCrowdFunding;
 let amount, to;
 let nodeUrl;
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
   console.log('inside chain === 1');
+  addrPlatformContract = "0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9";
+  addrMultiSig1 = "0xAF5065cD6A1cCe522D8ce712A5C7C52682740565";
+  addrMultiSig2 = "0xc993fD11a829d96015Cea876D46ac67B5aADCAF1";
+  
+  addrAssetBook1 = "0x666da33635327eDC3Ddb620Ed9fa93fd06962575";
+  addrAssetBook2 = "0x8e58F2253d68e681C0295599aec7576f3BCb5C4d";
+  
+  addrRegistry = "0x7192FCdDE5A7ad37E4F316fEca7EbE98b1634956";
+  addrTokenController = "0xcc3903eb32b16C6Fd646BE9D2cda035F28e2BB3e";
+  addrERC721SPLC = "0x303139caFBDAce44feE8B48Af16b276c02CE7De1";
+  addrCrowdFunding = "0xa08BC0262dD868dFa7d33552612fA6C1539F389B";
 
-  let scenario = 1;//1: new accounts, 2: POA node accounts
-  if (scenario===1) {
-    console.log('scenario = ', scenario);
-    addrPlatform = "0x2F706dd9955FfE3A0655846b9f5058D16A9B5Fa5";
-    addrMultiSig1 = "0xb5C37059C85c5F5d59755226B9fa08bec3B2B47c";
-    addrMultiSig2 = "0xf6B7d36EBdeb036b308d30b93C4F34a6902f5828";
-    addrAssetBook1 = "0x3614d6068aC16b7Cc4eb34b70c7a9BB6fb9e9B43";
-    addrAssetBook2 = "0x9CEEb4137F0FeDF180afeaDD2A49Bcc555e03EeF";
-    addrRegistry = "0x7b376c71A04Bc487F3Cf2B5938DdDAe8EdB33bb3";
-    addrTokenController = "0xd1b8609793DC685e25c34343c37F547c457145eb";
-    addrERC721SPLC = "0xACEf03ac42CE601CF8921ccBEcE7f12A80Df5778";
+  Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+  BackendpkRaw = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-    Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
-    BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
-    AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
-    AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
-    AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
-    AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
-    acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
-    acc3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
-    acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
-    acc4pkRaw = "0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f";
+  //Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
+  //BackendpkRaw = "0xdb7ec98d7453d3eebe01119c843e56159433a388362374a3b996b930ea182960";
 
-  } else if (scenario === 2) {
-    console.log('scenario = ', scenario);
-    addrPlatform = "0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9";
-    addrMultiSig1 = "0xAF5065cD6A1cCe522D8ce712A5C7C52682740565";
-    addrMultiSig2 = "0xc993fD11a829d96015Cea876D46ac67B5aADCAF1";
-    addrAssetBook1 = "0x666da33635327eDC3Ddb620Ed9fa93fd06962575";
-    addrAssetBook2 = "0x8e58F2253d68e681C0295599aec7576f3BCb5C4d";
-    addrRegistry = "0x7192FCdDE5A7ad37E4F316fEca7EbE98b1634956";
-    addrTokenController = "0xcc3903eb32b16C6Fd646BE9D2cda035F28e2BB3e";
-    addrERC721SPLC = "0x303139caFBDAce44feE8B48Af16b276c02CE7De1";
-    addrCrowdFunding = "0xa08BC0262dD868dFa7d33552612fA6C1539F389B";
+  AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
+  AssetOwner1pkRaw = "0xd05a673b9efe63079cd7fd35478f279233287294730a990a32fc29c699ec21de";
 
-    Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-    BackendpkRaw = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
-    //Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
-    //BackendpkRaw = "0xdb7ec98d7453d3eebe01119c843e56159433a388362374a3b996b930ea182960";
+  AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
+  AssetOwner2pkRaw = "0x648dbeca98e7d88515596fa6d9793bf8852107f0b8fbaebb0a1f5f73dc39e9f0";
 
-    AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
-    AssetOwner1pkRaw = "0xd05a673b9efe63079cd7fd35478f279233287294730a990a32fc29c699ec21de";
+  acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
+  acc3privateKeyRaw = "0xccaf612eab2e083aace09bf3b701a152d82c62f91462eee6edc581bcfe79e2f7";
 
-    AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
-    AssetOwner2pkRaw = "0x648dbeca98e7d88515596fa6d9793bf8852107f0b8fbaebb0a1f5f73dc39e9f0";
-
-    acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
-    acc3pkRaw = "0xccaf612eab2e083aace09bf3b701a152d82c62f91462eee6edc581bcfe79e2f7";
-
-    acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
-    acc4pkRaw = "0x6e1d4a3eab8a8fab0e4c43c4ada1c644feda497b5aceeb487ec3b3bab493c5ce";
-  }
+  acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
+  acc4privateKeyRaw = "0x6e1d4a3eab8a8fab0e4c43c4ada1c644feda497b5aceeb487ec3b3bab493c5ce";
 
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
   console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
+
+  Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
+  AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
+  AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
 
   //Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
 
@@ -475,33 +455,15 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
 }
 
 const backendCtrt = async () => {
-  //web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
-  //Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
-
-  if (1 === 1){
-    Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
-    AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
-    AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
-  } else {
-    console.log('Backendpk use 2nd');
-    Backendpk = BackendpkRaw.substr(2);
-    AssetOwner1pk = AssetOwner1pkRaw.substr(2);
-    AssetOwner2pk = AssetOwner2pkRaw.substr(2);
-  }
-
-  provider = new PrivateKeyProvider(Backendpk, nodeUrl);
+  provider = new PrivateKeyProvider(Backendpk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
   web3 = new Web3(provider);
-  
-  //provider = new PrivateKeyProvider(Backendpk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
-  //const addr1 = web3.utils.toChecksumAddress(addrPlatform);
-  const instPlatform = new web3.eth.Contract(Platform.abi, addrPlatform);
+  //const addr1 = web3.utils.toChecksumAddress(addrPlatformContract);
+  const instPlatform = new web3.eth.Contract(Platform.abi, addrPlatformContract);
   const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-  const instMultiSig1 = new web3.eth.Contract(MultiSig.abi,addrAssetBook1);
-  const instMultiSig2 = new web3.eth.Contract(MultiSig.abi,addrAssetBook2);
-  const instAssetBook1 = new web3.eth.Contract(AssetBook.abi,addrAssetBook1);
-  const instAssetBook2 = new web3.eth.Contract(AssetBook.abi,addrAssetBook2);
   const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
   const instERC721SPLC = new web3.eth.Contract(ERC721SPLC.abi, addrERC721SPLC);
+  const instAssetBook1 = new web3.eth.Contract(AssetBook.abi,addrAssetBook1);
+  const instAssetBook2 = new web3.eth.Contract(AssetBook.abi,addrAssetBook2);
   // const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, addrCrowdFunding);
   // const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
   // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
@@ -532,16 +494,15 @@ const backendCtrt = async () => {
   console.log('addrMultiSig1', addrMultiSig1);
   console.log('addrMultiSig2', addrMultiSig2);
   let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
-  console.log('assetOwnerM1', assetOwnerM1);
   checkEq(assetOwnerM1, AssetOwner1);
   let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
   checkEq(assetOwnerM2, AssetOwner2);
 
   console.log('\nCheck getPlatformContractAddr()');
   let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
-  checkEq(platformM1, addrPlatform);
+  checkEq(platformM1, addrPlatformContract);
   let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
-  checkEq(platformM2, addrPlatform);
+  checkEq(platformM2, addrPlatformContract);
 
   console.log('\n------------==Check AssetBook contract 1 & 2');
   console.log('addrAssetBook1', addrAssetBook1);
@@ -1105,7 +1066,7 @@ const resetAssetBook = async (assetbookNum) => {
 const getSystemInfo = async () => {
   provider = new PrivateKeyProvider(Backendpk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
   web3 = new Web3(provider);
-  const instPlatform = new web3.eth.Contract(Platform.abi, addrPlatform);
+  const instPlatform = new web3.eth.Contract(Platform.abi, addrPlatformContract);
   const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
   const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
   const instERC721SPLC = new web3.eth.Contract(ERC721SPLC.abi, addrERC721SPLC);
