@@ -14,8 +14,8 @@ if (process.argv.length < 6) {
 }
 const chain = parseInt(process.argv[3]);//0;
 const ctrtName = process.argv[5];//'assetbook';
-let timeCurrent = 201903081040;
-console.log('chain = ', chain, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
+let timeCurrent = 201903081040, Bufferfrom = true;
+console.log('chain = ', chain, ', Bufferfrom =', Bufferfrom, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
 
 let Backend, AssetOwner1, AssetOwner2, acc3, acc4;
 let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, Backendpk;
@@ -47,25 +47,30 @@ m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c
   /** deployed contracts
    * 'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
    */
-  addrPlatform = "0x2F706dd9955FfE3A0655846b9f5058D16A9B5Fa5";
-  addrMultiSig1 = "0xb5C37059C85c5F5d59755226B9fa08bec3B2B47c";
-  addrMultiSig2 = "0xf6B7d36EBdeb036b308d30b93C4F34a6902f5828";
-  addrAssetBook1 = "0x3614d6068aC16b7Cc4eb34b70c7a9BB6fb9e9B43";
-  addrAssetBook2 = "0x9CEEb4137F0FeDF180afeaDD2A49Bcc555e03EeF";
-  addrRegistry = "0x7b376c71A04Bc487F3Cf2B5938DdDAe8EdB33bb3";
-  addrTokenController = "0xd1b8609793DC685e25c34343c37F547c457145eb";
-  addrERC721SPLC = "0xACEf03ac42CE601CF8921ccBEcE7f12A80Df5778";
+  addrPlatform = "0x135153C82E45A9700CD045A133c038EcEA17BD1C";
+  addrMultiSig1 = "0xC954E0bc796DeFaC16616E63E6A74D6eF1FED537";
+  addrMultiSig2 = "0x4ff8a943501aAC384D66B37Ed595c384Aedb56D2";
+  addrAssetBook1 = "0xfF6646a2608bF63Ccf39bB8105D8cF9084aF84E3";
+  addrAssetBook2 = "0xe5EB5c40E1D96D26b5ddf52D3Ac1C31b8e1808cC";
+  addrRegistry =   "0x1eAc971AA1A614e25B00FE9FB04Ba11D56Bf45A3";
+  addrTokenController = "0x8f3c68c95a2e217A2B138ffB9B4985754ec0C3f8";
+  addrERC721SPLC = "0xfd7A913CCA5CB8167F6744c3053D57dd52B1C0A4";
+  addrCrowdFunding = "0x7f0B7e648Dc595aE8ec4FF4aFB7A74278D4b496f";
+
+  // addrPlatform = "0x2F706dd9955FfE3A0655846b9f5058D16A9B5Fa5";
+  // addrMultiSig1 = "0xb5C37059C85c5F5d59755226B9fa08bec3B2B47c";
+  // addrMultiSig2 = "0xf6B7d36EBdeb036b308d30b93C4F34a6902f5828";
+  // addrAssetBook1 = "0x3614d6068aC16b7Cc4eb34b70c7a9BB6fb9e9B43";
+  // addrAssetBook2 = "0x9CEEb4137F0FeDF180afeaDD2A49Bcc555e03EeF";
+  // addrRegistry = "0x7b376c71A04Bc487F3Cf2B5938DdDAe8EdB33bb3";
+  // addrTokenController = "0xd1b8609793DC685e25c34343c37F547c457145eb";
+  // addrERC721SPLC = "0xACEf03ac42CE601CF8921ccBEcE7f12A80Df5778";
   //addrIncomeManagement = "";
   //addrProductManager = "";  
 
   // let backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
   // let backendRawPrivateKey = '0x'+backendPrivateKey;
 
-  // Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
-  // AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
-  // AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
-  // acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
-  // acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
 
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
@@ -73,11 +78,16 @@ m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c
 
   const nodeUrl = "http://140.119.101.130:8545";
 
-  if (1 === 2){
+  if (Bufferfrom){
+    console.log('Backendpk use Buffer.from');
     Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
+    AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
+    AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
   } else {
-    console.log('Backendpk use 2nd');
+    console.log('Backendpk use substr(2)');
     Backendpk = BackendpkRaw.substr(2);
+    AssetOwner1pk = AssetOwner1pkRaw.substr(2);
+    AssetOwner2pk = AssetOwner2pkRaw.substr(2);
   }
   provider = new PrivateKeyProvider(Backendpk, nodeUrl);
   web3 = new Web3(provider);
@@ -405,7 +415,7 @@ const deploy = async () => {
       instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       addrMultiSig1 = instMultiSig1.options.address;
       console.log('addrMultiSig1:', addrMultiSig1);
-      console.log('waiting for addrMultiSig2...');
+      console.log('\nwaiting for addrMultiSig2...');
 
       instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
@@ -439,11 +449,11 @@ const deploy = async () => {
         console.log('error:', error.toString());
     });
 
-    console.log('AssetBook.sol has been deployed');
+    console.log('AssetBook1 has been deployed');
     //instAssetBook1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrAssetBook1 = instAssetBook1.options.address;
     console.log('addrAssetBook1:', addrAssetBook1);
-    console.log('waiting for addrAssetBook2...');
+    console.log('\nwaiting for addrAssetBook2...');
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
@@ -455,12 +465,14 @@ const deploy = async () => {
         console.log('error:', error.toString());
     });
 
-    console.log('AssetBook.sol has been deployed');
+    console.log('AssetBook2 has been deployed');
     if (instAssetBook2 === undefined) {
       console.log('[Error] instAssetBook2 is NOT defined');
       } else {console.log('[Good] instAssetBook2 is defined');}
     instAssetBook2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrAssetBook2 = instAssetBook2.options.address;
+
+    console.log('addrAssetBook1:', addrAssetBook1);
     console.log('addrAssetBook2:', addrAssetBook2);
     //*/
 
