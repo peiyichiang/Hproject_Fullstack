@@ -580,7 +580,6 @@
             let management = JSON.stringify(["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"]);
 
             console.log("TokenController deploying...");
-
             $.post("http://localhost:3000/TokenControllerContractAPI/deploy", {
                 TimeTokenLaunch: 201902230901,
                 TimeTokenUnlock: 201902230900,
@@ -592,6 +591,7 @@
                 let tokencontrollerContract = result.contractAddress;
 
                 if (result.status == true) {
+                    console.log("ERC721ContractAPI deploying...");
                     $.post("http://localhost:3000/ERC721ContractAPI/deploy", {
                         nftName: nftName,
                         nftSymbol: nftSymbol,
@@ -631,7 +631,7 @@
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
 
-                let assetBookAddrs = ["0xB6f87704c5E60497FaA20ABe362bf9277254231E","0xB6f87704c5E60497FaA20ABe362bf9277254231E", "0x5189969d43df6be574fe751596e520c97f1Aa077"];
+                let assetBookAddrs = ["0x6F3CdB6Abb6a32cB127eCBc9D2652E59B3959230","0x6F3CdB6Abb6a32cB127eCBc9D2652E59B3959230", "0x2a592d5ae86BC63b5F8bD772D618B3D9F71F4875"];
                 console.log(assetBookAddrs);
 
                 console.log("approving...");
@@ -651,10 +651,6 @@
                             uris: JSON.stringify(uris)
                         }, function (result) {
                             console.log(result);
-
-                            if (result.result == true) {
-
-                            }
                         });
                     }
                 });

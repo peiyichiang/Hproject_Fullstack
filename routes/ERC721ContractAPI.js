@@ -5,9 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -16,15 +16,15 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
-var registryContractAddr = "0xFB86A8045ff376e658109A9F4CE45D9A986117C1";
+var registryContractAddr = "0x013B930938215d6cc96C7C1D37a8888845F37821";
 
 
 //deploy asset contract
 router.post('/deploy', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -310,7 +310,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 7000000,
+                    gas: 6500000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),

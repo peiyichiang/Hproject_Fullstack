@@ -7,9 +7,9 @@ var router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -18,15 +18,15 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*contract info*/
 const contract = require('../ethereum/contracts/build/Registry.json');
-let contractAddr = "0xFB86A8045ff376e658109A9F4CE45D9A986117C1";
+let contractAddr = "0x013B930938215d6cc96C7C1D37a8888845F37821";
 
 
 /*deploy registryContract*/
 router.post('/deploy', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -39,7 +39,7 @@ router.post('/deploy', function (req, res, next) {
     })
         .send({
             from: backendAddr,
-            gas: 8000000,
+            gas: 6500000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {

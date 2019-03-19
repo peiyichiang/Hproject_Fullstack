@@ -8,9 +8,9 @@ var router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -23,9 +23,9 @@ const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
 router.post('/deploy', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -42,7 +42,7 @@ router.post('/deploy', async function (req, res, next) {
     })
         .send({
             from: backendAddr,
-            gas: 7000000,
+            gas: 6500000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
@@ -244,14 +244,53 @@ router.post('/transferAssetBatch', async function (req, res, next) {
     let tokenAddr = req.body.tokenAddr;
     let to = req.body.to;
     let amount = req.body.amount;
-    let time = req.body.time;
+    let assetBook = new web3.eth.Contract(assetBookContract.abi, contractAddr);
+    console.log(req.body);
+
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+
+    let encodedData = assetBook.methods.transferAssetBatch(tokenAddr, amount, to).encodeABI();
+    let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+
+});
+
+router.post('/fixTimeIndexedIds', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let tokenAddr = req.body.tokenAddr;
+    let amount = req.body.amount;
     let assetBook = new web3.eth.Contract(assetBookContract.abi, contractAddr);
 
     /*用手機keychain 抓公私鑰*/
     let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
     let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-    let encodedData = assetBook.methods.transferAssetBatch(tokenAddr, amount, to, time).encodeABI();
+    let encodedData = assetBook.methods.fixTimeIndexedIds(tokenAddr, amount).encodeABI();
+    let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+
+
+});
+
+router.post('/updateReceivedAsset', async function (req, res, next) {
+    let contractAddr = req.body.address;
+    let tokenAddr = req.body.tokenAddr;
+    let assetBook = new web3.eth.Contract(assetBookContract.abi, contractAddr);
+
+    /*用手機keychain 抓公私鑰*/
+    let assetsOwner = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+    let ownerPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+
+    let encodedData = assetBook.methods.updateReceivedAsset(tokenAddr).encodeABI();
     let result = await signTx(assetsOwner, ownerPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -264,6 +303,7 @@ router.post('/transferAssetBatch', async function (req, res, next) {
 //通過User ID獲取Completed Order
 router.get('/myAsset', async function (req, res, next) {
     var token = req.query.JWT_Token;
+    console.log(token);
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "privatekey", async function (err, decoded) {
@@ -278,7 +318,7 @@ router.get('/myAsset', async function (req, res, next) {
                 return;
             } else {
                 //JWT token驗證成功
-
+                console.log(decoded);
                 console.log(decoded.u_assetbookContractAddress);
                 let contractAddr = decoded.u_assetbookContractAddress;
                 let assetBook = new web3.eth.Contract(assetBookContract.abi, contractAddr);
@@ -377,6 +417,7 @@ router.get('/myAsset', async function (req, res, next) {
         };
     }
 });
+
 
 
 /*sign rawtx*/
