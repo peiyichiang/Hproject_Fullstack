@@ -398,7 +398,8 @@ contract AssetBook {
             //---------------==Using ArrayUtils contract's logic
             //uint assetAmount = assets[_assetAddr].assetAmount;
             //require(assetAmount == arrayLength, "assetAmount == arrayLength");//checked by ERC721 logic
-            require(arrayLength == idxEnd.add(1), "array length should be equal to idxEnd+1");
+
+            //require(arrayLength == idxEnd.add(1), "array length should be equal to idxEnd+1");
             require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
             require(amount > 0, "amount must be > 0");
 
@@ -420,20 +421,20 @@ contract AssetBook {
     }
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory symbol, uint assetAddrIndex, uint amount, uint timeIndexStart, uint timeIndexEnd, bool isInitialized, uint[] memory assetIdsFromAssetBook, uint[] memory assetIdsFromERC721){
+    returns (string memory symbol, uint assetAddrIndex, uint amount, 
+        uint timeIndexStart, uint timeIndexEnd, bool isInitialized, 
+        uint[] memory assetIdsFromAssetBook){
         Asset memory asset = assets[_assetAddr];
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
         return (asset.assetSymbol, asset.assetAddrIndex, 
         asset.assetAmount, asset.timeIndexStart, 
         asset.timeIndexEnd, asset.isInitialized, 
-        asset.ids, erc721.get_ownerToIds(address(this)));
+        asset.ids);
     }
 
     function getAssetIds(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (uint[] memory, uint[] memory) {
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        return (assets[_assetAddr].ids, erc721.get_ownerToIds(address(this))); 
+    returns (uint[] memory) {
+        return (assets[_assetAddr].ids); 
     }
 
     /** @dev get asset number */

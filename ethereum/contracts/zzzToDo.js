@@ -1,3 +1,33 @@
+  //----------------==Send tokens after valid time
+  console.log('\n------------==Send tokens after valid date');
+  timeCurrent = TimeTokenValid;
+  await instTokenController.methods.setTimeCurrent(timeCurrent)
+  .send({ value: '0', from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
+  isUnlockedValid = await instTokenController.methods.isUnlockedValid().call(); 
+  checkEq(isUnlockedValid, false);
+
+  amount = 1;
+  error = false;
+  try {
+    if (txnNum===1) {
+      fromAddr = AssetOwner2; privateKey = AssetOwner2pk; ctrtAddr = addrAssetBook2; to = addrAssetBook1;
+      encodedData = instAssetBookFrom.methods.transferAssetBatch(assetAddr, amount, to).encodeABI();
+      signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
+
+    } else { to = addrAssetBook1;
+      await instAssetBookFrom.methods.transferAssetBatch(assetAddr, amount, to)
+      .send({ value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    }
+  } catch (err) {
+    console.log('[Success] sending 1 token from assetCtrt2 to assetCtrt1 failed because of not meeting the condition: timeCurrent > TimeTokenValid', timeCurrent, TimeTokenValid);
+    //assert(err);
+  }
+  if (error) {
+    console.log("\x1b[31m", '[Error] Why did not this fail???', error);
+    process.exit(1);
+  }
+
 //----------------------==
 const  = async (a1) => {
   //-----------------==Send Tokens in batch
