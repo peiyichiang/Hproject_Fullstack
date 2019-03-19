@@ -943,7 +943,6 @@ describe('Tests on ERC721SPLC', () => {
     .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
     //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
 
-    console.log('before fixTimeIndexedIds()');
     await instAssetBook1.methods.fixTimeIndexedIds(_assetAddr, amount)
     .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
     //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
