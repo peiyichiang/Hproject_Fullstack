@@ -16,7 +16,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
-var registryContractAddr = "0x013B930938215d6cc96C7C1D37a8888845F37821";
+var registryContractAddr = "0xE57ceA24952EAb91021c6AeBC9eefA61567e80c3";
 
 
 //deploy asset contract

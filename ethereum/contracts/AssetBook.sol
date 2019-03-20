@@ -291,7 +291,7 @@ contract AssetBook {
 
     //preserving buy/sell sequence for FIFO accounting purpose
     //to receive assets and give timeIndex to each received asset
-    function updateAssetTokenDetails(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
+    function resetAssetBook(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         assets[_assetAddr].assetSymbol = erc721.symbol();
         assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
@@ -334,7 +334,7 @@ contract AssetBook {
         require(tokenBalanceOf > 0, "tokenBalanceOf should be > 0");
 
         erc721.safeTransferFrom(address(this), _to, _tokenId);
-        updateAssetTokenDetails(_assetAddr);
+        resetAssetBook(_assetAddr);
         emit TransferAssetEvent(_to, assets[_assetAddr].assetSymbol, _tokenId, tokenBalanceOf, _timeCurrent);
     }
 
@@ -385,56 +385,68 @@ contract AssetBook {
     function fixTimeIndexedIds(address _assetAddr, uint amount) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
 
-        require(amount > 0, "amount must be > 0");
         uint idxStart = assets[_assetAddr].timeIndexStart;
         uint idxEnd = assets[_assetAddr].timeIndexEnd;
-        uint idxStartOut = idxStart.add(amount);
-        uint arrayLength = assets[_assetAddr].ids.length;
-        uint arrLenOut = arrayLength.sub(amount);//token balance
+        uint arrayLen = assets[_assetAddr].ids.length;
+        uint[] memory arrayOut;
+        uint idxStartOut;
+        //---------------==Using ArrayUtils contract's logic
+        //uint assetAmount = assets[_assetAddr].assetAmount;
+        //require(assetAmount == arrayLen, "assetAmount == arrayLen");//checked by ERC721 logic
 
-        assets[_assetAddr].assetAmount = arrLenOut;
-        uint[] memory arrayOut = new uint[](arrLenOut);
+        //require(arrayLen == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+        require(arrayLen == idxEnd.sub(idxStart).add(1), "array length should be equal to idxEnd-idxStart+1");
 
-            //---------------==Using ArrayUtils contract's logic
-            //uint assetAmount = assets[_assetAddr].assetAmount;
-            //require(assetAmount == arrayLength, "assetAmount == arrayLength");//checked by ERC721 logic
-            require(arrayLength == idxEnd.add(1), "array length should be equal to idxEnd+1");
-            require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
-            require(amount > 0, "amount must be > 0");
+        require(amount > 0, "amount must be > 0");
+        require(amount <= arrayLen, "amount must be <= arrayLen");
 
-            require(idxEnd.sub(idxStartOut).add(1) == arrLenOut, "arrLenOut, start, end");
-            require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
+        if (amount == arrayLen) {
 
-            for(uint i = idxStartOut; i <= idxEnd; i++) {
-                arrayOut[i.sub(idxStartOut)] = assets[_assetAddr].timeIndexToTokenId[i];
-            }
-            //---------------==Using external ArrayUtils contract
-            //VM cannot read variable-sized data from external function calls. 
-            // ArrayUtilsITF_assetbook arrayUtils = ArrayUtilsITF_assetbook(address(uint160(arrayUtilsAddr)));
-            // uint[] memory tokenIds = assets[_assetAddr].ids;
-            // arrayOut = arrayUtils.sliceB(tokenIds, idxStart, idxEnd, amount);
+        } else {
+          uint arrayLenOut = arrayLen.sub(amount);
+          idxStartOut = idxStart.add(amount);
+
+          assets[_assetAddr].assetAmount = arrayLenOut;
+          arrayOut = new uint[](arrayLenOut);
+
+          arrayOut = new uint[](arrayLenOut);
+          require(idxEnd.sub(idxStartOut).add(1) == arrayLenOut, "arrayLenOut, start, end");
+          require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
+
+          for(uint i = idxStartOut; i <= idxEnd; i++) {
+              arrayOut[i.sub(idxStartOut)] = assets[_assetAddr].timeIndexToTokenId[i];
+          }
+
+        }
+
+        //---------------==Using external ArrayUtils contract
+        //VM cannot read variable-sized data from external function calls. 
+        // ArrayUtilsITF_assetbook arrayUtils = ArrayUtilsITF_assetbook(address(uint160(arrayUtilsAddr)));
+        // uint[] memory tokenIds = assets[_assetAddr].ids;
+        // arrayOut = arrayUtils.sliceB(tokenIds, idxStart, idxEnd, amount);
 
         assets[_assetAddr].ids = arrayOut;
         assets[_assetAddr].timeIndexStart = idxStartOut;
-
     }
+
+
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory symbol, uint assetAddrIndex, uint amount, uint timeIndexStart, uint timeIndexEnd, bool isInitialized, bool isApproved, uint[] memory assetIdsFromAssetBook, uint[] memory assetIdsFromERC721){
+    returns (string memory symbol, uint assetAddrIndex, uint amount, 
+        uint timeIndexStart, uint timeIndexEnd, bool isInitialized, 
+        uint[] memory assetIdsFromAssetBook){
         Asset memory asset = assets[_assetAddr];
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
         return (asset.assetSymbol, asset.assetAddrIndex, 
         asset.assetAmount, asset.timeIndexStart, 
         asset.timeIndexEnd, asset.isInitialized, 
-        asset.isApprovedToWrite,
-        asset.ids, erc721.get_ownerToIds(address(this)));
+        asset.ids);
     }
 
     function getAssetIds(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (uint[] memory, uint[] memory) {
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        return (assets[_assetAddr].ids, erc721.get_ownerToIds(address(this))); 
+    returns (uint[] memory) {
+        return (assets[_assetAddr].ids); 
     }
 
     /** @dev get asset number */
@@ -494,44 +506,51 @@ contract ArrayUtils {
     using SafeMath for uint256;
     mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
 
-    //[0, 1, 2, 3, 4], 0, 4, 3
+    //inputs: [0, 1, 2, 3, 4], 0, 4, 1      [0, 1, 2, 3, 4], 0, 4, 0
     //sliceA gives the 1st part of the input array
     function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external pure returns (uint[] memory){
+        external pure returns (uint[] memory arrayOut){
         //ckAssetAddr(_assetAddr)
-        require(array.length == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        uint arrayLen = array.length;
+        require(arrayLen == idxEnd.sub(idxStart).add(1), "array length should be equal to idxEnd-idxStart+1");
         require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
         require(amount > 0, "amount must be > 0");
+        require(amount <= arrayLen, "amount must be <= arrayLen");
 
         uint idxEndReq = idxStart.add(amount).sub(1);
         require(idxEndReq <= idxEnd, "idxEndReq must be equal to/lesser than idxEnd");
-        require(idxEndReq >= 0, "idxEndReq should be >= 0");
-        uint[] memory arrayOut = new uint[](amount);
+
+        arrayOut = new uint[](amount);
         for(uint i = 0; i <= idxEndReq; i++) {
             arrayOut[i] = array[idxStart.add(i)];
         }
-        return arrayOut;
     }
 
-    //[0, 1, 2, 3, 4], 0, 4, 3
+    //inputs: [0, 1, 2, 3, 4], 0, 4, 4     [0, 1, 2, 3, 4], 0, 4, 5
     //sliceB gives the 2nd part of the input array
     function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external pure returns (uint[] memory) {
-
-        require(array.length == idxEnd.add(1), "array length should be equal to idxEnd+1");
+        external pure returns (uint[] memory arrayOut) {
+        uint arrayLen = array.length;
+        require(arrayLen == idxEnd.sub(idxStart).add(1), "array length should be equal to idxEnd-idxStart+1");
         require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
         require(amount > 0, "amount must be > 0");
-        uint idxStartOut = idxStart.add(amount);
-        uint arrLenOut = array.length.sub(amount);
+        require(amount <= arrayLen, "amount must be <= arrayLen");
 
-        uint[] memory arrayOut = new uint[](arrLenOut);
-        require(idxEnd.sub(idxStartOut).add(1) == arrLenOut, "arrLenOut, start, end");
+        if (amount == arrayLen) {
 
-        require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
-        for(uint i = idxStartOut; i <= idxEnd; i++) {
-            arrayOut[i.sub(idxStartOut)] = array[i];
+        } else {
+          uint arrayLenOut = arrayLen.sub(amount);
+          uint idxStartOut = idxStart.add(amount);
+
+          arrayOut = new uint[](arrayLenOut);
+          require(idxEnd.sub(idxStartOut).add(1) == arrayLenOut, "arrayLenOut, start, end");
+
+          require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
+          for(uint i = idxStartOut; i <= idxEnd; i++) {
+              arrayOut[i.sub(idxStartOut)] = array[i];
+          }
         }
-        return arrayOut;
+
     }
 }
 //--------------------==
