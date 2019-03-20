@@ -165,7 +165,7 @@ interface TokenControllerITF {
 }
 //AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
 interface AssetBookITF {
-    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external;
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId) external;
 }
 
 //==================
@@ -705,7 +705,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //-----------==Enumerable
         uint256 length = ownerToIds[_to].push(_tokenId);
         idToOwnerIndexPlus1[_tokenId] = length;//.sub(1);// - 1;
-        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId, length);
+        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId);
     }
 
     //-------------------==Enumerable
