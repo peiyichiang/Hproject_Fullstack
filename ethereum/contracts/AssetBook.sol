@@ -481,18 +481,9 @@ contract AssetBook {
     }
 
     function getAssetIds(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (uint[] memory arrayOut) {
-        uint idxStart = assets[_assetAddr].idxStart;
-        uint idxEnd = assets[_assetAddr].idxEnd;
-        
-        if (idxStart <= idxEnd) {
-            //require(idxStart <= idxEnd, "idxStart <= idxEnd");
-            uint len = idxEnd.sub(idxStart).add(1);
-            arrayOut = new uint[](len);
-            for(uint i = 0; i < len; i++) {
-                arrayOut[i] = assets[_assetAddr].timeIndexToTokenId[i.add(idxStart)];
-            }
-        }//else arrayOut = [];
+    returns (uint[] memory, uint[] memory) {
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+        return (assets[_assetAddr].ids, erc721.get_ownerToIds(address(this))); 
     }
 
     /** @dev get asset number */
