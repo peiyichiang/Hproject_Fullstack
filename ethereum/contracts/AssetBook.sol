@@ -156,7 +156,6 @@ contract AssetBook {
     address public multiSigContractAddr;
     address public platformContractAddr;
     //address public arrayUtilsAddr;
-    uint idxNotValid = 9999999;
 
     /** @dev asset資料結構 */
     struct Asset{
@@ -255,8 +254,6 @@ contract AssetBook {
         idxStart = assets[_assetAddr].idxStart;
         idxEnd = assets[_assetAddr].idxEnd;
         if (!assets[_assetAddr].isInitialized) {
-            //assets[_assetAddr].idxStart = idxNotValid;
-            //idxStart = idxNotValid;
             amount = 0;
         } else if (idxStart > idxEnd) {
             amount = 0;

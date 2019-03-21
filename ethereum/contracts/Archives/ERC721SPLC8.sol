@@ -165,7 +165,7 @@ interface TokenControllerITF {
 }
 //AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
 interface AssetBookITF {
-    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external;
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId) external;
 }
 
 //==================
@@ -175,8 +175,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
     mapping(uint256 => address) internal idToOwner;//NFT ID to owner
     mapping(uint256 => address) internal idToApprovals;//NFT ID to approved address
-    //mapping(address => uint256) internal ownerToNFTokenCount;//owner address to count of his tokens
-    //mapping(address => mapping (address => bool)) internal ownerToOperators;
+    mapping(address => uint256) internal ownerToNFTokenCount;//owner address to count of his tokens
+    mapping(address => mapping (address => bool)) internal ownerToOperators;
     /** $dev Magic value of a smart contract that can recieve NFT.
     * Equal to: keccak256("onERC721Received(address,uint256,bytes)") */
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
@@ -187,22 +187,13 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //uint256[] internal tokens;//Array of all NFT IDs ... not used
     //mapping(uint256 => uint256) internal idToIndex;
 
-    //Token ID to index Plus 1 in owner tokens list; 0 is reserved for not in list!
-    mapping(uint256 => uint256) internal idToOwnerIndexP1;
+    //Token ID to index in owner tokens list; 0 is reserved for not in list!
+    mapping(uint256 => uint256) internal idToOwnerIndexPlus1;
 
     //owner to his NFT IDs
-    //mapping(address => uint256[]) internal ownerToIds;
+    mapping(address => uint256[]) internal ownerToIds;
 
     //-------------==H token specifics
-    mapping(address => Ownerbook) internal ownerbooks;
-    struct Ownerbook {
-        uint idxStart;
-        uint idxEnd;
-        uint count;// => idxEnd - idxStart + 1
-        mapping (uint => uint) indexToIds;//token Id to time index
-        //uint256[] tokenIds;//=> ownerbooks[owner].indexToIds[index]
-        mapping (address => bool) operators;
-    }
     mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         string name;// NCCU site No.1(2018)
@@ -307,16 +298,11 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         return (idToAsset[_id].name, idToAsset[_id].symbol,
         idToAsset[_id].currency, idToAsset[_id].uri, idToAsset[_id].pricing);
     }
-
-    function getOwnerId(address owner, uint index) external view returns (uint) {
-        return ownerbooks[owner].indexToIds[index];
+    function get_ownerToIds(address _owner) external view returns (uint[] memory) {
+        return ownerToIds[_owner];
     }
-    // function get_ownerToIds(address _owner) external view returns (uint[] memory) {
-    //     return ownerbooks[_owner].tokenIds;
-    // }
-
-    function get_idToOwnerIndex(uint _tokenId) external view returns (uint) {
-        return idToOwnerIndexP1[_tokenId];
+    function get_idToOwnerIndexPlus1(uint _tokenId) external view returns (uint) {
+        return idToOwnerIndexPlus1[_tokenId];
     }
 
     //-------------------==Enumerable
@@ -398,45 +384,25 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //     emit BurnNFT(_owner, _tokenId, msg.sender);
     // }
 
-    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory addrArray) {
+    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory) {
         //maxTokenId = tokenId - 1;
         require(idStart + idCount - 1 <= tokenId, "idStart is too big for idCount");
         address[] memory addrArray;
         for(uint i = idStart; i <= tokenId; i = i.add(1)) {
             addrArray[i] = idToOwner[i];
         }
+        return addrArray;
     }
     function getIdToApprovals(uint256 _tokenId) public view
         validNFToken(_tokenId) returns (address) {
         return idToApprovals[_tokenId];
     }
-    function safeTransferFromBatch(address[] calldata _froms, address[] calldata _tos, uint[] memory _tokenIds) external {
-        require(_froms.length == _tos.length, "_froms.length and _tos.length must be the same");
+    function safeTransferFromBatch(address[] calldata _froms, address[] calldata _tos, uint[] calldata _tokenIds) external {
+        uint toLength = _tokenIds.length;
+        require(_froms.length == toLength && _tos.length == toLength, "_froms.length and _tos.length must be the same as _tokenIds.length");
         for(uint i = 0; i < toLength; i++) {
             _safeTransferFrom(_froms[i], _tos[i], _tokenIds[i], "");
         }
-    }
-
-    function safeTransferFromToOne(address _froms, address _to, uint _amount) external {
-      //canTransfer(_tokenId) validNFToken(_tokenId) 
-        require(_from != address(0), "_to should not be 0x0");
-        require(_to != address(0), "_to should not be 0x0");
-        require(_amount > 0, "_amount should not be > 0");
-
-        if (_to.isContract()) {
-            bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
-                msg.sender, _from, _tokenId, _data);
-            require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
-        }
-
-        require(TokenControllerITF(addrTokenControllerITF).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
-        //Legal Compliance
-        require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
-        require(RegistryITF(addrRegistryITF).isAddrApproved(from), "from is not in compliance");
-
-        removeNFToken(from);
-        addNFToken(_to);
-        emit Transfer(from, _to, _tokenId);
     }
 
     function() external payable { revert("should not send any ether directly"); }
@@ -476,8 +442,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     modifier canOperate(uint256 _tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || ownerbooks[tokenOwner].operators[msg.sender],
-            "tokenOwner should be either msg.sender or is an approved operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender],
+            "tokenOwner should be either msg.sender or is an approved operator");
         _;
     }
 
@@ -486,7 +452,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     modifier canTransfer(uint256 _tokenId) {
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || ownerbooks[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
         _;
     }
 
@@ -502,11 +468,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     * $param _owner Address for whom to query the balance.   */
     function balanceOf(address _owner) external view returns (uint256) {
         require(_owner != address(0), "_owner should not be 0x0");
-        // uint idxStart = ownerbooks[_owner].idxStart;
-        // uint idxEnd = ownerbooks[_owner].idxEnd;
-        // return idxEnd.sub(idx.add(1));//
-        return ownerbooks[_owner].count;
-        //return ownerToNFTokenCount[_owner];
+        return ownerToNFTokenCount[_owner];
     }
 
     /** $dev Returns the address of the owner of the NFT. 
@@ -555,7 +517,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //canTransfer(_tokenId)
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || ownerbooks[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
 
         //validNFToken(_tokenId)
         require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
@@ -575,8 +537,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //canOperate(_tokenId)
         address tokenOwner = idToOwner[_tokenId];
         require(
-            tokenOwner == msg.sender || ownerbooks[tokenOwner].operators[msg.sender],
-            "tokenOwner should be either msg.sender or is an approved operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender],
+            "tokenOwner should be either msg.sender or is an approved operator");
 
         //validNFToken(_tokenId)
         require(idToOwner[_tokenId] != address(0), "owner should not be 0x0");
@@ -598,9 +560,9 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function setApprovalForAll(address _operator, bool _approved) 
         external {
         require(_operator != address(0), "_operator should not be 0x0");
-        ownerbooks[msg.sender].operators[_operator] = _approved;
+        ownerToOperators[msg.sender][_operator] = _approved;
         emit ApprovalForAll(msg.sender, _operator, _approved);
-    }//ownerToOperators[msg.sender][_operator]
+    }
 
     /** $dev Get the approved address for a single NFT.
     * $notice Throws if `_tokenId` is not a valid NFT.
@@ -618,8 +580,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         external view returns (bool) {
         require(_owner != address(0), "_owner should not be 0x0");
         require(_operator != address(0), "_operator should not be 0x0");
-        return ownerbooks[_owner].operators[_operator];
-        //return ownerToOperators[_owner][_operator];
+        return ownerToOperators[_owner][_operator];
     }
 
     /** $dev Actually perform the safeTransferFrom.
@@ -658,8 +619,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //require(RegistryITF(addrRegistryITF).isUnderCompliance(_to, from, 1), "not under compliance");
 
         clearApproval(_tokenId);
-        require(idToOwner[_tokenId] == _from, "tokenId should match _from");
-        removeNFToken(from, _tokenId);
+        removeNFToken(from, _tokenId, 1);
         addNFToken(_to, _tokenId);
         emit Transfer(from, _to, _tokenId);
     }
@@ -686,9 +646,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function _burn(address _owner, uint256 _tokenId) 
         internal validNFToken(_tokenId) {
         clearApproval(_tokenId);
-        require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
-            //only contract owner can destroy the token
-        removeNFToken(_owner, _tokenId);
+        removeNFToken(_owner, _tokenId, 9);
         emit Transfer(_owner, address(0), _tokenId);
         // if (bytes(idToUri[_tokenId]).length != address(0)) {
         //     delete idToUri[_tokenId];
@@ -707,56 +665,47 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     * $notice Use and override this function with caution. Wrong usage can have serious consequences.
     * $param _from Address from wich we want to remove the NFT.
     * $param _tokenId Which NFT we want to remove.  */
-    function removeNFToken(address _from) internal {
-        uint count = ownerbooks[_from].count;
-        require(count > 0, "owner token count should be > 0");
-        uint countM1 = count.sub(1)
-        ownerbooks[_from].count = countM1;
-
-        uint idxStart = ownerbooks[_to].idxStart;
-        uint tokenId = ownerbooks[_to].indexToIds[idxStart]
-        ownerbooks[_to].idxStart = idxStart.add(1);
-
-        delete ownerbooks[_to].indexToIds[idxStart];
-        if (countM1 == 0) {
-            ownerbooks[_to].idxEnd = ownerbooks[_to].idxEnd.add(1);
+    function removeNFToken(
+        address _from, uint256 _tokenId, uint256 mode) internal {
+        if (mode == 1) {//transfer
+            require(idToOwner[_tokenId] == _from, "tokenId should match _from");
+        } else if (mode == 9) {//burn
+            require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
+            //only contract owner can destroy the token
         }
-        uint idx = idToOwnerIndexP1[_tokenId].sub(1);
-        delete idToOwnerIndexP1[_tokenId];
-
-        require(idToOwner[_tokenId] == _from, "tokenId should match _from");
+        require(ownerToNFTokenCount[_from] > 0, "ownerToNFTokenCount[_from] should be > 0");
+        ownerToNFTokenCount[_from] = ownerToNFTokenCount[_from].sub(1);
         delete idToOwner[_tokenId];
-        delete ownerbooks[_to].indexToIds[idx];
 
-        if(idToApprovals[_tokenId] != address(0)) {
-            delete idToApprovals[_tokenId];
-        }
+        //-------------==Enumerable
+        require(ownerToIds[_from].length > 0, "ownerToIds[_from].length should be > 0");
+
+        uint256 tokenToRemoveIndex = idToOwnerIndexPlus1[_tokenId] - 1;
+        uint256 lastIdIndex = ownerToIds[_from].length.sub(1);
+        uint256 lastId = ownerToIds[_from][lastIdIndex];
+
+        ownerToIds[_from][tokenToRemoveIndex] = lastId;
+        //ownerToIds[_from][lastIdIndex] = 0;
+
+        ownerToIds[_from].length = ownerToIds[_from].length.sub(1);
+        // Consider adding a conditional check for the last token in order to save GAS.
+        idToOwnerIndexPlus1[lastId] = tokenToRemoveIndex + 1;
+        idToOwnerIndexPlus1[_tokenId] = 0;// index 0 is reserved for no such token id
     }
+
     /** $dev Assignes a new NFT to owner.
     * $notice Use and override this function with caution. Wrong usage can have serious consequences.
     * $param _to Address to wich we want to add the NFT.
     * $param _tokenId Which NFT we want to add.   */
-    function addNFToken(address _to, uint case) internal {
-        if (case == 1) {
-          
-        }
+    function addNFToken(address _to, uint256 _tokenId) internal {
         require(idToOwner[_tokenId] == address(0), "owner of such tokenId should be 0x0");
         idToOwner[_tokenId] = _to;
-        uint count = ownerbooks[_to].count;
-        ownerbooks[_to].count = count.add(1);
+        ownerToNFTokenCount[_to] = ownerToNFTokenCount[_to].add(1);
 
-        if (count == 1) {
-            ownerbooks[_to].indexToIds[1] = _tokenId;
-            idToOwnerIndexP1[_tokenId] = 1;
-        } else if (count > 1) {
-            uint idxEnd = ownerbooks[_to].idxEnd;
-            uint idxEndPlus1 = idxEnd.add(1);
-            ownerbooks[_to].idxEnd = idxEndPlus1;
-            idToOwnerIndexP1[_tokenId] = idxEndPlus1.add(1);
-            ownerbooks[_to].indexToIds[idxEndPlus1] = _tokenId;
-        }
-        //idToOwnerIndexP1[_tokenId] = count;//.sub(1);// - 1;
-        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId, count);
+        //-----------==Enumerable
+        uint256 length = ownerToIds[_to].push(_tokenId);
+        idToOwnerIndexPlus1[_tokenId] = length;//.sub(1);// - 1;
+        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId);
     }
 
     //-------------------==Enumerable
@@ -764,10 +713,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     * $param _owner Token owner's address.
     * $param _index Index number representing n-th token in owner's list of tokens.*/
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256) {
-        require(_index <= ownerbooks[_owner].idxEnd, "_index should be <= ownerbooks[_owner].idxEnd");
-        require(_index >= ownerbooks[_owner].idxStart, "_index should be >= ownerbooks[_owner].idxStart");
-        return ownerbooks[_owner].indexToIds[_index];
-        //ownerbooks[owner].indexToIds[index]
+        require(_index < ownerToIds[_owner].length, "_index should be < ownerToIds[_owner].length");
+        return ownerToIds[_owner][_index];
     }
 
 }
