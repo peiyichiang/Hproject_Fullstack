@@ -156,17 +156,18 @@ contract AssetBook {
     address public multiSigContractAddr;
     address public platformContractAddr;
     //address public arrayUtilsAddr;
+    uint idxNotValid = 9999999;
 
     /** @dev asset資料結構 */
     struct Asset{
         address assetAddr; //token合約位址
         string assetSymbol; //assetSymbol
-        uint assetAddrIndex; // starting from 1
-        uint[] ids; //擁有的TokenId
-        uint assetAmount; //Token數量
+        //uint assetAddrIndex; // starting from 1
+        //uint[] ids; //擁有的TokenId
+        //uint assetAmount; //Token數量
         mapping (uint => uint) timeIndexToTokenId;//For First In First Out(FIFO) exchange rule
-        uint timeIndexStart;
-        uint timeIndexEnd;
+        uint idxStart;
+        uint idxEnd;
         bool isApprovedToWrite;//by platform to approve writing from the asset contract
         bool isInitialized;
     }
@@ -219,45 +220,68 @@ contract AssetBook {
 
     /** @dev 新增token(當 erc721_token 分配到 AssetBookCtrt 的時候記錄起來)
     For ERC721SPLC-addNFToken(address _to, uint256 _tokenId) to call this when minting new tokens */
-    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external {
-        require(assets[_assetAddr].isApprovedToWrite || msg.sender == platformContractAddr, "Platform must approve writing from asset contract, or platformContractAddr can call this function");
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId) external {
+        //require(assets[_assetAddr].isApprovedToWrite || msg.sender == platformContractAddr, "Platform must approve writing from asset contract, or platformContractAddr can call this function");
         require(_assetAddr != address(0), "_assetAddr should not be zero");
         require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
-
+        uint idxEndOut;
         if(!assets[_assetAddr].isInitialized){
             assets[_assetAddr].isInitialized = true;
             assets[_assetAddr].assetAddr = _assetAddr;
             assets[_assetAddr].assetSymbol = _symbol;
             assetCindex = assetCindex.add(1);
-            assets[_assetAddr].assetAddrIndex = assetCindex;
+            //assets[_assetAddr].assetAddrIndex = assetCindex;
             assetIndexToAddr[assetCindex] = _assetAddr;
+            //assets[_assetAddr].idxStart = 0;
+            assets[_assetAddr].timeIndexToTokenId[0] = _tokenId;
+        } else {
+            idxEndOut = assets[_assetAddr].idxEnd.add(1);
+            assets[_assetAddr].timeIndexToTokenId[idxEndOut] = _tokenId;
+            assets[_assetAddr].idxEnd = idxEndOut;
         }
-
-        assets[_assetAddr].ids.push(_tokenId);
-        assets[_assetAddr].assetAmount = _balance;
-        uint assetIdsLength = assets[_assetAddr].ids.length;
-        require(assetIdsLength > 0, "assetIdsLength has to be > 0");
-        assets[_assetAddr].timeIndexToTokenId[assetIdsLength.sub(1)] = _tokenId;
-
-        // for(uint i = 0; i < assetIdsLength; i++) {
-        //     assets[_assetAddr].timeIndexToTokenId[i] = assets[_assetAddr].ids[i];
-        // }
-        assets[_assetAddr].timeIndexEnd = assetIdsLength.sub(1);
+        //uint idxStart = assets[_assetAddr].idStart;
+        //assets[_assetAddr].ids.push(_tokenId);
+        //assets[_assetAddr].assetAmount = _balance;
+        //uint assetIdsLength = assets[_assetAddr].ids.length;
+        //require(assetIdsLength > 0, "assetIdsLength has to be > 0");
     }
+    /** @dev get assets info */
+    function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
+    returns (string memory symbol, uint amount, 
+        uint idxStart, uint idxEnd, bool isInitialized
+        ){//uint[] memory assetIdsFromAssetBook
+        Asset memory asset = assets[_assetAddr];
+
+        idxStart = assets[_assetAddr].idxStart;
+        idxEnd = assets[_assetAddr].idxEnd;
+        if (!assets[_assetAddr].isInitialized) {
+            //assets[_assetAddr].idxStart = idxNotValid;
+            //idxStart = idxNotValid;
+            amount = 0;
+        } else if (idxStart > idxEnd) {
+            amount = 0;
+        } else {
+            amount = idxEnd.sub(idxStart).add(1);
+        }
+        symbol = asset.assetSymbol;
+        isInitialized = asset.isInitialized;
+        }/**
+
+         */
 
     function deleteAsset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
         //delete an asset address
         require(assets[_assetAddr].isInitialized, "this _assetAddr has not been initialized");
         assets[_assetAddr].isInitialized = false;
 
-        assetIndexToAddr[assets[_assetAddr].assetAddrIndex] = assetIndexToAddr[assetCindex];
+        //assetIndexToAddr[assets[_assetAddr].assetAddrIndex] = assetIndexToAddr[assetCindex];
         delete assetIndexToAddr[assetCindex];
         assetCindex = assetCindex.sub(1);
         //delete assets[_assetAddr].assetAddrIndex;
         delete assets[_assetAddr].assetAddr;
         delete assets[_assetAddr].assetSymbol;
-        delete assets[_assetAddr].ids;
-        delete assets[_assetAddr].assetAmount;
+        //delete assets[_assetAddr].ids;
+        //delete assets[_assetAddr].assetAmount;
     }
 
     //copy asset contract info without preserving buy/sell sequence for FIFO accounting purpose
@@ -267,58 +291,30 @@ contract AssetBook {
         assets[_assetAddr].assetAddr = _assetAddr;
         assets[_assetAddr].assetSymbol = erc721.symbol();
         //assets[_assetAddr].assetAddrIndex; ???
-        uint assetIdsLengthOld = assets[_assetAddr].ids.length;
-        assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
-        assets[_assetAddr].assetAmount = erc721.balanceOf(address(this));
+        // uint assetIdsLengthOld = assets[_assetAddr].ids.length;
+        //assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
+        //assets[_assetAddr].assetAmount = erc721.balanceOf(address(this));
 
-        uint assetIdsLength = assets[_assetAddr].ids.length;
-        if (assetIdsLength > 0) {
-            for(uint i = 0; i < assetIdsLength; i++) {
-                assets[_assetAddr].timeIndexToTokenId[i] = assets[_assetAddr].ids[i];
-            }
-            assets[_assetAddr].timeIndexEnd = assetIdsLength.sub(1);
+        //uint assetIdsLength = assets[_assetAddr].ids.length;
+        uint idxStart = assets[_assetAddr].idxStart;
+        uint idxEnd = assets[_assetAddr].idxEnd;
+        uint arrayLen = idxEnd.sub(idxStart).add(1);
+
+        if (arrayLen > 0) {
+            // for(uint i = 0; i < arrayLen; i++) {
+            //     assets[_assetAddr].timeIndexToTokenId[i] = assets[_assetAddr].ids[i];
+            // }
+            assets[_assetAddr].idxEnd = arrayLen.sub(1);
         } else {
-            assets[_assetAddr].timeIndexEnd = 0;
+            assets[_assetAddr].idxEnd = 0;
         }
-        assets[_assetAddr].timeIndexStart = 0;
+        assets[_assetAddr].idxStart = 0;
 
-        if (assetIdsLengthOld > assetIdsLength){
-            for(uint i = assetIdsLength; i < assetIdsLengthOld; i++) {
-                delete assets[_assetAddr].timeIndexToTokenId[i];
-            }
-        }
-    }
-
-    //preserving buy/sell sequence for FIFO accounting purpose
-    //to receive assets and give timeIndex to each received asset
-    function resetAssetBook(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        assets[_assetAddr].assetSymbol = erc721.symbol();
-        assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
-        assets[_assetAddr].assetAmount = erc721.balanceOf(address(this));
-    }
-
-    function updateReceivedAsset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-
-        uint tokenBalanceOf = erc721.balanceOf(address(this));
-        if(tokenBalanceOf > assets[_assetAddr].assetAmount) {
-
-            uint assetIdsLengthOld = assets[_assetAddr].ids.length;
-            uint[] memory assetIds = erc721.get_ownerToIds(address(this));
-            uint assetIdsLength = assetIds.length;
-            for(uint i = assetIdsLengthOld; i < assetIdsLength; i++) {
-                assets[_assetAddr].timeIndexToTokenId[i] = assetIds[i];
-            }
-
-            uint increase1 = assetIdsLength.sub(assetIdsLengthOld);
-            uint increase2 = tokenBalanceOf.sub(assets[_assetAddr].assetAmount);
-            require(increase1 == increase2, "increased amounts have to be the same in the token contract");
-            //uint timeIndexEndOld = assets[_assetAddr].timeIndexEnd
-            assets[_assetAddr].timeIndexEnd = assetIdsLength.sub(1);
-            assets[_assetAddr].ids = assetIds;
-            assets[_assetAddr].assetAmount = tokenBalanceOf;
-        }
+        // if (assetIdsLengthOld > assetIdsLength){
+        //     for(uint i = assetIdsLength; i < assetIdsLengthOld; i++) {
+        //         delete assets[_assetAddr].timeIndexToTokenId[i];
+        //     }
+        // }
     }
 
 
@@ -351,15 +347,15 @@ contract AssetBook {
         require(tokenBalanceOf > 0, "tokenBalanceOf must be > 0");
         require(amount <= tokenBalanceOf, "amount must be <= tokenBalanceOf");
 
-        //---------------==transfer + updateTokenIds
-        uint timeIndexStart = assets[_assetAddr].timeIndexStart;
-        uint timeIndexEndReq = timeIndexStart.add(amount).sub(1);
-        uint timeIndexEnd = assets[_assetAddr].timeIndexEnd;
-        require(timeIndexEndReq <= timeIndexEnd, "not enough assets to send amount from timeIndexStart to timeIndexEndReq");
-        //timeIndexStart + amount - 1 <= timeIndexEnd
+        //---------------==transfer
+        uint idxStart = assets[_assetAddr].idxStart;
+        uint idxEndReq = idxStart.add(amount).sub(1);
+        uint idxEnd = assets[_assetAddr].idxEnd;
+        require(idxEndReq <= idxEnd, "not enough assets to send amount from idxStart to idxEndReq");
+        //idxStart + amount - 1 <= idxEnd
 
-        uint[] memory tokenIdsSent = new uint[](amount);
-        for(uint i = timeIndexStart; i <= timeIndexEndReq; i++) {
+        //uint[] memory tokenIdsSent = new uint[](amount);
+        for(uint i = idxStart; i <= idxEndReq; i++) {
 
             uint tokenId = assets[_assetAddr].timeIndexToTokenId[i];
             require(tokenId > 0, "tokenId > 0");
@@ -367,16 +363,20 @@ contract AssetBook {
             
             erc721.safeTransferFrom(address(this), _to, tokenId);
             delete assets[_assetAddr].timeIndexToTokenId[i];
-            tokenIdsSent[i.sub(timeIndexStart)] = tokenId;
-            //timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[timeIndexStart.add(i)];
+            //tokenIdsSent[i.sub(idxStart)] = tokenId;
+            //timeIndexedTokenIds[i] = assets[_assetAddr].timeIndexToTokenId[idxStart.add(i)];
+        }
+        if (idxEnd == idxEndReq) {
+            assets[_assetAddr].idxEnd = 0;
+            assets[_assetAddr].idxStart = 1;
         }
         //string memory assetSymbol = assets[_assetAddr].assetSymbol;
 
         //The following code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling this function!!!
         // ArrayCalcITF_assetbook arrayCalc = ArrayCalcITF_assetbook(address(uint160(arrayCalcAddr)));
-        // assets[_assetAddr].timeIndexStart = timeIndexStart.add(amount);
+        // assets[_assetAddr].idxStart = idxStart.add(amount);
         // assets[_assetAddr].assetAmount = tokenBalanceOf.sub(amount);
-        // assets[_assetAddr].ids = arrayCalc.splice(tokenIds, timeIndexStart, timeIndexEnd, amount);
+        // assets[_assetAddr].ids = arrayCalc.splice(tokenIds, idxStart, idxEnd, amount);
 
         // emit TransferAssetBatchEvent(_to, assetSymbol, tokenIdsSent, tokenBalanceOf, _timeCurrent);
     }
@@ -385,68 +385,114 @@ contract AssetBook {
     function fixTimeIndexedIds(address _assetAddr, uint amount) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
 
-        uint idxStart = assets[_assetAddr].timeIndexStart;
-        uint idxEnd = assets[_assetAddr].timeIndexEnd;
-        uint arrayLen = assets[_assetAddr].ids.length;
-        uint[] memory arrayOut;
-        uint idxStartOut;
-        //---------------==Using ArrayUtils contract's logic
-        //uint assetAmount = assets[_assetAddr].assetAmount;
-        //require(assetAmount == arrayLen, "assetAmount == arrayLen");//checked by ERC721 logic
+        uint idxStart = assets[_assetAddr].idxStart;
+        uint idxEnd = assets[_assetAddr].idxEnd;
 
-        //require(arrayLen == idxEnd.add(1), "array length should be equal to idxEnd+1");
-        require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
-        require(arrayLen == idxEnd.sub(idxStart).add(1), "array length should be equal to idxEnd-idxStart+1");
+        if (idxStart <= idxEnd) {
+          uint arrayLen = idxEnd.sub(idxStart).add(1) ;//assets[_assetAddr].ids.length;
+          uint[] memory arrayOut;
+          uint idxStartOut;
+          uint idxEndOut;
+          uint arrayLenOut;
+          //---------------==Using ArrayUtils contract's logic
+          //uint assetAmount = assets[_assetAddr].assetAmount;
+          //require(assetAmount == arrayLen, "assetAmount == arrayLen");//checked by ERC721 logic
 
-        require(amount > 0, "amount must be > 0");
-        require(amount <= arrayLen, "amount must be <= arrayLen");
+          //require(arrayLen == idxEnd.add(1), "array length should be equal to idxEnd+1");
+          require(idxStart <= idxEnd, "idxStart must be <= idxEnd");
+          //require(arrayLen == idxEnd.sub(idxStart).add(1), "array length should be equal to idxEnd-idxStart+1");
 
-        if (amount == arrayLen) {
+          require(amount > 0, "amount must be > 0");
+          require(amount <= arrayLen, "amount must be <= arrayLen");
 
-        } else {
-          uint arrayLenOut = arrayLen.sub(amount);
           idxStartOut = idxStart.add(amount);
+          if (amount == arrayLen) {
+            idxEndOut = idxEnd.add(1);
+            assets[_assetAddr].idxEnd = idxEndOut;
+            assets[_assetAddr].idxStart = idxEndOut;
+            //assets[_assetAddr].assetAmount = 0;
+            //assets[_assetAddr].ids = arrayOut;
 
-          assets[_assetAddr].assetAmount = arrayLenOut;
-          arrayOut = new uint[](arrayLenOut);
+          } else {
+            arrayLenOut = arrayLen.sub(amount);
+            //assets[_assetAddr].assetAmount = arrayLenOut;
+            arrayOut = new uint[](arrayLenOut);
 
-          arrayOut = new uint[](arrayLenOut);
-          require(idxEnd.sub(idxStartOut).add(1) == arrayLenOut, "arrayLenOut, start, end");
-          require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
+            require(idxEnd.sub(idxStartOut).add(1) == arrayLenOut, "arrayLenOut, start, end");
+            require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
 
-          for(uint i = idxStartOut; i <= idxEnd; i++) {
-              arrayOut[i.sub(idxStartOut)] = assets[_assetAddr].timeIndexToTokenId[i];
+            for(uint i = idxStartOut; i <= idxEnd; i++) {
+                arrayOut[i.sub(idxStartOut)] = assets[_assetAddr].timeIndexToTokenId[i];
+            }
+            //assets[_assetAddr].ids = arrayOut;
+            assets[_assetAddr].idxStart = idxStartOut;
+            //assets[_assetAddr].assetAmount = arrayLenOut;
           }
+          //---------------==Using external ArrayUtils contract
+          //VM cannot read variable-sized data from external function calls. 
+          // ArrayUtilsITF_assetbook arrayUtils = ArrayUtilsITF_assetbook(address(uint160(arrayUtilsAddr)));
+          // uint[] memory tokenIds = assets[_assetAddr].ids;
+          // arrayOut = arrayUtils.sliceB(tokenIds, idxStart, idxEnd, amount);
 
         }
-
-        //---------------==Using external ArrayUtils contract
-        //VM cannot read variable-sized data from external function calls. 
-        // ArrayUtilsITF_assetbook arrayUtils = ArrayUtilsITF_assetbook(address(uint160(arrayUtilsAddr)));
-        // uint[] memory tokenIds = assets[_assetAddr].ids;
-        // arrayOut = arrayUtils.sliceB(tokenIds, idxStart, idxEnd, amount);
-
-        assets[_assetAddr].ids = arrayOut;
-        assets[_assetAddr].timeIndexStart = idxStartOut;
     }
 
 
-    /** @dev get assets info */
-    function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory symbol, uint assetAddrIndex, uint amount, 
-        uint timeIndexStart, uint timeIndexEnd, bool isInitialized, 
-        uint[] memory assetIdsFromAssetBook){
-        Asset memory asset = assets[_assetAddr];
+    function updateReceivedAsset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
-        return (asset.assetSymbol, asset.assetAddrIndex, 
-        asset.assetAmount, asset.timeIndexStart, 
-        asset.timeIndexEnd, asset.isInitialized, 
-        asset.ids);
+        uint tokenBalanceOf = erc721.balanceOf(address(this));
+        uint idxStart = assets[_assetAddr].idxStart;
+        uint idxEnd = assets[_assetAddr].idxEnd;
+
+        if (tokenBalanceOf > 0 && idxStart > idxEnd) {
+            assets[_assetAddr].idxStart = 0;
+            assets[_assetAddr].idxEnd = tokenBalanceOf.sub(1);
+        }
+        uint arrayLen = idxEnd.sub(idxStart).add(1) ;//assets[_assetAddr].ids.length;
+
+        uint[] memory assetIds = erc721.get_ownerToIds(address(this));
+        uint assetIdsLength = assetIds.length;
+        for(uint i = arrayLen; i < assetIdsLength; i++) {
+            assets[_assetAddr].timeIndexToTokenId[i] = assetIds[i];
+        }
+
+        //uint increase1 = assetIdsLength.sub(arrayLen);
+        //uint increase2 = tokenBalanceOf.sub(assets[_assetAddr].assetAmount);
+        //require(increase1 == increase2, "increased amounts have to be the same in the token contract");
+        //uint idxEndOld = assets[_assetAddr].idxEnd;
+        //assets[_assetAddr].idxEnd = idxEndOld.add(increase2);
+        //assets[_assetAddr].ids = assetIds;
+        //assets[_assetAddr].assetAmount = tokenBalanceOf;
+    }
+    //preserving buy/sell sequence for FIFO accounting purpose
+    //to receive assets and give timeIndex to each received asset
+    function resetAssetBook(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
+        assets[_assetAddr].assetSymbol = erc721.symbol();
+        //assets[_assetAddr].ids = erc721.get_ownerToIds(address(this));
+        //assets[_assetAddr].assetAmount = erc721.balanceOf(address(this));
+    }
+
+
+    function getAssetId(address _assetAddr, uint index) public view ckAssetAddr(_assetAddr) 
+    returns (uint id) {
+        id = assets[_assetAddr].timeIndexToTokenId[index];
     }
 
     function getAssetIds(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (uint[] memory) {
-        return (assets[_assetAddr].ids); 
+    returns (uint[] memory arrayOut) {
+        uint idxStart = assets[_assetAddr].idxStart;
+        uint idxEnd = assets[_assetAddr].idxEnd;
+        
+        if (idxStart <= idxEnd) {
+            //require(idxStart <= idxEnd, "idxStart <= idxEnd");
+            uint len = idxEnd.sub(idxStart).add(1);
+            arrayOut = new uint[](len);
+            for(uint i = 0; i < len; i++) {
+                arrayOut[i] = assets[_assetAddr].timeIndexToTokenId[i.add(idxStart)];
+            }
+        }//else arrayOut = [];
     }
 
     /** @dev get asset number */

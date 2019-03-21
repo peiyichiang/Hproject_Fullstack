@@ -165,7 +165,7 @@ interface TokenControllerITF {
 }
 //AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
 interface AssetBookITF {
-    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId, uint _balance) external;
+    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId) external;
 }
 
 //==================
@@ -342,6 +342,12 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         }
     }
     
+    function mintSerialNFTBatchToOne(address _to, bytes32[] calldata _uris) external {
+        for(uint i=0; i < _uris.length; i++) {
+            mintSerialNFT(_to, _uris[i]);
+        }
+    }
+
     event MintSerialNFT(uint tokenId, string nftName, string nftSymbol, string pricingCurrency, bytes32 uri, uint initialAssetPricing);
     function mintSerialNFT(address _to, bytes32 _uri) public {
         require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
@@ -699,7 +705,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //-----------==Enumerable
         uint256 length = ownerToIds[_to].push(_tokenId);
         idToOwnerIndexPlus1[_tokenId] = length;//.sub(1);// - 1;
-        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId, length);
+        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId);
     }
 
     //-------------------==Enumerable

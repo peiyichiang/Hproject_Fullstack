@@ -631,7 +631,7 @@
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
 
-                let assetBookAddrs = ["0xE16f8c8691a39f3Abb27eF59687dD48A8f5C8bc5","0xE16f8c8691a39f3Abb27eF59687dD48A8f5C8bc5", "0xf82b512C0d52A108b965B4388EE18a4c280CEeFB"];
+                let assetBookAddrs = ["0xa15cF66805d9f359bb9CD4A530B7C741213CA135","0xa15cF66805d9f359bb9CD4A530B7C741213CA135"];
                 console.log(assetBookAddrs);
 
                 console.log("approving...");
@@ -643,7 +643,7 @@
                     console.log(result);
 
                     if (result.result == true) {
-                        var uris = ["0x414141","0x424242","0x424242"];
+                        var uris = ["0x414141","0x424242"];
                         console.log("minting...");
                         $.post("http://localhost:3000/ERC721ContractAPI/mintSerialNFTBatch", {
                             assetBookAddrs: JSON.stringify(assetBookAddrs),

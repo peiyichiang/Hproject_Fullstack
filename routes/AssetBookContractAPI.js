@@ -170,7 +170,7 @@ router.get('/assetAmount', async function (req, res, next) {
 /*取得assetBook 在這張erc721 contract裡面，所擁有的全部token */
 router.get('/getAssetIds', async function (req, res, next) {
     let contractAddr = req.query.address;
-    let assetAddr = req.query.assetAddr;
+    let assetAddr = req.query.ERC721Addr;
     let assetBook = new web3.eth.Contract(assetBookContract.abi, contractAddr);
     let assetIds = await assetBook.methods.getAssetIds(assetAddr).call({ from: backendAddr });
 

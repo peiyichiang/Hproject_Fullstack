@@ -7,7 +7,7 @@ const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '';
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenIds, assetsMeasuredX, balanceXM, index, assebookId;
 const options = { gasLimit: 9000000 };
 gasLimitValue = '9000000';
 gasPriceValue = '20000000000';
@@ -301,7 +301,7 @@ let extoAddr1; let extoAddr2;
 let tokenId; let to; let _from; let uriStr; let uriBytes32; let uriStrB; let tokenOwner; let tokenOwnerM;
 let tokenControllerDetail; let timeCurrentM;
 let TimeTokenLaunchM; let TimeTokenUnlockM; let TimeTokenValidM; let isLaunchedM;
-let bool1; let bool2;
+let bool1; let bool2, assetIdsFromAssetBook;
 
 beforeEach( async () => {
     console.log('\n--------==New beforeEach cycle');
@@ -571,6 +571,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.ok(addrCrowdFunding);
     console.log('Deployment Check: Good');
 
+    let _assetAddr = addrERC721SPLC;
     //----------------==Check MultiSig & AssetBook contracts
     console.log('\n------------==Check MultiSig contract 1 & 2');
     console.log('addrMultiSig1', addrMultiSig1);
@@ -592,9 +593,17 @@ describe('Tests on ERC721SPLC', () => {
 
     let assetAddr = addrERC721SPLC;
     let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('assetbook1', assetsMeasured1);
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+
     let assetsMeasured2 = await instAssetBook2.methods.getAsset(assetAddr).call();
-    console.log('assetsMeasured1', assetsMeasured1);
-    console.log('assetsMeasured2', assetsMeasured2);
+    console.log('\nassetbook2', assetsMeasured2);
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+
     // return (AssetBook.assetSymbol, AssetBook.assetAddrIndex, 
     //   AssetBook.assetAmount, AssetBook.timeIndexStart, 
     //   AssetBook.timeIndexEnd, AssetBook.isInitialized);
@@ -626,7 +635,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(user2M[1], assetCtAddr);
     assert.equal(user2M[2], extoAddr);
     assert.equal(user2M[3], 0);
-    console.log('user2M', user2M);
+    console.log('\nuser2M', user2M);
 
 
 
@@ -666,8 +675,9 @@ describe('Tests on ERC721SPLC', () => {
     let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
 
-    //----------------==Mint Token One
-    console.log('\n------------==Mint token: tokenId = 1');
+
+    //----------------==Setup Assetbook
+    console.log('\n------------==Setup Assetbook 1 & 2');
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 0);
 
@@ -681,23 +691,28 @@ describe('Tests on ERC721SPLC', () => {
     uriStrB = web3.utils.toAscii(uriBytes32);
     console.log('uriStrB', uriStrB);
 
-    //let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     //addrPlatformContract
-    console.log('from Platform contract to ');
-    await instAssetBook1.methods.updateAssetOwner()
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('from Platform contract to assetbook1');
+    // await instAssetBook1.methods.updateAssetOwner()
+    // .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     await instPlatform.methods.setAssetCtrtApproval(addrAssetBook1, addrERC721SPLC, true)
     .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    console.log('check1');
-    await instAssetBook2.methods.updateAssetOwner()
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // console.log('check1');
+    // await instAssetBook2.methods.updateAssetOwner()
+    // .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     await instPlatform.methods.setAssetCtrtApproval(addrAssetBook2, addrERC721SPLC, true)
     .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    console.log('start minting tokenId 1 to ');
+
+    console.log('\n------------==Assetbook1');
+    let assetbookMX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('\nassetbook1', assetbookMX);
+    //----------------==Mint Token One
+    console.log('\n------------==Mint token');
+    console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...')
     await instERC721SPLC.methods.mintSerialNFT(addrAssetBook1, uriBytes32).send({
       value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -709,6 +724,11 @@ describe('Tests on ERC721SPLC', () => {
 
     tokenInfo = await instERC721SPLC.methods.getNFT(1).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 1:', tokenInfo);
+    assert.equal(tokenInfo[0], nftName);
+    assert.equal(tokenInfo[1], nftSymbol);
+    assert.equal(tokenInfo[2], pricingCurrency);
+    assert.equal(web3.utils.toAscii(tokenInfo[3]), uriStr);
+    assert.equal(tokenInfo[4], initialAssetPricing);
     /**
     const nftName = "NCCU site No.1(2018)";
     const nftSymbol = "NCCU1801";
@@ -716,22 +736,25 @@ describe('Tests on ERC721SPLC', () => {
     const initialAssetPricing = 17000; const pricingCurrency = "NTD";
     const IRR20yrx100 = 470;
      */
-    assert.equal(tokenInfo[0], nftName);
-    assert.equal(tokenInfo[1], nftSymbol);
-    assert.equal(tokenInfo[2], pricingCurrency);
-    assert.equal(web3.utils.toAscii(tokenInfo[3]), uriStr);
-    assert.equal(tokenInfo[4], initialAssetPricing);
+    assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('\nassetbook1 after minting:', assetsMeasuredX);
 
-    assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
-    // return (asset.assetSymbol, asset.assetAddrIndex, 
-    //   asset.assetAmount, asset.timeIndexStart, 
-    //   asset.timeIndexEnd, asset.isInitialized);
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    //let assetTimeIndexedTokenIdsM1 = await instAssetBook1.methods.getAssetTimeIndexedTokenIds(assetAddr).call();
-    //console.log('assetTimeIndexedTokenIdsM1', assetTimeIndexedTokenIdsM1);
+    // console.log('\nAssetBook1 to receive tokens via updateReceivedAsset()...');
+    // await instAssetBook1.methods.updateReceivedAsset(assetAddr) 
+    // .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    // let assetIdsM1 = await instAssetBook1.methods.getAssetIds(assetAddr).call();
-    // console.log('assetIdsM1', assetIdsM1);
+    index = 0;
+    assetbookId = await instAssetBook1.methods.getAssetId(_assetAddr, index).call();
+    console.log('\nassetbook1 tokenId of index='+index+': ', assetbookId);
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook1.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
 
     //-----------------==Mint Token Batch
     console.log('\n------------==Mint Token in Batch: tokenId = 2, 3, 4 to AssetBook1');
@@ -760,7 +783,8 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(tokenOwnerM, addrAssetBookX);
 
     tokenInfo = await instERC721SPLC.methods.getNFT(2).call();
-    console.log('tokenInfo from ERC721SPLC id = 2:', tokenInfo);
+    console.log('\ntokenInfo from ERC721SPLC id = 2:', tokenInfo);
+
     /**
     const nftName = "NCCU site No.1(2018)";
     const nftSymbol = "NCCU1801";
@@ -774,38 +798,53 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(tokenInfo[4], initialAssetPricing);
     assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[0]);
 
-    console.log('check uri of Id 2, 3, 4');
+    console.log('\ncheck uri of Id 2, 3, 4');
     tokenInfo = await instERC721SPLC.methods.getNFT(3).call();
     assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[1]);
     tokenInfo = await instERC721SPLC.methods.getNFT(4).call();
     assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
 
-    assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
+
+    index += 1;
+    assetbookId = await instAssetBook1.methods.getAssetId(_assetAddr, index).call();
+    console.log('\nassetbook1 tokenId of index='+index+': ', assetbookId);
+    index += 1;
+    assetbookId = await instAssetBook1.methods.getAssetId(_assetAddr, index).call();
+    console.log('\nassetbook1 tokenId of index='+index+': ', assetbookId);
+    index += 1;
+    assetbookId = await instAssetBook1.methods.getAssetId(_assetAddr, index).call();
+    console.log('\nassetbook1 tokenId of index='+index+': ', assetbookId);
+
+    assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
     // return (asset.assetSymbol, asset.assetAddrIndex, 
     //   asset.assetAmount, asset.timeIndexStart, 
     //   asset.timeIndexEnd, asset.isInitialized);
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    assert.equal(assetsMeasured1[0], 'NCCU1801');
-    assert.equal(assetsMeasured1[1], 1);//assetAddrIndex
-    assert.equal(assetsMeasured1[2], 4);//amount
-    assert.equal(assetsMeasured1[3], 0);//timeIndexStart
-    assert.equal(assetsMeasured1[4], 3);//timeIndexEnd
-    assert.equal(assetsMeasured1[5], true);//isInitialized
+    console.log('\nassetbook1 getAsset():', assetsMeasuredX);
+    assert.equal(assetsMeasuredX[0], 'NCCU1801');
+    assert.equal(assetsMeasuredX[1], 4);//amount
+    assert.equal(assetsMeasuredX[2], 0);//timeIndexStart
+    assert.equal(assetsMeasuredX[3], 3);//timeIndexEnd
+    assert.equal(assetsMeasuredX[4], true);//isInitialized
 
-    //assetTimeIndexedTokenIdsM1 = await instAssetBook1.methods.getAssetTimeIndexedTokenIds(assetAddr).call();
-    //console.log('assetTimeIndexedTokenIdsM1', assetTimeIndexedTokenIdsM1);
-    // assetIdsM1 = await instAssetBook1.methods.getAssetIds(assetAddr).call();
-    // console.log('assetIdsM1', assetIdsM1);
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook1.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
 
     //-----------------==Mint Token Batch
-    console.log('\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
+    console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
     addrAssetBookX = addrAssetBook2;
     _tos = [addrAssetBookX, addrAssetBookX, addrAssetBookX];
     _uriStrs = [uriBase+"5", uriBase+"6", uriBase+"7"];
     _uriBytes32s = _uriStrs.map(strToBytes32);
     console.log('_uriStrs', _uriStrs);
     console.log('_uriBytes32s', _uriBytes32s);
-
+    
+    console.log('\nstart minting via mintSerialNFTBatch()');
     await instERC721SPLC.methods.mintSerialNFTBatch(_tos, _uriBytes32s).send({
       value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
@@ -822,27 +861,41 @@ describe('Tests on ERC721SPLC', () => {
     tokenInfo = await instERC721SPLC.methods.getNFT(5).call();
     console.log('tokenInfo from ERC721SPLC id = 5:', tokenInfo);
 
-    console.log('check uri of Id 2, 3, 4');
+    console.log('\ncheck uri of Id 5, 6, 7');
     tokenInfo = await instERC721SPLC.methods.getNFT(6).call();
     assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[1]);
     tokenInfo = await instERC721SPLC.methods.getNFT(7).call();
     assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
 
-    assetsMeasured1 = await instAssetBook2.methods.getAsset(assetAddr).call();
+    assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
     // return (asset.assetSymbol, asset.assetAddrIndex, 
     //   asset.assetAmount, asset.timeIndexStart, 
     //   asset.timeIndexEnd, asset.isInitialized);
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    assert.equal(assetsMeasured1[0], 'NCCU1801');
-    assert.equal(assetsMeasured1[1], 1);//assetAddrIndex
-    assert.equal(assetsMeasured1[2], 3);//amount
-    assert.equal(assetsMeasured1[3], 0);//timeIndexStart
-    assert.equal(assetsMeasured1[4], 2);//timeIndexEnd
-    assert.equal(assetsMeasured1[5], true);//isInitialized
+    console.log('assetbook2:', assetsMeasuredX);
+    assert.equal(assetsMeasuredX[0], 'NCCU1801');
+    assert.equal(assetsMeasuredX[1], 3);//amount
+    assert.equal(assetsMeasuredX[2], 0);//timeIndexStart
+    assert.equal(assetsMeasuredX[3], 2);//timeIndexEnd
+    assert.equal(assetsMeasuredX[4], true);//isInitialized
 
-    //assetTimeIndexedTokenIdsM1 = await instAssetBook2.methods.getAssetTimeIndexedTokenIds(assetAddr).call();
-    //console.log('assetTimeIndexedTokenIdsM1', assetTimeIndexedTokenIdsM1);
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    
+    index = 0;
+    assetbookId = await instAssetBook2.methods.getAssetId(_assetAddr, index).call();
+    console.log('assetbookId('+index+')', assetbookId);
+    index += 1;
+    assetbookId = await instAssetBook2.methods.getAssetId(_assetAddr, index).call();
+    console.log('assetbookId('+index+')', assetbookId);
+    index += 1;
+    assetbookId = await instAssetBook2.methods.getAssetId(_assetAddr, index).call();
+    console.log('assetbookId('+index+')', assetbookId);
 
+
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook2.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook2 =', assetIdsFromAssetBook);    
 
 
     //-----------------==Check Token Controller: time
@@ -895,9 +948,9 @@ describe('Tests on ERC721SPLC', () => {
     if (error) {assert(false);}
 
 
+
     //-------------------------==Send tokens
-    //-----------------==Send Token One
-    console.log('\n------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
+    console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
     timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -905,69 +958,167 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(bool1, true);
 
     console.log('sending tokens via transferAssetBatch()...');
-    let _assetAddr = addrERC721SPLC; let amount = 1; 
+    let amount = 1; 
     let _to = addrAssetBook1;
     await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
     //Part of the transferAssetBatch code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling transferAssetBatch()!!!
+    console.log('\n---------------==fixTimeIndexedIds() after transferAssetBatch() Send tokens try 1 AB2 to AB1');
     await instAssetBook2.methods.fixTimeIndexedIds(_assetAddr, amount)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
 
     console.log('Check AssetBook2 after txn...');
-    assetsMeasured1 = await instAssetBook2.methods.getAsset(assetAddr).call();
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    assert.equal(assetsMeasured1[2], 2);//amount
-    assert.equal(assetsMeasured1[3], 1);//timeIndexStart
-    assert.equal(assetsMeasured1[4], 2);//timeIndexEnd
+    assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('AssetBook2:', assetsMeasuredX);
+    assert.equal(assetsMeasuredX[1], 2);//amount
+    assert.equal(assetsMeasuredX[2], 1);//timeIndexStart
+    assert.equal(assetsMeasuredX[3], 2);//timeIndexEnd
     // return (asset.assetSymbol, asset.assetAddrIndex, 
     //   asset.assetAmount, asset.timeIndexStart, 
     //   asset.timeIndexEnd, asset.isInitialized);
     //   asset.ids, erc721.get_ownerToIds(address(this)));
 
-    console.log('AssetBook1 to receive tokens...');
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook2.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook2 =', assetIdsFromAssetBook); 
+
+
+
+    console.log('\n\n--------------==AssetBook1: before updateReceivedAsset()...');
+    assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetsMeasuredX);
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook1.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
+
+    console.log('\n\n--------------==AssetBook1 to receive tokens via updateReceivedAsset()...');
     await instAssetBook1.methods.updateReceivedAsset(assetAddr) 
     .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
-    assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    assert.equal(assetsMeasured1[2], 5);//amount
-    assert.equal(assetsMeasured1[3], 0);//timeIndexStart
-    assert.equal(assetsMeasured1[4], 4);//timeIndexEnd
+
+    assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetsMeasuredX);
+    assert.equal(assetsMeasuredX[1], 5);//amount
+    assert.equal(assetsMeasuredX[2], 0);//timeIndexStart
+    assert.equal(assetsMeasuredX[3], 4);//timeIndexEnd
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook1.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
 
 
-    //-----------------==Send Tokens in batch
+
+
+    //------------------------==
+    //-----------------==Check AssetBook2
+    assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('\n\n\n----------------==before Sending Tokens in batch, AssetBook2:', assetsMeasuredX);
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook2.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
+
+
     amount = 5; _to = addrAssetBook2;
-    console.log('\n------------==Send tokens in batch: amount ='+amount, ' from AssetBook1 to AssetBook2');
+    console.log('\n------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via transferAssetBatch()...');
 
     await instAssetBook1.methods.transferAssetBatch(_assetAddr, amount, _to)
     .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
     //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
 
-    console.log('before fixTimeIndexedIds()');
+
+    console.log('\n-----==Check AssetBook1 after sending 5 tokens...');
+    assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetsMeasuredX);
+    // assert.equal(assetsMeasuredX[2], 1);//amount
+    // assert.equal(assetsMeasuredX[3], 3);//timeIndexStart
+    // assert.equal(assetsMeasuredX[4], 4);//timeIndexEnd
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook1.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
+    
+    console.log('\n---------------==fixTimeIndexedIds() after transferAssetBatch() Send tokens try 1 AB2 to AB1');
     await instAssetBook1.methods.fixTimeIndexedIds(_assetAddr, amount)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
+
+
+    //-----------------==Check AssetBook2
+    assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('\n----==after Sending Tokens in batch, AssetBook2:', assetsMeasuredX);
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook2.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
+
+
+
+    // console.log('\nbefore fixTimeIndexedIds()');
+    // await instAssetBook1.methods.fixTimeIndexedIds(_assetAddr, amount)
+    // .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
     //transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
 
-    console.log('Check AssetBook1 after txn...');
-    assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    // assert.equal(assetsMeasured1[2], 1);//amount
-    // assert.equal(assetsMeasured1[3], 3);//timeIndexStart
-    // assert.equal(assetsMeasured1[4], 4);//timeIndexEnd
+    console.log('\n-----==Check AssetBook1 after sending 5 tokens...');
+    assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetsMeasuredX);
+    // assert.equal(assetsMeasuredX[2], 1);//amount
+    // assert.equal(assetsMeasuredX[3], 3);//timeIndexStart
+    // assert.equal(assetsMeasuredX[4], 4);//timeIndexEnd
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook1.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook1 =', assetIdsFromAssetBook); 
+
+
 
     // return (asset.assetSymbol, asset.assetAddrIndex, 
     //   asset.assetAmount, asset.timeIndexStart, 
     //   asset.timeIndexEnd, asset.isInitialized);
     //   asset.ids, erc721.get_ownerToIds(address(this)));
 
-    console.log('AssetBook2 to receive tokens...');
+    console.log('\nAssetBook2 to receive tokens via updateReceivedAsset()...');
+    //assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
+    //console.log('before updateReceivedAsset(), AssetBook2:', assetsMeasuredX);
+
     await instAssetBook2.methods.updateReceivedAsset(assetAddr) 
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
-    assetsMeasured1 = await instAssetBook2.methods.getAsset(assetAddr).call();
-    console.log('getAsset(assetAddr):', assetsMeasured1);
-    // assert.equal(assetsMeasured1[2], 5);//amount
-    // assert.equal(assetsMeasured1[3], 1);//timeIndexStart
-    // assert.equal(assetsMeasured1[4], 4);//timeIndexEnd
+    assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('AssetBook2:', assetsMeasuredX);
+    // assert.equal(assetsMeasuredX[2], 5);//amount
+    // assert.equal(assetsMeasuredX[3], 1);//timeIndexStart
+    // assert.equal(assetsMeasuredX[4], 4);//timeIndexEnd
+
+    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\n-----==getAssetIds()');
+    assetIdsFromAssetBook = await instAssetBook2.methods.getAssetIds(_assetAddr).call();
+    console.log('tokenIds from AssetBook2 =', assetIdsFromAssetBook); 
 
 
     //----------------==Send tokens after valid time

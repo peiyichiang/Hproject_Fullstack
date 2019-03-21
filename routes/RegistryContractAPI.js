@@ -18,7 +18,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*contract info*/
 const contract = require('../ethereum/contracts/build/Registry.json');
-let contractAddr = "0xE57ceA24952EAb91021c6AeBC9eefA61567e80c3";
+let contractAddr = "0x8e2b6A27096EEa35F80C35aDe1F194Cbfa216143";
 
 
 /*deploy registryContract*/
