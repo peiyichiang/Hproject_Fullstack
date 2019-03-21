@@ -5,9 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -16,14 +16,15 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
+var registryContractAddr = "0x8e2b6A27096EEa35F80C35aDe1F194Cbfa216143";
 
 
 //deploy asset contract
 router.post('/deploy', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -35,7 +36,7 @@ router.post('/deploy', function (req, res, next) {
     let initialAssetPricing = req.body.initialAssetPricing;
     let pricingCurrency = req.body.pricingCurrency;
     let IRR20yrx100 = req.body.IRR20yrx100;
-    let addrRegistryITF = req.body.addrRegistryITF;
+    let addrRegistryITF = registryContractAddr;
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
 
 
@@ -55,12 +56,6 @@ router.post('/deploy', function (req, res, next) {
             res.send(error.toString());
         })
 });
-
-
-/**@todo */
-/**
- *mintSerialNFTBatch
- */
 
 router.post('/name', async function (req, res, next) {
     let contractAddr = req.body.address;
@@ -87,6 +82,18 @@ router.post('/symbol', async function (req, res, next) {
 });
 
 
+router.get('/addrRegistryITF', async function (req, res, next) {
+    let contractAddr = req.query.address;
+
+    let ERC721SPLC_Controller = new web3.eth.Contract(contract.abi, contractAddr);
+
+    let result = await ERC721SPLC_Controller.methods.addrRegistryITF().call({ from: backendAddr })
+
+    res.send({
+        result: result
+    })
+});
+
 
 /**mint token */
 router.post('/mintSerialNFT', async function (req, res, next) {
@@ -96,6 +103,27 @@ router.post('/mintSerialNFT', async function (req, res, next) {
     let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
 
     let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, uri).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
+/**mint token batch*/
+router.post('/mintSerialNFTBatch', async function (req, res, next) {
+    let contractAddr = req.body.erc721address;
+    let tos = JSON.parse(req.body.assetBookAddrs);
+    let uris = JSON.parse(req.body.uris);
+    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    console.log(tos[0]);
+    console.log(uris[0]);
+    console.log(tos[1]);
+    console.log(uris[1]);
+
+
+    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFTBatch(tos, uris).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
@@ -213,9 +241,61 @@ router.get('/token/isApproved', async function (req, res, next) {
 
 
 
+/*將合約資訊更新至資料庫 */
+router.post('/updateAddr', function (req, res, next) {
+
+    var nftSymbol = req.body.nftSymbol;
+    var mysqlPoolQuery = req.pool;
+    var sql = {
+        sc_erc721address: req.body.ERC721ContractAddr,
+        sc_erc721Controller: req.body.tokenControllerContractAddr
+    };
 
 
+    console.log(nftSymbol)
+    mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: "fail",
+            });
+        }
+        else {
+            res.send({
+                status: "success",
+                u_email: req.body.email,
+                u_address: req.body.assetContractAddr,
+                u_verify_status: req.body.status
+            });
+        }
+    });
 
+});
+
+/*get ERC721ContractAddr and CrowdFundingContractAddr by tokenSymble*/
+router.get('/contractAddr', function (req, res, next) {
+
+    var nftSymbol = req.query.nftSymbol;
+    var mysqlPoolQuery = req.pool;
+    console.log(nftSymbol);
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+        //console.log(result);
+        if (err) {
+            //console.log(err);
+            res.send({
+                status: "fail"
+            });
+        }
+        else {
+            res.send({
+                status: "success",
+                result: result[0]
+            });
+        }
+    });
+
+});
 
 
 
@@ -230,7 +310,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 300000,
+                    gas: 6500000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),

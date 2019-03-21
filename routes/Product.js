@@ -868,4 +868,29 @@ router.get('/ProductBySymbol', function (req, res, next) {
     });
 });
 
+//冠毅
+router.get('/SymbolToTokenAddr', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    let symbol = req.query.tokenSymbol;
+
+    let qstr1 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    //console.log('qstr1', qstr1);
+    mysqlPoolQuery(qstr1, [symbol], function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.send({
+                "message": "[Error] 產品symbol not found 取得失敗:\n" + err
+            });
+        } else {
+            res.status(200);
+            res.send({
+                "message": "[Success] 產品symbol found 取得成功！",
+                "result": result
+            });
+        }
+    });
+});
+
+
 module.exports = router;

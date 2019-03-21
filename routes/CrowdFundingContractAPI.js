@@ -7,9 +7,9 @@ var router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -23,35 +23,39 @@ const contract = require('../ethereum/contracts/build/CrowdFunding.json');
 router.post('/deploy', function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
-    let tokenSymbol = req.body.tokenSymbol;
+    let management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
+    let tokenSymbol = req.body.tokenSymbol;;
     let tokenPrice = req.body.tokenPrice;
     let currency= req.body.currency;
     let quantityMax = req.body.quantityMax;
-    let goalInPercentage = req.body.goalInPercentage;
-    let CFSD2 = req.body.CFSD2;
-    let CFED2 = req.body.CFED2;
-    let serverTime = req.body.serverTime;
+    let goalInPercentage = Math.floor(req.body.fundingGoal / quantityMax * 100);
+    let CFSD2 = parseInt(req.body.CFSD2);
+    let CFED2 = parseInt(req.body.CFED2);
+    let serverTime = 201902250001;
 
     /*let assetOwner = req.body.assetOwner;
     let platform = req.body.platform;
     let time = req.body.time;*/
     let crowdFundingContract = new web3deploy.eth.Contract(contract.abi);
-    console.log(tokenSymbol);
+
+    console.log(typeof(goalInPercentage));
+    console.log(goalInPercentage);
+    console.log(req.body);
+    console.log(quantityMax);
 
     crowdFundingContract.deploy({
         data: contract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime]
-        //arguments: [assetOwner, platform, time]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime, management]
     })
         .send({
             from: backendAddr,
-            gas: 7000000,
+            gas: 6500000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
@@ -199,6 +203,36 @@ router.get('/salestate', async function (req, res, next) {
         salestate: salestate
     })
 });
+
+/*將合約資訊更新至資料庫 */
+router.post('/updateAddr', function (req, res, next) {
+
+    var mysqlPoolQuery = req.pool;
+    let tokenSymbol = req.body.tokenSymbol;
+    let contractAddress = req.body.contractAddress;
+    let quantityMax = req.body.quantityMax;
+
+    //console.log(element)
+    mysqlPoolQuery("INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_totalsupply, sc_remaining) VALUES (?,?,?,?)", [tokenSymbol, contractAddress, quantityMax, quantityMax], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: "fail",
+            });
+        }
+        else{
+            res.send({
+                status: "success",
+                p_SYMBOL: req.body.tokenSymbol,
+                crowdingFundingContractAddr: req.body.contractAddress,
+                quantityMax: quantityMax,
+                remaining: quantityMax
+            });
+        }
+    });
+
+});
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
