@@ -484,7 +484,7 @@ contract AssetBook {
     returns (uint[] memory arrayOut) {
         uint idxStart = assets[_assetAddr].idxStart;
         uint idxEnd = assets[_assetAddr].idxEnd;
-        
+
         if (idxStart <= idxEnd) {
             //require(idxStart <= idxEnd, "idxStart <= idxEnd");
             uint len = idxEnd.sub(idxStart).add(1);
