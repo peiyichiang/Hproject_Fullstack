@@ -5,9 +5,9 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 var router = express.Router();
 
 /*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /*後台公私鑰*/
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -16,6 +16,8 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 
 /*platform contract address*/
 const contract = require('../ethereum/contracts/build/Platform.json');
+let platformContractAddr = "0xAC5Fe5Cbebe5dE436481358e83fc05A49c0D45C8";
+
 
 router.get('/', function (req, res, next) {
     res.render('platformContractAPI');
@@ -24,19 +26,20 @@ router.get('/', function (req, res, next) {
 //deploy asset contract
 router.post('/deploy', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
     let platformCtAdmin = req.body.platformCtAdmin;
+    let management = req.body.management;
     let platformContract = new web3deploy.eth.Contract(contract.abi);
 
     platformContract.deploy({
         data: contract.bytecode,
-        arguments: [platformCtAdmin]
-        })
+        arguments: [platformCtAdmin, management]
+    })
         .send({
             from: backendAddr,
             gas: 4700000,
@@ -49,11 +52,6 @@ router.post('/deploy', function (req, res, next) {
             res.send(error.toString());
         })
 });
-
-/**@todo */
-/**
- *setAssetCtrtApproval
- */
 
 /** 更改平台方權限者Addr*/
 router.patch('/setPlatformContractAdmin', async function (req, res, next) {
@@ -68,6 +66,36 @@ router.patch('/setPlatformContractAdmin', async function (req, res, next) {
 
     res.send({
         result: result
+    })
+
+});
+
+router.post('/setAssetCtrtApproval', async function (req, res, next) {
+    let contractAddr = platformContractAddr;
+    let assetBookAddrs = JSON.parse(req.body.assetBookAddrs);
+    let erc721address = req.body.erc721address;
+    let isApprovedToWrite = req.body.isApprovedToWrite;
+
+    console.log(req.body);
+    console.log(assetBookAddrs);
+
+
+    let platformContract = new web3.eth.Contract(contract.abi, contractAddr);
+
+    for (var i = 0; i < assetBookAddrs.length; i++) {
+        /*用後台公私鑰sign*/
+        let encodedData = platformContract.methods.setAssetCtrtApproval(assetBookAddrs[i], erc721address, isApprovedToWrite).encodeABI();
+        let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+        console.log(result);
+        if(result.status == false){
+            res.send({
+                result: "error",
+                assetBookAddr: assetBookAddrs[i]
+            })
+        }
+    }
+    res.send({
+        result: true
     })
 
 });
