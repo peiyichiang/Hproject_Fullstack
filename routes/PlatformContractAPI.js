@@ -23,7 +23,7 @@ router.get('/', function (req, res, next) {
     res.render('platformContractAPI');
 });
 
-//deploy asset contract
+//deploy helium contract
 router.post('/deploy', function (req, res, next) {
     /**POA */
     //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
