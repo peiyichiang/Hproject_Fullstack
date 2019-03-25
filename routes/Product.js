@@ -719,6 +719,39 @@ router.get('/EditProductByPlatformAuditor', function(req, res, next) {
 
 });
 
+//設置產品的狀態：將產品狀態設為退回creation，或設置為funding(Platform Auditor專用)
+router.post('/SetProductStateByPlatformAuditor', function(req, res, next) {
+    console.log('------------------------==\n@Product/EditProductByPlatformAuditor:\nreq.query', req.query, 'req.body', req.body);
+  
+      var mysqlPoolQuery = req.pool;
+      var symbol = req.body.tokenSymbol;
+      var State = req.body.tokenState;
+  
+      //獲取當前時間作為PA通過審核的時間
+      //範例：1/30/2019, 3:23:19 PM
+      var currentTime=new Date().toLocaleString().toString();
+      if(State=="creation"){
+          //假如是被退回，就將審核時間清空
+          currentTime="";
+      }
+  
+      var sql = {
+          p_state: State,
+          p_PAdate:currentTime
+      };
+  
+      var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
+          if (err) {
+            console.log(err);
+            res.send(err);
+          }else{
+            res.send({status:"true"});
+          }
+          
+      });
+  
+});
+
 //設置產品的p_FMANote並將產品狀態設為draft(FMA專用)
 router.get('/SetFMANoteAndReturnByFMA', function(req, res, next) {
     var token=req.cookies.access_token;

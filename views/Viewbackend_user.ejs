@@ -8,6 +8,8 @@
     <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
@@ -25,6 +27,7 @@
                     歡迎
                     <%= UserID %>
                 </span>
+
                 <li class="nav-item" id="SignOut">
                     <a class="nav-link" href="#">登出</a>
                 </li>
@@ -90,18 +93,18 @@
     <div class="table-responsive">
         <table class="table table-hover table-striped">
             <tr class="bg-primary" style="color:white;">
-                <th>姓名</th>
-                <th>Email</th>
-                <th>身分證字號</th>
-                <th>身分證正面</th>
-                <th>身分證反面</th>
-                <th>存摺照片</th>
-                <th>手機</th>
-                <th>以太坊地址</th>
-                <th>資產合約地址</th>
-                <th>多重簽章合約地址</th>
-                <th>狀態</th>
-                <th>審核通過</th>
+                <th scope="col" class="text-nowrap">姓名</th>
+                <th scope="col" class="text-nowrap">Email</th>
+                <th scope="col" class="text-nowrap">身分證字號</th>
+                <th scope="col" class="text-nowrap">身分證正面</th>
+                <th scope="col" class="text-nowrap">身分證反面</th>
+                <th scope="col" class="text-nowrap">存摺照片</th>
+                <th scope="col" class="text-nowrap">手機</th>
+                <th scope="col" class="text-nowrap">以太坊地址</th>
+                <th scope="col" class="text-nowrap">資產合約地址</th>
+                <th scope="col" class="text-nowrap">多重簽章合約地址</th>
+                <th scope="col" class="text-nowrap">狀態</th>
+                <th scope="col" class="text-nowrap">審核通過</th>
             </tr>
             <tbody>
                 <% console.log(FrontEnd_data) %>
@@ -151,8 +154,15 @@
                         <%= FrontEnd_data[i].u_verify_status  %>
                     </td>
                     <td class="align-middle">
-                        <button type="button" id="approve" class="btn btn-success" name="Approve" value="Approve"
-                            onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>');">Approve</button>
+                        <%if ((FrontEnd_data[i].u_assetbookContractAddress != null && FrontEnd_data[i].u_assetbookContractAddress !="") || (FrontEnd_data[i].u_multisigContractAddress != null && FrontEnd_data[i].u_multisigContractAddress !="")) { %>
+                            <p>
+                                approved
+                            </p>
+                        <% }else if ((FrontEnd_data[i].u_eth_add != null && FrontEnd_data[i].u_eth_add !="")){ %>
+                            <button type="button" style="width: 86px;" id="approve<%= i %>" class="btn btn-success" name="Approve" value="Approve" onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>',this.id);">
+                                Approve
+                            </button>
+                        <% } %>
                     </td>
                 </tr>
                 <% } %>
@@ -163,12 +173,9 @@
     <!-- <scrip src="/js/SignOut.js"></script> -->
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
-        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
-        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
     <script src="/js/SignOut.js"></script>
     <script src="/js/DeployAccount.js"></script>
@@ -185,9 +192,14 @@
             }
         }
 
-        function Approve(ID, email, ethAddr) {
+        function Approve(ID, email, ethAddr,buttonID) {
+            // 加上等待狀態
+            document.getElementById(buttonID).innerHTML="<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).disabled = true;
+            
+            
             console.log(ethAddr);
-            let platformContractAddr = "0xAC5Fe5Cbebe5dE436481358e83fc05A49c0D45C8";
+            let platformContractAddr = "0x7832fC91Bc8f4977da9AB974a4F5ADD4f78bA54C";
 
             console.log("multiSigContract deploying...");
             $.post("http://localhost:3000/MultiSigContractAPI/deploy", {
@@ -245,7 +257,7 @@
                                         }, function (result) {
                                             //var result = JSON.parse(resultJSON);
                                             console.log(result);
-                                            //location.reload();
+                                            location.reload();
                                         });
                                     });
                                 }
