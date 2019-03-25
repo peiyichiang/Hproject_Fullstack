@@ -182,6 +182,7 @@ contract AssetBook {
     event TransferAssetEvent(address to, string assetSymbol, uint _assetId, uint tokenBalance, uint timestamp);
     event TransferAssetBatchEvent(address to, string assetSymbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
+
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
     constructor (address _assetOwner, address _multiSigContractAddr, address _platformContractAddr, uint256 _timeCurrent) public {
         multiSigContractAddr = _multiSigContractAddr;
@@ -321,7 +322,7 @@ contract AssetBook {
     function transferAsset(address _assetAddr, uint _tokenId, address _to, uint256 _timeCurrent) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
         require(_to != address(this), "_to cannot be this AssetBook!");
-        require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token")
+        require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
         ckAssetAdded(_assetAddr);
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         require(erc721.ownerOf(_tokenId) == address(this), "check if this contract owns this tokenId");
@@ -338,7 +339,7 @@ contract AssetBook {
     function transferAssetBatch(address _assetAddr, uint amount, address _to) 
         public ckAssetOwner ckAssetAddr(_assetAddr){//, uint256 _timeCurrent
         require(_to != address(this), "_to cannot be this AssetBook!");
-        require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token")
+        require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
 
         ckAssetAdded(_assetAddr);
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
