@@ -22,8 +22,9 @@ provider = ganache.provider(options);
 // });
 web3 = new Web3(provider);//lower case web3 means it is an instance
 
-
-require('events').EventEmitter.defaultMaxListeners = 30;
+//process.setMaxListeners(Infinity);
+//emitter.setMaxListeners(50);
+require('events').EventEmitter.defaultMaxListeners = 50;
 //require('events').EventEmitter.prototype._maxListeners = 20;
 /* emitter.setMaxListeners();
 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data listeners added. Use emitter.setMaxListeners() to increase limit
@@ -251,7 +252,7 @@ let instCrowdFunding; let addrCrowdFunding;
 let instIncomeManagement; let addrIncomeManagement;
 let instProductManager; let addrProductManager;
 
-let acc0; let acc1; let acc2; let acc3; let acc4;
+let acc1; let acc2; let acc3; let acc4;
 let management;
 let balance0; let balance1; let balance2;
 let AssetOwner1; let AssetOwner2;
@@ -281,6 +282,7 @@ const maxTotalSupply = 773;
 const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
+const tokenURI = nftSymbol+"/uri";
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
 //const addrTokenController = "0x39523jt032";
 
@@ -306,13 +308,13 @@ let bool1; let bool2, assetIdsFromAssetBook;
 beforeEach( async () => {
     console.log('\n--------==New beforeEach cycle');
       accounts = await web3.eth.getAccounts();
-      acc0 = accounts[0];
+      platformCtAdmin = accounts[0];
       acc1 = accounts[1];
       acc2 = accounts[2];
       acc3 = accounts[3];
       acc4 = accounts[4];
-    management = [acc0, acc1, acc2, acc3, acc4];
-    console.log('acc0', acc0);
+    management = [platformCtAdmin, acc1, acc2, acc3, acc4];
+    console.log('platformCtAdmin', platformCtAdmin);
     console.log('acc1', acc1);
     console.log('acc2', acc2);
     console.log('acc3', acc3);
@@ -323,10 +325,10 @@ beforeEach( async () => {
     // console.log('acc2, accounts[2]');
 
     if (2===1) {
-        balance0 = await web3.eth.getBalance(acc0);//returns strings!
+        balance0 = await web3.eth.getBalance(platformCtAdmin);//returns strings!
         balance1 = await web3.eth.getBalance(acc1);//returns strings!
         balance2 = await web3.eth.getBalance(acc2);//returns strings!
-        console.log('acc0',  acc0, balance0);//100,00000000,0000000000
+        console.log('platformCtAdmin',  platformCtAdmin, balance0);//100,00000000,0000000000
         console.log('acc1',  acc1, balance1);
         console.log('acc2',  acc2, balance2);
     }
@@ -335,12 +337,11 @@ beforeEach( async () => {
     //JSON.parse() is not needed because the abi and bytecode are already objects
     console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
     //Deploying Platform contract...
-    platformCtAdmin = acc0;
     const argsPlatform = [platformCtAdmin, management];
     console.log('\nDeploying Platform contract...');
     instPlatform =  await new web3.eth.Contract(Platform.abi)
     .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Platform.sol has been deployed');
     if (instPlatform === undefined) {
@@ -358,7 +359,7 @@ beforeEach( async () => {
     console.log('\nDeploying multiSig contracts...');
     instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
     .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('MultiSig1 has been deployed');
     if (instMultiSig1 === undefined) {
@@ -370,7 +371,7 @@ beforeEach( async () => {
 
     instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
     .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('MultiSig2 has been deployed');
     if (instMultiSig2 === undefined) {
@@ -387,7 +388,7 @@ beforeEach( async () => {
     console.log('\nDeploying AssetBook contracts...');
     instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook1 })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook1 === undefined) {
@@ -399,7 +400,7 @@ beforeEach( async () => {
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook2 === undefined) {
@@ -415,7 +416,7 @@ beforeEach( async () => {
     const argsRegistry = [management];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Registry.sol has been deployed');
     if (instRegistry === undefined) {
@@ -431,7 +432,7 @@ beforeEach( async () => {
       timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('TokenController.sol has been deployed');
     if (instTokenController === undefined) {
       console.log('[Error] instTokenController is NOT defined');
@@ -445,10 +446,11 @@ beforeEach( async () => {
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
+    const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
-    addrRegistry, addrTokenController];
+    addrRegistry, addrTokenController, tokenURI_bytes32];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
@@ -457,7 +459,7 @@ beforeEach( async () => {
     console.log('\nDeploying ERC721SPLC contract...');
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
     .deploy({ data: prefix+ERC721SPLC.bytecode, arguments: argsERC721SPLC })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('ERC721SPLC.sol has been deployed');
     if (instERC721SPLC === undefined) {
       console.log('[Error] instERC721SPLC is NOT defined');
@@ -466,7 +468,7 @@ beforeEach( async () => {
     addrERC721SPLC = instERC721SPLC.options.address;
     console.log('addrERC721SPLC:', addrERC721SPLC);
     /**
-    value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue
+    value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3.utils.toWei('10','ether')
     */
 
@@ -474,7 +476,7 @@ beforeEach( async () => {
    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, management];
    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
     .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('CrowdFunding.sol has been deployed');
     if (instCrowdFunding === undefined) {
       console.log('[Error] instCrowdFunding is NOT defined');
@@ -487,7 +489,7 @@ beforeEach( async () => {
     console.log('\nDeploying ArrayUtils contract...');
     instArrayUtils = await new web3.eth.Contract(ArrayUtils.abi)
      .deploy({ data: prefix+ArrayUtils.bytecode })
-     .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+     .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
      console.log('ArrayUtils.sol has been deployed');
      if (instArrayUtils === undefined) {
        console.log('[Error] instArrayUtils is NOT defined');
@@ -501,7 +503,7 @@ beforeEach( async () => {
     const argsIncomeManagement =[TimeAnchor, addrTokenCtrt, addrPA_Ctrt, addrFMXA_Ctrt, addrPlatformCtrt];
     instIncomeManagement = await new web3.eth.Contract(IncomeManagement.abi)
     .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('IncomeManagement.sol has been deployed');
     if (instIncomeManagement === undefined) {
       console.log('[Error] instIncomeManagement is NOT defined');
@@ -512,7 +514,7 @@ beforeEach( async () => {
 
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode })
-    .send({ from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('ProductManager.sol has been deployed');
     if (instProductManager === undefined) {
       console.log('[Error] instProductManager is NOT defined');
@@ -594,13 +596,13 @@ describe('Tests on ERC721SPLC', () => {
     let assetAddr = addrERC721SPLC;
     let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('assetbook1', assetsMeasured1);
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
 
     let assetsMeasured2 = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\nassetbook2', assetsMeasured2);
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
 
@@ -615,7 +617,7 @@ describe('Tests on ERC721SPLC', () => {
     uid1 = "A500000001"; assetCtAddr = addrAssetBook1; extoAddr = acc1;
     await instRegistry.methods.addUser(
       uid1, assetCtAddr, extoAddr, timeCurrent)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('Registry: getUser()');
     let user1M = await instRegistry.methods.getUser(uid1).call();
@@ -628,7 +630,7 @@ describe('Tests on ERC721SPLC', () => {
     uid2 = "A500000002"; assetCtAddr = addrAssetBook2; extoAddr = acc2;
     await instRegistry.methods.addUser(
       uid2, assetCtAddr, extoAddr, timeCurrent)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let user2M = await instRegistry.methods.getUser(uid2).call();
     assert.equal(user2M[0], uid2);
@@ -643,17 +645,21 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Check ERC721SPLC parameters');
     console.log('addrERC721SPLC', addrERC721SPLC);
 
-    // await instERC721SPLC.methods.set_admin(acc1, acc0).send({
-    //   value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue
+    // await instERC721SPLC.methods.set_admin(acc1, platformCtAdmin).send({
+    //   value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue
     // });//set_tokenDump(address _tokenDump, address vendor)
 
-    let nameM = await instERC721SPLC.methods.name().call();
-    let symbolM = await instERC721SPLC.methods.symbol().call();
+    let nameM = await instERC721SPLC.methods.nftName().call();
+    let symbolM = await instERC721SPLC.methods.nftSymbol().call();
     let initialAssetPricingM = await instERC721SPLC.methods.initialAssetPricing().call();
     let IRR20yrx100M = await instERC721SPLC.methods.IRR20yrx100().call();
     let maxTotalSupplyM = await instERC721SPLC.methods.maxTotalSupply().call();
     let pricingCurrencyM = await instERC721SPLC.methods.pricingCurrency().call();
     let siteSizeInKWM = await instERC721SPLC.methods.siteSizeInKW().call();
+    let tokenURI_M = await instERC721SPLC.methods.tokenURI().call();
+    console.log('tokenURI', tokenURI, 'tokenURI_M', web3.utils.toAscii(tokenURI_M));
+    //assert.equal(web3.utils.toAscii(tokenURI_M), tokenURI);
+
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(nameM, nftName);
     assert.equal(symbolM, nftSymbol);
@@ -663,6 +669,9 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(pricingCurrencyM, pricingCurrency);
     assert.equal(siteSizeInKWM, siteSizeInKW);
     assert.equal(tokenIdM, 0);
+
+    let assetContractDetails = await instERC721SPLC.methods.getAssetContractDetails().call();
+    console.log('assetContractDetails', assetContractDetails);
 
     let isUnlockedValid = await instTokenController.methods.isUnlockedValid().call();
     assert.equal(isUnlockedValid, false);
@@ -694,48 +703,56 @@ describe('Tests on ERC721SPLC', () => {
     //addrPlatformContract
     console.log('from Platform contract to assetbook1');
     // await instAssetBook1.methods.updateAssetOwner()
-    // .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instPlatform.methods.setAssetCtrtApproval(addrAssetBook1, addrERC721SPLC, true)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // await instPlatform.methods.setAssetCtrtApproval(addrAssetBook1, addrERC721SPLC, true)
+    // .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    // console.log('check1');
+    console.log('check1');
     // await instAssetBook2.methods.updateAssetOwner()
-    // .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instPlatform.methods.setAssetCtrtApproval(addrAssetBook2, addrERC721SPLC, true)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // await instPlatform.methods.setAssetCtrtApproval(addrAssetBook2, addrERC721SPLC, true)
+    // .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
 
     console.log('\n------------==Assetbook1');
     let assetbookMX = await instAssetBook1.methods.getAsset(assetAddr).call();
-    console.log('\nassetbook1', assetbookMX);
+    console.log(assetbookMX);
     //----------------==Mint Token One
     console.log('\n------------==Mint token');
-    console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...')
-    await instERC721SPLC.methods.mintSerialNFT(addrAssetBook1, uriBytes32).send({
-      value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
+    let _to = addrAssetBook1;
+    await instERC721SPLC.methods.mintSerialNFT(_to, 1).send({
+      value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
+    console.log('check 722');
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(1).call();
-    assert.equal(tokenOwnerM, addrAssetBook1);
-
-    tokenInfo = await instERC721SPLC.methods.getNFT(1).call();
+    tokenInfo = await instERC721SPLC.methods.getAsset(1).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 1:', tokenInfo);
-    assert.equal(tokenInfo[0], nftName);
-    assert.equal(tokenInfo[1], nftSymbol);
-    assert.equal(tokenInfo[2], pricingCurrency);
-    assert.equal(web3.utils.toAscii(tokenInfo[3]), uriStr);
-    assert.equal(tokenInfo[4], initialAssetPricing);
+    assert.equal(tokenInfo[0], addrAssetBook1);
+    assert.equal(tokenInfo[1], initialAssetPricing);
+    assert.equal(tokenInfo[2], addrZero);
+
+    console.log('check 741');
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(1).call();
+    assert.equal(tokenOwnerM, _to);
+
+    let accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    let balanceM = await instERC721SPLC.methods.balanceOf(_to).call();
+    let accountIdsAll = await instERC721SPLC.methods.getAccountIdsAll(_to).call();
+    console.log('\naccountM', accountM);
+    console.log('balanceM', balanceM);
+    console.log('accountIdsAll', accountIdsAll);
+
     /**
-    const nftName = "NCCU site No.1(2018)";
-    const nftSymbol = "NCCU1801";
-    const siteSizeInKW = 300; const maxTotalSupply = 800; 
-    const initialAssetPricing = 17000; const pricingCurrency = "NTD";
-    const IRR20yrx100 = 470;
-     */
+    /*struct Asset {
+        address owner;
+        uint acquiredCost;
+        address approvedAddress;
+    }*/
     assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('\nassetbook1 after minting:', assetsMeasuredX);
 
@@ -747,7 +764,7 @@ describe('Tests on ERC721SPLC', () => {
     assetbookId = await instAssetBook1.methods.getAssetId(_assetAddr, index).call();
     console.log('\nassetbook1 tokenId of index='+index+': ', assetbookId);
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
 
@@ -761,26 +778,26 @@ describe('Tests on ERC721SPLC', () => {
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    addrAssetBookX = addrAssetBook1;
-    let _tos = [addrAssetBookX, addrAssetBookX, addrAssetBookX];
+    _to = addrAssetBook1;
+    //let _tos = [_to, _to, _to];
     let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
     const strToBytes32 = str => web3.utils.fromAscii(str);
     let _uriBytes32s = _uriStrs.map(strToBytes32);
     console.log('_uriStrs', _uriStrs);
     console.log('_uriBytes32s', _uriBytes32s);
 
-    await instERC721SPLC.methods.mintSerialNFTBatch(_tos, _uriBytes32s).send({
-      value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
+    await instERC721SPLC.methods.mintSerialNFT(_to, 3).send({
+      value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 4);
 
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(2).call();
-    assert.equal(tokenOwnerM, addrAssetBookX);
+    assert.equal(tokenOwnerM, _to);
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(3).call();
-    assert.equal(tokenOwnerM, addrAssetBookX);
+    assert.equal(tokenOwnerM, _to);
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(4).call();
-    assert.equal(tokenOwnerM, addrAssetBookX);
+    assert.equal(tokenOwnerM, _to);
 
     tokenInfo = await instERC721SPLC.methods.getNFT(2).call();
     console.log('\ntokenInfo from ERC721SPLC id = 2:', tokenInfo);
@@ -826,7 +843,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetsMeasuredX[3], 3);//timeIndexEnd
     assert.equal(assetsMeasuredX[4], true);//isInitialized
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
 
@@ -837,26 +854,26 @@ describe('Tests on ERC721SPLC', () => {
 
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
-    addrAssetBookX = addrAssetBook2;
-    _tos = [addrAssetBookX, addrAssetBookX, addrAssetBookX];
+    _to = addrAssetBook2;
+    //_tos = [_to, _to, _to];
     _uriStrs = [uriBase+"5", uriBase+"6", uriBase+"7"];
     _uriBytes32s = _uriStrs.map(strToBytes32);
     console.log('_uriStrs', _uriStrs);
     console.log('_uriBytes32s', _uriBytes32s);
     
     console.log('\nstart minting via mintSerialNFTBatch()');
-    await instERC721SPLC.methods.mintSerialNFTBatch(_tos, _uriBytes32s).send({
-      value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
+    await instERC721SPLC.methods.mintSerialNFT(_to, 3).send({
+      value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 7);
 
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(5).call();
-    assert.equal(tokenOwnerM, addrAssetBookX);
+    assert.equal(tokenOwnerM, _to);
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(6).call();
-    assert.equal(tokenOwnerM, addrAssetBookX);
+    assert.equal(tokenOwnerM, _to);
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(7).call();
-    assert.equal(tokenOwnerM, addrAssetBookX);
+    assert.equal(tokenOwnerM, _to);
 
     tokenInfo = await instERC721SPLC.methods.getNFT(5).call();
     console.log('tokenInfo from ERC721SPLC id = 5:', tokenInfo);
@@ -878,7 +895,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetsMeasuredX[3], 2);//timeIndexEnd
     assert.equal(assetsMeasuredX[4], true);//isInitialized
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     
@@ -911,7 +928,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(chairman, acc3);
     assert.equal(director, acc2);
     assert.equal(manager, acc1);
-    assert.equal(admin, acc0);
+    assert.equal(admin, platformCtAdmin);
 
     // owner = management[4];
     // chairman = management[3];
@@ -931,7 +948,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Send tokens before Unlock Time');
     timeCurrent = TimeTokenUnlock;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
@@ -953,13 +970,13 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
     timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, true);
 
     console.log('sending tokens via transferAssetBatch()...');
     let amount = 1; 
-    let _to = addrAssetBook1;
+    _to = addrAssetBook1;
     await instAssetBook2.methods.transferAssetBatch(_assetAddr, amount, _to)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });//transferAssetBatch(_assetAddr, amount, _to, _timeCurrent)
     //Part of the transferAssetBatch code makes this function too big to run/compile!!! So fixTimeIndexedIds() must be run after calling transferAssetBatch()!!!
@@ -976,9 +993,9 @@ describe('Tests on ERC721SPLC', () => {
     // return (asset.assetSymbol, asset.assetAddrIndex, 
     //   asset.assetAmount, asset.timeIndexStart, 
     //   asset.timeIndexEnd, asset.isInitialized);
-    //   asset.ids, erc721.get_ownerToIds(address(this)));
+    //   asset.ids, erc721.getAccountIdsAll(address(this)));
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -990,7 +1007,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n\n--------------==AssetBook1: before updateReceivedAsset()...');
     assetsMeasuredX = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetsMeasuredX);
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1008,7 +1025,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetsMeasuredX[2], 0);//timeIndexStart
     assert.equal(assetsMeasuredX[3], 4);//timeIndexEnd
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1023,7 +1040,7 @@ describe('Tests on ERC721SPLC', () => {
     assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\n\n\n----------------==before Sending Tokens in batch, AssetBook2:', assetsMeasuredX);
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1048,7 +1065,7 @@ describe('Tests on ERC721SPLC', () => {
     // assert.equal(assetsMeasuredX[3], 3);//timeIndexStart
     // assert.equal(assetsMeasuredX[4], 4);//timeIndexEnd
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1065,7 +1082,7 @@ describe('Tests on ERC721SPLC', () => {
     assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\n----==after Sending Tokens in batch, AssetBook2:', assetsMeasuredX);
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1087,7 +1104,7 @@ describe('Tests on ERC721SPLC', () => {
     // assert.equal(assetsMeasuredX[3], 3);//timeIndexStart
     // assert.equal(assetsMeasuredX[4], 4);//timeIndexEnd
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1099,7 +1116,7 @@ describe('Tests on ERC721SPLC', () => {
     // return (asset.assetSymbol, asset.assetAddrIndex, 
     //   asset.assetAmount, asset.timeIndexStart, 
     //   asset.timeIndexEnd, asset.isInitialized);
-    //   asset.ids, erc721.get_ownerToIds(address(this)));
+    //   asset.ids, erc721.getAccountIdsAll(address(this)));
 
     console.log('\nAssetBook2 to receive tokens via updateReceivedAsset()...');
     //assetsMeasuredX = await instAssetBook2.methods.getAsset(assetAddr).call();
@@ -1113,7 +1130,7 @@ describe('Tests on ERC721SPLC', () => {
     // assert.equal(assetsMeasuredX[3], 1);//timeIndexStart
     // assert.equal(assetsMeasuredX[4], 4);//timeIndexEnd
 
-    tokenIds = await instERC721SPLC.methods.get_ownerToIds(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     console.log('\n-----==getAssetIds()');
@@ -1125,7 +1142,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Send tokens after valid date');
     timeCurrent = TimeTokenValid;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
@@ -1218,7 +1235,7 @@ describe('Tests on CrowdFunding', () => {
 
     //------------==
     await instCrowdFunding.methods.updateState()
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
@@ -1234,7 +1251,7 @@ describe('Tests on CrowdFunding', () => {
 
     //const _CFSD2 = timeCurrent+1;
     await instCrowdFunding.methods.setServerTime(_CFSD2)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
     assert.equal(serverTimeM, _CFSD2);
@@ -1250,7 +1267,7 @@ describe('Tests on CrowdFunding', () => {
     if (1==2){
       //const _CFED2 = timeCurrent+10;
       await instCrowdFunding.methods.setServerTime(_CFED2)
-      .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
       serverTimeM = await instCrowdFunding.methods.serverTime().call();
       console.log('serverTimeM', serverTimeM);
       assert.equal(serverTimeM, _CFED2);//201902281050
@@ -1276,15 +1293,15 @@ describe('Tests on CrowdFunding', () => {
     // assert.equal(serverTimeM, 201902281041);
 
     await instCrowdFunding.methods.makeFundingActive()
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('\nafter investing the target goal amount');
 
     //------------------==Set time to initial
     await instCrowdFunding.methods.setServerTime(_CFSD2-1)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('serverTimeM', serverTimeM);
     assert.equal(serverTimeM, _CFSD2-1);//201902281039
@@ -1299,7 +1316,7 @@ describe('Tests on CrowdFunding', () => {
 
     //------------------==Back to _CFSD2
     await instCrowdFunding.methods.setServerTime(_CFSD2)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
     assert.equal(serverTimeM, _CFSD2);
@@ -1320,7 +1337,7 @@ describe('Tests on CrowdFunding', () => {
     try {
       console.log('\nTrying to invest quantityAvailable+1');
       await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1)
-      .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
@@ -1332,7 +1349,7 @@ describe('Tests on CrowdFunding', () => {
       //-------------------==Buying the available quantity
       console.log('\nTrying to invest quantityAvailable');
       await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable)
-      .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
@@ -1346,7 +1363,7 @@ describe('Tests on CrowdFunding', () => {
       //-------------------==CFED2 has been reached
       console.log('\nCFED2 has been reached');
       await instCrowdFunding.methods.setServerTime(_CFED2)
-      .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
       serverTimeM = await instCrowdFunding.methods.serverTime().call();
       console.log('serverTimeM', serverTimeM);
       assert.equal(serverTimeM, _CFED2);//201902281050
@@ -1368,10 +1385,10 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(serverTimeM, 201902281041);
 
     await instCrowdFunding.methods.startFunding()
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     await instCrowdFunding.methods.invest(addrAssetBook1, maxTotalSupply)
-    .send({ value: '0', from: acc0, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);

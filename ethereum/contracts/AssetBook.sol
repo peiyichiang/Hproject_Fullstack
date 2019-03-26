@@ -168,7 +168,7 @@ contract AssetBook {
         mapping (uint => uint) indexToId;//time index to asset token ids. For First In First Out(FIFO) exchange rule
         uint idxStart;// 0, 1, 2, ...
         uint idxEnd;// 0, 1, 2, ...
-        bool isApprovedForAsset;//by platform to approve writing from the asset contract
+        //bool isApprovedForAsset;//by platform to approve writing from the asset contract
         bool isInitialized;
     }
     mapping (address => Asset) assets;//assets[_assetAddr]
@@ -213,17 +213,17 @@ contract AssetBook {
     function ckAssetAdded(address _assetAddr) public view {
         require(assets[_assetAddr].assetAddr != address(0), "_assetAddr should have been added into the AssetBook smart contract");
     }
-    function setAssetApproval(address _assetAddr, bool _isApprovedForAsset) external {
-        require(msg.sender == platformContractAddr, "sender must be Platform Contract");
-        assets[_assetAddr].isApprovedForAsset = _isApprovedForAsset;
-    }
+    // function setAssetApproval(address _assetAddr, bool _isApprovedForAsset) external {
+    //     require(msg.sender == platformContractAddr, "sender must be Platform Contract");
+    //     assets[_assetAddr].isApprovedForAsset = _isApprovedForAsset;
+    // }
 
 
     /** @dev 新增token(當 erc721_token 分配到 AssetBookCtrt 的時候記錄起來)
     For ERC721SPLC-addNFToken(address _to, uint256 _tokenId) to call this when minting new asset tokens */
     function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId) external {
         require(msg.sender == platformContractAddr, "the sender is platformContractAddr");
-        assets[_assetAddr].isApprovedForAsset = true;
+        //assets[_assetAddr].isApprovedForAsset = true;
         require(_assetAddr != address(0), "_assetAddr should not be zero");
         require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
         uint idxEndOut;
@@ -322,7 +322,7 @@ contract AssetBook {
     function transferAsset(address _assetAddr, uint _tokenId, address _to, uint256 _timeCurrent) 
         public ckAssetOwner ckAssetAddr(_assetAddr){
         require(_to != address(this), "_to cannot be this AssetBook!");
-        require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
+        //require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
         ckAssetAdded(_assetAddr);
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         require(erc721.ownerOf(_tokenId) == address(this), "check if this contract owns this tokenId");
@@ -339,7 +339,7 @@ contract AssetBook {
     function transferAssetBatch(address _assetAddr, uint amount, address _to) 
         public ckAssetOwner ckAssetAddr(_assetAddr){//, uint256 _timeCurrent
         require(_to != address(this), "_to cannot be this AssetBook!");
-        require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
+        //require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
 
         ckAssetAdded(_assetAddr);
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));

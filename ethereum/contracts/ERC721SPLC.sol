@@ -81,7 +81,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     struct Account {
         uint idxStart;
         uint idxEnd;
-        mapping (uint => uint) indexToId;//time index to _tokenId
+        mapping (uint => uint) indexToId;//time index to _tokenId: accounts[user].indexToId[index]
         //For First In First Out(FIFO) exchange rule
         mapping (address => bool) operators;
     }
@@ -138,7 +138,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
     
-    function getHTokenDetails() external view returns (
+    function getAssetContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
         uint totalSupply_, uint initialAssetPricing_, 
         string memory pricingCurrency_, uint IRR20yrx100_) {
@@ -150,17 +150,13 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             pricingCurrency_ = pricingCurrency;
             IRR20yrx100_ = IRR20yrx100;
     }
-    modifier ckAddr(address addr) {
-        require(addr != address(0), "addr should not be zero");
-        _;
-    }
 
     function ownerOf(uint256 _tokenId) 
         external view returns (address owner_) {
-        require(owner_ != address(0), "owner_ should not be 0x0");
         owner_ = idToAsset[_tokenId].owner;
+        require(owner_ != address(0), "owner_ should not be 0x0");
     }
-    function getNFT(uint _tokenId) external view returns (
+    function getAsset(uint _tokenId) external view returns (
         address owner, uint acquiredCost, address approvedAddress) {
         Asset memory asset = idToAsset[_tokenId];
         owner = asset.owner;
@@ -173,22 +169,19 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         address approvedAddress;
     }*/
 
-
     //---------------------------==Account
     function getAccount(address user) external view 
-      returns (uint idxStart, uint idxEnd, uint balance) {
+      returns (uint idxStart, uint idxEnd) {
         idxStart = accounts[user].idxStart;
         idxEnd = accounts[user].idxEnd;
-        balance = balanceOfP(user);
     }
     function balanceOf(address user) external view returns (uint balance) {
-        balance = balanceOfP(user);
-    }
-    function balanceOfP(address user) public view returns (uint balance) {
         require(user != address(0), "user should not be 0x0");
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
         if (idxStart > idxEnd) {
+            balance = 0;
+        } else if (accounts[user].indexToId[0] == 0) {
             balance = 0;
         } else {
             idxEnd.sub(idxStart).add(1);
@@ -201,30 +194,45 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         mapping (address => bool) operators;
     }*/
     // function get_ownerToIds(address _owner) external view returns (uint[] 
-    function getAccountIds(address user) external view 
+    function getAccountIdsAll(address user) external view 
     returns (uint[] memory arrayOut) {
-        require(user != address(0), "owner should not be 0x0");
+        require(user != address(0), "user should not be address(0)");
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
         
-        if (idxStart <= idxEnd) {
-            //require(idxStart <= idxEnd, "idxStart <= idxEnd");
-            uint len = idxEnd.sub(idxStart).add(1);
-            arrayOut = new uint[](len);
-            for(uint i = 0; i < len; i++) {
+        if (idxStart <= idxEnd && accounts[user].indexToId[0] != 0) {
+            uint length = idxEnd.sub(idxStart).add(1);
+            arrayOut = new uint[](length);
+            for(uint i = 0; i < length; i++) {
                 arrayOut[i] = accounts[user].indexToId[i.add(idxStart)];
             }
         }//else arrayOut = [];
     }
-    function getAccountId(address user, uint index) 
-        public view ckAddr(user) 
-        returns (uint tokenId_) {
-            tokenId_ = accounts[user].indexToId[index];
+    function getAccountIds(address user, uint idxS, uint idxE) external view 
+    returns (uint[] memory arrayOut) {
+        require(user != address(0), "user should not be address(0)");
+        uint idxStart = accounts[user].idxStart;
+        uint idxEnd = accounts[user].idxEnd;
+        require(idxS >= idxStart, "idxS must be >= idxStart");
+        require(idxE <= idxEnd, "idxE must be <= idxEnd");
+        
+        if (idxS <= idxE && accounts[user].indexToId[0] != 0) {
+            uint length = idxE.sub(idxS).add(1);
+            arrayOut = new uint[](length);
+            for(uint i = idxS; i < length; i++) {
+                arrayOut[i] = accounts[user].indexToId[i];
+            }
+        }//else arrayOut = [];
     }
+    // function getAccountId(address user, uint index) 
+    //     public view returns (uint tokenId_) {
+    //         require(user != address(0), "user should not be zero");
+    //         tokenId_ = accounts[user].indexToId[index];
+    // }
     /*struct Account { // accounts[user]
         uint idxStart;// 0, 1, 2, ...
         uint idxEnd;
-        mapping (uint => uint) indexToId;
+        mapping (uint => uint) indexToId;//accounts[user].indexToId[index];
         mapping (address => bool) operators;
     }*/
 
@@ -239,24 +247,19 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
 
     //-----------------------==Mint
-    function mintSerialNFTBatch(address[] calldata _tos, uint _amount) external {
-        for(uint i=0; i < _tos.length; i++) {
-            for(uint j=0; j < _amount; j++) {
-                mintSerialNFT(_tos[i]);
-            }
-        }
-    }
-    function mintSerialNFTBatchToOne(address _to, uint _amount) external {
-        for(uint i=0; i < _amount; i++) {
-            mintSerialNFT(_to);
-        }
-    }
+    // function mintSerialNFTBatch(address[] calldata _tos, uint amount) external {
+    //     for(uint i=0; i < _tos.length; i++) {
+    //         for(uint j=0; j < amount; j++) {
+    //             mintSerialNFT(_tos[i], amount);
+    //         }
+    //     }
+    // }
 
     event MintSerialNFT(address indexed newOwner, uint amountMinted);
     function mintSerialNFT(address _to, uint amount) public {
-        require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only H-Token admin can mint tokens');
+        require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only admin can mint tokens');
 
-        //Legal Compliance
+        //Legal Compliance, also block address(0)
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
 
         if (_to.isContract()) {//also checks for none zero address
@@ -264,27 +267,34 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
                 msg.sender, address(this), 1, "");
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
-        require(tokenId.add(amount) <= maxTotalSupply, "max allowed token amount has been reached");
-        totalSupply = tokenId.add(amount);
-        emit MintSerialNFT(msg.sender, amount);
 
-        Account memory account = accounts[_to];
-        //uint idxStart = account.idxStart;
-        uint idxEnd = account.idxEnd;
+        require(amount > 0, "amount must be > 0");
+        totalSupply = tokenId.add(amount);
+        require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
+        emit MintSerialNFT(_to, amount);
+
+        uint idxEnd = accounts[_to].idxEnd;
+        uint idxStart = accounts[_to].idxEnd;
+        uint idxStartReq;
+        if (accounts[_to].indexToId[0] == 0) {
+          idxStartReq = 0;
+        } else {
+          idxStartReq = accounts[_to].idxEnd.add(amount);
+        }
+        uint idxEndOut = idxEnd.add(amount);
         //require(idxStart <= idxEnd, "not enough asset: balance = 0");
         //uint balance = idxEnd.sub(idxStart).add(1);
         //require(balance >= amount, "not enough asset: balance < amount");
-        uint idxEndOut = idxEnd.add(amount);
 
-        for(uint i = idxStart; i <= idxEndOut; i++) {
+        for(uint i = idxStartReq; i < idxEndOut; i++) {
             tokenId = tokenId.add(1);
-            idToAsset[tokenId] = Asset(_to, initialAssetPricing, address(0));
-            //addNFToken(_to, tokenId);
-
+            idToAsset[tokenId].owner = _to;
+            idToAsset[tokenId].acquiredCost = initialAssetPricing;
+            //idToAsset[tokenId] = Asset(_to, initialAssetPricing, address(0));
+            accounts[_to].indexToId[i] = tokenId;
         }
-        accounts[_to].idxStart = idxStart.add(amount);
+        accounts[_to].idxEnd = idxEndOut;
     }
-
     /*struct Asset {
         address owner;
         uint acquiredCost;
@@ -293,15 +303,16 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     /*struct Account { // accounts[user]
         uint idxStart;// 0, 1, 2, ...
         uint idxEnd;
-        mapping (uint => uint) indexToId;
+        mapping (uint => uint) indexToId;//accounts[user].indexToId[index];
         mapping (address => bool) operators;
     }*/
 
     //---------------------------==Transfer
-    function safeTransferFromToOne(address _from, address _to, uint amount, uint price) external {
-        require(_from != address(0), "_to should not be 0x0");
-        //require(_to != address(0), "_to should not be 0x0");
-        require(amount > 0, "amount should not be > 0");
+    function safeTransferFromBatch(address _from, address _to, uint amount, uint price) external {
+        //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
+        //require(_to != address(0), "_to should not be 0x0");//replaced by registry check
+        require(amount > 0, "amount should be > 0");
+        require(price > 0, "price should be > 0");
         require(_from != _to, "_from should not be equal to _to");
 
         if (_to.isContract()) {
@@ -313,9 +324,9 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(TokenControllerITF(addrTokenControllerITF).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
-        require(RegistryITF(addrRegistryITF).isAddrApproved(_from), "from is not in compliance");
+        require(RegistryITF(addrRegistryITF).isAddrApproved(_from), "_from is not in compliance");
 
-        _safeTransferFromToOne(_from, _to, amount, price);
+        _safeTransferFromBatch(_from, _to, amount, price);
     }
 
     /*struct Account { // accounts[user]
@@ -329,76 +340,133 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         uint acquiredCost;
         address approvedAddress;
     }*/
-    //emit Transfer(from, _to, tokenId);
     //canTransfer(tokenId) validNFToken(tokenId)
-    function _safeTransferFromToOne(address _from, 
+    event SafeTransferFromBatch(address indexed _from, address indexed _to, uint256 amount);
+    function _safeTransferFromBatch(address _from, 
         address _to, uint amount, uint price) internal {
 
-        Account memory account = accounts[_from];
-        uint idxStart = account.idxStart;
-        uint idxEnd = account.idxEnd;
-        require(idxStart <= idxEnd, "not enough asset: balance = 0");
-        uint balance = idxEnd.sub(idxStart).add(1);
-        require(balance >= amount, "not enough asset: balance < amount");
-        uint idxEndReq = idxStart.add(amount).sub(1);
+        uint idxStartF = accounts[_from].idxStart;
+        uint idxEndF = accounts[_from].idxEnd;
+        require(idxStartF <= idxEndF, "not enough asset to transfer: balance = 0");
+        require(idxEndF.sub(idxStartF).add(1) >= amount, "not enough asset to transfer: balance < amount");
 
-        uint tokenId_;
-        for(uint i = idxStart; i <= idxEndReq; i++) {
-            tokenId_ = accounts[_from].indexToId[i];
+        uint idxEndT = accounts[_to].idxEnd;
+        uint idxStartReqT = idxEndT.add(1);
+
+        for(uint i = 0; i < amount; i++) {
+
+            //inside _from account
+            uint idxFrom = i.add(idxStartF);
+            uint tokenId_ = accounts[_from].indexToId[idxFrom];
 
             address tokenOwner = idToAsset[tokenId_].owner;
             require(tokenOwner == _from, "tokenOwner should be _from");
+            //require(tokenOwner != address(0), "owner should not be 0x0");
+
             require(
             tokenOwner == msg.sender || getIdToApprovals(tokenId_) == msg.sender 
             || accounts[tokenOwner].operators[msg.sender], 
             "msg.sender should be tokenOwner, an approved, or a token operator");
             //ownerToOperators[tokenOwner][msg.sender]
-            require(idToAsset[tokenId_].owner != address(0), "owner should not be 0x0");
 
+            idToAsset[tokenId_].owner = _to;
             idToAsset[tokenId_].acquiredCost = price;
             clearApproval(tokenId_);
-            delete accounts[_from].indexToId[i];
+            //idToAsset[tokenId_] = Asset(_to, price, address(0));
 
-            require(idToAsset[tokenId_].owner == _from, "tokenId_ should match _from");
-            delete idToAsset[tokenId_].owner;
+            delete accounts[_from].indexToId[idxFrom];
 
-            addNFToken(_to, tokenId_);
+            //inside _to account
+            uint idxTo = i.add(idxStartReqT);
+            accounts[_to].indexToId[idxTo] = tokenId_;
         }
-        if (idxEnd == idxEndReq) {
+
+        if (idxEndF == idxStartF.add(amount).sub(1)) {
             accounts[_from].idxEnd = 0;
             accounts[_from].idxStart = 0;
             accounts[_from].indexToId[0] = 0;
         } else {
-            accounts[_from].idxStart = idxStart.add(amount);
+            accounts[_from].idxStart = idxStartF.add(amount);
         }
+        accounts[_to].idxEnd = idxEndT.add(amount);
+
+        emit SafeTransferFromBatch(_from, _to, amount);
     }
-    /*canTransfer()
+    /*
+    }
+    struct Account { // accounts[user]
+        uint idxStart;// 0, 1, 2, ...
+        uint idxEnd;
+        mapping (uint => uint) indexToId;
+        mapping (address => bool) operators;
+    }
+    struct Asset { // idToAsset[tokenId]
+        address owner;
+        uint acquiredCost;
+        address approvedAddress;
+
+        accounts[_to].indexToId[i] = tokenId;
+        accounts[_to].idxEnd = idxEndOut;
+
+    canTransfer()
         require(
             tokenOwner == msg.sender || getIdToApprovals(tokenId_) == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
 
       validToken()
         require(idToAsset[tokenId_].owner != address(0), "owner should not be 0x0");
     */
-    function removeNFToken(address addr) internal {
-        Account memory account = accounts[addr];
-        require(accounts[addr].indexToId[0] > 0, "token is not zero");
+    function addNFToken(address _to, uint _tokenId) internal {
+        //accounts[owner].idxStart  .idxEnd  .indexToId[index]  .operators[opAddr]
+        uint idxStart = accounts[_to].idxStart;
+        uint idxEnd = accounts[_to].idxEnd;
+
+        if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
+            accounts[_to].indexToId[0] = _tokenId;
+
+        } else if (idxStart > idxEnd) {
+            accounts[_to].idxStart = 0;
+            accounts[_to].idxEnd = 0;
+            accounts[_to].indexToId[0] = _tokenId;
+
+        } else {
+            uint idxEndOut = idxEnd.add(1);
+            accounts[_to].indexToId[idxEndOut] = _tokenId;
+            accounts[_to].idxEnd = idxEndOut;
+        }
+        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId);
+    }
+    /*struct Account { // accounts[user]
+        uint idxStart;// 0, 1, 2, ...
+        uint idxEnd;
+        mapping (uint => uint) indexToId;
+        mapping (address => bool) operators;
+    }*/
+    /*struct Asset { // idToAsset[tokenId]
+        address owner;
+        uint acquiredCost;
+        address approvedAddress;
+    }*/
+
+    function removeNFToken(address _from) internal {
+        Account memory account = accounts[_from];
+        require(accounts[_from].indexToId[0] > 0, "token is not zero");
         uint idxStart = account.idxStart;
         uint idxEnd = account.idxEnd;
         uint count = idxEnd.sub(idxStart).add(1);
-        uint tokenId_ = accounts[addr].indexToId[idxStart];
+        uint tokenId_ = accounts[_from].indexToId[idxStart];
 
         require(count > 0, "token count should be > 0");
         uint countM1 = count.sub(1);
-        accounts[addr].idxStart = idxStart.add(1);
-        delete accounts[addr].indexToId[idxStart];
+        accounts[_from].idxStart = idxStart.add(1);
+        delete accounts[_from].indexToId[idxStart];
 
         if (countM1 == 0) {
-            accounts[addr].idxStart = 0;
-            accounts[addr].idxEnd = 0;
-            accounts[addr].indexToId[0] == 0;
+            accounts[_from].idxStart = 0;
+            accounts[_from].idxEnd = 0;
+            accounts[_from].indexToId[0] == 0;
         }
 
-        require(idToAsset[tokenId_].owner == addr, "tokenId_ should match addr");
+        require(idToAsset[tokenId_].owner == _from, "tokenId_ should match _from");
         delete idToAsset[tokenId_].owner;
         clearApproval(tokenId_);
     }
@@ -414,38 +482,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         address approvedAddress;
     }*/
 
-    function addNFToken(address addr, uint _tokenId) internal {
-        //accounts[owner].idxStart  .idxEnd  .indexToId[index]  .operators[opAddr]
-        Account memory account = accounts[addr];
-        uint idxStart = account.idxStart;
-        uint idxEnd = account.idxEnd;
 
-        if (idxStart == 0 && idxEnd == 0 && accounts[addr].indexToId[0] == 0) {
-            accounts[addr].indexToId[0] = _tokenId;
-
-        } else if (idxStart > idxEnd) {
-            accounts[addr].idxStart = 0;
-            accounts[addr].idxEnd = 0;
-            accounts[addr].indexToId[0] = _tokenId;
-
-        } else {
-            uint idxEndOut = idxEnd.add(1);
-            accounts[addr].indexToId[idxEndOut] = _tokenId;
-            accounts[addr].idxEnd = idxEndOut;
-        }
-        AssetBookITF(addr).addAsset(address(this), nftSymbol, _tokenId);
-    }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => bool) operators;
-    }*/
-    /*struct Asset { // idToAsset[tokenId]
-        address owner;
-        uint acquiredCost;
-        address approvedAddress;
-    }*/
 
 
     //-------------------------------==
@@ -612,24 +649,11 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
     //====================Copied code
     function() external payable { revert("should not send any ether directly"); }
-    //should not send any ether directly
 
     event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
     event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
     event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
     // event BurnNFT(address _owner, uint _tokenId, address msgsender);
-
-    /** $dev Mints a new NFT.
-    * $notice This is a private function which should be called from user_implemented external     * mint function. Its purpose is to show and properly initialize data structures when using this * implementation.
-    * $param _to The address that will own the minted NFT.
-    * $param _tokenId of the NFT to be minted by the msg.sender.   */
-    /*function _mint(address _to, uint256 _tokenId) internal {
-        // require(_to != address(0), "_to should not be 0x0");
-        // require(_tokenId != 0, "_tokenId should not be 0");
-        //require(idToAsset[_tokenId].owner == address(0), "owner of this id should be 0x0");
-        addNFToken(_to, _tokenId);
-        //emit Transfer(address(0), _to, _tokenId);
-    }*/
 
 
     // function burnNFT(address _owner, uint256 _tokenId) external onlyAdmin {
