@@ -1,5 +1,6 @@
 pragma solidity ^0.5.4;
-/* => Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!! => use 3rd party to freeze token transfer
+/* v2.0
+=> Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!! => use 3rd party to freeze token transfer
 
 Add ITF to distingush interface json from compiled contracts json
 
@@ -62,7 +63,8 @@ interface TokenControllerITF {
 }
 //AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
 interface AssetBookITF {
-    function addAsset(address _assetAddr, string calldata _symbol, uint _tokenId) external;
+    function addAsset(address _assetAddr, string calldata _symbol, uint balance) external;
+    function updateAssetFromAssetContract(address _assetAddr, uint balance) external;
 }
 
 
@@ -138,7 +140,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
     
-    function getAssetContractDetails() external view returns (
+    function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
         uint totalSupply_, uint initialAssetPricing_, 
         string memory pricingCurrency_, uint IRR20yrx100_) {
@@ -156,7 +158,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         owner_ = idToAsset[_tokenId].owner;
         require(owner_ != address(0), "owner_ should not be 0x0");
     }
-    function getAsset(uint _tokenId) external view returns (
+    function getToken(uint _tokenId) external view returns (
         address owner, uint acquiredCost, address approvedAddress) {
         Asset memory asset = idToAsset[_tokenId];
         owner = asset.owner;
@@ -179,12 +181,13 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(user != address(0), "user should not be 0x0");
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
-        if (idxStart > idxEnd) {
-            balance = 0;
-        } else if (accounts[user].indexToId[0] == 0) {
-            balance = 0;
+
+        if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
+            //balance = 0; arrayOut = [];
+        } else if(idxStart > idxEnd) {
+            //balance = 0; arrayOut = [];
         } else {
-            idxEnd.sub(idxStart).add(1);
+            balance = idxEnd.sub(idxStart).add(1);
         }
     }
     /*struct Account { // accounts[user]
@@ -199,10 +202,15 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(user != address(0), "user should not be address(0)");
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
-        
-        if (idxStart <= idxEnd && accounts[user].indexToId[0] != 0) {
+
+        if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
+            //arrayOut = [];
+        } else if(idxStart > idxEnd) {
+            //arrayOut = [];
+        } else {
             uint length = idxEnd.sub(idxStart).add(1);
             arrayOut = new uint[](length);
+
             for(uint i = 0; i < length; i++) {
                 arrayOut[i] = accounts[user].indexToId[i.add(idxStart)];
             }
@@ -215,14 +223,19 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         uint idxEnd = accounts[user].idxEnd;
         require(idxS >= idxStart, "idxS must be >= idxStart");
         require(idxE <= idxEnd, "idxE must be <= idxEnd");
-        
-        if (idxS <= idxE && accounts[user].indexToId[0] != 0) {
+
+        if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
+            //arrayOut = [];
+        } else if(idxStart > idxEnd) {
+            //arrayOut = [];
+        } else {
             uint length = idxE.sub(idxS).add(1);
             arrayOut = new uint[](length);
+
             for(uint i = idxS; i < length; i++) {
                 arrayOut[i] = accounts[user].indexToId[i];
             }
-        }//else arrayOut = [];
+        }
     }
     // function getAccountId(address user, uint index) 
     //     public view returns (uint tokenId_) {
@@ -274,26 +287,33 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         emit MintSerialNFT(_to, amount);
 
         uint idxEnd = accounts[_to].idxEnd;
-        uint idxStart = accounts[_to].idxEnd;
-        uint idxStartReq;
-        if (accounts[_to].indexToId[0] == 0) {
-          idxStartReq = 0;
+        uint idxStart = accounts[_to].idxStart;
+        uint idxStartReq; uint idxEndReq;
+        if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
+          //idxStartReq = 0;
+          idxEndReq = amount.sub(1);
+        } else if (idxStart > idxEnd) {
+          //idxStartReq = 0;
+          idxEndReq = amount.sub(1);
         } else {
-          idxStartReq = accounts[_to].idxEnd.add(amount);
+          idxStartReq = idxEnd.add(1);
+          idxEndReq = idxEnd.add(amount);
         }
-        uint idxEndOut = idxEnd.add(amount);
+        //accounts[_to].indexToId[0]
+
         //require(idxStart <= idxEnd, "not enough asset: balance = 0");
         //uint balance = idxEnd.sub(idxStart).add(1);
         //require(balance >= amount, "not enough asset: balance < amount");
 
-        for(uint i = idxStartReq; i < idxEndOut; i++) {
+        for(uint i = idxStartReq; i <= idxEndReq; i++) {
             tokenId = tokenId.add(1);
             idToAsset[tokenId].owner = _to;
             idToAsset[tokenId].acquiredCost = initialAssetPricing;
             //idToAsset[tokenId] = Asset(_to, initialAssetPricing, address(0));
             accounts[_to].indexToId[i] = tokenId;
         }
-        accounts[_to].idxEnd = idxEndOut;
+        accounts[_to].idxEnd = idxEndReq;
+        //AssetBookITF(_to).addAsset(address(this), nftSymbol, idxEndReq.sub(idxStartReq).add(1));
     }
     /*struct Asset {
         address owner;
@@ -350,8 +370,20 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(idxStartF <= idxEndF, "not enough asset to transfer: balance = 0");
         require(idxEndF.sub(idxStartF).add(1) >= amount, "not enough asset to transfer: balance < amount");
 
+        //fix _to account
+        uint idxStartT = accounts[_to].idxStart;
         uint idxEndT = accounts[_to].idxEnd;
-        uint idxStartReqT = idxEndT.add(1);
+        uint idxStartReqT; //uint idxEndReqT;
+        if (idxStartT > idxEndT) {
+          //idxStartReqT = 0;
+          //idxEndReqT = amount.sub(1);
+        } else if (idxStartT == 0 && idxEndT == 0 && accounts[_to].indexToId[0] == 0) {
+          //idxStartReqT = 0;
+          //idxEndReqT = amount.sub(1);
+        } else {
+          idxStartReqT = idxEndT.add(1);
+          //idxEndReqT = idxEndT.add(amount);
+        }//accounts[_to].indexToId[0]
 
         for(uint i = 0; i < amount; i++) {
 
@@ -377,18 +409,21 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             delete accounts[_from].indexToId[idxFrom];
 
             //inside _to account
-            uint idxTo = i.add(idxStartReqT);
-            accounts[_to].indexToId[idxTo] = tokenId_;
+            //uint idxTo = i.add(idxStartReqT);
+            accounts[_to].indexToId[i.add(idxStartReqT)] = tokenId_;
         }
 
+        //fix _from account
         if (idxEndF == idxStartF.add(amount).sub(1)) {
+            accounts[_from].idxStart = 1;
             accounts[_from].idxEnd = 0;
-            accounts[_from].idxStart = 0;
-            accounts[_from].indexToId[0] = 0;
         } else {
             accounts[_from].idxStart = idxStartF.add(amount);
         }
         accounts[_to].idxEnd = idxEndT.add(amount);
+
+        // AssetBookITF(_from).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
+        // AssetBookITF(_to).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
 
         emit SafeTransferFromBatch(_from, _to, amount);
     }
@@ -406,7 +441,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         address approvedAddress;
 
         accounts[_to].indexToId[i] = tokenId;
-        accounts[_to].idxEnd = idxEndOut;
+        accounts[_to].idxEnd = idxEndReq;
 
     canTransfer()
         require(
@@ -419,6 +454,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //accounts[owner].idxStart  .idxEnd  .indexToId[index]  .operators[opAddr]
         uint idxStart = accounts[_to].idxStart;
         uint idxEnd = accounts[_to].idxEnd;
+        uint idxEndReq;
 
         if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
             accounts[_to].indexToId[0] = _tokenId;
@@ -429,11 +465,11 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             accounts[_to].indexToId[0] = _tokenId;
 
         } else {
-            uint idxEndOut = idxEnd.add(1);
-            accounts[_to].indexToId[idxEndOut] = _tokenId;
-            accounts[_to].idxEnd = idxEndOut;
+            idxEndReq = idxEnd.add(1);
+            accounts[_to].indexToId[idxEndReq] = _tokenId;
+            accounts[_to].idxEnd = idxEndReq;
         }
-        AssetBookITF(_to).addAsset(address(this), nftSymbol, _tokenId);
+        //AssetBookITF(_to).addAsset(address(this), nftSymbol, idxEndReq.sub(idxStart).add(1));
     }
     /*struct Account { // accounts[user]
         uint idxStart;// 0, 1, 2, ...
