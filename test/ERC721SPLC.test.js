@@ -794,11 +794,13 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\nassetbook1 getAsset():', assetbookXM);
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], 4);
-    assert.equal(assetbookXM[2], false);
 
     tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('\nERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
+
 
     //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getToken(tokenId)
     //-----------------==Mint Token Batch
@@ -838,12 +840,13 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\nassetbook2:', assetbookXM);
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], amount);
-    assert.equal(assetbookXM[2], false);//isInitialized
 
     tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
+
 
     //-----------------==Check Token Controller: time
     console.log('\n------------==Check TokenController parameters: time');
@@ -914,22 +917,24 @@ describe('Tests on ERC721SPLC', () => {
     tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    console.log('SPLC getAccount():', accountM);
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], 2);
-    assert.equal(assetbookXM[2], false);//isInitialized
 
 
     tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], 5);
-    assert.equal(assetbookXM[2], false);//isInitialized
 
 
 
@@ -945,30 +950,56 @@ describe('Tests on ERC721SPLC', () => {
     //safeTransferFromBatch(_assetAddr, amount, _to, _timeCurrent)
 
 
-    console.log('\n-----==Check AssetBook1 after sending 5 tokens...');
+    console.log('\n-----==after sending 5 tokens...');
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-
     
     //-----------------==Check AssetBook2
+    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
+    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
-    console.log('\n----==AssetBook2:', assetbookXM);
+    console.log('AssetBook2:', assetbookXM);
 
+
+
+    console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
+    _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
+
+    console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\nCheck AssetBook2 after txn...');
     tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    console.log('SPLC getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('AssetBook2:', assetbookXM);
+    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[1], 0);
 
-    // assert.equal(assetbookXM[2], 1);//amount
-    // assert.equal(assetbookXM[3], 3);//timeIndexStart
-    // assert.equal(assetbookXM[4], 4);//timeIndexEnd
 
     tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetbookXM);
+    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[1], 7);
+
 
 
     //----------------==Send tokens after valid time

@@ -68,23 +68,15 @@ if (chain === 1) {//POA private chain
   let scenario = 1;//1: new accounts, 2: POA node accounts
   if (scenario===1) {
     console.log('scenario = ', scenario);
-    addrPlatform = "0x135153C82E45A9700CD045A133c038EcEA17BD1C";
-    addrMultiSig1 = "0xC954E0bc796DeFaC16616E63E6A74D6eF1FED537";
-    addrMultiSig2 = "0x4ff8a943501aAC384D66B37Ed595c384Aedb56D2";
-    addrAssetBook1 = "0xfF6646a2608bF63Ccf39bB8105D8cF9084aF84E3";
-    addrAssetBook2 = "0xe5EB5c40E1D96D26b5ddf52D3Ac1C31b8e1808cC";
-    addrRegistry =   "0x1eAc971AA1A614e25B00FE9FB04Ba11D56Bf45A3";
-    addrTokenController = "0x8f3c68c95a2e217A2B138ffB9B4985754ec0C3f8";
-    addrERC721SPLC = "0xfd7A913CCA5CB8167F6744c3053D57dd52B1C0A4";
-    addrCrowdFunding = "0x7f0B7e648Dc595aE8ec4FF4aFB7A74278D4b496f";
-    // addrPlatform = "0x2F706dd9955FfE3A0655846b9f5058D16A9B5Fa5";
-    // addrMultiSig1 = "0xb5C37059C85c5F5d59755226B9fa08bec3B2B47c";
-    // addrMultiSig2 = "0xf6B7d36EBdeb036b308d30b93C4F34a6902f5828";
-    // addrAssetBook1 = "0x3614d6068aC16b7Cc4eb34b70c7a9BB6fb9e9B43";
-    // addrAssetBook2 = "0x9CEEb4137F0FeDF180afeaDD2A49Bcc555e03EeF";
-    // addrRegistry = "0x7b376c71A04Bc487F3Cf2B5938DdDAe8EdB33bb3";
-    // addrTokenController = "0xd1b8609793DC685e25c34343c37F547c457145eb";
-    // addrERC721SPLC = "0xACEf03ac42CE601CF8921ccBEcE7f12A80Df5778";
+    addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
+    addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
+    addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
+    addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
+    addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
+    addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
+    addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
+    addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
+    addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
 
     Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
     BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
@@ -99,30 +91,16 @@ if (chain === 1) {//POA private chain
 
   } else if (scenario === 2) {
     console.log('scenario = ', scenario);
-    addrPlatform = "0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9";
-    addrMultiSig1 = "0xAF5065cD6A1cCe522D8ce712A5C7C52682740565";
-    addrMultiSig2 = "0xc993fD11a829d96015Cea876D46ac67B5aADCAF1";
-    addrAssetBook1 = "0x666da33635327eDC3Ddb620Ed9fa93fd06962575";
-    addrAssetBook2 = "0x8e58F2253d68e681C0295599aec7576f3BCb5C4d";
-    addrRegistry = "0x7192FCdDE5A7ad37E4F316fEca7EbE98b1634956";
-    addrTokenController = "0xcc3903eb32b16C6Fd646BE9D2cda035F28e2BB3e";
-    addrERC721SPLC = "0x303139caFBDAce44feE8B48Af16b276c02CE7De1";
-    addrCrowdFunding = "0xa08BC0262dD868dFa7d33552612fA6C1539F389B";
-
     Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
     BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
     //Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
     //BackendpkRaw = "0xdb7ec98d7453d3eebe01119c843e56159433a388362374a3b996b930ea182960";
-
     AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
     AssetOwner1pkRaw = "0xd05a673b9efe63079cd7fd35478f279233287294730a990a32fc29c699ec21de";
-
     AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
     AssetOwner2pkRaw = "0x648dbeca98e7d88515596fa6d9793bf8852107f0b8fbaebb0a1f5f73dc39e9f0";
-
     acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
     acc3pkRaw = "0xccaf612eab2e083aace09bf3b701a152d82c62f91462eee6edc581bcfe79e2f7";
-
     acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
     acc4pkRaw = "0x6e1d4a3eab8a8fab0e4c43c4ada1c644feda497b5aceeb487ec3b3bab493c5ce";
   }

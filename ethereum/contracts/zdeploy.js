@@ -4,7 +4,7 @@ $ yarn run deploy
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '';
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenURI, tokenURI_bytes32;
 console.log('process.argv', process.argv);
 if (process.argv.length < 6) {
   console.log('not enough arguments. Make it like: yarn run deploy --chain 1 --ctrtName contractName');
@@ -22,6 +22,14 @@ let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, Backendpk;
 let addrPlatform, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
 let addrERC721SPLC, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
 
+const nftName = "NCCU site No.1(2018)";
+const nftSymbol = "NCCU1801";
+const siteSizeInKW = 300;
+const maxTotalSupply = 773;
+const initialAssetPricing = 17000;
+const pricingCurrency = "NTD";
+const IRR20yrx100 = 470;
+
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
   /**https://iancoleman.io/bip39
@@ -35,6 +43,7 @@ if (chain === 1) {//POA private chain
 
   m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
    */
+  tokenURI = nftSymbol+"/uri";
   Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
   BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
   AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
@@ -47,24 +56,24 @@ if (chain === 1) {//POA private chain
   /** deployed contracts
    * 'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
    */
-  addrPlatform = "0xfAef2d4bA4382ECCc442906AF9209067BAa62B11";
-  addrMultiSig1 = "0x97FEF613370DaF0577cb2CBa13FaaBe4EDc47c75";
-  addrMultiSig2 = "0x0f250aA999930094AB71C03f2B7dA0376B082Ea2";
-  addrAssetBook1 = "0xb652Dccd559B6245D978Bf5FeE9Ba90220043E0F";
-  addrAssetBook2 = "0x4cF3649201c57b025BA3C69650Edc5AF296EE460";
-  addrRegistry =   "0xfd31A94e50FAD481d72a75206b2116bb08470A5d";
-  addrTokenController = "0x9C84401c7B074fE0F41298fa5230c1c001863a69";
-  addrERC721SPLC = "0x4e74e716681bb32d3b16Dc64bDC3C0BA3ea0C5c9";
-  addrCrowdFunding = "0xD6182c9D1838Ca729e2E77b7c8c6a12ad5Db337d";
-   // addrPlatform = "0x135153C82E45A9700CD045A133c038EcEA17BD1C";
-  // addrMultiSig1 = "0xC954E0bc796DeFaC16616E63E6A74D6eF1FED537";
-  // addrMultiSig2 = "0x4ff8a943501aAC384D66B37Ed595c384Aedb56D2";
-  // addrAssetBook1 = "0xfF6646a2608bF63Ccf39bB8105D8cF9084aF84E3";
-  // addrAssetBook2 = "0xe5EB5c40E1D96D26b5ddf52D3Ac1C31b8e1808cC";
-  // addrRegistry =   "0x1eAc971AA1A614e25B00FE9FB04Ba11D56Bf45A3";
-  // addrTokenController = "0x8f3c68c95a2e217A2B138ffB9B4985754ec0C3f8";
-  // addrERC721SPLC = "0xfd7A913CCA5CB8167F6744c3053D57dd52B1C0A4";
-  // addrCrowdFunding = "0x7f0B7e648Dc595aE8ec4FF4aFB7A74278D4b496f";
+  addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
+  addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
+  addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
+  addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
+  addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
+  addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
+  addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
+  addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
+  addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
+  // addrPlatform = "";
+  // addrMultiSig1 = "";
+  // addrMultiSig2 = "";
+  // addrAssetBook1 = "";
+  // addrAssetBook2 = "";
+  // addrRegistry =   "";
+  // addrTokenController = "";
+  // addrERC721SPLC = "";
+  // addrCrowdFunding = "";
 
   //addrIncomeManagement = "";
   //addrProductManager = "";  
@@ -82,12 +91,7 @@ if (chain === 1) {//POA private chain
     Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
     AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
     AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
-  } else {
-    console.log('Backendpk use substr(2)');
-    Backendpk = BackendpkRaw.substr(2);
-    AssetOwner1pk = AssetOwner1pkRaw.substr(2);
-    AssetOwner2pk = AssetOwner2pkRaw.substr(2);
-  }
+  } 
   provider = new PrivateKeyProvider(Backendpk, nodeUrl);
   web3 = new Web3(provider);
   prefix = '0x';
@@ -121,6 +125,48 @@ require('events').EventEmitter.defaultMaxListeners = 30;
 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data listeners added. Use emitter.setMaxListeners() to increase limit
 */
 
+
+//Mocha starts > BeforeEach: Deploy a new contract
+// > it: Manipulate the contract > it: make an assertion > repeat
+
+// Slow tests... so changed my `mocha` command to `mocha --watch`
+
+let accounts;
+let instRegistry; 
+let instTokenController; 
+let instERC721SPLC; 
+let instCrowdFunding; 
+let instIncomeManagement;
+let instProductManager;
+
+let management;
+let balance0; let balance1; let balance2;
+let platformCtAdmin;
+
+let balance0A; let balance0B;
+let balance1A; let balance1B;
+let balance2A; let balance2B;
+
+//const rate = new BigNumber('1e22').mul(value);
+const addrZero = "0x0000000000000000000000000000000000000000";
+
+let argsAssetBook1; let argsAssetBook2;
+let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
+
+const TimeTokenLaunch = timeCurrent+3;
+const TimeTokenUnlock = timeCurrent+4; 
+const TimeTokenValid =  timeCurrent+9;
+
+
+
+const _tokenSymbol = nftSymbol;
+const _tokenPrice = initialAssetPricing;
+const _currency = pricingCurrency;
+const _quantityMax = maxTotalSupply;
+const _goalInPercentage = 97;
+const _CFSD2 = timeCurrent+1;
+const _CFED2 = timeCurrent+10;
+let _serverTime = timeCurrent;
 //--------------------==
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
@@ -308,53 +354,6 @@ if (ProductManager === undefined){
 }
 
 
-//Mocha starts > BeforeEach: Deploy a new contract
-// > it: Manipulate the contract > it: make an assertion > repeat
-
-// Slow tests... so changed my `mocha` command to `mocha --watch`
-
-let accounts;
-let instRegistry; 
-let instTokenController; 
-let instERC721SPLC; 
-let instCrowdFunding; 
-let instIncomeManagement;
-let instProductManager;
-
-let management;
-let balance0; let balance1; let balance2;
-let platformCtAdmin;
-
-let balance0A; let balance0B;
-let balance1A; let balance1B;
-let balance2A; let balance2B;
-
-//const rate = new BigNumber('1e22').mul(value);
-const addrZero = "0x0000000000000000000000000000000000000000";
-
-let argsAssetBook1; let argsAssetBook2;
-let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
-
-const TimeTokenLaunch = timeCurrent+3;
-const TimeTokenUnlock = timeCurrent+4; 
-const TimeTokenValid =  timeCurrent+9;
-
-const nftName = "NCCU site No.1(2018)";
-const nftSymbol = "NCCU1801";
-const siteSizeInKW = 300;
-const maxTotalSupply = 773;
-const initialAssetPricing = 17000;
-const pricingCurrency = "NTD";
-const IRR20yrx100 = 470;
-
-const _tokenSymbol = nftSymbol;
-const _tokenPrice = initialAssetPricing;
-const _currency = pricingCurrency;
-const _quantityMax = maxTotalSupply;
-const _goalInPercentage = 97;
-const _CFSD2 = timeCurrent+1;
-const _CFED2 = timeCurrent+10;
-let _serverTime = timeCurrent;
 
 
 const deploy = async () => {
@@ -529,10 +528,11 @@ const deploy = async () => {
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
 
+    tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
-    addrRegistry, addrTokenController];
+    addrRegistry, addrTokenController, tokenURI_bytes32];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,

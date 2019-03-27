@@ -375,13 +375,17 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         uint idxEndT = accounts[_to].idxEnd;
         uint idxStartReqT; //uint idxEndReqT;
         if (idxStartT > idxEndT) {
+          accounts[_to].idxStart = 0;
+          accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
         } else if (idxStartT == 0 && idxEndT == 0 && accounts[_to].indexToId[0] == 0) {
+          accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
         } else {
           idxStartReqT = idxEndT.add(1);
+          accounts[_to].idxEnd = idxEndT.add(amount);
           //idxEndReqT = idxEndT.add(amount);
         }//accounts[_to].indexToId[0]
 
@@ -390,6 +394,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             //inside _from account
             uint idxFrom = i.add(idxStartF);
             uint tokenId_ = accounts[_from].indexToId[idxFrom];
+            delete accounts[_from].indexToId[idxFrom];
 
             address tokenOwner = idToAsset[tokenId_].owner;
             require(tokenOwner == _from, "tokenOwner should be _from");
@@ -406,8 +411,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             clearApproval(tokenId_);
             //idToAsset[tokenId_] = Asset(_to, price, address(0));
 
-            delete accounts[_from].indexToId[idxFrom];
-
             //inside _to account
             //uint idxTo = i.add(idxStartReqT);
             accounts[_to].indexToId[i.add(idxStartReqT)] = tokenId_;
@@ -420,7 +423,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         } else {
             accounts[_from].idxStart = idxStartF.add(amount);
         }
-        accounts[_to].idxEnd = idxEndT.add(amount);
 
         // AssetBookITF(_from).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
         // AssetBookITF(_to).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));

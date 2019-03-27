@@ -225,38 +225,34 @@ contract AssetBook {
 
     /** @dev get assets info */
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
-    returns (string memory symbol, uint balance, bool isInitialized) {
-        // Asset memory asset = assets[_assetAddr];
-        // symbol = asset.symbol;
-        // balance = asset.balance;
-
+    returns (string memory symbol, uint balance) {
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
         symbol = erc721.nftSymbol();
         balance = erc721.balanceOf(address(this));
-        isInitialized = assets[_assetAddr].isInitialized;
-
     }
 
-    function updateFromAssetContract(uint balance) external {
-        address _assetAddr = msg.sender;
+    function getAssetFromAssetBook(address _assetAddr) public view ckAssetAddr(_assetAddr) 
+    returns (string memory symbol, uint balance, bool isInitialized) {
+        Asset memory asset = assets[_assetAddr];
+        symbol = asset.symbol;
+        balance = asset.balance;
+        isInitialized = asset.isInitialized;
+    }
+
+    function updateAsset(address _assetAddr) external {
         require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
+        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
 
         if (assets[_assetAddr].isInitialized) {
-            assets[_assetAddr].balance = balance;
+            assets[_assetAddr].balance = erc721.balanceOf(address(this));
 
         } else {
             assets[_assetAddr].isInitialized = true;
-            ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
             assets[_assetAddr].symbol = erc721.nftSymbol();
-            assets[_assetAddr].balance = balance;
+            assets[_assetAddr].balance = erc721.balanceOf(address(this));
         }
     }
 
-    //copy asset contract info without preserving buy/sell sequence for FIFO accounting purpose
-    function updateReset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        assets[_assetAddr].symbol = erc721.nftSymbol();
-    }
 
     function deleteAsset(address _assetAddr) public ckAssetAddr(_assetAddr) restricted {
         require(assets[_assetAddr].isInitialized, "this _assetAddr has not been initialized");
@@ -269,21 +265,6 @@ contract AssetBook {
     }
     
 
-    // /** @dev 提領token: will break token sequence => updateReset to reset asset sequence!!! */
-    // function transferAsset(address _assetAddr, uint _tokenId, address _to, uint256 _timeCurrent) 
-    //     public ckAssetOwner ckAssetAddr(_assetAddr){
-    //     require(_to != address(this), "_to cannot be this AssetBook!");
-    //     //require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this token");
-    //     ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-    //     require(erc721.ownerOf(_tokenId) == address(this), "check if this contract owns this tokenId");
-
-    //     uint tokenBalanceOf = erc721.balanceOf(address(this));
-    //     require(tokenBalanceOf > 0, "tokenBalanceOf should be > 0");
-
-    //     erc721.safeTransferFrom(address(this), _to, _tokenId);
-    //     emit TransferAssetEvent(_to, assets[_assetAddr].symbol, _tokenId, tokenBalanceOf, _timeCurrent);
-    // }
-
     //transfer from the minimum timeIndex according to First In First Out principle
     function safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
         public ckAssetOwner ckAssetAddr(_assetAddr){//, uint256 _timeCurrent
@@ -293,7 +274,6 @@ contract AssetBook {
         erc721.safeTransferFromBatch(address(this), _to, amount, price);
 
     }
-
 
     /** @dev get asset number */
     function getAssetCount() public view returns(uint){
