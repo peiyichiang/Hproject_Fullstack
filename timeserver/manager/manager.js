@@ -9,6 +9,7 @@ function createServer() {
     const server = net.createServer(c => {
 
         c.on("data", (data) => {
+            fs.writeFileSync(path.resolve(__dirname, "../time.txt"), data.toString())
             sendTimeToCrowdfunding(data.toString())
             sendTimeToRent(data.toString())
             sendTimeToOrder(data.toString())
