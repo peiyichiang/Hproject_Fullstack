@@ -80,7 +80,7 @@ function createServer() {
     });
 }
 
-Number.prototype.add3Day = function () {
+Object.prototype.add3Day = function () {
     let year = parseInt(this.toString().slice(0, 4));
     let month = parseInt(this.toString().slice(4, 6));
     let day = parseInt(this.toString().slice(6, 8));
