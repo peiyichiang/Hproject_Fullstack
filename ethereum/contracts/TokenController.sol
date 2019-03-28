@@ -6,20 +6,20 @@ import "./Ownable.sol";
 contract TokenController is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
     uint public timeCurrent;
-    uint public TimeTokenRelease;// Release Date
-    uint public TimeTokenUnlock;
-    uint public TimeTokenValid;// Valid Date or token expiry time 203903310000
+    uint public TimeRelease;// Release Date
+    uint public TimeUnlock;
+    uint public TimeValid;// Valid Date or token expiry time 203903310000
     bool public isReleased;
     bool public isActive;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _timeCurrent, uint _TimeTokenRelease, 
-      uint _TimeTokenUnlock, uint _TimeTokenValid,
+    constructor(uint _timeCurrent, uint _TimeRelease, 
+      uint _TimeUnlock, uint _TimeValid,
       address[] memory management) public {
         timeCurrent = _timeCurrent;
-        TimeTokenRelease = _TimeTokenRelease;
-        TimeTokenUnlock = _TimeTokenUnlock;
-        TimeTokenValid = _TimeTokenValid;
+        TimeRelease = _TimeRelease;
+        TimeUnlock = _TimeUnlock;
+        TimeValid = _TimeValid;
         isActive = true;
         require(management.length > 4, "management.length should be > 4");
         owner = management[4];
@@ -40,23 +40,23 @@ contract TokenController is Ownable {
     modifier onlyUnlockedValid() {
         //will block all token tranfers either before the lockup time, 
         //or until a time when SPLC's power plant contract is finished
-        require(TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid && isActive, "token in lockup time or over valid date or not active");
+        require(TimeUnlock < timeCurrent && timeCurrent < TimeValid && isActive, "token in lockup time or over valid date or not active");
         _;
     }
     function isUnlockedValid() external view returns (bool){
-        return (TimeTokenUnlock < timeCurrent && timeCurrent < TimeTokenValid && isActive);
+        return (TimeUnlock < timeCurrent && timeCurrent < TimeValid && isActive);
     }
     function isUnlocked() external view returns (bool){
-        return (TimeTokenUnlock < timeCurrent);
+        return (TimeUnlock < timeCurrent);
     }
     function isValid() external view returns (bool){
-        return (timeCurrent < TimeTokenValid);
+        return (timeCurrent < TimeValid);
     }
 
     function getHTokenControllerDetails() public view returns (
         uint, uint, uint, uint, bool) {
         return (
-            timeCurrent, TimeTokenRelease, TimeTokenUnlock, TimeTokenValid, isReleased);
+            timeCurrent, TimeRelease, TimeUnlock, TimeValid, isReleased);
     }
 
     //For TimeServer injecting current time
@@ -67,28 +67,28 @@ contract TokenController is Ownable {
     }
 
     //To extend valid time if token operation is paused
-    //event SetTimeTokenValid(uint _TimeTokenValid);
-    function setTimeTokenValid(uint _TimeTokenValid) external onlyAdmin ckTime(_TimeTokenValid) ckReleased {
-        TimeTokenValid = _TimeTokenValid;
-        //emit SetTimeTokenValid(_TimeTokenValid);
+    //event SetTimeValid(uint _TimeValid);
+    function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) ckReleased {
+        TimeValid = _TimeValid;
+        //emit SetTimeValid(_TimeValid);
     }
 
-    //event SetTimeTokenUnlock(uint _TimeTokenUnlock);
-    function setTimeTokenUnlock(uint _TimeTokenUnlock) external onlyAdmin ckTime(_TimeTokenUnlock) ckReleased {
-        TimeTokenUnlock = _TimeTokenUnlock;
-        //emit SetTimeTokenUnlock(_TimeTokenUnlock);
+    //event SetTimeUnlock(uint _TimeUnlock);
+    function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckReleased {
+        TimeUnlock = _TimeUnlock;
+        //emit SetTimeUnlock(_TimeUnlock);
     }
 
-    //event SetReleaseTime(uint _TimeTokenRelease);
-    function setReleaseTime(uint _TimeTokenRelease) external onlyAdmin ckTime(_TimeTokenRelease) ckReleased {
-        TimeTokenRelease = _TimeTokenRelease;
+    //event SetReleaseTime(uint _TimeRelease);
+    function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckReleased {
+        TimeRelease = _TimeRelease;
         isReleased = true;
-        //emit SetReleaseTime(_TimeTokenRelease);
+        //emit SetReleaseTime(_TimeRelease);
     }
 
     function setIsActive(bool _isActive) external onlyAdmin ckReleased {
         isActive = _isActive;
-        //emit SetReleaseTime(_TimeTokenRelease);
+        //emit SetReleaseTime(_TimeRelease);
     }
 
     // event SetLegalCompliance(uint _addrLegalCompliance);
