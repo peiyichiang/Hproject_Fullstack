@@ -40,10 +40,10 @@ contract MultiSig {
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c"
-    constructor (address _assetOwner, address _platformContractAddr) public {
-        assetOwner = _assetOwner;
-        platformContractAddr = _platformContractAddr;
-    }
+    // constructor (address _assetOwner, address _platformContractAddr) public {
+    //     assetOwner = _assetOwner;
+    //     platformContractAddr = _platformContractAddr;
+    // }
     /** @dev 檢查是否為合約擁有者 */
     modifier ckAssetOwner(){
         require(msg.sender == assetOwner, "sender must be assetOwner");
@@ -128,18 +128,14 @@ contract MultiSig {
 
 interface MultiSigITF_assetbook {
     function getAssetOwner() external view returns(address);
-    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external;
-    function getPlatformContractAddr() external view returns(address);
+    // function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external;
+    // function getPlatformContractAddr() external view returns(address);
 }
 
-interface ArrayUtilsITF_assetbook {
-    function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external pure;
-    function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-        external pure;
-}
 
-contract AssetBook {
+//"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
+
+contract AssetBook is MultiSig {
     using SafeMath for uint256;
     using AddressUtils for address;
     address public assetOwner;
@@ -165,25 +161,30 @@ contract AssetBook {
     mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
 
     /** @dev asset相關event */
-    event DeployAssetContractEvent(address assetOwner, address multiSigContractAddr, address platformContractAddr, uint timestamp);
+    //event DeployAssetContractEvent(address assetOwner, address multiSigContractAddr, address platformContractAddr, uint timestamp);
     //event addAssetEvent(address assetAddr, string symbol, uint balance, uint[] ids ,uint timestamp);
     event TransferAssetEvent(address to, string symbol, uint _assetId, uint tokenBalance, uint timestamp);
     event TransferAssetBatchEvent(address to, string symbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
 
-    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 201903061045
-    constructor (address _assetOwner, address _multiSigContractAddr, address _platformContractAddr, uint256 _timeCurrent) public {
-        multiSigContractAddr = _multiSigContractAddr;
+    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201903061045
+    constructor (address _assetOwner, address _platformContractAddr) public {
         assetOwner = _assetOwner;
         platformContractAddr = _platformContractAddr;
-        emit DeployAssetContractEvent(assetOwner, _multiSigContractAddr, platformContractAddr, _timeCurrent);
+        //multiSigContractAddr = _multiSigContractAddr;
+        //emit DeployAssetContractEvent(assetOwner, _multiSigContractAddr, platformContractAddr, _timeCurrent);
     }
+    /*
+    constructor @ MultiSig (address _assetOwner, address _platformContractAddr) public {
+        assetOwner = _assetOwner;
+        platformContractAddr = _platformContractAddr;
+    }
+    constructor @ AssetBook: (... address _multiSigContractAddr, )
 
     function updateAssetOwner() external {
         MultiSigITF_assetbook multiSig = MultiSigITF_assetbook(address(uint160(multiSigContractAddr)));
         assetOwner = multiSig.getAssetOwner();
-        //platformContractAddr = multiSig.getPlatformContractAddr();
-    }
+    }*/
 
     modifier ckAssetAddr(address _assetAddr) {
         //require(_assetAddr != address(0), "_assetAddr should not be zero");
@@ -275,27 +276,22 @@ contract AssetBook {
 
     }
 
-    /** @dev get asset number */
-    function getAssetCount() public view returns(uint){
-        return assetCindex;//assetAddrList.length;
-    }
-
     /** @dev get all assetAddr */
-    function getAssetAddrList() public view returns(address[] memory){
-        address[] memory assetAddrList = new address[](assetCindex.add(1));
-        for(uint i = 1; i <= assetCindex; i++) {
-            assetAddrList[i] = assetIndexToAddr[i];
+    function getAssetAddrArray(uint indexStart, uint amount) 
+        external view returns(address[] memory assetAddrArray) {
+        require(amount > 0, "amount must be > 0");
+        require(indexStart > 0, "indexStart must be > 0");
+        uint amount_;
+        if(indexStart.add(amount).sub(1) > assetCindex) {
+          amount_ = assetCindex.sub(indexStart).add(1);
+        } else {
+          amount_ = amount;
         }
-        return assetAddrList;
+        for(uint i = 0; i < amount_; i = i.add(1)) {
+            assetAddrArray[i] = assetIndexToAddr[i.add(indexStart)];
+        }
     }
 
-    function getAssetAddrList(uint start, uint num) public view returns(address[] memory){
-        address[] memory assetAddrList = new address[](num);
-        for(uint i = 0; i < num; i++) {
-            assetAddrList[i] = assetIndexToAddr[i.add(start)];
-        }
-        return assetAddrList;
-    }
 
     function() external payable { revert("should not send any ether directly"); }
 
@@ -381,6 +377,12 @@ contract ArrayUtils {
     }
 }
 //--------------------==
+// interface ArrayUtilsITF_assetbook {
+//     function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+//         external pure;
+//     function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+//         external pure;
+// }
 library AddressUtils {
     function isContract(address _addr) internal view returns (bool) {
         uint256 size;
@@ -397,18 +399,18 @@ library AddressUtils {
 /*
     //get all assets
     function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
-        address[] memory assetAddrs = new address[](assetAddrList.length);
+        address[] memory assetAddrArray = new address[](assetAddrList.length);
         string[] memory symbols = new string[](assetAddrList.length);
         uint[]    memory balances = new uint[](assetsIndex.length);
 
         for (uint i = 0; i < assetAddrList.length; i++) {
             Asset storage asset = assets[assetAddrList[i]];
-            assetAddrs[i] = asset.assetAddr;
+            assetAddrArray[i] = asset.assetAddr;
             symbols[i] = asset.symbol;
             balances[i] = asset.balance;
         }
 
-        return (assetAddrs, symbols, balances);
+        return (assetAddrArray, symbols, balances);
     }
 
 */

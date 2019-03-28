@@ -1,5 +1,11 @@
 /**
-$ yarn run deploy
+```
+yarn run deploy --c 1 --ctrtName contractName
+```
+where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
+
+and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
+
 */
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");

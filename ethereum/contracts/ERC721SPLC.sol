@@ -10,7 +10,9 @@ A contract that implements ERC721Metadata or ERC721Enumerable SHALL also impleme
 
 https://github.com/0xcert/ethereum-erc721/tree/master/contracts/tokens
 */
-
+    /** Contract code size over limit of 24576 bytes.
+    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
+    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
 import "./SafeMath.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
@@ -401,7 +403,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             //require(tokenOwner != address(0), "owner should not be 0x0");
 
             require(
-            tokenOwner == msg.sender || getIdToApprovals(tokenId_) == msg.sender 
+            tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddress == msg.sender 
             || accounts[tokenOwner].operators[msg.sender], 
             "msg.sender should be tokenOwner, an approved, or a token operator");
             //ownerToOperators[tokenOwner][msg.sender]
@@ -553,7 +555,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
     /*canTransfer()
         require(
-            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddress == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
 
       validToken()
         require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
@@ -585,23 +587,18 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
 
     //-------------------------==
-    function getTokenOwners(uint tokenId_Start, uint amount) 
+    function getTokenOwners(uint tokenIdStart, uint amount) 
         external view returns(address[] memory addrArray) {
         //maxTokenId = tokenId - 1;
-        require(tokenId_Start + amount - 1 <= tokenId, "tokenId_Start is too big for amount");
+        require(amount > 0, "amount must be > 0");
+        require(tokenIdStart > 0, "tokenIdStart must be > 0");
+        require(tokenIdStart.add(amount).sub(1) <= tokenId, "tokenIdStart is too big for amount");
 
-        for(uint i = tokenId_Start; i <= tokenId; i = i.add(1)) {
-            addrArray[i] = idToAsset[i].owner;
+        for(uint i = 0; i < amount; i = i.add(1)) {
+            addrArray[i] = idToAsset[i.add(tokenIdStart)].owner;
         }
     }
-    function getIdToApprovals(uint256 _tokenId) public view
-        validNFToken(_tokenId) returns (address) {
-        return idToAsset[_tokenId].approvedAddress;
-    }
-    function getIdToAcquiredCost(uint256 _tokenId) public view
-        validNFToken(_tokenId) returns (uint) {
-        return idToAsset[_tokenId].acquiredCost;
-    }
+
 
     /** $dev Guarantees that the msg.sender is 
     an owner or operator of the given NFT.
@@ -619,7 +616,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     modifier canTransfer(uint256 _tokenId) {
         address tokenOwner = idToAsset[_tokenId].owner;
         require(
-            tokenOwner == msg.sender || getIdToApprovals(_tokenId) == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddress == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
         _;
     }
 
@@ -649,7 +646,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
         require(_approved != tokenOwner, "_approved should not be tokenOwner");
         // require(
-        //     !(getIdToApprovals(_tokenId) == address(0) && _approved == address(0)), 
+        //     !(idToAsset[_tokenId].approvedAddress == address(0) && _approved == address(0)), 
         //     "approved address and _approved should not be 0x0");
 
         idToAsset[_tokenId].approvedAddress = _approved;
