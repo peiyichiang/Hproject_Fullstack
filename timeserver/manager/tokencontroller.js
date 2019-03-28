@@ -2,7 +2,6 @@ const os = require('os');
 const net = require("net");
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config()
 
 const mysql = require('../lib/mysql.js');
 const contract = require('../lib/contractAPI.js');
@@ -20,19 +19,8 @@ function createServer() {
                 } else {
                     for (let i in result) {
                         if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
-                            console.log(result[i].sc_erc721Controller)
-                            contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString())
-                                .then(function (receipt) {
-                                    if (receipt.status) {
-                                        console.log(`成功：發送時間給智能合約${receipt.to}`)
-                                    }
-                                    else {
-                                        console.error(`失敗：發送時間給智能合約${result[i].sc_erc721Controller}`)
-                                    }
-                                })
-                                .catch(function (error) {
-                                    console.error(`失敗：發送時間給智能合約${result[i].sc_erc721Controller}`)
-                                })
+                            console.log(result[i].sc_erc721Controller, data.toString());
+                            contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString()).then(console.log)
                         }
                     }
                 }

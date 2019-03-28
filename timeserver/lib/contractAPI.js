@@ -29,6 +29,23 @@ async function sendTimeToCrowdfundingContract(addr, time) {
     let result = await signTx(backendAddr, backendRawPrivateKey, addr, encodedData);
     
     return result;
+    /*
+    return web3.eth.getAccounts()
+        .then(function (accounts) {
+            let contract = new web3.eth.Contract(CrowdFunding.abi, addr);
+            return contract.methods.setServerTime(time)
+                .send({
+                    from: accounts[0],
+                    gasPrice: 0
+                })
+        })
+        .then(function (result) {
+            return result
+        })
+        .catch(function (error) {
+            return error
+        })
+    */
 }
 
 function sendTimeToTokenController(addr, time) {
@@ -52,14 +69,16 @@ function sendTimeToTokenController(addr, time) {
 function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
     return new Promise((resolve, reject) => {
 
-        web3.eth.getTransactionCount(userEthAddr, "pending")
+        web3.eth.getTransactionCount(userEthAddr)
             .then(nonce => {
 
                 let userPrivateKey = Buffer.from(userRowPrivateKey.slice(2), 'hex');
+                console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 7000000,
+                    gas: 300000,
                     gasPrice: 0,
+                    //gasPrice: web3js.utils.toHex(20 * 1e9),
                     gasLimit: web3.utils.toHex(3400000),
                     to: contractAddr,
                     value: 0,
@@ -71,15 +90,22 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 const serializedTx = tx.serialize();
                 const rawTx = '0x' + serializedTx.toString('hex');
 
+                console.log('☆ RAW TX ☆\n', rawTx);
+
                 web3.eth.sendSignedTransaction(rawTx)
+                    .on('transactionHash', hash => {
+                        console.log(hash);
+                    })
+                    .on('confirmation', (confirmationNumber, receipt) => {
+                        // console.log('confirmation', confirmationNumber);
+                    })
                     .on('receipt', function (receipt) {
+                        console.log(receipt);
                         resolve(receipt)
                     })
                     .on('error', function (err) {
+                        console.log(err);
                         reject(err);
-                    })
-                    .catch(function (error) {
-                        return error
                     })
             })
     })
