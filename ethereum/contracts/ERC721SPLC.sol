@@ -93,7 +93,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     struct Asset {
         address owner;
         uint acquiredCost;
-        address approvedAddress;//approved to be transferred by one of the operators or the owner himself
+        address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
     bytes32 public tokenURI;//token specific information
@@ -161,16 +161,16 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(owner_ != address(0), "owner_ should not be 0x0");
     }
     function getToken(uint _tokenId) external view returns (
-        address owner, uint acquiredCost, address approvedAddress) {
+        address owner, uint acquiredCost, address approvedAddr) {
         Asset memory asset = idToAsset[_tokenId];
         owner = asset.owner;
         acquiredCost = asset.acquiredCost;
-        approvedAddress = asset.approvedAddress;
+        approvedAddr = asset.approvedAddr;
     }
     /*struct Asset {
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
     }*/
 
     //---------------------------==Account
@@ -320,7 +320,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     /*struct Asset {
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
     }*/
     /*struct Account { // accounts[user]
         uint idxStart;// 0, 1, 2, ...
@@ -360,10 +360,10 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     /*struct Asset { // idToAsset[tokenId]
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
     }*/
     //canTransfer(tokenId) validNFToken(tokenId)
-    event SafeTransferFromBatch(address indexed _from, address indexed _to, uint256 amount);
+    event SafeTransferFromBatch(address indexed _from, address indexed _to, uint amount, uint price);
     function _safeTransferFromBatch(address _from, 
         address _to, uint amount, uint price) internal {
 
@@ -403,7 +403,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             //require(tokenOwner != address(0), "owner should not be 0x0");
 
             require(
-            tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddress == msg.sender 
+            tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender 
             || accounts[tokenOwner].operators[msg.sender], 
             "msg.sender should be tokenOwner, an approved, or a token operator");
             //ownerToOperators[tokenOwner][msg.sender]
@@ -429,7 +429,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         // AssetBookITF(_from).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
         // AssetBookITF(_to).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
 
-        emit SafeTransferFromBatch(_from, _to, amount);
+        emit SafeTransferFromBatch(_from, _to, amount, price);
     }
     /*
     }
@@ -442,14 +442,14 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     struct Asset { // idToAsset[tokenId]
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
 
         accounts[_to].indexToId[i] = tokenId;
         accounts[_to].idxEnd = idxEndReq;
 
     canTransfer()
         require(
-            tokenOwner == msg.sender || getIdToApprovals(tokenId_) == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
 
       validToken()
         require(idToAsset[tokenId_].owner != address(0), "owner should not be 0x0");
@@ -484,7 +484,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     /*struct Asset { // idToAsset[tokenId]
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
     }*/
 
     function removeNFToken(address _from) internal {
@@ -519,7 +519,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     /*struct Asset { // idToAsset[tokenId]
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
     }*/
 
 
@@ -555,7 +555,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
     /*canTransfer()
         require(
-            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddress == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddr == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
 
       validToken()
         require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
@@ -582,7 +582,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     /*struct Asset { // idToAsset[tokenId]
         address owner;
         uint acquiredCost;
-        address approvedAddress;
+        address approvedAddr;
     }*/
 
 
@@ -616,7 +616,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     modifier canTransfer(uint256 _tokenId) {
         address tokenOwner = idToAsset[_tokenId].owner;
         require(
-            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddress == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
+            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddr == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
         _;
     }
 
@@ -626,11 +626,11 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         _;
     }
     //------------------------==Approvals
-    /** $dev Clears the current approvedAddress of a given NFT ID.
+    /** $dev Clears the current approvedAddr of a given NFT ID.
     * $param _tokenId ID of the NFT to be transferred.   */
     function clearApproval(uint256 _tokenId) private {
-        if(idToAsset[_tokenId].approvedAddress != address(0)) {
-            delete idToAsset[_tokenId].approvedAddress;
+        if(idToAsset[_tokenId].approvedAddr != address(0)) {
+            delete idToAsset[_tokenId].approvedAddr;
         }
     }
 
@@ -646,10 +646,10 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
         require(_approved != tokenOwner, "_approved should not be tokenOwner");
         // require(
-        //     !(idToAsset[_tokenId].approvedAddress == address(0) && _approved == address(0)), 
+        //     !(idToAsset[_tokenId].approvedAddr == address(0) && _approved == address(0)), 
         //     "approved address and _approved should not be 0x0");
 
-        idToAsset[_tokenId].approvedAddress = _approved;
+        idToAsset[_tokenId].approvedAddr = _approved;
         emit Approval(tokenOwner, _approved, _tokenId);
     }
 
@@ -663,7 +663,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function getApproved(uint256 _tokenId) external view returns (address) {
         //validNFToken(_tokenId)
         require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
-        return idToAsset[_tokenId].approvedAddress;
+        return idToAsset[_tokenId].approvedAddr;
     }
 
     function isApprovedForAll(address _owner, address _operator) 

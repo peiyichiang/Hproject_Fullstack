@@ -325,9 +325,46 @@ contract AssetBook is MultiSig {
 }
 
 
-contract ArrayUtils {
+contract ArrayTesting {
     using SafeMath for uint256;
-    mapping (uint => uint) indexToId;//For First In First Out(FIFO) exchange rule
+
+    mapping(uint => Account) public accounts;
+    struct Account {
+        address assetbook;
+        uint256 qty;
+    }
+    uint public cindex;
+
+    // constructor (
+    // ){
+    // }
+    //  "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 1
+    function invest(address _assetbook, uint _quantityToInvest) public {
+        cindex = cindex.add(1);
+        accounts[cindex].assetbook = _assetbook;
+        accounts[cindex].qty = _quantityToInvest;
+    }
+
+    //1, 100
+    function getInvestors(uint indexStart, uint amount) 
+        external view returns(address[] memory, uint[] memory) {
+        require(amount > 0, "amount must be > 0");
+        require(indexStart > 0, "indexStart must be > 0");
+        uint amount_;
+        if(indexStart.add(amount).sub(1) > cindex) {
+          amount_ = cindex.sub(indexStart).add(1);
+        } else {
+          amount_ = amount;
+        }
+        address[] memory assetbooks = new address[](amount_);
+        uint[] memory qtyArray = new uint[](amount_);
+
+        for(uint i = 0; i < amount_; i = i.add(1)) {
+            assetbooks[i] = accounts[i.add(indexStart)].assetbook;
+            qtyArray[i] = accounts[i.add(indexStart)].qty;
+        }
+        return (assetbooks, qtyArray);
+    }
 
     //inputs: [0, 1, 2, 3, 4], 0, 4, 1      [0, 1, 2, 3, 4], 0, 4, 0
     //sliceA gives the 1st part of the input array

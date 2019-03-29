@@ -152,6 +152,7 @@ contract CrowdFunding is Ownable {
         fundingState = FundingState.paused;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
     }
+
     event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _quantityMax);
     function resumeFunding(uint _CFED2, uint _quantityMax) external onlyAdmin {
         require(_CFED2 > CFSD2, "_CFED2 should be greater than CDSD2");
@@ -162,6 +163,7 @@ contract CrowdFunding is Ownable {
         emit ResumeFunding(tokenSymbol, _CFED2, _quantityMax);
         updateState();
     }
+
     function forceTerminated(string calldata _reason) external onlyAdmin {
         ckStringLength(_reason, 7, 32);
         isTerminated = true;
@@ -194,18 +196,15 @@ contract CrowdFunding is Ownable {
 
         require(fundingState == FundingState.funding || fundingState == FundingState.fundingWithGoalReached, "funding is terminated or not started yet");
 
-        /**
-        struct Account {
+        /*struct Account {
             address assetbook;//assetbook addr
             uint256 qty;//購買的token總數
-        }
-         */
+        }*/
         cindex = cindex.add(1);
         accounts[cindex].assetbook = _assetbook;
-
+        accounts[cindex].qty = _quantityToInvest;//qty;
         //uint qty = accounts[cindex].qty;
         //qty = qty.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
-        accounts[cindex].qty = _quantityToInvest;//qty;
 
         //uint fundBalance = accounts[cindex].fundBalance;
         //fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
@@ -218,7 +217,7 @@ contract CrowdFunding is Ownable {
     }
 
     function getInvestors(uint indexStart, uint amount) 
-        external view returns(address[] memory assetbooks, uint[] memory qtyArray) {
+        external view returns(address[] memory, uint[] memory) {
         require(amount > 0, "amount must be > 0");
         require(indexStart > 0, "indexStart must be > 0");
         uint amount_;
@@ -227,10 +226,14 @@ contract CrowdFunding is Ownable {
         } else {
           amount_ = amount;
         }
+        address[] memory assetbooks = new address[](amount_);
+        uint[] memory qtyArray = new uint[](amount_);
+
         for(uint i = 0; i < amount_; i = i.add(1)) {
             assetbooks[i] = accounts[i.add(indexStart)].assetbook;
             qtyArray[i] = accounts[i.add(indexStart)].qty;
         }
+        return (assetbooks, qtyArray);
     }
 
 
