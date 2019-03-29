@@ -15,7 +15,7 @@ contract CrowdFunding is Ownable {
 
     event ShowState(string _state);
     event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint _serverTime, FundingState indexed _fundingState, string _stateDescription);
-    event TokenReserved(address indexed _assetBookAddr, uint _quantityToInvest, uint _serverTime);
+    event TokenReserved(address indexed _assetbook, uint _quantityToInvest, uint _serverTime);
     
     uint public serverTime;
     address private platformAddress;
@@ -28,13 +28,14 @@ contract CrowdFunding is Ownable {
     uint public CFSD2; //start date yyyymmddhhmm
     uint public CFED2; //截止日期 yyyymmddhhmm
     
-    struct UserAccount {
-        address assetBook;//assetBook addr
-        uint256 tokenBalance;//購買的token總數
-        uint256 fundBalance;//
-        string currency;
+    struct Account {
+        address assetbook;//assetbook addr
+        uint256 qty;//購買的token總數
+        //uint256 fundBalance;//
+        //string currency;
     }
-    mapping(address => UserAccount) public userAccount;
+    mapping(uint => Account) public accounts;
+    uint public cindex;
 
     //hasSucceeded: quantityMax is reached or CFED2 is reached with quantitySold > quantityGoal
     //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
@@ -46,7 +47,7 @@ contract CrowdFunding is Ownable {
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
 
     /*  at initialization, setup the owner 
-    "hTaipei001", 17000, 300, 98, 201902191810, 201902191800
+    "hTaipei001", 17000, "NTD", 900, 98, 201902191800, 201902191810, 201902191710, "", "", "", "", ""
     */
     constructor  (
         string memory _tokenSymbol,
@@ -151,6 +152,7 @@ contract CrowdFunding is Ownable {
         fundingState = FundingState.paused;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
     }
+
     event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _quantityMax);
     function resumeFunding(uint _CFED2, uint _quantityMax) external onlyAdmin {
         require(_CFED2 > CFSD2, "_CFED2 should be greater than CDSD2");
@@ -161,6 +163,7 @@ contract CrowdFunding is Ownable {
         emit ResumeFunding(tokenSymbol, _CFED2, _quantityMax);
         updateState();
     }
+
     function forceTerminated(string calldata _reason) external onlyAdmin {
         ckStringLength(_reason, 7, 32);
         isTerminated = true;
@@ -170,44 +173,69 @@ contract CrowdFunding is Ownable {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, append("forceTerminated:", _reason));
     }
 
-    function invest(address _assetBookAddr, uint _quantityToInvest) 
+    function invest(address _assetbook, uint _quantityToInvest) 
         external onlyAdmin {
         // uint _serverTime, 
         // require(_serverTime > serverTime, "_serverTime should be greater than existing serverTime");
 
-        if (_assetBookAddr.isContract()) {
-            bytes4 retval = ERC721TokenReceiverITF_CF(_assetBookAddr).onERC721Received(
+        if (_assetbook.isContract()) {
+            bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
                 msg.sender, msg.sender, 1, "");// assume tokenId = 1;
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         } else {
-            require(false,"_assetBookAddr address should contain ERC721 compatible asset contract");
+            require(false,"_assetbook address should contain ERC721 compatible asset contract");
         }
 
         require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
 
         require(isActive, "funding is not active");
         require(!isTerminated, "crowdFunding has been terminated");
-        require(quantitySold.add(_quantityToInvest) <= quantityMax, "insufficient available token quantity");
+        uint nextQtySold = quantitySold.add(_quantityToInvest);
+        require(nextQtySold <= quantityMax, "insufficient available token quantity");
+        quantitySold = nextQtySold;//紀錄已經賣了多少token
 
         require(fundingState == FundingState.funding || fundingState == FundingState.fundingWithGoalReached, "funding is terminated or not started yet");
 
-        userAccount[_assetBookAddr].assetBook = _assetBookAddr;
+        /*struct Account {
+            address assetbook;//assetbook addr
+            uint256 qty;//購買的token總數
+        }*/
+        cindex = cindex.add(1);
+        accounts[cindex].assetbook = _assetbook;
+        accounts[cindex].qty = _quantityToInvest;//qty;
+        //uint qty = accounts[cindex].qty;
+        //qty = qty.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
 
-        uint tokenBalance = userAccount[_assetBookAddr].tokenBalance;
-        tokenBalance = tokenBalance.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
-        userAccount[_assetBookAddr].tokenBalance = tokenBalance;
+        //uint fundBalance = accounts[cindex].fundBalance;
+        //fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
+        //accounts[cindex].fundBalance = _quantityToInvest.mul(tokenPrice);//fundBalance;
 
-        uint fundBalance = userAccount[_assetBookAddr].fundBalance;
-        fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
-        userAccount[_assetBookAddr].fundBalance = fundBalance;
-        userAccount[_assetBookAddr].currency = currency;
-
-        quantitySold = quantitySold.add(_quantityToInvest);//紀錄已經賣了多少token
-        emit TokenReserved(_assetBookAddr, _quantityToInvest, serverTime);
-        //event TokenReserved(address indexed _assetBookAddr, uint _quantityToInvest, uint _serverTime);
+        emit TokenReserved(_assetbook, _quantityToInvest, serverTime);
+        //event TokenReserved(address indexed _assetbook, uint _quantityToInvest, uint _serverTime);
 
         updateState();
     }
+
+    function getInvestors(uint indexStart, uint amount) 
+        external view returns(address[] memory, uint[] memory) {
+        require(amount > 0, "amount must be > 0");
+        require(indexStart > 0, "indexStart must be > 0");
+        uint amount_;
+        if(indexStart.add(amount).sub(1) > cindex) {
+          amount_ = cindex.sub(indexStart).add(1);
+        } else {
+          amount_ = amount;
+        }
+        address[] memory assetbooks = new address[](amount_);
+        uint[] memory qtyArray = new uint[](amount_);
+
+        for(uint i = 0; i < amount_; i = i.add(1)) {
+            assetbooks[i] = accounts[i.add(indexStart)].assetbook;
+            qtyArray[i] = accounts[i.add(indexStart)].qty;
+        }
+        return (assetbooks, qtyArray);
+    }
+
 
     function append(string memory a, string memory b) public pure returns (string memory) {
         return string(abi.encodePacked(a, b));
