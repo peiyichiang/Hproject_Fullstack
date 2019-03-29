@@ -157,25 +157,25 @@ if (ERC721SPLC === undefined){
 }
 
 
-const ArrayUtils = require('../ethereum/contracts/build/ArrayUtils.json');
-if (ArrayUtils === undefined){
-  console.log('[Error] ArrayUtils is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+/*const ArrayTesting = require('../ethereum/contracts/build/ArrayTesting.json');
+if (ArrayTesting === undefined){
+  console.log('[Error] ArrayTesting is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] ArrayUtils is defined');
-  if (ArrayUtils.abi === undefined){
-    console.log('[Error] ArrayUtils.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] ArrayTesting is defined');
+  if (ArrayTesting.abi === undefined){
+    console.log('[Error] ArrayTesting.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ArrayUtils.abi is defined');
-      //console.log('ArrayUtils.abi:', ArrayUtils.abi);
+    console.log('[Good] ArrayTesting.abi is defined');
+      //console.log('ArrayTesting.abi:', ArrayTesting.abi);
   }
-  if (ArrayUtils.bytecode === undefined || ArrayUtils.bytecode.length < 10){
-    console.log('[Error] ArrayUtils.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (ArrayTesting.bytecode === undefined || ArrayTesting.bytecode.length < 10){
+    console.log('[Error] ArrayTesting.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ArrayUtils.bytecode is defined');
-      //console.log('ArrayUtils.bytecode:', ArrayUtils.bytecode);
+    console.log('[Good] ArrayTesting.bytecode is defined');
+      //console.log('ArrayTesting.bytecode:', ArrayTesting.bytecode);
   }
-  //console.log(ArrayUtils);
-}
+  //console.log(ArrayTesting);
+}*/
 
 
 const CrowdFunding = require('../ethereum/contracts/build/CrowdFunding.json');
@@ -477,12 +477,12 @@ beforeEach( async () => {
     addrCrowdFunding = instCrowdFunding.options.address;
     console.log('addrCrowdFunding:', addrCrowdFunding);
 
-
-    console.log('\nDeploying ArrayUtils contract...');
-    instArrayUtils = await new web3.eth.Contract(ArrayUtils.abi)
-     .deploy({ data: prefix+ArrayUtils.bytecode })
+/*
+    console.log('\nDeploying ArrayTesting contract...');
+    instArrayUtils = await new web3.eth.Contract(ArrayTesting.abi)
+     .deploy({ data: prefix+ArrayTesting.bytecode })
      .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
-     console.log('ArrayUtils.sol has been deployed');
+     console.log('ArrayTesting.sol has been deployed');
      if (instArrayUtils === undefined) {
        console.log('[Error] instArrayUtils is NOT defined');
        } else {console.log('[Good] instArrayUtils is defined');}
@@ -589,13 +589,13 @@ describe('Tests on ERC721SPLC', () => {
     let assetAddr = addrERC721SPLC;
     let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('assetbook1', assetsMeasured1);
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
 
     let assetsMeasured2 = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\nassetbook2', assetsMeasured2);
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook2, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
 
@@ -713,7 +713,7 @@ describe('Tests on ERC721SPLC', () => {
     balanceM = await instERC721SPLC.methods.balanceOf(_to).call();
     console.log('SPLC balanceM =', balanceM);
 
-    accountIdsAll = await instERC721SPLC.methods.getAccountIdsAll(_to).call();
+    accountIdsAll = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     console.log('SPLC accountIdsAll =', accountIdsAll);
 
     console.log('\n------------==Mint token');
@@ -733,7 +733,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
     assert.equal(tokenOwnerM, _to);
 
-    //ERC721SPLC: check getAccountIdsAll(owner), balanceOf(owner); getToken(tokenId)
+    //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getToken(tokenId)
     tokenInfo = await instERC721SPLC.methods.getToken(tokenIdTarget).call();
     console.log('SPLC getToken(): tokenId = '+tokenIdTarget+':', tokenInfo);
     assert.equal(tokenInfo[0], addrAssetBook1);
@@ -742,7 +742,7 @@ describe('Tests on ERC721SPLC', () => {
 
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
     console.log('\nSPLC accountM', accountM);
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('ERC721SPLC tokenIds =', tokenIds, ', balanceXM =', balanceXM);
 
@@ -796,7 +796,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], 4);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
     console.log('\nERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
@@ -842,7 +842,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], amount);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook2, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
@@ -916,7 +916,7 @@ describe('Tests on ERC721SPLC', () => {
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
     console.log('\nCheck AssetBook2 after txn...');
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_from).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_from).call();
@@ -928,7 +928,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetbookXM[1], 2);
 
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_to).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
     console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
@@ -954,7 +954,7 @@ describe('Tests on ERC721SPLC', () => {
 
 
     console.log('\n-----==after sending 5 tokens...');
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_from).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_from).call();
@@ -964,7 +964,7 @@ describe('Tests on ERC721SPLC', () => {
 
     
     //-----------------==Check AssetBook2
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_to).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
     console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
@@ -982,7 +982,7 @@ describe('Tests on ERC721SPLC', () => {
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_from).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_from).call();
@@ -993,7 +993,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetbookXM[1], 0);
 
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_to).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
     console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
@@ -1032,7 +1032,7 @@ describe('Tests on ERC721SPLC', () => {
     // assert.equal(tokenInfo[1], initialAssetPricing);
     // assert.equal(tokenInfo[2], addrZero);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_from).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
     console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_from).call();
@@ -1043,7 +1043,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetbookXM[1], 0);
 
 
-    tokenIds = await instERC721SPLC.methods.getAccountIdsAll(_to).call();
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
     console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
@@ -1083,10 +1083,10 @@ describe('Tests on ERC721SPLC', () => {
 
 
 //-----------------------------------------==
-describe('Tests on ArrayUtils', () => {
+describe('Tests on ArrayTesting', () => {
 
-  it('ArrayUtils functions test', async () => {
-    console.log('\n------------==Check ArrayUtils parameters');
+  it('ArrayTesting functions test', async () => {
+    console.log('\n------------==Check ArrayTesting parameters');
     let array1 = [ '1', '2', '3', '4', '5'];
     let array2 = [ '6', '7', '8'];
 

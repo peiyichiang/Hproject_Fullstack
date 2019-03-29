@@ -60,17 +60,29 @@ if (chain === 1) {//POA private chain
   acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
 
   /** deployed contracts
-   * 'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
+     yarn run deploy --c 1 --ctrtName contractName
+    'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
    */
-  addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
-  addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
-  addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
-  addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
-  addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
-  addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
-  addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
-  addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
-  addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
+  addrPlatform = "0xC4Ea4B5347C8159Ad4ec41bD65Ac2f737b3395E7";
+  addrMultiSig1 = "0x0C7BFaDb47d333AB0cCe259f5aD1a2D718648e38";
+  addrMultiSig2 = "0xd982Ba277F08e248c449Ed71721bB02D3Ac7186f";
+  addrAssetBook1 = "0xa0Ee9E186471aA7F7F0158002a7A4BaDA26a1C41";
+  addrAssetBook2 = "0x37C7BaD3c16eF235205D02E50F1c91E0CD740684";
+  addrRegistry =   "0xfD5a28CbD39F787F8fEf5af098F6d753AdB72791";
+  addrTokenController = "0xBc6381e1EbDab9c3E4389b7887A6a9183CCC1893";
+  addrERC721SPLC = "0xBbDaFBe4c8EA4500725ffdA782942128D7a34CDD";
+  addrCrowdFunding = "0x45b323B1ccDbf10B9B71c5DB5a99005cA27714f3";
+
+  // addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
+  // addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
+  // addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
+  // addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
+  // addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
+  // addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
+  // addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
+  // addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
+  // addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
+
   // addrPlatform = "";
   // addrMultiSig1 = "";
   // addrMultiSig2 = "";
@@ -125,39 +137,21 @@ if (chain === 1) {//POA private chain
   process.exit(1);
 }
 
-require('events').EventEmitter.defaultMaxListeners = 30;
-//require('events').EventEmitter.prototype._maxListeners = 20;
-/* emitter.setMaxListeners();
-MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data listeners added. Use emitter.setMaxListeners() to increase limit
-*/
-
 
 //Mocha starts > BeforeEach: Deploy a new contract
 // > it: Manipulate the contract > it: make an assertion > repeat
 
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
-let accounts;
-let instRegistry; 
-let instTokenController; 
-let instERC721SPLC; 
-let instCrowdFunding; 
-let instIncomeManagement;
-let instProductManager;
-
-let management;
-let balance0; let balance1; let balance2;
-let platformCtAdmin;
-
-let balance0A; let balance0B;
-let balance1A; let balance1B;
-let balance2A; let balance2B;
+let instRegistry, instTokenController, instERC721SPLC, instCrowdFunding,  instIncomeManagement, instProductManager;
+let management, platformCtAdmin;
+let balance0, balance1, balance2;
 
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
 
-let argsAssetBook1; let argsAssetBook2;
-let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
+let argsAssetBook1, argsAssetBook2;
+let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
@@ -392,8 +386,14 @@ const deploy = async () => {
       console.log('\nDeploying Platform contract...');
       instPlatform =  await new web3.eth.Contract(Platform.abi)
       .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-      //.then(console.log);
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
       console.log('Platform.sol has been deployed');
       if (instPlatform === undefined) {
         console.log('[Error] instPlatform is NOT defined');
@@ -410,8 +410,14 @@ const deploy = async () => {
       console.log('\nDeploying multiSig contracts...');
       instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-      //.then(console.log);
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
       console.log('MultiSig1 has been deployed');
       if (instMultiSig1 === undefined) {
         console.log('[Error] instMultiSig1 is NOT defined');
@@ -423,22 +429,31 @@ const deploy = async () => {
 
       instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-      //.then(console.log);
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
       console.log('MultiSig2 has been deployed');
       if (instMultiSig2 === undefined) {
         console.log('[Error] instMultiSig2 is NOT defined');
         } else {console.log('[Good] instMultiSig2 is defined');}
       instMultiSig2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       addrMultiSig2 = instMultiSig2.options.address;
+
+      console.log('addrMultiSig1:', addrMultiSig1);
       console.log('addrMultiSig2:', addrMultiSig2);
+
 
   } else if (ctrtName === 'assetbook') {
     // addrMultiSig1 = '0xAF5065cD6A1cCe522D8ce712A5C7C52682740565';
     // addrMultiSig2 = '0xc993fD11a829d96015Cea876D46ac67B5aADCAF1';
     // addrPlatform = '0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9';
-    argsAssetBook1 = [ AssetOwner1, addrMultiSig1, addrPlatform, timeCurrent];
-    argsAssetBook2 = [ AssetOwner2, addrMultiSig2, addrPlatform, timeCurrent];
+    argsAssetBook1 = [ AssetOwner1, addrPlatform];
+    argsAssetBook2 = [ AssetOwner2, addrPlatform];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
@@ -643,27 +658,3 @@ const deploy = async () => {
 
 }
 deploy();
-
-//-------------==
-/*
-Three ways to transfer 721 tokens
-owner transfer tokens directly
-owner approves B then B, the approved, can transfer tokens
-owner sets C as the operator, then C transfer owner's tokens
-  Operator can approve others to take tokens or transfer tokens directly
-
-  -> setApprovalForAll(_operator, T/F):
-    ownerToOperators[owner][_operator]= true/false
--> isApprovedForAll(_owner, _operator) ... check if this is the _operator for _owner
-
--> canOperate(tokenId)... used only once in approve
-    tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender]
-
--> approve(_approved, tokenId) external canOperate(tokenId)... set approved address
-    idToApprovals[tokenId] = _approved;
--> getApproved(tokenId) ... check the approved address
-
--> canTransfer(tokenId) ... used in transferFrom and safeTransferFrom
-    tokenOwner == msg.sender || getApproved(tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender]
-*/
-    //-------------==
