@@ -35,7 +35,7 @@ contract CrowdFunding is Ownable {
         //string currency;
     }
     mapping(uint => Account) public accounts;
-    uint public cindex;
+    uint public cindex;//count and index of the invested funding
 
     //hasSucceeded: quantityMax is reached or CFED2 is reached with quantitySold > quantityGoal
     //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
