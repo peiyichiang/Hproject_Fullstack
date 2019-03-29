@@ -8,7 +8,8 @@
     <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+        integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
@@ -155,13 +156,15 @@
                     </td>
                     <td class="align-middle">
                         <%if ((FrontEnd_data[i].u_assetbookContractAddress != null && FrontEnd_data[i].u_assetbookContractAddress !="") || (FrontEnd_data[i].u_multisigContractAddress != null && FrontEnd_data[i].u_multisigContractAddress !="")) { %>
-                            <p>
-                                approved
-                            </p>
+                        <p>
+                            approved
+                        </p>
                         <% }else if ((FrontEnd_data[i].u_eth_add != null && FrontEnd_data[i].u_eth_add !="")){ %>
-                            <button type="button" style="width: 86px;" id="approve<%= i %>" class="btn btn-success" name="Approve" value="Approve" onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>',this.id);">
-                                Approve
-                            </button>
+                        <button type="button" style="width: 86px;" id="approve<%= i %>" class="btn btn-success"
+                            name="Approve" value="Approve"
+                            onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>',this.id);">
+                            Approve
+                        </button>
                         <% } %>
                     </td>
                 </tr>
@@ -192,82 +195,46 @@
             }
         }
 
-        function Approve(ID, email, ethAddr,buttonID) {
-            // 加上等待狀態
-            document.getElementById(buttonID).innerHTML="<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
-            document.getElementById(buttonID).disabled = true;
-            
-            
-            console.log(ethAddr);
-            let platformContractAddr = "0x7832fC91Bc8f4977da9AB974a4F5ADD4f78bA54C";
 
-            console.log("multiSigContract deploying...");
-            $.post("http://localhost:3000/MultiSigContractAPI/deploy", {
-                platform: platformContractAddr,
-                assetOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB",//ethAddr,(key chain開發未完成)
+        function Approve(ID, email, ethAddr, buttonID) {
+            // 加上等待狀態
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).disabled = true;
+
+            console.log("ETH:" + ethAddr);
+            //let heliumContractAddr = await $.get("http://localhost:3000/Contracts/heliumContract");
+            //console.log("heliumContractAddr:" + heliumContractAddr);
+
+            /*部署assetContract*/
+            console.log("assetBookContract deploying...");
+            $.post("http://localhost:3000/Contracts/assetbookContract", {
+                assetBookOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"//ethAddr,(key chain開發未完成)
             }, function (result) {
+                //var result = JSON.parse(resultJSON);
                 console.log(result);
                 console.log(result.contractAddress);
-                let multiSigContractAddr = result.contractAddress;
 
+                /*檢查是否部署成功*/
                 if (result.status == true) {
-                    /*部署assetContract*/
-                    console.log("assetBookContract deploying...");
-                    $.post("http://localhost:3000/AssetBookContractAPI/deploy", {
-                        assetOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB",//ethAddr,(key chain開發未完成)
-                        multiSigContractAddr: multiSigContractAddr,
-                        platformContractAddr: platformContractAddr
+                    /*部署成功後，註冊會員白名單*/
+                    console.log("registering...");
+                    $.post("http://localhost:3000/Contracts/registryContract/users/" + ID, {
+                        assetBookAddress: result.contractAddress,
+                        ethAddr: ethAddr,
+                        email: email
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);
-                        console.log(result);
-                        console.log(result.contractAddress);
-
-                        /*檢查是否部署成功*/
-                        if (result.status == true) {
-                            let time = 201903110000;
-                            /*部署成功後，註冊會員白名單*/
-                            console.log("registering...");
-                            $.post("http://localhost:3000/RegistryContractAPI/addUser", {
-                                u_id: ID,
-                                assetAddr: result.contractAddress,
-                                ethAddr: ethAddr,
-                                time: time
-                            }, function (result) {
-                                //var result = JSON.parse(resultJSON);
-                                console.log(result);
-
-                                /*檢查是否註冊會員白名單成功*/
-                                if (result.result.status == true) {
-                                    /*註冊會員白名單成功後，取得會員資訊*/
-                                    $.get("http://localhost:3000/RegistryContractAPI/userInfo", {
-                                        u_id: ID,
-                                    }, function (result) {
-                                        //var result = JSON.parse(resultJSON);
-                                        console.log(result.userInfo);
-                                        console.log(result.userInfo.uid);
-                                        console.log(result.userInfo.assetCtAddr);
-                                        console.log(result.userInfo.extoAddr);
-                                        console.log(result.userInfo.userStatus);
-                                        $.post("http://localhost:3000/RegistryContractAPI/updateUser", {
-                                            email: email,
-                                            assetContractAddr: result.userInfo.assetCtAddr,
-                                            status: result.userInfo.accountStatus,
-                                            ethAddr: result.userInfo.extoAddr,
-                                            multiSigContractAddr: multiSigContractAddr
-                                        }, function (result) {
-                                            //var result = JSON.parse(resultJSON);
-                                            console.log(result);
-                                            location.reload();
-                                        });
-                                    });
-                                }
-                            });
+                        console.log(result.status);
+                        if(result.status == true){
+                            location.reload();
                         }
                     });
                 }
             });
 
         }
+
+
     </script>
 
 </body>
