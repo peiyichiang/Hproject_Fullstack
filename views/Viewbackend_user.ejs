@@ -202,12 +202,12 @@
             document.getElementById(buttonID).disabled = true;
 
             console.log("ETH:" + ethAddr);
-            //let heliumContractAddr = await $.get("http://localhost:3000/Contracts/heliumContract");
+            //let heliumContractAddr = await $.get("http://localhost:3030/Contracts/heliumContract");
             //console.log("heliumContractAddr:" + heliumContractAddr);
 
             /*部署assetContract*/
             console.log("assetBookContract deploying...");
-            $.post("http://localhost:3000/Contracts/assetbookContract", {
+            $.post("http://localhost:3030/Contracts/assetbookContract", {
                 assetBookOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"//ethAddr,(key chain開發未完成)
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
@@ -218,7 +218,7 @@
                 if (result.status == true) {
                     /*部署成功後，註冊會員白名單*/
                     console.log("registering...");
-                    $.post("http://localhost:3000/Contracts/registryContract/users/" + ID, {
+                    $.post("http://localhost:3030/Contracts/registryContract/users/" + ID, {
                         assetBookAddress: result.contractAddress,
                         ethAddr: ethAddr,
                         email: email

@@ -566,7 +566,7 @@
             console.log(fundingGoal);
 
             /*部署CrowdFundingContract*/
-            $.post("http://localhost:3000/Contracts/crowdFundingContract/" + tokenSymbol, {
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol, {
                 tokenPrice: tokenPrice,
                 currency: currency,
                 quantityMax: quantityMax,
@@ -578,7 +578,7 @@
                 console.log(result);
 
                 if (result.status == true) {
-                    $.post("http://localhost:3000/Product/SetProductStateByPlatformAuditor", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -601,7 +601,7 @@
 
             /*部署CrowdFundingContract*/
             console.log("TokenControllerContract deploying...");
-            $.post("http://localhost:3000/Contracts/tokenControllerContract", {
+            $.post("http://localhost:3030/Contracts/tokenControllerContract", {
                 TimeTokenLaunch: 201902230901,
                 TimeTokenUnlock: 201902230900,
                 TimeTokenValid: 201902280907
@@ -614,7 +614,7 @@
                 let tokencontrollerContract = result.contractAddress;
 
                 if (result.status == true) {
-                    $.post("http://localhost:3000/Contracts/ERC721SPLCContract/" + nftSymbol, {
+                    $.post("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol, {
                         nftName: nftName,
                         siteSizeInKW: siteSizeInKW,
                         maxTotalSupply: maxTotalSupply,
@@ -628,7 +628,7 @@
                         console.log(result);
                         //console.log(result.deployResult.contractAddress);
                         if (result.status == true) {
-                            $.post("http://localhost:3000/Product/SetProductStateByPlatformAuditor", {
+                            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
                                 tokenState: State,
                                 tokenSymbol: nftSymbol
                             }, function (result) {
@@ -652,39 +652,50 @@
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
 
-            $.get("http://localhost:3000/Contracts/ERC721SPLCContract/" + nftSymbol, async function (result) {
+            $.get("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol, async function (result) {
                 console.log(result);
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
 
-                let assetBookAddrs = ["0xB6f87704c5E60497FaA20ABe362bf9277254231E", "0x5189969d43df6be574fe751596e520c97f1Aa077"];
-                console.log(assetBookAddrs);
-
-                var uris = ["0x414141", "0x424242"];
-                console.log("minting...");
-                $.post("http://localhost:3000/ERC721ContractAPI/mintSerialNFTBatch", {
-                    assetBookAddrs: JSON.stringify(assetBookAddrs),
-                    erc721address: erc721address,
-                    uris: JSON.stringify(uris)
-                }, function (result) {
+                $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/investors", async function (result) {
                     console.log(result);
+                    let assetBookAddrs = result[0];
+                    let amounts = result[1];
 
-                    if (result.result == true) {
+                    console.log(assetBookAddrs);
+                    console.log(assetBookAddrs.length);
+                    console.log(amounts);
+                    console.log(amounts.length);
+                    console.log("minting...");
+                    let count = 0;
+
+                    for (let i = 0; i < assetBookAddrs.length; i++) {
+                        await $.post("http://localhost:3030/Contracts//ERC721SPLCContract/"+nftSymbol+"/mint", {
+                            assetBookAddr: assetBookAddrs[i],
+                            erc721address: erc721address,
+                            amount: amounts[i]
+                        }, async function (result) {
+                            console.log(result);
+                            if (result.result.status == true) {
+                                console.log(i+1+"/"+assetBookAddrs.length+"has minted...");
+                                count++;
+                            }
+
+                        });
+                    }
+                    if (count == assetBookAddrs.length ) {
                         // 將產品狀態設置為FundingComplete
-                        $.post("http://localhost:3000/Product/SetProductStateByPlatformAuditor", {
+                        $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
                             tokenState: State,
                             tokenSymbol: nftSymbol
                         }, function (result) {
                             console.log(result);
                             // 設置好後重新整理
-                            location.reload();
+                            //location.reload();
                         })
                     }
                 });
-
-
             });
-
         }
 
 

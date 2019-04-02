@@ -39,7 +39,7 @@ const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3
 
 
 
-/**@dev Helium*/
+/**@dev Helium ------------------------------------------------------------------------------------- */
 /**deploy helium contract*/
 router.post('/heliumContract', function (req, res, next) {
     /**POA */
@@ -74,7 +74,7 @@ router.get('/heliumContract', function (req, res, next) {
 });
 
 
-/**@dev Registry */
+/**@dev Registry ------------------------------------------------------------------------------------- */
 /*deploy registry contract*/
 router.post('/registryContract', function (req, res, next) {
     /**POA */
@@ -178,7 +178,7 @@ router.get('/registryContract/users/:u_id', async function (req, res, next) {
 });
 
 
-/**@dev AssetBook */
+/**@dev AssetBook ------------------------------------------------------------------------------------- */
 /*deploy assetbook contract*/
 router.post('/assetbookContract', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
@@ -211,7 +211,7 @@ router.post('/assetbookContract', async function (req, res, next) {
 });
 
 
-/**@dev CrowdFunding */
+/**@dev CrowdFunding ------------------------------------------------------------------------------------- */
 /*deploy crowdFunding contract*/
 router.post('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
@@ -352,7 +352,7 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
     });
 });
 
-/**get status */
+/**set servertime(暫時用) */
 router.post('/crowdFundingContract/:tokenSymbol/:servertime', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let servertime = req.params.servertime;
@@ -404,7 +404,7 @@ router.delete('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
     });
 });
 
-/**@dev TokenController */
+/**@dev TokenController ------------------------------------------------------------------------------------- */
 /**@todo 從DB抓arguments */
 /*deploy tokenController contract*/
 router.post('/tokenControllerContract', function (req, res, next) {
@@ -439,7 +439,7 @@ router.post('/tokenControllerContract', function (req, res, next) {
 });
 
 
-/**@dev ERC721SPLC */
+/**@dev ERC721SPLC ------------------------------------------------------------------------------------- */
 /**@todo 抓tokenURI */
 /*deploy ERC721SPLC contract*/
 router.post('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
@@ -527,6 +527,26 @@ router.get('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
     });
 
 });
+
+/**mint token */
+router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, next) {
+    let contractAddr = req.body.erc721address;
+    let to = req.body.assetBookAddr;
+    let amount = req.body.amount;
+    let ERC721SPLC_HToken = new web3.eth.Contract(ERC721SPLCContract.abi, contractAddr);
+    console.log(to);
+    console.log(amount);
+
+
+    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, amount).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
+
 
 
 
