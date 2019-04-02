@@ -324,8 +324,123 @@ contract AssetBook is MultiSig {
     }
 }
 
+//"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c"
+contract ERC721Testing {
+    using SafeMath for uint256;
+    
+    mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
+    struct Asset {
+        address owner;
+        uint acquiredCost;
+        address approvedAddr;//approved to be transferred by one of the operators or the owner himself
+    }
+    
+    mapping(address => Account) public accounts;//accounts[user]
+    struct Account {
+        uint idxStart;
+        uint idxEnd;
+        mapping (uint => uint) indexToId;//time index to _tokenId: accounts[user].indexToId[index]
+        mapping (address => bool) operators;
+    }
 
-contract ArrayTesting {
+    uint public tokenId;
+    address public user1 = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
+    address public user2 = 0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C;
+    uint public amount_;
+    uint public indexStart_;
+    uint public idxStart;
+    uint public idxEnd;
+    uint public idxStartReq;
+    uint public idxEndReq;
+    address public _to;
+    address public user;
+    // constructor (address _user1, address _user2) public {
+    //   user1 = _user1;
+    //   user2 = _user2;
+    // }
+    function getAccountIndexToId(uint userNum, uint idIndex) public returns (uint tokenId_) {
+        if (userNum == 1) { _to = user1;
+        } else if (userNum == 2) {
+          _to = user2;
+        }
+        tokenId_ = accounts[_to].indexToId[idIndex];
+    }
+    function mintSerialNFT(uint userNum, uint amount) public {
+        if (userNum == 1) { _to = user1;
+        } else if (userNum == 2) {
+          _to = user2;
+        }
+        idxEnd = accounts[_to].idxEnd;
+        idxStart = accounts[_to].idxStart;
+        if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
+          //idxStartReq = 0;
+          idxEndReq = amount.sub(1);
+        } else if (idxStart > idxEnd) {
+          //idxStartReq = 0;
+          idxEndReq = amount.sub(1);
+        } else {
+          idxStartReq = idxEnd.add(1);
+          idxEndReq = idxEnd.add(amount);
+        }
+
+        for(uint i = idxStartReq; i <= idxEndReq; i++) {
+            tokenId = tokenId.add(1);
+            idToAsset[tokenId].owner = _to;
+            idToAsset[tokenId].acquiredCost = 17000;
+            //idToAsset[tokenId] = Asset(_to, initialAssetPricing, address(0));
+            accounts[_to].indexToId[i] = tokenId;
+        }
+        accounts[_to].idxEnd = idxEndReq;
+    }
+
+    function getAccountIds(uint userNum, uint indexStart, uint amount) external  
+    returns (uint[] memory arrayOut) {
+        if (userNum == 1) { user = user1;
+        } else if (userNum == 2) {
+          user = user2;
+        }
+
+        //indexStart == 0 and amount == 0 for all Ids(min idxStart and max amount)
+        require(user != address(0), "user should not be address(0)");
+
+        idxStart = accounts[user].idxStart;
+        idxEnd = accounts[user].idxEnd;
+        //require(indexStart >= idxStart, "indexStart must be >= idxStart");
+        //require(idxE <= idxEnd, "idxE must be <= idxEnd");
+
+        if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
+
+        } else if(idxStart > idxEnd) {
+
+        } else {
+            if (indexStart == 0 && amount == 0) {
+              indexStart_ = idxStart;//set to min indexStart
+              amount_ = idxEnd.sub(idxStart).add(1);//set to max amount
+
+            } else if (indexStart.add(amount).sub(1) > idxEnd) {
+              indexStart_ = indexStart;
+              amount_ = idxEnd.sub(indexStart).add(1);
+            } else {
+              indexStart_ = indexStart;
+              amount_ = amount;
+            }
+            arrayOut = new uint[](amount_);
+
+            for(uint i = 0; i < amount_; i++) {
+                arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
+            }
+            //return arrayOut;
+            // uint length = idxE.sub(indexStart).add(1);
+            // arrayOut = new uint[](length);
+            // for(uint i = indexStart; i < length; i++) {
+            //     arrayOut[i] = accounts[user].indexToId[i];
+            // }
+        }
+    }
+}
+
+
+contract CrowdFundingTesting {
     using SafeMath for uint256;
 
     mapping(uint => Account) public accounts;
@@ -335,9 +450,6 @@ contract ArrayTesting {
     }
     uint public cindex;
 
-    // constructor (
-    // ){
-    // }
     //  "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", 1
     function invest(address _assetbook, uint _quantityToInvest) public {
         cindex = cindex.add(1);

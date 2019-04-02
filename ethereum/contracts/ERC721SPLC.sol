@@ -71,7 +71,7 @@ interface AssetBookITF {
 
 
 
-//------------------------
+//------------------------HCAT721: Helium Crypto Asset Token
 contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     using SafeMath for uint256;
     using AddressUtils for address;
@@ -158,7 +158,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     function ownerOf(uint256 _tokenId) 
         external view returns (address owner_) {
         owner_ = idToAsset[_tokenId].owner;
-        require(owner_ != address(0), "owner_ should not be 0x0");
+        require(owner_ != address(0), "owner_ does not exist");
     }
     function getToken(uint _tokenId) external view returns (
         address owner, uint acquiredCost, address approvedAddr) {
@@ -166,6 +166,16 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         owner = asset.owner;
         acquiredCost = asset.acquiredCost;
         approvedAddr = asset.approvedAddr;
+        require(owner != address(0), "owner does not exist");
+    }
+    function getTokenIdAcquiredCosts(uint[] calldata _tokenIds) external view 
+    returns (uint[] memory acquiredCosts) {
+        uint amount_ = _tokenIds.length;
+        acquiredCosts = new uint[](amount_);
+
+        for(uint i = 0; i < amount_; i++) {
+            acquiredCosts[i] = idToAsset[_tokenIds[i]].acquiredCost;
+        }
     }
     /*struct Asset {
         address owner;
@@ -180,7 +190,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         idxEnd = accounts[user].idxEnd;
     }
     function balanceOf(address user) external view returns (uint balance) {
-        require(user != address(0), "user should not be 0x0");
+        require(user != address(0), "user does not exist");
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
 
@@ -198,52 +208,47 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         mapping (uint => uint) indexToId;
         mapping (address => bool) operators;
     }*/
-    // function get_ownerToIds(address _owner) external view returns (uint[] 
-    function getAccountIdsAll(address user) external view 
+
+    function getAccountIds(address user, uint indexStart, uint amount) external view 
     returns (uint[] memory arrayOut) {
+        //indexStart == 0 and amount == 0 for all Ids(min idxStart and max amount)
         require(user != address(0), "user should not be address(0)");
+
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
+        //require(indexStart >= idxStart, "indexStart must be >= idxStart");
+        //require(idxE <= idxEnd, "idxE must be <= idxEnd");
+        
 
         if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
             //arrayOut = [];
         } else if(idxStart > idxEnd) {
             //arrayOut = [];
         } else {
-            uint length = idxEnd.sub(idxStart).add(1);
-            arrayOut = new uint[](length);
+            uint amount_; uint indexStart_;
+            if (indexStart == 0 && amount == 0) {
+              indexStart_ = idxStart;//set to min indexStart
+              amount_ = idxEnd.sub(idxStart).add(1);//set to max amount
 
-            for(uint i = 0; i < length; i++) {
-                arrayOut[i] = accounts[user].indexToId[i.add(idxStart)];
+            } else if (indexStart.add(amount).sub(1) > idxEnd) {
+              indexStart_ = indexStart;
+              amount_ = idxEnd.sub(indexStart).add(1);
+            } else {
+              indexStart_ = indexStart;
+              amount_ = amount;
             }
-        }//else arrayOut = [];
-    }
-    function getAccountIds(address user, uint idxS, uint idxE) external view 
-    returns (uint[] memory arrayOut) {
-        require(user != address(0), "user should not be address(0)");
-        uint idxStart = accounts[user].idxStart;
-        uint idxEnd = accounts[user].idxEnd;
-        require(idxS >= idxStart, "idxS must be >= idxStart");
-        require(idxE <= idxEnd, "idxE must be <= idxEnd");
+            arrayOut = new uint[](amount_);
 
-        if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
-            //arrayOut = [];
-        } else if(idxStart > idxEnd) {
-            //arrayOut = [];
-        } else {
-            uint length = idxE.sub(idxS).add(1);
-            arrayOut = new uint[](length);
-
-            for(uint i = idxS; i < length; i++) {
-                arrayOut[i] = accounts[user].indexToId[i];
+            for(uint i = 0; i < amount_; i++) {
+                arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
             }
+            // uint length = idxE.sub(indexStart).add(1);
+            // arrayOut = new uint[](length);
+            // for(uint i = indexStart; i < length; i++) {
+            //     arrayOut[i] = accounts[user].indexToId[i];
+            // }
         }
     }
-    // function getAccountId(address user, uint index) 
-    //     public view returns (uint tokenId_) {
-    //         require(user != address(0), "user should not be zero");
-    //         tokenId_ = accounts[user].indexToId[index];
-    // }
     /*struct Account { // accounts[user]
         uint idxStart;// 0, 1, 2, ...
         uint idxEnd;
@@ -400,7 +405,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
             address tokenOwner = idToAsset[tokenId_].owner;
             require(tokenOwner == _from, "tokenOwner should be _from");
-            //require(tokenOwner != address(0), "owner should not be 0x0");
+            //require(tokenOwner != address(0), "owner does not exist");
 
             require(
             tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender 
@@ -452,7 +457,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");//ownerToOperators[tokenOwner][msg.sender]
 
       validToken()
-        require(idToAsset[tokenId_].owner != address(0), "owner should not be 0x0");
+        require(idToAsset[tokenId_].owner != address(0), "owner does not exist");
     */
     function addNFToken(address _to, uint _tokenId) internal {
         //accounts[owner].idxStart  .idxEnd  .indexToId[index]  .operators[opAddr]
@@ -588,14 +593,15 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
     //-------------------------==
     function getTokenOwners(uint tokenIdStart, uint amount) 
-        external view returns(address[] memory addrArray) {
+        external view returns(address[] memory arrayOut) {
         //maxTokenId = tokenId - 1;
         require(amount > 0, "amount must be > 0");
         require(tokenIdStart > 0, "tokenIdStart must be > 0");
         require(tokenIdStart.add(amount).sub(1) <= tokenId, "tokenIdStart is too big for amount");
 
+        arrayOut = new address[](amount);
         for(uint i = 0; i < amount; i = i.add(1)) {
-            addrArray[i] = idToAsset[i.add(tokenIdStart)].owner;
+            arrayOut[i] = idToAsset[i.add(tokenIdStart)].owner;
         }
     }
 
@@ -642,7 +648,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             "msg.sender should be either tokenOwner or an approved operator");//ownerToOperators[tokenOwner][msg.sender]
 
         //validNFToken(_tokenId)
-        require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
+        require(idToAsset[_tokenId].owner != address(0), "owner does not exist");
 
         require(_approved != tokenOwner, "_approved should not be tokenOwner");
         // require(
@@ -725,7 +731,25 @@ library AddressUtils {
         return size > 0;
     }
 }
+    // function getAccountIdsAll(address user) external view 
+    // returns (uint[] memory arrayOut) {
+    //     require(user != address(0), "user should not be address(0)");
+    //     uint idxStart = accounts[user].idxStart;
+    //     uint idxEnd = accounts[user].idxEnd;
 
+    //     if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
+    //         //arrayOut = [];
+    //     } else if(idxStart > idxEnd) {
+    //         //arrayOut = [];
+    //     } else {
+    //         uint length = idxEnd.sub(idxStart).add(1);
+    //         arrayOut = new uint[](length);
+
+    //         for(uint i = 0; i < length; i++) {
+    //             arrayOut[i] = accounts[user].indexToId[i.add(idxStart)];
+    //         }
+    //     }//else arrayOut = [];
+    // }
 /**
 $ Caller SHALL NOT assume that ID numbers have any specific pattern to them, and MUST treat the ID as a "black box".
 Also note that a NFTs MAY become invalid (be destroyed). 

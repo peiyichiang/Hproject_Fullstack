@@ -17,19 +17,20 @@
     "test": "mocha",
     "testcf": "mocha --grep CrowdFunding",
     "test721": "mocha --grep ERC721SPLC",
-    "test721r": "mocha --grep ERC721SPLC",
     "test721controller": "mocha --grep TokenController",
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
-    "testpmgr": "mocha --grep ",
+    "testpmgr": "mocha --grep ProductManager",
     "testim": "mocha --grep IncomeManagement",
-    "testarray": "mocha --grep ArrayUtils"
+    "test1": "mocha --grep test1",
+    "debug": "DEBUG=dev:* nodemon ./bin/www"
   },
   "dependencies": {
     "bcrypt": "^3.0.2",
     "concurrently": "^4.1.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
+    "dotenv": "^7.0.0",
     "ejs": "~2.5.7",
     "ethereumjs-tx": "^1.3.7",
     "express": "~4.16.0",

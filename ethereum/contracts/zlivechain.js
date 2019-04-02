@@ -1,7 +1,9 @@
 /**
 $ yarn run livechain --c C --f F --arg1 arg1
 C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
-F = 0: 
+F = 
+
+0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amountToMint), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)
 
 0: setupTest
 yarn run livechain --c 1 --f 0
@@ -9,22 +11,23 @@ yarn run livechain --c 1 --f 0
 1: getSystemInfo
 yarn run livechain --c 1 --f 1
 
-2: showAccountnAssetBooks
+2: showAccountAssetBooks
 yarn run livechain --c 1 --f 2
 
-3: showAssetInfo(tokenId)
+3: mintTokens(assetbookNum, amountToMint)
+yarn run livechain --c 1 --f 4 -a assetbookNum, -b amountToMint
+yarn run livechain --c 1 --f 3 -a 2 -b 120
+
+4: showAssetInfo(tokenId)
 yarn run livechain --c 1 --f 3 -a tokenId
 
-4: mintTokens(assetbookNum, amountToMint)
-yarn run livechain --c 1 --f 4 -a assetbookNum, -b amountToMint
-
-8: sendAssetBeforeAllowed(),
+5: sendAssetBeforeAllowed(),
 yarn run livechain --c 1 --f 8
 
-9: setServerTime(newServerTime)
+6: setServerTime(newServerTime)
 yarn run livechain --c 1 --f 9 -a serverTime
 
-10: transferTokens(assetbookNum, amount)
+7: transferTokens(assetbookNum, amount)
 yarn run livechain --c 1 --f 10 -a 2 -b 1
 */
 const Web3 = require('web3');
@@ -38,7 +41,7 @@ const arguLen = process.argv.length;
 if (arguLen == 3 && process.argv[2] === '--h') {
   console.log("\x1b[32m", '$ yarn run livechain --c C --f F -a A -b b');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log("\x1b[32m", 'F = 0: setupTest,  1: getSystemInfo, 2: showAccountnAssetBooks, 3: showAssetInfo(tokenId), 4: mintTokens(assetbookNum, amountToMint), 8: sendAssetBeforeAllowed(), 9: setServerTime(newServerTime), 9: transferTokens(assetbookNum, amount)');
+  console.log("\x1b[32m", 'F = 0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: showAssetInfo(tokenId), 4: mintTokens(assetbookNum, amountToMint), 8: sendAssetBeforeAllowed(), 9: setServerTime(newServerTime), 9: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'a, b, ... are arguments used in above functions ...');
   process.exit(1);
   // process.on('exit', function(code) {  
@@ -91,15 +94,24 @@ if (chain === 1) {//POA private chain
   let scenario = 1;//1: new accounts, 2: POA node accounts
   if (scenario===1) {
     console.log('scenario = ', scenario);
-    addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
-    addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
-    addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
-    addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
-    addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
-    addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
-    addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
-    addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
-    addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
+    addrPlatform = "0xC4Ea4B5347C8159Ad4ec41bD65Ac2f737b3395E7";
+    addrMultiSig1 = "0x0C7BFaDb47d333AB0cCe259f5aD1a2D718648e38";
+    addrMultiSig2 = "0xd982Ba277F08e248c449Ed71721bB02D3Ac7186f";
+    addrAssetBook1 = "0xa0Ee9E186471aA7F7F0158002a7A4BaDA26a1C41";
+    addrAssetBook2 = "0x37C7BaD3c16eF235205D02E50F1c91E0CD740684";
+    addrRegistry =   "0xfD5a28CbD39F787F8fEf5af098F6d753AdB72791";
+    addrTokenController = "0xBc6381e1EbDab9c3E4389b7887A6a9183CCC1893";
+    addrERC721SPLC = "0xBbDaFBe4c8EA4500725ffdA782942128D7a34CDD";
+    addrCrowdFunding = "0x45b323B1ccDbf10B9B71c5DB5a99005cA27714f3";
+    // addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
+    // addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
+    // addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
+    // addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
+    // addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
+    // addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
+    // addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
+    // addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
+    // addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
 
     Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
     BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
@@ -114,10 +126,8 @@ if (chain === 1) {//POA private chain
 
   } else if (scenario === 2) {
     console.log('scenario = ', scenario);
-    Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-    BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
-    //Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
-    //BackendpkRaw = "0xdb7ec98d7453d3eebe01119c843e56159433a388362374a3b996b930ea182960";
+    Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
+    BackendpkRaw = "0xdb7ec98d7453d3eebe01119c843e56159433a388362374a3b996b930ea182960";
     AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
     AssetOwner1pkRaw = "0xd05a673b9efe63079cd7fd35478f279233287294730a990a32fc29c699ec21de";
     AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
@@ -397,11 +407,11 @@ let isUnlockedValid; let bool2;
 /**
 $ yarn run livechain --c C --f F --arg1 arg1
 C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
-F = 0: setupTest, 1: getSystemInfo, 2: showAccountnAssetBooks, 4: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount), 9: updateAssetBook(assetbookNum)
+F = 0: setupTest, 1: getSystemInfo, 2: showAccountAssetBooks, 4: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount), 
 arg1, arg2, ... are arguments used in above functions ...
 */
 
-//F = 1: getSystemInfo
+
 const getSystemInfo = async () => {
   if (Bufferfrom){
     console.log('Backendpk use Buffer.from');
@@ -413,8 +423,8 @@ const getSystemInfo = async () => {
   web3 = new Web3(provider);
   //const instPlatform = new web3.eth.Contract(Platform.abi, addrPlatform);
   //const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-  const instMultiSig1 = new web3.eth.Contract(MultiSig.abi, addrMultiSig1);
-  const instMultiSig2 = new web3.eth.Contract(MultiSig.abi, addrMultiSig2);
+  // const instMultiSig1 = new web3.eth.Contract(MultiSig.abi, addrMultiSig1);
+  // const instMultiSig2 = new web3.eth.Contract(MultiSig.abi, addrMultiSig2);
 
   const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
   const instERC721SPLC = new web3.eth.Contract(ERC721SPLC.abi, addrERC721SPLC);
@@ -424,15 +434,15 @@ const getSystemInfo = async () => {
   console.log('isUnlockedValid() =', isUnlockedValid);
   console.log('tokenId or tokenCount from assetCtrt', tokenIdM);
 
-  console.log('\n------------==Check MultiSig contract 1 & 2');
-  console.log('addrMultiSig1', addrMultiSig1);
-  console.log('addrMultiSig2', addrMultiSig2);
-  let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
-  console.log('assetOwnerM1', assetOwnerM1);
-  checkEq(assetOwnerM1, AssetOwner1);
-  let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
-  console.log('assetOwnerM2', assetOwnerM2);
-  checkEq(assetOwnerM2, AssetOwner2);
+  // console.log('\n------------==Check MultiSig contract 1 & 2');
+  // console.log('addrMultiSig1', addrMultiSig1);
+  // console.log('addrMultiSig2', addrMultiSig2);
+  // let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
+  // console.log('assetOwnerM1', assetOwnerM1);
+  // checkEq(assetOwnerM1, AssetOwner1);
+  // let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
+  // console.log('assetOwnerM2', assetOwnerM2);
+  // checkEq(assetOwnerM2, AssetOwner2);
 
   //-----------------==Check Token Controller: time
   console.log('\n------------==Check TokenController parameters: time');
@@ -472,6 +482,7 @@ const getSystemInfo = async () => {
   //   isUnlockedValid = await instTokenController.methods.isUnlockedValid().call(); 
   // }
   console.log('isUnlockedValid()', isUnlockedValid);
+  console.log('getSystemInfo() is completed');
 }
 
 const setupTest = async () => {
@@ -526,21 +537,21 @@ const setupTest = async () => {
   console.log('Deployment Check: Good');
 
   //----------------==Check MultiSig & AssetBook contracts
-  console.log('\n------------==Check MultiSig contract 1 & 2');
-  console.log('addrMultiSig1', addrMultiSig1);
-  console.log('addrMultiSig2', addrMultiSig2);
-  let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
-    //{ value: '0', from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-  console.log('assetOwnerM1', assetOwnerM1);
-  checkEq(assetOwnerM1, AssetOwner1);
-  let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
-  checkEq(assetOwnerM2, AssetOwner2);
+  // console.log('\n------------==Check MultiSig contract 1 & 2');
+  // console.log('addrMultiSig1', addrMultiSig1);
+  // console.log('addrMultiSig2', addrMultiSig2);
 
-  console.log('\nCheck getPlatformContractAddr()');
-  let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
-  checkEq(platformM1, addrPlatform);
-  let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
-  checkEq(platformM2, addrPlatform);
+  // let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
+  // console.log('\nassetOwnerM1', assetOwnerM1);
+  // checkEq(assetOwnerM1, AssetOwner1);
+  // let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
+  // checkEq(assetOwnerM2, AssetOwner2);
+
+  // console.log('\nCheck getPlatformContractAddr()');
+  // let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
+  // checkEq(platformM1, addrPlatform);
+  // let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
+  // checkEq(platformM2, addrPlatform);
 
   console.log('\n------------==Check AssetBook contract 1 & 2');
   console.log('addrAssetBook1', addrAssetBook1);
@@ -569,8 +580,8 @@ const setupTest = async () => {
   console.log('getUserCountM', getUserCountM);
 
   uid1 = "A500000001"; assetCtAddr = addrAssetBook1; extoAddr = AssetOwner1;
-  console.log('uid1', uid1, 'assetCtAddr', assetCtAddr, 'extoAddr', extoAddr, 'timeCurrent', timeCurrent);
-  let uid1HasBeenAdded = true;
+  console.log('\nuid1', uid1, 'assetCtAddr', assetCtAddr, 'extoAddr', extoAddr, 'timeCurrent', timeCurrent);
+  let uid1HasBeenAdded = false;
   if (uid1HasBeenAdded) {
     user1M = await instRegistry.methods.getUser(uid1).call();
     console.log('user1M', user1M);
@@ -600,7 +611,7 @@ const setupTest = async () => {
   }
 
   uid2 = "A500000002"; assetCtAddr = addrAssetBook2; extoAddr = AssetOwner2;
-  let uid2HasBeenAdded = true;
+  let uid2HasBeenAdded = false;
   if (uid2HasBeenAdded) {
     console.log('\nafter addUser() on AssetOwner2:');
     user2M = await instRegistry.methods.getUser(uid2).call();
@@ -670,6 +681,8 @@ const setupTest = async () => {
   let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
   checkEq(supportsInterface0x780e9d63, true);
 
+  console.log('setup has been completed');
+
 };
 
 
@@ -715,7 +728,7 @@ const mintTokens = async (assetbookNum, amountToMint) => {
     process.exit(1);
   }
 
-  console.log('\n------------==Mint Token in Batch: tokenId =', tokenIdMX+1, 'to ', tokenIdMX+amountToMint, ' to AssetBook'+assetbookNum);
+  console.log('\n------------==Mint Token in Batch: tokenId =', tokenIdMX+1, 'to', tokenIdMX+amountToMint, ' to AssetBook'+assetbookNum);
 
   balanceM = await instERC721SPLC.methods.balanceOf(_to).call();
   const amountInitAB1 = parseInt(balanceM);
@@ -736,10 +749,16 @@ const mintTokens = async (assetbookNum, amountToMint) => {
   tokenIdM = await instERC721SPLC.methods.tokenId().call();
   checkEq(tokenIdM, tokenIdMX.toString());
 
-  tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdMX-2).call();
-  checkEq(tokenOwnerM, _to);
-  tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdMX-1).call();
-  checkEq(tokenOwnerM, _to);
+  if (amountToMint > 2) {
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdMX-2).call();
+    checkEq(tokenOwnerM, _to);
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdMX-1).call();
+    checkEq(tokenOwnerM, _to);
+ 
+  } else if (amountToMint > 1) {
+    tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdMX-1).call();
+    checkEq(tokenOwnerM, _to);
+  }
   tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdMX).call();
   checkEq(tokenOwnerM, _to);
 
@@ -757,9 +776,9 @@ const mintTokens = async (assetbookNum, amountToMint) => {
   checkEq(tokenInfo[0], _to);
   checkEq(tokenInfo[1], initialAssetPricing.toString());
 
-  console.log('\n-----------==Switching to showAccountnAssetBooks()...');
-  showAccountnAssetBooks();
-  console.log('mintTokens() has completed');
+  console.log('\n-----------==Switching to showAccountAssetBooks()...');
+  showAccountAssetBooks();
+  console.log('mintTokens() has been completed');
 }
 
 const showAssetInfo = async (_tokenId) => {
@@ -777,7 +796,7 @@ const showAssetInfo = async (_tokenId) => {
 }
 
 
-const showAccountnAssetBooks = async () => {
+const showAccountAssetBooks = async () => {
   console.log('\n--------==AssetOwner1: AssetBook and ERC721SPLC...');
   if (Bufferfrom){
     console.log('Backendpk use Buffer.from');
@@ -791,7 +810,7 @@ const showAccountnAssetBooks = async () => {
   const instAssetBook2 = new web3.eth.Contract(AssetBook.abi,addrAssetBook2);
   const instERC721SPLC = new web3.eth.Contract(ERC721SPLC.abi, addrERC721SPLC);
 
-  tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook1).call();
+  tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
   balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
   console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
   accountM = await instERC721SPLC.methods.getAccount(addrAssetBook1).call();
@@ -802,13 +821,15 @@ const showAccountnAssetBooks = async () => {
 
   
   console.log('\n--------==AssetOwner2: AssetBook and ERC721SPLC...');
-  tokenIds = await instERC721SPLC.methods.getAccountIdsAll(addrAssetBook2).call();
+  tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook2, 0, 0).call();
   balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
   console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
   accountM = await instERC721SPLC.methods.getAccount(addrAssetBook2).call();
   console.log('SPLC getAccount():', accountM);
   assetbookXM = await instAssetBook2.methods.getAsset(_assetAddr).call();
   console.log('AssetBook2:', assetbookXM);
+
+  console.log('showAccountAssetBooks() has been completed');
 }
 
 
@@ -904,10 +925,10 @@ const transferTokens = async (assetbookNum, amount) => {
         console.log('error:', error.toString());
     });
 
-    console.log('safeTransferFromBatch is finished. From account:', amountInitABFrom, 'minus', amount, ', to account: ', amountInitABTo, 'add', amount);
+    console.log('safeTransferFromBatch is completed. From account:', amountInitABFrom, 'minus', amount, ', to account: ', amountInitABTo, 'add', amount);
 
     console.log('\nCheck AssetBookFrom after txn...');
-    showAccountnAssetBooks();
+    showAccountAssetBooks();
 }
 
 
@@ -967,7 +988,7 @@ const showMenu = () => {
   console.log('\n');
   console.log("\x1b[32m", '$ yarn run testlive1 --chain C --func F --arg1 arg1 --arg2 arg2');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log("\x1b[32m", 'F = 0: setupTest,  1: getSystemInfo, 2: showAccountnAssetBooks, 3: mintTokens(assetbookNum), 4: sendAssetBeforeAllowed(), 5: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount), 9: updateAssetBook(assetbookNum), 99: resetAssetBook(assetbookNum);');
+  console.log("\x1b[32m", 'F = 0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amountToMint), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'arg1, arg2, ... are arguments used in above functions ...');
 }
 //-------------------------------==
@@ -978,21 +999,21 @@ if (func === 0) {
   getSystemInfo();
 
 } else if (func === 2) {
-  showAccountnAssetBooks();
+  showAccountAssetBooks();
 
 } else if (func === 3) {
-  showAssetInfo(arg1);
-
-} else if (func === 4) {
   mintTokens(arg1, arg2);
 
-} else if (func === 8) {
+} else if (func === 4) {
+  showAssetInfo(arg1);
+
+} else if (func === 5) {
   sendAssetBeforeAllowed();
 
-} else if (func === 9) {
+} else if (func === 6) {
   setServerTime(arg1);
 
-} else if (func === 10) {
+} else if (func === 7) {
   transferTokens(arg1, arg2);
 
 } 
@@ -1107,87 +1128,3 @@ return new Promise((resolve, reject) => {
         })
 })
 }
-/**
-const updateAssetBook = async (assetbookNum) => {
-  console.log('\n--------------==inside updateAssetBook');
-  let instAssetBook;
-  if (assetbookNum < 1){
-    console.log('assetbookNum value should be >= 1. assetbookNum = ', assetbookNum);
-    process.exit(1);
-  }
-
-  if (assetbookNum === 1){
-    provider = new PrivateKeyProvider(AssetOwner1pk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
-    web3 = new Web3(provider);
-    instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook1);
-    fromAddr = AssetOwner1; privateKey = AssetOwner1pk; ctrtAddr = addrAssetBook1; _to = addrAssetBook2;
-
-  } else if (assetbookNum === 2){
-    provider = new PrivateKeyProvider(AssetOwner2pk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
-    web3 = new Web3(provider);
-    instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook2);
-    fromAddr = AssetOwner2; privateKey = AssetOwner2pk; ctrtAddr = addrAssetBook2; _to = addrAssetBook1;
-
-  } else {
-    console.log('not valid assetbookNum... assetbookNum =', assetbookNum);
-    process.exit(1);
-  }
-
-  console.log('AssetBookTo to receive tokens...');
-  if (txnNum===1) {
-    encodedData = instAssetBook.methods.updateReceivedAsset(_assetAddr).encodeABI();
-    signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
-
-  } else {
-    await instAssetBook.methods.updateReceivedAsset(_assetAddr) 
-    .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
-  }
-
-  assetbookM = await instAssetBook.methods.getAsset(_assetAddr).call();
-  console.log('getAsset(assetbookM):', assetbookM);
-  //checkEq(assetbookM[2], (amountInitABTo).toString());//amount
-  //checkEq(AssetBookM[3], timeIndexStartInitTo.toString());//timeIndexStart
-  //checkEq(AssetBookM[4], (timeIndexEndInitTo).toString());//timeIndexEnd
-  console.log("\x1b[33m", 'CHECK amount increase, timeIndexEnd increase');
-
-}
-
-const resetAssetBook = async (assetbookNum) => {
-  console.log('\n--------------==inside resetAssetBook');
-  let instAssetBook;
-  if (assetbookNum < 1){
-    console.log('assetbookNum value should be >= 1. assetbookNum = ', assetbookNum);
-    process.exit(1);
-  }
-
-  if (assetbookNum === 1){
-    provider = new PrivateKeyProvider(AssetOwner1pk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
-    web3 = new Web3(provider);
-    instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook1);
-    fromAddr = AssetOwner1; privateKey = AssetOwner1pk; ctrtAddr = addrAssetBook1; _to = addrAssetBook2;
-
-  } else if (assetbookNum === 2){
-    provider = new PrivateKeyProvider(AssetOwner2pk, nodeUrl);//Backendpk, AssetOwner1pk, AssetOwner2pk
-    web3 = new Web3(provider);
-    instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook2);
-    fromAddr = AssetOwner2; privateKey = AssetOwner2pk; ctrtAddr = addrAssetBook2; _to = addrAssetBook1;
-
-  } else {
-    console.log('not valid assetbookNum... assetbookNum =', assetbookNum);
-    process.exit(1);
-  }
-
-  console.log('AssetBookTo to receive tokens...');
-  if (txnNum===1) {
-    encodedData = instAssetBook.methods.updateAssetTokenDetails(_assetAddr).encodeABI();
-    signTxn(fromAddr, ctrtAddr, encodedData, privateKey);
-
-  } else {
-    await instAssetBook.methods.updateAssetTokenDetails(_assetAddr) 
-    .send({value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
-  }
-
-  assetbookM = await instAssetBook.methods.getAsset(_assetAddr).call();
-  console.log('getAsset(assetbookM):', assetbookM);
-} 
- */
