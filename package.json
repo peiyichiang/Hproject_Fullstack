@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "solc": "cd ethereum/contracts;node zcompile.js",
-    "deploy": "cd ethereum/contracts;node zdeploy.js",
-    "livechain": "cd ethereum/contracts;node zlivechain.js",
+    "solc": "cd ethereum/contracts && node zcompile.js",
+    "deploy": "cd ethereum/contracts && node zdeploy.js",
+    "livechain": "cd ethereum/contracts && node zlivechain.js",
     "start": "nodemon ./bin/www",
     "timeserver": "node timeserver/timeserver.js",
     "manager": "node timeserver/manager/manager.js",
@@ -17,12 +17,10 @@
     "test": "mocha",
     "testcf": "mocha --grep CrowdFunding",
     "test721": "mocha --grep ERC721SPLC",
-    "test721r": "mocha --grep ERC721SPLC",
-    "test721controller": "mocha --grep TokenController",
+    "testim": "mocha --grep IncomeManagement",
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
     "testpmgr": "mocha --grep ",
-    "testim": "mocha --grep IncomeManagement",
     "testarray": "mocha --grep ArrayUtils"
   },
   "dependencies": {

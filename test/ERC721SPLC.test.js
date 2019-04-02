@@ -25,7 +25,6 @@ web3 = new Web3(provider);//lower case web3 means it is an instance
 //process.setMaxListeners(Infinity);
 //emitter.setMaxListeners(50);
 require('events').EventEmitter.defaultMaxListeners = 50;
-//require('events').EventEmitter.prototype._maxListeners = 20;
 /* emitter.setMaxListeners();
 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data listeners added. Use emitter.setMaxListeners() to increase limit
 */
@@ -54,25 +53,25 @@ if (Platform === undefined){
   //console.log(Platform);
 }
 
-const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
-if (MultiSig === undefined){
-  console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-} else {
-  console.log('[Good] MultiSig is defined');
-  if (MultiSig.abi === undefined){
-    console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] MultiSig.abi is defined');
-      //console.log('MultiSig.abi:', MultiSig.abi);
-  }
-  if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
-    console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] MultiSig.bytecode is defined');
-      //console.log('MultiSig.bytecode:', MultiSig.bytecode);
-  }
-  //console.log(MultiSig);
-}
+// const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
+// if (MultiSig === undefined){
+//   console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+// } else {
+//   console.log('[Good] MultiSig is defined');
+//   if (MultiSig.abi === undefined){
+//     console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+//   } else {
+//     console.log('[Good] MultiSig.abi is defined');
+//       //console.log('MultiSig.abi:', MultiSig.abi);
+//   }
+//   if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
+//     console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+//   } else {
+//     console.log('[Good] MultiSig.bytecode is defined');
+//       //console.log('MultiSig.bytecode:', MultiSig.bytecode);
+//   }
+//   //console.log(MultiSig);
+// }
 
 const AssetBook = require('../ethereum/contracts/build/AssetBook.json');
 if (AssetBook === undefined){
@@ -477,20 +476,7 @@ beforeEach( async () => {
     addrCrowdFunding = instCrowdFunding.options.address;
     console.log('addrCrowdFunding:', addrCrowdFunding);
 
-/*
-    console.log('\nDeploying ArrayTesting contract...');
-    instArrayUtils = await new web3.eth.Contract(ArrayTesting.abi)
-     .deploy({ data: prefix+ArrayTesting.bytecode })
-     .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
-     console.log('ArrayTesting.sol has been deployed');
-     if (instArrayUtils === undefined) {
-       console.log('[Error] instArrayUtils is NOT defined');
-       } else {console.log('[Good] instArrayUtils is defined');}
-     instArrayUtils.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-     addrArrayUtils = instArrayUtils.options.address;
-     console.log('addrArrayUtils:', addrArrayUtils);
-    
-    /*
+
     const addrTokenCtrt = addrERC721SPLC;
     const argsIncomeManagement =[TimeAnchor, addrTokenCtrt, addrPA_Ctrt, addrFMXA_Ctrt, addrPlatformCtrt];
     instIncomeManagement = await new web3.eth.Contract(IncomeManagement.abi)
@@ -504,6 +490,20 @@ beforeEach( async () => {
     addrIncomeManagement = instIncomeManagement.options.address;
     console.log('addrIncomeManagement:', addrIncomeManagement);
 
+  /*
+    console.log('\nDeploying ArrayTesting contract...');
+    instArrayUtils = await new web3.eth.Contract(ArrayTesting.abi)
+     .deploy({ data: prefix+ArrayTesting.bytecode })
+     .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+     console.log('ArrayTesting.sol has been deployed');
+     if (instArrayUtils === undefined) {
+       console.log('[Error] instArrayUtils is NOT defined');
+       } else {console.log('[Good] instArrayUtils is defined');}
+     instArrayUtils.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+     addrArrayUtils = instArrayUtils.options.address;
+     console.log('addrArrayUtils:', addrArrayUtils);
+    
+    
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode })
     .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1082,6 +1082,7 @@ describe('Tests on ERC721SPLC', () => {
 });
 
 
+
 //-----------------------------------------==
 describe('Tests on ArrayTesting', () => {
 
@@ -1100,6 +1101,31 @@ describe('Tests on ArrayTesting', () => {
     // console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
   });
 });
+
+
+
+//-----------------------------------------==
+describe('Tests on IncomeManagement', () => {
+  it('IncomeManagement functions test', async () => {
+    console.log('\n------------==Check IncomeManagement parameters');
+    
+    
+    await instIncomeManagement.methods.setTimeCurrent(timeCurrent)
+    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    bool1 = await instIncomeManagement.methods.isUnlockedValid().call(); 
+    assert.equal(bool1, false);
+
+  });
+});
+
+// describe('Tests on DDD', () => {
+
+//   it('DDD functions test', async () => {
+//     console.log('\n------------==Check DDD parameters');
+//   });
+// });
+
 
 
 //-----------------------------------------==

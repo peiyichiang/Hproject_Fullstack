@@ -101,7 +101,7 @@ contract MultiSig {
 
     /** @dev 更換endorser */
     function changeEndorser(address _oldEndorser, address _newEndorser, uint256 _timeCurrent) public ckAssetOwner{
-        for(uint i = 0;  i < endorsersContractAddr.length; i++){
+        for(uint i = 0;  i < endorsersContractAddr.length; i.add(1)){
             if(endorsersContractAddr[i] == _oldEndorser){
                 endorsersContractAddr[i] = _newEndorser;
                 emit ChangeEndorsersEvent(_oldEndorser, _newEndorser, _timeCurrent);
@@ -383,7 +383,7 @@ contract ERC721Testing {
           idxEndReq = idxEnd.add(amount);
         }
 
-        for(uint i = idxStartReq; i <= idxEndReq; i++) {
+        for(uint i = idxStartReq; i <= idxEndReq; i.add(1)) {
             tokenId = tokenId.add(1);
             idToAsset[tokenId].owner = _to;
             idToAsset[tokenId].acquiredCost = 17000;
@@ -426,13 +426,13 @@ contract ERC721Testing {
             }
             arrayOut = new uint[](amount_);
 
-            for(uint i = 0; i < amount_; i++) {
+            for(uint i = 0; i < amount_; i.add(1)) {
                 arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
             }
             //return arrayOut;
             // uint length = idxE.sub(indexStart).add(1);
             // arrayOut = new uint[](length);
-            // for(uint i = indexStart; i < length; i++) {
+            // for(uint i = indexStart; i < length; i.add(1)) {
             //     arrayOut[i] = accounts[user].indexToId[i];
             // }
         }
@@ -493,7 +493,7 @@ contract CrowdFundingTesting {
         require(idxEndReq <= idxEnd, "idxEndReq must be equal to/lesser than idxEnd");
 
         arrayOut = new uint[](amount);
-        for(uint i = 0; i <= idxEndReq; i++) {
+        for(uint i = 0; i <= idxEndReq; i.add(1)) {
             arrayOut[i] = array[idxStart.add(i)];
         }
     }
@@ -518,7 +518,7 @@ contract CrowdFundingTesting {
           require(idxEnd.sub(idxStartOut).add(1) == arrayLenOut, "arrayLenOut, start, end");
 
           require(idxStartOut <= idxEnd, "idxStartOut must be <= than idxEnd");
-          for(uint i = idxStartOut; i <= idxEnd; i++) {
+          for(uint i = idxStartOut; i <= idxEnd; i.add(1)) {
               arrayOut[i.sub(idxStartOut)] = array[i];
           }
         }
@@ -552,7 +552,7 @@ library AddressUtils {
         string[] memory symbols = new string[](assetAddrList.length);
         uint[]    memory balances = new uint[](assetsIndex.length);
 
-        for (uint i = 0; i < assetAddrList.length; i++) {
+        for (uint i = 0; i < assetAddrList.length; i.add(1)) {
             Asset storage asset = assets[assetAddrList[i]];
             assetAddrArray[i] = asset.assetAddr;
             symbols[i] = asset.symbol;
