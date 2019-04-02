@@ -86,6 +86,8 @@ contract CrowdFunding is Ownable {
         director = management[2];
         manager = management[1];
         admin = management[0];
+        isActive = true;
+        fundingState = FundingState.funding;
 
         emit UpdateState(tokenSymbol, quantitySold, _serverTime, fundingState, "deployed");
     }
