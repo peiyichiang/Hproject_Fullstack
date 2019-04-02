@@ -227,9 +227,9 @@ router.post('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
     let currency = req.body.currency;
     let quantityMax = req.body.quantityMax;
     let goalInPercentage = Math.floor(req.body.fundingGoal / quantityMax * 100);
-    let CFSD2 = parseInt(req.body.CFSD2);
-    let CFED2 = parseInt(req.body.CFED2);
-    let serverTime = timestamp;
+    let CFSD2 = parseInt(req.body.CFSD2);//201903231200
+    let CFED2 = parseInt(req.body.CFED2);//201903241200
+    let serverTime = timestamp;//201903240000
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
 
@@ -321,9 +321,63 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
             console.log(DBresult[0].sc_crowdsaleaddress);
             let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
-            let investors = await crowdFunding.methods.getInvestors(1,1).call({ from: backendAddr })
+            let investors = await crowdFunding.methods.getInvestors(1,100).call({ from: backendAddr })
 
             res.send(investors);
+        }
+    });
+});
+
+/**get status */
+router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+            let fundingState = await crowdFunding.methods.fundingState().call({ from: backendAddr })
+
+            res.send(fundingState);
+        }
+    });
+});
+
+/**get status */
+router.post('/crowdFundingContract/:tokenSymbol/:servertime', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let servertime = req.params.servertime;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = crowdFunding.methods.setServerTime(servertime).encodeABI();
+            let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+            res.send({
+                DBresult: DBresult,
+                TxResult: TxResult
+            })
         }
     });
 });
@@ -390,9 +444,9 @@ router.post('/tokenControllerContract', function (req, res, next) {
 /*deploy ERC721SPLC contract*/
 router.post('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
     let nftName = req.body.nftName;
@@ -489,10 +543,10 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 3000000,
+                    gas: 6500000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
-                    gasLimit: web3.utils.toHex(3400000),
+                    //gasLimit: web3.utils.toHex(3400000),
                     to: contractAddr,
                     value: 0,
                     data: encodedData

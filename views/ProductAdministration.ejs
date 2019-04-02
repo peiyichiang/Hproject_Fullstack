@@ -575,7 +575,7 @@
                 fundingGoal: fundingGoal
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
-                console.log(result.status);
+                console.log(result);
 
                 if (result.status == true) {
                     $.post("http://localhost:3000/Product/SetProductStateByPlatformAuditor", {
@@ -609,6 +609,8 @@
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
                 console.log(result.contractAddress);
+                console.log(nftSymbol);
+
                 let tokencontrollerContract = result.contractAddress;
 
                 if (result.status == true) {
@@ -624,7 +626,7 @@
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);
                         console.log(result);
-                        console.log(result.deployResult.contractAddress);
+                        //console.log(result.deployResult.contractAddress);
                         if (result.status == true) {
                             $.post("http://localhost:3000/Product/SetProductStateByPlatformAuditor", {
                                 tokenState: State,
