@@ -2,7 +2,9 @@ const express = require('express');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+const timer = require('../timeserver/lib/api.js')
 const router = express.Router();
+
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -29,7 +31,11 @@ const heliumContractAddr = "0xAC5Fe5Cbebe5dE436481358e83fc05A49c0D45C8";
 const registryContractAddr = "0xd8C4482D1e2a497D315e934d977ab40F30c0ce22";
 
 /**time server*/
-let timestamp = 201903230000;
+timer.getTime().then(function(time) {
+    console.log(`現在時間: ${time}`)
+    let currentTime = time;
+    console.log(currentTime);
+})
 
 /**management address */
 const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
@@ -118,7 +124,11 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
     let userID = req.params.u_id;
     let assetBookAddr = req.body.assetBookAddress;
     let ethAddr = req.body.ethAddr;
-    let time = timestamp;
+    timer.getTime().then(function(time) {
+        console.log(`現在時間: ${time}`)
+        let currentTime = time;
+        console.log(currentTime);
+    })
 
     const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
 
@@ -229,13 +239,17 @@ router.post('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
     let goalInPercentage = Math.floor(req.body.fundingGoal / quantityMax * 100);
     let CFSD2 = parseInt(req.body.CFSD2);//201903231200
     let CFED2 = parseInt(req.body.CFED2);//201903241200
-    let serverTime = timestamp;//201903240000
+    timer.getTime().then(function(time) {
+        console.log(`現在時間: ${time}`)
+        let currentTime = time;
+        console.log(currentTime);
+    })
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
 
     crowdFunding.deploy({
         data: crowdFundingContract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, serverTime, management]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, currentTime, management]
     })
         .send({
             from: backendAddr,
