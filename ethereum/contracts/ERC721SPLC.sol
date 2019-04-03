@@ -174,16 +174,15 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     //去ERC721合約中撈持幣user資料(及持有時間長短), time server檢查要發放租金前通知FM, 平台
     function getTokenOwners(uint indexStart, uint amount) 
         external view returns(address[] memory ownerAddrs) {
-        //, uint[] memory acquiredCosts, uint[] memory acquiredTime
+        uint indexStart_; uint amount_;            
         if(indexStart == 0 && amount == 0) {
-          indexStart = 1;
+          indexStart_ = 1;
           amount_ = tokenId;
 
         } else {
           require(indexStart > 0, "Token indexStart must be > 0");
           require(amount > 0, "amount must be > 0");
 
-          uint amount_;
           if(indexStart.add(amount).sub(1) > tokenId) {
             amount_ = tokenId.sub(indexStart).add(1);
             //require(indexStart.add(amount).sub(1) <= tokenId, "indexStart or amount is too big");

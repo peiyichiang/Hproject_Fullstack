@@ -4,14 +4,11 @@ pragma solidity ^0.5.4;
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-//re-entry attack: prevented by noReentrancy
-contract IncomeManagement is Ownable {
+contract IncomeManagerCtrt is Ownable {
     using SafeMath for uint256;
     address public tokenCtrt;
 
-    address public PA_Ctrt;//Platform Auditor
-    address public FMXA_Ctrt;//Fund Manager Auditor
-    address public platformCtrt;
+    address public writeAbleAddr;//addr authorized to write
     uint public dateTimeMin = 201901220900;
 
     uint public schCindex;//index of the current scheduled, 1 to 80. SPLC life time總共80期
@@ -30,27 +27,20 @@ contract IncomeManagement is Ownable {
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(address _tokenCtrt, 
-        address _PA_Ctrt, address _FMXA_Ctrt, address _platformCtrt,
-        address[] memory management) public {
+    constructor(address _tokenCtrt, address _writeAbleAddr,
+        address[] memory managementTeam) public {
         tokenCtrt = _tokenCtrt;
-        PA_Ctrt = _PA_Ctrt;
-        FMXA_Ctrt = _FMXA_Ctrt;
-        platformCtrt = _platformCtrt;
+        writeAbleAddr = _writeAbleAddr;//can be EOA or contract
 
-        require(management.length > 4, "management.length should be > 4");
-        owner = management[4];
-        chairman = management[3];
-        director = management[2];
-        manager = management[1];
-        admin = management[0];
+        require(managementTeam.length > 4, "managementTeam.length should be > 4");
+        owner = managementTeam[4];
+        chairman = managementTeam[3];
+        director = managementTeam[2];
+        manager = managementTeam[1];
+        admin = managementTeam[0];
     }
-    modifier onlyPA() {//PlatformAuditor
-        require(msg.sender == PA_Ctrt, "only PA_Ctrt can call this function");
-        _;
-    }
-    modifier onlyFMXA() {
-        require(msg.sender == FMXA_Ctrt, "only FMXA_Ctrt can call this function");
+    modifier restricted(){
+        require(msg.sender == writeAbleAddr, "only writeAbleAddr is allowed");
         _;
     }
     /*
@@ -67,13 +57,12 @@ contract IncomeManagement is Ownable {
 
     //check income ready to release
     function isScheduleGoodForRelease(uint _dateTimeNow) external view returns (bool) {
-        require(platformCtrt == msg.sender, "sender is not the platformCtrt");
         IncomeSchedule memory icSch = idxToSchedule[dateToIdx[_dateTimeNow]];
         return (icSch.isApproved && icSch.payableDate > dateTimeMin && icSch.payableAmount > 0 && icSch.paymentDate == 0 && icSch.paymentAmount == 0);
     }
 
     event AddSchedule(uint indexed _index, uint indexed _payableDate, uint _payableAmount);
-    function AddSchedule(uint _payableDate, uint _payableAmount) external noReentrancy onlyFMXA {
+    function addSchedule(uint _payableDate, uint _payableAmount) external restricted {
         require(_payableDate > dateTimeMin, "_payableDate has to be in the format of yyyymmddhhmm");
         if (schCindex > 0) {
           require(idxToSchedule[schCindex].payableDate < _payableDate, "previous payableDate should be < _payableDate");
@@ -86,20 +75,21 @@ contract IncomeManagement is Ownable {
         emit AddSchedule(schCindex, _payableDate, _payableAmount);
     }
 
-    function AddScheduleBatch(uint _payableDates, uint _payableAmounts) external noReentrancy onlyFMXA {
-        require(_payableDates.length == _payableAmounts, "payableDates must be of the same size of payableAmounts");
+    function AddScheduleBatch(uint[] calldata _payableDates, uint[] calldata _payableAmounts) external restricted {
+        uint amount_ = _payableDates.length;
+        require(amount_ == _payableAmounts.length, "payableDates must be of the same size of payableAmounts");
 
         for(uint i = 0; i < amount_; i.add(1)){
-            require(_payableDate[i] > dateTimeMin, "_payableDate[i] has to be in yyyymmddhhmm");
+            require(_payableDates[i] > dateTimeMin, "_payableDate[i] has to be in yyyymmddhhmm");
             if (schCindex > 0) {
-              require(idxToSchedule[schCindex].payableDate < _payableDate[i], "previous payableDate should be < _payableDate[i]");
+              require(idxToSchedule[schCindex].payableDate < _payableDates[i], "previous payableDate should be < _payableDate[i]");
             }
 
             schCindex = schCindex.add(1);
-            idxToSchedule[schCindex].payableDate = _payableDate[i];
-            idxToSchedule[schCindex].payableAmount = _payableAmount[i];
-            dateToIdx[_payableDate[i]] = schCindex;
-            emit AddSchedule(schCindex, _payableDate[i], _payableAmount[i]);
+            idxToSchedule[schCindex].payableDate = _payableDates[i];
+            idxToSchedule[schCindex].payableAmount = _payableAmounts[i];
+            dateToIdx[_payableDates[i]] = schCindex;
+            emit AddSchedule(schCindex, _payableDates[i], _payableAmounts[i]);
         }
     }
     /*struct IncomeSchedule {
@@ -113,11 +103,11 @@ contract IncomeManagement is Ownable {
     }*/
 
     event EditIncomeSchedule(uint indexed _index, uint indexed _payableDate, uint _payableAmount);
-    function editIncomeSchedule(uint _index, uint _payableDate, uint _payableAmount) external noReentrancy onlyFMXA {
+    function editIncomeSchedule(uint _index, uint _payableDate, uint _payableAmount) external restricted {
         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
 
         require(dateToIdx[_payableDate] > 0, "this _payableDate must have been added already");
-        require(idxToSchedule[rsIndex].isIncomePaid == false, "cannot edit already paid schedule");
+        require(idxToSchedule[rsIndex].paymentDate == 0 && idxToSchedule[rsIndex].paymentAmount == 0, "cannot edit already paid schedule");
 
         idxToSchedule[rsIndex].payableDate = _payableDate;
         idxToSchedule[rsIndex].payableAmount = _payableAmount;
@@ -136,14 +126,20 @@ contract IncomeManagement is Ownable {
         bool isErrorResolved;//default = true
     }*/
 
-    function getIncomeSchedule(uint _index, uint _payableDate) external view returns (uint paymentDate, uint payableAmount, bool isApproved, bool isIncomePaid, uint8 errorCode, bool isErrorResolved) {
+    function getIncomeSchedule(uint _index, uint _payableDate) external view returns (uint payableDate, uint payableAmount, uint paymentDate, uint paymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
         IncomeSchedule memory icSch = idxToSchedule[rsIndex];
 
-        return (icSch.paymentDate, icSch.payableAmount, icSch.isApproved, icSch.isIncomePaid, icSch.errorCode, icSch.isErrorResolved);
+        payableDate = icSch.payableDate;
+        payableAmount = icSch.payableAmount;
+        paymentDate = icSch.paymentDate;
+        paymentAmount = icSch.paymentAmount;
+        isApproved = icSch.isApproved;
+        errorCode = icSch.errorCode;
+        isErrorResolved = icSch.isErrorResolved;
     }
 
-    function getIncomeScheduleList(uint indexStart, uint amount) external view returns (uint[] memory paymentDates, uint[] memory payableAmounts, bool[] memory isApproveda, bool[] memory isIncomePaida, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
+    function getIncomeScheduleList(uint indexStart, uint amount) external view returns (uint[] memory payableDates, uint[] memory payableAmounts, uint[] memory paymentDates, uint[] memory paymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
         require(indexStart > 0, "indexStart must be > 0");
         uint amount_;
         if (amount < 1 || amount > schCindex.sub(indexStart).add(1)) {
@@ -153,19 +149,23 @@ contract IncomeManagement is Ownable {
             amount_ = amount;
         }
 
-        paymentDates = new uint[](amount_);
+        payableDates = new uint[](amount_);
         payableAmounts = new uint[](amount_);
+        paymentDates = new uint[](amount_);
+        paymentAmounts = new uint[](amount_);
+
         isApproveda = new bool[](amount_);
-        isIncomePaida = new bool[](amount_);
         errorCodes = new uint8[](amount_);
         isErrorResolveda = new bool[](amount_);
 
         for(uint i = 0; i < amount_; i.add(1)){
             IncomeSchedule memory icSch = idxToSchedule[i.add(indexStart)];
-            paymentDates[i] = icSch.paymentDate;
+            payableDates[i] = icSch.payableDate;
             payableAmounts[i] = icSch.payableAmount;
+            paymentDates[i] = icSch.paymentDate;
+            paymentAmounts[i] = icSch.paymentAmount;
+
             isApproveda[i] = icSch.isApproved;
-            isIncomePaida[i] = icSch.isIncomePaid;
             errorCodes[i] = icSch.errorCode;
             isErrorResolveda[i] = icSch.isErrorResolved;
         }
@@ -195,37 +195,31 @@ contract IncomeManagement is Ownable {
 
     function checkIndexPaymentDate(uint _index, uint _payableDate) internal view returns (uint rsIndex) {
         if (_index == 0) {
+            require(_payableDate != 0, "Both _index or _payableDate are 0. Error");
             rsIndex = dateToIdx[_payableDate];
         } else {
-            require(_payableDate == 0, "either _index or _payableDate is 0");
             rsIndex = _index;
         }
     }
 
     event RemoveIncomeSchedule(uint indexed _index);
-    function removeIncomeSchedule(uint _index, uint _payableDate) external noReentrancy onlyFMXA {
+    function removeIncomeSchedule(uint _index, uint _payableDate) external restricted {
         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
 
-        if(!idxToSchedule[rsIndex].isIncomePaid) {
-            delete idxToSchedule[rsIndex].payableDate;
-            delete idxToSchedule[rsIndex].payableAmount;
-            delete idxToSchedule[rsIndex].isApproved;
-        }
+        require(idxToSchedule[rsIndex].paymentDate == 0 || idxToSchedule[rsIndex].paymentAmount == 0, "Cannot remove already paid schedule!");
+        delete idxToSchedule[rsIndex].payableDate;
+        delete idxToSchedule[rsIndex].payableAmount;
+        delete idxToSchedule[rsIndex].isApproved;
         emit RemoveIncomeSchedule(rsIndex);
     }
 
 
     /*設定isApproved */
-    function setIsApproved(uint _index, uint _payableDate, bool boolValue) external onlyPA noReentrancy {
+    function setIsApproved(uint _index, uint _payableDate, bool boolValue) external restricted {
         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
         idxToSchedule[rsIndex].isApproved = boolValue;
     }
 
-    event ChangeFMXA(address indexed _FMXA_old, address indexed _FMXA_new);
-    function changeFMXA(address FMXA_Ctrt_new) external onlyPA noReentrancy {
-        emit ChangeFMXA(FMXA_Ctrt, FMXA_Ctrt_new);
-        FMXA_Ctrt = FMXA_Ctrt_new;
-    }
     /*struct IncomeSchedule {
         uint payableDate;//the date to send income, used as mapping key
         uint payableAmount;//given by FMXA, sending income from platform to investors
@@ -237,10 +231,8 @@ contract IncomeManagement is Ownable {
     }*/
 
     /**設定 isIncomePaid，如果有錯誤發生，設定errorCode */
-    event SetPaymentReleaseResults(uint indexed _payableDate, bool boolValue, uint8 _errorCode);
-    function setPaymentReleaseResults(uint _index, uint _payableDate, uint _payableAmount, uint8 _errorCode) external noReentrancy {
-
-        require(msg.sender == platformCtrt, "only platformCtrt can call this function");
+    event SetPaymentReleaseResults(uint indexed _payableDate, uint _payableAmount, uint8 _errorCode);
+    function setPaymentReleaseResults(uint _index, uint _payableDate, uint _payableAmount, uint8 _errorCode) external restricted {
 
         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
         idxToSchedule[rsIndex].payableDate = _payableDate;
@@ -249,12 +241,11 @@ contract IncomeManagement is Ownable {
         if (_errorCode != 0) {
             idxToSchedule[rsIndex].errorCode = _errorCode;
         }
-        emit SetPaymentReleaseResults(_payableDate, boolValue, _errorCode);
+        emit SetPaymentReleaseResults(_payableDate, _payableAmount, _errorCode);
     }
 
     /**設定isErrorResolved */
-    function setErrResolution(uint _index, uint _payableDate, bool boolValue) external  noReentrancy{
-        require(msg.sender == platformCtrt, "only platformCtrt can call this function");
+    function setErrResolution(uint _index, uint _payableDate, bool boolValue) external restricted {
 
         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
         idxToSchedule[rsIndex].isErrorResolved = boolValue;

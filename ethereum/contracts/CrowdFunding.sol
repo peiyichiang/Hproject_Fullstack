@@ -219,20 +219,27 @@ contract CrowdFunding is Ownable {
 
     function getInvestors(uint indexStart, uint amount) 
         external view returns(address[] memory assetbooks, uint[] memory qtyArray) {
-        require(amount > 0, "amount must be > 0");
-        require(indexStart > 0, "indexStart must be > 0");
-        uint amount_;
-        if(indexStart.add(amount).sub(1) > cindex) {
-          amount_ = cindex.sub(indexStart).add(1);
+        uint amount_; uint indexStart_;
+        if(indexStart == 0 && amount == 0) {
+          indexStart_ = 1;
+          amount_ = cindex;
+
         } else {
-          amount_ = amount;
+            indexStart_ = indexStart;
+            require(amount > 0, "amount must be > 0");
+            require(indexStart > 0, "indexStart must be > 0");
+            if(indexStart.add(amount).sub(1) > cindex) {
+              amount_ = cindex.sub(indexStart).add(1);
+            } else {
+              amount_ = amount;
+            }
         }
         assetbooks = new address[](amount_);
         qtyArray = new uint[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)) {
-            assetbooks[i] = accounts[i.add(indexStart)].assetbook;
-            qtyArray[i] = accounts[i.add(indexStart)].qty;
+            assetbooks[i] = accounts[i.add(indexStart_)].assetbook;
+            qtyArray[i] = accounts[i.add(indexStart_)].qty;
         }
     }
 

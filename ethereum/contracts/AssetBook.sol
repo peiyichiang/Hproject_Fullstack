@@ -21,7 +21,7 @@ interface ERC721SPLCITF_assetbook {
 }
 
 contract MultiSig {
-    //using SafeMath for uint256;
+    using SafeMath for uint256;
     using AddressUtils for address;
 
     address public assetOwner; /** @dev 用戶 address */
