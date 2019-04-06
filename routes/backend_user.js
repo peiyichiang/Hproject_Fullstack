@@ -282,7 +282,7 @@ router.post('/BackendUserLogin', function (req, res, next) {
                         m_company: rows[0].m_company,
                         m_permission: rows[0].m_permission
                     };
-                    const token = jwt.sign({ payload, exp: Math.floor(Date.now() / 1000) + (60 * 0.1) }, 'my_secret_key');
+                    const token = jwt.sign({ payload, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'my_secret_key');
                     // console.log(token);
                     // 把JWT token存到cookie中
                     res.cookie('access_token', token);
