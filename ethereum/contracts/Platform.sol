@@ -62,11 +62,11 @@ contract Platform is Ownable {
         multiSig.platformVote(_timeCurrent);
     }
 
-    //approve asset/token contract to write to AssetBook contract
-    function setAssetCtrtApproval(address _addrAssetBook, address _assetAddr, bool _isApprovedToWrite) public {
-        AssetBookITF_Platform assetBook = AssetBookITF_Platform(address(uint160(_addrAssetBook)));
-        assetBook.setAssetCtrtApproval(_assetAddr, _isApprovedToWrite);
-    }
+    //approve asset/token contract to be owned by AssetBook contract
+    // function setAssetCtrtApproval(address _addrAssetBook, address _assetAddr, bool _isApprovedToWrite) public {
+    //     AssetBookITF_Platform assetBook = AssetBookITF_Platform(address(uint160(_addrAssetBook)));
+    //     assetBook.setAssetCtrtApproval(_assetAddr, _isApprovedToWrite);
+    // }
 
     //新增manager
     function addPlatformManager(address _managerAddr, string memory _id, uint _time) public isPlatformCtAdmin{

@@ -90,7 +90,8 @@ router.get('/ProductByFMN', function(req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     //獲取審核中的產品資料
-    mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?', [JWT_decoded.payload.m_id , "creation"] , function(err, rows) {
+    // mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?', [JWT_decoded.payload.m_id , "creation"] , function(err, rows) {
+    mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ?', JWT_decoded.payload.m_id , function(err, rows) {
         if (err) {
             console.log(err);
         }
@@ -154,7 +155,8 @@ router.get('/ProductByFMA', function(req, res, next) {
         }
         var data = rows;
 
-        mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"publish"]  , function(err, rows) {
+        // mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"publish"]  , function(err, rows) {
+        mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?)", JWT_decoded.payload.m_company , function(err, rows) {
             if (err) {
                 console.log(err);
             }
@@ -719,6 +721,39 @@ router.get('/EditProductByPlatformAuditor', function(req, res, next) {
 
 });
 
+//設置產品的狀態：將產品狀態設為退回creation，或設置為funding(Platform Auditor專用)
+router.post('/SetProductStateByPlatformAuditor', function(req, res, next) {
+    console.log('------------------------==\n@Product/EditProductByPlatformAuditor:\nreq.query', req.query, 'req.body', req.body);
+  
+      var mysqlPoolQuery = req.pool;
+      var symbol = req.body.tokenSymbol;
+      var State = req.body.tokenState;
+  
+      //獲取當前時間作為PA通過審核的時間
+      //範例：1/30/2019, 3:23:19 PM
+      var currentTime=new Date().toLocaleString().toString();
+      if(State=="creation"){
+          //假如是被退回，就將審核時間清空
+          currentTime="";
+      }
+  
+      var sql = {
+          p_state: State,
+          p_PAdate:currentTime
+      };
+  
+      var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
+          if (err) {
+            console.log(err);
+            res.send(err);
+          }else{
+            res.send({status:"true"});
+          }
+          
+      });
+  
+});
+
 //設置產品的p_FMANote並將產品狀態設為draft(FMA專用)
 router.get('/SetFMANoteAndReturnByFMA', function(req, res, next) {
     var token=req.cookies.access_token;
@@ -867,5 +902,30 @@ router.get('/ProductBySymbol', function (req, res, next) {
         }
     });
 });
+
+//冠毅
+router.get('/SymbolToTokenAddr', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    let symbol = req.query.tokenSymbol;
+
+    let qstr1 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    //console.log('qstr1', qstr1);
+    mysqlPoolQuery(qstr1, [symbol], function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.send({
+                "message": "[Error] 產品symbol not found 取得失敗:\n" + err
+            });
+        } else {
+            res.status(200);
+            res.send({
+                "message": "[Success] 產品symbol found 取得成功！",
+                "result": result
+            });
+        }
+    });
+});
+
 
 module.exports = router;

@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "solc": "cd ethereum/contracts;node zcompile.js",
+    "deploy": "cd ethereum/contracts;node zdeploy.js",
+    "livechain": "cd ethereum/contracts;node zlivechain.js",
     "start": "nodemon ./bin/www",
     "timeserver": "node timeserver/timeserver.js",
     "manager": "node timeserver/manager/manager.js",
@@ -18,14 +20,17 @@
     "test721controller": "mocha --grep TokenController",
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
-    "testpmgr": "mocha --grep ",
-    "testim": "mocha --grep IncomeManagement"
+    "testpmgr": "mocha --grep ProductManager",
+    "testim": "mocha --grep IncomeManagement",
+    "test1": "mocha --grep test1",
+    "debug": "DEBUG=dev:* nodemon ./bin/www"
   },
   "dependencies": {
     "bcrypt": "^3.0.2",
     "concurrently": "^4.1.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
+    "dotenv": "^7.0.0",
     "ejs": "~2.5.7",
     "ethereumjs-tx": "^1.3.7",
     "express": "~4.16.0",
@@ -37,9 +42,12 @@
     "mysql": "^2.16.0",
     "node-schedule": "^1.3.1",
     "nodemailer": "^4.7.0",
+    "nodemon": "^1.18.10",
     "request": "^2.88.0",
     "truffle-privatekey-provider": "^1.0.0",
-    "web3": "1.0.0-beta.37"
+    "typedarray-to-buffer": "^3.1.5",
+    "web3": "1.0.0-beta.37",
+    "yaeti": "^1.0.2"
   },
   "devDependencies": {
     "async": "^2.6.1",
