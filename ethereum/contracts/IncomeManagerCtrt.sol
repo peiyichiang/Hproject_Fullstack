@@ -78,9 +78,11 @@ contract IncomeManagerCtrt is Ownable {
     function AddScheduleBatch(uint[] calldata _payableDates, uint[] calldata _payableAmounts) external restricted {
         uint amount_ = _payableDates.length;
         require(amount_ == _payableAmounts.length, "payableDates must be of the same size of payableAmounts");
+        require(amount_ > 0, "input array length must > 0");
 
-        for(uint i = 0; i < amount_; i.add(1)){
-            require(_payableDates[i] > dateTimeMin, "_payableDate[i] has to be in yyyymmddhhmm");
+        require(_payableDates[0] > dateTimeMin, "_payableDate[0] has to be in yyyymmddhhmm");
+        for(uint i = 0; i < amount_; i = i.add(1)){
+            
             if (schCindex > 0) {
               require(idxToSchedule[schCindex].payableDate < _payableDates[i], "previous payableDate should be < _payableDate[i]");
             }
@@ -104,14 +106,14 @@ contract IncomeManagerCtrt is Ownable {
 
     event EditIncomeSchedule(uint indexed _index, uint indexed _payableDate, uint _payableAmount);
     function editIncomeSchedule(uint _index, uint _payableDate, uint _payableAmount) external restricted {
-        uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
+        uint payableDateOld = idxToSchedule[_index].payableDate;
+        delete dateToIdx[payableDateOld];
+        
+        require(idxToSchedule[_index].paymentDate == 0 && idxToSchedule[_index].paymentAmount == 0, "cannot edit already paid schedule");
 
-        require(dateToIdx[_payableDate] > 0, "this _payableDate must have been added already");
-        require(idxToSchedule[rsIndex].paymentDate == 0 && idxToSchedule[rsIndex].paymentAmount == 0, "cannot edit already paid schedule");
-
-        idxToSchedule[rsIndex].payableDate = _payableDate;
-        idxToSchedule[rsIndex].payableAmount = _payableAmount;
-        idxToSchedule[rsIndex].isApproved = false;
+        idxToSchedule[_index].payableDate = _payableDate;
+        idxToSchedule[_index].payableAmount = _payableAmount;
+        idxToSchedule[_index].isApproved = false;
 
         emit EditIncomeSchedule(schCindex, _payableDate, _payableAmount);
     }
@@ -127,7 +129,7 @@ contract IncomeManagerCtrt is Ownable {
     }*/
 
     function getIncomeSchedule(uint _index, uint _payableDate) external view returns (uint payableDate, uint payableAmount, uint paymentDate, uint paymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
-        uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
+        uint rsIndex = getSchIndex(_index, _payableDate);
         IncomeSchedule memory icSch = idxToSchedule[rsIndex];
 
         payableDate = icSch.payableDate;
@@ -140,12 +142,19 @@ contract IncomeManagerCtrt is Ownable {
     }
 
     function getIncomeScheduleList(uint indexStart, uint amount) external view returns (uint[] memory payableDates, uint[] memory payableAmounts, uint[] memory paymentDates, uint[] memory paymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
-        require(indexStart > 0, "indexStart must be > 0");
-        uint amount_;
-        if (amount < 1 || amount > schCindex.sub(indexStart).add(1)) {
-            //all get all schedules
-            amount_ = schCindex.sub(indexStart).add(1);
+
+        //require(indexStart > 0, "indexStart must be > 0");
+        uint amount_; uint indexStart_;
+        if(indexStart == 0) {
+            indexStart_ = 1;
+            amount_ = schCindex;
+
+        } else if (amount < 1 || amount > schCindex.sub(indexStart).add(1)) {
+            //all get all remaining schedules
+            indexStart_ = indexStart;
+            amount_ = schCindex.sub(indexStart_).add(1);
         } else {
+            indexStart_ = indexStart;
             amount_ = amount;
         }
 
@@ -158,8 +167,8 @@ contract IncomeManagerCtrt is Ownable {
         errorCodes = new uint8[](amount_);
         isErrorResolveda = new bool[](amount_);
 
-        for(uint i = 0; i < amount_; i.add(1)){
-            IncomeSchedule memory icSch = idxToSchedule[i.add(indexStart)];
+        for(uint i = 0; i < amount_; i = i.add(1)){
+            IncomeSchedule memory icSch = idxToSchedule[i.add(indexStart_)];
             payableDates[i] = icSch.payableDate;
             payableAmounts[i] = icSch.payableAmount;
             paymentDates[i] = icSch.paymentDate;
@@ -185,7 +194,7 @@ contract IncomeManagerCtrt is Ownable {
 
     //     IncomeSchedule[] memory incomeSchedule;
     //     for(uint i = 0; i < indices.length; i = i.add(1)) {
-    //         uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
+    //         uint rsIndex = getSchIndex(_index, _payableDate);
     //         IncomeSchedule memory icSch = idxToSchedule[rsIndex];
     //         incomeSchedule[i] = idxToSchedule[dateToIdx[indices[i]]];
 
@@ -193,7 +202,7 @@ contract IncomeManagerCtrt is Ownable {
     //     return incomeSchedule;
     // }
 
-    function checkIndexPaymentDate(uint _index, uint _payableDate) internal view returns (uint rsIndex) {
+    function getSchIndex(uint _index, uint _payableDate) public view returns (uint rsIndex) {
         if (_index == 0) {
             require(_payableDate != 0, "Both _index or _payableDate are 0. Error");
             rsIndex = dateToIdx[_payableDate];
@@ -204,7 +213,7 @@ contract IncomeManagerCtrt is Ownable {
 
     event RemoveIncomeSchedule(uint indexed _index);
     function removeIncomeSchedule(uint _index, uint _payableDate) external restricted {
-        uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
+        uint rsIndex = getSchIndex(_index, _payableDate);
 
         require(idxToSchedule[rsIndex].paymentDate == 0 || idxToSchedule[rsIndex].paymentAmount == 0, "Cannot remove already paid schedule!");
         delete idxToSchedule[rsIndex].payableDate;
@@ -216,7 +225,7 @@ contract IncomeManagerCtrt is Ownable {
 
     /*設定isApproved */
     function setIsApproved(uint _index, uint _payableDate, bool boolValue) external restricted {
-        uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
+        uint rsIndex = getSchIndex(_index, _payableDate);
         idxToSchedule[rsIndex].isApproved = boolValue;
     }
 
@@ -231,23 +240,24 @@ contract IncomeManagerCtrt is Ownable {
     }*/
 
     /**設定 isIncomePaid，如果有錯誤發生，設定errorCode */
-    event SetPaymentReleaseResults(uint indexed _payableDate, uint _payableAmount, uint8 _errorCode);
-    function setPaymentReleaseResults(uint _index, uint _payableDate, uint _payableAmount, uint8 _errorCode) external restricted {
+    event SetPaymentReleaseResults(uint indexed _paymentDate, uint _paymentAmount, uint8 _errorCode);
+    function setPaymentReleaseResults(uint _index, uint _paymentDate, uint _paymentAmount, uint8 _errorCode) external restricted {
 
-        uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
-        idxToSchedule[rsIndex].payableDate = _payableDate;
-        idxToSchedule[rsIndex].payableAmount = _payableAmount;
+        uint rsIndex = getSchIndex(_index, _paymentDate);
+        //require(idxToSchedule[rsIndex].isApproved, "such schedule must have been approved first");
+        idxToSchedule[rsIndex].paymentDate = _paymentDate;
+        idxToSchedule[rsIndex].paymentAmount = _paymentAmount;
 
         if (_errorCode != 0) {
             idxToSchedule[rsIndex].errorCode = _errorCode;
         }
-        emit SetPaymentReleaseResults(_payableDate, _payableAmount, _errorCode);
+        emit SetPaymentReleaseResults(_paymentDate, _paymentAmount, _errorCode);
     }
 
     /**設定isErrorResolved */
-    function setErrResolution(uint _index, uint _payableDate, bool boolValue) external restricted {
+    function setErrResolution(uint _index, uint _paymentDate, bool boolValue) external restricted {
 
-        uint rsIndex = checkIndexPaymentDate(_index, _payableDate);
+        uint rsIndex = getSchIndex(_index, _paymentDate);
         idxToSchedule[rsIndex].isErrorResolved = boolValue;
     }
 }

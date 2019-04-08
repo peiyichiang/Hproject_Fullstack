@@ -14,7 +14,7 @@ gasPriceValue = '20000000000';
 /**https://github.com/trufflesuite/ganache-cli#using-ganache-cli
  -g or --gasPrice: The price of gas in wei (defaults to 20000000000)
   -l or --gasLimit: The block gas limit (defaults to 0x6691b7)
-  */
+*/
 provider = ganache.provider(options);
 // const server = ganache.server(options);
 // server.listen(port, (err, blockchain) => {
@@ -1102,17 +1102,21 @@ describe('Tests on ArrayTesting', () => {
 
 //--------------------------------==
 describe('Tests on IncomeManagerCtrt', () => {
-  it('IncomeManagerCtrt functions test', async () => {
+  
+  it('IncomeManagerCtrt functions test', async function() {
+    this.timeout(9500);
     console.log('\n------------==Check IncomeManagerCtrt parameters');
-    let _payableDate, _payableAmount, _index, _payableDates, _payableAmounts, result;
+    let _payableDate, _payableAmount, _index, _payableDates, _payableAmounts, result, _errorCode;
+
     _index = 1; _payableDate = 201905110000; _payableAmount = 3000;
 
+    console.log('\n--------==Initial conditions');
     result = await instIncomeManagerCtrt.methods.schCindex().call();
     console.log('schCindex:', result);
     assert.equal(result, 0);
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
-    console.log('result of getIncomeSchedule:', result);
+    console.log('getIncomeSchedule():', result);
     assert.equal(result[0], false);
     assert.equal(result[1], false);
     assert.equal(result[2], false);
@@ -1121,21 +1125,25 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[5], false);
     assert.equal(result[6], false);
 
-    console.log('here1');
     bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, false);
 
-    console.log('here2');
+    console.log('\n--------==Add a new pair of _payableDate, _payableAmount');
     await instIncomeManagerCtrt.methods.addSchedule(_payableDate, _payableAmount)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
+    console.log('\nafter adding a new schedule...');
     result = await instIncomeManagerCtrt.methods.schCindex().call();
-    console.log('\nschCindex:', result);
+    console.log('new schCindex:', result);
+    assert.equal(result, 1);
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    console.log('getSchIndex:', result);
     assert.equal(result, 1);
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
-    console.log('result of getIncomeSchedule:', result);
+    console.log('new getIncomeSchedule():', result);
     assert.equal(result[0], _payableDate);
     assert.equal(result[1], _payableAmount);
     assert.equal(result[2], 0);
@@ -1144,12 +1152,17 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[5], 0);
     assert.equal(result[6], false);
 
-    console.log('here3');
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
+
+
+    console.log('\n--------==setIsApproved()');
     await instIncomeManagerCtrt.methods.setIsApproved(_index, _payableDate, true)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
-    console.log('result of getIncomeSchedule:', result);
+    console.log('getIncomeSchedule():', result);
     assert.equal(result[0], _payableDate);
     assert.equal(result[1], _payableAmount);
     assert.equal(result[2], 0);
@@ -1158,42 +1171,190 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[5], 0);
     assert.equal(result[6], false);
 
-    console.log('here4');
     bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, true);
 
 
-    console.log('here5');
-    bool1 = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('\n--------==setPaymentReleaseResults');
+    _paymentDate = _payableDate;
+    _paymentAmount = _payableAmount;
+    _errorCode = 0;
+    await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('getIncomeSchedule():', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], _paymentDate);
+    assert.equal(result[3], _paymentAmount);
+    assert.equal(result[4], true);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
 
 
+    //-----------------------==add 1 more pair
+    _index = 2; _payableDate = 201906110000; _payableAmount = 3300;
 
     await instIncomeManagerCtrt.methods.addSchedule(_payableDate, _payableAmount)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    
+
+    console.log('\n--------==after adding a new schedule...');
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('new schCindex:', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(_index, _payableDate).call();
+    console.log('getSchIndex(_index, _payableDate):', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    console.log('getSchIndex(0, _payableDate):', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('new getIncomeSchedule():', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], 0);
+    assert.equal(result[3], 0);
+    assert.equal(result[4], false);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
 
 
+    //-----------------------==add 3 more pairs
+    console.log('\n--------==Add 3 more pairs of _payableDate, _payableAmount');
+    //_payableDate = 201906110000;
+    _payableDates = [201908170000, 201911210000, 202002230000];
+    _payableAmounts = [3700, 3800, 3900];
 
-    await instIncomeManagerCtrt.methods.AddScheduleBatch( _payableDates, _payableAmounts)
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    console.log('getSchIndex:', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('schCindex:', result);
+    assert.equal(result, 2);
+
+
+    await instIncomeManagerCtrt.methods.AddScheduleBatch(_payableDates, _payableAmounts)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('new schCindex:', result);
+    assert.equal(result, 5);
+
+    for(i = 0; i < _payableDates.length; i++) {
+      _index = i+3;
+      result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+      console.log('\ngetIncomeSchedule(index='+_index+'):', result);
+      _payableDate = _payableDates[i];
+      _payableAmount = _payableAmounts[i];
+      assert.equal(result[0], _payableDate);
+      assert.equal(result[1], _payableAmounts[i]);
+      assert.equal(result[2], 0);
+      assert.equal(result[3], 0);
+      assert.equal(result[4], false);
+      assert.equal(result[5], 0);
+      assert.equal(result[6], false);
+      
+      bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+      console.log('isScheduleGoodForRelease:', bool1);
+      assert.equal(bool1, false);
+  
+    }
+
+
+    console.log('\n--------==setIsApproved()');
+    await instIncomeManagerCtrt.methods.setIsApproved(_index, _payableDate, true)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('getIncomeSchedule():', _index, _payableDate, _payableAmount, result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], 0);
+    assert.equal(result[3], 0);
+    assert.equal(result[4], true);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, true);
+
+
+    console.log('\n--------==setPaymentReleaseResults');
+    _paymentDate = _payableDate;
+    _paymentAmount = _payableAmount;
+    _errorCode = 21;
+    await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], _paymentDate);
+    assert.equal(result[3], _paymentAmount);
+    assert.equal(result[4], true);
+    assert.equal(result[5], _errorCode);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
+
+
+    await instIncomeManagerCtrt.methods.setErrResolution(_index, _payableDate, true)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('\n--------==setErrResolution()', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], _paymentDate);
+    assert.equal(result[3], _paymentAmount);
+    assert.equal(result[4], true);
+    assert.equal(result[5], _errorCode);
+    assert.equal(result[6], true);
+
+
+    console.log('\n--------==getIncomeScheduleList()');
+    indexStart = 0; amount = 0;
+    let scheduleList = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
+
+
+
+    console.log('\n--------==editIncomeSchedule');
+    _index = 2; _payableDate = 201906110222; _payableAmount = 4000;
 
     await instIncomeManagerCtrt.methods.editIncomeSchedule(_index, _payableDate, _payableAmount)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
+    console.log('\n--------==getIncomeScheduleList()');
+    indexStart = 1; amount = 0;
+    scheduleList = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
+
+
+    console.log('\n--------==removeIncomeSchedule()');
+    _index = 3; _payableDate = 201906110999;
     await instIncomeManagerCtrt.methods.removeIncomeSchedule(_index, _payableDate)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
+    console.log('\n--------==getIncomeScheduleList()');
+    indexStart = 1; amount = 0;
+    scheduleList = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
 
-
-
-
-    await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _payableDate, _payableAmount, _errorCode)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-
-    await instIncomeManagerCtrt.methods.setErrResolution(_index, _payableDate, boolValue)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
 
   });
