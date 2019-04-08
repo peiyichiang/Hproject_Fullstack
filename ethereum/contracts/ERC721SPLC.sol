@@ -92,12 +92,13 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         address owner;
-        uint acquiredCost;
+        // uint acquiredCost;
+        // uint acquiredTime;
         address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
     bytes32 public tokenURI;//token specific information
-    uint public tokenId;//first id will be 1
+    uint public tokenId;//from 1, also is the count of all issued tokens
     uint public siteSizeInKW;// 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
     uint public totalSupply;//total generated tokens - destroyed tokens
@@ -115,7 +116,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     string public nftSymbol;//abbreviated name for NFTokens
 
     //==================
-    //6122295 gas. 
+    //
     /** Contract code size over limit of 24576 bytes.
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
     "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
@@ -161,25 +162,46 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(owner_ != address(0), "owner_ does not exist");
     }
     function getToken(uint _tokenId) external view returns (
-        address owner, uint acquiredCost, address approvedAddr) {
+        address ownerAddr, address approvedAddr) {
         Asset memory asset = idToAsset[_tokenId];
-        owner = asset.owner;
-        acquiredCost = asset.acquiredCost;
+        ownerAddr = asset.owner;
+        // acquiredCost = asset.acquiredCost;
+        // acquiredTime = asset.acquiredTime;
         approvedAddr = asset.approvedAddr;
-        require(owner != address(0), "owner does not exist");
+        require(ownerAddr != address(0), "ownerAddr should not be 0x0");
     }
-    function getTokenIdAcquiredCosts(uint[] calldata _tokenIds) external view 
-    returns (uint[] memory acquiredCosts) {
-        uint amount_ = _tokenIds.length;
-        acquiredCosts = new uint[](amount_);
 
-        for(uint i = 0; i < amount_; i++) {
-            acquiredCosts[i] = idToAsset[_tokenIds[i]].acquiredCost;
+    //去ERC721合約中撈持幣user資料(及持有時間長短), time server檢查要發放租金前通知FM, 平台
+    function getTokenOwners(uint indexStart, uint amount) 
+        external view returns(address[] memory ownerAddrs) {
+        uint indexStart_; uint amount_;            
+        if(indexStart == 0 && amount == 0) {
+          indexStart_ = 1;
+          amount_ = tokenId;
+
+        } else {
+          require(indexStart > 0, "Token indexStart must be > 0");
+          require(amount > 0, "amount must be > 0");
+
+          if(indexStart.add(amount).sub(1) > tokenId) {
+            amount_ = tokenId.sub(indexStart).add(1);
+            //require(indexStart.add(amount).sub(1) <= tokenId, "indexStart or amount is too big");
+          } else {
+            amount_ = amount;
+          }
+        }
+        ownerAddrs = new address[](amount_);
+        //acquiredCosts = new uint[](amount_);
+
+        for(uint i = 0; i < amount_; i = i.add(1)) {
+          Asset memory asset = idToAsset[i.add(indexStart)];
+            ownerAddrs[i] = asset.owner;
+            //acquiredCosts[i] = asset.acquiredCost;
+            //acquiredTime[i] = asset.acquiredTime;
         }
     }
     /*struct Asset {
         address owner;
-        uint acquiredCost;
         address approvedAddr;
     }*/
 
@@ -239,12 +261,12 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             }
             arrayOut = new uint[](amount_);
 
-            for(uint i = 0; i < amount_; i++) {
+            for(uint i = 0; i < amount_; i.add(1)) {
                 arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
             }
             // uint length = idxE.sub(indexStart).add(1);
             // arrayOut = new uint[](length);
-            // for(uint i = indexStart; i < length; i++) {
+            // for(uint i = indexStart; i < length; i.add(1)) {
             //     arrayOut[i] = accounts[user].indexToId[i];
             // }
         }
@@ -268,15 +290,15 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
     //-----------------------==Mint
     // function mintSerialNFTBatch(address[] calldata _tos, uint amount) external {
-    //     for(uint i=0; i < _tos.length; i++) {
-    //         for(uint j=0; j < amount; j++) {
+    //     for(uint i=0; i < _tos.length; i.add(1)) {
+    //         for(uint j=0; j < amount; j.add(1)) {
     //             mintSerialNFT(_tos[i], amount);
     //         }
     //     }
     // }
 
-    event MintSerialNFT(address indexed newOwner, uint amountMinted);
-    function mintSerialNFT(address _to, uint amount) public {
+    event MintSerialNFT(address indexed newOwner, uint amountMinted, uint indexed serverTime);
+    function mintSerialNFT(address _to, uint amount, uint serverTime) public {
         require(TokenControllerITF(addrTokenControllerITF).isAdmin(msg.sender), 'only admin can mint tokens');
 
         //Legal Compliance, also block address(0)
@@ -291,7 +313,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(amount > 0, "amount must be > 0");
         totalSupply = tokenId.add(amount);
         require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
-        emit MintSerialNFT(_to, amount);
+        emit MintSerialNFT(_to, amount, serverTime);
 
         uint idxEnd = accounts[_to].idxEnd;
         uint idxStart = accounts[_to].idxStart;
@@ -312,10 +334,11 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //uint balance = idxEnd.sub(idxStart).add(1);
         //require(balance >= amount, "not enough asset: balance < amount");
 
-        for(uint i = idxStartReq; i <= idxEndReq; i++) {
+        for(uint i = idxStartReq; i <= idxEndReq; i.add(1)) {
             tokenId = tokenId.add(1);
             idToAsset[tokenId].owner = _to;
-            idToAsset[tokenId].acquiredCost = initialAssetPricing;
+            // idToAsset[tokenId].acquiredCost = initialAssetPricing;
+            // idToAsset[tokenId].acquiredTime = serverTime;
             //idToAsset[tokenId] = Asset(_to, initialAssetPricing, address(0));
             accounts[_to].indexToId[i] = tokenId;
         }
@@ -324,7 +347,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
     /*struct Asset {
         address owner;
-        uint acquiredCost;
         address approvedAddr;
     }*/
     /*struct Account { // accounts[user]
@@ -335,7 +357,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }*/
 
     //---------------------------==Transfer
-    function safeTransferFromBatch(address _from, address _to, uint amount, uint price) external {
+    function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
         //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
         //require(_to != address(0), "_to should not be 0x0");//replaced by registry check
         require(amount > 0, "amount should be > 0");
@@ -344,7 +366,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
         if (_to.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
-                msg.sender, _from, tokenId, "");
+                msg.sender, _from, 1, "");
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
 
@@ -353,7 +375,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         require(RegistryITF(addrRegistryITF).isAddrApproved(_to), "_to is not in compliance");
         require(RegistryITF(addrRegistryITF).isAddrApproved(_from), "_from is not in compliance");
 
-        _safeTransferFromBatch(_from, _to, amount, price);
+        _safeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
 
     /*struct Account { // accounts[user]
@@ -364,13 +386,14 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }*/
     /*struct Asset { // idToAsset[tokenId]
         address owner;
-        uint acquiredCost;
         address approvedAddr;
     }*/
     //canTransfer(tokenId) validNFToken(tokenId)
-    event SafeTransferFromBatch(address indexed _from, address indexed _to, uint amount, uint price);
+    event SafeTransferFromBatch(address indexed _from, address indexed _to, uint amount, uint price, uint indexed serverTime);//this function should be called by an Exchange contract, which should be trustworthy enough to give the correct price and serverTime
+
     function _safeTransferFromBatch(address _from, 
-        address _to, uint amount, uint price) internal {
+        address _to, uint amount, uint price, uint serverTime) internal {
+          //price will be the same as acquiredCost, assuming no transaction fee
 
         uint idxStartF = accounts[_from].idxStart;
         uint idxEndF = accounts[_from].idxEnd;
@@ -396,7 +419,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
           //idxEndReqT = idxEndT.add(amount);
         }//accounts[_to].indexToId[0]
 
-        for(uint i = 0; i < amount; i++) {
+        for(uint i = 0; i < amount; i.add(1)) {
 
             //inside _from account
             uint idxFrom = i.add(idxStartF);
@@ -414,7 +437,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             //ownerToOperators[tokenOwner][msg.sender]
 
             idToAsset[tokenId_].owner = _to;
-            idToAsset[tokenId_].acquiredCost = price;
+            // idToAsset[tokenId_].acquiredCost = price;
+            // idToAsset[tokenId_].acquiredTime = serverTime;
             clearApproval(tokenId_);
             //idToAsset[tokenId_] = Asset(_to, price, address(0));
 
@@ -434,7 +458,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         // AssetBookITF(_from).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
         // AssetBookITF(_to).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
 
-        emit SafeTransferFromBatch(_from, _to, amount, price);
+        emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
     /*
     }
@@ -446,7 +470,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }
     struct Asset { // idToAsset[tokenId]
         address owner;
-        uint acquiredCost;
         address approvedAddr;
 
         accounts[_to].indexToId[i] = tokenId;
@@ -488,7 +511,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }*/
     /*struct Asset { // idToAsset[tokenId]
         address owner;
-        uint acquiredCost;
         address approvedAddr;
     }*/
 
@@ -523,7 +545,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }*/
     /*struct Asset { // idToAsset[tokenId]
         address owner;
-        uint acquiredCost;
         address approvedAddr;
     }*/
 
@@ -586,24 +607,9 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     }*/
     /*struct Asset { // idToAsset[tokenId]
         address owner;
-        uint acquiredCost;
         address approvedAddr;
     }*/
 
-
-    //-------------------------==
-    function getTokenOwners(uint tokenIdStart, uint amount) 
-        external view returns(address[] memory arrayOut) {
-        //maxTokenId = tokenId - 1;
-        require(amount > 0, "amount must be > 0");
-        require(tokenIdStart > 0, "tokenIdStart must be > 0");
-        require(tokenIdStart.add(amount).sub(1) <= tokenId, "tokenIdStart is too big for amount");
-
-        arrayOut = new address[](amount);
-        for(uint i = 0; i < amount; i = i.add(1)) {
-            arrayOut[i] = idToAsset[i.add(tokenIdStart)].owner;
-        }
-    }
 
 
     /** $dev Guarantees that the msg.sender is 
@@ -745,7 +751,7 @@ library AddressUtils {
     //         uint length = idxEnd.sub(idxStart).add(1);
     //         arrayOut = new uint[](length);
 
-    //         for(uint i = 0; i < length; i++) {
+    //         for(uint i = 0; i < length; i.add(1)) {
     //             arrayOut[i] = accounts[user].indexToId[i.add(idxStart)];
     //         }
     //     }//else arrayOut = [];

@@ -14,7 +14,7 @@ gasPriceValue = '20000000000';
 /**https://github.com/trufflesuite/ganache-cli#using-ganache-cli
  -g or --gasPrice: The price of gas in wei (defaults to 20000000000)
   -l or --gasLimit: The block gas limit (defaults to 0x6691b7)
-  */
+*/
 provider = ganache.provider(options);
 // const server = ganache.server(options);
 // server.listen(port, (err, blockchain) => {
@@ -25,7 +25,6 @@ web3 = new Web3(provider);//lower case web3 means it is an instance
 //process.setMaxListeners(Infinity);
 //emitter.setMaxListeners(50);
 require('events').EventEmitter.defaultMaxListeners = 50;
-//require('events').EventEmitter.prototype._maxListeners = 20;
 /* emitter.setMaxListeners();
 MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data listeners added. Use emitter.setMaxListeners() to increase limit
 */
@@ -54,25 +53,25 @@ if (Platform === undefined){
   //console.log(Platform);
 }
 
-const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
-if (MultiSig === undefined){
-  console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-} else {
-  console.log('[Good] MultiSig is defined');
-  if (MultiSig.abi === undefined){
-    console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] MultiSig.abi is defined');
-      //console.log('MultiSig.abi:', MultiSig.abi);
-  }
-  if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
-    console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] MultiSig.bytecode is defined');
-      //console.log('MultiSig.bytecode:', MultiSig.bytecode);
-  }
-  //console.log(MultiSig);
-}
+// const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
+// if (MultiSig === undefined){
+//   console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+// } else {
+//   console.log('[Good] MultiSig is defined');
+//   if (MultiSig.abi === undefined){
+//     console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+//   } else {
+//     console.log('[Good] MultiSig.abi is defined');
+//       //console.log('MultiSig.abi:', MultiSig.abi);
+//   }
+//   if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
+//     console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+//   } else {
+//     console.log('[Good] MultiSig.bytecode is defined');
+//       //console.log('MultiSig.bytecode:', MultiSig.bytecode);
+//   }
+//   //console.log(MultiSig);
+// }
 
 const AssetBook = require('../ethereum/contracts/build/AssetBook.json');
 if (AssetBook === undefined){
@@ -198,24 +197,25 @@ if (CrowdFunding === undefined){
   //console.log(CrowdFunding);
 }
 
-const IncomeManagement = require('../ethereum/contracts/build/IncomeManagement.json');
-if (IncomeManagement === undefined){
-  console.log('[Error] IncomeManagement is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+//----------------==Income Manager Related...
+const IncomeManagerCtrt = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
+if (IncomeManagerCtrt === undefined){
+  console.log('[Error] IncomeManagerCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] IncomeManagement is defined');
-  if (IncomeManagement.abi === undefined){
-    console.log('[Error] IncomeManagement.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] IncomeManagerCtrt is defined');
+  if (IncomeManagerCtrt.abi === undefined){
+    console.log('[Error] IncomeManagerCtrt.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] IncomeManagement.abi is defined');
-      //console.log('IncomeManagement.abi:', IncomeManagement.abi);
+    console.log('[Good] IncomeManagerCtrt.abi is defined');
+      //console.log('IncomeManagerCtrt.abi:', IncomeManagerCtrt.abi);
   }
-  if (IncomeManagement.bytecode === undefined || IncomeManagement.bytecode.length < 10){
-    console.log('[Error] IncomeManagement.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (IncomeManagerCtrt.bytecode === undefined || IncomeManagerCtrt.bytecode.length < 10){
+    console.log('[Error] IncomeManagerCtrt.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] IncomeManagement.bytecode is defined');
-      //console.log('IncomeManagement.bytecode:', IncomeManagement.bytecode);
+    console.log('[Good] IncomeManagerCtrt.bytecode is defined');
+      //console.log('IncomeManagerCtrt.bytecode:', IncomeManagerCtrt.bytecode);
   }
-  //console.log(IncomeManagement);
+  //console.log(IncomeManagerCtrt);
 }
 
 const ProductManager = require('../ethereum/contracts/build/ProductManager.json');
@@ -244,17 +244,16 @@ if (ProductManager === undefined){
 
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
-let accounts;
-let instRegistry; let addrRegistry;
-let instTokenController; let addrTokenController;
-let instERC721SPLC; let addrERC721SPLC;
-let instCrowdFunding; let addrCrowdFunding;
-let instIncomeManagement; let addrIncomeManagement;
-let instProductManager; let addrProductManager;
+let instRegistry, addrRegistry;
+let instTokenController, addrTokenController;
+let instERC721SPLC, addrERC721SPLC;
+let instCrowdFunding, addrCrowdFunding;
+let instIncomeManagerCtrt, addrIncomeManagerCtrt;
+let instProductManager, addrProductManager;
 
-let acc3, acc4, management;
-let amount, balancePlatformCtAdmin = 0, balanceAO1 = 0, balanceAO2 = 0;
-let AssetOwner1, AssetOwner2, platformCtAdmin;
+let accounts, managementTeam, acc3, acc4;//acc3 and acc4 are used for chairman and owner roles
+let AssetOwner1, AssetOwner2, platformSupervisor;
+let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
@@ -288,148 +287,146 @@ const _CFSD2 = timeCurrent+1;
 const _CFED2 = timeCurrent+10;
 let _serverTime = timeCurrent;
 
-const TimeAnchor = TimeTokenLaunch;
-let addrPA_Ctrt, addrFMXA_Ctrt, addrPlatformCtrt;
+let addrPlatformCtrt;
 let uid1, uid2;
 let extoAddr1, extoAddr2;
 
-let tokenId; let to; let _from; let uriStr; let uriBytes32; let uriStrB; let tokenOwner; let tokenOwnerM;
-let tokenControllerDetail; let timeCurrentM;
-let TimeTokenLaunchM; let TimeTokenUnlockM; let TimeTokenValidM; let isLaunchedM;
-let bool1; let bool2, assetIdsFromAssetBook;
+let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner; let tokenOwnerM, tokenControllerDetail, timeCurrentM;
+let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
 
 beforeEach( async () => {
     console.log('\n--------==New beforeEach cycle');
-      accounts = await web3.eth.getAccounts();
-      platformCtAdmin = accounts[0];
-      AssetOwner1 = accounts[1];
-      AssetOwner2 = accounts[2];
-      acc3 = accounts[3];
-      acc4 = accounts[4];
-    management = [platformCtAdmin, AssetOwner1, AssetOwner2, acc3, acc4];
-    console.log('platformCtAdmin', platformCtAdmin);
+    accounts = await web3.eth.getAccounts();
+    platformSupervisor = accounts[0];
+    AssetOwner1 = accounts[1];
+    AssetOwner2 = accounts[2];
+    acc3 = accounts[3];
+    acc4 = accounts[4];
+    platformSupervisor = accounts[3];
+    fundManager = accounts[4];
+
+    managementTeam = [platformSupervisor, AssetOwner1, AssetOwner2, acc3, acc4];
+    console.log('platformSupervisor', platformSupervisor);
     console.log('AssetOwner1', AssetOwner1);
     console.log('AssetOwner2', AssetOwner2);
     console.log('acc3', acc3);
     console.log('acc4', acc4);
-    console.log('management', management);
+    console.log('managementTeam', managementTeam);
 
     // console.log('AssetOwner1, to addr, or accounts[1]');
     // console.log('AssetOwner2, accounts[2]');
 
     if (2===1) {
-        balancePlatformCtAdmin = await web3.eth.getBalance(platformCtAdmin);//returns strings!
+        balancePlatformSupervisor = await web3.eth.getBalance(platformSupervisor);//returns strings!
         balanceAO1 = await web3.eth.getBalance(AssetOwner1);//returns strings!
         balanceAO2 = await web3.eth.getBalance(AssetOwner2);//returns strings!
-        console.log('platformCtAdmin',  platformCtAdmin, balancePlatformCtAdmin);//100,00000000,0000000000
+        console.log('platformSupervisor',  platformSupervisor, balancePlatformSupervisor);//100,00000000,0000000000
         console.log('AssetOwner1',  AssetOwner1, balanceAO1);
         console.log('AssetOwner2',  AssetOwner2, balanceAO2);
     }
 
-    console.log('\nDeploying contracts...');
+    console.log('\nDeploying Platform contract...');
     //JSON.parse() is not needed because the abi and bytecode are already objects
     console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
-    //Deploying Platform contract...
-    const argsPlatform = [platformCtAdmin, management];
+    const argsPlatform = [platformSupervisor, managementTeam];
     console.log('\nDeploying Platform contract...');
     instPlatform =  await new web3.eth.Contract(Platform.abi)
     .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Platform.sol has been deployed');
     if (instPlatform === undefined) {
       console.log('[Error] instPlatform is NOT defined');
       } else {console.log('[Good] instPlatform is defined');}
-    instPlatform.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrPlatformContract = instPlatform.options.address;
-    console.log('addrPlatformContract:', addrPlatformContract);
+    instPlatform.setProvider(provider);
+    addrPlatformCtrt = instPlatform.options.address;
+    console.log('addrPlatformCtrt:', addrPlatformCtrt);
 
 
-    const argsMultiSig1 = [AssetOwner1, addrPlatformContract];
-    const argsMultiSig2 = [AssetOwner2, addrPlatformContract];
+    // const argsMultiSig1 = [AssetOwner1, addrPlatformCtrt];
+    // const argsMultiSig2 = [AssetOwner2, addrPlatformCtrt];
+    // console.log('\nDeploying multiSig contracts...');
+    // instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
+    // .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
+    // .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // //.then(console.log);
+    // console.log('MultiSig1 has been deployed');
+    // if (instMultiSig1 === undefined) {
+    //   console.log('[Error] instMultiSig1 is NOT defined');
+    //   } else {console.log('[Good] instMultiSig1 is defined');}
+    // instMultiSig1.setProvider(provider);
+    // addrMultiSig1 = instMultiSig1.options.address;
+    // console.log('addrMultiSig1:', addrMultiSig1);
 
-    console.log('\nDeploying multiSig contracts...');
-    instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
-    .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    //.then(console.log);
-    console.log('MultiSig1 has been deployed');
-    if (instMultiSig1 === undefined) {
-      console.log('[Error] instMultiSig1 is NOT defined');
-      } else {console.log('[Good] instMultiSig1 is defined');}
-    instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrMultiSig1 = instMultiSig1.options.address;
-    console.log('addrMultiSig1:', addrMultiSig1);
+    // instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
+    // .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
+    // .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // //.then(console.log);
+    // console.log('MultiSig2 has been deployed');
+    // if (instMultiSig2 === undefined) {
+    //   console.log('[Error] instMultiSig2 is NOT defined');
+    //   } else {console.log('[Good] instMultiSig2 is defined');}
+    // instMultiSig2.setProvider(provider);
+    // addrMultiSig2 = instMultiSig2.options.address;
+    // console.log('addrMultiSig2:', addrMultiSig2);
 
-    instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
-    .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    //.then(console.log);
-    console.log('MultiSig2 has been deployed');
-    if (instMultiSig2 === undefined) {
-      console.log('[Error] instMultiSig2 is NOT defined');
-      } else {console.log('[Good] instMultiSig2 is defined');}
-    instMultiSig2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrMultiSig2 = instMultiSig2.options.address;
-    console.log('addrMultiSig2:', addrMultiSig2);
-
-    argsAssetBook1 = [ AssetOwner1, addrPlatformContract];
-    argsAssetBook2 = [ AssetOwner2, addrPlatformContract];
+    argsAssetBook1 = [ AssetOwner1, addrPlatformCtrt];
+    argsAssetBook2 = [ AssetOwner2, addrPlatformCtrt];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
     instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook1 })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook1 === undefined) {
       console.log('[Error] instAssetBook1 is NOT defined');
       } else {console.log('[Good] instAssetBook1 is defined');}
-    instAssetBook1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    instAssetBook1.setProvider(provider);
     addrAssetBook1 = instAssetBook1.options.address;
     console.log('addrAssetBook1:', addrAssetBook1);
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook2 === undefined) {
       console.log('[Error] instAssetBook2 is NOT defined');
       } else {console.log('[Good] instAssetBook2 is defined');}
-    instAssetBook2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    instAssetBook2.setProvider(provider);
     addrAssetBook2 = instAssetBook2.options.address;
     console.log('addrAssetBook2:', addrAssetBook2);
 
     
     //Deploying Registry contract...
     console.log('\nDeploying Registry contract...');
-    const argsRegistry = [management];
+    const argsRegistry = [managementTeam];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Registry.sol has been deployed');
     if (instRegistry === undefined) {
       console.log('[Error] instRegistry is NOT defined');
       } else {console.log('[Good] instRegistry is defined');}
-    instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    instRegistry.setProvider(provider);
     addrRegistry = instRegistry.options.address;
     console.log('addrRegistry:', addrRegistry);
     
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management ];
+      timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, managementTeam ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('TokenController.sol has been deployed');
     if (instTokenController === undefined) {
       console.log('[Error] instTokenController is NOT defined');
       } else {console.log('[Good] instTokenController is defined');}
-    instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    instTokenController.setProvider(provider);
     addrTokenController = instTokenController.options.address;
     console.log('addrTokenController:', addrTokenController);
 
@@ -451,7 +448,7 @@ beforeEach( async () => {
     console.log('\nDeploying ERC721SPLC contract...');
     instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
     .deploy({ data: prefix+ERC721SPLC.bytecode, arguments: argsERC721SPLC })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('ERC721SPLC.sol has been deployed');
     if (instERC721SPLC === undefined) {
       console.log('[Error] instERC721SPLC is NOT defined');
@@ -460,66 +457,64 @@ beforeEach( async () => {
     addrERC721SPLC = instERC721SPLC.options.address;
     console.log('addrERC721SPLC:', addrERC721SPLC);
     /**
-    value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue
+    value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3.utils.toWei('10','ether')
     */
 
-   console.log('\nDeploying CrowdFunding contract...');
-   const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, management];
-   instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
-    .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('\nDeploying CrowdFunding contract...');
+    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, managementTeam];
+    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
+      .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
+      .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('CrowdFunding.sol has been deployed');
     if (instCrowdFunding === undefined) {
       console.log('[Error] instCrowdFunding is NOT defined');
       } else {console.log('[Good] instCrowdFunding is defined');}
-    instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    instCrowdFunding.setProvider(provider);
     addrCrowdFunding = instCrowdFunding.options.address;
     console.log('addrCrowdFunding:', addrCrowdFunding);
 
-/*
+
+    //---------=IncomeManagerCtrt related contracts
+    //addrPlatformCtrt -> platformSupervisor for now...
+    const argsIncomeManagerCtrt =[addrERC721SPLC, platformSupervisor, managementTeam];
+    instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
+    .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('IncomeManagerCtrt.sol has been deployed');
+    if (instIncomeManagerCtrt === undefined) {
+      console.log('[Error] instIncomeManagerCtrt is NOT defined');
+      } else {console.log('[Good] instIncomeManagerCtrt is defined');}
+    instIncomeManagerCtrt.setProvider(provider);
+    addrIncomeManagerCtrt = instIncomeManagerCtrt.options.address;
+    console.log('addrIncomeManagerCtrt:', addrIncomeManagerCtrt);
+
+  /*
     console.log('\nDeploying ArrayTesting contract...');
     instArrayUtils = await new web3.eth.Contract(ArrayTesting.abi)
      .deploy({ data: prefix+ArrayTesting.bytecode })
-     .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+     .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
      console.log('ArrayTesting.sol has been deployed');
      if (instArrayUtils === undefined) {
        console.log('[Error] instArrayUtils is NOT defined');
        } else {console.log('[Good] instArrayUtils is defined');}
-     instArrayUtils.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+     instArrayUtils.setProvider(provider);
      addrArrayUtils = instArrayUtils.options.address;
      console.log('addrArrayUtils:', addrArrayUtils);
     
-    /*
-    const addrTokenCtrt = addrERC721SPLC;
-    const argsIncomeManagement =[TimeAnchor, addrTokenCtrt, addrPA_Ctrt, addrFMXA_Ctrt, addrPlatformCtrt];
-    instIncomeManagement = await new web3.eth.Contract(IncomeManagement.abi)
-    .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('IncomeManagement.sol has been deployed');
-    if (instIncomeManagement === undefined) {
-      console.log('[Error] instIncomeManagement is NOT defined');
-      } else {console.log('[Good] instIncomeManagement is defined');}
-    instIncomeManagement.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrIncomeManagement = instIncomeManagement.options.address;
-    console.log('addrIncomeManagement:', addrIncomeManagement);
-
+    
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode })
-    .send({ from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('ProductManager.sol has been deployed');
     if (instProductManager === undefined) {
       console.log('[Error] instProductManager is NOT defined');
       } else {console.log('[Good] instProductManager is defined');}
-    instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    instProductManager.setProvider(provider);
     addrProductManager = instProductManager.options.address;
     console.log('addrProductManager:', addrProductManager);
     */
 
-    addrPA_Ctrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
-    addrFMXA_Ctrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
-    addrPlatformCtrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
-   
     console.log('--------==BeforeEach is finished');
 });
 
@@ -537,7 +532,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
     assert.ok(addrCrowdFunding);
-    //assert.ok(addrIncomeManagement);
+    //assert.ok(addrIncomeManagerCtrt);
 
     //console.log('instERC721SPLC', instERC721SPLC);
     //test if the instanceCtrt has a property options, which has a property of address. Test if such value exists or is not undefined
@@ -554,7 +549,7 @@ describe('Tests on ERC721SPLC', () => {
     this.timeout(9500);
 
     console.log('\n------------==Check deployment');
-    assert.ok(addrPlatformContract);
+    assert.ok(addrPlatformCtrt);
     assert.ok(addrMultiSig1);
     assert.ok(addrMultiSig2);
     assert.ok(addrAssetBook1);
@@ -563,6 +558,7 @@ describe('Tests on ERC721SPLC', () => {
     assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
     assert.ok(addrCrowdFunding);
+    assert.ok(addrPlatformSupervisorCtrt);
     console.log('Deployment Check: Good');
 
     let _assetAddr = addrERC721SPLC;
@@ -577,9 +573,9 @@ describe('Tests on ERC721SPLC', () => {
 
       console.log('\nCheck getPlatformContractAddr()');
       let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
-      assert.equal(platformM1, addrPlatformContract);
+      assert.equal(platformM1, addrPlatformCtrt);
       let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
-      assert.equal(platformM2, addrPlatformContract);
+      assert.equal(platformM2, addrPlatformCtrt);
     }
 
     console.log('\n------------==Check AssetBook contract 1 & 2');
@@ -610,7 +606,7 @@ describe('Tests on ERC721SPLC', () => {
     uid1 = "A500000001"; assetCtAddr = addrAssetBook1; extoAddr = AssetOwner1;
     await instRegistry.methods.addUser(
       uid1, assetCtAddr, extoAddr, timeCurrent)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('Registry: getUser()');
     let user1M = await instRegistry.methods.getUser(uid1).call();
@@ -623,7 +619,7 @@ describe('Tests on ERC721SPLC', () => {
     uid2 = "A500000002"; assetCtAddr = addrAssetBook2; extoAddr = AssetOwner2;
     await instRegistry.methods.addUser(
       uid2, assetCtAddr, extoAddr, timeCurrent)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let user2M = await instRegistry.methods.getUser(uid2).call();
     assert.equal(user2M[0], uid2);
@@ -638,8 +634,8 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Check ERC721SPLC parameters');
     console.log('addrERC721SPLC', addrERC721SPLC);
 
-    // await instERC721SPLC.methods.set_admin(AssetOwner1, platformCtAdmin).send({
-    //   value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue
+    // await instERC721SPLC.methods.set_admin(AssetOwner1, platformSupervisor).send({
+    //   value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
     // });//set_tokenDump(address _tokenDump, address vendor)
 
     let tokenContractDetails = await instERC721SPLC.methods.getTokenContractDetails().call();
@@ -719,7 +715,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
     await instERC721SPLC.methods.mintSerialNFT(_to, tokenIdTarget).send({
-      value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('after minting tokenId =', tokenIdTarget);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
@@ -762,7 +758,7 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\nmintSerialNFT()... amount =', amount);
     await instERC721SPLC.methods.mintSerialNFT(_to, amount).send({
-      value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
@@ -815,7 +811,7 @@ describe('Tests on ERC721SPLC', () => {
     
     console.log('\nstart minting via mintSerialNFTBatch()');
     await instERC721SPLC.methods.mintSerialNFT(_to, amount).send({
-      value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
+      value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 7);
@@ -862,13 +858,13 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(chairman, acc3);
     assert.equal(director, AssetOwner2);
     assert.equal(manager, AssetOwner1);
-    assert.equal(admin, platformCtAdmin);
+    assert.equal(admin, platformSupervisor);
 
-    // owner = management[4];
-    // chairman = management[3];
-    // director = management[2];
-    // manager = management[1];
-    // admin = management[0];
+    // owner = managementTeam[4];
+    // chairman = managementTeam[3];
+    // director = managementTeam[2];
+    // manager = managementTeam[1];
+    // admin = managementTeam[0];
 
     tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
     timeCurrentM = tokenControllerDetail[0];
@@ -882,7 +878,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Send tokens before Unlock Time');
     timeCurrent = TimeTokenUnlock;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
@@ -904,7 +900,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
     timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, true);
 
@@ -1057,7 +1053,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n------------==Send tokens after valid date');
     timeCurrent = TimeTokenValid;
     await instTokenController.methods.setTimeCurrent(timeCurrent)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isUnlockedValid().call(); 
     assert.equal(bool1, false);
 
@@ -1082,6 +1078,7 @@ describe('Tests on ERC721SPLC', () => {
 });
 
 
+
 //-----------------------------------------==
 describe('Tests on ArrayTesting', () => {
 
@@ -1100,6 +1097,276 @@ describe('Tests on ArrayTesting', () => {
     // console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
   });
 });
+
+
+
+//--------------------------------==
+describe('Tests on IncomeManagerCtrt', () => {
+  
+  it('IncomeManagerCtrt functions test', async function() {
+    this.timeout(9500);
+    console.log('\n------------==Check IncomeManagerCtrt parameters');
+    let _payableDate, _payableAmount, _index, _payableDates, _payableAmounts, result, _errorCode;
+
+    _index = 1; _payableDate = 201905110000; _payableAmount = 3000;
+
+    console.log('\n--------==Initial conditions');
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('schCindex:', result);
+    assert.equal(result, 0);
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('getIncomeSchedule():', result);
+    assert.equal(result[0], false);
+    assert.equal(result[1], false);
+    assert.equal(result[2], false);
+    assert.equal(result[3], false);
+    assert.equal(result[4], false);
+    assert.equal(result[5], false);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
+
+    console.log('\n--------==Add a new pair of _payableDate, _payableAmount');
+    await instIncomeManagerCtrt.methods.addSchedule(_payableDate, _payableAmount)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\nafter adding a new schedule...');
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('new schCindex:', result);
+    assert.equal(result, 1);
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    console.log('getSchIndex:', result);
+    assert.equal(result, 1);
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('new getIncomeSchedule():', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], 0);
+    assert.equal(result[3], 0);
+    assert.equal(result[4], false);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
+
+
+    console.log('\n--------==setIsApproved()');
+    await instIncomeManagerCtrt.methods.setIsApproved(_index, _payableDate, true)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('getIncomeSchedule():', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], 0);
+    assert.equal(result[3], 0);
+    assert.equal(result[4], true);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, true);
+
+
+    console.log('\n--------==setPaymentReleaseResults');
+    _paymentDate = _payableDate;
+    _paymentAmount = _payableAmount;
+    _errorCode = 0;
+    await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('getIncomeSchedule():', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], _paymentDate);
+    assert.equal(result[3], _paymentAmount);
+    assert.equal(result[4], true);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
+
+
+    //-----------------------==add 1 more pair
+    _index = 2; _payableDate = 201906110000; _payableAmount = 3300;
+
+    await instIncomeManagerCtrt.methods.addSchedule(_payableDate, _payableAmount)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\n--------==after adding a new schedule...');
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('new schCindex:', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(_index, _payableDate).call();
+    console.log('getSchIndex(_index, _payableDate):', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    console.log('getSchIndex(0, _payableDate):', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('new getIncomeSchedule():', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], 0);
+    assert.equal(result[3], 0);
+    assert.equal(result[4], false);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+
+    //-----------------------==add 3 more pairs
+    console.log('\n--------==Add 3 more pairs of _payableDate, _payableAmount');
+    //_payableDate = 201906110000;
+    _payableDates = [201908170000, 201911210000, 202002230000];
+    _payableAmounts = [3700, 3800, 3900];
+
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    console.log('getSchIndex:', result);
+    assert.equal(result, _index);
+
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('schCindex:', result);
+    assert.equal(result, 2);
+
+
+    await instIncomeManagerCtrt.methods.AddScheduleBatch(_payableDates, _payableAmounts)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.schCindex().call();
+    console.log('new schCindex:', result);
+    assert.equal(result, 5);
+
+    for(i = 0; i < _payableDates.length; i++) {
+      _index = i+3;
+      result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+      console.log('\ngetIncomeSchedule(index='+_index+'):', result);
+      _payableDate = _payableDates[i];
+      _payableAmount = _payableAmounts[i];
+      assert.equal(result[0], _payableDate);
+      assert.equal(result[1], _payableAmounts[i]);
+      assert.equal(result[2], 0);
+      assert.equal(result[3], 0);
+      assert.equal(result[4], false);
+      assert.equal(result[5], 0);
+      assert.equal(result[6], false);
+      
+      bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+      console.log('isScheduleGoodForRelease:', bool1);
+      assert.equal(bool1, false);
+  
+    }
+
+
+    console.log('\n--------==setIsApproved()');
+    await instIncomeManagerCtrt.methods.setIsApproved(_index, _payableDate, true)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('getIncomeSchedule():', _index, _payableDate, _payableAmount, result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], 0);
+    assert.equal(result[3], 0);
+    assert.equal(result[4], true);
+    assert.equal(result[5], 0);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, true);
+
+
+    console.log('\n--------==setPaymentReleaseResults');
+    _paymentDate = _payableDate;
+    _paymentAmount = _payableAmount;
+    _errorCode = 21;
+    await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], _paymentDate);
+    assert.equal(result[3], _paymentAmount);
+    assert.equal(result[4], true);
+    assert.equal(result[5], _errorCode);
+    assert.equal(result[6], false);
+
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    console.log('isScheduleGoodForRelease:', bool1);
+    assert.equal(bool1, false);
+
+
+    await instIncomeManagerCtrt.methods.setErrResolution(_index, _payableDate, true)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    console.log('\n--------==setErrResolution()', result);
+    assert.equal(result[0], _payableDate);
+    assert.equal(result[1], _payableAmount);
+    assert.equal(result[2], _paymentDate);
+    assert.equal(result[3], _paymentAmount);
+    assert.equal(result[4], true);
+    assert.equal(result[5], _errorCode);
+    assert.equal(result[6], true);
+
+
+    console.log('\n--------==getIncomeScheduleList()');
+    indexStart = 0; amount = 0;
+    let scheduleList = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
+
+
+
+    console.log('\n--------==editIncomeSchedule');
+    _index = 2; _payableDate = 201906110222; _payableAmount = 4000;
+
+    await instIncomeManagerCtrt.methods.editIncomeSchedule(_index, _payableDate, _payableAmount)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\n--------==getIncomeScheduleList()');
+    indexStart = 1; amount = 0;
+    scheduleList = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
+
+
+    console.log('\n--------==removeIncomeSchedule()');
+    _index = 3; _payableDate = 201906110999;
+    await instIncomeManagerCtrt.methods.removeIncomeSchedule(_index, _payableDate)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\n--------==getIncomeScheduleList()');
+    indexStart = 1; amount = 0;
+    scheduleList = await instIncomeManagerCtrt.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
+
+
+
+  });
+});
+
+// describe('Tests on DDD', () => {
+
+//   it('DDD functions test', async () => {
+//     console.log('\n------------==Check DDD parameters');
+//   });
+// });
+
 
 
 //-----------------------------------------==
@@ -1153,7 +1420,7 @@ describe('Tests on CrowdFunding', () => {
 
     //------------==
     await instCrowdFunding.methods.updateState()
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
@@ -1169,7 +1436,7 @@ describe('Tests on CrowdFunding', () => {
 
     //const _CFSD2 = timeCurrent+1;
     await instCrowdFunding.methods.setServerTime(_CFSD2)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
     assert.equal(serverTimeM, _CFSD2);
@@ -1185,7 +1452,7 @@ describe('Tests on CrowdFunding', () => {
     if (1==2){
       //const _CFED2 = timeCurrent+10;
       await instCrowdFunding.methods.setServerTime(_CFED2)
-      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
       serverTimeM = await instCrowdFunding.methods.serverTime().call();
       console.log('serverTimeM', serverTimeM);
       assert.equal(serverTimeM, _CFED2);//201902281050
@@ -1211,15 +1478,15 @@ describe('Tests on CrowdFunding', () => {
     // assert.equal(serverTimeM, 201902281041);
 
     await instCrowdFunding.methods.makeFundingActive()
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('\nafter investing the target goal amount');
 
     //------------------==Set time to initial
     await instCrowdFunding.methods.setServerTime(_CFSD2-1)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('serverTimeM', serverTimeM);
     assert.equal(serverTimeM, _CFSD2-1);//201902281039
@@ -1234,7 +1501,7 @@ describe('Tests on CrowdFunding', () => {
 
     //------------------==Back to _CFSD2
     await instCrowdFunding.methods.setServerTime(_CFSD2)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     serverTimeM = await instCrowdFunding.methods.serverTime().call();
     console.log('\nserverTimeM', serverTimeM);
     assert.equal(serverTimeM, _CFSD2);
@@ -1255,7 +1522,7 @@ describe('Tests on CrowdFunding', () => {
     try {
       console.log('\nTrying to invest quantityAvailable+1');
       await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1)
-      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
@@ -1267,7 +1534,7 @@ describe('Tests on CrowdFunding', () => {
       //-------------------==Buying the available quantity
       console.log('\nTrying to invest quantityAvailable');
       await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable)
-      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
@@ -1281,7 +1548,7 @@ describe('Tests on CrowdFunding', () => {
       //-------------------==CFED2 has been reached
       console.log('\nCFED2 has been reached');
       await instCrowdFunding.methods.setServerTime(_CFED2)
-      .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
       serverTimeM = await instCrowdFunding.methods.serverTime().call();
       console.log('serverTimeM', serverTimeM);
       assert.equal(serverTimeM, _CFED2);//201902281050
@@ -1303,10 +1570,10 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(serverTimeM, 201902281041);
 
     await instCrowdFunding.methods.startFunding()
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     await instCrowdFunding.methods.invest(addrAssetBook1, maxTotalSupply)
-    .send({ value: '0', from: platformCtAdmin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
