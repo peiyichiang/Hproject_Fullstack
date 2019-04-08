@@ -33,8 +33,6 @@ const registryContractAddr = "0xd8C4482D1e2a497D315e934d977ab40F30c0ce22";
 /**time server*/
 timer.getTime().then(function(time) {
     console.log(`現在時間: ${time}`)
-    let currentTime = time;
-    console.log(currentTime);
 })
 
 /**management address */
@@ -114,10 +112,6 @@ router.get('/registryContract', function (req, res, next) {
     res.send(registryContractAddr);
 });
 
-/**@todo
- *error return
- *transaction func改良
-*/
 /*註冊新會員 */
 router.post('/registryContract/users/:u_id', async function (req, res, next) {
     /**寫入BlockChain */
@@ -223,7 +217,7 @@ router.post('/assetbookContract', async function (req, res, next) {
 
 /**@dev CrowdFunding ------------------------------------------------------------------------------------- */
 /*deploy crowdFunding contract*/
-router.post('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
+router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
     //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
@@ -236,14 +230,15 @@ router.post('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
     let tokenPrice = req.body.tokenPrice;
     let currency = req.body.currency;
     let quantityMax = req.body.quantityMax;
-    let goalInPercentage = Math.floor(req.body.fundingGoal / quantityMax * 100);
-    let CFSD2 = parseInt(req.body.CFSD2);//201903231200
-    let CFED2 = parseInt(req.body.CFED2);//201903241200
-    timer.getTime().then(function(time) {
-        console.log(`現在時間: ${time}`)
-        let currentTime = time;
-        console.log(currentTime);
+    let fundingGoal = req.body.fundingGoal;
+    let goalInPercentage = Math.floor(fundingGoal / quantityMax * 100);
+    let CFSD2 = parseInt(req.body.CFSD2);
+    let CFED2 = parseInt(req.body.CFED2);
+    let currentTime;
+    await timer.getTime().then(function(time) {
+        currentTime = time;
     })
+    console.log(`現在時間: ${currentTime}`)
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
 
@@ -318,6 +313,53 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', funct
 
 });
 
+/**更新剩餘數量 in DB */
+router.post('/crowdFundingContract/:tokenSymbol/remaining', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBGetResult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBGetResult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBGetResult[0].sc_crowdsaleaddress;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr });
+            let quantityMax = await crowdFunding.methods.quantityMax().call({ from: backendAddr });
+
+            console.log("quantityMax:"+quantityMax);
+            console.log("quantitySold:"+quantitySold);
+            let remaining = quantityMax - quantitySold;
+            mysqlPoolQuery('UPDATE `htoken`.`smart_contracts` SET `sc_remaining` = ? WHERE (`sc_symbol` = ?)', [remaining, tokenSymbol], async function (err, DBUpdateResult, rows) {
+                if (err) {
+                    res.send({
+                        DBGetResult: DBGetResult,
+                        remaining: remaining,
+                        err: err,
+                        status: false
+                    })
+                }
+                else {
+                    res.send({
+                        DBGetResult: DBGetResult,
+                        DBUpdateResult: DBUpdateResult,
+                        remaining: remaining
+                    })
+                }
+            });
+        }
+    });
+
+});
+
 /**get investors */
 router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
@@ -342,7 +384,7 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
     });
 });
 
-/**get status */
+/**get status（開發用） */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
@@ -366,7 +408,7 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
     });
 });
 
-/**set servertime(暫時用) */
+/**set servertime(開發用) */
 router.post('/crowdFundingContract/:tokenSymbol/:servertime', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let servertime = req.params.servertime;
@@ -396,39 +438,21 @@ router.post('/crowdFundingContract/:tokenSymbol/:servertime', async function (re
     });
 });
 
-/**@todo 串接募資退回 */
-/**從資料庫刪除crowdFundingContract */
-router.delete('/crowdFundingContract/:tokenSymbol', function (req, res, next) {
-    var mysqlPoolQuery = req.pool;
-    let tokenSymbol = req.params.tokenSymbol;
-
-
-    mysqlPoolQuery("DELETE FROM htoken.smart_contracts WHERE (sc_symbol) VALUES (?)", [tokenSymbol], function (err, rows) {
-        if (err) {
-            console.log(err);
-            res.send({
-                status: false
-            });
-        }
-        else {
-            res.send({
-                status: true
-            });
-        }
-    });
-});
 
 /**@dev TokenController ------------------------------------------------------------------------------------- */
-/**@todo 從DB抓arguments */
 /*deploy tokenController contract*/
-router.post('/tokenControllerContract', function (req, res, next) {
+router.post('/tokenControllerContract', async function (req, res, next) {
     /**POA */
     //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
-    let timeCurrent = timestamp;
+    let currentTime;
+    await timer.getTime().then(function(time) {
+        currentTime = time;
+    })
+    console.log(`現在時間: ${currentTime}`)
     let TimeTokenLaunch = req.body.TimeTokenLaunch;
     let TimeTokenUnlock = req.body.TimeTokenUnlock;
     let TimeTokenValid = req.body.TimeTokenValid;
@@ -437,7 +461,7 @@ router.post('/tokenControllerContract', function (req, res, next) {
 
     tokenController.deploy({
         data: tokenControllerContract.bytecode,
-        arguments: [timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
+        arguments: [currentTime, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
     })
         .send({
             from: backendAddr,
@@ -454,7 +478,6 @@ router.post('/tokenControllerContract', function (req, res, next) {
 
 
 /**@dev ERC721SPLC ------------------------------------------------------------------------------------- */
-/**@todo 抓tokenURI */
 /*deploy ERC721SPLC contract*/
 router.post('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
     /**POA */

@@ -31,7 +31,7 @@
             </ul>
         </div>
     </nav>
-    
+
     <!-- 平台方待審核區：假如publish狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -80,112 +80,112 @@
                 <th class="nowrap">上架</th>
                 <!-- <th class="nowrap">達標</th> -->
             </tr>
-            
-                <% for ( var i = 0 ; i < data.length ; i++){ %>
-                    <%if (data[i].p_state =="publish" ) { %>
-                            <tr>
-                                    <td>
-                                        <%= data[i].p_SYMBOL  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_name  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_location  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_pricing  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_currency  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_duration  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_irr  %>
-                                    </td>
-                                    <!--  -->
-                                    <td>
-                                        <%= data[i].p_PSD  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_FMXAdate  %>
-                                    </td>
-                                    <!-- <td>
+
+            <% for ( var i = 0 ; i < data.length ; i++){ %>
+            <%if (data[i].p_state =="publish" ) { %>
+            <tr>
+                <td>
+                    <%= data[i].p_SYMBOL  %>
+                </td>
+                <td>
+                    <%= data[i].p_name  %>
+                </td>
+                <td>
+                    <%= data[i].p_location  %>
+                </td>
+                <td>
+                    <%= data[i].p_pricing  %>
+                </td>
+                <td>
+                    <%= data[i].p_currency  %>
+                </td>
+                <td>
+                    <%= data[i].p_duration  %>
+                </td>
+                <td>
+                    <%= data[i].p_irr  %>
+                </td>
+                <!--  -->
+                <td>
+                    <%= data[i].p_PSD  %>
+                </td>
+                <td>
+                    <%= data[i].p_FMXAdate  %>
+                </td>
+                <!-- <td>
                                                     <%= data[i].p_PAdate  %>
                                                 </td> -->
-                                    <td>
-                                        <%= data[i].p_CFSD  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_CFED  %>
-                                    </td>
-                                    <!--  -->
-                
-                                    <td>
-                                        <%= data[i].p_releasedate  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_validdate  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_size  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_totalrelease  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_fundmanager  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_state  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_FAY  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_FTRT  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_RPT  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_FRP  %>
-                                    </td>
-                                    <td>
-                                        <%= data[i].p_Timeline  %>
-                                    </td>
-                                    <td>
-                                        <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                                        <a target="_blank"
-                                            href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                                        <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
-                                            style="width:50%;">
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <!-- <input type="button" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');" /> -->
-                                        <!-- <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button> -->
-                                        <button type="button" class="btn btn-success" name="return" value="return" data-toggle="modal"
-                                            data-target="#exampleModal" data-whatever="@mdo"
-                                            onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">退回</button>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-success" id="fund<%= i %>" name="funding" value="funding"
-                                            onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].sc_fundingGoal  %>','funding',this.id);">上架</button>
-                                    </td>
-                
-                                    <!-- <td>
+                <td>
+                    <%= data[i].p_CFSD  %>
+                </td>
+                <td>
+                    <%= data[i].p_CFED  %>
+                </td>
+                <!--  -->
+
+                <td>
+                    <%= data[i].p_releasedate  %>
+                </td>
+                <td>
+                    <%= data[i].p_validdate  %>
+                </td>
+                <td>
+                    <%= data[i].p_size  %>
+                </td>
+                <td>
+                    <%= data[i].p_totalrelease  %>
+                </td>
+                <td>
+                    <%= data[i].p_fundmanager  %>
+                </td>
+                <td>
+                    <%= data[i].p_state  %>
+                </td>
+                <td>
+                    <%= data[i].p_FAY  %>
+                </td>
+                <td>
+                    <%= data[i].p_FTRT  %>
+                </td>
+                <td>
+                    <%= data[i].p_RPT  %>
+                </td>
+                <td>
+                    <%= data[i].p_FRP  %>
+                </td>
+                <td>
+                    <%= data[i].p_Timeline  %>
+                </td>
+                <td>
+                    <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
+                    <a target="_blank"
+                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                    <% } %>
+                </td>
+                <td>
+                    <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
+                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                        style="width:50%;">
+                    <% } %>
+                </td>
+                <td>
+                    <!-- <input type="button" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');" /> -->
+                    <!-- <button type="button" class="btn btn-success" name="return" value="return" onclick="Edit('<%= data[i].p_SYMBOL  %>','creation');">退回</button> -->
+                    <button type="button" class="btn btn-success" name="return" value="return" data-toggle="modal"
+                        data-target="#exampleModal" data-whatever="@mdo"
+                        onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">退回</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success" id="fund<%= i %>" name="funding" value="funding"
+                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].p_fundingGoal  %>','funding',this.id);">上架</button>
+                </td>
+
+                <!-- <td>
                                                     <button type="button" class="btn btn-success" name="archive" value="archive" onclick="Edit('<%= data[i].p_SYMBOL  %>','archive');">達標</button>
                                                 </td> -->
-                            </tr>
-                    <% } %>
-                <% } %>
+            </tr>
+            <% } %>
+            <% } %>
 
 
         </table>
@@ -336,12 +336,12 @@
                 </td> -->
                 <!-- <td>
                     <button type="button" class="btn btn-success" name="funding" value="funding"
-                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].sc_fundingGoal  %>','funding');">募資</button>
+                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].p_fundingGoal  %>','funding');">募資</button>
                 </td> -->
                 <td>
                     <button type="button" style="width: 90px;" class="btn btn-success" name="archive"
                         id="FundingComplete<%= i %>" value="archive"
-                        onclick="FundingComplete('<%= data[i].p_name  %>','<%= data[i].p_SYMBOL  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_size  %>','<%= data[i].p_irr  %>','FundingClosed',this.id);">募資成功
+                        onclick="FundingComplete('<%= data[i].p_name  %>','<%= data[i].p_SYMBOL  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_size  %>','<%= data[i].p_irr  %>','FundingClosed',this.id,'<%= data[i].p_releasedate  %>','<%= data[i].p_validdate  %>','<%= data[i].p_lockupperiod  %>','<%= data[i].p_HCAT721uri  %>');">募資成功
                     </button>
                 </td>
                 <td>
@@ -373,7 +373,7 @@
         </table>
     </div>
     <% } %>
-    
+
     <!-- 暫停區：假如FundingPaused狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -517,7 +517,7 @@
         </table>
     </div>
     <% } %>
-    
+
     <!-- 緊急下架區：假如aborted狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -647,7 +647,7 @@
         </table>
     </div>
     <% } %>
-    
+
     <!-- (募資成功區)代幣待發放區：假如FundingClosed狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -689,8 +689,8 @@
                 <th class="nowrap">預估進度圖</th>
                 <th class="nowrap">產品文件</th>
                 <th class="nowrap">產品icon</th>
-                <th class="nowrap">發放代幣</th>    
-                <th class="nowrap">緊急下架</th>   
+                <th class="nowrap">發放代幣</th>
+                <th class="nowrap">緊急下架</th>
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
             <%if (data[i].p_state =="FundingClosed" ) { %>
@@ -772,10 +772,10 @@
                     <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
-                </td>                
+                </td>
                 <td>
-                    <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>"
-                        class="btn btn-success" name="release" value="release"
+                    <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" class="btn btn-success"
+                        name="release" value="release"
                         onclick="Release('<%= data[i].p_SYMBOL  %>','ONM',this.id);">發放代幣</button>
                 </td>
                 <td>
@@ -790,7 +790,7 @@
         </table>
     </div>
     <% } %>
-    
+
     <!-- 募資失敗區：假如FundingNotClosed狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -927,7 +927,7 @@
         </table>
     </div>
     <% } %>
-    
+
     <!-- 已退款區：假如refunded狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -1057,7 +1057,7 @@
         </table>
     </div>
     <% } %>
-    
+
     <!-- 運營管理區：假如ONM狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -1257,7 +1257,7 @@
         })
 
         // 緊急下架
-        function Aborted(tokenSymbol,State,buttonID){
+        function Aborted(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
@@ -1272,7 +1272,7 @@
         }
 
         // 恢復募資
-        function FundingRestart(tokenSymbol,State,buttonID){
+        function FundingRestart(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
@@ -1287,7 +1287,7 @@
         }
 
         // 退款
-        function refunded(tokenSymbol,State,buttonID){
+        function refunded(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
@@ -1301,8 +1301,9 @@
             })
 
         }
+
         // 暫停募資
-        function FundingPaused(tokenSymbol,State,buttonID){
+        function FundingPaused(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
@@ -1355,10 +1356,12 @@
         }
 
         // 募資成功
-        function FundingComplete(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, IRR20yrx100, State, buttonID) {
+        function FundingComplete(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, IRR20yrx100, State, buttonID, TimeTokenLaunch, TimeTokenValid, lockupperiod, HCAT721uri) {
             console.log(nftSymbol);
             console.log(State);
             console.log(buttonID);
+            console.log(lockupperiod);
+
             // 等待狀態
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
@@ -1366,14 +1369,16 @@
             /*部署CrowdFundingContract*/
             console.log("TokenControllerContract deploying...");
             $.post("http://localhost:3030/Contracts/tokenControllerContract", {
-                TimeTokenLaunch: 201902230901,
-                TimeTokenUnlock: 201902230900,
-                TimeTokenValid: 201902280907
+                TimeTokenLaunch: TimeTokenLaunch,
+                TimeTokenUnlock: lockupperiod,
+                TimeTokenValid: TimeTokenValid
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
                 console.log(result.contractAddress);
                 console.log(nftSymbol);
+                console.log(HCAT721uri);
+
 
                 let tokencontrollerContract = result.contractAddress;
 
@@ -1386,7 +1391,7 @@
                         pricingCurrency: pricingCurrency,
                         IRR20yrx100: IRR20yrx100,
                         addrERC721SPLC_ControllerITF: tokencontrollerContract,
-                        tokenURI: "0x"
+                        tokenURI: HCAT721uri
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);
                         console.log(result);
@@ -1408,7 +1413,7 @@
         }
 
         // 募資失敗
-        function FundingNotClosed(tokenSymbol,State,buttonID){
+        function FundingNotClosed(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
@@ -1451,20 +1456,20 @@
                     let count = 0;
 
                     for (let i = 0; i < assetBookAddrs.length; i++) {
-                        await $.post("http://localhost:3030/Contracts//ERC721SPLCContract/"+nftSymbol+"/mint", {
+                        await $.post("http://localhost:3030/Contracts//ERC721SPLCContract/" + nftSymbol + "/mint", {
                             assetBookAddr: assetBookAddrs[i],
                             erc721address: erc721address,
                             amount: amounts[i]
                         }, async function (result) {
                             console.log(result);
                             if (result.result.status == true) {
-                                console.log(i+1+"/"+assetBookAddrs.length+"has minted...");
+                                console.log(i + 1 + "/" + assetBookAddrs.length + "has minted...");
                                 count++;
                             }
 
                         });
                     }
-                    if (count == assetBookAddrs.length ) {
+                    if (count == assetBookAddrs.length) {
                         // 將產品狀態設置為FundingComplete
                         $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
                             tokenState: State,
@@ -1494,7 +1499,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script src="/js/SignOut.js"></script>
     <script>
-        $('.Region').click(function(){
+        $('.Region').click(function () {
             $(this).next(".table-responsive").slideToggle(600);
             $(this).children(".fa-plus").toggle();
             $(this).children(".fa-minus").toggle();
