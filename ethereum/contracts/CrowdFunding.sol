@@ -1,5 +1,4 @@
 pragma solidity ^0.5.4;
-//透過平台平台asset contract deploy
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
 import "./Ownable.sol";
@@ -32,8 +31,6 @@ contract CrowdFunding is Ownable {
     struct Account {
         address assetbook;//assetbook addr
         uint256 qty;//購買的token總數
-        //uint256 fundBalance;//
-        //string currency;
     }
     mapping(uint => Account) public accounts;
     uint public cindex;
@@ -104,7 +101,6 @@ contract CrowdFunding is Ownable {
 
     /* checks if the goal or time limit has been reached and ends the campaign */
     function updateState(uint serverTime) public onlyAdmin {
-
         //enum fundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         require(serverTime > serverTimeMin, "serverTime should be greater than default time");
@@ -177,7 +173,6 @@ contract CrowdFunding is Ownable {
 
     function invest(address _assetbook, uint _quantityToInvest, uint serverTime) 
         external onlyAdmin {
-        // require(serverTime > serverTime, "serverTime should be greater than existing serverTime");
 
         if (_assetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
@@ -197,22 +192,11 @@ contract CrowdFunding is Ownable {
 
         require(fundingState == FundingState.funding || fundingState == FundingState.fundingGoalReached, "funding is terminated or not started yet");
 
-        /*struct Account {
-            address assetbook;//assetbook addr
-            uint256 qty;//購買的token總數
-        }*/
         cindex = cindex.add(1);
         accounts[cindex].assetbook = _assetbook;
         accounts[cindex].qty = _quantityToInvest;//qty;
-        //uint qty = accounts[cindex].qty;
-        //qty = qty.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
-
-        //uint fundBalance = accounts[cindex].fundBalance;
-        //fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
-        //accounts[cindex].fundBalance = _quantityToInvest.mul(tokenPrice);//fundBalance;
 
         emit TokenReserved(_assetbook, _quantityToInvest, serverTime);
-        //event TokenReserved(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
 
         updateState(serverTime);
     }

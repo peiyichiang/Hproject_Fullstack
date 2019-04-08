@@ -91,16 +91,5 @@ contract TokenController is Ownable {
         //emit SetReleaseTime(_TimeRelease);
     }
 
-    // event SetLegalCompliance(uint _addrLegalCompliance);
-    // function setLegalCompliance(uint _addrLegalCompliance) external onlyAdmin ckAddr(_addrLegalCompliance) {
-    //     addrLegalCompliance = _addrLegalCompliance;
-    //     LegalCompliance legalCompliance = LegalCompliance(_addrLegalCompliance);
-    //     emit SetLegalCompliance(_addrLegalCompliance);
-    // }
 
-    // event SetRegistry(address _addrRegistry);
-    // function setRegistry(address _addrRegistry) external onlyAdmin ckAddr(_addrRegistry){
-    //     addrRegistry = _addrRegistry;
-    //     emit SetRegistry(_addrRegistry);
-    // }
 }

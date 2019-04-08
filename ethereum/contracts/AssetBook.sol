@@ -6,7 +6,6 @@ import "./SafeMath.sol";//not used i++ is assumed not to be too big
 interface ERC721SPLCITF_assetbook {
     function balanceOf(address _owner) external view returns (uint256);
     function ownerOf(uint256 _tokenId) external view returns (address);
-    function getAccountIdsAll(address user) external;
     function getAccountIds(address user, uint idxS, uint idxE) external;
 
     function approve(address _approved, uint256 _tokenId) external;
@@ -17,16 +16,16 @@ interface ERC721SPLCITF_assetbook {
     function nftName() external view returns (string memory _name);
     function nftSymbol() external view returns (string memory _symbol);
     function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
-    function safeTransferFromBatch(address _from, address _to, uint amount, uint price) external;
+    function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
 }
 
 contract MultiSig {
     using SafeMath for uint256;
     using AddressUtils for address;
 
-    address public assetOwner; /** @dev 用戶 address */
-    address public platformContractAddr; /** @dev 平台方 platformContractAddr */
-    address[] public endorsersContractAddr; /** @dev 背書者的 assetContractAddr (一到三個人) */
+    address public assetOwner; /** @dev 用戶 */
+    address public platformContractAddr; /** @dev 平台方 */
+    address[] public endorsersContractAddr; /** @dev 背書者的 (一到三個人) */
     uint public assetOwner_flag;
     uint public platform_flag;
     uint public endorsers_flag;
@@ -128,8 +127,6 @@ contract MultiSig {
 
 interface MultiSigITF_assetbook {
     function getAssetOwner() external view returns(address);
-    // function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external;
-    // function getPlatformContractAddr() external view returns(address);
 }
 
 
@@ -157,12 +154,9 @@ contract AssetBook is MultiSig {
     }
     mapping (address => Asset) assets;//assets[_assetAddr]
     uint public assetCindex;//count and index of assets, and each asset has an assetAddr
-    //address[] assetAddrList; //asset address list ... list will need for loop to check each one to prevent duplicated entries!
     mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
 
     /** @dev asset相關event */
-    //event DeployAssetContractEvent(address assetOwner, address multiSigContractAddr, address platformContractAddr, uint timestamp);
-    //event addAssetEvent(address assetAddr, string symbol, uint balance, uint[] ids ,uint timestamp);
     event TransferAssetEvent(address to, string symbol, uint _assetId, uint tokenBalance, uint timestamp);
     event TransferAssetBatchEvent(address to, string symbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
@@ -171,20 +165,8 @@ contract AssetBook is MultiSig {
     constructor (address _assetOwner, address _platformContractAddr) public {
         assetOwner = _assetOwner;
         platformContractAddr = _platformContractAddr;
-        //multiSigContractAddr = _multiSigContractAddr;
-        //emit DeployAssetContractEvent(assetOwner, _multiSigContractAddr, platformContractAddr, _timeCurrent);
     }
-    /*
-    constructor @ MultiSig (address _assetOwner, address _platformContractAddr) public {
-        assetOwner = _assetOwner;
-        platformContractAddr = _platformContractAddr;
-    }
-    constructor @ AssetBook: (... address _multiSigContractAddr, )
 
-    function updateAssetOwner() external {
-        MultiSigITF_assetbook multiSig = MultiSigITF_assetbook(address(uint160(multiSigContractAddr)));
-        assetOwner = multiSig.getAssetOwner();
-    }*/
 
     modifier ckAssetAddr(address _assetAddr) {
         //require(_assetAddr != address(0), "_assetAddr should not be zero");
@@ -199,14 +181,9 @@ contract AssetBook is MultiSig {
         require(msg.sender == assetOwner, "sender must be assetOwner");
         _;
     }
-    // function setAssetApproval(address _assetAddr, bool _isApprovedForAsset) external {
-    //     require(msg.sender == platformContractAddr, "sender must be Platform Contract");
-    //     assets[_assetAddr].isApprovedForAsset = _isApprovedForAsset;
-    // }
 
 
-    /** @dev 新增token(當 erc721_token 分配到 AssetBookCtrt 的時候記錄起來)
-    For ERC721SPLC-addNFToken(address _to, uint256 _tokenId) to call this after minting new asset tokens */
+    /** @dev 新增token(當 erc721_token 分配到 AssetBookCtrt 的時候記錄起來) */
     function addAsset(address _assetAddr, string calldata symbol, uint balance) external {
         //assets[_assetAddr].isApprovedForAsset = true;
         require(_assetAddr.isContract(), "_assetAddr must contain a contract");//_assetAddr != address(0)
@@ -267,12 +244,10 @@ contract AssetBook is MultiSig {
     
 
     //transfer from the minimum timeIndex according to First In First Out principle
-    function safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
-        public ckAssetOwner ckAssetAddr(_assetAddr){//, uint256 _timeCurrent
-        //require(assets[_assetAddr].isApprovedForAsset, "check if this user is still approved for transferring this stoken");
-
+    function safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price, uint serverTime) 
+        public ckAssetOwner ckAssetAddr(_assetAddr){
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        erc721.safeTransferFromBatch(address(this), _to, amount, price);
+        erc721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
 
     }
 
@@ -302,13 +277,6 @@ contract AssetBook is MultiSig {
       transfer. Return of other than the magic value MUST result in the
       transaction being reverted.
       Note: the contract address is always the message sender.
-     $param _operator The address which called `safeTransferFrom` function
-     $param _from The address which previously owned the token
-     $param _tokenId The NFT identifier which is being transferred
-     $param _data Additional data with no specified format
-     $return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-      unless throwing
-      which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     */
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
         require(_operator != address(0), 'operator address should not be zero');
@@ -526,40 +494,11 @@ contract CrowdFundingTesting {
     }
 }
 //--------------------==
-// interface ArrayUtilsITF_assetbook {
-//     function sliceA(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-//         external pure;
-//     function sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-//         external pure;
-// }
 library AddressUtils {
     function isContract(address _addr) internal view returns (bool) {
         uint256 size;
-        /* XXX Currently there is no better way to check if there is a contract in an address than to
-        * check the size of the code at that address.
-        * See https://ethereum.stackexchange.com/a/14016/36603 for more details about how this works.
-        * TODO: Check this again before the Serenity release, because all addresses will be
-        * contracts then.*/
-        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        assembly { size := extcodesize(_addr) }
+        // solium-disable-line security/no-inline-assembly
         return size > 0;
     }
 }
-/** @dev string[] 不能回傳 */
-/*
-    //get all assets
-    function getAllAssets() public ckAssetOwner returns (address[], string[], uint[] ){
-        address[] memory assetAddrArray = new address[](assetAddrList.length);
-        string[] memory symbols = new string[](assetAddrList.length);
-        uint[]    memory balances = new uint[](assetsIndex.length);
-
-        for (uint i = 0; i < assetAddrList.length; i.add(1)) {
-            Asset storage asset = assets[assetAddrList[i]];
-            assetAddrArray[i] = asset.assetAddr;
-            symbols[i] = asset.symbol;
-            balances[i] = asset.balance;
-        }
-
-        return (assetAddrArray, symbols, balances);
-    }
-
-*/

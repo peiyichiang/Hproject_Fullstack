@@ -1,36 +1,34 @@
 pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
-//deploy parameters: "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
 contract IncomeManagerCtrt is Ownable {
     using SafeMath for uint256;
     address public tokenCtrt;
-
-    address public writeAbleAddr;//addr authorized to write
+    address public supervisor;
     uint public dateTimeMin = 201901220900;
 
-    uint public schCindex;//index of the current scheduled, 1 to 80. SPLC life time總共80期
-    mapping(uint256 => IncomeSchedule) public idxToSchedule;//schedule index to incomeSchedule
+    uint public schCindex;//index of current schedule, 1 to 80. SPLC life time總共80期
+    mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
     
     // cash flow: FMX -> platform -> investors
-    struct IncomeSchedule {
+    struct Schedule {
         uint payableDate;//the date to send income, used as mapping key
         uint payableAmount;//given by FMXA, sending income from platform to investors
         uint paymentDate;//the date when the platform actually sent payment
         uint paymentAmount;//the amount the platform paid the asset owner
-        bool isApproved;//by PA
+        bool isApproved;//by ProductSupervisor
         uint8 errorCode;//0 to 255
         bool isErrorResolved;//default = true
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(address _tokenCtrt, address _writeAbleAddr,
+    constructor(address _tokenCtrt, address _supervisor,
         address[] memory managementTeam) public {
         tokenCtrt = _tokenCtrt;
-        writeAbleAddr = _writeAbleAddr;//can be EOA or contract
+        supervisor = _supervisor;//can be EOA or contract
 
         require(managementTeam.length > 4, "managementTeam.length should be > 4");
         owner = managementTeam[4];
@@ -40,24 +38,13 @@ contract IncomeManagerCtrt is Ownable {
         admin = managementTeam[0];
     }
     modifier restricted(){
-        require(msg.sender == writeAbleAddr, "only writeAbleAddr is allowed");
+        require(msg.sender == supervisor, "only supervisor is allowed");
         _;
     }
-    /*
-    -->每季底FMX結帳後FMXA通知平台該期應該發放的租金是多少-->PlatformBD-->PlatformA審核, 確認.
-    -->平台發出訊息給user, 即將於x月底發放租金至指定帳戶, 請user確認.
-    -->發放租金資訊鏈接bank-->回報訊息.
-    -->異常處理.
-    -->二級市場交易時, 租金分配規則制定.
-    -->外部還要寫一隻BE程式專門與銀行對接收/ 付款資訊.
-
-    發行日(RD)之後, 每一季發放租金, 外部預先把期數定義好(SPLC life time總共80期), 去ERC721合約中撈持幣user資料(及持有時間長短), time server檢查要發放租金前通知FM, 平台, 
-    -->match product time line以及後台功能.
-    */
 
     //check income ready to release
     function isScheduleGoodForRelease(uint _dateTimeNow) external view returns (bool) {
-        IncomeSchedule memory icSch = idxToSchedule[dateToIdx[_dateTimeNow]];
+        Schedule memory icSch = idxToSchedule[dateToIdx[_dateTimeNow]];
         return (icSch.isApproved && icSch.payableDate > dateTimeMin && icSch.payableAmount > 0 && icSch.paymentDate == 0 && icSch.paymentAmount == 0);
     }
 
@@ -94,15 +81,6 @@ contract IncomeManagerCtrt is Ownable {
             emit AddSchedule(schCindex, _payableDates[i], _payableAmounts[i]);
         }
     }
-    /*struct IncomeSchedule {
-        uint payableDate;//the date to send income, used as mapping key
-        uint payableAmount;//given by FMXA, sending income from platform to investors
-        uint paymentDate;//the date when the platform actually sent payment
-        uint paymentAmount;//the amount the platform paid the asset owner
-        bool isApproved;//by PA
-        uint8 errorCode;//0 to 255
-        bool isErrorResolved;//default = true
-    }*/
 
     event EditIncomeSchedule(uint indexed _index, uint indexed _payableDate, uint _payableAmount);
     function editIncomeSchedule(uint _index, uint _payableDate, uint _payableAmount) external restricted {
@@ -118,19 +96,10 @@ contract IncomeManagerCtrt is Ownable {
         emit EditIncomeSchedule(schCindex, _payableDate, _payableAmount);
     }
 
-    /*struct IncomeSchedule {
-        uint payableDate;//the date to send income, used as mapping key
-        uint payableAmount;//given by FMXA, sending income from platform to investors
-        uint paymentDate;//the date when the platform actually sent payment
-        uint paymentAmount;//the amount the platform paid the asset owner
-        bool isApproved;//by PA
-        uint8 errorCode;//0 to 255
-        bool isErrorResolved;//default = true
-    }*/
 
     function getIncomeSchedule(uint _index, uint _payableDate) external view returns (uint payableDate, uint payableAmount, uint paymentDate, uint paymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
         uint rsIndex = getSchIndex(_index, _payableDate);
-        IncomeSchedule memory icSch = idxToSchedule[rsIndex];
+        Schedule memory icSch = idxToSchedule[rsIndex];
 
         payableDate = icSch.payableDate;
         payableAmount = icSch.payableAmount;
@@ -143,9 +112,8 @@ contract IncomeManagerCtrt is Ownable {
 
     function getIncomeScheduleList(uint indexStart, uint amount) external view returns (uint[] memory payableDates, uint[] memory payableAmounts, uint[] memory paymentDates, uint[] memory paymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
 
-        //require(indexStart > 0, "indexStart must be > 0");
         uint amount_; uint indexStart_;
-        if(indexStart == 0) {
+        if(indexStart == 0) {//all get all schedules
             indexStart_ = 1;
             amount_ = schCindex;
 
@@ -153,6 +121,7 @@ contract IncomeManagerCtrt is Ownable {
             //all get all remaining schedules
             indexStart_ = indexStart;
             amount_ = schCindex.sub(indexStart_).add(1);
+
         } else {
             indexStart_ = indexStart;
             amount_ = amount;
@@ -168,7 +137,7 @@ contract IncomeManagerCtrt is Ownable {
         isErrorResolveda = new bool[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)){
-            IncomeSchedule memory icSch = idxToSchedule[i.add(indexStart_)];
+            Schedule memory icSch = idxToSchedule[i.add(indexStart_)];
             payableDates[i] = icSch.payableDate;
             payableAmounts[i] = icSch.payableAmount;
             paymentDates[i] = icSch.paymentDate;
@@ -180,27 +149,6 @@ contract IncomeManagerCtrt is Ownable {
         }
 
     }
-    /*struct IncomeSchedule {
-        uint payableDate;//the date to send income, used as mapping key
-        uint payableAmount;//given by FMXA, sending income from platform to investors
-        uint paymentDate;//the date when the platform actually sent payment
-        uint paymentAmount;//the amount the platform paid the asset owner
-        bool isApproved;//by PA
-        uint8 errorCode;//0 to 255
-        bool isErrorResolved;//default = true
-    }*/
-
-    // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] paymentDates, uint[] paymentAmounts, bool[] isApproveda, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolveda) {
-
-    //     IncomeSchedule[] memory incomeSchedule;
-    //     for(uint i = 0; i < indices.length; i = i.add(1)) {
-    //         uint rsIndex = getSchIndex(_index, _payableDate);
-    //         IncomeSchedule memory icSch = idxToSchedule[rsIndex];
-    //         incomeSchedule[i] = idxToSchedule[dateToIdx[indices[i]]];
-
-    //     }
-    //     return incomeSchedule;
-    // }
 
     function getSchIndex(uint _index, uint _payableDate) public view returns (uint rsIndex) {
         if (_index == 0) {
@@ -229,22 +177,13 @@ contract IncomeManagerCtrt is Ownable {
         idxToSchedule[rsIndex].isApproved = boolValue;
     }
 
-    /*struct IncomeSchedule {
-        uint payableDate;//the date to send income, used as mapping key
-        uint payableAmount;//given by FMXA, sending income from platform to investors
-        uint paymentDate;//the date when the platform actually sent payment
-        uint paymentAmount;//the amount the platform paid the asset owner
-        bool isApproved;//by PA
-        uint8 errorCode;//0 to 255
-        bool isErrorResolved;//default = true
-    }*/
 
     /**設定 isIncomePaid，如果有錯誤發生，設定errorCode */
     event SetPaymentReleaseResults(uint indexed _paymentDate, uint _paymentAmount, uint8 _errorCode);
     function setPaymentReleaseResults(uint _index, uint _paymentDate, uint _paymentAmount, uint8 _errorCode) external restricted {
 
         uint rsIndex = getSchIndex(_index, _paymentDate);
-        //require(idxToSchedule[rsIndex].isApproved, "such schedule must have been approved first");
+        require(idxToSchedule[rsIndex].isApproved, "such schedule must have been approved first");
         idxToSchedule[rsIndex].paymentDate = _paymentDate;
         idxToSchedule[rsIndex].paymentAmount = _paymentAmount;
 
@@ -260,4 +199,18 @@ contract IncomeManagerCtrt is Ownable {
         uint rsIndex = getSchIndex(_index, _paymentDate);
         idxToSchedule[rsIndex].isErrorResolved = boolValue;
     }
+
+
+
+    // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] paymentDates, uint[] paymentAmounts, bool[] isApproveda, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolveda) {
+
+    //     Schedule[] memory schedule;
+    //     for(uint i = 0; i < indices.length; i = i.add(1)) {
+    //         uint rsIndex = getSchIndex(_index, _payableDate);
+    //         Schedule memory icSch = idxToSchedule[rsIndex];
+    //         schedule[i] = idxToSchedule[dateToIdx[indices[i]]];
+
+    //     }
+    //     return schedule;
+    // }
 }

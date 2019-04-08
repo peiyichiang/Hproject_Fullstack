@@ -1,6 +1,7 @@
 pragma solidity ^0.5.4;
 /* v2.0
-=> Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!! => use 3rd party to freeze token transfer
+=> Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!!
+=> use yyyymmddhhmm to record time
 
 Add ITF to distingush interface json from compiled contracts json
 
@@ -10,9 +11,7 @@ A contract that implements ERC721Metadata or ERC721Enumerable SHALL also impleme
 
 https://github.com/0xcert/ethereum-erc721/tree/master/contracts/tokens
 */
-    /** Contract code size over limit of 24576 bytes.
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
-    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
+
 import "./SafeMath.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
@@ -33,8 +32,7 @@ interface ERC721ITF {
   function isApprovedForAll(address _owner, address _operator) external view returns (bool);
 }
 
-/*A wallet/broker/auction application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.
-*/
+/*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.*/
 interface ERC721TokenReceiverITF {
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
 }
@@ -63,11 +61,6 @@ interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
-//AssetBookITF(addrAssetBookITF).addAsset(_assetAddr);
-interface AssetBookITF {
-    function addAsset(address _assetAddr, string calldata _symbol, uint balance) external;
-    function updateAssetFromAssetContract(address _assetAddr, uint balance) external;
-}
 
 
 
@@ -85,19 +78,15 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     struct Account {
         uint idxStart;
         uint idxEnd;
-        mapping (uint => uint) indexToId;//time index to _tokenId: accounts[user].indexToId[index]
-        //For First In First Out(FIFO) exchange rule
+        mapping (uint => uint) indexToId;//time index to _tokenId: accounts[user].indexToId[index] //For First In First Out(FIFO) transfer rule
         mapping (address => bool) operators;
     }
     mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         address owner;
-        // uint acquiredCost;
-        // uint acquiredTime;
         address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
-    bytes32 public tokenURI;//token specific information
     uint public tokenId;//from 1, also is the count of all issued tokens
     uint public siteSizeInKW;// 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
@@ -109,14 +98,10 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
     address public addrRegistryITF;
     address public addrTokenControllerITF;
 
-    /*==================Metadata
-    https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721Metadata.sol
-    interface ERC721Metadata {}*/
-    string public nftName;//descriptive name for a collection of NFTs
-    string public nftSymbol;//abbreviated name for NFTokens
+    string public name;//descriptive name for a collection of NFTs
+    string public symbol;//abbreviated name for NFTokens
+    bytes32 public tokenURI;//token specific information
 
-    //==================
-    //
     /** Contract code size over limit of 24576 bytes.
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
     "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
@@ -126,8 +111,8 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         string memory _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistryITF, address _addrTokenControllerITF,
         bytes32 _tokenURI) public {
-        nftName = _nftName;
-        nftSymbol = _nftSymbol;
+        name = _nftName;
+        symbol = _nftSymbol;
         tokenURI = _tokenURI;
 
         siteSizeInKW = _siteSizeInKW;
@@ -165,13 +150,11 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         address ownerAddr, address approvedAddr) {
         Asset memory asset = idToAsset[_tokenId];
         ownerAddr = asset.owner;
-        // acquiredCost = asset.acquiredCost;
-        // acquiredTime = asset.acquiredTime;
         approvedAddr = asset.approvedAddr;
         require(ownerAddr != address(0), "ownerAddr should not be 0x0");
     }
 
-    //去ERC721合約中撈持幣user資料(及持有時間長短), time server檢查要發放租金前通知FM, 平台
+    //去ERC721合約中撈 持幣user資料
     function getTokenOwners(uint indexStart, uint amount) 
         external view returns(address[] memory ownerAddrs) {
         uint indexStart_; uint amount_;            
@@ -261,12 +244,12 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             }
             arrayOut = new uint[](amount_);
 
-            for(uint i = 0; i < amount_; i.add(1)) {
+            for(uint i = 0; i < amount_; i = i.add(1)) {
                 arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
             }
             // uint length = idxE.sub(indexStart).add(1);
             // arrayOut = new uint[](length);
-            // for(uint i = indexStart; i < length; i.add(1)) {
+            // for(uint i = indexStart; i < length; i = i.add(1)) {
             //     arrayOut[i] = accounts[user].indexToId[i];
             // }
         }
@@ -290,7 +273,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 
     //-----------------------==Mint
     // function mintSerialNFTBatch(address[] calldata _tos, uint amount) external {
-    //     for(uint i=0; i < _tos.length; i.add(1)) {
+    //     for(uint i=0; i < _tos.length; i = i.add(1)) {
     //         for(uint j=0; j < amount; j.add(1)) {
     //             mintSerialNFT(_tos[i], amount);
     //         }
@@ -334,7 +317,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         //uint balance = idxEnd.sub(idxStart).add(1);
         //require(balance >= amount, "not enough asset: balance < amount");
 
-        for(uint i = idxStartReq; i <= idxEndReq; i.add(1)) {
+        for(uint i = idxStartReq; i <= idxEndReq; i = i.add(1)) {
             tokenId = tokenId.add(1);
             idToAsset[tokenId].owner = _to;
             // idToAsset[tokenId].acquiredCost = initialAssetPricing;
@@ -343,7 +326,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             accounts[_to].indexToId[i] = tokenId;
         }
         accounts[_to].idxEnd = idxEndReq;
-        //AssetBookITF(_to).addAsset(address(this), nftSymbol, idxEndReq.sub(idxStartReq).add(1));
+
     }
     /*struct Asset {
         address owner;
@@ -419,7 +402,7 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
           //idxEndReqT = idxEndT.add(amount);
         }//accounts[_to].indexToId[0]
 
-        for(uint i = 0; i < amount; i.add(1)) {
+        for(uint i = 0; i < amount; i = i.add(1)) {
 
             //inside _from account
             uint idxFrom = i.add(idxStartF);
@@ -454,9 +437,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
         } else {
             accounts[_from].idxStart = idxStartF.add(amount);
         }
-
-        // AssetBookITF(_from).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
-        // AssetBookITF(_to).updateAssetFromAssetContract(address(this), idxEndReq.sub(idxStartReq).add(1));
 
         emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
@@ -501,7 +481,6 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
             accounts[_to].indexToId[idxEndReq] = _tokenId;
             accounts[_to].idxEnd = idxEndReq;
         }
-        //AssetBookITF(_to).addAsset(address(this), nftSymbol, idxEndReq.sub(idxStart).add(1));
     }
     /*struct Account { // accounts[user]
         uint idxStart;// 0, 1, 2, ...
@@ -728,57 +707,19 @@ contract ERC721SPLC_HToken is ERC721ITF, SupportsInterface {
 library AddressUtils {
     function isContract(address _addr) internal view returns (bool) {
         uint256 size;
-        /* XXX Currently there is no better way to check if there is a contract in an address than to
-        * check the size of the code at that address.
-        * See https://ethereum.stackexchange.com/a/14016/36603 for more details about how this works.
-        * TODO: Check this again before the Serenity release, because all addresses will be
-        * contracts then.*/
-        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        assembly { size := extcodesize(_addr) }
+        // solium-disable-line security/no-inline-assembly
         return size > 0;
     }
 }
-    // function getAccountIdsAll(address user) external view 
-    // returns (uint[] memory arrayOut) {
-    //     require(user != address(0), "user should not be address(0)");
-    //     uint idxStart = accounts[user].idxStart;
-    //     uint idxEnd = accounts[user].idxEnd;
-
-    //     if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
-    //         //arrayOut = [];
-    //     } else if(idxStart > idxEnd) {
-    //         //arrayOut = [];
-    //     } else {
-    //         uint length = idxEnd.sub(idxStart).add(1);
-    //         arrayOut = new uint[](length);
-
-    //         for(uint i = 0; i < length; i.add(1)) {
-    //             arrayOut[i] = accounts[user].indexToId[i.add(idxStart)];
-    //         }
-    //     }//else arrayOut = [];
-    // }
 /**
-$ Caller SHALL NOT assume that ID numbers have any specific pattern to them, and MUST treat the ID as a "black box".
-Also note that a NFTs MAY become invalid (be destroyed). 
-
 $ Transfers may be initiated by:
 The owner of an NFT, The approved address of an NFT, An authorized operator of an NFT
 Additionally, an authorized operator may set the approved address for an NFT.
 
-# Disallow transfers if the contract is paused — prior art, CryptoKitties deployed contract, line 611
-# Blacklist certain address from receiving NFTs — prior art, CryptoKitties deployed contract, lines 565, 566
-# Disallow unsafe transfers — transferFrom throws unless _to equals msg.sender or countOf(_to) is non-zero or was non-zero previously (because such cases are safe)
-
-# Charge a fee to both parties of a transaction — require payment when 
-calling approve with a non-zero _approved if it was previously the zero address, refund payment if calling approve with the zero address 
-if it was previously a non-zero address, require payment when calling any transfer function, require transfer parameter _to to equal msg.sender, 
-require transfer parameter _to to be the approved address for the NFT
-
-# Read only NFT RegistryITF — always throw from unsafeTransfer, transferFrom, approve and setApprovalForAll
-
 $ only allow two-step ERC-20 style transaction, require that transfer functions never throw, require all functions to return a boolean indicating the success of the operation.
 
 $ The URI MAY be mutable (i.e. it changes from time to time).
-
 */
 
 /**

@@ -291,7 +291,8 @@ let addrPlatformCtrt;
 let uid1, uid2;
 let extoAddr1, extoAddr2;
 
-let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner; let tokenOwnerM, tokenControllerDetail, timeCurrentM;
+let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
+let tokenOwnerM, tokenControllerDetail, timeCurrentM;
 let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
 
 beforeEach( async () => {
@@ -550,15 +551,15 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n------------==Check deployment');
     assert.ok(addrPlatformCtrt);
-    assert.ok(addrMultiSig1);
-    assert.ok(addrMultiSig2);
+    // assert.ok(addrMultiSig1);
+    // assert.ok(addrMultiSig2);
     assert.ok(addrAssetBook1);
     assert.ok(addrAssetBook2);
     assert.ok(addrRegistry);
     assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
     assert.ok(addrCrowdFunding);
-    assert.ok(addrPlatformSupervisorCtrt);
+    //assert.ok(addrPlatformSupervisorCtrt);
     console.log('Deployment Check: Good');
 
     let _assetAddr = addrERC721SPLC;
@@ -641,8 +642,8 @@ describe('Tests on ERC721SPLC', () => {
     let tokenContractDetails = await instERC721SPLC.methods.getTokenContractDetails().call();
     console.log('tokenContractDetails', tokenContractDetails);
 
-    let nameM = await instERC721SPLC.methods.nftName().call();
-    let symbolM = await instERC721SPLC.methods.nftSymbol().call();
+    let nameM = await instERC721SPLC.methods.name().call();
+    let symbolM = await instERC721SPLC.methods.symbol().call();
     let initialAssetPricingM = await instERC721SPLC.methods.initialAssetPricing().call();
     let IRR20yrx100M = await instERC721SPLC.methods.IRR20yrx100().call();
     let maxTotalSupplyM = await instERC721SPLC.methods.maxTotalSupply().call();
@@ -693,8 +694,8 @@ describe('Tests on ERC721SPLC', () => {
 
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
-    let _to, tokenIdTarget, accountM, balanceM, accountIdsAll, assetbookMX;
-    _to = addrAssetBook1; tokenIdTarget = 1;
+    let _to, tokenIdTarget, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
+    _to = addrAssetBook1; tokenIdTarget = 1; serverTime = timeCurrent;
 
     assetbookMX = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log(assetbookMX);
@@ -714,7 +715,7 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
-    await instERC721SPLC.methods.mintSerialNFT(_to, tokenIdTarget).send({
+    await instERC721SPLC.methods.mintSerialNFT(_to, tokenIdTarget, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('after minting tokenId =', tokenIdTarget);
@@ -733,8 +734,7 @@ describe('Tests on ERC721SPLC', () => {
     tokenInfo = await instERC721SPLC.methods.getToken(tokenIdTarget).call();
     console.log('SPLC getToken(): tokenId = '+tokenIdTarget+':', tokenInfo);
     assert.equal(tokenInfo[0], addrAssetBook1);
-    assert.equal(tokenInfo[1], initialAssetPricing);
-    assert.equal(tokenInfo[2], addrZero);
+    assert.equal(tokenInfo[1], addrZero);
 
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
     console.log('\nSPLC accountM', accountM);
@@ -748,7 +748,7 @@ describe('Tests on ERC721SPLC', () => {
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    _to = addrAssetBook1; amount = 3;
+    _to = addrAssetBook1; amount = 3; serverTime = timeCurrent;
     //let _tos = [_to, _to, _to];
     let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
     const strToBytes32 = str => web3.utils.fromAscii(str);
@@ -757,7 +757,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('_uriBytes32s', _uriBytes32s);
 
     console.log('\nmintSerialNFT()... amount =', amount);
-    await instERC721SPLC.methods.mintSerialNFT(_to, amount).send({
+    await instERC721SPLC.methods.mintSerialNFT(_to, amount, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
@@ -775,8 +775,7 @@ describe('Tests on ERC721SPLC', () => {
     tokenInfo = await instERC721SPLC.methods.getToken(2).call();
     console.log('\nERC721SPLC tokenId = 2:', tokenInfo);
     assert.equal(tokenInfo[0], addrAssetBook1);
-    assert.equal(tokenInfo[1], initialAssetPricing);
-    assert.equal(tokenInfo[2], addrZero);
+    assert.equal(tokenInfo[1], addrZero);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
@@ -802,7 +801,7 @@ describe('Tests on ERC721SPLC', () => {
     //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getToken(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
-    _to = addrAssetBook2; amount = 3;
+    _to = addrAssetBook2; amount = 3; serverTime = timeCurrent;
     //_tos = [_to, _to, _to];
     _uriStrs = [uriBase+"5", uriBase+"6", uriBase+"7"];
     _uriBytes32s = _uriStrs.map(strToBytes32);
@@ -810,7 +809,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('_uriBytes32s', _uriBytes32s);
     
     console.log('\nstart minting via mintSerialNFTBatch()');
-    await instERC721SPLC.methods.mintSerialNFT(_to, amount).send({
+    await instERC721SPLC.methods.mintSerialNFT(_to, amount, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
@@ -905,9 +904,9 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(bool1, true);
 
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-    _fromAssetOwner = AssetOwner2;
+    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
@@ -940,11 +939,11 @@ describe('Tests on ERC721SPLC', () => {
     //------------------------==
     //-----------------==Check AssetBook2
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 17000;
-    _fromAssetOwner = AssetOwner1;
+    _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
 
-    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(_assetAddr, amount, _to, _timeCurrent)
 
@@ -972,9 +971,9 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
-    _fromAssetOwner = AssetOwner2;
+    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
@@ -1002,9 +1001,9 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 7; price = 21000;
-    _fromAssetOwner = AssetOwner1;
+    _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
     console.log('AssetBook1 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook1 after txn...');
@@ -1082,7 +1081,7 @@ describe('Tests on ERC721SPLC', () => {
 //-----------------------------------------==
 describe('Tests on ArrayTesting', () => {
 
-  it('ArrayTesting functions test', async () => {
+  it('ArrayTesting functions test', async function() {
     console.log('\n------------==Check ArrayTesting parameters');
     let array1 = [ '1', '2', '3', '4', '5'];
     let array2 = [ '6', '7', '8'];
@@ -1094,7 +1093,6 @@ describe('Tests on ArrayTesting', () => {
     console.log('\narrayOut', arrayOut);
 
     // console.log('addrCrowdFunding', addrCrowdFunding);
-    // console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
   });
 });
 
@@ -1362,7 +1360,7 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 // describe('Tests on DDD', () => {
 
-//   it('DDD functions test', async () => {
+//   it('DDD functions test', async function()  {
 //     console.log('\n------------==Check DDD parameters');
 //   });
 // });
@@ -1372,13 +1370,14 @@ describe('Tests on IncomeManagerCtrt', () => {
 //-----------------------------------------==
 describe('Tests on CrowdFunding', () => {
 
-  it('CrowdFunding functions test', async () => {
+  it('CrowdFunding functions test', async function() {
     console.log('\n------------==Check CrowdFunding parameters');
     console.log('addrCrowdFunding', addrCrowdFunding);
+
+    const _CFSD2 = timeCurrent+1;
+    //_CFED2 = timeCurrent+10;
     console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
     // timeCurrent = 201902281040;
-    // const _CFSD2 = timeCurrent+1;
-    // const _CFED2 = timeCurrent+10;
     /**
     const nftSymbol = "NCCU1801";
     const maxTotalSupply = 773; 
@@ -1419,12 +1418,13 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(CFED2M, _CFED2);
 
     //------------==
-    await instCrowdFunding.methods.updateState()
+    serverTime = timeCurrent;
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    let serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, timeCurrent);
+    // let serverTimeM = await instCrowdFunding.methods.serverTime().call();
+    // console.log('\nserverTimeM', serverTimeM);
+    // assert.equal(serverTimeM, timeCurrent);
 
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1434,12 +1434,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('fundingStateM', fundingStateM);
     assert.equal(fundingStateM, 0);
 
-    //const _CFSD2 = timeCurrent+1;
-    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    serverTime = _CFSD2;
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFSD2);
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1450,13 +1447,6 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(fundingStateM, 1);
 
     if (1==2){
-      //const _CFED2 = timeCurrent+10;
-      await instCrowdFunding.methods.setServerTime(_CFED2)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-      serverTimeM = await instCrowdFunding.methods.serverTime().call();
-      console.log('serverTimeM', serverTimeM);
-      assert.equal(serverTimeM, _CFED2);//201902281050
-      
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
       assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
@@ -1473,23 +1463,18 @@ describe('Tests on CrowdFunding', () => {
     const _goalInPercentage = 97;//  773* 0.97 = 749.81 ... 24
     const initialAssetPricing = 17000;
     */
-    // serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    // console.log('\nserverTimeM', serverTimeM);
-    // assert.equal(serverTimeM, 201902281041);
-
-    await instCrowdFunding.methods.makeFundingActive()
+    serverTime = 201902281041;
+    await instCrowdFunding.methods.makeFundingActive(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal)
+    await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal, serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('\nafter investing the target goal amount');
 
     //------------------==Set time to initial
-    await instCrowdFunding.methods.setServerTime(_CFSD2-1)
+    serverTime = _CFSD2-1;
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('serverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFSD2-1);//201902281039
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1500,15 +1485,13 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(fundingStateM, 0);
 
     //------------------==Back to _CFSD2
-    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    serverTime = _CFSD2;
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFSD2);
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "fundingWithGoalReached: still funding and has reached goal");
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
@@ -1521,8 +1504,7 @@ describe('Tests on CrowdFunding', () => {
     let error = false;
     try {
       console.log('\nTrying to invest quantityAvailable+1');
-      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
@@ -1533,7 +1515,7 @@ describe('Tests on CrowdFunding', () => {
     if(1==2){
       //-------------------==Buying the available quantity
       console.log('\nTrying to invest quantityAvailable');
-      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable)
+      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable, serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
@@ -1547,15 +1529,13 @@ describe('Tests on CrowdFunding', () => {
     } else {
       //-------------------==CFED2 has been reached
       console.log('\nCFED2 has been reached');
-      await instCrowdFunding.methods.setServerTime(_CFED2)
+      serverTime = _CFED2;
+      await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-      serverTimeM = await instCrowdFunding.methods.serverTime().call();
-      console.log('serverTimeM', serverTimeM);
-      assert.equal(serverTimeM, _CFED2);//201902281050
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "hasSucceeded: ended with unsold items");
+      assert.equal(stateDescriptionM, "fundingClosed: ended with unsold items");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
@@ -1565,23 +1545,6 @@ describe('Tests on CrowdFunding', () => {
 
     //------------------==
     /*
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, 201902281041);
-
-    await instCrowdFunding.methods.startFunding()
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    await instCrowdFunding.methods.invest(addrAssetBook1, maxTotalSupply)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
-
-    fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 4);
     */
 
   });
