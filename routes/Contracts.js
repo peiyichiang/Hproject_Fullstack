@@ -231,20 +231,19 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let currency = req.body.currency;
     let quantityMax = req.body.quantityMax;
     let fundingGoal = req.body.fundingGoal;
-    let goalInPercentage = Math.floor(fundingGoal / quantityMax * 100);
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
     let currentTime;
     await timer.getTime().then(function(time) {
         currentTime = time;
-    })
-    console.log(`現在時間: ${currentTime}`)
+    });
+    console.log(`現在時間: ${currentTime}`);
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
 
     crowdFunding.deploy({
         data: crowdFundingContract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, goalInPercentage, CFSD2, CFED2, currentTime, management]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, fundingGoal, CFSD2, CFED2, currentTime, management]
     })
         .send({
             from: backendAddr,
@@ -282,9 +281,16 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 });
 
 /**invest*/
-router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', function (req, res, next) {
+router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
+    let currentTime = 201904200000;
+/*
+    await timer.getTime().then(function(time) {
+        currentTime = time;
+    })
+*/
+    console.log(`現在時間: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -302,7 +308,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', funct
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
 
             /*用後台公私鑰sign*/
-            let encodedData = crowdFunding.methods.invest(assetBookAddr, quantityToInvest).encodeABI();
+            let encodedData = crowdFunding.methods.invest(assetBookAddr, quantityToInvest, currentTime).encodeABI();
             let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
             res.send({
                 DBresult: DBresult,
@@ -384,6 +390,121 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
     });
 });
 
+/**funding pause*/
+router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+    let currentTime;
+    await timer.getTime().then(function(time) {
+        currentTime = time;
+    })
+    console.log(`現在時間: ${currentTime}`)
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = crowdFunding.methods.pauseFunding(currentTime).encodeABI();
+            let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+
+            res.send({
+                DBresult: DBresult,
+                TxResult: TxResult
+            })
+        }
+    });
+
+});
+
+/**funding resume*/
+router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+    let currentTime = 201904200000;
+/*
+    await timer.getTime().then(function(time) {
+        currentTime = time;
+    })
+*/
+    console.log(`現在時間: ${currentTime}`)
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+            let CFED2 = req.body.CFED2;
+            let quantityMax = req.body.quantityMax;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = crowdFunding.methods.resumeFunding(CFED2, quantityMax, currentTime).encodeABI();
+            let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+
+            res.send({
+                DBresult: DBresult,
+                TxResult: TxResult
+            })
+        }
+    });
+
+});
+
+/**@todo reason 前端輸入*/
+/**funding Abort*/
+router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+    let currentTime = 201904200000;
+/*
+    await timer.getTime().then(function(time) {
+        currentTime = time;
+    })
+*/
+    console.log(`現在時間: ${currentTime}`)
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+            let reason = req.body.reason;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = crowdFunding.methods.Abort(reason, currentTime).encodeABI();
+            let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+
+            res.send({
+                DBresult: DBresult,
+                TxResult: TxResult
+            })
+        }
+    });
+
+});
 /**get status（開發用） */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
@@ -402,38 +523,18 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
             let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
             let fundingState = await crowdFunding.methods.fundingState().call({ from: backendAddr })
+            let stateDescription = await crowdFunding.methods.stateDescription().call({ from: backendAddr })
+            let quantityGoal = await crowdFunding.methods.quantityGoal().call({ from: backendAddr })
+            let quantityMax = await crowdFunding.methods.quantityMax().call({ from: backendAddr })
+            let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr })
 
-            res.send(fundingState);
-        }
-    });
-});
-
-/**set servertime(開發用) */
-router.post('/crowdFundingContract/:tokenSymbol/:servertime', async function (req, res, next) {
-    let tokenSymbol = req.params.tokenSymbol;
-    let servertime = req.params.servertime;
-    let mysqlPoolQuery = req.pool;
-
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
-        if (err) {
-            //console.log(err);
             res.send({
-                err: err,
-                status: false
+                fundingState: fundingState,
+                stateDescription: stateDescription,
+                quantityGoal: quantityGoal,
+                quantityMax: quantityMax,
+                quantitySold: quantitySold
             });
-        }
-        else {
-            console.log(DBresult[0].sc_crowdsaleaddress);
-            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
-            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
-
-            /*用後台公私鑰sign*/
-            let encodedData = crowdFunding.methods.setServerTime(servertime).encodeABI();
-            let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
-            res.send({
-                DBresult: DBresult,
-                TxResult: TxResult
-            })
         }
     });
 });

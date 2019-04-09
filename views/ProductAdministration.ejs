@@ -502,7 +502,7 @@
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-success"
                         name="FundingRestart" value="FundingRestart"
-                        onclick="FundingRestart('<%= data[i].p_SYMBOL  %>','funding',this.id);">恢復募資
+                        onclick="FundingRestart('<%= data[i].p_SYMBOL  %>','funding',this.id,'<%= data[i].p_CFED  %>','<%= data[i].p_totalrelease  %>');">恢復募資
                     </button>
                 </td>
                 <td>
@@ -1260,30 +1260,50 @@
         function Aborted(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
-            // 設置產品
-            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
-                tokenState: State,
-                tokenSymbol: tokenSymbol
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/abort", {
+                reason: "JUST ABORT!!!"
             }, function (result) {
+                //var result = JSON.parse(resultJSON);
                 console.log(result);
-                // 設置好後重新整理
-                location.reload();
-            })
+
+                if (result.TxResult.status == true) {
+                    // 設置產品
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                        tokenState: State,
+                        tokenSymbol: tokenSymbol
+                    }, function (result) {
+                        console.log(result);
+                        // 設置好後重新整理
+                        location.reload();
+                    })
+                }
+            });
+
         }
 
         // 恢復募資
-        function FundingRestart(tokenSymbol, State, buttonID) {
+        function FundingRestart(tokenSymbol, State, buttonID, CFED2, quantityMax) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
-            // 設置產品
-            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
-                tokenState: State,
-                tokenSymbol: tokenSymbol
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/resume", {
+                CFED2: CFED2,
+                quantityMax: quantityMax
             }, function (result) {
+                //var result = JSON.parse(resultJSON);
                 console.log(result);
-                // 設置好後重新整理
-                location.reload();
-            })
+
+                if (result.TxResult.status == true) {
+                    // 設置產品
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                        tokenState: State,
+                        tokenSymbol: tokenSymbol
+                    }, function (result) {
+                        console.log(result);
+                        // 設置好後重新整理
+                        location.reload();
+                    })
+                }
+            });
         }
 
         // 退款
@@ -1306,15 +1326,23 @@
         function FundingPaused(tokenSymbol, State, buttonID) {
             // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
-            // 設置產品
-            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
-                tokenState: State,
-                tokenSymbol: tokenSymbol
-            }, function (result) {
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/pause", function (result) {
+                //var result = JSON.parse(resultJSON);
                 console.log(result);
-                // 設置好後重新整理
-                location.reload();
-            })
+
+                if (result.TxResult.status == true) {
+                    // 設置產品
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                        tokenState: State,
+                        tokenSymbol: tokenSymbol
+                    }, function (result) {
+                        console.log(result);
+                        // 設置好後重新整理
+                        location.reload();
+                    })
+
+                }
+            });
 
         }
 

@@ -55,7 +55,7 @@ contract CrowdFunding is Ownable {
         uint _tokenPrice,
         string memory _currency,// NTD or USD or RMB ...
         uint _quantityMax,
-        uint _goalInPercentage,
+        uint _quantityGoal,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
         uint serverTime,
@@ -70,7 +70,7 @@ contract CrowdFunding is Ownable {
         ckStringLength(_currency, 3, 32);
         currency = _currency;
         quantityMax = _quantityMax;//專案總量
-        quantityGoal = quantityMax.mul(_goalInPercentage).div(100);//專案達標數量, Solidity division will truncates results
+        quantityGoal = _quantityGoal;//專案達標數量, Solidity division will truncates results
 
         require(quantityGoal < quantityMax, "quantityGoal should be lesser than quantityMax");
         require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
@@ -154,6 +154,7 @@ contract CrowdFunding is Ownable {
     function pauseFunding(uint serverTime) external onlyAdmin {
         isActive = false;
         fundingState = FundingState.fundingPaused;
+        stateDescription = "fundingPaused";
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
     }
 
@@ -173,7 +174,7 @@ contract CrowdFunding is Ownable {
         isTerminated = true;
         fundingState = FundingState.aborted;
         stateDescription = "aborted";
-        updateState(serverTime);
+        //updateState(serverTime);
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, append("aborted:", _reason));
     }
 
