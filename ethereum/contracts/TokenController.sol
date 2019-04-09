@@ -91,5 +91,5 @@ contract TokenController is Ownable {
         //emit SetReleaseTime(_TimeRelease);
     }
 
-
+    function() external payable { revert("should not send any ether directly"); }
 }

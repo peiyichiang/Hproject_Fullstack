@@ -42,8 +42,7 @@ Install Mocha, a JavaScript test framework
 ```
 yarn run test721
 yarn run testcf
-OR
-yarn run test
+yarn run testim
 ```
 
 ### 6. Deploy smart contracts

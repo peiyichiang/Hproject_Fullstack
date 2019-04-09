@@ -95,4 +95,6 @@ contract Platform is Ownable {
         return platformManagers[_id].platformManagerAddr;
     }
 
+    function() external payable { revert("should not send any ether directly"); }
+
 }

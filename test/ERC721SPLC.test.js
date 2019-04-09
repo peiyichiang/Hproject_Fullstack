@@ -584,6 +584,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('addrAssetBook2', addrAssetBook2);
 
     let assetAddr = addrERC721SPLC;
+    console.log('here1')
     let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('assetbook1', assetsMeasured1);
     tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
@@ -730,9 +731,9 @@ describe('Tests on ERC721SPLC', () => {
     console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
     assert.equal(tokenOwnerM, _to);
 
-    //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getToken(tokenId)
-    tokenInfo = await instERC721SPLC.methods.getToken(tokenIdTarget).call();
-    console.log('SPLC getToken(): tokenId = '+tokenIdTarget+':', tokenInfo);
+    //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(tokenIdTarget).call();
+    console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
     assert.equal(tokenInfo[0], addrAssetBook1);
     assert.equal(tokenInfo[1], addrZero);
 
@@ -772,17 +773,17 @@ describe('Tests on ERC721SPLC', () => {
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(4).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(2).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
     console.log('\nERC721SPLC tokenId = 2:', tokenInfo);
     assert.equal(tokenInfo[0], addrAssetBook1);
     assert.equal(tokenInfo[1], addrZero);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
-    tokenInfo = await instERC721SPLC.methods.getToken(3).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
     console.log('\ntokenInfo from ERC721SPLC tokenId = 3:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(4).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
     console.log('\ntokenInfo from ERC721SPLC tokenId = 4:', tokenInfo);
 
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
@@ -798,7 +799,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('SPLC getAccount():', accountM);
 
 
-    //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getToken(tokenId)
+    //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
     _to = addrAssetBook2; amount = 3; serverTime = timeCurrent;
@@ -822,13 +823,13 @@ describe('Tests on ERC721SPLC', () => {
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(7).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(5).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 5:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(6).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 6:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(7).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 7:', tokenInfo);
 
 
@@ -1008,22 +1009,22 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
-    tokenInfo = await instERC721SPLC.methods.getToken(1).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(1).call();
     assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(2).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
     assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(3).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
     assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(4).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
     assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(5).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
     assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(6).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
     assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(7).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
     assert.equal(tokenInfo[0], _to);
 
-    //console.log('SPLC getToken(): tokenId = '+tokenIdTarget+':', tokenInfo);
+    //console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
     // assert.equal(tokenInfo[1], initialAssetPricing);
     // assert.equal(tokenInfo[2], addrZero);
 

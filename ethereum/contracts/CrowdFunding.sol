@@ -231,9 +231,12 @@ contract CrowdFunding is Ownable {
     function append(string memory a, string memory b) public pure returns (string memory) {
         return string(abi.encodePacked(a, b));
     }
+
     function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure {
         require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
     }
+
+    function() external payable { revert("should not send any ether directly"); }
 
 }
 library AddressUtils {

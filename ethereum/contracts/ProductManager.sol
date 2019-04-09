@@ -33,4 +33,6 @@ contract ProductManager is Ownable {
         idToCtrtGroup[pairId] = CtrtGroup(_addrCrowdFundingCtrt, _addrControllerCtrt, _addrTokenCtrt, _addrIncomeManagementCtrt);
     }
 
+    function() external payable { revert("should not send any ether directly"); }
+
 }

@@ -200,7 +200,7 @@ contract IncomeManagerCtrt is Ownable {
         idxToSchedule[rsIndex].isErrorResolved = boolValue;
     }
 
-
+    function() external payable { revert("should not send any ether directly"); }
 
     // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] paymentDates, uint[] paymentAmounts, bool[] isApproveda, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolveda) {
 

@@ -13,8 +13,8 @@ interface ERC721SPLCITF_assetbook {
     function getApproved(uint256 _tokenId) external view returns (address);
     function isApprovedForAll(address _owner, address _operator) external view returns (bool);
 
-    function nftName() external view returns (string memory _name);
-    function nftSymbol() external view returns (string memory _symbol);
+    function name() external view returns (string memory _name);
+    function symbol() external view returns (string memory _symbol);
     function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
 }
@@ -205,7 +205,7 @@ contract AssetBook is MultiSig {
     function getAsset(address _assetAddr) public view ckAssetAddr(_assetAddr) 
     returns (string memory symbol, uint balance) {
         ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        symbol = erc721.nftSymbol();
+        symbol = erc721.symbol();
         balance = erc721.balanceOf(address(this));
     }
 
@@ -226,7 +226,7 @@ contract AssetBook is MultiSig {
 
         } else {
             assets[_assetAddr].isInitialized = true;
-            assets[_assetAddr].symbol = erc721.nftSymbol();
+            assets[_assetAddr].symbol = erc721.symbol();
             assets[_assetAddr].balance = erc721.balanceOf(address(this));
         }
     }
@@ -268,8 +268,6 @@ contract AssetBook is MultiSig {
     }
 
 
-    function() external payable { revert("should not send any ether directly"); }
-
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
     /* $notice Handle the receipt of an NFT
      $dev The ERC721 smart contract calls this function on the recipient
@@ -290,6 +288,8 @@ contract AssetBook is MultiSig {
         */
         return MAGIC_ON_ERC721_RECEIVED;
     }
+
+    function() external payable { revert("should not send any ether directly"); }
 }
 
 //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c"

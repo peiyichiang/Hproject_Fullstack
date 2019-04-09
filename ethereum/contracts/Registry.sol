@@ -179,6 +179,8 @@ contract Registry is Ownable {
         return isUserApproved(uid);
     }
 
+
+    function() external payable { revert("should not send any ether directly"); }
 }
 //--------------------==
 library AddressUtils {
