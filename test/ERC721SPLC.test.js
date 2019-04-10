@@ -252,7 +252,7 @@ let instIncomeManagerCtrt, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
 
 let accounts, managementTeam, acc3, acc4;//acc3 and acc4 are used for chairman and owner roles
-let AssetOwner1, AssetOwner2, platformSupervisor;
+let AssetOwner1, AssetOwner2, platformSupervisor, operator;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 
 //const rate = new BigNumber('1e22').mul(value);
@@ -305,6 +305,7 @@ beforeEach( async () => {
     acc4 = accounts[4];
     platformSupervisor = accounts[3];
     fundManager = accounts[4];
+    operator = accounts[4];
 
     managementTeam = [platformSupervisor, AssetOwner1, AssetOwner2, acc3, acc4];
     console.log('platformSupervisor', platformSupervisor);
@@ -734,8 +735,7 @@ describe('Tests on ERC721SPLC', () => {
     //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(tokenIdTarget).call();
     console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
-    assert.equal(tokenInfo[0], addrAssetBook1);
-    assert.equal(tokenInfo[1], addrZero);
+    assert.equal(tokenInfo, addrAssetBook1);
 
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
     console.log('\nSPLC accountM', accountM);
@@ -775,8 +775,7 @@ describe('Tests on ERC721SPLC', () => {
 
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
     console.log('\nERC721SPLC tokenId = 2:', tokenInfo);
-    assert.equal(tokenInfo[0], addrAssetBook1);
-    assert.equal(tokenInfo[1], addrZero);
+    assert.equal(tokenInfo, addrAssetBook1);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
@@ -885,7 +884,7 @@ describe('Tests on ERC721SPLC', () => {
     let error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr,_to, amount, price)
       .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
@@ -907,7 +906,7 @@ describe('Tests on ERC721SPLC', () => {
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
     _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
@@ -944,7 +943,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
 
-    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
+    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(_assetAddr, amount, _to, _timeCurrent)
 
@@ -974,7 +973,7 @@ describe('Tests on ERC721SPLC', () => {
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
     _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
@@ -1004,25 +1003,25 @@ describe('Tests on ERC721SPLC', () => {
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 7; price = 21000;
     _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
     console.log('AssetBook1 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price, serverTime)
+    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(1).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
     tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
-    assert.equal(tokenInfo[0], _to);
+    assert.equal(tokenInfo, _to);
 
     //console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
     // assert.equal(tokenInfo[1], initialAssetPricing);
@@ -1041,13 +1040,81 @@ describe('Tests on ERC721SPLC', () => {
 
     tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
-    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\ntokenIds from AssetBook2 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], 7);
+
+
+    console.log('\n----------------==Approval Functions');
+    _from = addrAssetBook2; _fromAssetOwner = AssetOwner2; amount = 3; 
+
+    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    console.log('allowance() AssetBook2 to operator:', result);
+    assert.equal(result, 0);
+
+    console.log('\napproveAmount()... amount =', amount);
+    await instAssetBook2.methods.approveAmount(_assetAddr, operator, amount)
+    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    console.log('allowance() AssetBook2 to operator:', result);
+    assert.equal(result, amount);
+
+
+    console.log('\n----------------==Send token in batch: amount = '+amount+'  from AssetBook2 to AssetBook1');
+    _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
+    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+    console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
+    await instERC721SPLC.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
+    .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\nCheck AssetBook2 after txn...');
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    console.log('SPLC getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('AssetBook2:', assetbookXM);
+    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[1], 4);
+
+
+    console.log('\nCheck AssetBook1 after txn...');
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetbookXM);
+    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[1], 3);
+
+    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    console.log('allowance() AssetBook2 to operator:', result);
+    assert.equal(result, 0);
+
+    //----------------==Send tokens with not enough allowance
+    console.log('\n------------==Send tokens with not enough allowance');
+    error = false;
+    try {
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
+      _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+      await instERC721SPLC.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
+      .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      error = true;
+    } catch (err) {
+      console.log('[Success] sending 1 token from addrAssetBook2 to addrAssetBook1 failed because of not enough allowance: ', result);
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
 
     //----------------==Send tokens after valid time
     console.log('\n------------==Send tokens after valid date');
@@ -1062,7 +1129,7 @@ describe('Tests on ERC721SPLC', () => {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
       _fromAssetOwner = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price)
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;

@@ -9,7 +9,7 @@ contract IncomeManagerCtrt is Ownable {
     address public supervisor;
     uint public dateTimeMin = 201901220900;
 
-    uint public schCindex;//index of current schedule, 1 to 80. SPLC life time總共80期
+    uint public schCindex;//index of current schedule, and also index count, 1 to 80. SPLC life time總共80期
     mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
     

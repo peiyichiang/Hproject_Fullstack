@@ -87,21 +87,9 @@ contract CrowdFunding is Ownable {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
-    //event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, uint indexed _fundingState, string memory _stateDescription);
-
-    // function addServerTime(uint _additionalTime) external onlyAdmin {
-    //     require(_additionalTime > 0, "_additionalTime should be greater than zero");
-    //     serverTime = serverTime.add(_additionalTime);
-    //     updateState(serverTime);
-    // }
-    //for time server to input serverTime
-    // function setServerTime(uint serverTime) external onlyAdmin {
-    //     updateState(serverTime);
-    // }
 
     /* checks if the goal or time limit has been reached and ends the campaign */
     function updateState(uint serverTime) public onlyAdmin {
-        //enum fundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         require(serverTime > serverTimeMin, "serverTime should be greater than default time");
         serverTime = serverTime;

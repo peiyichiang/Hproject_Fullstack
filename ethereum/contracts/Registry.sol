@@ -148,22 +148,7 @@ contract Registry is Ownable {
         return assetCtAddrToUid[assetCtAddr];
     }
 
-    //--------------------==Legal Compliance
-    /* # A Whitelist: check both sender and receiver have been cleared to make transactions
-       # A Blacklist: if the status is not approved
-       # Check if transfer amount is over or under certain amounts
-       # Partial token transfers could be restricted... Not applicable to ERC721
-    */
 
-    // amountMax/Min should be set inside the token contracts
-    // /**@dev 設定user的 LegaCompliance */
-    // event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
-    // function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
-    //     require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
-    //     amountLegalMax = _amountLegalMax;
-    //     amountLegalMin = _amountLegalMin;
-    //     emit SetLegalAmount(amountLegalMax, amountLegalMin);
-    // }
 
     /**@dev check if uid is approved */
     function isUserApproved(string memory uid) public view 
