@@ -5,7 +5,7 @@ import "./Ownable.sol";
 
 //MultiSigITF_Platform(addrMultiSigITF_Platform).platformVote(_timeCurrent)
 interface MultiSigITF_Platform {
-    function platformVote(uint256 _timeCurrent) external;
+    function platformCtrtVote(uint256 _timeCurrent) external;
 }
 
 
@@ -52,7 +52,7 @@ contract Platform is Ownable {
         require(msg.sender == platformManagers[_id].platformManagerAddr || msg.sender == platformSupervisor, "請檢查是否為平台管理員");
 
         MultiSigITF_Platform multiSig = MultiSigITF_Platform(address(uint160(_multiSigContractAddr)));
-        multiSig.platformVote(_timeCurrent);
+        multiSig.platformCtrtVote(_timeCurrent);
     }
 
 
