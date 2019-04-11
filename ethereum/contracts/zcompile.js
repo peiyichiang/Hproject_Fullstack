@@ -19,7 +19,7 @@ fs.ensureDirSync(buildPath);//if the build folder does not exist, make it existi
 // });
 
 console.log('check1: Set which Solidity files to compile...');
-const fileList = ['SafeMath', 'Ownable', 'AssetBook', 'Registry', 'ERC721SPLC', 'TokenController', 'CrowdFunding', 'IncomeManagement', 'ProductManager', 'Platform'];
+const fileList = ['SafeMath', 'Ownable', 'AssetBook', 'Registry', 'ERC721SPLC', 'TokenController', 'CrowdFunding', 'IncomeManagerCtrt', 'ProductManager', 'Platform'];
 /**
  * DO NOT USE IMPORT, USE INTERFACE INSTEAD, TO PREVENT COMPILED CONTRACTS OVERRIDE!!!
  */

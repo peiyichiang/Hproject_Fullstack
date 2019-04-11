@@ -17,7 +17,7 @@ router.get('/backend_user', function (req, res, next) {
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
                 return;
             } else {
                 //JWT token驗證成功
@@ -37,31 +37,23 @@ router.get('/backend_user', function (req, res, next) {
     //   var db = req.con;
     var data = "";
     var mysqlPoolQuery = req.pool;
-
-    //   mysqlPoolQuery('SELECT * FROM backend_user', function(err, rows) {
-    //       if (err) {
-    //           console.log(err);
-    //       }
-    //       var data = rows;
-    //       res.render('Viewbackend_user', { title: 'Backend User Information',UserID:JWT_decoded.payload.m_id, data: data});
-    //   });
-
-    mysqlPoolQuery('SELECT * FROM backend_user', function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        //data=後端使用者資料
-        var data = rows;
-        mysqlPoolQuery('SELECT * FROM htoken.user', function (err, rows) {
+    if(JWT_decoded!==undefined){
+        mysqlPoolQuery('SELECT * FROM backend_user', function (err, rows) {
             if (err) {
                 console.log(err);
             }
-            //FrontEnd_data=前端使用者資料
-            var FrontEnd_data = rows;
-            res.render('Viewbackend_user', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
+            //data=後端使用者資料
+            var data = rows;
+            mysqlPoolQuery('SELECT * FROM htoken.user', function (err, rows) {
+                if (err) {
+                    console.log(err);
+                }
+                //FrontEnd_data=前端使用者資料
+                var FrontEnd_data = rows;
+                res.render('Viewbackend_user', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
+            });
         });
-    });
-
+    }
 });
 
 //新增後端使用者資料:註冊頁面(無權限設置，大家都可以訪問)
@@ -82,30 +74,6 @@ router.get('/AddBackendUser', function (req, res, next) {
 //＊＊新增後端使用者資料：接收資料的post(無權限設置，大家都可以訪問)
 router.post('/AddBackendUser', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
-
-    //前端傳明文密碼過來，將salt與明文密碼做sha256
-    // var password = req.body.m_passwordhash;
-    // req.body.m_passwordhash = crypto.createHash('sha256').update(req.body.m_salt + password).digest('hex');
-    // var sql = {
-    //     m_id: req.body.m_id,
-    //     m_salt: req.body.m_salt,
-    //     m_passwordhash: req.body.m_passwordhash,
-    //     m_company: req.body.m_company,
-    //     m_permission: "NA"
-    // };
-
-    // console.log("*:" + sql);
-
-    // var qur = mysqlPoolQuery('INSERT INTO backend_user SET ?', sql, function (err, rows) {
-    //     if (err) {
-    //         console.log(err);
-    //         res.render('error', { message: '帳號重複', error: '' });
-    //     } else {
-    //         // res.setHeader('Content-Type', 'application/json');
-    //         // res.redirect('/BackendUser/backend_user');
-    //         res.render('error', { message: '註冊成功', error: '' });
-    //     }
-    // });
 
     const saltRounds = 10;
     bcrypt
@@ -154,7 +122,7 @@ router.get('/DeleteBackendUser', function (req, res, next) {
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
                 return;
             } else {
                 //JWT token驗證成功
@@ -169,15 +137,6 @@ router.get('/DeleteBackendUser', function (req, res, next) {
         res.render('error', { message: '請先登入', error: '' });
         return;
     }
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_Admin"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
 
     var ID = req.query.ID;
     var mysqlPoolQuery = req.pool;
@@ -199,7 +158,7 @@ router.get('/EditBackendUser', function (req, res, next) {
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
                 return;
             } else {
                 //JWT token驗證成功
@@ -215,29 +174,23 @@ router.get('/EditBackendUser', function (req, res, next) {
         res.render('error', { message: '請先登入', error: '' });
         return;
     }
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_Admin"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
 
     var ID = req.query.ID;
     // var db = req.con;
     var mysqlPoolQuery = req.pool;
     var data = "";
 
-    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
+    if(JWT_decoded!==undefined){
+        mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+            if (err) {
+                console.log(err);
+            }
+    
+            var data = rows;
+            res.render('EditBackendUser', { title: 'Edit Product', UserID: JWT_decoded.payload.m_id, data: data });
+        });
+    }
 
-        var data = rows;
-        res.render('EditBackendUser', { title: 'Edit Product', UserID: JWT_decoded.payload.m_id, data: data });
-    });
 });
 
 //修改後端使用者資料：將修改後的資料傳到資料庫
@@ -249,7 +202,7 @@ router.post('/EditBackendUser', function (req, res, next) {
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
                 return;
             } else {
                 //JWT token驗證成功
@@ -264,15 +217,6 @@ router.post('/EditBackendUser', function (req, res, next) {
         res.render('error', { message: '請先登入', error: '' });
         return;
     }
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_Admin"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
 
     // var db = req.con;
     var mysqlPoolQuery = req.pool;
@@ -425,7 +369,7 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
                 return;
             } else {
                 //JWT token驗證成功
@@ -442,43 +386,36 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
         return;
     }
 
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_CustomerService"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
-
     // var db = req.con;
     var mysqlPoolQuery = req.pool;
     var data = "";
     console.log("＊：" + req);
 
-    mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        var data = rows;
-
-        // use index.ejs
-        res.render('ViewProduct', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
-    });
+    if(JWT_decoded!==undefined){
+        mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            var data = rows;
+    
+            // use index.ejs
+            res.render('ViewProduct', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
+        });
+    }
 
 });
 
 //BackendUser_Platform_Auditor登入後跳轉到該頁面
 router.get('/BackendUser_Platform_Auditor', function (req, res, next) {
-    var token = req.cookies.access_token;
+    var token=req.cookies.access_token;
     var JWT_decoded;
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
+                // console.log("******:" + err);
                 return;
             } else {
                 //JWT token驗證成功
@@ -494,31 +431,25 @@ router.get('/BackendUser_Platform_Auditor', function (req, res, next) {
         res.render('error', { message: '請先登入', error: '' });
         return;
     }
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
 
-    // if(req.session.m_permission!="Platform_Auditor"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
+    console.log("******:" + JWT_decoded);
+    if(JWT_decoded!==undefined){
+        var mysqlPoolQuery = req.pool;
+        var data = "";
+    
+        mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            var data = rows;
+    
+            // use index.ejs
+            console.log("**:" + JWT_decoded.payload.m_id);
+            res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
+        });
+    }
 
-    // var db = req.con;
-    var mysqlPoolQuery = req.pool;
-    var data = "";
-    // console.log("＊：" + req);
 
-    mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        var data = rows;
-
-        // use index.ejs
-        console.log("**:" + JWT_decoded.payload.m_id);
-        res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
-    });
 
 });
 
@@ -530,7 +461,7 @@ router.post('/BackendUser_Company_FundManagerN', function (req, res, next) {
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             if (err) {
                 //JWT token驗證失敗
-                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                res.render('error', { message: err, error: '' });
                 return;
             } else {
                 //JWT token驗證成功
@@ -546,15 +477,6 @@ router.post('/BackendUser_Company_FundManagerN', function (req, res, next) {
         return;
     }
 
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Company_FundManagerN"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
 
     var db = req.con;
     // var id = req.req.body.m_id;
