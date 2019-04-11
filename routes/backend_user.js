@@ -407,7 +407,7 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
 
 //BackendUser_Platform_Auditor登入後跳轉到該頁面
 router.get('/BackendUser_Platform_Auditor', function (req, res, next) {
-    var token = req.cookies.access_token;
+    var token=req.cookies.access_token;
     var JWT_decoded;
     if (token) {
         // 驗證JWT token
