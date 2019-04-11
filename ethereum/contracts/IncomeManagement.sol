@@ -19,7 +19,7 @@ contract IncomeManagement is Ownable {
 
     mapping(uint256 => uint256) public dateToScheduleIndex;//date to scheduleIndex
     mapping(uint256 => IncomeSchedule) public schedules;//scheduleIndex to incomeSchedule
-    
+
     // cash flow: FMX -> platform -> investors
     struct IncomeSchedule {
         uint paymentDate;//the date to send income, used as mapping key

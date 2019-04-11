@@ -1484,7 +1484,7 @@
                     let count = 0;
 
                     for (let i = 0; i < assetBookAddrs.length; i++) {
-                        await $.post("http://localhost:3030/Contracts//ERC721SPLCContract/" + nftSymbol + "/mint", {
+                        await $.post("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol + "/mint", {
                             assetBookAddr: assetBookAddrs[i],
                             erc721address: erc721address,
                             amount: amounts[i]
@@ -1497,6 +1497,7 @@
 
                         });
                     }
+                    /**@todo deploy incomemanagement*/
                     if (count == assetBookAddrs.length) {
                         // 將產品狀態設置為FundingComplete
                         $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {

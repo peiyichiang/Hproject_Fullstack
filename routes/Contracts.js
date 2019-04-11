@@ -672,11 +672,16 @@ router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, nex
     let to = req.body.assetBookAddr;
     let amount = req.body.amount;
     let ERC721SPLC_HToken = new web3.eth.Contract(ERC721SPLCContract.abi, contractAddr);
+    let currentTime;
+    await timer.getTime().then(function(time) {
+        currentTime = time;
+    })
+    console.log(`現在時間: ${currentTime}`)
     console.log(to);
     console.log(amount);
 
 
-    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, amount).encodeABI();
+    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, amount, currentTime).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
