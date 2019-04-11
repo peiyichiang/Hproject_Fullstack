@@ -8,7 +8,7 @@ interface HCAT721ITF_assetbook {
     function getAccountIds(address user, uint idxS, uint idxE) external;
 
     function allowance(address user, address operator) external view returns (uint remaining);
-    function approveAmount(address operator, uint amount) external;
+    function tokenApprove(address operator, uint amount) external;
 
     function name() external view returns (string memory _name);
     function symbol() external view returns (string memory _symbol);
@@ -131,7 +131,7 @@ contract AssetBook is MultiSig {
         bool isInitialized;
     }
     mapping (address => Asset) assets;//assets[_assetAddr]
-    uint public assetCindex;//count and index of assets, and each asset has an assetAddr
+    uint public assetCindex;//last submitted index and total count of current assets, and each asset has an assetAddr
     mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
 
     /** @dev asset相關event */
@@ -166,9 +166,9 @@ contract AssetBook is MultiSig {
         HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
         hcat721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
     }
-    function approveAmount(address _assetAddr, address operator, uint amount) external {
+    function assetbookApprove(address _assetAddr, address operator, uint amount) external {
         HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
-        hcat721.approveAmount(operator, amount);
+        hcat721.tokenApprove(operator, amount);
     }
 
     /** @dev to get all assetAddr stored in this assetbook contract

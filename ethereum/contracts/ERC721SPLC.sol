@@ -3,18 +3,8 @@ import "./SafeMath.sol";
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
 interface ERC721ITF {
-  event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
-
   function balanceOf(address user) external view returns (uint256);
   function ownerOf(uint256 _tokenId) external view returns (address);
-  function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external;
-  function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
-  function transferFrom(address _from, address _to, uint256 _tokenId) external;
-
-  function approve(address user, uint256 _tokenId) external;
-  function setApprovalForAll(address operator, bool user) external;
-  function getApproved(uint256 _tokenId) external view returns (address);
-  function isApprovedForAll(address user, address operator) external view returns (bool);
 }
 
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.*/
@@ -44,7 +34,7 @@ interface RegistryITF {
 //TokenControllerITF(addrTokenController).isAdmin(msg.sender);
 interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
-    function isUnlockedValid() external view returns (bool);
+    function isActiveOperational() external view returns (bool);
 }
 
 //------------------------HCAT721: Helium Crypto Asset Token
@@ -56,7 +46,7 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     struct Account {
         uint idxStart;
         uint idxEnd;
-        mapping (uint => uint) indexToId;//time index to _tokenId: accounts[user].indexToId[index] //For First In First Out(FIFO) transfer rule
+        mapping (uint => uint) indexToId;//account index to _tokenId: accounts[user].indexToId[index] //For First In First Out(FIFO) transfer rule
         mapping (address => uint) allowed;
         //each operator has given quota to send certain account's N amount of tokens
     }
@@ -66,7 +56,7 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         //address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
-    uint public tokenId;//Token ID and also the count of all issued tokens. starts from 1
+    uint public tokenId;//last submitted index and total count of current Token ID. starts from 1
     uint public siteSizeInKW;//the physical site electrical output in Kw. Typ 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
     uint public totalSupply;//total generated tokens - destroyed tokens
@@ -282,7 +272,7 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
 
-        require(TokenControllerITF(addrTokenController).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
+        require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
         require(RegistryITF(addrRegistry).isAddrApproved(_from), "_from is not in compliance");
@@ -298,36 +288,36 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         address _to, uint amount, uint price, uint serverTime) internal {
           //price will be the same as acquiredCost, assuming no transaction fee
 
-        uint[] memory array = new uint[](4);
-        array[0] = accounts[_from].idxStart;//idxStartF = array[0]
-        array[1] = accounts[_from].idxEnd;// idxEndF = array[1]
-        require(array[0] <= array[1], "not enough asset to transfer: balance = 0");
-        require(array[1].sub(array[0]).add(1) >= amount, "not enough asset to transfer: balance < amount");
+        uint[] memory idxX = new uint[](4);
+        idxX[0] = accounts[_from].idxStart;//idxStartF = idxX[0]
+        idxX[1] = accounts[_from].idxEnd;// idxEndF = idxX[1]
+        require(idxX[0] <= idxX[1], "not enough asset to transfer: balance = 0");
+        require(idxX[1].sub(idxX[0]).add(1) >= amount, "not enough asset to transfer: balance < amount");
 
         //fix _to account
-        array[2] = accounts[_to].idxStart;// idxStartT = array[2]
-        array[3] = accounts[_to].idxEnd;// idxEndT = array[3]
+        idxX[2] = accounts[_to].idxStart;// idxStartT = idxX[2]
+        idxX[3] = accounts[_to].idxEnd;// idxEndT = idxX[3]
         uint idxStartReqT; //uint idxEndReqT;
-        if (array[2] > array[3]) {
+        if (idxX[2] > idxX[3]) {
           accounts[_to].idxStart = 0;
           accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
-        } else if (array[2] == 0 && array[3] == 0 && accounts[_to].indexToId[0] == 0) {
+        } else if (idxX[2] == 0 && idxX[3] == 0 && accounts[_to].indexToId[0] == 0) {
           accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
         } else {
-          idxStartReqT = array[3].add(1);
-          accounts[_to].idxEnd = array[3].add(amount);
-          //idxEndReqT = array[3].add(amount);
+          idxStartReqT = idxX[3].add(1);
+          accounts[_to].idxEnd = idxX[3].add(amount);
+          //idxEndReqT = idxX[3].add(amount);
         }//accounts[_to].indexToId[0]
 
 
         uint allowedAmount = accounts[_from].allowed[msg.sender];
         for(uint i = 0; i < amount; i = i.add(1)) {
             //inside _from account
-            uint idxFrom = i.add(array[0]);
+            uint idxFrom = i.add(idxX[0]);
             uint tokenId_ = accounts[_from].indexToId[idxFrom];
             delete accounts[_from].indexToId[idxFrom];
 
@@ -357,11 +347,11 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         }
 
         //fix _from account
-        if (array[1] == array[0].add(amount).sub(1)) {
+        if (idxX[1] == idxX[0].add(amount).sub(1)) {
             accounts[_from].idxStart = 1;
             accounts[_from].idxEnd = 0;
         } else {
-            accounts[_from].idxStart = array[0].add(amount);
+            accounts[_from].idxStart = idxX[0].add(amount);
         }
 
         emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);
@@ -375,13 +365,13 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         require(operator != address(0), "operator should not be 0x0");
         remaining = accounts[user].allowed[operator];
     }
-    function approveAmount(address operator, uint amount) external {
+    function tokenApprove(address operator, uint amount) external {
         require(operator != address(0), "operator should not be 0x0");
         accounts[msg.sender].allowed[operator] = amount;
-        emit ApprovalAmount(msg.sender, operator, amount);
+        emit TokenApprove(msg.sender, operator, amount);
     }
+    event TokenApprove(address indexed tokenOwner, address indexed operator, uint amount);
 
-    event ApprovalAmount(address indexed tokenOwner, address indexed operator, uint amount);
     function() external payable { revert("should not send any ether directly"); }
 }
 
