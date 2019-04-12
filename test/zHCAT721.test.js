@@ -477,7 +477,7 @@ beforeEach( async () => {
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
     .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('IncomeManagerCtrt.sol has been deployed');
+    console.log('\nIncomeManagerCtrt.sol has been deployed');
     if (instIncomeManagerCtrt === undefined) {
       console.log('[Error] instIncomeManagerCtrt is NOT defined');
       } else {console.log('[Good] instIncomeManagerCtrt is defined');}
@@ -498,17 +498,7 @@ beforeEach( async () => {
      addrArrayUtils = instArrayUtils.options.address;
      console.log('addrArrayUtils:', addrArrayUtils);
     
-    
-    instProductManager = await new web3.eth.Contract(ProductManager.abi)
-    .deploy({ data: ProductManager.bytecode })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('ProductManager.sol has been deployed');
-    if (instProductManager === undefined) {
-      console.log('[Error] instProductManager is NOT defined');
-      } else {console.log('[Good] instProductManager is defined');}
-    instProductManager.setProvider(provider);
-    addrProductManager = instProductManager.options.address;
-    console.log('addrProductManager:', addrProductManager);
+
     */
 
     console.log('--------==BeforeEach is finished');
@@ -1448,7 +1438,48 @@ describe('Tests on IncomeManagerCtrt', () => {
 //   });
 // });
 
+//-----------------------------------------==
+describe('Tests on ProductManager', () => {
 
+  it('ProductManager functions test', async function() {
+    console.log('\ninside productManager test...');
+    const argsProductManager = [managementTeam];
+
+    instProductManager = await new web3.eth.Contract(ProductManager.abi)
+    .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
+    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      console.log('[Error] instProductManager is NOT defined');
+      } else {console.log('[Good] instProductManager is defined');}
+    instProductManager.setProvider(provider);
+    addrProductManager = instProductManager.options.address;
+    console.log('addrProductManager:', addrProductManager);
+
+    console.log('\n------------==Check CrowdFunding parameters');
+
+    let groupCindexM = await instProductManager.methods.groupCindex().call();
+    console.log('\groupCindexM', groupCindexM);
+    assert.equal(groupCindexM, 0);
+
+    let symbol = "Taipei101";
+    await instProductManager.methods.addNewCtrtGroup(symbol, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManagerCtrt)
+    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    let ctrtGroup = await instProductManager.methods.getCtrtGroup(symbol).call();
+    console.log('\ctrtGroup', ctrtGroup);
+    //assert.equal(ctrtGroup, symbol);
+
+    groupCindexM = await instProductManager.methods.groupCindex().call();
+    console.log('\groupCindexM', groupCindexM);
+    assert.equal(groupCindexM, 1);
+
+
+    let symbolM = await instProductManager.methods.idxToSymbol(1).call();
+    console.log('\symbolM', symbolM);
+
+  });
+});
 
 //-----------------------------------------==
 describe('Tests on CrowdFunding', () => {

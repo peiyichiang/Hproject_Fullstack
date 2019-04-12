@@ -18,9 +18,9 @@
     "testcf": "mocha --grep CrowdFunding",
     "testhcat": "mocha --grep HCAT721",
     "testim": "mocha --grep IncomeManagerCtrt",
+    "testpm": "mocha --grep ProductManager",
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
-    "testpmgr": "mocha --grep ProductManager",
     "testarray": "mocha --grep ArrayUtils"
   },
   "dependencies": {
