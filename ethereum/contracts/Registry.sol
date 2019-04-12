@@ -148,22 +148,7 @@ contract Registry is Ownable {
         return assetCtAddrToUid[assetCtAddr];
     }
 
-    //--------------------==Legal Compliance
-    /* # A Whitelist: check both sender and receiver have been cleared to make transactions
-       # A Blacklist: if the status is not approved
-       # Check if transfer amount is over or under certain amounts
-       # Partial token transfers could be restricted... Not applicable to ERC721
-    */
 
-    // amountMax/Min should be set inside the token contracts
-    // /**@dev 設定user的 LegaCompliance */
-    // event SetLegalAmount(uint amountLegalMax, uint amountLegalMin);
-    // function setLegaAmount(uint _amountLegalMax, uint _amountLegalMin) external onlyOwner {
-    //     require(amountLegalMax > amountLegalMin, "amountLegalMax should be greater than amountLegalMin");
-    //     amountLegalMax = _amountLegalMax;
-    //     amountLegalMin = _amountLegalMin;
-    //     emit SetLegalAmount(amountLegalMax, amountLegalMin);
-    // }
 
     /**@dev check if uid is approved */
     function isUserApproved(string memory uid) public view 
@@ -179,45 +164,14 @@ contract Registry is Ownable {
         return isUserApproved(uid);
     }
 
-    //amount checking should be done inside the token transfer function!
-    /**@dev check token transfer in compliance by using isApproved() */
-    // function isUnderCompliance(address to, address from, uint amount) external view 
-    //   ckAddr(to) ckAddr(from) returns (bool) {
-    //     return (isCtAddrApproved(to) && isCtAddrApproved(from) && amountLegalMin <= amount && amount <= amountLegalMax);
-    // }
-    
-/**@dev 尚未支援回傳string[] */
-/*
-    //get 所有user
-    function getAllUserInfo() public onlyOwner view  returns (string[], address[], address[], uint[]){
-        string[] memory uids = new string[](userIndex.length);
-        address[] memory assetCtAddrs = new address[](userIndex.length);
-        address[] memory extoAddrs = new address[](userIndex.length);
-        uint[]    memory status = new uint[](userIndex.length);
 
-        for (uint i = 0; i < userIndex.length; i++) {
-            User storage user = users[userIndex[i]];
-            uids[i] = user.uid;
-            assetCtAddrs[i] = user.assetCtAddr;
-            extoAddrs[i] = user.extoAddr;
-            status[i] = user.status;
-        }
-
-        return (uids, assetCtAddrs, extoAddrs, status);
-    }
-*/
-
+    function() external payable { revert("should not send any ether directly"); }
 }
 //--------------------==
 library AddressUtils {
     function isContract(address _addr) internal view returns (bool) {
         uint256 size;
-        /* XXX Currently there is no better way to check if there is a contract in an address than to
-        * check the size of the code at that address.
-        * See https://ethereum.stackexchange.com/a/14016/36603 for more details about how this works.
-        * TODO: Check this again before the Serenity release, because all addresses will be
-        * contracts then.*/
-        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        assembly { size := extcodesize(_addr) }
         return size > 0;
     }
 }

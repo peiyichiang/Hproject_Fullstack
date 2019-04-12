@@ -1,5 +1,4 @@
 pragma solidity ^0.5.4;
-//透過平台平台asset contract deploy
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
 import "./Ownable.sol";
@@ -15,11 +14,9 @@ contract CrowdFunding is Ownable {
 
     event ShowState(string _state);
     event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, FundingState indexed _fundingState, string _stateDescription);
-    event TokenReserved(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
-
+    event TokenInvested(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
+    
     uint public serverTimeMin = 201902250000;
-    //uint public serverTime;// not to store moving variable
-    address private platformAddress;
     string public tokenSymbol; //專案erc721合約
     string public currency; // NTD, USD, RMB, etc...
     uint public tokenPrice; //每片太陽能板定價
@@ -32,18 +29,16 @@ contract CrowdFunding is Ownable {
     struct Account {
         address assetbook;//assetbook addr
         uint256 qty;//購買的token總數
-        //uint256 fundBalance;//
-        //string currency;
     }
     mapping(uint => Account) public accounts;
-    uint public cindex;
+    uint public fundingCindex;//last submitted index and total count of current orders
 
     //fundingClosed: quantityMax is reached or CFED2 is reached with quantitySold > quantityGoal
     //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
     enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}
     FundingState public fundingState;
     bool public isActive;
-    bool public isTerminated;
+    bool public isAborted;
     string public stateDescription;
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
 
@@ -72,7 +67,7 @@ contract CrowdFunding is Ownable {
         quantityMax = _quantityMax;//專案總量
         quantityGoal = _quantityGoal;//專案達標數量, Solidity division will truncates results
 
-        require(quantityGoal < quantityMax, "quantityGoal should be lesser than quantityMax");
+        require(quantityGoal <= quantityMax, "quantityGoal should be lesser than quantityMax");
         require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
         require(serverTime < _CFSD2, "serverTime should be < CFSD2");
         CFSD2 = _CFSD2;
@@ -86,34 +81,18 @@ contract CrowdFunding is Ownable {
         director = management[2];
         manager = management[1];
         admin = management[0];
-        isActive = true;
-        fundingState = FundingState.funding;
-
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
-    //event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, uint indexed _fundingState, string memory _stateDescription);
-
-    // function addServerTime(uint _additionalTime) external onlyAdmin {
-    //     require(_additionalTime > 0, "_additionalTime should be greater than zero");
-    //     serverTime = serverTime.add(_additionalTime);
-    //     updateState(serverTime);
-    // }
-    //for time server to input serverTime
-    // function setServerTime(uint serverTime) external onlyAdmin {
-    //     updateState(serverTime);
-    // }
 
     /* checks if the goal or time limit has been reached and ends the campaign */
     function updateState(uint serverTime) public onlyAdmin {
-
-        //enum fundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         require(serverTime > serverTimeMin, "serverTime should be greater than default time");
         serverTime = serverTime;
 
         if(quantitySold == quantityMax){
-            isTerminated = true;
+            isAborted = true;
             fundingState = FundingState.fundingClosed;
             stateDescription = "fundingClosed: sold out";
 
@@ -131,7 +110,7 @@ contract CrowdFunding is Ownable {
 
         } else {
             if (serverTime >= CFED2){
-                isTerminated = true;
+                isAborted = true;
                 fundingState = FundingState.fundingNotClosed;
                 stateDescription = "fundingNotClosed: ended with goal not reached";
             } else if (serverTime >= CFSD2){
@@ -160,18 +139,25 @@ contract CrowdFunding is Ownable {
 
     event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _quantityMax);
     function resumeFunding(uint _CFED2, uint _quantityMax, uint serverTime) external onlyAdmin {
-        require(_CFED2 > CFSD2, "_CFED2 should be greater than CDSD2");
-        require(_quantityMax >= quantitySold, "_quantityMax should be greater than quantitySold");
+
+        require(serverTime > CFSD2, "serverTime should be > CFSD2");
+        if(_CFED2 == 0 && _quantityMax == 0) {
+            emit ResumeFunding(tokenSymbol, CFED2, quantityMax);
+        } else {
+            require(_CFED2 > CFSD2, "_CFED2 should be greater than CDSD2");
+            require(_CFED2 > serverTime, "_CFED2 should be greater than serverTime");
+            require(_quantityMax >= quantitySold, "_quantityMax should be greater than quantitySold");
+            CFED2 = _CFED2;
+            quantityMax = _quantityMax;
+            emit ResumeFunding(tokenSymbol, _CFED2, _quantityMax);
+        }
         isActive = true;
-        CFED2 = _CFED2;
-        quantityMax = _quantityMax;
-        emit ResumeFunding(tokenSymbol, _CFED2, _quantityMax);
         updateState(serverTime);
     }
 
-    function Abort(string calldata _reason, uint serverTime) external onlyAdmin {
+    function abort(string calldata _reason, uint serverTime) external onlyAdmin {
         ckStringLength(_reason, 7, 32);
-        isTerminated = true;
+        isAborted = true;
         fundingState = FundingState.aborted;
         stateDescription = append("aborted:", _reason);
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, stateDescription);
@@ -179,7 +165,6 @@ contract CrowdFunding is Ownable {
 
     function invest(address _assetbook, uint _quantityToInvest, uint serverTime)
         external onlyAdmin {
-        // require(serverTime > serverTime, "serverTime should be greater than existing serverTime");
 
         if (_assetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
@@ -190,32 +175,18 @@ contract CrowdFunding is Ownable {
         }
 
         require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
-
         require(isActive, "funding is not active");
-        require(!isTerminated, "crowdFunding has been terminated");
-        uint nextQtySold = quantitySold.add(_quantityToInvest);
-        require(nextQtySold <= quantityMax, "insufficient available token quantity");
-        quantitySold = nextQtySold;//紀錄已經賣了多少token
+        require(!isAborted, "crowdFunding has been aborted");
+        quantitySold = quantitySold.add(_quantityToInvest);
+        require(quantitySold <= quantityMax, "insufficient available token quantity");
 
-        require(fundingState == FundingState.funding || fundingState == FundingState.fundingGoalReached, "funding is terminated or not started yet");
+        require(fundingState == FundingState.funding || fundingState == FundingState.fundingGoalReached, "funding is aborted or not started yet");
 
-        /*struct Account {
-            address assetbook;//assetbook addr
-            uint256 qty;//購買的token總數
-        }*/
-        cindex = cindex.add(1);
-        accounts[cindex].assetbook = _assetbook;
-        accounts[cindex].qty = _quantityToInvest;//qty;
-        //uint qty = accounts[cindex].qty;
-        //qty = qty.add(_quantityToInvest);//用mapping記錄每個投資人的token數目
+        fundingCindex = fundingCindex.add(1);
+        accounts[fundingCindex].assetbook = _assetbook;
+        accounts[fundingCindex].qty = _quantityToInvest;//qty;
 
-        //uint fundBalance = accounts[cindex].fundBalance;
-        //fundBalance = fundBalance.add(_quantityToInvest.mul(tokenPrice));
-        //accounts[cindex].fundBalance = _quantityToInvest.mul(tokenPrice);//fundBalance;
-
-        emit TokenReserved(_assetbook, _quantityToInvest, serverTime);
-        //event TokenReserved(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
-
+        emit TokenInvested(_assetbook, _quantityToInvest, serverTime);
         updateState(serverTime);
     }
 
@@ -223,15 +194,15 @@ contract CrowdFunding is Ownable {
         external view returns(address[] memory assetbooks, uint[] memory qtyArray) {
         uint amount_; uint indexStart_;
         if(indexStart == 0 && amount == 0) {
-            indexStart_ = 1;
-            amount_ = cindex;
+          indexStart_ = 1;
+          amount_ = fundingCindex;
 
         } else {
             indexStart_ = indexStart;
             require(amount > 0, "amount must be > 0");
             require(indexStart > 0, "indexStart must be > 0");
-            if(indexStart.add(amount).sub(1) > cindex) {
-                amount_ = cindex.sub(indexStart).add(1);
+            if(indexStart.add(amount).sub(1) > fundingCindex) {
+              amount_ = fundingCindex.sub(indexStart).add(1);
             } else {
                 amount_ = amount;
             }
@@ -252,6 +223,8 @@ contract CrowdFunding is Ownable {
     function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure {
         require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
     }
+
+    function() external payable { revert("should not send any ether directly"); }
 
 }
 library AddressUtils {

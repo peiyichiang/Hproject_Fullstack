@@ -5,14 +5,9 @@ import "./Ownable.sol";
 
 //MultiSigITF_Platform(addrMultiSigITF_Platform).platformVote(_timeCurrent)
 interface MultiSigITF_Platform {
-    function platformVote(uint256 _timeCurrent) external;
+    function platformCtrtVote(uint256 _timeCurrent) external;
 }
 
-//IncomeManagerCtrtITF_Platform(addrIncomeManagerCtrt).funcX()
-interface IncomeManagerCtrtITF_Platform {
-    function setIsApproved(uint _index, uint _payableDate, bool boolValue) external;
-    function changeFMC(address FMXA_Ctrt_new) external;
-}
 
 contract Platform is Ownable {
     using SafeMath for uint256;
@@ -57,14 +52,9 @@ contract Platform is Ownable {
         require(msg.sender == platformManagers[_id].platformManagerAddr || msg.sender == platformSupervisor, "請檢查是否為平台管理員");
 
         MultiSigITF_Platform multiSig = MultiSigITF_Platform(address(uint160(_multiSigContractAddr)));
-        multiSig.platformVote(_timeCurrent);
+        multiSig.platformCtrtVote(_timeCurrent);
     }
 
-    //approve asset/token contract to be owned by AssetBook contract
-    // function setAssetCtrtApproval(address _addrAssetBook, address _assetAddr, bool _isApprovedToWrite) public {
-    //     AssetBookITF_Platform assetBook = AssetBookITF_Platform(address(uint160(_addrAssetBook)));
-    //     assetBook.setAssetCtrtApproval(_assetAddr, _isApprovedToWrite);
-    // }
 
     //新增manager
     function addPlatformManager(address _managerAddr, string memory _id, uint _time) public onlyPlatformSupervisor{
@@ -104,5 +94,7 @@ contract Platform is Ownable {
     function getPlatformManagerInfo(string memory _id) public view returns(address platformManagerAddr){
         return platformManagers[_id].platformManagerAddr;
     }
+
+    function() external payable { revert("should not send any ether directly"); }
 
 }

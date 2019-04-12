@@ -252,7 +252,7 @@ let instIncomeManagerCtrt, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
 
 let accounts, managementTeam, acc3, acc4;//acc3 and acc4 are used for chairman and owner roles
-let AssetOwner1, AssetOwner2, platformSupervisor;
+let AssetOwner1, AssetOwner2, platformSupervisor, operator;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 
 //const rate = new BigNumber('1e22').mul(value);
@@ -271,6 +271,7 @@ const nftName = "NCCU site No.1(2018)";
 const nftSymbol = "NCCU1801";
 const siteSizeInKW = 300;
 const maxTotalSupply = 773;
+const quantityGoal = 752;
 const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
@@ -282,16 +283,19 @@ const _tokenSymbol = nftSymbol;
 const _tokenPrice = initialAssetPricing;
 const _currency = pricingCurrency;
 const _quantityMax = maxTotalSupply;
-const _goalInPercentage = 97;
+//const _goalInPercentage = 0.97;
+const _quantityGoal = quantityGoal;
 const _CFSD2 = timeCurrent+1;
 const _CFED2 = timeCurrent+10;
 let _serverTime = timeCurrent;
+let _reason;
 
 let addrPlatformCtrt;
 let uid1, uid2;
 let extoAddr1, extoAddr2;
 
-let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner; let tokenOwnerM, tokenControllerDetail, timeCurrentM;
+let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
+let tokenOwnerM, tokenControllerDetail, timeCurrentM;
 let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
 
 beforeEach( async () => {
@@ -304,6 +308,7 @@ beforeEach( async () => {
     acc4 = accounts[4];
     platformSupervisor = accounts[3];
     fundManager = accounts[4];
+    operator = accounts[4];
 
     managementTeam = [platformSupervisor, AssetOwner1, AssetOwner2, acc3, acc4];
     console.log('platformSupervisor', platformSupervisor);
@@ -418,7 +423,7 @@ beforeEach( async () => {
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, managementTeam ];
+      TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, managementTeam ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
     .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -462,7 +467,7 @@ beforeEach( async () => {
     */
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, managementTeam];
+    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _quantityGoal, _CFSD2, _CFED2, _serverTime, managementTeam];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -550,15 +555,15 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n------------==Check deployment');
     assert.ok(addrPlatformCtrt);
-    assert.ok(addrMultiSig1);
-    assert.ok(addrMultiSig2);
+    // assert.ok(addrMultiSig1);
+    // assert.ok(addrMultiSig2);
     assert.ok(addrAssetBook1);
     assert.ok(addrAssetBook2);
     assert.ok(addrRegistry);
     assert.ok(addrTokenController);
     assert.ok(addrERC721SPLC);
     assert.ok(addrCrowdFunding);
-    assert.ok(addrPlatformSupervisorCtrt);
+    //assert.ok(addrPlatformSupervisorCtrt);
     console.log('Deployment Check: Good');
 
     let _assetAddr = addrERC721SPLC;
@@ -583,6 +588,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('addrAssetBook2', addrAssetBook2);
 
     let assetAddr = addrERC721SPLC;
+    console.log('here1')
     let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('assetbook1', assetsMeasured1);
     tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
@@ -641,8 +647,8 @@ describe('Tests on ERC721SPLC', () => {
     let tokenContractDetails = await instERC721SPLC.methods.getTokenContractDetails().call();
     console.log('tokenContractDetails', tokenContractDetails);
 
-    let nameM = await instERC721SPLC.methods.nftName().call();
-    let symbolM = await instERC721SPLC.methods.nftSymbol().call();
+    let nameM = await instERC721SPLC.methods.name().call();
+    let symbolM = await instERC721SPLC.methods.symbol().call();
     let initialAssetPricingM = await instERC721SPLC.methods.initialAssetPricing().call();
     let IRR20yrx100M = await instERC721SPLC.methods.IRR20yrx100().call();
     let maxTotalSupplyM = await instERC721SPLC.methods.maxTotalSupply().call();
@@ -662,8 +668,8 @@ describe('Tests on ERC721SPLC', () => {
     console.log('tokenURI', tokenURI, 'tokenURI_M', web3.utils.toAscii(tokenURI_M));
     //assert.equal(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
-    let isUnlockedValid = await instTokenController.methods.isUnlockedValid().call();
-    assert.equal(isUnlockedValid, false);
+    let isActiveOperational = await instTokenController.methods.isActiveOperational().call();
+    assert.equal(isActiveOperational, false);
 
 
     let supportsInterface0x80ac58cd = await instERC721SPLC.methods.supportsInterface("0x80ac58cd").call();
@@ -693,8 +699,8 @@ describe('Tests on ERC721SPLC', () => {
 
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
-    let _to, tokenIdTarget, accountM, balanceM, accountIdsAll, assetbookMX;
-    _to = addrAssetBook1; tokenIdTarget = 1;
+    let _to, tokenIdTarget, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
+    _to = addrAssetBook1; tokenIdTarget = 1; serverTime = timeCurrent;
 
     assetbookMX = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log(assetbookMX);
@@ -714,7 +720,7 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
-    await instERC721SPLC.methods.mintSerialNFT(_to, tokenIdTarget).send({
+    await instERC721SPLC.methods.mintSerialNFT(_to, tokenIdTarget, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('after minting tokenId =', tokenIdTarget);
@@ -729,12 +735,10 @@ describe('Tests on ERC721SPLC', () => {
     console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
     assert.equal(tokenOwnerM, _to);
 
-    //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getToken(tokenId)
-    tokenInfo = await instERC721SPLC.methods.getToken(tokenIdTarget).call();
-    console.log('SPLC getToken(): tokenId = '+tokenIdTarget+':', tokenInfo);
-    assert.equal(tokenInfo[0], addrAssetBook1);
-    assert.equal(tokenInfo[1], initialAssetPricing);
-    assert.equal(tokenInfo[2], addrZero);
+    //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(tokenIdTarget).call();
+    console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
+    assert.equal(tokenInfo, addrAssetBook1);
 
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
     console.log('\nSPLC accountM', accountM);
@@ -748,7 +752,7 @@ describe('Tests on ERC721SPLC', () => {
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    _to = addrAssetBook1; amount = 3;
+    _to = addrAssetBook1; amount = 3; serverTime = timeCurrent;
     //let _tos = [_to, _to, _to];
     let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
     const strToBytes32 = str => web3.utils.fromAscii(str);
@@ -757,7 +761,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('_uriBytes32s', _uriBytes32s);
 
     console.log('\nmintSerialNFT()... amount =', amount);
-    await instERC721SPLC.methods.mintSerialNFT(_to, amount).send({
+    await instERC721SPLC.methods.mintSerialNFT(_to, amount, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
@@ -772,18 +776,16 @@ describe('Tests on ERC721SPLC', () => {
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(4).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(2).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
     console.log('\nERC721SPLC tokenId = 2:', tokenInfo);
-    assert.equal(tokenInfo[0], addrAssetBook1);
-    assert.equal(tokenInfo[1], initialAssetPricing);
-    assert.equal(tokenInfo[2], addrZero);
+    assert.equal(tokenInfo, addrAssetBook1);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
-    tokenInfo = await instERC721SPLC.methods.getToken(3).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
     console.log('\ntokenInfo from ERC721SPLC tokenId = 3:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(4).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
     console.log('\ntokenInfo from ERC721SPLC tokenId = 4:', tokenInfo);
 
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
@@ -799,10 +801,10 @@ describe('Tests on ERC721SPLC', () => {
     console.log('SPLC getAccount():', accountM);
 
 
-    //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getToken(tokenId)
+    //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
-    _to = addrAssetBook2; amount = 3;
+    _to = addrAssetBook2; amount = 3; serverTime = timeCurrent;
     //_tos = [_to, _to, _to];
     _uriStrs = [uriBase+"5", uriBase+"6", uriBase+"7"];
     _uriBytes32s = _uriStrs.map(strToBytes32);
@@ -810,7 +812,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('_uriBytes32s', _uriBytes32s);
     
     console.log('\nstart minting via mintSerialNFTBatch()');
-    await instERC721SPLC.methods.mintSerialNFT(_to, amount).send({
+    await instERC721SPLC.methods.mintSerialNFT(_to, amount, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instERC721SPLC.methods.tokenId().call();
@@ -823,13 +825,13 @@ describe('Tests on ERC721SPLC', () => {
     tokenOwnerM = await instERC721SPLC.methods.ownerOf(7).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(5).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 5:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(6).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 6:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getToken(7).call();
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
     console.log('tokenInfo from ERC721SPLC tokenId = 7:', tokenInfo);
 
 
@@ -874,19 +876,28 @@ describe('Tests on ERC721SPLC', () => {
     isLaunchedM = tokenControllerDetail[4];
     console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLaunched', isLaunchedM);
 
+
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
     timeCurrent = TimeTokenUnlock;
-    await instTokenController.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.updateTime(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isActiveOperational().call();
+    console.log('isActiveOperational()', bool1);
     assert.equal(bool1, false);
+
+    //enum TokenState{underLockupPeriod, operational, expired}
+    tokenStateM = await instTokenController.methods.tokenState().call();
+    console.log('tokenStateM', tokenStateM);
+    assert.equal(tokenStateM, 0);
 
     let error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
-      .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+      _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+      console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
+      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
+      .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed because of not meeting the condition: timeCurrent < TimeTokenUnlock', timeCurrent, TimeTokenUnlock);
@@ -899,15 +910,19 @@ describe('Tests on ERC721SPLC', () => {
     //-------------------------==Send tokens
     console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
     timeCurrent = TimeTokenUnlock+1;
-    await instTokenController.methods.setTimeCurrent(timeCurrent)
+    await instTokenController.methods.updateTime(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isActiveOperational().call(); 
+    console.log('isActiveOperational()', bool1);
     assert.equal(bool1, true);
+    tokenStateM = await instTokenController.methods.tokenState().call();
+    console.log('tokenStateM', tokenStateM);
+    assert.equal(tokenStateM, 1);
 
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-    _fromAssetOwner = AssetOwner2;
+    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
@@ -940,11 +955,11 @@ describe('Tests on ERC721SPLC', () => {
     //------------------------==
     //-----------------==Check AssetBook2
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 17000;
-    _fromAssetOwner = AssetOwner1;
+    _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
 
-    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(_assetAddr, amount, _to, _timeCurrent)
 
@@ -972,9 +987,9 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
-    _fromAssetOwner = AssetOwner2;
+    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
@@ -1002,29 +1017,29 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 7; price = 21000;
-    _fromAssetOwner = AssetOwner1;
+    _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
     console.log('AssetBook1 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+    await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
-    tokenInfo = await instERC721SPLC.methods.getToken(1).call();
-    assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(2).call();
-    assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(3).call();
-    assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(4).call();
-    assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(5).call();
-    assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(6).call();
-    assert.equal(tokenInfo[0], _to);
-    tokenInfo = await instERC721SPLC.methods.getToken(7).call();
-    assert.equal(tokenInfo[0], _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(1).call();
+    assert.equal(tokenInfo, _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
+    assert.equal(tokenInfo, _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
+    assert.equal(tokenInfo, _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
+    assert.equal(tokenInfo, _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
+    assert.equal(tokenInfo, _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
+    assert.equal(tokenInfo, _to);
+    tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
+    assert.equal(tokenInfo, _to);
 
-    //console.log('SPLC getToken(): tokenId = '+tokenIdTarget+':', tokenInfo);
+    //console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
     // assert.equal(tokenInfo[1], initialAssetPricing);
     // assert.equal(tokenInfo[2], addrZero);
 
@@ -1041,7 +1056,7 @@ describe('Tests on ERC721SPLC', () => {
 
     tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
-    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    console.log('\ntokenIds from AssetBook2 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instERC721SPLC.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
@@ -1049,20 +1064,96 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(assetbookXM[0], nftSymbol);
     assert.equal(assetbookXM[1], 7);
 
+
+    console.log('\n----------------==Approval Functions');
+    _from = addrAssetBook2; _fromAssetOwner = AssetOwner2; amount = 3; 
+
+    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    console.log('allowance() AssetBook2 to operator:', result);
+    assert.equal(result, 0);
+
+    console.log('\ntokenApprove()... amount =', amount);
+    await instAssetBook2.methods.assetbookApprove(_assetAddr, operator, amount)
+    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    console.log('allowance() AssetBook2 to operator:', result);
+    assert.equal(result, amount);
+
+
+    console.log('\n----------------==Send token in batch: amount = '+amount+'  from AssetBook2 to AssetBook1');
+    _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
+    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+    console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
+    await instERC721SPLC.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
+    .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('\nCheck AssetBook2 after txn...');
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    console.log('SPLC getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('AssetBook2:', assetbookXM);
+    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[1], 4);
+
+
+    console.log('\nCheck AssetBook1 after txn...');
+    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
+    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    console.log('SPLC getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('AssetBook1:', assetbookXM);
+    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[1], 3);
+
+    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    console.log('allowance() AssetBook2 to operator:', result);
+    assert.equal(result, 0);
+
+
+    //----------------==Send tokens with not enough allowance
+    console.log('\n------------==Send tokens with not enough allowance');
+    error = false;
+    try {
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
+      _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+      await instERC721SPLC.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
+      .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      error = true;
+    } catch (err) {
+      console.log('[Success] sending 1 token from addrAssetBook2 to addrAssetBook1 failed because of not enough allowance: ', result);
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+
     //----------------==Send tokens after valid time
     console.log('\n------------==Send tokens after valid date');
-    timeCurrent = TimeTokenValid;
-    await instTokenController.methods.setTimeCurrent(timeCurrent)
+    timeCurrent = TimeTokenValid+1;
+    await instTokenController.methods.updateTime(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isUnlockedValid().call(); 
+    bool1 = await instTokenController.methods.isActiveOperational().call();
+    console.log('isActiveOperational()', bool1);
     assert.equal(bool1, false);
+
+    //enum TokenState{underLockupPeriod, operational, expired}
+    tokenStateM = await instTokenController.methods.tokenState().call();
+    console.log('tokenStateM', tokenStateM);
+    assert.equal(tokenStateM, 2);
+
 
     error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
       _fromAssetOwner = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, amount, _to, price)
+      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price)
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
@@ -1082,7 +1173,7 @@ describe('Tests on ERC721SPLC', () => {
 //-----------------------------------------==
 describe('Tests on ArrayTesting', () => {
 
-  it('ArrayTesting functions test', async () => {
+  it('ArrayTesting functions test', async function() {
     console.log('\n------------==Check ArrayTesting parameters');
     let array1 = [ '1', '2', '3', '4', '5'];
     let array2 = [ '6', '7', '8'];
@@ -1094,7 +1185,6 @@ describe('Tests on ArrayTesting', () => {
     console.log('\narrayOut', arrayOut);
 
     // console.log('addrCrowdFunding', addrCrowdFunding);
-    // console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
   });
 });
 
@@ -1106,16 +1196,16 @@ describe('Tests on IncomeManagerCtrt', () => {
   it('IncomeManagerCtrt functions test', async function() {
     this.timeout(9500);
     console.log('\n------------==Check IncomeManagerCtrt parameters');
-    let _payableDate, _payableAmount, _index, _payableDates, _payableAmounts, result, _errorCode;
+    let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode;
 
-    _index = 1; _payableDate = 201905110000; _payableAmount = 3000;
+    _index = 1; forecastedPayableTime = 201905110000; forecastedPayableAmount = 3000;
 
     console.log('\n--------==Initial conditions');
     result = await instIncomeManagerCtrt.methods.schCindex().call();
     console.log('schCindex:', result);
     assert.equal(result, 0);
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('getIncomeSchedule():', result);
     assert.equal(result[0], false);
     assert.equal(result[1], false);
@@ -1125,12 +1215,12 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[5], false);
     assert.equal(result[6], false);
 
-    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, false);
 
-    console.log('\n--------==Add a new pair of _payableDate, _payableAmount');
-    await instIncomeManagerCtrt.methods.addSchedule(_payableDate, _payableAmount)
+    console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
+    await instIncomeManagerCtrt.methods.addSchedule(forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nafter adding a new schedule...');
@@ -1138,70 +1228,70 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('new schCindex:', result);
     assert.equal(result, 1);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
     console.log('getSchIndex:', result);
     assert.equal(result, 1);
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('new getIncomeSchedule():', result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], 0);
     assert.equal(result[3], 0);
     assert.equal(result[4], false);
     assert.equal(result[5], 0);
     assert.equal(result[6], false);
 
-    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, false);
 
 
-    console.log('\n--------==setIsApproved()');
-    await instIncomeManagerCtrt.methods.setIsApproved(_index, _payableDate, true)
+    console.log('\n--------==imApprove()');
+    await instIncomeManagerCtrt.methods.imApprove(_index, true)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('getIncomeSchedule():', result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], 0);
     assert.equal(result[3], 0);
     assert.equal(result[4], true);
     assert.equal(result[5], 0);
     assert.equal(result[6], false);
 
-    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, true);
 
 
     console.log('\n--------==setPaymentReleaseResults');
-    _paymentDate = _payableDate;
-    _paymentAmount = _payableAmount;
+    _paymentDate = forecastedPayableTime;
+    _paymentAmount = forecastedPayableAmount;
     _errorCode = 0;
     await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('getIncomeSchedule():', result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], _paymentDate);
     assert.equal(result[3], _paymentAmount);
     assert.equal(result[4], true);
     assert.equal(result[5], 0);
     assert.equal(result[6], false);
 
-    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, false);
 
 
     //-----------------------==add 1 more pair
-    _index = 2; _payableDate = 201906110000; _payableAmount = 3300;
+    _index = 2; forecastedPayableTime = 201906110000; forecastedPayableAmount = 3300;
 
-    await instIncomeManagerCtrt.methods.addSchedule(_payableDate, _payableAmount)
+    await instIncomeManagerCtrt.methods.addSchedule(forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==after adding a new schedule...');
@@ -1209,18 +1299,18 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('new schCindex:', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(_index, _payableDate).call();
-    console.log('getSchIndex(_index, _payableDate):', result);
+    result = await instIncomeManagerCtrt.methods.getSchIndex(_index, forecastedPayableTime).call();
+    console.log('getSchIndex(_index, forecastedPayableTime):', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
-    console.log('getSchIndex(0, _payableDate):', result);
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
+    console.log('getSchIndex(0, forecastedPayableTime):', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('new getIncomeSchedule():', result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], 0);
     assert.equal(result[3], 0);
     assert.equal(result[4], false);
@@ -1229,12 +1319,12 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     //-----------------------==add 3 more pairs
-    console.log('\n--------==Add 3 more pairs of _payableDate, _payableAmount');
-    //_payableDate = 201906110000;
-    _payableDates = [201908170000, 201911210000, 202002230000];
-    _payableAmounts = [3700, 3800, 3900];
+    console.log('\n--------==Add 3 more pairs of forecastedPayableTime, forecastedPayableAmount');
+    //forecastedPayableTime = 201906110000;
+    forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+    forecastedPayableAmounts = [3700, 3800, 3900];
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, _payableDate).call();
+    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
     console.log('getSchIndex:', result);
     assert.equal(result, _index);
 
@@ -1243,82 +1333,82 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result, 2);
 
 
-    await instIncomeManagerCtrt.methods.AddScheduleBatch(_payableDates, _payableAmounts)
+    await instIncomeManagerCtrt.methods.AddScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.schCindex().call();
     console.log('new schCindex:', result);
     assert.equal(result, 5);
 
-    for(i = 0; i < _payableDates.length; i++) {
+    for(i = 0; i < forecastedPayableTimes.length; i++) {
       _index = i+3;
-      result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+      result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
       console.log('\ngetIncomeSchedule(index='+_index+'):', result);
-      _payableDate = _payableDates[i];
-      _payableAmount = _payableAmounts[i];
-      assert.equal(result[0], _payableDate);
-      assert.equal(result[1], _payableAmounts[i]);
+      forecastedPayableTime = forecastedPayableTimes[i];
+      forecastedPayableAmount = forecastedPayableAmounts[i];
+      assert.equal(result[0], forecastedPayableTime);
+      assert.equal(result[1], forecastedPayableAmounts[i]);
       assert.equal(result[2], 0);
       assert.equal(result[3], 0);
       assert.equal(result[4], false);
       assert.equal(result[5], 0);
       assert.equal(result[6], false);
       
-      bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+      bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
       console.log('isScheduleGoodForRelease:', bool1);
       assert.equal(bool1, false);
   
     }
 
 
-    console.log('\n--------==setIsApproved()');
-    await instIncomeManagerCtrt.methods.setIsApproved(_index, _payableDate, true)
+    console.log('\n--------==imApprove()');
+    await instIncomeManagerCtrt.methods.imApprove(_index, true)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
-    console.log('getIncomeSchedule():', _index, _payableDate, _payableAmount, result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
+    console.log('getIncomeSchedule():', _index, forecastedPayableTime, forecastedPayableAmount, result);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], 0);
     assert.equal(result[3], 0);
     assert.equal(result[4], true);
     assert.equal(result[5], 0);
     assert.equal(result[6], false);
 
-    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, true);
 
 
     console.log('\n--------==setPaymentReleaseResults');
-    _paymentDate = _payableDate;
-    _paymentAmount = _payableAmount;
+    _paymentDate = forecastedPayableTime;
+    _paymentAmount = forecastedPayableAmount;
     _errorCode = 21;
     await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('', result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], _paymentDate);
     assert.equal(result[3], _paymentAmount);
     assert.equal(result[4], true);
     assert.equal(result[5], _errorCode);
     assert.equal(result[6], false);
 
-    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(_payableDate).call();
+    bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     console.log('isScheduleGoodForRelease:', bool1);
     assert.equal(bool1, false);
 
 
-    await instIncomeManagerCtrt.methods.setErrResolution(_index, _payableDate, true)
+    await instIncomeManagerCtrt.methods.setErrResolution(_index, true)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index, _payableDate).call(); 
+    result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('\n--------==setErrResolution()', result);
-    assert.equal(result[0], _payableDate);
-    assert.equal(result[1], _payableAmount);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
     assert.equal(result[2], _paymentDate);
     assert.equal(result[3], _paymentAmount);
     assert.equal(result[4], true);
@@ -1334,9 +1424,9 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     console.log('\n--------==editIncomeSchedule');
-    _index = 2; _payableDate = 201906110222; _payableAmount = 4000;
+    _index = 2; forecastedPayableTime = 201906110222; forecastedPayableAmount = 4000;
 
-    await instIncomeManagerCtrt.methods.editIncomeSchedule(_index, _payableDate, _payableAmount)
+    await instIncomeManagerCtrt.methods.editIncomeSchedule(_index, forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==getIncomeScheduleList()');
@@ -1346,8 +1436,8 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     console.log('\n--------==removeIncomeSchedule()');
-    _index = 3; _payableDate = 201906110999;
-    await instIncomeManagerCtrt.methods.removeIncomeSchedule(_index, _payableDate)
+    _index = 3; forecastedPayableTime = 201906110999;
+    await instIncomeManagerCtrt.methods.removeIncomeSchedule(_index)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==getIncomeScheduleList()');
@@ -1362,7 +1452,7 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 // describe('Tests on DDD', () => {
 
-//   it('DDD functions test', async () => {
+//   it('DDD functions test', async function()  {
 //     console.log('\n------------==Check DDD parameters');
 //   });
 // });
@@ -1372,17 +1462,17 @@ describe('Tests on IncomeManagerCtrt', () => {
 //-----------------------------------------==
 describe('Tests on CrowdFunding', () => {
 
-  it('CrowdFunding functions test', async () => {
+  it('CrowdFunding functions test', async function() {
     console.log('\n------------==Check CrowdFunding parameters');
     console.log('addrCrowdFunding', addrCrowdFunding);
+
+    const _CFSD2 = timeCurrent+1;
+    //_CFED2 = timeCurrent+10;
     console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
     // timeCurrent = 201902281040;
-    // const _CFSD2 = timeCurrent+1;
-    // const _CFED2 = timeCurrent+10;
     /**
     const nftSymbol = "NCCU1801";
     const maxTotalSupply = 773; 
-    const _goalInPercentage = 97;//  773* 0.97 = 749.81
     const initialAssetPricing = 17000;
 
     string public tokenSymbol; //專案erc721合約
@@ -1397,18 +1487,20 @@ describe('Tests on CrowdFunding', () => {
     console.log('\ntokenSymbolM', tokenSymbolM);
     assert.equal(tokenSymbolM, nftSymbol);
 
-    let tokenPriceM = await instCrowdFunding.methods.tokenPrice().call();
-    console.log('tokenPriceM', tokenPriceM);
-    assert.equal(tokenPriceM, 17000);
+    console.log('initialAssetPricing', initialAssetPricing);
+    let initialAssetPricingM = await instCrowdFunding.methods.tokenPrice().call();
+    console.log('initialAssetPricingM', initialAssetPricingM);
+    assert.equal(initialAssetPricingM, initialAssetPricing);
 
-    let quantityMaxM = await instCrowdFunding.methods.quantityMax().call();
-    console.log('quantityMaxM', quantityMaxM);
-    assert.equal(quantityMaxM, 773);
+    console.log('maxTotalSupply', maxTotalSupply);
+    let maxTotalSupplyM = await instCrowdFunding.methods.quantityMax().call();
+    console.log('maxTotalSupplyM', maxTotalSupplyM);
+    assert.equal(maxTotalSupplyM, maxTotalSupply);
 
-    const quantityTargetGoal = 749;
+    console.log('quantityGoal', quantityGoal);
     let quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
     console.log('quantityGoalM', quantityGoalM);
-    assert.equal(quantityGoalM, quantityTargetGoal);
+    assert.equal(quantityGoalM, quantityGoal);
 
     let CFSD2M = await instCrowdFunding.methods.CFSD2().call();
     console.log('CFSD2M', CFSD2M);
@@ -1418,28 +1510,27 @@ describe('Tests on CrowdFunding', () => {
     console.log('CFED2M', CFED2M);
     assert.equal(CFED2M, _CFED2);
 
-    //------------==
-    await instCrowdFunding.methods.updateState()
+
+    //-------------------==
+    console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
+    serverTime = _CFSD2-1;
+    console.log('set servertime = _CFSD2-1', serverTime);
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    let serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, timeCurrent);
-
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
+    console.log('\nstateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "initial: not started yet");
 
     let fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
     assert.equal(fundingStateM, 0);
 
-    //const _CFSD2 = timeCurrent+1;
-    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    //-------------------==
+    serverTime = _CFSD2;
+    console.log('\nset serverTime = _CFSD2', _CFSD2);
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFSD2);
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1450,46 +1541,48 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(fundingStateM, 1);
 
     if (1==2){
-      //const _CFED2 = timeCurrent+10;
-      await instCrowdFunding.methods.setServerTime(_CFED2)
+      serverTime = _CFED2;
+      console.log('\nset serverTime = _CFED2', _CFED2);
+      await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-      serverTimeM = await instCrowdFunding.methods.serverTime().call();
-      console.log('serverTimeM', serverTimeM);
-      assert.equal(serverTimeM, _CFED2);//201902281050
-      
+  
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "hasFailed: ended with goal not reached");
+      assert.equal(stateDescriptionM, "fundingNotClosed: ended with goal not reached");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
       assert.equal(fundingStateM, 5);
-      process.exit(1);
+      //process.exit(1);
     }
 
     /**
     const nftSymbol = "NCCU1801";
     const maxTotalSupply = 773; 
-    const _goalInPercentage = 97;//  773* 0.97 = 749.81 ... 24
     const initialAssetPricing = 17000;
     */
-    // serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    // console.log('\nserverTimeM', serverTimeM);
-    // assert.equal(serverTimeM, 201902281041);
-
-    await instCrowdFunding.methods.makeFundingActive()
+    serverTime = _CFSD2+1;
+    console.log('\nset serverTime = _CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
+    await instCrowdFunding.methods.makeFundingActive(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instCrowdFunding.methods.invest(addrAssetBook1, quantityTargetGoal)
+    await instCrowdFunding.methods.invest(addrAssetBook1, quantityGoal, serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('\nafter investing the target goal amount');
+    console.log('after investing the target goal amount');
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 3);
+
 
     //------------------==Set time to initial
-    await instCrowdFunding.methods.setServerTime(_CFSD2-1)
+    console.log('\nset serverTime = _CFSD2-1');
+    serverTime = _CFSD2-1;
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('serverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFSD2-1);//201902281039
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1500,15 +1593,14 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(fundingStateM, 0);
 
     //------------------==Back to _CFSD2
-    await instCrowdFunding.methods.setServerTime(_CFSD2)
+    serverTime = _CFSD2;
+    console.log('\nset serverTime = _CFSD2');
+    await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, _CFSD2);
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "fundingWithGoalReached: still funding and has reached goal");
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
@@ -1516,13 +1608,12 @@ describe('Tests on CrowdFunding', () => {
 
 
     //------------------==Overbuying
-    let quantityAvailable = maxTotalSupply - quantityTargetGoal;//24
+    let quantityAvailable = maxTotalSupply - quantityGoal;//24
 
     let error = false;
     try {
       console.log('\nTrying to invest quantityAvailable+1');
-      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
@@ -1530,32 +1621,76 @@ describe('Tests on CrowdFunding', () => {
     }
     if (error) {assert(false);}
 
-    if(1==2){
-      //-------------------==Buying the available quantity
-      console.log('\nTrying to invest quantityAvailable');
-      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable)
+    if(1==1){
+      //-------------------==Pause the crowdfunding
+      serverTime = _CFSD2+3;
+      console.log('\nPause funding');
+      await instCrowdFunding.methods.pauseFunding(serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "hasSucceeded: sold out");
+      assert.equal(stateDescriptionM, "funding paused");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
-      assert.equal(fundingStateM, 4);
+      assert.equal(fundingStateM, 2);
 
-    } else {
-      //-------------------==CFED2 has been reached
-      console.log('\nCFED2 has been reached');
-      await instCrowdFunding.methods.setServerTime(_CFED2)
+      //-------------------==resumeFunding the crowdfunding
+      serverTime = _CFSD2+3;
+      console.log('\nResume funding');
+      await instCrowdFunding.methods.resumeFunding(_CFED2, _quantityMax, serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-      serverTimeM = await instCrowdFunding.methods.serverTime().call();
-      console.log('serverTimeM', serverTimeM);
-      assert.equal(serverTimeM, _CFED2);//201902281050
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "hasSucceeded: ended with unsold items");
+      //assert.equal(stateDescriptionM, "funding paused");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      //assert.equal(fundingStateM, 2);
+      console.log('check stateDescriptionM and fundingStateM!!!');
+
+      if(1==2) {
+        _reason = 'a good reason...';
+        console.log('\nAbort');
+        await instCrowdFunding.methods.abort(_reason, serverTime)
+        .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+  
+        stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+        console.log('stateDescriptionM', stateDescriptionM);
+        assert.equal(stateDescriptionM, "aborted:"+_reason);
+  
+        fundingStateM = await instCrowdFunding.methods.fundingState().call();
+        console.log('fundingStateM', fundingStateM);
+        assert.equal(fundingStateM, 6);
+        console.log('check stateDescriptionM and fundingStateM!!!');
+
+      } else {
+        //-------------------==Buying the available quantity
+        console.log('\nTrying to invest quantityAvailable');
+        await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable, serverTime)
+        .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+        stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+        console.log('stateDescriptionM', stateDescriptionM);
+        assert.equal(stateDescriptionM, "fundingClosed: sold out");
+
+        fundingStateM = await instCrowdFunding.methods.fundingState().call();
+        console.log('fundingStateM', fundingStateM);
+        assert.equal(fundingStateM, 4);
+      }
+      
+    } else {
+      //-------------------==CFED2 has been reached
+      console.log('\nCFED2 has been reached');
+      serverTime = _CFED2;
+      await instCrowdFunding.methods.updateState(serverTime)
+      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "fundingClosed: ended with unsold items");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
@@ -1565,23 +1700,6 @@ describe('Tests on CrowdFunding', () => {
 
     //------------------==
     /*
-    serverTimeM = await instCrowdFunding.methods.serverTime().call();
-    console.log('\nserverTimeM', serverTimeM);
-    assert.equal(serverTimeM, 201902281041);
-
-    await instCrowdFunding.methods.startFunding()
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    await instCrowdFunding.methods.invest(addrAssetBook1, maxTotalSupply)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "hasSucceeded: sold out");
-
-    fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 4);
     */
 
   });

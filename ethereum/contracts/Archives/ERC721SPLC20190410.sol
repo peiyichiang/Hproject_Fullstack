@@ -1,15 +1,32 @@
 pragma solidity ^0.5.4;
-import "./SafeMath.sol";
+/* v2.0
+=> Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!!
+=> use yyyymmddhhmm to record time
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
+*/
+import "./SafeMath.sol";
+
 interface ERC721ITF {
-  function balanceOf(address user) external view returns (uint256);
-  function ownerOf(uint256 _tokenId) external view returns (address);
+    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
+    event Approval(address indexed tokenOwner, address indexed approvedUser, uint256 indexed _tokenId);
+    event ApprovalForAll(address indexed user, address indexed _operator, bool isApproved);
+
+    function balanceOf(address user) external view returns (uint256);
+    function ownerOf(uint256 _tokenId) external view returns (address);
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external;
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
+    function transferFrom(address _from, address _to, uint256 _tokenId) external;
+
+    function approve(address user, uint256 _tokenId) external;
+    function setApprovalForAll(address _operator, bool user) external;
+    function getApproved(uint256 _tokenId) external view returns (address);
+    function isApprovedForAll(address user, address _operator) external view returns (bool);
 }
 
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.*/
 interface ERC721TokenReceiverITF {
-    function onERC721Received(address operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
 }
 
 //supportsInterface[0x01ffc9a7] will be true, must not set element 0xffffffff to true!!!!!
@@ -34,8 +51,10 @@ interface RegistryITF {
 //TokenControllerITF(addrTokenController).isAdmin(msg.sender);
 interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
-    function isActiveOperational() external view returns (bool);
+    function isUnlockedValid() external view returns (bool);
 }
+
+
 
 //------------------------HCAT721: Helium Crypto Asset Token
 contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF, 
@@ -46,17 +65,17 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     struct Account {
         uint idxStart;
         uint idxEnd;
-        mapping (uint => uint) indexToId;//account index to _tokenId: accounts[user].indexToId[index] //For First In First Out(FIFO) transfer rule
+        mapping (uint => uint) indexToId;//time index to _tokenId: accounts[user].indexToId[index] //For First In First Out(FIFO) transfer rule
         mapping (address => uint) allowed;
         //each operator has given quota to send certain account's N amount of tokens
     }
     mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         address owner;
-        //address approvedAddr;//approved to be transferred by one of the operators or the owner himself
+        address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
-    uint public tokenId;//last submitted index and total count of current Token ID. starts from 1
+    uint public tokenId;//Token ID and also the count of all issued tokens. starts from 1
     uint public siteSizeInKW;//the physical site electrical output in Kw. Typ 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
     uint public totalSupply;//total generated tokens - destroyed tokens
@@ -117,13 +136,15 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     }
 
     function ownerOf(uint256 _tokenId) 
-        external view returns (address ownerAddr) {
-        ownerAddr = idToAsset[_tokenId].owner;
-        require(ownerAddr != address(0), "ownerAddr should not be 0x0");
+        external view returns (address owner_) {
+        owner_ = idToAsset[_tokenId].owner;
+        require(owner_ != address(0), "owner_ does not exist");
     }
     function getIdToAsset(uint _tokenId) external view returns (
-        address ownerAddr) {
-        ownerAddr = idToAsset[_tokenId].owner;
+        address ownerAddr, address approvedAddr) {
+        Asset memory asset = idToAsset[_tokenId];
+        ownerAddr = asset.owner;
+        approvedAddr = asset.approvedAddr;
         require(ownerAddr != address(0), "ownerAddr should not be 0x0");
     }
 
@@ -190,6 +211,9 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
 
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
+        //require(indexStart >= idxStart, "indexStart must be >= idxStart");
+        //require(idxE <= idxEnd, "idxE must be <= idxEnd");
+        
 
         if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
             //arrayOut = [];
@@ -260,8 +284,6 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
 
     //---------------------------==Transfer
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
-        //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
-        //require(_to != address(0), "_to should not be 0x0");//replaced by registry check
         require(amount > 0, "amount should be > 0");
         require(price > 0, "price should be > 0");
         require(_from != _to, "_from should not be equal to _to");
@@ -272,14 +294,13 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
 
-        require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
+        require(TokenControllerITF(addrTokenController).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
         require(RegistryITF(addrRegistry).isAddrApproved(_from), "_from is not in compliance");
 
         _safeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
-
 
     event SafeTransferFromBatch(address indexed _from, address indexed _to, uint amount, uint price, uint indexed serverTime);//this function should be called by an Exchange contract, which should be trustworthy enough to give the correct price and serverTime
 
@@ -288,36 +309,35 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         address _to, uint amount, uint price, uint serverTime) internal {
           //price will be the same as acquiredCost, assuming no transaction fee
 
-        uint[] memory idxX = new uint[](4);
-        idxX[0] = accounts[_from].idxStart;//idxStartF = idxX[0]
-        idxX[1] = accounts[_from].idxEnd;// idxEndF = idxX[1]
-        require(idxX[0] <= idxX[1], "not enough asset to transfer: balance = 0");
-        require(idxX[1].sub(idxX[0]).add(1) >= amount, "not enough asset to transfer: balance < amount");
+        uint idxStartF = accounts[_from].idxStart;
+        uint idxEndF = accounts[_from].idxEnd;
+        require(idxStartF <= idxEndF, "not enough asset to transfer: balance = 0");
+        require(idxEndF.sub(idxStartF).add(1) >= amount, "not enough asset to transfer: balance < amount");
 
         //fix _to account
-        idxX[2] = accounts[_to].idxStart;// idxStartT = idxX[2]
-        idxX[3] = accounts[_to].idxEnd;// idxEndT = idxX[3]
+        uint idxStartT = accounts[_to].idxStart;
+        uint idxEndT = accounts[_to].idxEnd;
         uint idxStartReqT; //uint idxEndReqT;
-        if (idxX[2] > idxX[3]) {
+        if (idxStartT > idxEndT) {
           accounts[_to].idxStart = 0;
           accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
-        } else if (idxX[2] == 0 && idxX[3] == 0 && accounts[_to].indexToId[0] == 0) {
+        } else if (idxStartT == 0 && idxEndT == 0 && accounts[_to].indexToId[0] == 0) {
           accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
         } else {
-          idxStartReqT = idxX[3].add(1);
-          accounts[_to].idxEnd = idxX[3].add(amount);
-          //idxEndReqT = idxX[3].add(amount);
+          idxStartReqT = idxEndT.add(1);
+          accounts[_to].idxEnd = idxEndT.add(amount);
+          //idxEndReqT = idxEndT.add(amount);
         }//accounts[_to].indexToId[0]
 
 
-        uint allowedAmount = accounts[_from].allowed[msg.sender];
+        //uint allowedAmount = accounts[_from].allowed[msg.sender];
         for(uint i = 0; i < amount; i = i.add(1)) {
             //inside _from account
-            uint idxFrom = i.add(idxX[0]);
+            uint idxFrom = i.add(idxStartF);
             uint tokenId_ = accounts[_from].indexToId[idxFrom];
             delete accounts[_from].indexToId[idxFrom];
 
@@ -325,55 +345,104 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             require(tokenOwner == _from, "tokenOwner should be _from");
             //require(tokenOwner != address(0), "owner should not be 0x0");
 
-            if(tokenOwner == msg.sender){
+            //if(tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender){
+            // } else if(allowedAmount > 0) {
+            //     allowedAmount = allowedAmount.sub(1);
+            // } else {
+            //   revert("msg.sender should be tokenOwner, an approved, or a token operator has enough allowed amount");
+            // }
 
-            } else if (allowedAmount > 0){
-                allowedAmount = allowedAmount.sub(1);
-            } else {
-              revert("msg.sender is not tokenOwner, or a token caller does not have enough allowed amount");
-            }
             // require(
             // tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender 
             // || allowedAmount > amount, 
             // "msg.sender should be tokenOwner, an approved, or a token operator has enough allowed amount");
 
             idToAsset[tokenId_].owner = _to;
+            clearApproval(tokenId_);
 
             accounts[_to].indexToId[i.add(idxStartReqT)] = tokenId_;
         }
 
-        if(allowedAmount < accounts[_from].allowed[msg.sender]){
-            accounts[_from].allowed[msg.sender] = allowedAmount;
-        }
+        // if(allowedAmount < accounts[_from].allowed[msg.sender]){
+        //     accounts[_from].allowed[msg.sender] = allowedAmount;
+        // }
 
         //fix _from account
-        if (idxX[1] == idxX[0].add(amount).sub(1)) {
+        if (idxEndF == idxStartF.add(amount).sub(1)) {
             accounts[_from].idxStart = 1;
             accounts[_from].idxEnd = 0;
         } else {
-            accounts[_from].idxStart = idxX[0].add(amount);
+            accounts[_from].idxStart = idxStartF.add(amount);
         }
 
         emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
 
 
-    //-------------------------------==Approve Functions
-    function allowance(address user, address operator) 
+    //-------------------------------==Approvals
+    function approveAmount(address _operator, uint amount) external {
+        require(_operator != address(0), "_operator should not be 0x0");
+        accounts[msg.sender].allowed[_operator] = amount;
+        emit ApprovalAmount(msg.sender, _operator, amount);
+    }
+    function allowance(address user, address _operator) 
         external view returns (uint remaining) {
         require(user != address(0), "user should not be 0x0");
-        require(operator != address(0), "operator should not be 0x0");
-        remaining = accounts[user].allowed[operator];
+        require(_operator != address(0), "_operator should not be 0x0");
+        remaining = accounts[user].allowed[_operator];
     }
-    function tokenApprove(address operator, uint amount) external {
-        require(operator != address(0), "operator should not be 0x0");
-        accounts[msg.sender].allowed[operator] = amount;
-        emit TokenApprove(msg.sender, operator, amount);
+
+
+    //--------------==ID based
+    /** $dev Clears the current approvedAddr of a given NFT ID.
+     $param _tokenId ID of the NFT to be transferred. */
+    function clearApproval(uint256 _tokenId) private {
+        require(_tokenId > 0, "_tokenId should > 0");
+        if(idToAsset[_tokenId].approvedAddr != address(0)) {
+            delete idToAsset[_tokenId].approvedAddr;
+        }
     }
-    event TokenApprove(address indexed tokenOwner, address indexed operator, uint amount);
+
+    function getApproved(uint256 _tokenId) external view returns (address) {
+        require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
+        return idToAsset[_tokenId].approvedAddr;
+    }
 
     function() external payable { revert("should not send any ether directly"); }
+
+    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
+    event Approval(address indexed tokenOwner, address indexed approvedUser, uint256 indexed _tokenId);
+    event ApprovalForAll(address indexed tokenOwner, address indexed _operator, bool isApproved);
+    // event BurnNFT(address user, uint _tokenId, address msgsender);
+    event ApprovalAmount(address indexed tokenOwner, address indexed _operator, uint amount);
+
+    /** $dev Guarantees that the msg.sender is 
+    an owner or operator of the given NFT.
+    * $param _tokenId ID of the NFT to validate.   */
+    modifier canOperate(uint256 _tokenId) {
+        address tokenOwner = idToAsset[_tokenId].owner;
+        require(
+            tokenOwner == msg.sender || accounts[tokenOwner].allowed[msg.sender] > 0,
+            "tokenOwner should be either msg.sender or is an approved operator");
+        _;
+    }
+
+    /** $dev Guarantees that the msg.sender is allowed to transfer NFT.
+    * $param _tokenId ID of the NFT to transfer.   */
+    modifier canTransfer(uint256 _tokenId) {
+        address tokenOwner = idToAsset[_tokenId].owner;
+        require(
+            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddr == msg.sender || accounts[tokenOwner].allowed[msg.sender] > 0, "msg.sender should be tokenOwner, an approved, or a token operator");
+        _;
+    }
+    /** $dev Guarantees that _tokenId is a valid Token. Check if such _tokenId exists. $param _tokenId ID of the NFT to validate.   */
+    modifier validNFToken(uint256 _tokenId) {
+        require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
+        _;
+    }
+
 }
+
 
 //--------------------==
 library AddressUtils {
@@ -384,3 +453,4 @@ library AddressUtils {
         return size > 0;
     }
 }
+
