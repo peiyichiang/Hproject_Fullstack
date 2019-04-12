@@ -549,11 +549,6 @@ router.post('/tokenControllerContract', async function (req, res, next) {
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
-    let currentTime;
-    await timer.getTime().then(function(time) {
-        currentTime = time;
-    })
-    console.log(`現在時間: ${currentTime}`)
     let TimeTokenLaunch = req.body.TimeTokenLaunch;
     let TimeTokenUnlock = req.body.TimeTokenUnlock;
     let TimeTokenValid = req.body.TimeTokenValid;
@@ -562,7 +557,7 @@ router.post('/tokenControllerContract', async function (req, res, next) {
 
     tokenController.deploy({
         data: tokenControllerContract.bytecode,
-        arguments: [currentTime, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
+        arguments: [TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
     })
         .send({
             from: backendAddr,
@@ -690,6 +685,38 @@ router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, nex
     })
 });
 
+
+/**@dev IncomeManagement ------------------------------------------------------------------------------------- */
+/*deploy IncomeManagement contract*/
+router.post('/incomeManagementContract', async function (req, res, next) {
+    /**POA */
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    /**ganache */
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const web3deploy = new Web3(provider);
+
+    let TimeAnchor = req.body.TimeAnchor;
+    let TimeTokenUnlock = req.body.TimeTokenUnlock;
+    let TimeTokenValid = req.body.TimeTokenValid;
+
+    const tokenController = new web3deploy.eth.Contract(tokenControllerContract.abi);
+
+    tokenController.deploy({
+        data: tokenControllerContract.bytecode,
+        arguments: [TimeAnchor, tokenCtrt, PA_Ctrt, FMXA_Ctrt, platformCtrt, management]
+    })
+        .send({
+            from: backendAddr,
+            gas: 6500000,
+            gasPrice: '0'
+        })
+        .on('receipt', function (receipt) {
+            res.send(receipt);
+        })
+        .on('error', function (error) {
+            res.send(error.toString());
+        })
+});
 
 
 
