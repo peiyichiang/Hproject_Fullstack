@@ -16,11 +16,11 @@
     "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
     "test": "mocha",
     "testcf": "mocha --grep CrowdFunding",
-    "test721": "mocha --grep ERC721SPLC",
+    "testhcat": "mocha --grep HCAT721",
     "testim": "mocha --grep IncomeManagerCtrt",
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
-    "testpmgr": "mocha --grep ",
+    "testpmgr": "mocha --grep ProductManager",
     "testarray": "mocha --grep ArrayUtils"
   },
   "dependencies": {

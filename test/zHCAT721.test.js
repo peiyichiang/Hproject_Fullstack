@@ -135,24 +135,24 @@ if (TokenController === undefined){
   //console.log(TokenController);
 }
 
-const ERC721SPLC = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
-if (ERC721SPLC === undefined){
-  console.log('[Error] ERC721SPLC is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const HCAT721 = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
+if (HCAT721 === undefined){
+  console.log('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] ERC721SPLC is defined');
-  if (ERC721SPLC.abi === undefined){
-    console.log('[Error] ERC721SPLC.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] HCAT721 is defined');
+  if (HCAT721.abi === undefined){
+    console.log('[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC.abi is defined');
-      //console.log('ERC721SPLC.abi:', ERC721SPLC.abi);
+    console.log('[Good] HCAT721.abi is defined');
+      //console.log('HCAT721.abi:', HCAT721.abi);
   }
-  if (ERC721SPLC.bytecode === undefined || ERC721SPLC.bytecode.length < 10){
-    console.log('[Error] ERC721SPLC.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (HCAT721.bytecode === undefined || HCAT721.bytecode.length < 10){
+    console.log('[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC.bytecode is defined');
-      //console.log('ERC721SPLC.bytecode:', ERC721SPLC.bytecode);
+    console.log('[Good] HCAT721.bytecode is defined');
+      //console.log('HCAT721.bytecode:', HCAT721.bytecode);
   }
-  //console.log(ERC721SPLC);
+  //console.log(HCAT721);
 }
 
 
@@ -244,9 +244,10 @@ if (ProductManager === undefined){
 
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
+const maxTokenQtyForEachInvestmentFund = 120;
 let instRegistry, addrRegistry;
 let instTokenController, addrTokenController;
-let instERC721SPLC, addrERC721SPLC;
+let instHCAT721, addrHCAT721;
 let instCrowdFunding, addrCrowdFunding;
 let instIncomeManagerCtrt, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
@@ -267,31 +268,21 @@ const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
 const TimeTokenValid =  timeCurrent+9;
 
-const nftName = "NCCU site No.1(2018)";
-const nftSymbol = "NCCU1801";
+const tokenName = "NCCU site No.1(2018)";
+const tokenSymbol = "NCCU1801";
 const siteSizeInKW = 300;
 const maxTotalSupply = 773;
-const quantityGoal = 752;
+const quantityGoal = 752;//const _goalInPercentage = 0.97;
 const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
-const tokenURI = nftSymbol+"/uri";
+const tokenURI = tokenSymbol+"/uri";
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
 //const addrTokenController = "0x39523jt032";
 
-const _tokenSymbol = nftSymbol;
-const _tokenPrice = initialAssetPricing;
-const _currency = pricingCurrency;
-const _quantityMax = maxTotalSupply;
-//const _goalInPercentage = 0.97;
-const _quantityGoal = quantityGoal;
-const _CFSD2 = timeCurrent+1;
-const _CFED2 = timeCurrent+10;
-let _serverTime = timeCurrent;
-let _reason;
-
-let addrPlatformCtrt;
-let uid1, uid2;
+const CFSD2 = timeCurrent+1;
+const CFED2 = timeCurrent+10;
+let reason, addrPlatformCtrt, uid1, uid2;
 let extoAddr1, extoAddr2;
 
 let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
@@ -435,39 +426,39 @@ beforeEach( async () => {
     addrTokenController = instTokenController.options.address;
     console.log('addrTokenController:', addrTokenController);
 
-    //Deploying ERC721SPLC contract...
+    //Deploying HCAT721 contract...
     /** https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
     const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
-    const argsERC721SPLC = [
-    nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
+    const argsHCAT721 = [
+    tokenName, tokenSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
     addrRegistry, addrTokenController, tokenURI_bytes32];
-    // string memory _nftName, string memory _nftSymbol, 
+    // string memory _tokenName, string memory _tokenSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
     // address _addrRegistryITF, address _addrTokenControllerITF
   
-    console.log('\nDeploying ERC721SPLC contract...');
-    instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
-    .deploy({ data: prefix+ERC721SPLC.bytecode, arguments: argsERC721SPLC })
+    console.log('\nDeploying HCAT721 contract...');
+    instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
+    .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
     .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('ERC721SPLC.sol has been deployed');
-    if (instERC721SPLC === undefined) {
-      console.log('[Error] instERC721SPLC is NOT defined');
-      } else {console.log('[Good] instERC721SPLC is defined');}
-    instERC721SPLC.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrERC721SPLC = instERC721SPLC.options.address;
-    console.log('addrERC721SPLC:', addrERC721SPLC);
+    console.log('HCAT721.sol has been deployed');
+    if (instHCAT721 === undefined) {
+      console.log('[Error] instHCAT721 is NOT defined');
+      } else {console.log('[Good] instHCAT721 is defined');}
+    instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrHCAT721 = instHCAT721.options.address;
+    console.log('addrHCAT721:', addrHCAT721);
     /**
     value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3.utils.toWei('10','ether')
     */
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _quantityGoal, _CFSD2, _CFED2, _serverTime, managementTeam];
+    const argsCrowdFunding = [tokenSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeCurrent, managementTeam];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -482,7 +473,7 @@ beforeEach( async () => {
 
     //---------=IncomeManagerCtrt related contracts
     //addrPlatformCtrt -> platformSupervisor for now...
-    const argsIncomeManagerCtrt =[addrERC721SPLC, platformSupervisor, managementTeam];
+    const argsIncomeManagerCtrt =[addrHCAT721, platformSupervisor, managementTeam];
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
     .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -524,9 +515,9 @@ beforeEach( async () => {
 });
 
 console.log('\n----------------==');
-describe('Tests on ERC721SPLC', () => {
+describe('Tests on HCAT721', () => {
   //this.timeout(2500);
-  /*it('check ERC721SPLC deployment test', async () => {
+  /*it('check HCAT721 deployment test', async () => {
     //!!!!!!!!! New contract instance for EVERY it() => Different contract addresses!!!
     //addrAsset = instAssetBook1.options.address;
     assert.ok(addrMultiSig1);
@@ -535,11 +526,11 @@ describe('Tests on ERC721SPLC', () => {
     assert.ok(addrAssetBook2);
     assert.ok(addrRegistry);
     assert.ok(addrTokenController);
-    assert.ok(addrERC721SPLC);
+    assert.ok(addrHCAT721);
     assert.ok(addrCrowdFunding);
     //assert.ok(addrIncomeManagerCtrt);
 
-    //console.log('instERC721SPLC', instERC721SPLC);
+    //console.log('instHCAT721', instHCAT721);
     //test if the instanceCtrt has a property options, which has a property of address. Test if such value exists or is not undefined
 
     //console.log(instanceCtrt);
@@ -550,7 +541,7 @@ describe('Tests on ERC721SPLC', () => {
   //   console.log('addrAssetBook1', addrAssetBook1);
   // });
 
-  it('AssetBook, Registry, ERC721SPLC HToken functions test', async function() {
+  it('AssetBook, Registry, HCAT721 functions test', async function() {
     this.timeout(9500);
 
     console.log('\n------------==Check deployment');
@@ -561,12 +552,12 @@ describe('Tests on ERC721SPLC', () => {
     assert.ok(addrAssetBook2);
     assert.ok(addrRegistry);
     assert.ok(addrTokenController);
-    assert.ok(addrERC721SPLC);
+    assert.ok(addrHCAT721);
     assert.ok(addrCrowdFunding);
     //assert.ok(addrPlatformSupervisorCtrt);
     console.log('Deployment Check: Good');
 
-    let _assetAddr = addrERC721SPLC;
+    let _assetAddr = addrHCAT721;
     if(false) {
       console.log('\n------------==Check MultiSig contract 1 & 2');
       console.log('addrMultiSig1', addrMultiSig1);
@@ -587,19 +578,19 @@ describe('Tests on ERC721SPLC', () => {
     console.log('addrAssetBook1', addrAssetBook1);
     console.log('addrAssetBook2', addrAssetBook2);
 
-    let assetAddr = addrERC721SPLC;
+    let assetAddr = addrHCAT721;
     console.log('here1')
     let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('assetbook1', assetsMeasured1);
-    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
 
     let assetsMeasured2 = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\nassetbook2', assetsMeasured2);
-    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook2, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
 
     // return (AssetBook.assetSymbol, AssetBook.assetAddrIndex, 
     //   AssetBook.assetAmount, AssetBook.timeIndexStart, 
@@ -611,7 +602,7 @@ describe('Tests on ERC721SPLC', () => {
     console.log('addrRegistry', addrRegistry);
     uid1 = "A500000001"; assetCtAddr = addrAssetBook1; extoAddr = AssetOwner1;
     await instRegistry.methods.addUser(
-      uid1, assetCtAddr, extoAddr, timeCurrent)
+      uid1, assetCtAddr, extoAddr)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('Registry: getUser()');
@@ -624,7 +615,7 @@ describe('Tests on ERC721SPLC', () => {
 
     uid2 = "A500000002"; assetCtAddr = addrAssetBook2; extoAddr = AssetOwner2;
     await instRegistry.methods.addUser(
-      uid2, assetCtAddr, extoAddr, timeCurrent)
+      uid2, assetCtAddr, extoAddr)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let user2M = await instRegistry.methods.getUser(uid2).call();
@@ -637,28 +628,28 @@ describe('Tests on ERC721SPLC', () => {
 
 
     //----------------==
-    console.log('\n------------==Check ERC721SPLC parameters');
-    console.log('addrERC721SPLC', addrERC721SPLC);
+    console.log('\n------------==Check HCAT721 parameters');
+    console.log('addrHCAT721', addrHCAT721);
 
-    // await instERC721SPLC.methods.set_admin(AssetOwner1, platformSupervisor).send({
+    // await instHCAT721.methods.set_admin(AssetOwner1, platformSupervisor).send({
     //   value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
     // });//set_tokenDump(address _tokenDump, address vendor)
 
-    let tokenContractDetails = await instERC721SPLC.methods.getTokenContractDetails().call();
+    let tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
     console.log('tokenContractDetails', tokenContractDetails);
 
-    let nameM = await instERC721SPLC.methods.name().call();
-    let symbolM = await instERC721SPLC.methods.symbol().call();
-    let initialAssetPricingM = await instERC721SPLC.methods.initialAssetPricing().call();
-    let IRR20yrx100M = await instERC721SPLC.methods.IRR20yrx100().call();
-    let maxTotalSupplyM = await instERC721SPLC.methods.maxTotalSupply().call();
-    let pricingCurrencyM = await instERC721SPLC.methods.pricingCurrency().call();
-    let siteSizeInKWM = await instERC721SPLC.methods.siteSizeInKW().call();
-    let tokenURI_M = await instERC721SPLC.methods.tokenURI().call();
+    let nameM = await instHCAT721.methods.name().call();
+    let symbolM = await instHCAT721.methods.symbol().call();
+    let initialAssetPricingM = await instHCAT721.methods.initialAssetPricing().call();
+    let IRR20yrx100M = await instHCAT721.methods.IRR20yrx100().call();
+    let maxTotalSupplyM = await instHCAT721.methods.maxTotalSupply().call();
+    let pricingCurrencyM = await instHCAT721.methods.pricingCurrency().call();
+    let siteSizeInKWM = await instHCAT721.methods.siteSizeInKW().call();
+    let tokenURI_M = await instHCAT721.methods.tokenURI().call();
 
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
-    assert.equal(nameM, nftName);
-    assert.equal(symbolM, nftSymbol);
+    tokenIdM = await instHCAT721.methods.tokenId().call();
+    assert.equal(nameM, tokenName);
+    assert.equal(symbolM, tokenSymbol);
     assert.equal(initialAssetPricingM, initialAssetPricing);
     assert.equal(IRR20yrx100M, IRR20yrx100);
     assert.equal(maxTotalSupplyM, maxTotalSupply);
@@ -672,17 +663,17 @@ describe('Tests on ERC721SPLC', () => {
     assert.equal(isActiveOperational, false);
 
 
-    let supportsInterface0x80ac58cd = await instERC721SPLC.methods.supportsInterface("0x80ac58cd").call();
+    let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
     assert.equal(supportsInterface0x80ac58cd, true);
-    let supportsInterface0x5b5e139f = await instERC721SPLC.methods.supportsInterface("0x5b5e139f").call();
+    let supportsInterface0x5b5e139f = await instHCAT721.methods.supportsInterface("0x5b5e139f").call();
     assert.equal(supportsInterface0x5b5e139f, true);
-    let supportsInterface0x780e9d63 = await instERC721SPLC.methods.supportsInterface("0x780e9d63").call();
+    let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
 
 
     //----------------==Setup Assetbook
     console.log('\n------------==Setup Assetbook 1 & 2');
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 0);
 
     const uriBase = "https://heliumcryptic.com/nccu0";
@@ -705,51 +696,51 @@ describe('Tests on ERC721SPLC', () => {
     assetbookMX = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log(assetbookMX);
 
-    // tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdTarget).call();
+    // tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdTarget).call();
     // console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
     // assert.equal(tokenOwnerM, _to);
 
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('\nSPLC accountM', accountM);
 
-    balanceM = await instERC721SPLC.methods.balanceOf(_to).call();
+    balanceM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('SPLC balanceM =', balanceM);
 
-    accountIdsAll = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
+    accountIdsAll = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
     console.log('SPLC accountIdsAll =', accountIdsAll);
 
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
-    await instERC721SPLC.methods.mintSerialNFT(_to, tokenIdTarget, serverTime).send({
+    await instHCAT721.methods.mintSerialNFT(_to, tokenIdTarget, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('after minting tokenId =', tokenIdTarget);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('\nassetbook1 after minting:', assetbookXM);
 
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    tokenIdM = await instHCAT721.methods.tokenId().call();
     console.log('check tokenId = ', tokenIdM);
     assert.equal(tokenIdM, tokenIdTarget);
 
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(tokenIdTarget).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdTarget).call();
     console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
     assert.equal(tokenOwnerM, _to);
 
-    //ERC721SPLC: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(tokenIdTarget).call();
+    //HCAT721: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
+    tokenInfo = await instHCAT721.methods.getIdToAsset(tokenIdTarget).call();
     console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
     assert.equal(tokenInfo, addrAssetBook1);
 
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('\nSPLC accountM', accountM);
-    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
-    console.log('ERC721SPLC tokenIds =', tokenIds, ', balanceXM =', balanceXM);
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
+    console.log('HCAT721 tokenIds =', tokenIds, ', balanceXM =', balanceXM);
 
 
     //-----------------==Mint Token Batch
     console.log('\n------------==Mint Token in Batch: tokenId = 2, 3, 4 to AssetBook1');
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
     _to = addrAssetBook1; amount = 3; serverTime = timeCurrent;
@@ -761,47 +752,47 @@ describe('Tests on ERC721SPLC', () => {
     console.log('_uriBytes32s', _uriBytes32s);
 
     console.log('\nmintSerialNFT()... amount =', amount);
-    await instERC721SPLC.methods.mintSerialNFT(_to, amount, serverTime).send({
+    await instHCAT721.methods.mintSerialNFT(_to, amount, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 4);
 
     console.log('SPLC ownerOf(tokenId)...')
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(2).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(2).call();
     assert.equal(tokenOwnerM, _to);
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(3).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(3).call();
     assert.equal(tokenOwnerM, _to);
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(4).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(4).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
-    console.log('\nERC721SPLC tokenId = 2:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(2).call();
+    console.log('\nHCAT721 tokenId = 2:', tokenInfo);
     assert.equal(tokenInfo, addrAssetBook1);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
-    console.log('\ntokenInfo from ERC721SPLC tokenId = 3:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(3).call();
+    console.log('\ntokenInfo from HCAT721 tokenId = 3:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
-    console.log('\ntokenInfo from ERC721SPLC tokenId = 4:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(4).call();
+    console.log('\ntokenInfo from HCAT721 tokenId = 4:', tokenInfo);
 
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     //  symbol, uint balance, bool isInitialized
     console.log('\nassetbook1 getAsset():', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 4);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook1, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook1).call();
-    console.log('\nERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
+    console.log('\nHCAT721 tokenId=', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
 
 
-    //ERC721SPLC: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
+    //HCAT721: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
     _to = addrAssetBook2; amount = 3; serverTime = timeCurrent;
@@ -812,38 +803,38 @@ describe('Tests on ERC721SPLC', () => {
     console.log('_uriBytes32s', _uriBytes32s);
     
     console.log('\nstart minting via mintSerialNFTBatch()');
-    await instERC721SPLC.methods.mintSerialNFT(_to, amount, serverTime).send({
+    await instHCAT721.methods.mintSerialNFT(_to, amount, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
-    tokenIdM = await instERC721SPLC.methods.tokenId().call();
+    tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 7);
 
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(5).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(5).call();
     assert.equal(tokenOwnerM, _to);
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(6).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(6).call();
     assert.equal(tokenOwnerM, _to);
-    tokenOwnerM = await instERC721SPLC.methods.ownerOf(7).call();
+    tokenOwnerM = await instHCAT721.methods.ownerOf(7).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
-    console.log('tokenInfo from ERC721SPLC tokenId = 5:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(5).call();
+    console.log('tokenInfo from HCAT721 tokenId = 5:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
-    console.log('tokenInfo from ERC721SPLC tokenId = 6:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(6).call();
+    console.log('tokenInfo from HCAT721 tokenId = 6:', tokenInfo);
 
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
-    console.log('tokenInfo from ERC721SPLC tokenId = 7:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(7).call();
+    console.log('tokenInfo from HCAT721 tokenId = 7:', tokenInfo);
 
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\nassetbook2:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], amount);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIds(addrAssetBook2, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(addrAssetBook2).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook2).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
 
 
@@ -880,7 +871,7 @@ describe('Tests on ERC721SPLC', () => {
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
     timeCurrent = TimeTokenUnlock;
-    await instTokenController.methods.updateTime(timeCurrent)
+    await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isActiveOperational().call();
     console.log('isActiveOperational()', bool1);
@@ -910,7 +901,7 @@ describe('Tests on ERC721SPLC', () => {
     //-------------------------==Send tokens
     console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
     timeCurrent = TimeTokenUnlock+1;
-    await instTokenController.methods.updateTime(timeCurrent)
+    await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isActiveOperational().call(); 
     console.log('isActiveOperational()', bool1);
@@ -927,26 +918,26 @@ describe('Tests on ERC721SPLC', () => {
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
     console.log('\nCheck AssetBook2 after txn...');
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_from).call();
     console.log('SPLC getAccount():', accountM);
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 2);
 
 
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
-    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    console.log('\ntokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 5);
 
 
@@ -965,20 +956,20 @@ describe('Tests on ERC721SPLC', () => {
 
 
     console.log('\n-----==after sending 5 tokens...');
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_from).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
 
     
     //-----------------==Check AssetBook2
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
-    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    console.log('\ntokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
@@ -993,25 +984,25 @@ describe('Tests on ERC721SPLC', () => {
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_from).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 0);
 
 
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
-    console.log('\ntokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    console.log('\ntokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 7);
 
 
@@ -1024,58 +1015,58 @@ describe('Tests on ERC721SPLC', () => {
 
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(1).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(1).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(2).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(2).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(3).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(3).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(4).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(4).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(5).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(5).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(6).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(6).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instERC721SPLC.methods.getIdToAsset(7).call();
+    tokenInfo = await instHCAT721.methods.getIdToAsset(7).call();
     assert.equal(tokenInfo, _to);
 
     //console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
     // assert.equal(tokenInfo[1], initialAssetPricing);
     // assert.equal(tokenInfo[2], addrZero);
 
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_from).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 0);
 
 
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('\ntokenIds from AssetBook2 =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 7);
 
 
     console.log('\n----------------==Approval Functions');
     _from = addrAssetBook2; _fromAssetOwner = AssetOwner2; amount = 3; 
 
-    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
     assert.equal(result, 0);
 
     console.log('\ntokenApprove()... amount =', amount);
     await instAssetBook2.methods.assetbookApprove(_assetAddr, operator, amount)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
-    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
     assert.equal(result, amount);
 
@@ -1084,33 +1075,33 @@ describe('Tests on ERC721SPLC', () => {
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
     _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instERC721SPLC.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
+    await instHCAT721.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
     .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_from, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_from).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_from).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_from).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 4);
 
 
     console.log('\nCheck AssetBook1 after txn...');
-    tokenIds = await instERC721SPLC.methods.getAccountIds(_to, 0, 0).call();
-    balanceXM = await instERC721SPLC.methods.balanceOf(_to).call();
-    console.log('tokenIds from ERC721SPLC =', tokenIds, ', balanceXM =', balanceXM);
-    accountM = await instERC721SPLC.methods.getAccount(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], nftSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol);
     assert.equal(assetbookXM[1], 3);
 
-    result = await instERC721SPLC.methods.allowance(_from, operator).call();
+    result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
     assert.equal(result, 0);
 
@@ -1121,7 +1112,7 @@ describe('Tests on ERC721SPLC', () => {
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
       _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
-      await instERC721SPLC.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
+      await instHCAT721.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
       .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
@@ -1136,7 +1127,7 @@ describe('Tests on ERC721SPLC', () => {
     //----------------==Send tokens after valid time
     console.log('\n------------==Send tokens after valid date');
     timeCurrent = TimeTokenValid+1;
-    await instTokenController.methods.updateTime(timeCurrent)
+    await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isActiveOperational().call();
     console.log('isActiveOperational()', bool1);
@@ -1466,18 +1457,18 @@ describe('Tests on CrowdFunding', () => {
     console.log('\n------------==Check CrowdFunding parameters');
     console.log('addrCrowdFunding', addrCrowdFunding);
 
-    const _CFSD2 = timeCurrent+1;
-    //_CFED2 = timeCurrent+10;
-    console.log("timeCurrent", timeCurrent, ", _CFSD2:", _CFSD2, ", _CFED2:", _CFED2);
+    const CFSD2 = timeCurrent+1;
+    //CFED2 = timeCurrent+10;
+    console.log("timeCurrent", timeCurrent, ", CFSD2:", CFSD2, ", CFED2:", CFED2);
     // timeCurrent = 201902281040;
     /**
-    const nftSymbol = "NCCU1801";
+    const tokenSymbol = "NCCU1801";
     const maxTotalSupply = 773; 
     const initialAssetPricing = 17000;
 
     string public tokenSymbol; //專案erc721合約
-    uint public tokenPrice; //每片太陽能板定價
-    uint public quantityMax; //專案總token數
+    uint public initialAssetPricing; //每片太陽能板定價
+    uint public maxTotalSupply; //專案總token數
     uint public quantityGoal; //專案達標數目
     uint public quantitySold; //累積賣出數目
     uint public CFSD2; //start date yyyymmddhhmm
@@ -1485,15 +1476,15 @@ describe('Tests on CrowdFunding', () => {
     */
     let tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
     console.log('\ntokenSymbolM', tokenSymbolM);
-    assert.equal(tokenSymbolM, nftSymbol);
+    assert.equal(tokenSymbolM, tokenSymbol);
 
     console.log('initialAssetPricing', initialAssetPricing);
-    let initialAssetPricingM = await instCrowdFunding.methods.tokenPrice().call();
+    let initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
     console.log('initialAssetPricingM', initialAssetPricingM);
     assert.equal(initialAssetPricingM, initialAssetPricing);
 
     console.log('maxTotalSupply', maxTotalSupply);
-    let maxTotalSupplyM = await instCrowdFunding.methods.quantityMax().call();
+    let maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
     console.log('maxTotalSupplyM', maxTotalSupplyM);
     assert.equal(maxTotalSupplyM, maxTotalSupply);
 
@@ -1504,17 +1495,17 @@ describe('Tests on CrowdFunding', () => {
 
     let CFSD2M = await instCrowdFunding.methods.CFSD2().call();
     console.log('CFSD2M', CFSD2M);
-    assert.equal(CFSD2M, _CFSD2);
+    assert.equal(CFSD2M, CFSD2);
 
     let CFED2M = await instCrowdFunding.methods.CFED2().call();
     console.log('CFED2M', CFED2M);
-    assert.equal(CFED2M, _CFED2);
+    assert.equal(CFED2M, CFED2);
 
 
     //-------------------==
     console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
-    serverTime = _CFSD2-1;
-    console.log('set servertime = _CFSD2-1', serverTime);
+    serverTime = CFSD2-1;
+    console.log('set servertime = CFSD2-1', serverTime);
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1527,8 +1518,8 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(fundingStateM, 0);
 
     //-------------------==
-    serverTime = _CFSD2;
-    console.log('\nset serverTime = _CFSD2', _CFSD2);
+    serverTime = CFSD2;
+    console.log('\nset serverTime = CFSD2', CFSD2);
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     
@@ -1541,8 +1532,8 @@ describe('Tests on CrowdFunding', () => {
     assert.equal(fundingStateM, 1);
 
     if (1==2){
-      serverTime = _CFED2;
-      console.log('\nset serverTime = _CFED2', _CFED2);
+      serverTime = CFED2;
+      console.log('\nset serverTime = CFED2', CFED2);
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
   
@@ -1557,21 +1548,51 @@ describe('Tests on CrowdFunding', () => {
     }
 
     /**
-    const nftSymbol = "NCCU1801";
+    const tokenSymbol = "NCCU1801";
     const maxTotalSupply = 773; 
     const initialAssetPricing = 17000;
     */
-    serverTime = _CFSD2+1;
-    console.log('\nset serverTime = _CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
+    serverTime = CFSD2+1;
+    console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
     await instCrowdFunding.methods.makeFundingActive(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instCrowdFunding.methods.invest(addrAssetBook1, quantityGoal, serverTime)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('\nremainingTokenQtyM:', remainingTokenQtyM);
+    assert.equal(remainingTokenQtyM, maxTotalSupply);
+    let quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+
+    let modResult = quantityGoal % maxTokenQtyForEachInvestmentFund;
+    let quotient = (quantityGoal - modResult)/maxTokenQtyForEachInvestmentFund;
+    console.log('quantityGoal:', quantityGoal, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
+    assert.equal(Number.isInteger(quotient), true);
+    console.log('quotient is integer');
+
+    // let modResult = maxTotalSupply % maxTokenQtyForEachInvestmentFund;
+    // let quotient = (maxTotalSupply - modResult)/maxTokenQtyForEachInvestmentFund;
+    // console.log('maxTotalSupply:', maxTotalSupply, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
+    // assert.equal(Number.isInteger(quotient), true);
+    // console.log('quotient is integer');
+
+    for(i = 0; i < quotient; i++) {
+      await instCrowdFunding.methods.invest(addrAssetBook1, maxTokenQtyForEachInvestmentFund, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      console.log('invest()... take ', i);
+    }
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM, ' V.s. modResult:', modResult, '... maxTotalSupply', maxTotalSupply, ', quantityGoal', quantityGoal, 'quantitySoldM', quantitySoldM);
+    assert.equal(remainingTokenQtyM, modResult+maxTotalSupply-quantityGoal);
+
+    await instCrowdFunding.methods.invest(addrAssetBook1, modResult, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('invest(modResult=', modResult, ')');
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM, 'V.s. quantityGoal:', quantityGoal);
+
     console.log('after investing the target goal amount');
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+
+    
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
@@ -1579,8 +1600,8 @@ describe('Tests on CrowdFunding', () => {
 
 
     //------------------==Set time to initial
-    console.log('\nset serverTime = _CFSD2-1');
-    serverTime = _CFSD2-1;
+    console.log('\nset serverTime = CFSD2-1');
+    serverTime = CFSD2-1;
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     
@@ -1592,9 +1613,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('fundingStateM', fundingStateM);
     assert.equal(fundingStateM, 0);
 
-    //------------------==Back to _CFSD2
-    serverTime = _CFSD2;
-    console.log('\nset serverTime = _CFSD2');
+    //------------------==Back to CFSD2
+    serverTime = CFSD2;
+    console.log('\nset serverTime = CFSD2');
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1623,7 +1644,7 @@ describe('Tests on CrowdFunding', () => {
 
     if(1==1){
       //-------------------==Pause the crowdfunding
-      serverTime = _CFSD2+3;
+      serverTime = CFSD2+3;
       console.log('\nPause funding');
       await instCrowdFunding.methods.pauseFunding(serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1637,9 +1658,9 @@ describe('Tests on CrowdFunding', () => {
       assert.equal(fundingStateM, 2);
 
       //-------------------==resumeFunding the crowdfunding
-      serverTime = _CFSD2+3;
+      serverTime = CFSD2+3;
       console.log('\nResume funding');
-      await instCrowdFunding.methods.resumeFunding(_CFED2, _quantityMax, serverTime)
+      await instCrowdFunding.methods.resumeFunding(CFED2, maxTotalSupply, serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
@@ -1652,14 +1673,14 @@ describe('Tests on CrowdFunding', () => {
       console.log('check stateDescriptionM and fundingStateM!!!');
 
       if(1==2) {
-        _reason = 'a good reason...';
+        reason = 'a good reason...';
         console.log('\nAbort');
-        await instCrowdFunding.methods.abort(_reason, serverTime)
+        await instCrowdFunding.methods.abort(reason, serverTime)
         .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
   
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
-        assert.equal(stateDescriptionM, "aborted:"+_reason);
+        assert.equal(stateDescriptionM, "aborted:"+reason);
   
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);
@@ -1684,7 +1705,7 @@ describe('Tests on CrowdFunding', () => {
     } else {
       //-------------------==CFED2 has been reached
       console.log('\nCFED2 has been reached');
-      serverTime = _CFED2;
+      serverTime = CFED2;
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
