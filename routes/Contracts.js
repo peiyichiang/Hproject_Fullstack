@@ -25,13 +25,16 @@ const crowdFundingContract = require('../ethereum/contracts/build/CrowdFunding.j
 const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
 const registryContract = require('../ethereum/contracts/build/Registry.json');
 const ERC721SPLCContract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
+const incomeManagerContract = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
+const productManagerContract = require('../ethereum/contracts/build/productManager.json');
 
 
 const heliumContractAddr = "0xAC5Fe5Cbebe5dE436481358e83fc05A49c0D45C8";
 const registryContractAddr = "0xd8C4482D1e2a497D315e934d977ab40F30c0ce22";
+const productManagerContractAddr = "";
 
 /**time server*/
-timer.getTime().then(function(time) {
+timer.getTime().then(function (time) {
     console.log(`現在時間: ${time}`)
 })
 
@@ -118,7 +121,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
     let userID = req.params.u_id;
     let assetBookAddr = req.body.assetBookAddress;
     let ethAddr = req.body.ethAddr;
-    timer.getTime().then(function(time) {
+    timer.getTime().then(function (time) {
         console.log(`現在時間: ${time}`)
         let currentTime = time;
         console.log(currentTime);
@@ -234,7 +237,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
     let currentTime;
-    await timer.getTime().then(function(time) {
+    await timer.getTime().then(function (time) {
         currentTime = time;
     });
     console.log(`現在時間: ${currentTime}`);
@@ -285,11 +288,11 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = 201904200000;
-/*
-    await timer.getTime().then(function(time) {
-        currentTime = time;
-    })
-*/
+    /*
+        await timer.getTime().then(function(time) {
+            currentTime = time;
+        })
+    */
     console.log(`現在時間: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -341,8 +344,8 @@ router.post('/crowdFundingContract/:tokenSymbol/remaining', async function (req,
             let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr });
             let quantityMax = await crowdFunding.methods.quantityMax().call({ from: backendAddr });
 
-            console.log("quantityMax:"+quantityMax);
-            console.log("quantitySold:"+quantitySold);
+            console.log("quantityMax:" + quantityMax);
+            console.log("quantitySold:" + quantitySold);
             let remaining = quantityMax - quantitySold;
             mysqlPoolQuery('UPDATE `htoken`.`smart_contracts` SET `sc_remaining` = ? WHERE (`sc_symbol` = ?)', [remaining, tokenSymbol], async function (err, DBUpdateResult, rows) {
                 if (err) {
@@ -383,7 +386,7 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
             console.log(DBresult[0].sc_crowdsaleaddress);
             let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
-            let investors = await crowdFunding.methods.getInvestors(1,100).call({ from: backendAddr })
+            let investors = await crowdFunding.methods.getInvestors(1, 100).call({ from: backendAddr })
 
             res.send(investors);
         }
@@ -395,7 +398,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;
-    await timer.getTime().then(function(time) {
+    await timer.getTime().then(function (time) {
         currentTime = time;
     })
     console.log(`現在時間: ${currentTime}`)
@@ -431,11 +434,11 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = 201904200000;
-/*
-    await timer.getTime().then(function(time) {
-        currentTime = time;
-    })
-*/
+    /*
+        await timer.getTime().then(function(time) {
+            currentTime = time;
+        })
+    */
     console.log(`現在時間: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -466,17 +469,16 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
 
 });
 
-/**@todo reason 前端輸入*/
 /**funding Abort*/
 router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = 201904200000;
-/*
-    await timer.getTime().then(function(time) {
-        currentTime = time;
-    })
-*/
+    /*
+        await timer.getTime().then(function(time) {
+            currentTime = time;
+        })
+    */
     console.log(`現在時間: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -668,7 +670,7 @@ router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, nex
     let amount = req.body.amount;
     let ERC721SPLC_HToken = new web3.eth.Contract(ERC721SPLCContract.abi, contractAddr);
     let currentTime;
-    await timer.getTime().then(function(time) {
+    await timer.getTime().then(function (time) {
         currentTime = time;
     })
     console.log(`現在時間: ${currentTime}`)
@@ -686,24 +688,77 @@ router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, nex
 });
 
 
-/**@dev IncomeManagement ------------------------------------------------------------------------------------- */
-/*deploy IncomeManagement contract*/
-router.post('/incomeManagementContract', async function (req, res, next) {
+/**@dev incomeManager ------------------------------------------------------------------------------------- */
+/*deploy incomeManager contract*/
+router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next) {
     /**POA */
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
     //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
-    let TimeAnchor = req.body.TimeAnchor;
-    let TimeTokenUnlock = req.body.TimeTokenUnlock;
-    let TimeTokenValid = req.body.TimeTokenValid;
+    let nftSymbol = req.params.nftSymbol;
+    let HCAT721TokenContractAddr = req.body.HCAT721TokenContractAddr;
+    let heliumContractAddr = req.body.heliumContractAddr;
 
-    const tokenController = new web3deploy.eth.Contract(tokenControllerContract.abi);
+    const incomeManager = new web3deploy.eth.Contract(incomeManagerContract.abi);
 
-    tokenController.deploy({
-        data: tokenControllerContract.bytecode,
-        arguments: [TimeAnchor, tokenCtrt, PA_Ctrt, FMXA_Ctrt, platformCtrt, management]
+    incomeManager.deploy({
+        data: incomeManagerContract.bytecode,
+        arguments: [HCAT721TokenContractAddr, heliumContractAddr, management]
+    })
+        .send({
+            from: backendAddr,
+            gas: 6500000,
+            gasPrice: '0'
+        })
+        .on('receipt', function (receipt) {
+            console.log("incomeManager:" + receipt.contractAddress);
+            var mysqlPoolQuery = req.pool;
+            var sql = {
+                sc_incomeManagementaddress: receipt.contractAddress
+            };
+
+            console.log(nftSymbol)
+            mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        deployResult: receipt,
+                        status: false
+                    });
+                }
+                else {
+                    res.send({
+                        deployResult: receipt,
+                        status: true,
+                        nftSymbol: nftSymbol
+                    });
+                }
+            });
+
+        })
+        .on('error', function (error) {
+            res.send(error.toString());
+        })
+
+});
+
+
+/**@dev productMAnager ------------------------------------------------------------------------------------- */
+/**deploy productManager contract*/
+router.post('/productManagerContract', function (req, res, next) {
+    /**POA */
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    /**ganache */
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const web3deploy = new Web3(provider);
+
+    const productManager = new web3deploy.eth.Contract(productManagerContract.abi);
+
+    productManager.deploy({
+        data: productManagerContract.bytecode,
+        arguments: [management]
     })
         .send({
             from: backendAddr,
@@ -718,8 +773,26 @@ router.post('/incomeManagementContract', async function (req, res, next) {
         })
 });
 
+router.post('/productManagerContract/:nftSymbol', async function (req, res, next) {
+    let contractAddr = productManagerContractAddr;
+    let crowdFundingCtrtAddr = req.body.crowdFundingCtrtAddr;
+    let tokenControllerCtrtAddr = req.body.tokenControllerCtrtAddr;
+    let tokenCtrtAddr = req.body.tokenCtrtAddr;
+    let incomeManagementCtrtAddr = req.body.incomeManagementCtrtAddr;
+
+    let productManager = new web3.eth.Contract(productManagerContract.abi, contractAddr);
+    console.log(to);
+    console.log(amount);
 
 
+    let encodedData = productManager.methods.mintSerialNFT(crowdFundingCtrtAddr, tokenControllerCtrtAddr, tokenCtrtAddr, incomeManagementCtrtAddr).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+    res.send({
+        result: result
+    })
+});
 
 
 /*sign rawtx*/

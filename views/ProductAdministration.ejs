@@ -507,8 +507,8 @@
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
-                        name="Aborted" value="Aborted" data-toggle="modal" 
-                        data-target="#abortedReasonModal" data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">緊急下架 
+                        name="Aborted" value="Aborted" data-toggle="modal" data-target="#abortedReasonModal"
+                        data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">緊急下架
                     </button>
                 </td>
             </tr>
@@ -780,8 +780,8 @@
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
-                        name="Aborted" value="Aborted" data-toggle="modal" 
-                        data-target="#abortedReasonModal" data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">緊急下架 
+                        name="Aborted" value="Aborted" data-toggle="modal" data-target="#abortedReasonModal"
+                        data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">緊急下架
                     </button>
                     <!-- <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
                         name="Aborted" value="Aborted"
@@ -1223,10 +1223,10 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 按下緊急下架時，要出現的緊急下架的原因(p_abortedReason)的Modal -->
-    <div class="modal fade" id="abortedReasonModal" tabindex="-1" role="dialog" aria-labelledby="abortedReasonModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="abortedReasonModal" tabindex="-1" role="dialog"
+        aria-labelledby="abortedReasonModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1297,7 +1297,7 @@
 
         // 緊急下架
         function Aborted(State) {
-            tokenSymbol=CurrentSYMBOL;
+            tokenSymbol = CurrentSYMBOL;
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/abort", {
                 reason: document.getElementById('abortedReasonMessage-text').value
             }, function (result) {
@@ -1544,17 +1544,27 @@
 
                         });
                     }
-                    /**@todo 部署income*/
                     if (count == assetBookAddrs.length) {
-                        // 將產品狀態設置為FundingComplete
-                        $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
-                            tokenState: State,
-                            tokenSymbol: nftSymbol
+                        $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
+                            HCAT721TokenContractAddr: HCAT721TokenContractAddr,
+                            heliumContractAddr: heliumContractAddr
                         }, function (result) {
+
+                            /**@todo 寫入productManager*/
+
                             console.log(result);
-                            // 設置好後重新整理
-                            location.reload();
-                        })
+                            if (result.status == true) {
+                                // 將產品狀態設置為FundingComplete
+                                $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                                    tokenState: State,
+                                    tokenSymbol: nftSymbol
+                                }, function (result) {
+                                    console.log(result);
+                                    // 設置好後重新整理
+                                    location.reload();
+                                })
+                            }
+                        });
                     }
                 });
             });
