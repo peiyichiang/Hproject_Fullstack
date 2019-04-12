@@ -31,6 +31,7 @@ var CrowdFundingContractAPIRouter = require('./routes/CrowdFundingContractAPI');
 var ProductManagerContractAPIRouter = require('./routes/ProductManagerContractAPI');
 var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContractAPI');
 var MultiSigContractAPIRouter = require('./routes/MultiSigContractAPI');
+var ContractsRouter = require('./routes/Contracts');
 
 
 
@@ -165,6 +166,7 @@ app.use('/CrowdFundingContractAPI', CrowdFundingContractAPIRouter);
 app.use('/ProductManagerContractAPI', ProductManagerContractAPIRouter);
 app.use('/IncomeManagementContractAPI', IncomeManagementContractAPIRouter);
 app.use('/MultiSigContractAPI', MultiSigContractAPIRouter);
+app.use('/Contracts', ContractsRouter);
 
 
 
