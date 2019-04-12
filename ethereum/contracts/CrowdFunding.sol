@@ -16,7 +16,7 @@ contract CrowdFunding is Ownable {
     event ShowState(string _state);
     event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, FundingState indexed _fundingState, string _stateDescription);
     event TokenReserved(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
-    
+
     uint public serverTimeMin = 201902250000;
     //uint public serverTime;// not to store moving variable
     address private platformAddress;
@@ -28,7 +28,7 @@ contract CrowdFunding is Ownable {
     uint public quantitySold; //累積賣出數目
     uint public CFSD2; //start date yyyymmddhhmm
     uint public CFED2; //截止日期 yyyymmddhhmm
-    
+
     struct Account {
         address assetbook;//assetbook addr
         uint256 qty;//購買的token總數
@@ -47,7 +47,7 @@ contract CrowdFunding is Ownable {
     string public stateDescription;
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
 
-    /*  at initialization, setup the owner 
+    /*  at initialization, setup the owner
     "hTaipei001", 17000, "NTD", 900, 98, 201902191800, 201902191810, 201902191710, "", "", "", "", ""
     */
     constructor  (
@@ -111,7 +111,7 @@ contract CrowdFunding is Ownable {
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         require(serverTime > serverTimeMin, "serverTime should be greater than default time");
         serverTime = serverTime;
-        
+
         if(quantitySold == quantityMax){
             isTerminated = true;
             fundingState = FundingState.fundingClosed;
@@ -173,12 +173,11 @@ contract CrowdFunding is Ownable {
         ckStringLength(_reason, 7, 32);
         isTerminated = true;
         fundingState = FundingState.aborted;
-        stateDescription = "aborted";
-        //updateState(serverTime);
-        emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, append("aborted:", _reason));
+        stateDescription = append("aborted:", _reason);
+        emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, stateDescription);
     }
 
-    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) 
+    function invest(address _assetbook, uint _quantityToInvest, uint serverTime)
         external onlyAdmin {
         // require(serverTime > serverTime, "serverTime should be greater than existing serverTime");
 
@@ -220,21 +219,21 @@ contract CrowdFunding is Ownable {
         updateState(serverTime);
     }
 
-    function getInvestors(uint indexStart, uint amount) 
+    function getInvestors(uint indexStart, uint amount)
         external view returns(address[] memory assetbooks, uint[] memory qtyArray) {
         uint amount_; uint indexStart_;
         if(indexStart == 0 && amount == 0) {
-          indexStart_ = 1;
-          amount_ = cindex;
+            indexStart_ = 1;
+            amount_ = cindex;
 
         } else {
             indexStart_ = indexStart;
             require(amount > 0, "amount must be > 0");
             require(indexStart > 0, "indexStart must be > 0");
             if(indexStart.add(amount).sub(1) > cindex) {
-              amount_ = cindex.sub(indexStart).add(1);
+                amount_ = cindex.sub(indexStart).add(1);
             } else {
-              amount_ = amount;
+                amount_ = amount;
             }
         }
         assetbooks = new address[](amount_);
@@ -246,10 +245,10 @@ contract CrowdFunding is Ownable {
         }
     }
 
-
     function append(string memory a, string memory b) public pure returns (string memory) {
         return string(abi.encodePacked(a, b));
     }
+
     function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure {
         require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
     }

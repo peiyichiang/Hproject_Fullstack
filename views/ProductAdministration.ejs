@@ -1299,7 +1299,7 @@
         function Aborted(State) {
             tokenSymbol=CurrentSYMBOL;
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/abort", {
-                reason: "JUST ABORT!!!"
+                reason: document.getElementById('abortedReasonMessage-text').value
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
@@ -1531,7 +1531,7 @@
                     let count = 0;
 
                     for (let i = 0; i < assetBookAddrs.length; i++) {
-                        await $.post("http://localhost:3030/Contracts//ERC721SPLCContract/" + nftSymbol + "/mint", {
+                        await $.post("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol + "/mint", {
                             assetBookAddr: assetBookAddrs[i],
                             erc721address: erc721address,
                             amount: amounts[i]
@@ -1544,6 +1544,7 @@
 
                         });
                     }
+                    /**@todo 部署income*/
                     if (count == assetBookAddrs.length) {
                         // 將產品狀態設置為FundingComplete
                         $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
