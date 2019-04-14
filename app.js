@@ -33,6 +33,8 @@ var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContra
 var MultiSigContractAPIRouter = require('./routes/MultiSigContractAPI');
 var ContractsRouter = require('./routes/Contracts');
 
+//Chiu
+require('./timeserver/manager/manager')
 
 
 // var usersRouter = require('./routes/users');
@@ -40,7 +42,7 @@ var ContractsRouter = require('./routes/Contracts');
 var mysql = require("mysql");
 
 var pool = mysql.createPool({
-    host: process.env.DB_HOST,//outside: 140.119.101.130, else 192.168.0.2 or localhost
+    host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
