@@ -95,4 +95,3 @@ typings/
 #DynamoDB Local files 
 .dynamodb/ 
 
-time.txt

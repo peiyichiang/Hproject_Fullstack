@@ -44,16 +44,18 @@ Install Mocha, a JavaScript test framework
 ```
 yarn run test721
 yarn run testcf
-OR
-yarn run test
+yarn run testim
 ```
 
 ### 6. Deploy smart contracts
 Deploy contracts
 ```
-yarn run deploy --chain 1 --ctrtName contractName
+yarn run deploy --c 1 --ctrtName contractName
 ```
-where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain
+where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
+
+and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
+
 
 ### 7. Test deployed smart contracts
 ```
@@ -61,6 +63,50 @@ yarn run testlive1 --chain C --func F
 ```
 C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 F = 0: testDeployedCtrt, 1: checking AssetBook1, 2: checking AssetBook2
+
+0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amountToMint), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)
+
+0: setupTest
+```
+yarn run livechain --c 1 --f 0
+```
+
+1: getSystemInfo
+```
+yarn run livechain --c 1 --f 1
+```
+
+2: showAccountAssetBooks
+```
+yarn run livechain --c 1 --f 2
+```
+
+3: mintTokens(assetbookNum, amountToMint)
+```
+yarn run livechain --c 1 --f 4 -a assetbookNum, -b amountToMint
+yarn run livechain --c 1 --f 3 -a 2 -b 120
+```
+
+4: showAssetInfo(tokenId)
+```
+yarn run livechain --c 1 --f 3 -a tokenId
+```
+
+5: sendAssetBeforeAllowed(),
+```
+yarn run livechain --c 1 --f 8
+```
+
+6: setServerTime(newServerTime)
+```
+yarn run livechain --c 1 --f 9 -a serverTime
+```
+
+7: transferTokens(assetbookNum, amount)
+```
+yarn run livechain --c 1 --f 10 -a 2 -b 1
+```
+
 
 ### 8. Run the app
 

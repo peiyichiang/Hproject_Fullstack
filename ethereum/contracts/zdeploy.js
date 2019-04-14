@@ -1,10 +1,16 @@
 /**
-$ yarn run deploy
+```
+yarn run deploy --c 1 --ctrtName contractName
+```
+where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
+
+and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
+
 */
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '';
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenURI, tokenURI_bytes32;
 console.log('process.argv', process.argv);
 if (process.argv.length < 6) {
   console.log('not enough arguments. Make it like: yarn run deploy --chain 1 --ctrtName contractName');
@@ -14,27 +20,36 @@ if (process.argv.length < 6) {
 }
 const chain = parseInt(process.argv[3]);//0;
 const ctrtName = process.argv[5];//'assetbook';
-let timeCurrent = 201903081040;
-console.log('chain = ', chain, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
+let timeCurrent = 201903081040, Bufferfrom = true;
+console.log('chain = ', chain, ', Bufferfrom =', Bufferfrom, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
 
 let Backend, AssetOwner1, AssetOwner2, acc3, acc4;
 let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, Backendpk;
 let addrPlatform, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
 let addrERC721SPLC, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
 
+const nftName = "NCCU site No.1(2018)";
+const nftSymbol = "NCCU1801";
+const siteSizeInKW = 300;
+const maxTotalSupply = 773;
+const initialAssetPricing = 17000;
+const pricingCurrency = "NTD";
+const IRR20yrx100 = 470;
+
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
   /**https://iancoleman.io/bip39
-m/44'/60'/0'/0/0 	0xa6cc621A179f01A719ee57dB4637A4A1f603A442 	0x02afa51468bfb825ddfa794b360f42c016da3dba10df065a11650b63799befed45 	0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
+  m/44'/60'/0'/0/0 	0xa6cc621A179f01A719ee57dB4637A4A1f603A442 	0x02afa51468bfb825ddfa794b360f42c016da3dba10df065a11650b63799befed45 	0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
 
-m/44'/60'/0'/0/1 	0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2 	0x025e0eaf152f741fc91f437d0b6dfdaf96c076ad98010a0d60ba0490c05a46bbdd 	0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca
+  m/44'/60'/0'/0/1 	0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2 	0x025e0eaf152f741fc91f437d0b6dfdaf96c076ad98010a0d60ba0490c05a46bbdd 	0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca
 
-m/44'/60'/0'/0/2 	0x470Dea51542017db8D352b8B36B798a4B6d92c2E 	0x0384a124835b166c5b3fceec66c861959843eeccb92e18de938be272328692d33f 	0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2
+  m/44'/60'/0'/0/2 	0x470Dea51542017db8D352b8B36B798a4B6d92c2E 	0x0384a124835b166c5b3fceec66c861959843eeccb92e18de938be272328692d33f 	0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2
 
-m/44'/60'/0'/0/3 	0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61 	0x034d315e0adb4a832b692b51478feb1b81e761b9834aaf35f83cd23c43239027ed 	0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45
+  m/44'/60'/0'/0/3 	0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61 	0x034d315e0adb4a832b692b51478feb1b81e761b9834aaf35f83cd23c43239027ed 	0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45
 
-m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
+  m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
    */
+  tokenURI = nftSymbol+"/uri";
   Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
   BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
   AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
@@ -45,27 +60,43 @@ m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c
   acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
 
   /** deployed contracts
-   * 'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
+     yarn run deploy --c 1 --ctrtName contractName
+    'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
    */
-  addrPlatform = "0x2F706dd9955FfE3A0655846b9f5058D16A9B5Fa5";
-  addrMultiSig1 = "0xb5C37059C85c5F5d59755226B9fa08bec3B2B47c";
-  addrMultiSig2 = "0xf6B7d36EBdeb036b308d30b93C4F34a6902f5828";
-  addrAssetBook1 = "0x3614d6068aC16b7Cc4eb34b70c7a9BB6fb9e9B43";
-  addrAssetBook2 = "0x9CEEb4137F0FeDF180afeaDD2A49Bcc555e03EeF";
-  addrRegistry = "0x7b376c71A04Bc487F3Cf2B5938DdDAe8EdB33bb3";
-  addrTokenController = "0xd1b8609793DC685e25c34343c37F547c457145eb";
-  addrERC721SPLC = "0xACEf03ac42CE601CF8921ccBEcE7f12A80Df5778";
+  addrPlatform = "0xC4Ea4B5347C8159Ad4ec41bD65Ac2f737b3395E7";
+  addrMultiSig1 = "0x0C7BFaDb47d333AB0cCe259f5aD1a2D718648e38";
+  addrMultiSig2 = "0xd982Ba277F08e248c449Ed71721bB02D3Ac7186f";
+  addrAssetBook1 = "0xa0Ee9E186471aA7F7F0158002a7A4BaDA26a1C41";
+  addrAssetBook2 = "0x37C7BaD3c16eF235205D02E50F1c91E0CD740684";
+  addrRegistry =   "0xfD5a28CbD39F787F8fEf5af098F6d753AdB72791";
+  addrTokenController = "0xBc6381e1EbDab9c3E4389b7887A6a9183CCC1893";
+  addrERC721SPLC = "0xBbDaFBe4c8EA4500725ffdA782942128D7a34CDD";
+  addrCrowdFunding = "0x45b323B1ccDbf10B9B71c5DB5a99005cA27714f3";
+
+  // addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
+  // addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
+  // addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
+  // addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
+  // addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
+  // addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
+  // addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
+  // addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
+  // addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
+
+  // addrPlatform = "";
+  // addrMultiSig1 = "";
+  // addrMultiSig2 = "";
+  // addrAssetBook1 = "";
+  // addrAssetBook2 = "";
+  // addrRegistry =   "";
+  // addrTokenController = "";
+  // addrERC721SPLC = "";
+  // addrCrowdFunding = "";
+
   //addrIncomeManagement = "";
   //addrProductManager = "";  
 
-  // let backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
-  // let backendRawPrivateKey = '0x'+backendPrivateKey;
 
-  // Backend = "0xe19082253bF60037EA79d2F530585629dB23A5c5";
-  // AssetOwner1 = "0xc808643EaafF6bfeAC44A809003B6Db816Bf9c5b";
-  // AssetOwner2 = "0x669Bc3d51f4920baef0B78899e98150Dcd013B50";
-  // acc3 = "0x4fF6a6E7E052aa3f046050028842d2D7704C7fB9";
-  // acc4 = "0xF0F7C2Bbfb931a9CD1788E9540e51B70014ad643";
 
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
@@ -73,12 +104,12 @@ m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c
 
   const nodeUrl = "http://140.119.101.130:8545";
 
-  if (1 === 2){
+  if (Bufferfrom){
+    console.log('Backendpk use Buffer.from');
     Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
-  } else {
-    console.log('Backendpk use 2nd');
-    Backendpk = BackendpkRaw.substr(2);
-  }
+    AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
+    AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
+  } 
   provider = new PrivateKeyProvider(Backendpk, nodeUrl);
   web3 = new Web3(provider);
   prefix = '0x';
@@ -106,12 +137,36 @@ m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c
   process.exit(1);
 }
 
-require('events').EventEmitter.defaultMaxListeners = 30;
-//require('events').EventEmitter.prototype._maxListeners = 20;
-/* emitter.setMaxListeners();
-MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data listeners added. Use emitter.setMaxListeners() to increase limit
-*/
 
+//Mocha starts > BeforeEach: Deploy a new contract
+// > it: Manipulate the contract > it: make an assertion > repeat
+
+// Slow tests... so changed my `mocha` command to `mocha --watch`
+
+let instRegistry, instTokenController, instERC721SPLC, instCrowdFunding,  instIncomeManagement, instProductManager;
+let management, platformCtAdmin;
+let balance0, balance1, balance2;
+
+//const rate = new BigNumber('1e22').mul(value);
+const addrZero = "0x0000000000000000000000000000000000000000";
+
+let argsAssetBook1, argsAssetBook2;
+let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
+
+const TimeTokenLaunch = timeCurrent+3;
+const TimeTokenUnlock = timeCurrent+4; 
+const TimeTokenValid =  timeCurrent+9;
+
+
+
+const _tokenSymbol = nftSymbol;
+const _tokenPrice = initialAssetPricing;
+const _currency = pricingCurrency;
+const _quantityMax = maxTotalSupply;
+const _goalInPercentage = 97;
+const _CFSD2 = timeCurrent+1;
+const _CFED2 = timeCurrent+10;
+let _serverTime = timeCurrent;
 //--------------------==
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
@@ -299,53 +354,6 @@ if (ProductManager === undefined){
 }
 
 
-//Mocha starts > BeforeEach: Deploy a new contract
-// > it: Manipulate the contract > it: make an assertion > repeat
-
-// Slow tests... so changed my `mocha` command to `mocha --watch`
-
-let accounts;
-let instRegistry; 
-let instTokenController; 
-let instERC721SPLC; 
-let instCrowdFunding; 
-let instIncomeManagement;
-let instProductManager;
-
-let management;
-let balance0; let balance1; let balance2;
-let platformCtAdmin;
-
-let balance0A; let balance0B;
-let balance1A; let balance1B;
-let balance2A; let balance2B;
-
-//const rate = new BigNumber('1e22').mul(value);
-const addrZero = "0x0000000000000000000000000000000000000000";
-
-let argsAssetBook1; let argsAssetBook2;
-let instAssetBook1; let instAssetBook2; let instAsset3; let instAsset4; 
-
-const TimeTokenLaunch = timeCurrent+3;
-const TimeTokenUnlock = timeCurrent+4; 
-const TimeTokenValid =  timeCurrent+9;
-
-const nftName = "NCCU site No.1(2018)";
-const nftSymbol = "NCCU1801";
-const siteSizeInKW = 300;
-const maxTotalSupply = 773;
-const initialAssetPricing = 17000;
-const pricingCurrency = "NTD";
-const IRR20yrx100 = 470;
-
-const _tokenSymbol = nftSymbol;
-const _tokenPrice = initialAssetPricing;
-const _currency = pricingCurrency;
-const _quantityMax = maxTotalSupply;
-const _goalInPercentage = 97;
-const _CFSD2 = timeCurrent+1;
-const _CFED2 = timeCurrent+10;
-let _serverTime = timeCurrent;
 
 
 const deploy = async () => {
@@ -378,8 +386,14 @@ const deploy = async () => {
       console.log('\nDeploying Platform contract...');
       instPlatform =  await new web3.eth.Contract(Platform.abi)
       .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-      //.then(console.log);
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
       console.log('Platform.sol has been deployed');
       if (instPlatform === undefined) {
         console.log('[Error] instPlatform is NOT defined');
@@ -396,8 +410,14 @@ const deploy = async () => {
       console.log('\nDeploying multiSig contracts...');
       instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-      //.then(console.log);
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
       console.log('MultiSig1 has been deployed');
       if (instMultiSig1 === undefined) {
         console.log('[Error] instMultiSig1 is NOT defined');
@@ -405,26 +425,35 @@ const deploy = async () => {
       instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       addrMultiSig1 = instMultiSig1.options.address;
       console.log('addrMultiSig1:', addrMultiSig1);
-      console.log('waiting for addrMultiSig2...');
+      console.log('\nwaiting for addrMultiSig2...');
 
       instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue });
-      //.then(console.log);
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
       console.log('MultiSig2 has been deployed');
       if (instMultiSig2 === undefined) {
         console.log('[Error] instMultiSig2 is NOT defined');
         } else {console.log('[Good] instMultiSig2 is defined');}
       instMultiSig2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       addrMultiSig2 = instMultiSig2.options.address;
+
+      console.log('addrMultiSig1:', addrMultiSig1);
       console.log('addrMultiSig2:', addrMultiSig2);
+
 
   } else if (ctrtName === 'assetbook') {
     // addrMultiSig1 = '0xAF5065cD6A1cCe522D8ce712A5C7C52682740565';
     // addrMultiSig2 = '0xc993fD11a829d96015Cea876D46ac67B5aADCAF1';
     // addrPlatform = '0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9';
-    argsAssetBook1 = [ AssetOwner1, addrMultiSig1, addrPlatform, timeCurrent];
-    argsAssetBook2 = [ AssetOwner2, addrMultiSig2, addrPlatform, timeCurrent];
+    argsAssetBook1 = [ AssetOwner1, addrPlatform];
+    argsAssetBook2 = [ AssetOwner2, addrPlatform];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
@@ -439,11 +468,11 @@ const deploy = async () => {
         console.log('error:', error.toString());
     });
 
-    console.log('AssetBook.sol has been deployed');
+    console.log('AssetBook1 has been deployed');
     //instAssetBook1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrAssetBook1 = instAssetBook1.options.address;
     console.log('addrAssetBook1:', addrAssetBook1);
-    console.log('waiting for addrAssetBook2...');
+    console.log('\nwaiting for addrAssetBook2...');
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
@@ -455,12 +484,14 @@ const deploy = async () => {
         console.log('error:', error.toString());
     });
 
-    console.log('AssetBook.sol has been deployed');
+    console.log('AssetBook2 has been deployed');
     if (instAssetBook2 === undefined) {
       console.log('[Error] instAssetBook2 is NOT defined');
       } else {console.log('[Good] instAssetBook2 is defined');}
     instAssetBook2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrAssetBook2 = instAssetBook2.options.address;
+
+    console.log('addrAssetBook1:', addrAssetBook1);
     console.log('addrAssetBook2:', addrAssetBook2);
     //*/
 
@@ -518,10 +549,11 @@ const deploy = async () => {
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
 
+    tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
     const argsERC721SPLC = [
     nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
-    addrRegistry, addrTokenController];
+    addrRegistry, addrTokenController, tokenURI_bytes32];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
@@ -626,27 +658,3 @@ const deploy = async () => {
 
 }
 deploy();
-
-//-------------==
-/*
-Three ways to transfer 721 tokens
-owner transfer tokens directly
-owner approves B then B, the approved, can transfer tokens
-owner sets C as the operator, then C transfer owner's tokens
-  Operator can approve others to take tokens or transfer tokens directly
-
-  -> setApprovalForAll(_operator, T/F):
-    ownerToOperators[owner][_operator]= true/false
--> isApprovedForAll(_owner, _operator) ... check if this is the _operator for _owner
-
--> canOperate(tokenId)... used only once in approve
-    tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender]
-
--> approve(_approved, tokenId) external canOperate(tokenId)... set approved address
-    idToApprovals[tokenId] = _approved;
--> getApproved(tokenId) ... check the approved address
-
--> canTransfer(tokenId) ... used in transferFrom and safeTransferFrom
-    tokenOwner == msg.sender || getApproved(tokenId) == msg.sender || ownerToOperators[tokenOwner][msg.sender]
-*/
-    //-------------==
