@@ -60,35 +60,26 @@ contract TokenController is Ownable {
     }
 
     //For TimeServer injecting current time
-    //event SetTimeCurrent(uint _timeCurrent);
     function setTimeCurrent(uint _timeCurrent) external onlyAdmin ckTime(_timeCurrent){
         timeCurrent = _timeCurrent;
-        //emit SetTimeCurrent(_timeCurrent);
     }
 
     //To extend valid time if token operation is paused
-    //event SetTimeValid(uint _TimeValid);
     function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) ckReleased {
         TimeValid = _TimeValid;
-        //emit SetTimeValid(_TimeValid);
     }
 
-    //event SetTimeUnlock(uint _TimeUnlock);
     function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckReleased {
         TimeUnlock = _TimeUnlock;
-        //emit SetTimeUnlock(_TimeUnlock);
     }
 
-    //event SetReleaseTime(uint _TimeRelease);
     function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckReleased {
         TimeRelease = _TimeRelease;
         isReleased = true;
-        //emit SetReleaseTime(_TimeRelease);
     }
 
     function setIsActive(bool _isActive) external onlyAdmin ckReleased {
         isActive = _isActive;
-        //emit SetReleaseTime(_TimeRelease);
     }
 
     function() external payable { revert("should not send any ether directly"); }

@@ -1,17 +1,17 @@
 pragma solidity ^0.5.1;
 
 interface Registry {
-    function addUser(string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external;
-    function setUser(string calldata uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent) external;
-    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint timeCurrent) external;
-    function setExtoAddr(string calldata uid, address extoAddr, uint timeCurrent) external;
-    function setUserStatus(string calldata uid, uint status, uint timeCurrent) external;
+    function addUser(string calldata _uid, address _assetCtAddr, address _extoAddr) external;
+    function setUser(string calldata _uid, address _assetCtAddr, address _extoAddr, uint _status) external;
+    function setAssetCtAddr(string calldata _uid, address _assetCtAddr) external;
+    function setExtoAddr(string calldata _uid, address _extoAddr) external;
+    function setUserStatus(string calldata _uid, uint _status) external;
 }
 
 interface AssetBook {
-    function platformVote(uint _timeCurrent) external;
-    function addAsset(address _assetAddr, string calldata symbol, uint balance) external;
-    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external;
+    function platformVote() external;
+    function addAsset(address _assetAddr, string calldata _symbol, uint _balance) external;
+    function changeAssetOwner(address _assetOwnerNew) external;
     function updateAsset(address _assetAddr) external;
     function deleteAsset(address _assetAddr) external;
 }
@@ -21,11 +21,12 @@ interface ProductManager {
 }
 
 interface CrowdFunding {
-    function makeFundingActive(uint serverTime) external;
-    function pauseFunding(uint serverTime) external;
-    function resumeFunding(uint _CFED2, uint _quantityMax, uint serverTime) external;
-    function Abort(string calldata _reason, uint serverTime) external;
-    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) external;
+    function updateState(uint _serverTime) external;
+    function makeFundingActive(uint _serverTime) external;
+    function pauseFunding(uint _serverTime) external;
+    function resumeFunding(uint _CFED2, uint _quantityMax, uint _serverTime) external;
+    function Abort(string calldata _reason, uint _serverTime) external;
+    function invest(address _assetbook, uint _quantityToInvest, uint _serverTime) external;
 }
 
 interface TokenController {
@@ -73,7 +74,6 @@ contract Helium {
     ERC721SPLC_HToken public HCAT721;
     IncomeManager public incomemanager;
     
-
     struct PermissionTable {
         address platformEOA;
         uint permission;
@@ -82,13 +82,13 @@ contract Helium {
     
     mapping(address => PermissionTable) public PermissionList;
     
-    constructor(address _registry) public{
+    constructor(address _registry, address _productmanager) public{
         PlatformAdmin = msg.sender;
-        //registry = Registry(_registry);
-        
-        
+        registry = Registry(_registry);
+        productmanager = ProductManager(_productmanager);
     }
     
+    //Helium
     function addCustomerService (address _eoa) public onlyAdmin {
         PermissionList[_eoa].platformEOA = _eoa;
         PermissionList[_eoa].permission = 1;
@@ -113,6 +113,49 @@ contract Helium {
         PermissionList[_eoa].status = false;
     }
     
+    //registry
+    function helium_addUser(string memory _uid, address _assetCtAddr, address _extoAddr) public onlyCustomerService {
+        registry.addUser(_uid, _assetCtAddr, _extoAddr);
+    }
+
+    function helium_setUser(string memory _uid, address _assetCtAddr, address _extoAddr, uint _status) public onlyCustomerService {
+        registry.setUser(_uid, _assetCtAddr, _extoAddr, _status);
+    }
+
+    function helium_setAssetCtAddr(string memory _uid, address _assetCtAddr) public onlyCustomerService {
+        registry.setAssetCtAddr(_uid, _assetCtAddr);
+    }
+
+    function helium_setExtoAddr(string memory _uid, address _extoAddr) public onlyCustomerService {
+        registry.setExtoAddr(_uid, _extoAddr);
+    }
+    function helium_setUserStatus(string memory _uid, uint _status, uint _timeCurrent) public onlyCustomerService {
+        registry.setUserStatus(_uid, _status);
+    }
+
+    //Assetbook 
+    function helium_platformVote(address _AssetBookAddr) public {
+        assetbook = AssetBook(_AssetBookAddr);
+        assetbook.platformVote();
+    }
+    function helium_addAsset(address _AssetBookAddr, address _assetAddr, string memory _symbol, uint _balance) public {
+        assetbook = AssetBook(_AssetBookAddr);
+        assetbook.addAsset(_assetAddr, _symbol, _balance);
+    }
+    function helium_changeAssetOwner(address _AssetBookAddr, address _assetOwnerNew) public {
+        assetbook = AssetBook(_AssetBookAddr);
+        assetbook.changeAssetOwner(_assetOwnerNew);
+    }
+    function helium_updateAsset(address _AssetBookAddr, address _assetAddr) public {
+        assetbook = AssetBook(_AssetBookAddr);
+
+    }
+    function helium_deleteAsset(address _AssetBookAddr, address _assetAddr) public {
+        assetbook = AssetBook(_AssetBookAddr);
+
+    }
+
+
     modifier onlyAdmin(){
         require(msg.sender==PlatformAdmin);
         _;
