@@ -10,23 +10,23 @@ contract Registry is Ownable {
 
     /**@dev 資料結構 */
     struct User{
-        address assetCtAddr; //user assetContract address
+        address assetCtrtAddr; //user assetContract address
         address extoAddr; //user Externally Owned Address(EOA);
         uint status; //用數字分狀態，0=>合法、1=>停權 可能會有多種狀態
     }
 
     /**@dev 註冊相關event */
-    event SetNewUser(string uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent);
-    event SetOldUser(string uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent);
+    event SetNewUser(string uid, address assetCtrtAddr, address extoAddr, uint status, uint timeCurrent);
+    event SetOldUser(string uid, address assetCtrtAddr, address extoAddr, uint status, uint timeCurrent);
     event SetUserStatus(string uid, uint status, uint timeCurrent);
-    event SetAssetCtAddr(string uid, address assetCtAddr, uint timeCurrent);
-    event SetExtoAddr(string uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent);
+    event SetAssetCtrtAddr(string uid, address assetCtrtAddr, uint timeCurrent);
+    event SetExtoAddr(string uid, address assetCtrtAddr, address extoAddr, uint status, uint timeCurrent);
 
     mapping (string => User) users;//string: 2 letters for country + 身分證字號, SSN, SIN
     uint public userCount;//count the number of users
 
     //Legal/Regulation Compliance
-    mapping (address => string) public assetCtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
+    mapping (address => string) public assetCtrtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
 
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
@@ -45,8 +45,8 @@ contract Registry is Ownable {
         _;
     }
     /**@dev check asset contract address */
-    modifier ckAssetCtAddr(address assetCtAddr) {
-        require(assetCtAddr != address(0), "assetCtAddr should not be zero");
+    modifier ckAssetCtrtAddr(address assetCtrtAddr) {
+        require(assetCtrtAddr != address(0), "assetCtrtAddr should not be zero");
         _;
     }
     /**@dev check EOA address */
@@ -67,100 +67,96 @@ contract Registry is Ownable {
 
     /**@dev check if uid exists by checking its user's information */
     modifier uidExists(string memory uid) {
-        require(users[uid].assetCtAddr != address(0), "user does not exist: assetCtAddr is empty");
+        require(users[uid].assetCtrtAddr != address(0), "user does not exist: assetCtrtAddr is empty");
         require(users[uid].extoAddr != address(0), "user does not exist: extoAddr is empty");
         _;
     }
 
 
-    /**@dev 新增user */
+    /**@dev add user with his user Id(uid), asset contract address(assetCtrtAddr), external Address(extoAddr) */
     function addUser(
-        string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external
-        onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) {
+        string calldata uid, address assetCtrtAddr, address extoAddr) external
+        onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) ckExtoAddr(extoAddr) {
 
-        require(users[uid].assetCtAddr == address(0), "user already exists: assetCtAddr not empty");
+        require(users[uid].assetCtrtAddr == address(0), "user already exists: assetCtrtAddr not empty");
         require(users[uid].extoAddr == address(0), "user already exists: extoAddr not empty");
         userCount = userCount.add(1);
 
-        users[uid].assetCtAddr = assetCtAddr;
+        users[uid].assetCtrtAddr = assetCtrtAddr;
         users[uid].extoAddr = extoAddr;
         users[uid].status = 0;
 
-        assetCtAddrToUid[assetCtAddr] = uid;
-        emit SetNewUser(uid, assetCtAddr, extoAddr, 0, timeCurrent);
+        assetCtrtAddrToUid[assetCtrtAddr] = uid;
+        emit SetNewUser(uid, assetCtrtAddr, extoAddr, 0, now);
     }
 
-    /**@dev set existing user 的 information */
+    /**@dev set existing user’s information: this uid, assetCtrtAddr, extoAddr, status */
     function setUser(
-        string calldata uid, address assetCtAddr, address extoAddr,
-        uint status, uint timeCurrent)
-        external onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
+        string calldata uid, address assetCtrtAddr, address extoAddr,
+        uint status)
+        external onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) ckExtoAddr(extoAddr) uidExists(uid) {
 
-        assetCtAddrToUid[users[uid].assetCtAddr] = "";
+        assetCtrtAddrToUid[users[uid].assetCtrtAddr] = "";
 
-        users[uid].assetCtAddr = assetCtAddr;
+        users[uid].assetCtrtAddr = assetCtrtAddr;
         users[uid].extoAddr = extoAddr;
         users[uid].status = status;
 
-        assetCtAddrToUid[assetCtAddr] = uid;
-        emit SetOldUser(uid, assetCtAddr, extoAddr, status, timeCurrent);
+        assetCtrtAddrToUid[assetCtrtAddr] = uid;
+        emit SetOldUser(uid, assetCtrtAddr, extoAddr, status, now);
     }
 
-    /**@dev 設定user的 assetCtAddr */
-    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint timeCurrent) external
-    onlyAdmin ckUid(uid) ckAssetCtAddr(assetCtAddr) ckTime(timeCurrent) uidExists(uid) {
+    /**@dev set user’s assetCtrtAddr */
+    function setAssetCtrtAddr(string calldata uid, address assetCtrtAddr) external
+    onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) uidExists(uid) {
 
-        assetCtAddrToUid[users[uid].assetCtAddr] = "";
+        assetCtrtAddrToUid[users[uid].assetCtrtAddr] = "";
 
-        assetCtAddrToUid[assetCtAddr] = uid;
-        users[uid].assetCtAddr = assetCtAddr;
-        emit SetAssetCtAddr(uid, assetCtAddr, timeCurrent);
+        assetCtrtAddrToUid[assetCtrtAddr] = uid;
+        users[uid].assetCtrtAddr = assetCtrtAddr;
+        emit SetAssetCtrtAddr(uid, assetCtrtAddr, now);
     }
 
-    /**@dev 設定user的以太帳號 */
-    function setExtoAddr(string calldata uid, address extoAddr, uint timeCurrent) external
-    onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) ckTime(timeCurrent) uidExists(uid) {
+    /**@dev set user’s EOA Ethereum externally owned address*/
+    function setExtoAddr(string calldata uid, address extoAddr) external
+    onlyAdmin ckUid(uid) ckExtoAddr(extoAddr) uidExists(uid) {
         users[uid].extoAddr = extoAddr;
-        emit SetExtoAddr(uid, users[uid].assetCtAddr, extoAddr, users[uid].status, timeCurrent);
+        emit SetExtoAddr(uid, users[uid].assetCtrtAddr, extoAddr, users[uid].status, now);
     }
 
-    /**@dev 設定user的狀態 */
-    function setUserStatus(string calldata uid, uint status, uint timeCurrent) external
-    onlyAdmin ckUid(uid) ckTime(timeCurrent) uidExists(uid) {
+    /**@dev set user’s status */
+    function setUserStatus(string calldata uid, uint status) external
+    onlyAdmin ckUid(uid) uidExists(uid) {
         users[uid].status = status;
-        emit SetUserStatus(uid, status, timeCurrent);
+        emit SetUserStatus(uid, status, now);
     }
 
-    /**@dev 取得user數量 */
-    function getUserCount() public view returns(uint){
-        return userCount;
+    /**@dev get user’s information via user’s Id or uid*/
+    function getUser(string memory uid) public view ckUid(uid) returns (
+        string memory uid_, address assetCtrtAddr, address extoAddr, uint userStatus) {
+          uid_ = uid;
+        return(uid_, users[uid].assetCtrtAddr, users[uid].extoAddr, users[uid].status);
     }
 
-    /**@dev get user information */
-    function getUser(string memory u_id) public view ckUid(u_id) returns (
-        string memory uid, address assetCtAddr, address extoAddr, uint userStatus) {
-        return(u_id, users[u_id].assetCtAddr, users[u_id].extoAddr, users[u_id].status);
-    }
-
-    /**@dev get uid from Asset contract address */
-    function getUidFromAssetCtAddr(address assetCtAddr) public view 
-        ckAssetCtAddr(assetCtAddr) returns (string memory u_id) {
-        return assetCtAddrToUid[assetCtAddr];
+    /**@dev get uid from user’s asset contract address */
+    function getUidFromAssetCtrtAddr(address assetCtrtAddr) public view 
+        ckAssetCtrtAddr(assetCtrtAddr) returns (string memory uid) {
+        uid = assetCtrtAddrToUid[assetCtrtAddr];
     }
 
 
 
-    /**@dev check if uid is approved */
+    /**@dev check if the user with uid is approved */
     function isUserApproved(string memory uid) public view 
       ckUid(uid) uidExists(uid) returns (bool) {
         return (users[uid].status == 0);
     }
 
-    /**@dev check if asset contract address is approved, by finding its uid then checking it */
-    function isAddrApproved(address assetCtAddr) external view returns (bool) {
-        require(assetCtAddr.isContract(), "assetCtAddr should contain contract code");
-        require(assetCtAddr != address(0), "assetCtAddr should not be zero");
-        string memory uid = assetCtAddrToUid[assetCtAddr];
+    /**@dev check if asset contract address is approved, by finding its uid then checking the uid’s info */
+    function isAddrApproved(address assetCtrtAddr) external view returns (bool) {
+        require(assetCtrtAddr.isContract(), "assetCtrtAddr should contain contract code");
+        require(assetCtrtAddr != address(0), "assetCtrtAddr should not be zero");
+        string memory uid = assetCtrtAddrToUid[assetCtrtAddr];
         return isUserApproved(uid);
     }
 

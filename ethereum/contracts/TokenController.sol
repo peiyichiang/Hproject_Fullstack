@@ -4,12 +4,13 @@ import "./Ownable.sol";
 
 contract TokenController is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
-    uint public TimeRelease;// Release date and time
+    uint public TimeRelease;// Token Release date and time
     uint public TimeUnlock;//The time to unlock tokens from lock up period
-    uint public TimeValid;// Valid Date or token expiry time 203903310000
-    bool public isLockedForRelease;
-    bool public isActive;
+    uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
+    bool public isLockedForRelease;// true or false: check if the token is locked for release
+    bool public isActive;// true or false: check if the token is active
 
+    // check if the tokenState is in one of the following states: underLockupPeriod, operational, or expired
     enum TokenState{underLockupPeriod, operational, expired}
     TokenState public tokenState;
 
@@ -39,10 +40,12 @@ contract TokenController is Ownable {
         _;
     }
 
+    // to check if the HCAT721 token is in good operational state, which is between the Lockup period end time and the invalid time
     function isActiveOperational() external view returns (bool){
         return (tokenState == TokenState.operational && isActive);
     }
 
+    // to give variable values including TimeRelease, TimeUnlock, TimeValid, isLockedForRelease
     function getHTokenControllerDetails() public view returns (
         uint TimeRelease_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_) {
           TimeRelease_ = TimeRelease;
@@ -51,8 +54,8 @@ contract TokenController is Ownable {
           isLockedForRelease_ = isLockedForRelease;
     }
 
-    //TokenState{underLockupPeriod, operational, expired}
-    function updateTime(uint timeCurrent) external onlyAdmin ckTime(timeCurrent){
+    // to update the tokenState to be one of the three states: underLockupPeriod, operational, expired
+    function updateState(uint timeCurrent) external onlyAdmin ckTime(timeCurrent){
         if(timeCurrent < TimeUnlock){
             tokenState = TokenState.underLockupPeriod;
 
@@ -64,23 +67,27 @@ contract TokenController is Ownable {
         }       
     }
 
+    //To set the value of IsActive variable before isLockedForRelease becomes true
     function setIsActive(bool _isActive) external onlyAdmin ckLock {
         isActive = _isActive;
     }
 
-    //To extend valid time if token operation is paused
+    //To set validTime value before isLockedForRelease becomes true
     function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) ckLock {
         TimeValid = _TimeValid;
     }
 
+    //To set timeUnlock value before isLockedForRelease becomes true
     function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckLock {
         TimeUnlock = _TimeUnlock;
     }
 
+    //To set timeRelease before isLockedForRelease becomes true
     function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckLock {
         TimeRelease = _TimeRelease;
     }
-    //To be set and never go back to previous states
+
+    //To lock the above variable values so no further variable value change is possible
     function lockForTokenRelease() external onlyAdmin ckLock {
         isLockedForRelease = true;
     }

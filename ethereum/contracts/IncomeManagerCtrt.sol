@@ -5,15 +5,16 @@ import "./SafeMath.sol";
 
 contract IncomeManagerCtrt is Ownable {
     using SafeMath for uint256;
-    address public tokenCtrt;
-    address public supervisor;
-    uint public dateTimeMin = 201901220900;
+    address public tokenCtrt;//the token address
+    address public supervisor;//the supervisor
+    uint public dateTimeMin = 201901220900;// the minimum dataTime allowed
 
-    uint public schCindex;//last submitted index and total count of current schedules, and also index count, 1 to 80. SPLC life time總共80期
+    uint public schCindex;//last submitted index and total count of current schedules, and also the index count. It starts from 1 to 80. SPLC life time has a total of 80 schedules
     mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
     
     // cash flow: FMX -> platform -> investors
+    // records of parameters stored in each schedule
     struct Schedule {
         uint forecastedPayableTime;//the date to send income, used as mapping key
         uint forecastedPayableAmount;//given by FMXA, sending income from platform to investors
@@ -28,7 +29,7 @@ contract IncomeManagerCtrt is Ownable {
     constructor(address _tokenCtrt, address _supervisor,
         address[] memory managementTeam) public {
         tokenCtrt = _tokenCtrt;
-        supervisor = _supervisor;//can be EOA or contract
+        supervisor = _supervisor;//can be EOA or Helium contract
 
         require(managementTeam.length > 4, "managementTeam.length should be > 4");
         owner = managementTeam[4];
@@ -45,14 +46,15 @@ contract IncomeManagerCtrt is Ownable {
         require(msg.sender == admin, "only admin is allowed");
         supervisor = newSupervisor;
     }
-    //check income ready to release
+
+    //check if the current dateTimeNow has income schedule that is ready to be released
     function isScheduleGoodForRelease(uint dateTimeNow) external view returns (bool) {
         Schedule memory icSch = idxToSchedule[dateToIdx[dateTimeNow]];
         return (icSch.isApproved && icSch.forecastedPayableTime > dateTimeMin && icSch.forecastedPayableAmount > 0 && icSch.actualPaymentTime == 0 && icSch.actualPaymentAmount == 0);
     }
 
-    event AddSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint _forecastedPayableAmount);
-    function addSchedule(uint forecastedPayableTime, uint _forecastedPayableAmount) external onlySupervisor {
+    event AddSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
+    function addSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlySupervisor {
         require(forecastedPayableTime > dateTimeMin, "forecastedPayableTime has to be in the format of yyyymmddhhmm");
         if (schCindex > 0) {
           require(idxToSchedule[schCindex].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime");
@@ -60,14 +62,14 @@ contract IncomeManagerCtrt is Ownable {
 
         schCindex = schCindex.add(1);
         idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTime;
-        idxToSchedule[schCindex].forecastedPayableAmount = _forecastedPayableAmount;
+        idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmount;
         dateToIdx[forecastedPayableTime] = schCindex;
-        emit AddSchedule(schCindex, forecastedPayableTime, _forecastedPayableAmount);
+        emit AddSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
     }
 
-    function AddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata _forecastedPayableAmounts) external onlySupervisor {
+    function AddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external onlySupervisor {
         uint amount_ = forecastedPayableTimes.length;
-        require(amount_ == _forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
+        require(amount_ == forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
         require(amount_ > 0, "input array length must > 0");
 
         require(forecastedPayableTimes[0] > dateTimeMin, "forecastedPayableTime[0] has to be in yyyymmddhhmm");
@@ -79,24 +81,24 @@ contract IncomeManagerCtrt is Ownable {
 
             schCindex = schCindex.add(1);
             idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTimes[i];
-            idxToSchedule[schCindex].forecastedPayableAmount = _forecastedPayableAmounts[i];
+            idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmounts[i];
             dateToIdx[forecastedPayableTimes[i]] = schCindex;
-            emit AddSchedule(schCindex, forecastedPayableTimes[i], _forecastedPayableAmounts[i]);
+            emit AddSchedule(schCindex, forecastedPayableTimes[i], forecastedPayableAmounts[i]);
         }
     }
 
-    event EditIncomeSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint _forecastedPayableAmount);
-    function editIncomeSchedule(uint schIndex, uint forecastedPayableTime, uint _forecastedPayableAmount) external onlySupervisor {
+    event EditIncomeSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
+    function editIncomeSchedule(uint schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlySupervisor {
         uint forecastedPayableTimeOld = idxToSchedule[schIndex].forecastedPayableTime;
         delete dateToIdx[forecastedPayableTimeOld];
         
         require(idxToSchedule[schIndex].actualPaymentTime == 0 && idxToSchedule[schIndex].actualPaymentAmount == 0, "cannot edit already paid schedule");
 
         idxToSchedule[schIndex].forecastedPayableTime = forecastedPayableTime;
-        idxToSchedule[schIndex].forecastedPayableAmount = _forecastedPayableAmount;
+        idxToSchedule[schIndex].forecastedPayableAmount = forecastedPayableAmount;
         idxToSchedule[schIndex].isApproved = false;
 
-        emit EditIncomeSchedule(schCindex, forecastedPayableTime, _forecastedPayableAmount);
+        emit EditIncomeSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
     }
 
 

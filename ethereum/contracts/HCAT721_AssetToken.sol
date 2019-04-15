@@ -1,12 +1,6 @@
 pragma solidity ^0.5.4;
 import "./SafeMath.sol";
 
-//https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
-interface ERC721ITF {
-  function balanceOf(address user) external view returns (uint256);
-  function ownerOf(uint256 _tokenId) external view returns (address);
-}
-
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.*/
 interface ERC721TokenReceiverITF {
     function onERC721Received(address operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
@@ -37,8 +31,8 @@ interface TokenControllerITF {
     function isActiveOperational() external view returns (bool);
 }
 
-//------------------------HCAT721: Helium Crypto Asset Token
-contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF, 
+//------------------------HCAT721: Helium Cryptic Asset Token
+contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF, 
     using SafeMath for uint256;
     using AddressUtils for address;
 
@@ -56,7 +50,7 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         //address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
-    uint public tokenId;//last submitted index and total count of current Token ID. starts from 1
+    uint public tokenId;//same as tokenCindex, the last submitted index and total count of current Token ID. Its value starts from 1
     uint public siteSizeInKW;//the physical site electrical output in Kw. Typ 300kw
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
     uint public totalSupply;//total generated tokens - destroyed tokens
