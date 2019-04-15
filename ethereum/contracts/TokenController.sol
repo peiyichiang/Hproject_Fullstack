@@ -1,25 +1,27 @@
 pragma solidity ^0.5.4;
-//pragma experimental ABIEncoderV2;
 
 import "./Ownable.sol";
 
 contract TokenController is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
-    uint public timeCurrent;
-    uint public TimeRelease;// Release Date
-    uint public TimeUnlock;
-    uint public TimeValid;// Valid Date or token expiry time 203903310000
-    bool public isReleased;
-    bool public isActive;
+    uint public TimeRelease;// Token Release date and time
+    uint public TimeUnlock;//The time to unlock tokens from lock up period
+    uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
+    bool public isLockedForRelease;// true or false: check if the token is locked for release
+    bool public isActive;// true or false: check if the token is active
+
+    // check if the tokenState is in one of the following states: underLockupPeriod, operational, or expired
+    enum TokenState{underLockupPeriod, operational, expired}
+    TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _timeCurrent, uint _TimeRelease, 
+    constructor(uint _TimeRelease, 
       uint _TimeUnlock, uint _TimeValid,
       address[] memory management) public {
-        timeCurrent = _timeCurrent;
         TimeRelease = _TimeRelease;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
+        tokenState = TokenState.underLockupPeriod;
         isActive = true;
         require(management.length > 4, "management.length should be > 4");
         owner = management[4];
@@ -29,57 +31,65 @@ contract TokenController is Ownable {
         admin = management[0];
     }
 
-    modifier ckReleased() {
-        require(!isReleased, "only allowed before Release time");
+    modifier ckLock() {
+        require(!isLockedForRelease, "only allowed before locked up");
         _;
     }
     modifier ckTime(uint _time) {
         require(_time > 201903070000, "_time is <= 201903070000 or not in the format of yyyymmddhhmm");
         _;
     }
-    modifier onlyUnlockedValid() {
-        //will block all token tranfers either before the lockup time, 
-        //or until a time when SPLC's power plant contract is finished
-        require(TimeUnlock < timeCurrent && timeCurrent < TimeValid && isActive, "token in lockup time or over valid date or not active");
-        _;
-    }
-    function isUnlockedValid() external view returns (bool){
-        return (TimeUnlock < timeCurrent && timeCurrent < TimeValid && isActive);
-    }
-    function isUnlocked() external view returns (bool){
-        return (TimeUnlock < timeCurrent);
-    }
-    function isValid() external view returns (bool){
-        return (timeCurrent < TimeValid);
+
+    // to check if the HCAT721 token is in good operational state, which is between the Lockup period end time and the invalid time
+    function isActiveOperational() external view returns (bool){
+        return (tokenState == TokenState.operational && isActive);
     }
 
+    // to give variable values including TimeRelease, TimeUnlock, TimeValid, isLockedForRelease
     function getHTokenControllerDetails() public view returns (
-        uint, uint, uint, uint, bool) {
-        return (
-            timeCurrent, TimeRelease, TimeUnlock, TimeValid, isReleased);
+        uint TimeRelease_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_) {
+          TimeRelease_ = TimeRelease;
+          TimeUnlock_ = TimeUnlock;
+          TimeValid_ = TimeValid;
+          isLockedForRelease_ = isLockedForRelease;
     }
 
-    //For TimeServer injecting current time
-    function setTimeCurrent(uint _timeCurrent) external onlyAdmin ckTime(_timeCurrent){
-        timeCurrent = _timeCurrent;
+    // to update the tokenState to be one of the three states: underLockupPeriod, operational, expired
+    function updateState(uint timeCurrent) external onlyAdmin ckTime(timeCurrent){
+        if(timeCurrent < TimeUnlock){
+            tokenState = TokenState.underLockupPeriod;
+
+        } else if(timeCurrent > TimeUnlock && timeCurrent < TimeValid && isActive){
+            tokenState = TokenState.operational;
+
+        } else if(timeCurrent > TimeValid){
+            tokenState = TokenState.expired;
+        }       
     }
 
-    //To extend valid time if token operation is paused
-    function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) ckReleased {
+    //To set the value of IsActive variable before isLockedForRelease becomes true
+    function setIsActive(bool _isActive) external onlyAdmin ckLock {
+        isActive = _isActive;
+    }
+
+    //To set validTime value before isLockedForRelease becomes true
+    function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) ckLock {
         TimeValid = _TimeValid;
     }
 
-    function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckReleased {
+    //To set timeUnlock value before isLockedForRelease becomes true
+    function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckLock {
         TimeUnlock = _TimeUnlock;
     }
 
-    function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckReleased {
+    //To set timeRelease before isLockedForRelease becomes true
+    function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckLock {
         TimeRelease = _TimeRelease;
-        isReleased = true;
     }
 
-    function setIsActive(bool _isActive) external onlyAdmin ckReleased {
-        isActive = _isActive;
+    //To lock the above variable values so no further variable value change is possible
+    function lockForTokenRelease() external onlyAdmin ckLock {
+        isLockedForRelease = true;
     }
 
     function() external payable { revert("should not send any ether directly"); }

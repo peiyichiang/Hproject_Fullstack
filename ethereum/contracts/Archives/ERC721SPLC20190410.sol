@@ -2,34 +2,29 @@ pragma solidity ^0.5.4;
 /* v2.0
 => Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!!
 => use yyyymmddhhmm to record time
-
-Add ITF to distingush interface json from compiled contracts json
-
-ONLY use external account to deploy this contract
-https://github.com/0xcert/ethereum-erc721
-A contract that implements ERC721Metadata or ERC721Enumerable SHALL also implement ERC721. ERC-721 implements the requirements of interface ERC-165.
-
-https://github.com/0xcert/ethereum-erc721/tree/master/contracts/tokens
-*/
-
-import "./SafeMath.sol";
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
+*/
+import "./SafeMath.sol";
+
 interface ERC721ITF {
-  event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
-  event Approval(address indexed tokenOwner, address indexed approvedUser, uint256 indexed _tokenId);
-  event ApprovalForAll(address indexed user, address indexed _operator, bool isApproved);
+    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
+    event Approval(address indexed tokenOwner, address indexed approvedUser, uint256 indexed _tokenId);
+    event ApprovalForAll(address indexed user, address indexed _operator, bool isApproved);
 
-  function balanceOf(address user) external view returns (uint256);
-  function ownerOf(uint256 _tokenId) external view returns (address);
-  function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external;
-  function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
-  function transferFrom(address _from, address _to, uint256 _tokenId) external;
+    function balanceOf(address user) external view returns (uint256);
+    function ownerOf(uint256 _tokenId) external view returns (address);
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external;
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external;
+    function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
-  function approve(address user, uint256 _tokenId) external;
-  function setApprovalForAll(address _operator, bool user) external;
-  function getApproved(uint256 _tokenId) external view returns (address);
-  function isApprovedForAll(address user, address _operator) external view returns (bool);
+    function approve(address user, uint256 _tokenId) external;
+    function setApprovalForAll(address _operator, bool user) external;
+    function getApproved(uint256 _tokenId) external view returns (address);
+    function isApprovedForAll(address user, address _operator) external view returns (bool);
 }
 
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.*/
@@ -62,8 +57,6 @@ interface TokenControllerITF {
     function isUnlockedValid() external view returns (bool);
 }
 
-
-
 //------------------------HCAT721: Helium Crypto Asset Token
 contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF, 
     using SafeMath for uint256;
@@ -80,7 +73,7 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         address owner;
-        //address approvedAddr;//approved to be transferred by one of the operators or the owner himself
+        address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
     uint public tokenId;//Token ID and also the count of all issued tokens. starts from 1
@@ -149,10 +142,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         require(owner_ != address(0), "owner_ does not exist");
     }
     function getIdToAsset(uint _tokenId) external view returns (
-        address ownerAddr) {//, address approvedAddr
+        address ownerAddr, address approvedAddr) {
         Asset memory asset = idToAsset[_tokenId];
         ownerAddr = asset.owner;
-        //approvedAddr = asset.approvedAddr;
+        approvedAddr = asset.approvedAddr;
         require(ownerAddr != address(0), "ownerAddr should not be 0x0");
     }
 
@@ -170,22 +163,21 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
 
           if(indexStart.add(amount).sub(1) > tokenId) {
             amount_ = tokenId.sub(indexStart).add(1);
-            //require(indexStart.add(amount).sub(1) <= tokenId, "indexStart or amount is too big");
           } else {
             amount_ = amount;
           }
         }
         ownerAddrs = new address[](amount_);
-        //acquiredCosts = new uint[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)) {
           Asset memory asset = idToAsset[i.add(indexStart)];
             ownerAddrs[i] = asset.owner;
-            //acquiredCosts[i] = asset.acquiredCost;
-            //acquiredTime[i] = asset.acquiredTime;
         }
     }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
 
     //---------------------------==Account
     function getAccount(address user) external view 
@@ -207,12 +199,7 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             balance = idxEnd.sub(idxStart).add(1);
         }
     }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => uint) allowed;
-    }*/
+
     function getTokenIdByIndex(address user, uint idx) external view returns (uint256 tokenId_) {
         // idx is the index of tokenId in question, inside the user account
         require(user != address(0), "user should not be 0x0");
@@ -225,12 +212,8 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     returns (uint[] memory arrayOut) {
         //indexStart == 0 and amount == 0 for all Ids(min idxStart and max amount)
         require(user != address(0), "user should not be address(0)");
-
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
-        //require(indexStart >= idxStart, "indexStart must be >= idxStart");
-        //require(idxE <= idxEnd, "idxE must be <= idxEnd");
-        
 
         if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
             //arrayOut = [];
@@ -254,29 +237,12 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             for(uint i = 0; i < amount_; i = i.add(1)) {
                 arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
             }
-            // uint length = idxE.sub(indexStart).add(1);
-            // arrayOut = new uint[](length);
-            // for(uint i = indexStart; i < length; i = i.add(1)) {
-            //     arrayOut[i] = accounts[user].indexToId[i];
-            // }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
+
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
         }
     }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;//accounts[user].indexToId[index];
-        mapping (address => uint) allowed;
-    }*/
-
-
-    //-----------------------==Mint
-    // function mintSerialNFTBatch(address[] calldata _tos, uint amount) external {
-    //     for(uint i=0; i < _tos.length; i = i.add(1)) {
-    //         for(uint j=0; j < amount; j.add(1)) {
-    //             mintSerialNFT(_tos[i], amount);
-    //         }
-    //     }
-    // }
 
     event MintSerialNFT(address indexed newOwner, uint amountMinted, uint indexed serverTime);
     function mintSerialNFT(address _to, uint amount, uint serverTime) public {
@@ -309,35 +275,18 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
           idxStartReq = idxEnd.add(1);
           idxEndReq = idxEnd.add(amount);
         }
-        //accounts[_to].indexToId[0]
-
-        //require(idxStart <= idxEnd, "not enough asset: balance = 0");
-        //uint balance = idxEnd.sub(idxStart).add(1);
-        //require(balance >= amount, "not enough asset: balance < amount");
 
         for(uint i = idxStartReq; i <= idxEndReq; i = i.add(1)) {
             tokenId = tokenId.add(1);
             idToAsset[tokenId].owner = _to;
-            // idToAsset[tokenId].acquiredCost = initialAssetPricing;
-            // idToAsset[tokenId].acquiredTime = serverTime;
-            //idToAsset[tokenId] = Asset(_to, initialAssetPricing, address(0));
             accounts[_to].indexToId[i] = tokenId;
         }
         accounts[_to].idxEnd = idxEndReq;
 
     }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;//accounts[user].indexToId[index];
-        mapping (address => uint) allowed;
-    }*/
-
 
     //---------------------------==Transfer
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
-        //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
-        //require(_to != address(0), "_to should not be 0x0");//replaced by registry check
         require(amount > 0, "amount should be > 0");
         require(price > 0, "price should be > 0");
         require(_from != _to, "_from should not be equal to _to");
@@ -356,13 +305,6 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         _safeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
 
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => uint) allowed;
-    }*/
-
     event SafeTransferFromBatch(address indexed _from, address indexed _to, uint amount, uint price, uint indexed serverTime);//this function should be called by an Exchange contract, which should be trustworthy enough to give the correct price and serverTime
 
 
@@ -370,36 +312,35 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         address _to, uint amount, uint price, uint serverTime) internal {
           //price will be the same as acquiredCost, assuming no transaction fee
 
-        uint[] memory array = new uint[](4);
-        array[0] = accounts[_from].idxStart;//idxStartF = array[0]
-        array[1] = accounts[_from].idxEnd;// idxEndF = array[1]
-        require(array[0] <= array[1], "not enough asset to transfer: balance = 0");
-        require(array[1].sub(array[0]).add(1) >= amount, "not enough asset to transfer: balance < amount");
+        uint idxStartF = accounts[_from].idxStart;
+        uint idxEndF = accounts[_from].idxEnd;
+        require(idxStartF <= idxEndF, "not enough asset to transfer: balance = 0");
+        require(idxEndF.sub(idxStartF).add(1) >= amount, "not enough asset to transfer: balance < amount");
 
         //fix _to account
-        array[2] = accounts[_to].idxStart;// idxStartT = array[2]
-        array[3] = accounts[_to].idxEnd;// idxEndT = array[3]
+        uint idxStartT = accounts[_to].idxStart;
+        uint idxEndT = accounts[_to].idxEnd;
         uint idxStartReqT; //uint idxEndReqT;
-        if (array[2] > array[3]) {
+        if (idxStartT > idxEndT) {
           accounts[_to].idxStart = 0;
           accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
-        } else if (array[2] == 0 && array[3] == 0 && accounts[_to].indexToId[0] == 0) {
+        } else if (idxStartT == 0 && idxEndT == 0 && accounts[_to].indexToId[0] == 0) {
           accounts[_to].idxEnd = amount.sub(1);
           //idxStartReqT = 0;
           //idxEndReqT = amount.sub(1);
         } else {
-          idxStartReqT = array[3].add(1);
-          accounts[_to].idxEnd = array[3].add(amount);
-          //idxEndReqT = array[3].add(amount);
+          idxStartReqT = idxEndT.add(1);
+          accounts[_to].idxEnd = idxEndT.add(amount);
+          //idxEndReqT = idxEndT.add(amount);
         }//accounts[_to].indexToId[0]
 
 
-        uint allowedAmount = accounts[_from].allowed[msg.sender];
+        //uint allowedAmount = accounts[_from].allowed[msg.sender];
         for(uint i = 0; i < amount; i = i.add(1)) {
             //inside _from account
-            uint idxFrom = i.add(array[0]);
+            uint idxFrom = i.add(idxStartF);
             uint tokenId_ = accounts[_from].indexToId[idxFrom];
             delete accounts[_from].indexToId[idxFrom];
 
@@ -407,13 +348,12 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             require(tokenOwner == _from, "tokenOwner should be _from");
             //require(tokenOwner != address(0), "owner should not be 0x0");
 
-            if(tokenOwner == msg.sender){
-
-            } else if (allowedAmount > 0){
-                allowedAmount = allowedAmount.sub(1);
-            } else {
-              revert("msg.sender is not tokenOwner, or a token caller does not have enough allowed amount");
-            }
+            //if(tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender){
+            // } else if(allowedAmount > 0) {
+            //     allowedAmount = allowedAmount.sub(1);
+            // } else {
+            //   revert("msg.sender should be tokenOwner, an approved, or a token operator has enough allowed amount");
+            // }
 
             // require(
             // tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender 
@@ -421,42 +361,31 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             // "msg.sender should be tokenOwner, an approved, or a token operator has enough allowed amount");
 
             idToAsset[tokenId_].owner = _to;
-            //clearApproval(tokenId_);
+            clearApproval(tokenId_);
 
             accounts[_to].indexToId[i.add(idxStartReqT)] = tokenId_;
         }
 
-        if(allowedAmount < accounts[_from].allowed[msg.sender]){
-            accounts[_from].allowed[msg.sender] = allowedAmount;
-        }
+        // if(allowedAmount < accounts[_from].allowed[msg.sender]){
+        //     accounts[_from].allowed[msg.sender] = allowedAmount;
+        // }
 
         //fix _from account
-        if (array[1] == array[0].add(amount).sub(1)) {
+        if (idxEndF == idxStartF.add(amount).sub(1)) {
             accounts[_from].idxStart = 1;
             accounts[_from].idxEnd = 0;
         } else {
-            accounts[_from].idxStart = array[0].add(amount);
+            accounts[_from].idxStart = idxStartF.add(amount);
         }
 
         emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
-    /*
-    }
-    struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => uint) allowed;
-    }
-    canTransfer()
-        require(
-            tokenOwner == msg.sender || idToAsset[tokenId_].approvedAddr == msg.sender || accounts[tokenOwner].allowed[msg.sender] > amount, "msg.sender should be tokenOwner, an approved, or a token operator");
-
-      validToken()
-        require(idToAsset[tokenId_].owner != address(0), "owner should not be 0x0");
-    */
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+    
+=======
 
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
     //-------------------------------==Approvals
     function approveAmount(address _operator, uint amount) external {
         require(_operator != address(0), "_operator should not be 0x0");
@@ -469,52 +398,25 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         require(_operator != address(0), "_operator should not be 0x0");
         remaining = accounts[user].allowed[_operator];
     }
-    // function setApprovalForAll(address _operator, bool isApproved) 
-    //     external {
-    //     require(_operator != address(0), "_operator should not be 0x0");
-    //     accounts[msg.sender].operators[_operator] = isApproved;
-    //     emit ApprovalForAll(msg.sender, _operator, isApproved);
-    // }
-    // function isApprovedForAll(address user, address _operator) 
-    //     external view returns (bool) {
-    //     require(user != address(0), "user should not be 0x0");
-    //     require(_operator != address(0), "_operator should not be 0x0");
-    //     return accounts[user].operators[_operator];
-    // }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
+
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
     //--------------==ID based
     /** $dev Clears the current approvedAddr of a given NFT ID.
      $param _tokenId ID of the NFT to be transferred. */
-    // function clearApproval(uint256 _tokenId) private {
-    //     require(_tokenId > 0, "_tokenId should > 0");
-    //     if(idToAsset[_tokenId].approvedAddr != address(0)) {
-    //         delete idToAsset[_tokenId].approvedAddr;
-    //     }
-    // }
+    function clearApproval(uint256 _tokenId) private {
+        require(_tokenId > 0, "_tokenId should > 0");
+        if(idToAsset[_tokenId].approvedAddr != address(0)) {
+            delete idToAsset[_tokenId].approvedAddr;
+        }
+    }
 
-    // function approve(address approvedUser, uint256 _tokenId) external {//payable
-    //     //require(approvedUser != address(0), "approvedUser should not be 0x0");
-    //     require(_tokenId > 0, "_tokenId should > 0");
-
-    //     address tokenOwner = idToAsset[_tokenId].owner;//canOperate(_tokenId)
-    //     require(tokenOwner != address(0), "owner should not be 0x0");//validNFToken(_tokenId)
-    //     require(
-    //         tokenOwner == msg.sender || accounts[tokenOwner].operators[msg.sender],
-    //         "msg.sender should be either tokenOwner or an approved operator");
-
-    //     require(approvedUser != tokenOwner, "approvedUser should not be tokenOwner");
-    //     //require(idToAsset[_tokenId].approvedAddr == address(0), "approved address should be 0x0 OR should be cleared of approval first");
-
-    //     idToAsset[_tokenId].approvedAddr = approvedUser;
-    //     emit Approval(tokenOwner, approvedUser, _tokenId);
-    // }
-    // function getApproved(uint256 _tokenId) external view returns (address) {
-    //     //require(_tokenId > 0, "_tokenId should > 0");
-    //     //validNFToken(_tokenId)
-    //     require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
-    //     return idToAsset[_tokenId].approvedAddr;
-    // }
-
+    function getApproved(uint256 _tokenId) external view returns (address) {
+        require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
+        return idToAsset[_tokenId].approvedAddr;
+    }
 
     function() external payable { revert("should not send any ether directly"); }
 
@@ -524,64 +426,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     // event BurnNFT(address user, uint _tokenId, address msgsender);
     event ApprovalAmount(address indexed tokenOwner, address indexed _operator, uint amount);
 
-    //-------------------------------==
-    // function safeTransferFrom(
-    //     address _from, address _to, uint256 _tokenId, bytes calldata _data) 
-    //     external {
-    //     _safeTransferFrom(_from, _to, _tokenId, _data);
-    // }
-    // function safeTransferFrom(address _from, address _to, uint256 _tokenId) external {
-    //     _safeTransferFrom(_from, _to, _tokenId, "");
-    // }
-    // function transferFrom(address _from, address _to, uint256 _tokenId) external {
-    //     _safeTransferFrom(_from, _to, _tokenId, "");
-    // }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
 
-    // function _safeTransferFrom(
-    //     address _from, address _to, uint256 _tokenId, bytes memory _data)
-    //     internal canTransfer(_tokenId) validNFToken(_tokenId) {
-
-    //     address tokenOwner = idToAsset[_tokenId].owner;
-    //     require(tokenOwner == _from, "tokenOwner should be _from");
-    //     require(_to != address(0), "_to should not be 0x0");
-
-    //     if (_to.isContract()) {
-    //         bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
-    //             msg.sender, _from, _tokenId, _data);
-    //         require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
-    //     }
-    //     _transfer(_to, _tokenId);
-    // }
-    /*canTransfer()
-        require(
-            tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddr == msg.sender || accounts[tokenOwner].operators[msg.sender], "msg.sender should be tokenOwner, an approved, or a token operator");
-
-      validToken()
-        require(idToAsset[_tokenId].owner != address(0), "owner should not be 0x0");
-    */
-    // function _transfer(address _to, uint256 _tokenId) private {
-    //     address _from = idToAsset[_tokenId].owner;
-
-    //     require(TokenControllerITF(addrTokenController).isUnlockedValid(),'token cannot be transferred due to either unlock period or after valid date');
-    //     //Legal Compliance
-    //     require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
-    //     require(RegistryITF(addrRegistry).isAddrApproved(_from), "_from is not in compliance");
-
-    //     clearApproval(_tokenId);
-    //     // removeNFToken(_from);
-    //     // addNFToken(_to, _tokenId);
-    //     emit Transfer(_from, _to, _tokenId);
-    // }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => uint) allowed;
-    }*/
-
-
-
-
+=======
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
     /** $dev Guarantees that the msg.sender is 
     an owner or operator of the given NFT.
     * $param _tokenId ID of the NFT to validate.   */
@@ -597,9 +445,9 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     * $param _tokenId ID of the NFT to transfer.   */
     modifier canTransfer(uint256 _tokenId) {
         address tokenOwner = idToAsset[_tokenId].owner;
-        /*require(
+        require(
             tokenOwner == msg.sender || idToAsset[_tokenId].approvedAddr == msg.sender || accounts[tokenOwner].allowed[msg.sender] > 0, "msg.sender should be tokenOwner, an approved, or a token operator");
-        */_;
+        _;
     }
     /** $dev Guarantees that _tokenId is a valid Token. Check if such _tokenId exists. $param _tokenId ID of the NFT to validate.   */
     modifier validNFToken(uint256 _tokenId) {
@@ -608,83 +456,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     }
 
 }
-    // function burnNFT(address user, uint256 _tokenId) external onlyAdmin {
-    //     delete idToAsset[_tokenId];
-    //     _burn(user, _tokenId);
-    //     totalSupply = totalSupply.sub(1);
-    //     emit BurnNFT(user, _tokenId, msg.sender);
-    // }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
-    // function _burn(address user, uint256 _tokenId) 
-    //     internal validNFToken(_tokenId) {
-    //     clearApproval(_tokenId);
-    //     require(TokenControllerITF(addrTokenController).isAdmin(msg.sender), 'only H-Token admin can remove tokens');
-    //         //only contract owner can destroy the token
-    //     removeNFToken(user);
-    //     emit Transfer(user, address(0), _tokenId);
-    //     // if (bytes(idToUri[_tokenId]).length != address(0)) {
-    //     //     delete idToUri[_tokenId];
-    //     // }
-    // }
-
-    // function addNFToken(address _to, uint _tokenId) internal {
-    //     //accounts[owner].idxStart  .idxEnd  .indexToId[index]  .allowed[opAddr]
-    //     uint idxStart = accounts[_to].idxStart;
-    //     uint idxEnd = accounts[_to].idxEnd;
-    //     uint idxEndReq;
-
-    //     if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
-    //         accounts[_to].indexToId[0] = _tokenId;
-
-    //     } else if (idxStart > idxEnd) {
-    //         accounts[_to].idxStart = 0;
-    //         accounts[_to].idxEnd = 0;
-    //         accounts[_to].indexToId[0] = _tokenId;
-
-    //     } else {
-    //         idxEndReq = idxEnd.add(1);
-    //         accounts[_to].indexToId[idxEndReq] = _tokenId;
-    //         accounts[_to].idxEnd = idxEndReq;
-    //     }
-    // }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => uint) allowed;
-    }*/
-
-
-    // function removeNFToken(address _from) internal {
-    //     Account memory account = accounts[_from];
-    //     require(accounts[_from].indexToId[0] > 0, "token is not zero");
-    //     uint idxStart = account.idxStart;
-    //     uint idxEnd = account.idxEnd;
-    //     uint count = idxEnd.sub(idxStart).add(1);
-    //     uint tokenId_ = accounts[_from].indexToId[idxStart];
-
-    //     require(count > 0, "token count should be > 0");
-    //     uint countM1 = count.sub(1);
-    //     accounts[_from].idxStart = idxStart.add(1);
-    //     delete accounts[_from].indexToId[idxStart];
-
-    //     if (countM1 == 0) {
-    //         accounts[_from].idxStart = 0;
-    //         accounts[_from].idxEnd = 0;
-    //         accounts[_from].indexToId[0] == 0;
-    //     }
-
-    //     require(idToAsset[tokenId_].owner == _from, "tokenId_ should match _from");
-    //     delete idToAsset[tokenId_].owner;
-    //     clearApproval(tokenId_);
-    // }
-    /*struct Account { // accounts[user]
-        uint idxStart;// 0, 1, 2, ...
-        uint idxEnd;
-        mapping (uint => uint) indexToId;
-        mapping (address => uint) allowed;
-    }*/
-
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
 
 //--------------------==
 library AddressUtils {
@@ -694,57 +469,9 @@ library AddressUtils {
         // solium-disable-line security/no-inline-assembly
         return size > 0;
     }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
 }
-/**
-$ Transfers may be initiated by:
-The owner of an NFT, The approved address of an NFT, An authorized operator of an NFT
-Additionally, an authorized operator may set the approved address for an NFT.
+=======
+}
 
-$ only allow two-step ERC-20 style transaction, require that transfer functions never throw, require all functions to return a boolean indicating the success of the operation.
-
-$ The URI MAY be mutable (i.e. it changes from time to time).
-*/
-
-/**
-    * 0x80ac58cd ===
-    *   bytes4(keccak256('balanceOf(address)')) ^
-    *   bytes4(keccak256('ownerOf(uint256)')) ^
-    *   bytes4(keccak256('approve(address,uint256)')) ^
-    *   bytes4(keccak256('getApproved(uint256)')) ^
-    *   bytes4(keccak256('setApprovalForAll(address,bool)')) ^
-    *   bytes4(keccak256('isApprovedForAll(address,address)')) ^
-    *   bytes4(keccak256('transferFrom(address,address,uint256)')) ^
-    *   bytes4(keccak256('safeTransferFrom(address,address,uint256)')) ^
-    *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
-
-https://github.com/0xcert/ethereum-erc721/blob/master/LICENSE
-0xcert/ethereum-erc721 is licensed under the MIT License
-A short and simple permissive license with conditions only requiring preservation of copyright and license notices. Licensed works, modifications, and larger works may be distributed under different terms and without source code.
-Permissions
-
-yes for Commercial use, Modification, Distribution, Private use
-no for Limitations including Liability, Warranty
-=================
-The MIT License
-
-Copyright (c) 2017-2018 0xcert, d.o.o. https://0xcert.org
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
- */
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol

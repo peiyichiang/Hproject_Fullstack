@@ -1,15 +1,14 @@
 pragma solidity ^0.5.4;
+
 import "./SafeMath.sol";//not used i++ is assumed not to be too big
 
-interface ERC721SPLCITF_assetbook {
+interface HCAT721ITF_assetbook {
     function balanceOf(address _owner) external view returns (uint256);
     function ownerOf(uint256 _tokenId) external view returns (address);
     function getAccountIds(address user, uint idxS, uint idxE) external;
 
-    function approve(address _approved, uint256 _tokenId) external;
-    function setApprovalForAll(address _operator, bool _approved) external;
-    function getApproved(uint256 _tokenId) external view returns (address);
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool);
+    function allowance(address user, address operator) external view returns (uint remaining);
+    function tokenApprove(address operator, uint amount) external;
 
     function name() external view returns (string memory _name);
     function symbol() external view returns (string memory _symbol);
@@ -132,7 +131,7 @@ contract AssetBook is MultiSig {
         bool isInitialized;
     }
     mapping (address => Asset) assets;//assets[_assetAddr]
-    uint public assetCindex;//count and index of assets, and each asset has an assetAddr
+    uint public assetCindex;//last submitted index and total count of current assets, and each asset has an assetAddr
     mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
 
     /** @dev asset相關event */
@@ -150,20 +149,25 @@ contract AssetBook is MultiSig {
 			_assetAddr is the asset contract address */
     function getAsset(address _assetAddr) public view ckIsContract(_assetAddr) 
     returns (string memory symbol, uint balance) {
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        symbol = erc721.symbol();
-        balance = erc721.balanceOf(address(this));
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
+        symbol = hcat721.symbol();
+        balance = hcat721.balanceOf(address(this));
     }
-    
+
+
     /** @dev transfer `amount` of token quantity with such token that is specified by the _assetAddr
         from this assetbook to the _to address, 
         with exchange price of `price`, with the server time being `serverTime`
         Note: the token IDs are chosen according to First In First Out principle
     */
-    function safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price, uint serverTime) 
+    function safeTransferFromBatch(address _assetAddr, address _to, uint amount,  uint price, uint serverTime) 
         public ckAssetOwner ckIsContract(_assetAddr){
-        ERC721SPLCITF_assetbook erc721 = ERC721SPLCITF_assetbook(address(uint160(_assetAddr)));
-        erc721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
+        hcat721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
+    }
+    function assetbookApprove(address _assetAddr, address operator, uint amount) external {
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
+        hcat721.tokenApprove(operator, amount);
     }
 
     /** @dev to get all assetAddr stored in this assetbook contract
@@ -207,6 +211,7 @@ contract AssetBook is MultiSig {
 
     function() external payable { revert("should not send any ether directly"); }
 }
+
 
 //--------------------==
 library AddressUtils {
