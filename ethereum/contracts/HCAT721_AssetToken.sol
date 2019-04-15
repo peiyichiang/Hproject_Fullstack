@@ -55,14 +55,14 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
     uint public totalSupply;//total generated tokens - destroyed tokens
     uint public initialAssetPricing;// initial asset pricing, which is the pricing published during the crowdfunding event. Typical value 17000
-    string public pricingCurrency;// the currency name that the initialAssetPricing is based on, e.g. NTD or USD
+    bytes32 public pricingCurrency;// the currency name that the initialAssetPricing is based on, e.g. NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7;  20 years (per year) IRR times 100;
 
     address public addrRegistry;// address of Registry contract
     address public addrTokenController;// address of TokenController contract
 
-    string public name;//descriptive name for the issued tokens
-    string public symbol;//abbreviated name for issued tokens
+    bytes32 public name;//descriptive name for the issued tokens
+    bytes32 public symbol;//abbreviated name for issued tokens
     bytes32 public tokenURI;//location that stores additional token specific information
 
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
@@ -72,9 +72,9 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
     "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
     constructor(
-        string memory _nftName, string memory _nftSymbol, 
+        bytes32 memory _nftName, bytes32 memory _nftSymbol, 
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
-        string memory _pricingCurrency, uint _IRR20yrx100,
+        bytes32 memory _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
         bytes32 _tokenURI) public {
         name = _nftName;
@@ -97,7 +97,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
         uint totalSupply_, uint initialAssetPricing_, 
-        string memory pricingCurrency_, uint IRR20yrx100_, string memory name_, string memory symbol_, bytes32 tokenURI_) {
+        bytes32 memory pricingCurrency_, uint IRR20yrx100_, bytes32 memory name_, bytes32 memory symbol_, bytes32 tokenURI_) {
             tokenId_ = tokenId;
             siteSizeInKW_ = siteSizeInKW;
             maxTotalSupply_ = maxTotalSupply;
@@ -124,7 +124,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     //去ERC721合約中撈 持幣user資料
     function getTokenOwners(uint indexStart, uint amount) 
         external view returns(address[] memory ownerAddrs) {
-        uint indexStart_; uint amount_;            
+        uint indexStart_; uint amount_;
         if(indexStart == 0 && amount == 0) {
           indexStart_ = 1;
           amount_ = tokenId;
@@ -134,16 +134,17 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
           require(amount > 0, "amount must be > 0");
 
           if(indexStart.add(amount).sub(1) > tokenId) {
-            amount_ = tokenId.sub(indexStart).add(1);
+              indexStart_ = indexStart;
+              amount_ = tokenId.sub(indexStart).add(1);
           } else {
-            amount_ = amount;
+              indexStart_ = indexStart;
+              amount_ = amount;
           }
         }
         ownerAddrs = new address[](amount_);
-
         for(uint i = 0; i < amount_; i = i.add(1)) {
-          Asset memory asset = idToAsset[i.add(indexStart)];
-            ownerAddrs[i] = asset.owner;
+            Asset memory asset = idToAsset[i.add(indexStart_)];
+                ownerAddrs[i] = asset.owner;
         }
     }
 

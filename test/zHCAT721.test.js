@@ -277,6 +277,11 @@ const initialAssetPricing = 17000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
 const tokenURI = tokenSymbol+"/uri";
+
+const tokenName_bytes32 = web3.utils.fromAscii(tokenName);
+const tokenSymbol_bytes32 = web3.utils.fromAscii(tokenSymbol);
+const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
 //const addrTokenController = "0x39523jt032";
 
@@ -289,7 +294,8 @@ let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
 let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
 
-beforeEach( async () => {
+beforeEach( async function() {
+    this.timeout(9500);
     console.log('\n--------==New beforeEach cycle');
     accounts = await web3.eth.getAccounts();
     platformSupervisor = accounts[0];
@@ -431,16 +437,10 @@ beforeEach( async () => {
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
     203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
     */
-    const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
     const argsHCAT721 = [
-    tokenName, tokenSymbol, siteSizeInKW, maxTotalSupply, 
+    tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency, IRR20yrx100,
     addrRegistry, addrTokenController, tokenURI_bytes32];
-    // string memory _tokenName, string memory _tokenSymbol, 
-    // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
-    // string memory _pricingCurrency, uint _IRR20yrx100,
-    // address _addrRegistryITF, address _addrTokenControllerITF
-  
     console.log('\nDeploying HCAT721 contract...');
     instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
     .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
@@ -458,7 +458,7 @@ beforeEach( async () => {
     */
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [tokenSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeCurrent, managementTeam];
+    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeCurrent, managementTeam];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -532,7 +532,7 @@ describe('Tests on HCAT721', () => {
   // });
 
   it('AssetBook, Registry, HCAT721 functions test', async function() {
-    this.timeout(9500);
+    this.timeout(19500);
 
     console.log('\n------------==Check deployment');
     assert.ok(addrPlatformCtrt);
@@ -629,7 +629,9 @@ describe('Tests on HCAT721', () => {
     console.log('tokenContractDetails', tokenContractDetails);
 
     let nameM = await instHCAT721.methods.name().call();
+    let tokenNameM = web3.utils.toAscii(nameM);
     let symbolM = await instHCAT721.methods.symbol().call();
+    let tokenSymbolM = web3.utils.toAscii(symbolM);
     let initialAssetPricingM = await instHCAT721.methods.initialAssetPricing().call();
     let IRR20yrx100M = await instHCAT721.methods.IRR20yrx100().call();
     let maxTotalSupplyM = await instHCAT721.methods.maxTotalSupply().call();
@@ -638,8 +640,9 @@ describe('Tests on HCAT721', () => {
     let tokenURI_M = await instHCAT721.methods.tokenURI().call();
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    assert.equal(nameM, tokenName);
-    assert.equal(symbolM, tokenSymbol);
+    //assert.equal(nameM, tokenName_bytes32);
+    //assert.equal(symbolM, tokenSymbol_bytes32);
+    console.log("\nCheck tokenName", tokenNameM, tokenName, "tokenSymbol", tokenSymbolM, tokenSymbol);
     assert.equal(initialAssetPricingM, initialAssetPricing);
     assert.equal(IRR20yrx100M, IRR20yrx100);
     assert.equal(maxTotalSupplyM, maxTotalSupply);
@@ -772,7 +775,9 @@ describe('Tests on HCAT721', () => {
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     //  symbol, uint balance, bool isInitialized
     console.log('\nassetbook1 getAsset():', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 4);
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
@@ -818,7 +823,9 @@ describe('Tests on HCAT721', () => {
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\nassetbook2:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], amount);
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
@@ -916,7 +923,9 @@ describe('Tests on HCAT721', () => {
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 2);
 
 
@@ -927,7 +936,9 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 5);
 
 
@@ -981,7 +992,9 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 0);
 
 
@@ -992,7 +1005,7 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 7);
 
 
@@ -1031,7 +1044,9 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 0);
 
 
@@ -1042,7 +1057,9 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 7);
 
 
@@ -1076,7 +1093,9 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
+    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 4);
 
 
@@ -1088,7 +1107,7 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol);
+    assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 3);
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
@@ -1485,6 +1504,7 @@ describe('Tests on ProductManager', () => {
 describe('Tests on CrowdFunding', () => {
 
   it('CrowdFunding functions test', async function() {
+    this.timeout(9500);
     console.log('\n------------==Check CrowdFunding parameters');
     console.log('addrCrowdFunding', addrCrowdFunding);
 
@@ -1492,22 +1512,11 @@ describe('Tests on CrowdFunding', () => {
     //CFED2 = timeCurrent+10;
     console.log("timeCurrent", timeCurrent, ", CFSD2:", CFSD2, ", CFED2:", CFED2);
     // timeCurrent = 201902281040;
-    /**
-    const tokenSymbol = "NCCU1801";
-    const maxTotalSupply = 773; 
-    const initialAssetPricing = 17000;
 
-    string public tokenSymbol; //專案erc721合約
-    uint public initialAssetPricing; //每片太陽能板定價
-    uint public maxTotalSupply; //專案總token數
-    uint public quantityGoal; //專案達標數目
-    uint public quantitySold; //累積賣出數目
-    uint public CFSD2; //start date yyyymmddhhmm
-    uint public CFED2; //截止日期 yyyymmddhhmm
-    */
-    let tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
-    console.log('\ntokenSymbolM', tokenSymbolM);
-    assert.equal(tokenSymbolM, tokenSymbol);
+    let tokenSymbolB32M = await instCrowdFunding.methods.tokenSymbol().call();
+    tokenSymbolM = web3.utils.toAscii(tokenSymbolB32M);
+    console.log('\ncheck tokenSymbolM', tokenSymbolM, tokenSymbol);
+    //assert.equal(tokenSymbolM, tokenSymbol_bytes32);
 
     console.log('initialAssetPricing', initialAssetPricing);
     let initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
@@ -1578,11 +1587,6 @@ describe('Tests on CrowdFunding', () => {
       //process.exit(1);
     }
 
-    /**
-    const tokenSymbol = "NCCU1801";
-    const maxTotalSupply = 773; 
-    const initialAssetPricing = 17000;
-    */
     serverTime = CFSD2+1;
     console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
     await instCrowdFunding.methods.makeFundingActive(serverTime)
