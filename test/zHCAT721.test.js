@@ -280,6 +280,7 @@ const tokenURI = tokenSymbol+"/uri";
 
 const tokenName_bytes32 = web3.utils.fromAscii(tokenName);
 const tokenSymbol_bytes32 = web3.utils.fromAscii(tokenSymbol);
+const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
 const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
@@ -439,7 +440,7 @@ beforeEach( async function() {
     */
     const argsHCAT721 = [
     tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
-    initialAssetPricing, pricingCurrency, IRR20yrx100,
+    initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
     addrRegistry, addrTokenController, tokenURI_bytes32];
     console.log('\nDeploying HCAT721 contract...');
     instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
@@ -775,9 +776,8 @@ describe('Tests on HCAT721', () => {
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     //  symbol, uint balance, bool isInitialized
     console.log('\nassetbook1 getAsset():', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
-    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
     assert.equal(assetbookXM[1], 4);
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
@@ -823,9 +823,8 @@ describe('Tests on HCAT721', () => {
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('\nassetbook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
-    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
     assert.equal(assetbookXM[1], amount);
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
@@ -923,9 +922,8 @@ describe('Tests on HCAT721', () => {
 
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
-    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
     assert.equal(assetbookXM[1], 2);
 
 
@@ -936,9 +934,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
-    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol)
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
     assert.equal(assetbookXM[1], 5);
 
 
@@ -992,9 +989,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 0);
 
 
@@ -1005,7 +1001,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol_bytes32);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
     assert.equal(assetbookXM[1], 7);
 
 
@@ -1044,9 +1041,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 0);
 
 
@@ -1057,9 +1053,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 7);
 
 
@@ -1093,9 +1088,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0])
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    //assert.equal(assetbookXM[0], tokenSymbol_bytes32);
     assert.equal(assetbookXM[1], 4);
 
 
@@ -1107,7 +1101,8 @@ describe('Tests on HCAT721', () => {
     console.log('SPLC getAccount():', accountM);
     assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    assert.equal(assetbookXM[0], tokenSymbol_bytes32);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
     assert.equal(assetbookXM[1], 3);
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
