@@ -16,8 +16,6 @@ var productRouter = require('./routes/Product');
 var backendUserRouter = require('./routes/backend_user');
 //有容
 var userRouter = require('./routes/user');
-//Ray
-var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
@@ -154,7 +152,6 @@ app.post('/upload', cpUpload, function (req, res, next) {
 
 //有容
 app.use('/user', userRouter);
-app.use('/NFTokenSPLC', NFTokenSPLCRouter);
 app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
 app.use('/RegistryContractAPI', RegistryContractAPIRouter);

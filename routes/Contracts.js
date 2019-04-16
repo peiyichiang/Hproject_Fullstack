@@ -24,7 +24,7 @@ const tokenControllerContract = require('../ethereum/contracts/build/TokenContro
 const crowdFundingContract = require('../ethereum/contracts/build/CrowdFunding.json');
 const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
 const registryContract = require('../ethereum/contracts/build/Registry.json');
-const ERC721SPLCContract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
+const HCAT721_AssetTokenContract = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
 const incomeManagerContract = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
 const productManagerContract = require('../ethereum/contracts/build/productManager.json');
 
@@ -236,10 +236,10 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let fundingGoal = req.body.fundingGoal;
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
-    let currentTime;
-    await timer.getTime().then(function (time) {
+    let currentTime = 201904090000;
+    /*await timer.getTime().then(function (time) {
         currentTime = time;
-    });
+    });*/
     console.log(`現在時間: ${currentTime}`);
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
@@ -496,7 +496,7 @@ router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
 
             /*用後台公私鑰sign*/
-            let encodedData = crowdFunding.methods.Abort(reason, currentTime).encodeABI();
+            let encodedData = crowdFunding.methods.abort(reason, currentTime).encodeABI();
             let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
 
             res.send({
@@ -575,9 +575,9 @@ router.post('/tokenControllerContract', async function (req, res, next) {
 });
 
 
-/**@dev ERC721SPLC ------------------------------------------------------------------------------------- */
-/*deploy ERC721SPLC contract*/
-router.post('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
+/**@dev HCAT721_AssetToken ------------------------------------------------------------------------------------- */
+/*deploy HCAT721_AssetToken contract*/
+router.post('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
     /**POA */
     const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
@@ -594,11 +594,11 @@ router.post('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
     let tokenURI = req.body.tokenURI;
 
-    const ERC721SPLC = new web3deploy.eth.Contract(ERC721SPLCContract.abi);
+    const ERC721SPLC = new web3deploy.eth.Contract(HCAT721_AssetTokenContract.abi);
 
 
     ERC721SPLC.deploy({
-        data: ERC721SPLCContract.bytecode,
+        data: HCAT721_AssetTokenContract.bytecode,
         arguments: [nftName, nftSymbol, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrency, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI]
     })
         .send({
@@ -639,8 +639,8 @@ router.post('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
         })
 });
 
-/*get ERC721ContractAddr and CrowdFundingContractAddr by tokenSymble*/
-router.get('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
+/*get HCAT721_AssetTokenContractAddr and CrowdFundingContractAddr by tokenSymble*/
+router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
     var nftSymbol = req.params.nftSymbol;
     var mysqlPoolQuery = req.pool;
     console.log(nftSymbol);
@@ -664,11 +664,11 @@ router.get('/ERC721SPLCContract/:nftSymbol', function (req, res, next) {
 });
 
 /**mint token */
-router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, next) {
+router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, res, next) {
     let contractAddr = req.body.erc721address;
     let to = req.body.assetBookAddr;
     let amount = req.body.amount;
-    let ERC721SPLC_HToken = new web3.eth.Contract(ERC721SPLCContract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
     let currentTime;
     await timer.getTime().then(function (time) {
         currentTime = time;
@@ -678,7 +678,7 @@ router.post('/ERC721SPLCContract/:nftSymbol/mint', async function (req, res, nex
     console.log(amount);
 
 
-    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, amount, currentTime).encodeABI();
+    let encodedData = HCAT721_AssetToken.methods.mintSerialNFT(to, amount, currentTime).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 

@@ -15,7 +15,7 @@ var backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC
 var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /*platform contract address*/
-const contract = require('../ethereum/contracts/build/ERC721SPLC_HToken.json');
+const contract = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
 var registryContractAddr = "0x8e2b6A27096EEa35F80C35aDe1F194Cbfa216143";
 
 
@@ -28,7 +28,7 @@ router.post('/deploy', function (req, res, next) {
 
     const web3deploy = new Web3(provider);
 
-    let ERC721SPLC_HToken = new web3deploy.eth.Contract(contract.abi);
+    let HCAT721_AssetToken = new web3deploy.eth.Contract(contract.abi);
     let nftName = req.body.nftName;
     let nftSymbol = req.body.nftSymbol;
     let siteSizeInKW = req.body.siteSizeInKW;
@@ -40,7 +40,7 @@ router.post('/deploy', function (req, res, next) {
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
 
 
-    ERC721SPLC_HToken.deploy({
+    HCAT721_AssetToken.deploy({
         data: contract.bytecode,
         arguments: [nftName, nftSymbol, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrency, IRR20yrx100, addrRegistryITF, addrERC721SPLC_ControllerITF]
     })
@@ -59,9 +59,9 @@ router.post('/deploy', function (req, res, next) {
 
 router.post('/name', async function (req, res, next) {
     let contractAddr = req.body.address;
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let encodedData = ERC721SPLC_HToken.methods.name().encodeABI();
+    let encodedData = HCAT721_AssetToken.methods.name().encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -71,9 +71,9 @@ router.post('/name', async function (req, res, next) {
 
 router.post('/symbol', async function (req, res, next) {
     let contractAddr = req.body.address;
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let encodedData = ERC721SPLC_HToken.methods.symbol().encodeABI();
+    let encodedData = HCAT721_AssetToken.methods.symbol().encodeABI();
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
     res.send({
@@ -100,9 +100,9 @@ router.post('/mintSerialNFT', async function (req, res, next) {
     let contractAddr = req.body.address;
     let to = req.body.to;
     let uri = req.body.uri;
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFT(to, uri).encodeABI();
+    let encodedData = HCAT721_AssetToken.methods.mintSerialNFT(to, uri).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
@@ -116,14 +116,14 @@ router.post('/mintSerialNFTBatch', async function (req, res, next) {
     let contractAddr = req.body.erc721address;
     let tos = JSON.parse(req.body.assetBookAddrs);
     let uris = JSON.parse(req.body.uris);
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
     console.log(tos[0]);
     console.log(uris[0]);
     console.log(tos[1]);
     console.log(uris[1]);
 
 
-    let encodedData = ERC721SPLC_HToken.methods.mintSerialNFTBatch(tos, uris).encodeABI();
+    let encodedData = HCAT721_AssetToken.methods.mintSerialNFTBatch(tos, uris).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
@@ -137,9 +137,9 @@ router.get('/token/NFTInfo', async function (req, res, next) {
     let contractAddr = req.query.address;
     let id = req.query.id;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.getNFT(id).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.getNFT(id).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -151,9 +151,9 @@ router.get('/owner/IDs', async function (req, res, next) {
     let contractAddr = req.query.address;
     let owner = req.query.owner;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.get_ownerToIds(owner).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.get_ownerToIds(owner).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -164,9 +164,9 @@ router.get('/owner/ownerIndex', async function (req, res, next) {
     let contractAddr = req.query.address;
     let tokenId = req.query.tokenId;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.get_idToOwnerIndexPlus1(tokenId).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.get_idToOwnerIndexPlus1(tokenId).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -178,9 +178,9 @@ router.get('/token/tokenOwner', async function (req, res, next) {
     let idStart = req.query.idStart;
     let idCount = req.query.idCount;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.getTokenOwners(idStart, idCount).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.getTokenOwners(idStart, idCount).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -191,9 +191,9 @@ router.get('/token/tokenURI', async function (req, res, next) {
     let contractAddr = req.body.address;
     let tokenId = req.body.tokenId;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.tokenURI(tokenId).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.tokenURI(tokenId).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -204,9 +204,9 @@ router.get('/owner/balanceOf', async function (req, res, next) {
     let contractAddr = req.query.address;
     let owner = req.query.owner;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.balanceOf(owner).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.balanceOf(owner).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -217,9 +217,9 @@ router.get('/token/ownerOf', async function (req, res, next) {
     let contractAddr = req.query.address;
     let tokenId = req.query.tokenId;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.ownerOf(tokenId).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.ownerOf(tokenId).call({ from: backendAddr })
 
     res.send({
         result: result
@@ -230,9 +230,9 @@ router.get('/token/isApproved', async function (req, res, next) {
     let contractAddr = req.query.address;
     let tokenId = req.query.tokenId;
 
-    let ERC721SPLC_HToken = new web3.eth.Contract(contract.abi, contractAddr);
+    let HCAT721_AssetToken = new web3.eth.Contract(contract.abi, contractAddr);
 
-    let result = await ERC721SPLC_HToken.methods.getApproved(tokenId).call({ from: backendAddr })
+    let result = await HCAT721_AssetToken.methods.getApproved(tokenId).call({ from: backendAddr })
 
     res.send({
         result: result

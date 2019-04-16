@@ -1458,7 +1458,7 @@
                 let tokencontrollerContract = result.contractAddress;
 
                 if (result.status == true) {
-                    $.post("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol, {
+                    $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol, {
                         nftName: nftName,
                         siteSizeInKW: siteSizeInKW,
                         maxTotalSupply: maxTotalSupply,
@@ -1513,7 +1513,7 @@
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
 
-            $.get("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol, async function (result) {
+            $.get("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol, async function (result) {
                 console.log(result);
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
@@ -1531,7 +1531,7 @@
                     let count = 0;
 
                     for (let i = 0; i < assetBookAddrs.length; i++) {
-                        await $.post("http://localhost:3030/Contracts/ERC721SPLCContract/" + nftSymbol + "/mint", {
+                        await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mint", {
                             assetBookAddr: assetBookAddrs[i],
                             erc721address: erc721address,
                             amount: amounts[i]
