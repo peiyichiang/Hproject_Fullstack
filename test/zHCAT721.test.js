@@ -255,6 +255,7 @@ let instProductManager, addrProductManager;
 let accounts, managementTeam, acc3, acc4;//acc3 and acc4 are used for chairman and owner roles
 let AssetOwner1, AssetOwner2, platformSupervisor, operator;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
+let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
 
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
@@ -263,7 +264,7 @@ let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 let addrAssetBook1, addrAssetBook2, addrAsset3, addrAsset4;
 
-let timeCurrent = 201903081040;
+let timeCurrent = 201903081040, error;
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
 const TimeTokenValid =  timeCurrent+9;
@@ -288,12 +289,13 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 const CFSD2 = timeCurrent+1;
 const CFED2 = timeCurrent+10;
-let reason, addrPlatformCtrt, uid1, uid2;
-let extoAddr1, extoAddr2;
+let reason, addrPlatformCtrt, uid, extOwnedAddr, authLevel;
 
 let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
 let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
+
+let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
 
 beforeEach( async function() {
     this.timeout(9500);
@@ -570,14 +572,14 @@ describe('Tests on HCAT721', () => {
     console.log('addrAssetBook2', addrAssetBook2);
 
     let assetAddr = addrHCAT721;
-    console.log('here1')
-    let assetsMeasured1 = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('here573')
+    let assetsMeasured1 = await instAssetBook1.methods.getAsset(0, assetAddr).call();
     console.log('assetbook1', assetsMeasured1);
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
 
-    let assetsMeasured2 = await instAssetBook2.methods.getAsset(assetAddr).call();
+    let assetsMeasured2 = await instAssetBook2.methods.getAsset(0, assetAddr).call();
     console.log('\nassetbook2', assetsMeasured2);
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook2).call();
@@ -591,31 +593,30 @@ describe('Tests on HCAT721', () => {
     //----------------==Registry contract
     console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
     console.log('addrRegistry', addrRegistry);
-    uid1 = "A500000001"; assetCtAddr = addrAssetBook1; extoAddr = AssetOwner1;
+    uid = "A500000001"; assetCtAddr = addrAssetBook1; extOwnedAddr = AssetOwner1; authLevel = 5;
     await instRegistry.methods.addUser(
-      uid1, assetCtAddr, extoAddr)
+      uid, assetCtAddr, extOwnedAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('Registry: getUser()');
-    let user1M = await instRegistry.methods.getUser(uid1).call();
-    assert.equal(user1M[0], uid1);
-    assert.equal(user1M[1], assetCtAddr);
-    assert.equal(user1M[2], extoAddr);
-    assert.equal(user1M[3], 0);
+    let user1M = await instRegistry.methods.getUser(uid).call();
     console.log('user1M', user1M);
+    assert.equal(user1M[0], uid);
+    assert.equal(user1M[1], assetCtAddr);
+    assert.equal(user1M[2], extOwnedAddr);
+    assert.equal(user1M[3], authLevel);
 
-    uid2 = "A500000002"; assetCtAddr = addrAssetBook2; extoAddr = AssetOwner2;
+    uid = "A500000002"; assetCtAddr = addrAssetBook2; extOwnedAddr = AssetOwner2; authLevel = 5;
     await instRegistry.methods.addUser(
-      uid2, assetCtAddr, extoAddr)
+      uid, assetCtAddr, extOwnedAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    let user2M = await instRegistry.methods.getUser(uid2).call();
-    assert.equal(user2M[0], uid2);
-    assert.equal(user2M[1], assetCtAddr);
-    assert.equal(user2M[2], extoAddr);
-    assert.equal(user2M[3], 0);
+    let user2M = await instRegistry.methods.getUser(uid).call();
     console.log('\nuser2M', user2M);
-
+    assert.equal(user2M[0], uid);
+    assert.equal(user2M[1], assetCtAddr);
+    assert.equal(user2M[2], extOwnedAddr);
+    assert.equal(user2M[3], authLevel);
 
 
     //----------------==
@@ -626,31 +627,31 @@ describe('Tests on HCAT721', () => {
     //   value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
     // });//set_tokenDump(address _tokenDump, address vendor)
 
-    let tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
+    tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
     console.log('tokenContractDetails', tokenContractDetails);
 
-    let nameM = await instHCAT721.methods.name().call();
-    let tokenNameM = web3.utils.toAscii(nameM);
-    let symbolM = await instHCAT721.methods.symbol().call();
-    let tokenSymbolM = web3.utils.toAscii(symbolM);
-    let initialAssetPricingM = await instHCAT721.methods.initialAssetPricing().call();
-    let IRR20yrx100M = await instHCAT721.methods.IRR20yrx100().call();
-    let maxTotalSupplyM = await instHCAT721.methods.maxTotalSupply().call();
-    let pricingCurrencyM = await instHCAT721.methods.pricingCurrency().call();
-    let siteSizeInKWM = await instHCAT721.methods.siteSizeInKW().call();
-    let tokenURI_M = await instHCAT721.methods.tokenURI().call();
+    tokenNameM_b32 = await instHCAT721.methods.name().call();
+    tokenNameM = web3.utils.toAscii(tokenNameM_b32);
+    tokenSymbolM_b32 = await instHCAT721.methods.symbol().call();
+    tokenSymbolM = web3.utils.toAscii(tokenSymbolM_b32);
+    initialAssetPricingM = await instHCAT721.methods.initialAssetPricing().call();
+    IRR20yrx100M = await instHCAT721.methods.IRR20yrx100().call();
+    maxTotalSupplyM = await instHCAT721.methods.maxTotalSupply().call();
+    pricingCurrencyM = await instHCAT721.methods.pricingCurrency().call();
+    siteSizeInKWM = await instHCAT721.methods.siteSizeInKW().call();
+    tokenURI_M = await instHCAT721.methods.tokenURI().call();
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    //assert.equal(nameM, tokenName_bytes32);
-    //assert.equal(symbolM, tokenSymbol_bytes32);
-    console.log("\nCheck tokenName", tokenNameM, tokenName, "tokenSymbol", tokenSymbolM, tokenSymbol);
+    //assert.equal(tokenNameM_b32, tokenName_bytes32);
+    //assert.equal(tokenSymbolM_b32, tokenSymbol_bytes32);
+    console.log("\nCheck tokenName", tokenNameM, tokenName, "\ntokenSymbol", tokenSymbolM, tokenSymbol, "pricingCurrency", web3.utils.toAscii(pricingCurrencyM), pricingCurrency);
     assert.equal(initialAssetPricingM, initialAssetPricing);
     assert.equal(IRR20yrx100M, IRR20yrx100);
     assert.equal(maxTotalSupplyM, maxTotalSupply);
-    assert.equal(pricingCurrencyM, pricingCurrency);
+    //assert.equal(pricingCurrencyM, pricingCurrency);
     assert.equal(siteSizeInKWM, siteSizeInKW);
     assert.equal(tokenIdM, 0);
-    console.log('tokenURI', tokenURI, 'tokenURI_M', web3.utils.toAscii(tokenURI_M));
+    console.log('tokenURI', web3.utils.toAscii(tokenURI_M), tokenURI);
     //assert.equal(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
     let isActiveOperational = await instTokenController.methods.isActiveOperational().call();
@@ -684,49 +685,48 @@ describe('Tests on HCAT721', () => {
 
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
-    let _to, tokenIdTarget, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
-    _to = addrAssetBook1; tokenIdTarget = 1; serverTime = timeCurrent;
+    _to = addrAssetBook1; amount = 1; serverTime = timeCurrent;
+    price = 17000; fundingType = 1; tokenId = amount;
 
-    assetbookMX = await instAssetBook1.methods.getAsset(assetAddr).call();
+    assetbookMX = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log(assetbookMX);
 
-    // tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdTarget).call();
-    // console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
+    // tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId).call();
+    // console.log('HCAT tokenId = '+tokenId, tokenOwnerM);
     // assert.equal(tokenOwnerM, _to);
 
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('\nSPLC accountM', accountM);
+    console.log('\nHCAT accountM', accountM);
 
     balanceM = await instHCAT721.methods.balanceOf(_to).call();
-    console.log('SPLC balanceM =', balanceM);
+    console.log('HCAT balanceM =', balanceM);
 
     accountIdsAll = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
-    console.log('SPLC accountIdsAll =', accountIdsAll);
+    console.log('HCAT accountIdsAll =', accountIdsAll);
 
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
-    await instHCAT721.methods.mintSerialNFT(_to, tokenIdTarget, serverTime).send({
-      value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    console.log('after minting tokenId =', tokenIdTarget);
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('after minting tokenId =', tokenId);
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log('\nassetbook1 after minting:', assetbookXM);
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
     console.log('check tokenId = ', tokenIdM);
-    assert.equal(tokenIdM, tokenIdTarget);
+    assert.equal(tokenIdM, tokenId);
 
-    tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdTarget).call();
-    console.log('SPLC tokenId = '+tokenIdTarget, tokenOwnerM);
+    tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId).call();
+    console.log('HCAT tokenId = '+tokenId, tokenOwnerM);
     assert.equal(tokenOwnerM, _to);
 
     //HCAT721: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
-    tokenInfo = await instHCAT721.methods.getIdToAsset(tokenIdTarget).call();
-    console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
+    tokenInfo = await instHCAT721.methods.getIdToAsset(tokenId).call();
+    console.log('HCAT getIdToAsset(): tokenId = '+tokenId+':', tokenInfo);
     assert.equal(tokenInfo, addrAssetBook1);
 
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('\nSPLC accountM', accountM);
+    console.log('\nHCAT accountM', accountM);
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
     console.log('HCAT721 tokenIds =', tokenIds, ', balanceXM =', balanceXM);
@@ -746,14 +746,14 @@ describe('Tests on HCAT721', () => {
     console.log('_uriBytes32s', _uriBytes32s);
 
     console.log('\nmintSerialNFT()... amount =', amount);
-    await instHCAT721.methods.mintSerialNFT(_to, amount, serverTime).send({
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 4);
 
-    console.log('SPLC ownerOf(tokenId)...')
+    console.log('HCAT ownerOf(tokenId)...')
     tokenOwnerM = await instHCAT721.methods.ownerOf(2).call();
     assert.equal(tokenOwnerM, _to);
     tokenOwnerM = await instHCAT721.methods.ownerOf(3).call();
@@ -762,29 +762,29 @@ describe('Tests on HCAT721', () => {
     assert.equal(tokenOwnerM, _to);
 
     tokenInfo = await instHCAT721.methods.getIdToAsset(2).call();
-    console.log('\nHCAT721 tokenId = 2:', tokenInfo);
+    console.log('\nHCAT721: getIdToAsset() of tokenId = 2:', tokenInfo);
     assert.equal(tokenInfo, addrAssetBook1);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
     tokenInfo = await instHCAT721.methods.getIdToAsset(3).call();
-    console.log('\ntokenInfo from HCAT721 tokenId = 3:', tokenInfo);
+    console.log('\nHCAT721: getIdToAsset() of tokenId = 3:', tokenInfo);
 
     tokenInfo = await instHCAT721.methods.getIdToAsset(4).call();
-    console.log('\ntokenInfo from HCAT721 tokenId = 4:', tokenInfo);
+    console.log('\nHCAT721: getIdToAsset() of tokenId = 4:', tokenInfo);
 
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
-    //  symbol, uint balance, bool isInitialized
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
+    //symbol, uint balance, bool isInitialized
     console.log('\nassetbook1 getAsset():', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 4);
+    assert.equal(assetbookXM[3], 4);
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
     console.log('\nHCAT721 tokenId=', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
+    console.log('HCAT getAccount():', accountM);
 
 
     //HCAT721: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
@@ -798,7 +798,7 @@ describe('Tests on HCAT721', () => {
     console.log('_uriBytes32s', _uriBytes32s);
     
     console.log('\nstart minting via mintSerialNFTBatch()');
-    await instHCAT721.methods.mintSerialNFT(_to, amount, serverTime).send({
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
       value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
@@ -812,26 +812,59 @@ describe('Tests on HCAT721', () => {
     assert.equal(tokenOwnerM, _to);
 
     tokenInfo = await instHCAT721.methods.getIdToAsset(5).call();
-    console.log('tokenInfo from HCAT721 tokenId = 5:', tokenInfo);
+    console.log('HCAT721: getIdToAsset() of tokenId = 5:', tokenInfo);
 
     tokenInfo = await instHCAT721.methods.getIdToAsset(6).call();
-    console.log('tokenInfo from HCAT721 tokenId = 6:', tokenInfo);
+    console.log('HCAT721: getIdToAsset() of tokenId = 6:', tokenInfo);
 
     tokenInfo = await instHCAT721.methods.getIdToAsset(7).call();
-    console.log('tokenInfo from HCAT721 tokenId = 7:', tokenInfo);
+    console.log('HCAT721: getIdToAsset() of tokenId = 7:', tokenInfo);
 
 
-    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
     console.log('\nassetbook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], amount);
+    assert.equal(assetbookXM[3], amount);
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
+    console.log('HCAT getAccount():', accountM);
+
+
+    //-----------------==Check if STO Compliance for balance
+    console.log('\n------------==Check if STO Compliance for balance');
+    error = false;
+    try {
+      _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;
+      console.log('mintSerialNFT()... amount =', amount);
+      await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
+        value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      error = true;
+    } catch (err) {
+      console.log('[Success] STO Compliance for balance of assetCtrt1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    //-----------------==Check if STO Compliance for buyAmount
+    console.log('\n------------==Check if STO Compliance for buyAmount');
+    error = false;
+    try {
+      _to = addrAssetBook1; amount = 8; serverTime = timeCurrent;
+      console.log('mintSerialNFT()... amount =', amount);
+      await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
+        value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      error = true;
+    } catch (err) {
+      console.log('[Success] STO Compliance for buyAmount of assetCtrt1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 100));
+      assert(err);
+    }
+    if (error) {assert(false);}
 
 
     //-----------------==Check Token Controller: time
@@ -860,8 +893,7 @@ describe('Tests on HCAT721', () => {
     TimeTokenLaunchM = tokenControllerDetail[1];
     TimeTokenUnlockM = tokenControllerDetail[2];
     TimeTokenValidM = tokenControllerDetail[3];
-    isLaunchedM = tokenControllerDetail[4];
-    console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLaunched', isLaunchedM);
+    console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM);
 
 
     //----------------==Send tokens before Unlock Time
@@ -878,7 +910,7 @@ describe('Tests on HCAT721', () => {
     console.log('tokenStateM', tokenStateM);
     assert.equal(tokenStateM, 0);
 
-    let error = false;
+    error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
       _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
@@ -887,7 +919,7 @@ describe('Tests on HCAT721', () => {
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed because of not meeting the condition: timeCurrent < TimeTokenUnlock', timeCurrent, TimeTokenUnlock);
+      console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed: timeCurrent should be > TimeTokenUnlock', timeCurrent, TimeTokenUnlock, err.toString().substr(0, 190));
       assert(err);
     }
     if (error) {assert(false);}
@@ -918,25 +950,25 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_from).call();
-    console.log('SPLC getAccount():', accountM);
+    console.log('HCAT getAccount():', accountM);
 
-    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 2);
+    assert.equal(assetbookXM[3], 2);
 
 
     tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('\ntokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 5);
+    assert.equal(assetbookXM[3], 5);
 
 
 
@@ -958,8 +990,8 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_from).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
 
     
@@ -968,8 +1000,8 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('\ntokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
 
 
@@ -986,24 +1018,24 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_from).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 0);
+    assert.equal(assetbookXM[3], 0);
 
 
     tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('\ntokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 7);
+    assert.equal(assetbookXM[3], 7);
 
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
@@ -1030,7 +1062,7 @@ describe('Tests on HCAT721', () => {
     tokenInfo = await instHCAT721.methods.getIdToAsset(7).call();
     assert.equal(tokenInfo, _to);
 
-    //console.log('SPLC getIdToAsset(): tokenId = '+tokenIdTarget+':', tokenInfo);
+    //console.log('HCAT getIdToAsset(): tokenId = '+amount+':', tokenInfo);
     // assert.equal(tokenInfo[1], initialAssetPricing);
     // assert.equal(tokenInfo[2], addrZero);
 
@@ -1038,24 +1070,24 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_from).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 0);
+    assert.equal(assetbookXM[3], 0);
 
 
     tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('\ntokenIds from AssetBook2 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 7);
+    assert.equal(assetbookXM[3], 7);
 
 
     console.log('\n----------------==Approval Functions');
@@ -1085,12 +1117,12 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_from).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook2.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook2:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 4);
+    assert.equal(assetbookXM[3], 4);
 
 
     console.log('\nCheck AssetBook1 after txn...');
@@ -1098,12 +1130,12 @@ describe('Tests on HCAT721', () => {
     balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
-    console.log('SPLC getAccount():', accountM);
-    assetbookXM = await instAssetBook1.methods.getAsset(assetAddr).call();
+    console.log('HCAT getAccount():', accountM);
+    assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log('AssetBook1:', assetbookXM);
-    tokenSymbolM = web3.utils.toAscii(assetbookXM[0]);
+    tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[1], 3);
+    assert.equal(assetbookXM[3], 3);
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
@@ -1121,7 +1153,7 @@ describe('Tests on HCAT721', () => {
 
       error = true;
     } catch (err) {
-      console.log('[Success] sending 1 token from addrAssetBook2 to addrAssetBook1 failed because of not enough allowance: ', result);
+      console.log('[Success] sending 1 token from addrAssetBook2 to addrAssetBook1 failed because of not enough allowance: ', result, 'err:', err.toString().substr(0, 190));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1148,12 +1180,12 @@ describe('Tests on HCAT721', () => {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
       _fromAssetOwner = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price)
+      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, timeCurrent)
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetCtrt2 to assetCtrt1 failed because of not meeting the condition: timeCurrent > TimeTokenValid', timeCurrent, TimeTokenValid);
+      console.log('[Success] sending tokenId 1 from assetCtrt2 to assetCtrt1 failed: timeCurrent should be < TimeTokenValid', timeCurrent, TimeTokenValid, 'err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1477,12 +1509,13 @@ describe('Tests on ProductManager', () => {
     assert.equal(groupCindexM, 0);
 
     let symbol = "Taipei101";
-    await instProductManager.methods.addNewCtrtGroup(symbol, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManagerCtrt)
+    let symbol_b32 = web3.utils.fromAscii(symbol);
+    await instProductManager.methods.addNewCtrtGroup(symbol_b32, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManagerCtrt)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    let ctrtGroup = await instProductManager.methods.getCtrtGroup(symbol).call();
+    let ctrtGroup = await instProductManager.methods.getCtrtGroup(symbol_b32).call();
     console.log('\ctrtGroup', ctrtGroup);
-    //assert.equal(ctrtGroup, symbol);
+    //assert.equal(ctrtGroup, symbol_b32);
 
     groupCindexM = await instProductManager.methods.groupCindex().call();
     console.log('\groupCindexM', groupCindexM);
@@ -1490,7 +1523,7 @@ describe('Tests on ProductManager', () => {
 
 
     let symbolM = await instProductManager.methods.idxToSymbol(1).call();
-    console.log('\symbolM', symbolM);
+    console.log('\symbolM', web3.utils.toAscii(symbolM), symbol);
 
   });
 });
@@ -1667,7 +1700,7 @@ describe('Tests on CrowdFunding', () => {
       await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable);
+      console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable, 'err:', err.toString().substr(0, 100));
       assert(err);
     }
     if (error) {assert(false);}

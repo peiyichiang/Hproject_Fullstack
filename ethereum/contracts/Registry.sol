@@ -39,6 +39,9 @@ contract Registry is Ownable {
       uint maxBalancePrivate;//max Holding Balance in fiat .. Private Placement;
       //uint maxSellAmountPrivate;//max Sell Amount in fiat .. Private Placement;
     }
+    string public currencyType;
+    uint public uintMax = 2**256 - 1;
+
 
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
@@ -47,7 +50,24 @@ contract Registry is Ownable {
         director = management[2];
         manager = management[1];
         admin = management[0];
+
+        currencyType = "NTD";
+        deployer = msg.sender;
+        //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate); 
+        setRestrictions(1, 0, 0, uintMax, uintMax);
+        setRestrictions(2, uintMax, uintMax, uintMax, uintMax);
+        setRestrictions(3, uintMax, uintMax, uintMax, uintMax);
+        setRestrictions(4, uintMax, uintMax, uintMax, uintMax);
+        setRestrictions(5, 100000, 100000, uintMax, uintMax);
     }
+/*
+authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
+1 Natural person: 0, 0; UnLTD, UnLTD;
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
+*/
 
     /**@dev check uid value */
     modifier ckUid(string memory uid) {
@@ -115,6 +135,13 @@ contract Registry is Ownable {
         emit SetOldUser(uid, assetCtrtAddr, extOwnedAddr, authLevel, now);
     }
 
+    /**@dev get user’s information via user’s Id or uid*/
+    function getUser(string memory uid) public view ckUid(uid) returns (
+        string memory uid_, address assetCtrtAddr, address extOwnedAddr, uint authLevel) {
+          uid_ = uid;
+        return(uid_, users[uid].assetCtrtAddr, users[uid].extOwnedAddr, users[uid].authLevel);
+    }
+
     /**@dev set user’s assetCtrtAddr */
     function setAssetCtrtAddr(string calldata uid, address assetCtrtAddr) external
     onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) uidExists(uid) {
@@ -136,13 +163,6 @@ contract Registry is Ownable {
     function setUserAuthLevel(string calldata uid, uint authLevel) external
     onlyAdmin ckUid(uid) uidExists(uid) {
         users[uid].authLevel = authLevel;
-    }
-
-    /**@dev get user’s information via user’s Id or uid*/
-    function getUser(string memory uid) public view ckUid(uid) returns (
-        string memory uid_, address assetCtrtAddr, address extOwnedAddr, uint authLevel) {
-          uid_ = uid;
-        return(uid_, users[uid].assetCtrtAddr, users[uid].extOwnedAddr, users[uid].authLevel);
     }
 
     /**@dev get uid from user’s asset contract address */
@@ -188,7 +208,7 @@ contract Registry is Ownable {
     }
 
     /**@dev get regulation's restrictions, amount and balance in fiat */
-    function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) external onlyAdmin {
+    function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public onlyAdminDeployer {
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;
         restrictions[authLevel].maxBuyAmountPrivate = maxBuyAmountPrivate;
@@ -226,10 +246,15 @@ contract Registry is Ownable {
     //     maxBalancePrivate = restrictions[authLevel].maxBalancePrivate;
     // }
 
+    function setCurrencyType(string calldata _currencyType) external onlyAdmin {
+        currencyType = _currencyType;
+    }
+
+
     function() external payable { revert("should not send any ether directly"); }
 }
 /*
-authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public funding and private placement, for each symbol; currency = NTD
+authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering(P.O.) and private placement(P.P.), for each symbol; currency = NTD
 0 Natural person: 0, 0; UnLTD, UnLTD;
 1 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
 2 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 

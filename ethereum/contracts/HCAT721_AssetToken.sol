@@ -22,7 +22,7 @@ contract SupportsInterface is ERC165ITF {
 
 //RegistryITF(addrRegistry).isAddrApproved(_to);
 interface RegistryITF {
-    function isAddrApproved(address assetCtAddr) external view returns (bool);
+    function isAddrApproved(address assetCtrtAddr) external view returns (bool);
     function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
 }
 
@@ -212,7 +212,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
     }
 
-
+    //fundingType: 1 public crowdfunding, 2 private placement
     function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public {
         require(TokenControllerITF(addrTokenController).isAdmin(msg.sender), 'only admin can mint tokens');
 
