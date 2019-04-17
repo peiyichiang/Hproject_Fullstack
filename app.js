@@ -14,7 +14,7 @@ var backendUserRouter = require('./routes/backend_user');
 //有容
 var userRouter = require('./routes/user');
 //Ray
-var NFTokenSPLCRouter = require('./routes/NFTokenSPLC');
+var NFTokenSPLCRouter = require('./routes/ERC721ContractAPI');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅

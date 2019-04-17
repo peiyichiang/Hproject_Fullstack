@@ -1146,8 +1146,7 @@ describe('Tests on HCAT721', () => {
     console.log('\n------------==Send tokens with not enough allowance');
     error = false;
     try {
-      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
-      _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
       await instHCAT721.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
       .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
 
