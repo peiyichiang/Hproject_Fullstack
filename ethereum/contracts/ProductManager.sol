@@ -9,8 +9,8 @@ contract ProductManager is Ownable {
     using SafeMath for uint256;
 
     uint public groupCindex;
-    mapping(string => CtrtGroup) symbolToCtrtGroup;
-    mapping(uint => string) public idxToSymbol;
+    mapping(bytes32 => CtrtGroup) public symbolToCtrtGroup;
+    mapping(uint => bytes32) public idxToSymbol;
 
     struct CtrtGroup {
         uint index;
@@ -28,7 +28,7 @@ contract ProductManager is Ownable {
         admin = management[0];
     }
 
-    function addNewCtrtGroup(string calldata symbol,
+    function addNewCtrtGroup(bytes32 symbol,
         address addrCrowdFundingCtrt, address addrTokenControllerCtrt,
         address addrTokenCtrt, address addrIncomeManagerCtrt)
         external onlyAdmin {
@@ -37,7 +37,7 @@ contract ProductManager is Ownable {
         symbolToCtrtGroup[symbol] = CtrtGroup(groupCindex, addrCrowdFundingCtrt, addrTokenControllerCtrt, addrTokenCtrt, addrIncomeManagerCtrt);
     }
 
-    function getCtrtGroup(string calldata symbol) view external returns(uint groupIndex, address addrCrowdFundingCtrt, address addrTokenControllerCtrt, address addrTokenCtrt, address addrIncomeManagerCtrt){
+    function getCtrtGroup(bytes32 symbol) view external returns(uint groupIndex, address addrCrowdFundingCtrt, address addrTokenControllerCtrt, address addrTokenCtrt, address addrIncomeManagerCtrt){
         CtrtGroup memory ctrtGroup = symbolToCtrtGroup[symbol];
         return (ctrtGroup.index, ctrtGroup.CrowdFundingCtrt, ctrtGroup.TokenControllerCtrt, ctrtGroup.TokenCtrt, ctrtGroup.IncomeManagerCtrt);
     }

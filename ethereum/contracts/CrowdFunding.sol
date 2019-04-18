@@ -7,6 +7,10 @@ import "./SafeMath.sol";
 interface ERC721TokenReceiverITF_CF {
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
 }
+interface RegistryITF {
+    function isAddrApproved(address assetCtrtAddr) external view returns (bool);
+    function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
+}
 
 contract CrowdFunding is Ownable {
     using SafeMath for uint256;
@@ -25,7 +29,7 @@ contract CrowdFunding is Ownable {
     uint public quantitySold; //accumulated quantity of sold tokens
     uint public CFSD2; //crowdfunding start date in yyyymmddhhmm format
     uint public CFED2; //crowdfunding end date in yyyymmddhhmm format
-    
+
     // Each incoming fund will be recorded in each investor’s InvestmentRecord
     struct InvestmentRecord {
       address assetbook;//assetbook address
@@ -43,6 +47,8 @@ contract CrowdFunding is Ownable {
     bool public isAborted;
     string public stateDescription;
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
+    uint public fundingType;
+    //address public addrRegistry;
 
     /*  at initialization, setup the owner
     "hTaipei001", 17000, "NTD", 900, 98, 201902191800, 201902191810, 201902191710, "", "", "", "", ""
@@ -175,8 +181,10 @@ contract CrowdFunding is Ownable {
     }
 
     // to record each funding source and the amount tokens secured by that funding 
-    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) 
-        external onlyAdmin {
+    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyAdmin {
+
+        //require(RegistryITF(addrRegistry).isFundingApproved(_assetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
+        //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType)
 
         if (_assetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
