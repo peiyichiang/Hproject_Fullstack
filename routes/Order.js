@@ -61,9 +61,9 @@ router.post('/AddOrder', function (req, res, next) {
 });
 
 //SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';
-//http://localhost:3000/Order/GET/SumAllOrdersBySymbol
+//http://localhost:3000/Order/SumAllOrdersBySymbol
 router.get('/SumAllOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/SumAllOrdersBySymbol');
+    console.log('------------------------==\n@Order/SumAllOrdersBySymbol');
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
@@ -89,9 +89,9 @@ router.get('/SumAllOrdersBySymbol', function (req, res, next) {
         });
 });
 
-//http://localhost:3000/Order/GET/SumWaitingOrdersBySymbol
+//http://localhost:3000/Order/SumWaitingOrdersBySymbol
 router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/SumWaitingOrdersBySymbol');
+    console.log('------------------------==\n@Order/SumWaitingOrdersBySymbol');
     let qstr1 = 'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?';
     var mysqlPoolQuery = req.pool; const status = 'waiting';
     console.log('req.query', req.query, 'req.body', req.body);
@@ -121,9 +121,9 @@ router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/Order/GET/OrdersByNationalId
+//http://localhost:3000/Order/OrdersByNationalId
 router.get('/OrdersByNationalId', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/OrdersByNationalId');
+    console.log('------------------------==\n@Order/OrdersByNationalId');
     let qstr1 = 'SELECT * FROM htoken.order WHERE o_userIdentityNumber = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -153,9 +153,9 @@ router.get('/OrdersByNationalId', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/Order/GET/OrdersByFromAddr
+//http://localhost:3000/Order/OrdersByFromAddr
 router.get('/OrdersByFromAddr', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/OrdersByFromAddr');
+    console.log('------------------------==\n@Order/OrdersByFromAddr');
     let qstr1 = 'SELECT * FROM htoken.order WHERE o_fromAddress = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -185,9 +185,9 @@ router.get('/OrdersByFromAddr', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/Order/GET/SumCancelledOrdersBySymbol
+//http://localhost:3000/Order/SumCancelledOrdersBySymbol
 router.get('/SumCancelledOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/SumCancelledOrdersBySymbol');
+    console.log('------------------------==\n@Order/SumCancelledOrdersBySymbol');
     var mysqlPoolQuery = req.pool; const status = 'cancelled';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
@@ -213,9 +213,9 @@ router.get('/SumCancelledOrdersBySymbol', function (req, res, next) {
         });
 });
 
-//http://localhost:3000/Order/GET/SumExpiredOrdersBySymbol
+//http://localhost:3000/Order/SumExpiredOrdersBySymbol
 router.get('/SumExpiredOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/SumExpiredOrdersBySymbol');
+    console.log('------------------------==\n@Order/SumExpiredOrdersBySymbol');
     var mysqlPoolQuery = req.pool; const status = 'expired';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
@@ -241,9 +241,9 @@ router.get('/SumExpiredOrdersBySymbol', function (req, res, next) {
         });
 });
 
-//http://localhost:3000/Order/GET/SumPendingOrdersBySymbol
+//http://localhost:3000/Order/SumPendingOrdersBySymbol
 router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/SumPendingOrdersBySymbol');
+    console.log('------------------------==\n@Order/SumPendingOrdersBySymbol');
     var mysqlPoolQuery = req.pool; const status = 'pending';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
@@ -268,9 +268,9 @@ router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
         });
 });
 
-//http://localhost:3000/Order/GET/SumCompletedOrdersBySymbol
+//http://localhost:3000/Order/SumCompletedOrdersBySymbol
 router.get('/SumCompletedOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/GET/SumCompletedOrdersBySymbol');
+    console.log('------------------------==\n@Order/SumCompletedOrdersBySymbol');
     var mysqlPoolQuery = req.pool; const status = 'completed';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
@@ -295,9 +295,45 @@ router.get('/SumCompletedOrdersBySymbol', function (req, res, next) {
         });
 });
 
+
+//http://localhost:3000/Order/CheckOrderCompliance
+router.get('/CheckOrderCompliance', function (req, res, next) {
+  console.log('------------------------==\n@Order/CheckOrderCompliance');
+  var mysqlPoolQuery = req.pool;
+  console.log('req.query', req.query, 'req.body', req.body);
+  let symbol, price, uid;
+  if (req.body.symbol) {
+      symbol = req.body.symbol;
+      price = req.body.price;
+      uid = req.body.userIdentity;
+  } else {
+      symbol = req.query.symbol;
+      price = req.query.price;
+      uid = req.query.userIdentity;
+  }
+  var qur = mysqlPoolQuery(
+      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'completed', 'waiting'], function (err, result) {
+          if (err) {
+              console.log(err);
+              res.status(400);
+              res.json({
+                  "message": "[Error] Failure :\n" + err
+              });
+          } else {
+              res.status(200);
+              console.log('result', result);
+              res.json({
+                  "message": "[Success] Success",
+                  "result": result
+              });
+          }
+      });
+});
+
+
 //通過User ID獲取Completed Order
 router.get('/GetCompletedOrdersByUserIdentityNumber',function(req, res, next) {
-  console.log('------------------------==\n@Order/GET/GetCompletedOrdersByUserIdentityNumber');
+  console.log('------------------------==\n@Order/GetCompletedOrdersByUserIdentityNumber');
   var token=req.query.JWT_Token;
     if (token) {
         // 驗證JWT token

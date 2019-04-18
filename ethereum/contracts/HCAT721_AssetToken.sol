@@ -22,7 +22,8 @@ contract SupportsInterface is ERC165ITF {
 
 //RegistryITF(addrRegistry).isAddrApproved(_to);
 interface RegistryITF {
-    function isAddrApproved(address assetCtAddr) external view returns (bool);
+    function isAddrApproved(address assetCtrtAddr) external view returns (bool);
+    function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
 }
 
 //TokenControllerITF(addrTokenController).isAdmin(msg.sender);
@@ -47,7 +48,6 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         address owner;
-        //address approvedAddr;//approved to be transferred by one of the operators or the owner himself
     }
 
     uint public tokenId;//same as tokenCindex, the last submitted index and total count of current Token ID. Its value starts from 1
@@ -55,14 +55,14 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     uint public maxTotalSupply;// total allowed tokens for this contract. 790 Assets
     uint public totalSupply;//total generated tokens - destroyed tokens
     uint public initialAssetPricing;// initial asset pricing, which is the pricing published during the crowdfunding event. Typical value 17000
-    string public pricingCurrency;// the currency name that the initialAssetPricing is based on, e.g. NTD or USD
+    bytes32 public pricingCurrency;// the currency name that the initialAssetPricing is based on, e.g. NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7;  20 years (per year) IRR times 100;
 
     address public addrRegistry;// address of Registry contract
     address public addrTokenController;// address of TokenController contract
 
-    string public name;//descriptive name for the issued tokens
-    string public symbol;//abbreviated name for issued tokens
+    bytes32 public name;//descriptive name for the issued tokens
+    bytes32 public symbol;//abbreviated name for issued tokens
     bytes32 public tokenURI;//location that stores additional token specific information
 
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
@@ -72,9 +72,9 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
     "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
     constructor(
-        string memory _nftName, string memory _nftSymbol, 
+        bytes32 _nftName, bytes32 _nftSymbol, 
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
-        string memory _pricingCurrency, uint _IRR20yrx100,
+        bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
         bytes32 _tokenURI) public {
         name = _nftName;
@@ -97,7 +97,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
         uint totalSupply_, uint initialAssetPricing_, 
-        string memory pricingCurrency_, uint IRR20yrx100_, string memory name_, string memory symbol_, bytes32 tokenURI_) {
+        bytes32 pricingCurrency_, uint IRR20yrx100_, bytes32 name_, bytes32 symbol_, bytes32 tokenURI_) {
             tokenId_ = tokenId;
             siteSizeInKW_ = siteSizeInKW;
             maxTotalSupply_ = maxTotalSupply;
@@ -124,7 +124,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     //去ERC721合約中撈 持幣user資料
     function getTokenOwners(uint indexStart, uint amount) 
         external view returns(address[] memory ownerAddrs) {
-        uint indexStart_; uint amount_;            
+        uint indexStart_; uint amount_;
         if(indexStart == 0 && amount == 0) {
           indexStart_ = 1;
           amount_ = tokenId;
@@ -134,16 +134,17 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
           require(amount > 0, "amount must be > 0");
 
           if(indexStart.add(amount).sub(1) > tokenId) {
-            amount_ = tokenId.sub(indexStart).add(1);
+              indexStart_ = indexStart;
+              amount_ = tokenId.sub(indexStart).add(1);
           } else {
-            amount_ = amount;
+              indexStart_ = indexStart;
+              amount_ = amount;
           }
         }
         ownerAddrs = new address[](amount_);
-
         for(uint i = 0; i < amount_; i = i.add(1)) {
-          Asset memory asset = idToAsset[i.add(indexStart)];
-            ownerAddrs[i] = asset.owner;
+            Asset memory asset = idToAsset[i.add(indexStart_)];
+                ownerAddrs[i] = asset.owner;
         }
     }
 
@@ -155,7 +156,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         idxEnd = accounts[user].idxEnd;
     }
 
-    function balanceOf(address user) external view returns (uint balance) {
+    function balanceOf(address user) public view returns (uint balance) {
         require(user != address(0), "user does not exist");
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
@@ -211,12 +212,13 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
     }
 
-    event MintSerialNFT(address indexed newOwner, uint amountMinted, uint indexed serverTime);
-    function mintSerialNFT(address _to, uint amount, uint serverTime) public {
+    //fundingType: 1 public crowdfunding, 2 private placement
+    function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public {
         require(TokenControllerITF(addrTokenController).isAdmin(msg.sender), 'only admin can mint tokens');
 
         //Legal Compliance, also block address(0)
-        require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+        //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
+        require(RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
 
         if (_to.isContract()) {//also checks for none zero address
             bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
@@ -227,7 +229,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         require(amount > 0, "amount must be > 0");
         totalSupply = tokenId.add(amount);
         require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
-        emit MintSerialNFT(_to, amount, serverTime);
+        emit MintSerialNFT(_to, amount, price, serverTime, fundingType);
 
         uint idxEnd = accounts[_to].idxEnd;
         uint idxStart = accounts[_to].idxStart;
@@ -249,8 +251,9 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             accounts[_to].indexToId[i] = tokenId;
         }
         accounts[_to].idxEnd = idxEndReq;
-
     }
+    event MintSerialNFT(address indexed newOwner, uint amountMinted, uint price, uint indexed serverTime, uint fundingType);
+
 
     //---------------------------==Transfer
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
@@ -269,6 +272,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+
         require(RegistryITF(addrRegistry).isAddrApproved(_from), "_from is not in compliance");
 
         _safeTransferFromBatch(_from, _to, amount, price, serverTime);
