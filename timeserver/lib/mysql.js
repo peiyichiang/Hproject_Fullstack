@@ -18,7 +18,7 @@ function getCrowdfundingContractAddress(cb) {
 }
 
 function getRentContractAddress(cb) {
-    pool.query('SELECT sc_rentContractaddress FROM smart_contracts', function (err, rows) {
+    pool.query('SELECT sc_incomeManagementaddress FROM smart_contracts', function (err, rows) {
         if (err) {
             print(err);
         }
