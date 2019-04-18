@@ -29,9 +29,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/productManager.json');
 
 
-const heliumContractAddr = "0xAC5Fe5Cbebe5dE436481358e83fc05A49c0D45C8";
-const registryContractAddr = "0xd8C4482D1e2a497D315e934d977ab40F30c0ce22";
-const productManagerContractAddr = "";
+const heliumContractAddr = "0xAC0a5622cb8577643D62655C973Ff233e7b64AC3";
+const registryContractAddr = "0xb786b689dE7C0af63141Ad2147D57E4fB2d69Fa7";
+const productManagerContractAddr = "0xA0F269fE052A88D5a585274Ef08A66f6755c8479";
 
 /**time server*/
 timer.getTime().then(function (time) {
@@ -121,15 +121,10 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
     let userID = req.params.u_id;
     let assetBookAddr = req.body.assetBookAddress;
     let ethAddr = req.body.ethAddr;
-    timer.getTime().then(function (time) {
-        console.log(`現在時間: ${time}`)
-        let currentTime = time;
-        console.log(currentTime);
-    })
 
     const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
 
-    let encodedData = registry.methods.addUser(userID, assetBookAddr, ethAddr, time).encodeABI();
+    let encodedData = registry.methods.addUser(userID, assetBookAddr, ethAddr).encodeABI();
 
     let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
     console.log(contractResult);
@@ -527,14 +522,14 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
             let fundingState = await crowdFunding.methods.fundingState().call({ from: backendAddr })
             let stateDescription = await crowdFunding.methods.stateDescription().call({ from: backendAddr })
             let quantityGoal = await crowdFunding.methods.quantityGoal().call({ from: backendAddr })
-            let quantityMax = await crowdFunding.methods.quantityMax().call({ from: backendAddr })
+            let maxTotalSupply = await crowdFunding.methods.maxTotalSupply().call({ from: backendAddr })
             let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr })
 
             res.send({
                 fundingState: fundingState,
                 stateDescription: stateDescription,
                 quantityGoal: quantityGoal,
-                quantityMax: quantityMax,
+                maxTotalSupply: maxTotalSupply,
                 quantitySold: quantitySold
             });
         }
