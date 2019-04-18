@@ -146,6 +146,8 @@ contract AssetBook is MultiSig {
         platformCtrt = _platformCtrt;
     }
 
+<<<<<<< HEAD
+=======
 
     function addAsset(address assetAddr) external ckIsContract(assetAddr) ckAssetOwner {
         HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
@@ -159,6 +161,7 @@ contract AssetBook is MultiSig {
         addrToAssetIndex[assetAddr] = assetCindex;
     }
 
+>>>>>>> livechain
     /** @dev get assets info: asset symbol and balance on this assetbook’s account
 			assetAddr is the asset contract address */
     function getAsset(uint assetIndex, address assetAddr) public view returns (uint assetIndex_, address assetAddr_, bytes32 symbol, uint balance) {
