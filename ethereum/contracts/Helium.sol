@@ -170,8 +170,3 @@ contract Helium {
         _;
     }
 }
-
-interface Helium_interface{
-    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
-    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
-}
