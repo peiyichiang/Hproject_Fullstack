@@ -1616,8 +1616,8 @@ describe('Tests on CrowdFunding', () => {
 
     serverTime = CFSD2+1;
     console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
-    await instCrowdFunding.methods.makeFundingActive(serverTime)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // await instCrowdFunding.methods.makeFundingActive(serverTime)
+    // .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('\nremainingTokenQtyM:', remainingTokenQtyM);
