@@ -9,9 +9,9 @@ const router = express.Router();
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
 /*POA*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
+web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 /*ganache*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /**後台公私鑰*/
 const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -29,9 +29,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/productManager.json');
 
 
-const heliumContractAddr = "0xAC0a5622cb8577643D62655C973Ff233e7b64AC3";
-const registryContractAddr = "0xb786b689dE7C0af63141Ad2147D57E4fB2d69Fa7";
-const productManagerContractAddr = "0xA0F269fE052A88D5a585274Ef08A66f6755c8479";
+const heliumContractAddr = "0x052746cA215b59e0Fb11B17e7513dC0cB591DEb1";
+const registryContractAddr = "0x5A868cAC916c0A70bE2f64f7EDca41251D1D5788";
+const productManagerContractAddr = "0x6947100D072eEC62173ad963150d9F2526969e76";
 
 /**time server*/
 timer.getTime().then(function (time) {
@@ -50,9 +50,9 @@ const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3
 /**deploy helium contract*/
 router.post('/heliumContract', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
     let heliumContractAdmin = req.body.heliumContractAdmin;
@@ -85,9 +85,9 @@ router.get('/heliumContract', function (req, res, next) {
 /*deploy registry contract*/
 router.post('/registryContract', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -99,14 +99,14 @@ router.post('/registryContract', function (req, res, next) {
     })
         .send({
             from: backendAddr,
-            gas: 6500000,
+            gas: 9000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
             res.send(receipt);
         })
         .on('error', function (error) {
-            res.send(error.toString());
+            res.status(500).send(error.toString());
         })
 });
 
@@ -124,10 +124,10 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
 
     const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
 
-    let encodedData = registry.methods.addUser(userID, assetBookAddr, ethAddr).encodeABI();
+    let encodedData = registry.methods.addUser(userID, assetBookAddr, ethAddr, 1).encodeABI();
 
     let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
-    console.log(contractResult);
+    //console.log(contractResult);
 
     /**寫入DataBase */
     let u_email = req.body.email;
@@ -135,7 +135,8 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
     let sql = {
         u_assetbookContractAddress: assetBookAddr,
         u_verify_status: 0,
-        u_eth_add: ethAddr
+        u_eth_add: ethAddr,
+        u_investorLevel: 1
     };
 
     //console.log(element)
@@ -185,9 +186,9 @@ router.get('/registryContract/users/:u_id', async function (req, res, next) {
 router.post('/assetbookContract', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -218,9 +219,9 @@ router.post('/assetbookContract', async function (req, res, next) {
 router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
 
     const web3deploy = new Web3(provider);
 
@@ -304,7 +305,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
             let assetBookAddr = req.params.assetBookAddr;
             let quantityToInvest = req.body.quantityToInvest;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
-
+            console.log("assetBookAddr:"+assetBookAddr+"\nquantityToInvest:"+quantityToInvest+"\n"+"currentTime:"+currentTime);
             /*用後台公私鑰sign*/
             let encodedData = crowdFunding.methods.invest(assetBookAddr, quantityToInvest, currentTime).encodeABI();
             let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
@@ -337,11 +338,11 @@ router.post('/crowdFundingContract/:tokenSymbol/remaining', async function (req,
 
             /*用後台公私鑰sign*/
             let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr });
-            let quantityMax = await crowdFunding.methods.quantityMax().call({ from: backendAddr });
+            let maxTotalSupply = await crowdFunding.methods.maxTotalSupply().call({ from: backendAddr });
 
-            console.log("quantityMax:" + quantityMax);
+            console.log("maxTotalSupply:" + maxTotalSupply);
             console.log("quantitySold:" + quantitySold);
-            let remaining = quantityMax - quantitySold;
+            let remaining = maxTotalSupply - quantitySold;
             mysqlPoolQuery('UPDATE `htoken`.`smart_contracts` SET `sc_remaining` = ? WHERE (`sc_symbol` = ?)', [remaining, tokenSymbol], async function (err, DBUpdateResult, rows) {
                 if (err) {
                     res.send({
@@ -524,26 +525,67 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
             let quantityGoal = await crowdFunding.methods.quantityGoal().call({ from: backendAddr })
             let maxTotalSupply = await crowdFunding.methods.maxTotalSupply().call({ from: backendAddr })
             let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr })
+            let CFSD2 = await crowdFunding.methods.CFSD2().call({ from: backendAddr })
+            let CFED2 = await crowdFunding.methods.CFED2().call({ from: backendAddr })
 
             res.send({
                 fundingState: fundingState,
                 stateDescription: stateDescription,
                 quantityGoal: quantityGoal,
                 maxTotalSupply: maxTotalSupply,
-                quantitySold: quantitySold
+                quantitySold: quantitySold,
+                CFSD2: CFSD2,
+                CFED2: CFED2
             });
         }
     });
 });
 
+/**funding updateState（開發用）*/
+router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+    let currentTime = 201904200000;
+    /*
+        await timer.getTime().then(function(time) {
+            currentTime = time;
+        })
+    */
+    console.log(`現在時間: ${currentTime}`)
+
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_crowdsaleaddress);
+            let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = crowdFunding.methods.updateState(currentTime).encodeABI();
+            let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+
+            res.send({
+                DBresult: DBresult,
+                TxResult: TxResult
+            })
+        }
+    });
+
+});
 
 /**@dev TokenController ------------------------------------------------------------------------------------- */
 /*deploy tokenController contract*/
 router.post('/tokenControllerContract', async function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
     let TimeTokenLaunch = req.body.TimeTokenLaunch;
@@ -588,13 +630,16 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) 
     let IRR20yrx100 = req.body.IRR20yrx100;
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
     let tokenURI = req.body.tokenURI;
+    nftNameBytes32 = web3.utils.fromAscii(nftName);
+    nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
+    pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
+
 
     const ERC721SPLC = new web3deploy.eth.Contract(HCAT721_AssetTokenContract.abi);
 
-
     ERC721SPLC.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftName, nftSymbol, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrency, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI]
     })
         .send({
             from: backendAddr,
@@ -634,7 +679,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) 
         })
 });
 
-/*get HCAT721_AssetTokenContractAddr and CrowdFundingContractAddr by tokenSymble*/
+/*get HCAT721_AssetTokenContractAddr and CrowdFundingContractAddr by tokenSymble from DB*/
 router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
     var nftSymbol = req.params.nftSymbol;
     var mysqlPoolQuery = req.pool;
@@ -673,7 +718,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
     console.log(amount);
 
 
-    let encodedData = HCAT721_AssetToken.methods.mintSerialNFT(to, amount, currentTime).encodeABI();
+    let encodedData = HCAT721_AssetToken.methods.mintSerialNFT(to, amount, price, fundingType, currentTime).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
@@ -744,9 +789,9 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 /**deploy productManager contract*/
 router.post('/productManagerContract', function (req, res, next) {
     /**POA */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
     /**ganache */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
     const productManager = new web3deploy.eth.Contract(productManagerContract.abi);
@@ -801,7 +846,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 6500000,
+                    gas: 9000000,
                     gasPrice: 0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
                     //gasLimit: web3.utils.toHex(3400000),
@@ -833,6 +878,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
                         reject(err);
                     })
             })
+
     })
 }
 
