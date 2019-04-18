@@ -8,14 +8,16 @@ import "./SafeMath.sol";
 contract ProductManager is Ownable {
     using SafeMath for uint256;
 
-    uint public pairId;
-    mapping(uint256 => CtrtGroup) public idToCtrtGroup;//ID to contract pair
+    uint public groupCindex;
+    mapping(bytes32 => CtrtGroup) public symbolToCtrtGroup;
+    mapping(uint => bytes32) public idxToSymbol;
 
     struct CtrtGroup {
-        address addrCrowdFundingCtrt;
-        address addrControllerCtrt;
-        address addrTokenCtrt;
-        address addrIncomeManagementCtrt;
+        uint index;
+        address CrowdFundingCtrt;
+        address TokenControllerCtrt;
+        address TokenCtrt;
+        address IncomeManagerCtrt;
     }
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
@@ -25,12 +27,19 @@ contract ProductManager is Ownable {
         manager = management[1];
         admin = management[0];
     }
-    function addNewCtrtGroup(
-        address _addrCrowdFundingCtrt, address _addrControllerCtrt,
-        address _addrTokenCtrt, address _addrIncomeManagementCtrt)
+
+    function addNewCtrtGroup(bytes32 symbol,
+        address addrCrowdFundingCtrt, address addrTokenControllerCtrt,
+        address addrTokenCtrt, address addrIncomeManagerCtrt)
         external onlyAdmin {
-        pairId = pairId.add(1);
-        idToCtrtGroup[pairId] = CtrtGroup(_addrCrowdFundingCtrt, _addrControllerCtrt, _addrTokenCtrt, _addrIncomeManagementCtrt);
+        groupCindex = groupCindex.add(1);
+        idxToSymbol[groupCindex] = symbol;
+        symbolToCtrtGroup[symbol] = CtrtGroup(groupCindex, addrCrowdFundingCtrt, addrTokenControllerCtrt, addrTokenCtrt, addrIncomeManagerCtrt);
+    }
+
+    function getCtrtGroup(bytes32 symbol) view external returns(uint groupIndex, address addrCrowdFundingCtrt, address addrTokenControllerCtrt, address addrTokenCtrt, address addrIncomeManagerCtrt){
+        CtrtGroup memory ctrtGroup = symbolToCtrtGroup[symbol];
+        return (ctrtGroup.index, ctrtGroup.CrowdFundingCtrt, ctrtGroup.TokenControllerCtrt, ctrtGroup.TokenCtrt, ctrtGroup.IncomeManagerCtrt);
     }
 
     function() external payable { revert("should not send any ether directly"); }

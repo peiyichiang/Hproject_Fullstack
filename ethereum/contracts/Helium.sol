@@ -1,130 +1,172 @@
 pragma solidity ^0.5.1;
 
-interface Registry {
-    function addUser(string calldata uid, address assetCtAddr, address extoAddr, uint timeCurrent) external;
-    function setUser(string calldata uid, address assetCtAddr, address extoAddr, uint status, uint timeCurrent) external;
-    function setAssetCtAddr(string calldata uid, address assetCtAddr, uint timeCurrent) external;
-    function setExtoAddr(string calldata uid, address extoAddr, uint timeCurrent) external;
-    function setUserStatus(string calldata uid, uint status, uint timeCurrent) external;
-}
 
-interface AssetBook {
-    function platformVote(uint _timeCurrent) external;
-    function addAsset(address _assetAddr, string calldata symbol, uint balance) external;
-    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external;
-    function updateAsset(address _assetAddr) external;
-    function deleteAsset(address _assetAddr) external;
-}
-
-interface ProductManager {
-    function addNewCtrtGroup(address _addrCrowdFundingCtrt, address _addrControllerCtrt, address _addrTokenCtrt, address _addrIncomeManagementCtrt)external;
-}
-
-interface CrowdFunding {
-    function makeFundingActive(uint serverTime) external;
-    function pauseFunding(uint serverTime) external;
-    function resumeFunding(uint _CFED2, uint _quantityMax, uint serverTime) external;
-    function Abort(string calldata _reason, uint serverTime) external;
-    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) external;
-}
-
-interface TokenController {
-    function setTimeValid(uint _TimeValid) external;
-    function setTimeUnlock(uint _TimeUnlock) external;
-    function setReleaseTime(uint _TimeRelease) external;
-    function setIsActive(bool _isActive) external;
-}
-
-interface ERC721SPLC_HToken {
-    function balanceOf(address _owner) external view returns (uint256);
-    function ownerOf(uint256 _tokenId) external view returns (address);
-    function getAccountIds(address user, uint idxS, uint idxE) external;
-
-    function approve(address _approved, uint256 _tokenId) external;
-    function setApprovalForAll(address _operator, bool _approved) external;
-    function getApproved(uint256 _tokenId) external view returns (address);
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool);
-
-    function nftName() external view returns (string memory _name);
-    function nftSymbol() external view returns (string memory _symbol);
-    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
-    function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
-
-}
-
-interface IncomeManager {
-    function addSchedule(uint _payableDate, uint _payableAmount) external;
-    function AddScheduleBatch(uint[] calldata _payableDates, uint[] calldata _payableAmounts) external;
-    function editIncomeSchedule(uint _index, uint _payableDate, uint _payableAmount) external;
-    function removeIncomeSchedule(uint _index, uint _payableDate) external;
-    function setIsApproved(uint _index, uint _payableDate, bool boolValue) external;
-    function setPaymentReleaseResults(uint _index, uint _paymentDate, uint _paymentAmount, uint8 _errorCode) external;
-    function setErrResolution(uint _index, uint _paymentDate, bool boolValue) external;
+interface Helium_interface{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
 
 contract Helium {
     
-    address public PlatformAdmin;
-    Registry public registry;
-    ProductManager public productmanager;
-    AssetBook public assetbook;
-    CrowdFunding public crowdfunding;
-    TokenController public tokencontroller;
-    ERC721SPLC_HToken public HCAT721;
-    IncomeManager public incomemanager;
-    
+    address public Helium_Admin;
+    address public Helium_Chairman;
+    address public Helium_Director;
+    address public Helium_Manager;
+    address public Helium_Owner;
 
+    uint8 public Helium_OwnerVote;
+    uint8 public Helium_ChairmanVote;
+    uint8 public Helium_DirectorVote;
+    uint8 public Helium_ManagerVote;
+    uint8 public Helium_AdminVote;
+
+    uint8 public MinimumVotesForMultiSig = 3;
+    
     struct PermissionTable {
-        address platformEOA;
-        uint permission;
-        bool status;
+        address platformEoA;
+        uint permissionCode;
+        bool permissionStatus;
     }
     
     mapping(address => PermissionTable) public PermissionList;
     
-    constructor(address _registry) public{
-        PlatformAdmin = msg.sender;
-        //registry = Registry(_registry);
-        
-        
+    constructor(address _Helium_Chairman, address _Helium_Director, address _Helium_Manager, address _Helium_Owner) public{
+        Helium_Admin = msg.sender;
+        Helium_Chairman = _Helium_Chairman;
+        Helium_Director = _Helium_Director;
+        Helium_Manager = _Helium_Manager;
+        Helium_Owner = _Helium_Owner;
     }
     
+    //Helium
     function addCustomerService (address _eoa) public onlyAdmin {
-        PermissionList[_eoa].platformEOA = _eoa;
-        PermissionList[_eoa].permission = 1;
-        PermissionList[_eoa].status = true;
+        PermissionList[_eoa].platformEoA = _eoa;
+        PermissionList[_eoa].permissionCode = 1;
+        PermissionList[_eoa].permissionStatus = true;
     }
     
     function addPlatformSupervisor (address _eoa) public onlyAdmin {
-        PermissionList[_eoa].platformEOA = _eoa;
-        PermissionList[_eoa].permission = 2;
-        PermissionList[_eoa].status = true;
+        PermissionList[_eoa].platformEoA = _eoa;
+        PermissionList[_eoa].permissionCode = 2;
+        PermissionList[_eoa].permissionStatus = true;
     }
     
     function changePermissionToCS(address _eoa) public onlyAdmin {
-        PermissionList[_eoa].permission = 1;
+        PermissionList[_eoa].permissionCode = 1;
     }
     
     function changePermissionToPS(address _eoa) public onlyAdmin {
-        PermissionList[_eoa].permission = 2;
+        PermissionList[_eoa].permissionCode = 2;
     }
     
     function removePermission(address _eoa) public onlyAdmin{
-        PermissionList[_eoa].status = false;
+        PermissionList[_eoa].permissionStatus = false;
+    }
+
+    function showPermissionCode(address _eoa) public view returns(uint _permissionCode){
+        require(msg.sender == Helium_Admin || PermissionList[msg.sender].permissionCode == 1 || PermissionList[msg.sender].permissionCode == 2, "Only Platform Role can call this function");
+        return PermissionList[_eoa].permissionCode;
+    }
+
+    //Vote for MultiSig 
+    function HeliumOwnerApprove(bool boolValue) external {
+        require(msg.sender == Helium_Owner, "restricted to owner");
+        if (boolValue){
+            Helium_OwnerVote = 1;
+        } else {Helium_OwnerVote = 0;}
+    }
+
+    function HeliumChairmanApprove(bool boolValue) external {
+        require(msg.sender == Helium_Chairman, "restricted to chairman");
+        if (boolValue){
+            Helium_ChairmanVote = 1;
+        } else {Helium_ChairmanVote = 0;}
+    }
+
+    function HeliumDirectorApprove(bool boolValue) external {
+        require(msg.sender == Helium_Director, "restricted to director");
+        if (boolValue){
+            Helium_DirectorVote = 1;
+        } else {Helium_DirectorVote = 0;}
+    }
+
+    function HeliumManagerApprove(bool boolValue) external {
+        require(msg.sender == Helium_Manager, "restricted to manager");
+        if (boolValue){
+            Helium_ManagerVote = 1;
+        } else {Helium_ManagerVote = 0;}
+    }
+
+    function HeliumAdminApprove(bool boolValue) external {
+        require(msg.sender == Helium_Admin, "restricted to admin");
+        if (boolValue){
+            Helium_AdminVote = 1;
+        } else {Helium_AdminVote = 0;}
     }
     
+    event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
+    bool public locked;// initialized as false
+    function setManagement(uint8 managementIdx, address addrNew, uint8 itg) external isMultiSig {
+        require(!locked, "noReentrancy failed");
+        locked = true;
+        require(
+            msg.sender == Helium_Admin || msg.sender == Helium_Chairman || msg.sender == Helium_Director || msg.sender == Helium_Manager || msg.sender == Helium_Owner, "only management team can access");
+        require(addrNew != address(0), "new address cannot be zero");
+        if (managementIdx == 1) {
+            Helium_Owner = addrNew;
+            emit SetManagement(Helium_Owner, addrNew, managementIdx);
+        } else if (managementIdx == 2) {
+            Helium_Chairman = addrNew;
+            emit SetManagement(Helium_Chairman, addrNew, managementIdx);
+        } else if (managementIdx == 3) {
+            Helium_Director = addrNew;
+            emit SetManagement(Helium_Director, addrNew, managementIdx);
+        } else if (managementIdx == 4) {
+            Helium_Manager = addrNew;
+            emit SetManagement(Helium_Manager, addrNew, managementIdx);
+        } else if (managementIdx == 5) {
+            Helium_Admin = addrNew;
+            emit SetManagement(Helium_Admin, addrNew, managementIdx);
+        } else if (managementIdx == 6) {
+            MinimumVotesForMultiSig = itg;
+        } else {
+            require(false, "not valid option");
+        }
+        Helium_OwnerVote = 0;
+        Helium_ChairmanVote = 0;
+        Helium_DirectorVote = 0;
+        Helium_ManagerVote = 0;
+        Helium_AdminVote = 0;
+        locked = false;
+    }
+
+    function getMultiVotes() public view returns(uint,uint,uint,uint,uint){
+        return (Helium_OwnerVote, Helium_ChairmanVote, Helium_DirectorVote, Helium_ManagerVote, Helium_AdminVote);
+    }
+
+
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService){
+        require(_eoa == Helium_Admin || (PermissionList[_eoa].permissionCode == 1 && PermissionList[msg.sender].permissionStatus == true), "only Admin or Customer Service can call this function");
+        return true;
+    }
+
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor){
+        require(_eoa == Helium_Admin || (PermissionList[_eoa].permissionCode == 2 && PermissionList[msg.sender].permissionStatus == true), "only Admin or Supervisor can call this function");
+        return true;
+    }
+
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin) {
+        require(_eoa == Helium_Admin);
+        return true;
+    }
+
     modifier onlyAdmin(){
-        require(msg.sender==PlatformAdmin);
+        require(msg.sender == Helium_Admin, "only admin can call this function");
         _;
     }
-    
-    modifier onlyCustomerService(){
-        require(msg.sender==PlatformAdmin||(PermissionList[msg.sender].permission == 1 && PermissionList[msg.sender].status == true));
-        _;
-    }
-    
-    modifier onlyPlatformSupervisor(){
-        require(msg.sender==PlatformAdmin||(PermissionList[msg.sender].permission== 2 && PermissionList[msg.sender].status == true));
+
+    modifier isMultiSig(){
+        require(Helium_OwnerVote + Helium_ChairmanVote + Helium_DirectorVote + Helium_ManagerVote + Helium_AdminVote >= MinimumVotesForMultiSig, "isMultiSig failed due to not enough votes");
         _;
     }
 }

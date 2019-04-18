@@ -29,7 +29,7 @@ contract IncomeManagerCtrt is Ownable {
     constructor(address _tokenCtrt, address _supervisor,
         address[] memory managementTeam) public {
         tokenCtrt = _tokenCtrt;
-        supervisor = _supervisor;//can be EOA or contract
+        supervisor = _supervisor;//can be EOA or Helium contract
 
         require(managementTeam.length > 4, "managementTeam.length should be > 4");
         owner = managementTeam[4];

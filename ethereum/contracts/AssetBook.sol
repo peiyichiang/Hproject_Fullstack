@@ -10,8 +10,8 @@ interface HCAT721ITF_assetbook {
     function allowance(address user, address operator) external view returns (uint remaining);
     function tokenApprove(address operator, uint amount) external;
 
-    function name() external view returns (string memory _name);
-    function symbol() external view returns (string memory _symbol);
+    function name() external view returns (bytes32 _name);
+    function symbol() external view returns (bytes32 _symbol);
     function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
 }
@@ -41,9 +41,9 @@ contract MultiSig {
         require(msg.sender == assetOwner, "sender must be assetOwner");
         _;
     }
-    modifier ckIsContract(address _assetAddr) {
-        require(_assetAddr.isContract(), "_assetAddr has to contain a contract");
-        //require(_assetAddr != address(0), "_assetAddr should not be zero");
+    modifier ckIsContract(address assetAddr) {
+        require(assetAddr.isContract(), "assetAddr has to contain a contract");
+        //require(assetAddr != address(0), "assetAddr should not be zero");
         _;
     }
 
@@ -126,17 +126,18 @@ contract AssetBook is MultiSig {
 
     /** @dev asset資料結構 */
     struct Asset{
-        string symbol;
+        bytes32 symbol;
         uint balance; //Token數量
         bool isInitialized;
     }
-    mapping (address => Asset) assets;//assets[_assetAddr]
+    mapping (address => Asset) assets;//assets[assetAddr]
     uint public assetCindex;//last submitted index and total count of current assets, and each asset has an assetAddr
     mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
+    mapping (address => uint) addrToAssetIndex;
 
     /** @dev asset相關event */
-    event TransferAssetEvent(address to, string symbol, uint _assetId, uint tokenBalance, uint timestamp);
-    event TransferAssetBatchEvent(address to, string symbol, uint[] _assetId, uint tokenBalance, uint timestamp);
+    event TransferAssetEvent(address to, bytes32 symbol, uint _assetId, uint tokenBalance, uint timestamp);
+    event TransferAssetBatchEvent(address to, bytes32 symbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201903061045
@@ -145,30 +146,72 @@ contract AssetBook is MultiSig {
         platformCtrt = _platformCtrt;
     }
 
+<<<<<<< HEAD
+=======
 
+    function addAsset(address assetAddr) external ckIsContract(assetAddr) ckAssetOwner {
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
+        bytes32 symbol = hcat721.symbol();
+        require(symbol[0] != 0, "symbol should not be empty");
+        uint balance = hcat721.balanceOf(address(this));
+        require(balance + 1000 > balance, "balance should not overflow on adding 1000");
+
+        assetCindex = assetCindex.add(1);
+        assetIndexToAddr[assetCindex] = assetAddr;
+        addrToAssetIndex[assetAddr] = assetCindex;
+    }
+
+>>>>>>> livechain
     /** @dev get assets info: asset symbol and balance on this assetbook’s account
-			_assetAddr is the asset contract address */
-    function getAsset(address _assetAddr) public view ckIsContract(_assetAddr) 
-    returns (string memory symbol, uint balance) {
-        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
+			assetAddr is the asset contract address */
+    function getAsset(uint assetIndex, address assetAddr) public view returns (uint assetIndex_, address assetAddr_, bytes32 symbol, uint balance) {
+        if(assetIndex > 0) {
+            assetIndex_ = assetIndex;
+            assetAddr_ = assetIndexToAddr[assetIndex];
+        } else {
+            require(assetAddr.isContract(), "assetAddr has to contain a contract");
+            assetAddr_ = assetAddr;
+            assetIndex_ = addrToAssetIndex[assetAddr];
+        }
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr_)));
         symbol = hcat721.symbol();
         balance = hcat721.balanceOf(address(this));
     }
 
+    function getAssetBatch(uint indexStart, uint amount) 
+        external view returns(uint[] memory assetIndexArray, address[] memory assetAddresses, bytes32[] memory assetSymbols, uint[] memory assetBalances) {
+        uint indexStart_; uint amount_; address assetAddr;
+        if(indexStart == 0 && amount == 0) {
+            indexStart_ = 1;
+            amount_ = assetCindex;
 
-    /** @dev transfer `amount` of token quantity with such token that is specified by the _assetAddr
-        from this assetbook to the _to address, 
-        with exchange price of `price`, with the server time being `serverTime`
-        Note: the token IDs are chosen according to First In First Out principle
-    */
-    function safeTransferFromBatch(address _assetAddr, address _to, uint amount,  uint price, uint serverTime) 
-        public ckAssetOwner ckIsContract(_assetAddr){
-        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
-        hcat721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
-    }
-    function assetbookApprove(address _assetAddr, address operator, uint amount) external {
-        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(_assetAddr)));
-        hcat721.tokenApprove(operator, amount);
+        } else {
+            require(indexStart > 0, "indexStart must be > 0");
+            require(amount > 0, "amount must be > 0");
+
+            if(indexStart.add(amount).sub(1) > assetCindex) {
+                indexStart_ = indexStart;
+                amount_ = assetCindex.sub(indexStart).add(1);
+            } else {
+                indexStart_ = indexStart;
+                amount_ = amount;
+            }
+
+            assetIndexArray = new uint[](amount_);
+            assetAddresses = new address[](amount_);
+            assetSymbols = new bytes32[](amount_);
+            assetBalances = new uint[](amount_);
+
+            for(uint i = 0; i < amount_; i = i.add(1)) {
+                assetIndexArray[i] = i.add(indexStart_);
+                assetAddr = assetIndexToAddr[i.add(indexStart_)];
+                assetAddresses[i] = assetAddr;
+
+                HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
+                assetSymbols[i] = hcat721.symbol();
+                assetBalances[i] = hcat721.balanceOf(address(this));
+            }
+        }
     }
 
     /** @dev to get all assetAddr stored in this assetbook contract
@@ -180,19 +223,44 @@ contract AssetBook is MultiSig {
         but if the indexStart or the amount value is too large,
         then this function will automatically find all the asset addresses that has asset index greater or equal to indexStart
     */
-    function getAssetAddrArray(uint indexStart, uint amount) 
-        external view returns(address[] memory assetAddrArray) {
-        require(amount > 0, "amount must be > 0");
-        require(indexStart > 0, "indexStart must be > 0");
-        uint amount_;
-        if(indexStart.add(amount).sub(1) > assetCindex) {
-          amount_ = assetCindex.sub(indexStart).add(1);
+    function getAssetAddresses(uint indexStart, uint amount) 
+        external view returns(address[] memory assetAddresses) {
+        uint indexStart_; uint amount_;
+        if(indexStart == 0 && amount == 0) {
+            indexStart_ = 1;
+            amount_ = assetCindex;
+
         } else {
-          amount_ = amount;
+            require(indexStart > 0, "indexStart must be > 0");
+            require(amount > 0, "amount must be > 0");
+
+            if(indexStart.add(amount).sub(1) > assetCindex) {
+                indexStart_ = indexStart;
+                amount_ = assetCindex.sub(indexStart).add(1);
+            } else {
+                indexStart_ = indexStart;
+                amount_ = amount;
+            }
+            assetAddresses = new address[](amount_);
+            for(uint i = 0; i < amount_; i = i.add(1)) {
+                assetAddresses[i] = assetIndexToAddr[i.add(indexStart_)];
+            }
         }
-        for(uint i = 0; i < amount_; i = i.add(1)) {
-            assetAddrArray[i] = assetIndexToAddr[i.add(indexStart)];
-        }
+    }
+
+    /** @dev transfer `amount` of token quantity with such token that is specified by the assetAddr
+        from this assetbook to the _to address, 
+        with exchange price of `price`, with the server time being `serverTime`
+        Note: the token IDs are chosen according to First In First Out principle
+    */
+    function safeTransferFromBatch(address assetAddr, address _to, uint amount,  uint price, uint serverTime) 
+        public ckAssetOwner ckIsContract(assetAddr){
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
+        hcat721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
+    }
+    function assetbookApprove(address assetAddr, address operator, uint amount) external ckAssetOwner {
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
+        hcat721.tokenApprove(operator, amount);
     }
 
 
@@ -207,6 +275,7 @@ contract AssetBook is MultiSig {
         require(_operator != address(0), 'operator address should not be zero');
         require(_from != address(0), 'from address should not be zero');// _from address is contract address if minting tokens
         require(_tokenId > 0, 'tokenId should be greater than zero');
+        
         return MAGIC_ON_ERC721_RECEIVED;
     }
 

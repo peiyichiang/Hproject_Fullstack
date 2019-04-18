@@ -2,8 +2,11 @@ pragma solidity ^0.5.4;
 /* v2.0
 => Unix timestamp problem so 'now' cannot be used to get correct time in 2038!!!
 => use yyyymmddhhmm to record time
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
 //https://github.com/0xcert/ethereum-erc721/blob/master/contracts/tokens/ERC721.sol
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
 */
 import "./SafeMath.sol";
 
@@ -53,8 +56,6 @@ interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
     function isUnlockedValid() external view returns (bool);
 }
-
-
 
 //------------------------HCAT721: Helium Crypto Asset Token
 contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF, 
@@ -173,7 +174,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             ownerAddrs[i] = asset.owner;
         }
     }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
 
     //---------------------------==Account
     function getAccount(address user) external view 
@@ -208,12 +212,8 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     returns (uint[] memory arrayOut) {
         //indexStart == 0 and amount == 0 for all Ids(min idxStart and max amount)
         require(user != address(0), "user should not be address(0)");
-
         uint idxStart = accounts[user].idxStart;
         uint idxEnd = accounts[user].idxEnd;
-        //require(indexStart >= idxStart, "indexStart must be >= idxStart");
-        //require(idxE <= idxEnd, "idxE must be <= idxEnd");
-        
 
         if(idxStart == 0 && idxEnd == 0 && accounts[user].indexToId[0] == 0) {
             //arrayOut = [];
@@ -237,7 +237,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
             for(uint i = 0; i < amount_; i = i.add(1)) {
                 arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
             }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
         }
     }
 
@@ -377,8 +380,12 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
 
         emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+    
+=======
 
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
     //-------------------------------==Approvals
     function approveAmount(address _operator, uint amount) external {
         require(_operator != address(0), "_operator should not be 0x0");
@@ -391,8 +398,11 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
         require(_operator != address(0), "_operator should not be 0x0");
         remaining = accounts[user].allowed[_operator];
     }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
     //--------------==ID based
     /** $dev Clears the current approvedAddr of a given NFT ID.
      $param _tokenId ID of the NFT to be transferred. */
@@ -416,6 +426,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     // event BurnNFT(address user, uint _tokenId, address msgsender);
     event ApprovalAmount(address indexed tokenOwner, address indexed _operator, uint amount);
 
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+
+=======
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
     /** $dev Guarantees that the msg.sender is 
     an owner or operator of the given NFT.
     * $param _tokenId ID of the NFT to validate.   */
@@ -442,7 +456,10 @@ contract ERC721SPLC_HToken is SupportsInterface {//ERC721ITF,
     }
 
 }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+=======
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
 
 //--------------------==
 library AddressUtils {
@@ -452,5 +469,9 @@ library AddressUtils {
         // solium-disable-line security/no-inline-assembly
         return size > 0;
     }
+<<<<<<< HEAD:ethereum/contracts/ERC721SPLC20190410.sol
+}
+=======
 }
 
+>>>>>>> livechain:ethereum/contracts/Archives/ERC721SPLC20190410.sol
