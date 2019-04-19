@@ -289,7 +289,7 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 const CFSD2 = timeCurrent+1;
 const CFED2 = timeCurrent+10;
-let reason, addrPlatformCtrt, uid, extOwnedAddr, authLevel;
+let reason, addrPlatformCtrt, uid, extOwnedAddr, authLevel, assetbookAddr;
 
 let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
@@ -593,30 +593,26 @@ describe('Tests on HCAT721', () => {
     //----------------==Registry contract
     console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
     console.log('addrRegistry', addrRegistry);
-    uid = "A500000001"; assetCtAddr = addrAssetBook1; extOwnedAddr = AssetOwner1; authLevel = 5;
+    uid = "A500000001"; assetbookAddr = addrAssetBook1; authLevel = 5;
     await instRegistry.methods.addUser(
-      uid, assetCtAddr, extOwnedAddr, authLevel)
+      uid, assetbookAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    console.log('Registry: getUser()');
-    let user1M = await instRegistry.methods.getUser(uid).call();
+    console.log('Registry: getUserFromUid()');
+    let user1M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('user1M', user1M);
-    assert.equal(user1M[0], uid);
-    assert.equal(user1M[1], assetCtAddr);
-    assert.equal(user1M[2], extOwnedAddr);
-    assert.equal(user1M[3], authLevel);
+    assert.equal(user1M[0], assetbookAddr);
+    assert.equal(user1M[1], authLevel);
 
-    uid = "A500000002"; assetCtAddr = addrAssetBook2; extOwnedAddr = AssetOwner2; authLevel = 5;
+    uid = "A500000002"; assetbookAddr = addrAssetBook2; authLevel = 5;
     await instRegistry.methods.addUser(
-      uid, assetCtAddr, extOwnedAddr, authLevel)
+      uid, assetbookAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    let user2M = await instRegistry.methods.getUser(uid).call();
+    let user2M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('\nuser2M', user2M);
-    assert.equal(user2M[0], uid);
-    assert.equal(user2M[1], assetCtAddr);
-    assert.equal(user2M[2], extOwnedAddr);
-    assert.equal(user2M[3], authLevel);
+    assert.equal(user2M[0], assetbookAddr);
+    assert.equal(user2M[1], authLevel);
 
 
     //----------------==
@@ -845,7 +841,7 @@ describe('Tests on HCAT721', () => {
 
       error = true;
     } catch (err) {
-      console.log('[Success] STO Compliance for balance of assetCtrt1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
+      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
       assert(err);
     }
     if (error) {assert(false);}
@@ -861,7 +857,7 @@ describe('Tests on HCAT721', () => {
 
       error = true;
     } catch (err) {
-      console.log('[Success] STO Compliance for buyAmount of assetCtrt1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 100));
+      console.log('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 100));
       assert(err);
     }
     if (error) {assert(false);}
@@ -919,7 +915,7 @@ describe('Tests on HCAT721', () => {
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed: timeCurrent should be > TimeTokenUnlock', timeCurrent, TimeTokenUnlock, err.toString().substr(0, 190));
+      console.log('[Success] sending tokenId 1 from assetbook1 to assetbook2 failed: timeCurrent should be > TimeTokenUnlock', timeCurrent, TimeTokenUnlock, err.toString().substr(0, 190));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1184,7 +1180,7 @@ describe('Tests on HCAT721', () => {
 
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetCtrt2 to assetCtrt1 failed: timeCurrent should be < TimeTokenValid', timeCurrent, TimeTokenValid, 'err:', err.toString().substr(0, 150));
+      console.log('[Success] sending tokenId 1 from assetbook2 to assetbook1 failed: timeCurrent should be < TimeTokenValid', timeCurrent, TimeTokenValid, 'err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
