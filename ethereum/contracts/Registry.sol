@@ -195,12 +195,13 @@ authLevel & STO investor classification on purchase amount and holding balance r
 
         uint authLevel = users[uid].authLevel;
         require(buyAmount > 0, "buyAmount shoube be > 0");
-        if(fundingType == 1){ //public crowdfunding
+        if(fundingType == 1){// 1 PublicOffering
             require(restrictions[authLevel].maxBuyAmountPublic >= buyAmount, "buyAmount should be <= maxBuyAmountPublic");
-            require(restrictions[authLevel].maxBalancePublic >= balance.add(buyAmount), "balance should be <= maxBalancePublic");
-        } else if(fundingType == 2) { //private placement
+            require(restrictions[authLevel].maxBalancePublic >= balance.add(buyAmount), "balance + buyAmount should be <= maxBalancePublic");
+
+        } else if(fundingType == 2){// "PrivatePlacement"
             require(restrictions[authLevel].maxBuyAmountPrivate >= buyAmount, "buyAmount should be <= maxBuyAmountPrivate");
-            require(restrictions[authLevel].maxBalancePrivate >= balance.add(buyAmount), "balance should be <= maxBalancePrivate");
+            require(restrictions[authLevel].maxBalancePrivate >= balance.add(buyAmount), "balance + buyAmount should be <= maxBalancePrivate");
         } else {
             revert("fundingType value is out of range");
         }
@@ -255,11 +256,11 @@ authLevel & STO investor classification on purchase amount and holding balance r
 }
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering(P.O.) and private placement(P.P.), for each symbol; currency = NTD
-0 Natural person: 0, 0; UnLTD, UnLTD;
-1 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
-2 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
-3 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
-4 Natural person of Professional investor: 10k, 10k; UnLTD, UnLTD;
+1 Natural person: 0, 0; UnLTD, UnLTD;
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+5 Natural person of Professional investor: 10k, 10k; UnLTD, UnLTD;
 */
 
 //--------------------==

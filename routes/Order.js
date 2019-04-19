@@ -301,35 +301,139 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
   console.log('------------------------==\n@Order/CheckOrderCompliance');
   var mysqlPoolQuery = req.pool;
   console.log('req.query', req.query, 'req.body', req.body);
-  let symbol, price, uid;
+  let symbol, uid, authLevel, fundingType, buyAmount, isComplied, reason = '', errInput;
   if (req.body.symbol) {
       symbol = req.body.symbol;
-      price = req.body.price;
       uid = req.body.userIdentity;
+      authLevel = req.body.authLevel;
+      buyAmount = Number(req.body.buyAmount);
+      fundingType = req.body.fundingType;
   } else {
       symbol = req.query.symbol;
-      price = req.query.price;
       uid = req.query.userIdentity;
+      authLevel = req.query.authLevel;
+      buyAmount = Number(req.query.buyAmount);
+      fundingType = req.query.fundingType;
   }
+  console.log('symbol', symbol, 'uid', uid, 'authLevel', authLevel, 'buyAmount', buyAmount, 'fundingType', fundingType);
+
+  var fundingTypeArray = ["PublicOffering", "PrivatePlacement", "1", "2"];
+
   var qur = mysqlPoolQuery(
-      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'completed', 'waiting'], function (err, result) {
+      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'completed', 'waiting'], function (err, orderBalance) {
           if (err) {
               console.log(err);
               res.status(400);
-              res.json({
-                  "message": "[Error] Failure :\n" + err
-              });
+              res.json({"message": "[Error] Failure :" + err });
+          } else if(!Number.isInteger(Number(authLevel))){ 
+            reason = 'authLevel is not an integer';
+            errInput = authLevel;
+            console.log(reason, authLevel);
+            res.status(400);
+            res.json({"message": "[Error input]:" +reason +'...'+ errInput});
+
+          } else if(authLevel < 1 || authLevel > 5){ 
+            reason = 'authLevel is out of range';
+            errInput = authLevel;
+            console.log(reason, authLevel);
+            res.status(400);
+            res.json({"message": "[Error input]:" +reason +'...'+ errInput});
+
+          } else if(isNaN(buyAmount)){
+            reason = 'buyAmount should not be NaN';
+            errInput = buyAmount;
+            res.status(400);
+            console.log(reason, authLevel);
+            res.json({"message": "[Error input]:" +reason +'...'+ errInput});
+
+          } else if(!fundingTypeArray.includes(fundingType)){
+            reason = 'fundingType is not valid';
+            errInput = fundingType;
+            console.log(reason, authLevel);
+            res.status(400);
+            res.json({"message": "[Error input]:" +reason +'...'+ errInput});
+
           } else {
               res.status(200);
-              console.log('result', result);
+              console.log('\norderBalance', orderBalance[0].total);
+              isComplied = doesPassCompliance(authLevel, orderBalance[0].total, buyAmount, fundingType);
               res.json({
                   "message": "[Success] Success",
-                  "result": result
+                  "orderBalance": orderBalance[0].total,
+                  "isComplied": isComplied
               });
           }
       });
 });
 
+/*
+authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
+1 Natural person: 0, 0; UnLTD, UnLTD;
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
+*/
+
+
+function PersonClassified(maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) {
+  this.maxBuyAmountPublic = maxBuyAmountPublic;
+  this.maxBalancePublic = maxBalancePublic;
+  this.maxBuyAmountPrivate = maxBuyAmountPrivate;
+  this.maxBalancePrivate = maxBalancePrivate;
+}
+//maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate
+let NaturalPerson = new PersonClassified(0, 0, Infinity, Infinity);
+let ProfInstitutionalInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let HighNetworthInvestmentLegalPerson = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let LegalPersonOrFundOfProfInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let NaturalPersonOfProfInvestor = new PersonClassified(100000, 100000, Infinity, Infinity);
+
+const COMPLIANCE_LEVELS = {
+  "currencyType": "NTD",
+  "1": NaturalPerson,
+  "2": ProfInstitutionalInvestor,
+  "3": HighNetworthInvestmentLegalPerson,
+  "4": LegalPersonOrFundOfProfInvestor,
+  "5": NaturalPersonOfProfInvestor
+};
+
+const doesPassCompliance = (authLevel, balance, buyAmount, fundingType) => {
+  console.log('authLevel', authLevel, typeof authLevel, 'balance', balance, typeof balance, 'buyAmount', buyAmount, typeof buyAmount, 'fundingType', fundingType, typeof fundingType);
+
+  if(fundingType === "PublicOffering" || fundingType === '1'){
+    console.log("inside fundingType == PublicOffering\n", COMPLIANCE_LEVELS[authLevel]);
+    if(buyAmount > COMPLIANCE_LEVELS[authLevel].maxBuyAmountPublic) {     
+      console.log("buyAmount should be <= maxBuyAmountPublic;", buyAmount, COMPLIANCE_LEVELS[authLevel].maxBuyAmountPublic);
+      return false;
+    
+    } else if( balance + buyAmount > COMPLIANCE_LEVELS[authLevel].maxBalancePublic){ 
+      console.log("balance + buyAmount should be <= maxBalancePublic;", balance, buyAmount, COMPLIANCE_LEVELS[authLevel].maxBalancePublic);
+      return false;
+    } else {
+      console.log("passing both buyAmount and new balance regulation in the Public Offering case");
+      return true;
+    }
+
+  } else if(fundingType === "PrivatePlacement" || fundingType === '2'){
+    console.log("inside fundingType == PrivatePlacement\n", COMPLIANCE_LEVELS[authLevel]);
+    if(buyAmount > COMPLIANCE_LEVELS[authLevel].maxBuyAmountPrivate) {
+      console.log("buyAmount should be <= maxBuyAmountPrivate;", buyAmount, COMPLIANCE_LEVELS[authLevel].maxBuyAmountPrivate);
+      return false;
+
+    } else if( balance + buyAmount > COMPLIANCE_LEVELS[authLevel].maxBalancePrivate){
+      console.log("balance + buyAmount should be <= maxBalancePrivate;", balance, buyAmount, COMPLIANCE_LEVELS[authLevel].maxBalancePrivate);
+      return false;
+    } else {
+      console.log("passing both buyAmount and new balance regulation in the Private Placement case");
+      return true;
+    }
+  } else {
+    console.log('fundingType is not valid', fundingType);
+    return false;
+  }
+
+}
 
 //通過User ID獲取Completed Order
 router.get('/GetCompletedOrdersByUserIdentityNumber',function(req, res, next) {
