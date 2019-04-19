@@ -236,13 +236,13 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint idxStartReq; uint idxEndReq;
         if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
           //idxStartReq = 0;
-          idxEndReq = amount.sub(1);
+            idxEndReq = amount.sub(1);
         } else if (idxStart > idxEnd) {
           //idxStartReq = 0;
-          idxEndReq = amount.sub(1);
+            idxEndReq = amount.sub(1);
         } else {
-          idxStartReq = idxEnd.add(1);
-          idxEndReq = idxEnd.add(amount);
+            idxStartReq = idxEnd.add(1);
+            idxEndReq = idxEnd.add(amount);
         }
 
         for(uint i = idxStartReq; i <= idxEndReq; i = i.add(1)) {

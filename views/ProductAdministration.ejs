@@ -744,6 +744,9 @@
                     <%= data[i].p_fundmanager  %>
                 </td>
                 <td>
+                    <%= data[i].p_fundingKind  %>
+                </td>
+                <td>
                     <%= data[i].p_state  %>
                 </td>
                 <td>
@@ -776,7 +779,7 @@
                 <td>
                     <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" class="btn btn-success"
                         name="release" value="release"
-                        onclick="Release('<%= data[i].p_SYMBOL  %>','ONM',this.id);">發放代幣</button>
+                        onclick="Release('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingKind  %>','ONM',this.id);">發放代幣</button>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
@@ -1504,7 +1507,7 @@
         }
 
         // 發放代幣
-        function Release(nftSymbol, State, buttonID) {
+        function Release(nftSymbol, price, fundingType, State, buttonID) {
             console.log(nftSymbol);
             console.log(State);
             console.log(buttonID);
@@ -1517,6 +1520,9 @@
                 console.log(result);
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
+                let crowdFundingCtrtAddr = result.result.sc_crowdsaleaddress;
+                let tokenControllerCtrtAddr = result.result.sc_erc721Controller;
+
 
                 $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/investors", async function (result) {
                     console.log(result);
@@ -1534,7 +1540,9 @@
                         await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mint", {
                             assetBookAddr: assetBookAddrs[i],
                             erc721address: erc721address,
-                            amount: amounts[i]
+                            amount: amounts[i],
+                            price: price,
+                            fundingType: fundingType
                         }, async function (result) {
                             console.log(result);
                             if (result.result.status == true) {
@@ -1546,23 +1554,32 @@
                     }
                     if (count == assetBookAddrs.length) {
                         $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
-                            HCAT721TokenContractAddr: HCAT721TokenContractAddr,
-                            heliumContractAddr: heliumContractAddr
+                            erc721address: erc721address
                         }, function (result) {
 
-                            /**@todo 寫入productManager*/
-
-                            console.log(result);
+                            console.log("income:"+result);
+                            console.log("income:"+result.deployResult);
                             if (result.status == true) {
-                                // 將產品狀態設置為FundingComplete
-                                $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
-                                    tokenState: State,
-                                    tokenSymbol: nftSymbol
+                                $.post("http://localhost:3030/Contracts/productManagerContract/" + nftSymbol, {
+                                    erc721address: erc721address,
+                                    crowdFundingCtrtAddr: crowdFundingCtrtAddr,
+                                    tokenControllerCtrtAddr: tokenControllerCtrtAddr,
+                                    incomeManagementCtrtAddr: result.deployResult.contractAddress
                                 }, function (result) {
+
                                     console.log(result);
-                                    // 設置好後重新整理
-                                    location.reload();
-                                })
+                                    if (result.result.status == true) {
+                                        // 將產品狀態設置為FundingComplete
+                                        $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                                            tokenState: State,
+                                            tokenSymbol: nftSymbol
+                                        }, function (result) {
+                                            console.log(result);
+                                            // 設置好後重新整理
+                                            //location.reload();
+                                        })
+                                    }
+                                });
                             }
                         });
                     }

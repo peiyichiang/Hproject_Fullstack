@@ -29,9 +29,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/productManager.json');
 
 
-const heliumContractAddr = "0x052746cA215b59e0Fb11B17e7513dC0cB591DEb1";
-const registryContractAddr = "0x5A868cAC916c0A70bE2f64f7EDca41251D1D5788";
-const productManagerContractAddr = "0x6947100D072eEC62173ad963150d9F2526969e76";
+const heliumContractAddr = "0x2CfC09D1ADc81F6BC3b4F9ada69890daB3bB3b1E";
+const registryContractAddr = "0x68f4321C8705874E42063138c83E60BB1Bf77D70";
+const productManagerContractAddr = "0x6eAA0BA55aD221cF11509dc11a2D7a3a57DFB90a";
 
 /**time server*/
 timer.getTime().then(function (time) {
@@ -503,6 +503,7 @@ router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res
     });
 
 });
+
 /**get status（開發用） */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
@@ -685,7 +686,7 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log(nftSymbol);
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
         //console.log(result);
         if (err) {
             //console.log(err);
@@ -708,6 +709,11 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
     let contractAddr = req.body.erc721address;
     let to = req.body.assetBookAddr;
     let amount = req.body.amount;
+    let fundingType = req.body.fundingType;
+    let price = req.body.price;
+
+    
+    
     let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
     let currentTime;
     await timer.getTime().then(function (time) {
@@ -738,14 +744,13 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
     const web3deploy = new Web3(provider);
 
     let nftSymbol = req.params.nftSymbol;
-    let HCAT721TokenContractAddr = req.body.HCAT721TokenContractAddr;
-    let heliumContractAddr = req.body.heliumContractAddr;
+    let erc721address = req.body.erc721address;
 
     const incomeManager = new web3deploy.eth.Contract(incomeManagerContract.abi);
 
     incomeManager.deploy({
         data: incomeManagerContract.bytecode,
-        arguments: [HCAT721TokenContractAddr, heliumContractAddr, management]
+        arguments: [erc721address, heliumContractAddr, management]
     })
         .send({
             from: backendAddr,
@@ -813,19 +818,22 @@ router.post('/productManagerContract', function (req, res, next) {
         })
 });
 
+/**把四個合約綁定在product manager */
 router.post('/productManagerContract/:nftSymbol', async function (req, res, next) {
     let contractAddr = productManagerContractAddr;
+    let nftSymbol = req.params.nftSymbol;
+    nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
     let crowdFundingCtrtAddr = req.body.crowdFundingCtrtAddr;
     let tokenControllerCtrtAddr = req.body.tokenControllerCtrtAddr;
-    let tokenCtrtAddr = req.body.tokenCtrtAddr;
+    let erc721address = req.body.erc721address;
     let incomeManagementCtrtAddr = req.body.incomeManagementCtrtAddr;
+    console.log(nftSymbolBytes32);
+
 
     let productManager = new web3.eth.Contract(productManagerContract.abi, contractAddr);
-    console.log(to);
-    console.log(amount);
 
 
-    let encodedData = productManager.methods.mintSerialNFT(crowdFundingCtrtAddr, tokenControllerCtrtAddr, tokenCtrtAddr, incomeManagementCtrtAddr).encodeABI();
+    let encodedData = productManager.methods.addNewCtrtGroup(nftSymbolBytes32, crowdFundingCtrtAddr, tokenControllerCtrtAddr, erc721address, incomeManagementCtrtAddr).encodeABI();
 
     let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
 
@@ -833,6 +841,22 @@ router.post('/productManagerContract/:nftSymbol', async function (req, res, next
         result: result
     })
 });
+
+/*get綁定的組合（開發用） */
+router.get('/productManagerContract/:nftSymbol', async function (req, res, next) {
+    let nftSymbol = req.params.nftSymbol;
+    nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
+    console.log(nftSymbolBytes32);
+
+    const productManager = new web3.eth.Contract(productManagerContract.abi, productManagerContractAddr);
+
+    let result = await productManager.methods.getCtrtGroup(nftSymbolBytes32).call({ from: backendAddr });
+
+    res.send({
+        result: result
+    })
+});
+
 
 
 /*sign rawtx*/
