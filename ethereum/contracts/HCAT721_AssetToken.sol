@@ -22,8 +22,8 @@ contract SupportsInterface is ERC165ITF {
 
 //RegistryITF(addrRegistry).isAddrApproved(_to);
 interface RegistryITF {
-    function isAddrApproved(address assetCtrtAddr) external view returns (bool);
-    function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
+    function isAssetbookApproved(address assetbookAddr) external view returns (bool);
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
 }
 
 //TokenControllerITF(addrTokenController).isAdmin(msg.sender);
@@ -212,12 +212,18 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
     }
 
+    function isAdminHCAT721() external view returns(bool) {
+        return TokenControllerITF(addrTokenController).isAdmin(msg.sender);
+    }
+    //Legal Compliance, also block address(0)
     //fundingType: 1 public crowdfunding, 2 private placement
+    //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
+    function isFundingApprovedHCAT721(address _to, uint amount, uint price, uint fundingType) external view returns(bool) {
+        return RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+    }
     function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public {
         require(TokenControllerITF(addrTokenController).isAdmin(msg.sender), 'only admin can mint tokens');
 
-        //Legal Compliance, also block address(0)
-        //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
         require(RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
 
         if (_to.isContract()) {//also checks for none zero address
@@ -271,9 +277,9 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
         require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
-        require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+        require(RegistryITF(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
 
-        require(RegistryITF(addrRegistry).isAddrApproved(_from), "_from is not in compliance");
+        require(RegistryITF(addrRegistry).isAssetbookApproved(_from), "_from is not in compliance");
 
         _safeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
@@ -370,7 +376,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     }
     event TokenApprove(address indexed tokenOwner, address indexed operator, uint amount);
 
-    function() external payable { revert("should not send any ether directly"); }
+    //function() external payable { revert("should not send any ether directly"); }
 }
 
 //--------------------==

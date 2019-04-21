@@ -133,11 +133,11 @@ contract CrowdFunding is Ownable {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, stateDescription);
     }
 
-    // to mark the current crowdfunding active to receive funding
-    function makeFundingActive(uint serverTime) external onlyAdmin {
-        isActive = true;
-        emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "makeFundingActive");
-    }
+    // // to mark the current crowdfunding active to receive funding
+    // function makeFundingActive(uint serverTime) external onlyAdmin {
+    //     isActive = true;
+    //     emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "makeFundingActive");
+    // }
 
     // to pause current crowdfunding process
     function pauseFunding(uint serverTime) external onlyAdmin {
@@ -186,6 +186,10 @@ contract CrowdFunding is Ownable {
         //require(RegistryITF(addrRegistry).isFundingApproved(_assetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
         //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType)
 
+        if(serverTime >= CFSD2 && fundingState == FundingState.initial){
+            fundingState = FundingState.funding;
+        }
+
         if (_assetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
                 msg.sender, msg.sender, 1, "");// assume tokenId = 1;
@@ -196,7 +200,6 @@ contract CrowdFunding is Ownable {
 
         require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
         require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be less than maxTokenQtyForEachInvestmentFund");
-        require(isActive, "funding is not active");
         require(!isAborted, "crowdFunding has been aborted");
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "insufficient available token quantity");
