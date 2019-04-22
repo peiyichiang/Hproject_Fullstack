@@ -1,7 +1,7 @@
 const web3 = require('./web3.js');
 const Tx = require('ethereumjs-tx');
 
-const IncomeManagement = require('../../ethereum/contracts/build/IncomeManagement.json');
+const IncomeManagement = require('../../ethereum/contracts/build/IncomeManagerCtrt.json');
 const CrowdFunding = require('../../ethereum/contracts/build/CrowdFunding.json');
 const TokenController = require('../../ethereum/contracts/build/TokenController.json');
 

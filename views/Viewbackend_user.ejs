@@ -220,7 +220,6 @@
                     console.log("registering...");
                     $.post("http://localhost:3030/Contracts/registryContract/users/" + ID, {
                         assetBookAddress: result.contractAddress,
-                        ethAddr: ethAddr,
                         email: email
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);

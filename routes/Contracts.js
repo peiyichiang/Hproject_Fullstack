@@ -29,9 +29,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/productManager.json');
 
 
-const heliumContractAddr = "0x2CfC09D1ADc81F6BC3b4F9ada69890daB3bB3b1E";
-const registryContractAddr = "0x68f4321C8705874E42063138c83E60BB1Bf77D70";
-const productManagerContractAddr = "0x6eAA0BA55aD221cF11509dc11a2D7a3a57DFB90a";
+const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
+const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
+const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
 
 /**time server*/
 timer.getTime().then(function (time) {
@@ -124,7 +124,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
 
     const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
 
-    let encodedData = registry.methods.addUser(userID, assetBookAddr, ethAddr, 1).encodeABI();
+    let encodedData = registry.methods.addUser(userID, assetBookAddr, 1).encodeABI();
 
     let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
     //console.log(contractResult);
@@ -283,7 +283,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 201904200000;
+    let currentTime = 2019052100000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -429,7 +429,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
 router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 201904200000;
+    let currentTime = 2019052100000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -469,7 +469,7 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
 router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 201904200000;
+    let currentTime = 2019052100000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -546,7 +546,7 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
 router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 201904200000;
+    let currentTime = 2019052100000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
