@@ -6,6 +6,8 @@ const fs = require('fs');
 const mysql = require('../lib/mysql.js');
 const contract = require('../lib/contractAPI.js');
 
+require('dotenv').config()
+
 createServer()
 
 function createServer() {
