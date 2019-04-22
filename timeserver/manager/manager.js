@@ -3,6 +3,9 @@ const net = require("net");
 const path = require('path');
 const fs = require('fs');
 
+const mysql = require('../lib/mysql.js');
+const contract = require('../lib/contractAPI.js');
+
 createServer()
 
 function createServer() {
@@ -16,127 +19,81 @@ function createServer() {
         });
 
         c.on("end", () => {
-            console.log("");
+            print("");
         });
         c.pipe(c);
 
     });
 
-    server.on('error', function (e) {
-        if (e.code == 'EADDRINUSE') {
-            var clientSocket = new net.Socket();
-            clientSocket.on('error', function(e) {
-                if (e.code == 'ECONNREFUSED') {
-                    fs.unlinkSync('./manager.ipc');
-                    server.listen('./manager.ipc', function() {
-                        console.log('server recovered');
-                    });
-                }
-            });
-            clientSocket.connect({path: './manager.ipc'}, function() { 
-                console.log('Server running, giving up...');
-                process.exit();
-            });
-        }
+    server.on('error', (err) => {
+        throw err;
     });
-
-    if (os.platform() == 'win32') {
-        server.listen(path.join('\\\\?\\pipe', process.cwd(), 'manager'), () => {
-            console.log("server bound");
-        });
-    }
-    else {
-        server.listen("./manager.ipc", () => {
-            console.log("server bound");
-        });
-    }
-    
-    process.on('SIGINT', function () {
-        console.log("關閉中");
-
-        if (os.platform() == 'win32') {
-            process.exit();
-        }
-        else {
-            fs.unlinkSync("./manager.ipc")
-            console.log("檔案刪除");
-            process.exit();
-        }
+    server.listen(7010, () => {
+        print(`server bound`);
     });
 }
 
 function sendTimeToCrowdfunding(data) {
-
-    if (os.platform() == 'win32') {
-        var client = net.createConnection(path.join('\\\\?\\pipe', process.cwd(), 'crowdfunding'));
-        client.on("error", err => {
-            console.log('crowdfunding 連結錯誤')
-        });
-    }
-    else {
-        var client = net.createConnection("./crowdfunding.ipc");
-        client.on("error", err => {
-            console.log('crowdfunding 連結錯誤')
-        });
-    }
-
-    client.write(data)
-    client.end()
+    mysql.getCrowdfundingContractAddress(function (result) {
+        if (result.length != 0) {
+            for (let i in result) {
+                if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
+                    contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString()).then(print)
+                }
+            }
+        }
+    })
 }
 
 function sendTimeToRent(data) {
-
-    if (os.platform() == 'win32') {
-        var client = net.createConnection(path.join('\\\\?\\pipe', process.cwd(), 'rent'));
-        client.on("error", err => {
-            console.log('rent 連結錯誤')
-        });
-    }
-    else {
-        var client = net.createConnection("./rent.ipc");
-        client.on("error", err => {
-            console.log('rent 連結錯誤')
-        });
-    }
-
-    client.write(data)
-    client.end()
+    mysql.getRentContractAddress(function (result) {
+        if (result.length != 0) {
+            for (let i in result) {
+                if (typeof result[i].sc_rentContractaddress !== 'undefined' && result[i].sc_rentContractaddress != null) {
+                    contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString()).then(print)
+                }
+            }
+        }
+    })
 }
 
 function sendTimeToOrder(data) {
-
-    if (os.platform() == 'win32') {
-        var client = net.createConnection(path.join('\\\\?\\pipe', process.cwd(), 'order'));
-        client.on("error", err => {
-            console.log('order 連結錯誤')
-        });
-    }
-    else {
-        var client = net.createConnection("./order.ipc");
-        client.on("error", err => {
-            console.log('order 連結錯誤')
-        });
-    }
-
-    client.write(data)
-    client.end()
+    mysql.getOrderDate(function (result) {
+        if (result.length != 0) {
+            for (let i in result) {
+                if (typeof result[i].o_purchaseDate !== 'undefined') {
+                    if (data.toString() >= result[i].o_purchaseDate.add3Day()) {
+                        mysql.setOrderExpired(result[i].o_id, function () {
+                            print(result[i].o_id, "已修改");
+                        })
+                    }
+                }
+            }
+        }
+    })
 }
 
 function sendTimeToERC721SPLC(data) {
+    mysql.getERC721ControllerContractAddress(function (result) {
+        if (result.length != 0) {
+            for (let i in result) {
+                if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
+                    contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString()).then(print)
+                }
+            }
+        }
+    })
+}
 
-    if (os.platform() == 'win32') {
-        var client = net.createConnection(path.join('\\\\?\\pipe', process.cwd(), 'erc721splc'));
-        client.on("error", err => {
-            console.log('erc721splc 連結錯誤')
-        });
-    }
-    else {
-        var client = net.createConnection("./erc721splc.ipc");
-        client.on("error", err => {
-            console.log('erc721splc 連結錯誤')
-        });
-    }
+Number.prototype.add3Day = function () {
+    let year = parseInt(this.toString().slice(0, 4));
+    let month = parseInt(this.toString().slice(4, 6));
+    let day = parseInt(this.toString().slice(6, 8));
+    let hour = parseInt(this.toString().slice(8, 10));
+    let minute = parseInt(this.toString().slice(10, 12));
+    return new Date(year, month - 1, day + 3, hour, minute).myFormat();
+}
 
-    client.write(data)
-    client.end()
+function print(s) {
+    console.log('[timeserver]' + s)
 }
