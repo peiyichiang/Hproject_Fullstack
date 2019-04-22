@@ -6,8 +6,6 @@ const fs = require('fs');
 const mysql = require('../lib/mysql.js');
 const contract = require('../lib/contractAPI.js');
 
-require('dotenv').config()
-
 createServer()
 
 function createServer() {
@@ -87,12 +85,13 @@ function sendTimeToERC721SPLC(data) {
     })
 }
 
-Number.prototype.add3Day = function () {
+Object.prototype.add3Day = function () {
     let year = parseInt(this.toString().slice(0, 4));
     let month = parseInt(this.toString().slice(4, 6));
     let day = parseInt(this.toString().slice(6, 8));
     let hour = parseInt(this.toString().slice(8, 10));
     let minute = parseInt(this.toString().slice(10, 12));
+    console.log(this.toString())
     return new Date(year, month - 1, day + 3, hour, minute).myFormat();
 }
 
