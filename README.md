@@ -64,8 +64,6 @@ yarn run testlive1 --chain C --func F
 C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 F = 0: testDeployedCtrt, 1: checking AssetBook1, 2: checking AssetBook2
 
-0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amountToMint), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)
-
 0: setupTest
 ```
 yarn run livechain --c 1 --f 0
@@ -76,37 +74,35 @@ yarn run livechain --c 1 --f 0
 yarn run livechain --c 1 --f 1
 ```
 
-2: showAccountAssetBooks
+2: showAccountnAssetBooks
 ```
 yarn run livechain --c 1 --f 2
 ```
 
-3: mintTokens(assetbookNum, amountToMint)
-```
-yarn run livechain --c 1 --f 4 -a assetbookNum, -b amountToMint
-yarn run livechain --c 1 --f 3 -a 2 -b 120
-```
-
-4: showAssetInfo(tokenId)
+3: showAssetInfo(tokenId)
 ```
 yarn run livechain --c 1 --f 3 -a tokenId
 ```
 
-5: sendAssetBeforeAllowed(),
+4: mintTokens(assetbookNum, amountToMint)
+```
+yarn run livechain --c 1 --f 4 -a assetbookNum, -b amountToMint
+```
+
+8: sendAssetBeforeAllowed(),
 ```
 yarn run livechain --c 1 --f 8
 ```
 
-6: setServerTime(newServerTime)
+9: setServerTime(newServerTime)
 ```
 yarn run livechain --c 1 --f 9 -a serverTime
 ```
 
-7: transferTokens(assetbookNum, amount)
+10: transferTokens(assetbookNum, amount)
 ```
 yarn run livechain --c 1 --f 10 -a 2 -b 1
 ```
-
 
 ### 8. Run the app
 

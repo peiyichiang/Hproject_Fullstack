@@ -9,26 +9,25 @@ contract Registry is Ownable {
     using AddressUtils for address;
 
     /**@dev 註冊相關event */
-    event SetNewUser(string uid, address assetbookAddr, uint authLevel, uint timeCurrent);
-    event SetOldUser(string uid, address assetbookAddr, uint authLevel, uint timeCurrent);
+    event SetNewUser(string uid, address assetCtrtAddr, address extOwnedAddr, uint authLevel, uint timeCurrent);
+    event SetOldUser(string uid, address assetCtrtAddr, address extOwnedAddr, uint authLevel, uint timeCurrent);
     event SetAuthLevel(string uid, uint authLevel, uint timeCurrent);
-    event SetAssetbookAddr(string uid, address assetbookAddr, uint timeCurrent);
-    event SetExtOwnedAddr(string uid, address assetbookAddr, uint authLevel, uint timeCurrent);
+    event SetAssetCtrtAddr(string uid, address assetCtrtAddr, uint timeCurrent);
+    event SetExtOwnedAddr(string uid, address assetCtrtAddr, address extOwnedAddr, uint authLevel, uint timeCurrent);
 
     event SetRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate);//amount in fiat
 
     /**@dev 資料結構 */
-    //extOwnedAddr ... get it from Assetbook
     struct User{
-        string uid;
-        uint authLevel;//different level of authorization. 0 means not authorized at all. Starting from 1
-        //mapping (uint => bool) authLevel;
+        address assetCtrtAddr; //user assetContract address
+        address extOwnedAddr; //user Externally Owned Address(EOA);
+        uint authLevel; //0=>revoked, 1, 2, 3,...=> different level of authorization
     }
-    mapping (address => User) public assetbookToUser;//to find user from its asset contract address. This is used in Legal Compliance check
+    mapping (string => User) users;//string: 2 letters for country + 身分證字號, SSN, SIN
+    uint public userCindex;//count of all users and the index of each users
 
     //Legal/Regulation Compliance
-    mapping (string => address) uidToAssetbook;//string: 2 letters for country + 身分證字號, SSN, SIN
-    uint public userCindex;//count of all users and the index of each users
+    mapping (address => string) public assetCtrtAddrToUid;//to find user id from its asset contract address. This is used in Legal Compliance check
 
     mapping (uint => Restriction) public restrictions;//uint classNum
     //restrictions[classification] .mpaPF .mhbPF .mpaPP .mhbPP
@@ -42,7 +41,7 @@ contract Registry is Ownable {
     }
     string public currencyType;
     uint public uintMax = 2**256 - 1;
-    bool public isAfterDeployment;
+
 
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
@@ -53,13 +52,13 @@ contract Registry is Ownable {
         admin = management[0];
 
         currencyType = "NTD";
+        deployer = msg.sender;
         //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate); 
         setRestrictions(1, 0, 0, uintMax, uintMax);
         setRestrictions(2, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(3, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(4, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(5, 100000, 100000, uintMax, uintMax);
-        isAfterDeployment = true;
     }
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
@@ -71,16 +70,20 @@ authLevel & STO investor classification on purchase amount and holding balance r
 */
 
     /**@dev check uid value */
-    modifier ckUidLength(string memory uid) {
+    modifier ckUid(string memory uid) {
         uint uidLength = bytes(uid).length;
         require(uidLength > 0, "uid cannot be zero length");
         require(uidLength <= 32, "uid cannot be longer than 32");//compatible to bytes32 format, too
         _;
     }
     /**@dev check asset contract address */
-    modifier ckAssetbookValid(address assetbookAddr) {
-        require(assetbookAddr != address(0), "assetbookAddr should not be zero");
-        require(assetbookAddr.isContract(), "assetbookAddr should contain contract code");
+    modifier ckAssetCtrtAddr(address assetCtrtAddr) {
+        require(assetCtrtAddr != address(0), "assetCtrtAddr should not be zero");
+        _;
+    }
+    /**@dev check EOA address */
+    modifier ckExtOwnedAddr(address _extOwnedAddr) {
+        require(_extOwnedAddr != address(0), "extOwnedAddr should not be zero");
         _;
     }
     /**@dev check time */
@@ -88,116 +91,125 @@ authLevel & STO investor classification on purchase amount and holding balance r
         require(timeCurrent > 201902010000, "timeCurrent should be greater than 201902010000");
         _;
     }
-
-    /**@dev check if uid exists by checking its user's information */
-    modifier uidToAssetbookExists(string memory uid) {
-        require(uidToAssetbook[uid] != address(0), "user does not exist: assetbookAddr is empty");
+    /**@dev check address value not zero */
+    modifier ckAddr(address addr) {
+        require(addr != address(0), "addr should not be zero");
         _;
     }
 
-    /**@dev add user with his user Id(uid), asset contract address(assetbookAddr) */
-    function addUser(string calldata uid, address assetbookAddr, uint authLevel) external
-        onlyAdmin ckUidLength(uid) ckAssetbookValid(assetbookAddr) {
+    /**@dev check if uid exists by checking its user's information */
+    modifier uidExists(string memory uid) {
+        require(users[uid].assetCtrtAddr != address(0), "user does not exist: assetCtrtAddr is empty");
+        require(users[uid].extOwnedAddr != address(0), "user does not exist: extOwnedAddr is empty");
+        _;
+    }
 
-        require(uidToAssetbook[uid] == address(0), "user already exists: assetbookAddr not empty");
+    /**@dev add user with his user Id(uid), asset contract address(assetCtrtAddr), external Address(extOwnedAddr) */
+    function addUser(string calldata uid, address assetCtrtAddr, address extOwnedAddr, uint authLevel) external
+        onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) ckExtOwnedAddr(extOwnedAddr) {
+
+        require(users[uid].assetCtrtAddr == address(0), "user already exists: assetCtrtAddr not empty");
+        require(users[uid].extOwnedAddr == address(0), "user already exists: extOwnedAddr not empty");
         userCindex = userCindex.add(1);
 
-        assetbookToUser[assetbookAddr].uid = uid;
-        assetbookToUser[assetbookAddr].authLevel = authLevel;
-        //assetbookToUser[assetbookAddr].authLevel[1] = true;
+        users[uid].assetCtrtAddr = assetCtrtAddr;
+        users[uid].extOwnedAddr = extOwnedAddr;
+        users[uid].authLevel = authLevel;
 
-        uidToAssetbook[uid] = assetbookAddr;
-        emit SetNewUser(uid, assetbookAddr, 0, now);
+        assetCtrtAddrToUid[assetCtrtAddr] = uid;
+        emit SetNewUser(uid, assetCtrtAddr, extOwnedAddr, 0, now);
     }
 
-    /**@dev set existing user’s information: this uid, assetbookAddr, authLevel */
-    function setUser(string calldata uid, address assetbookAddr, uint authLevel) 
-        external onlyAdmin ckUidLength(uid) ckAssetbookValid(assetbookAddr) uidToAssetbookExists(uid) {
+    /**@dev set existing user’s information: this uid, assetCtrtAddr, extOwnedAddr, authLevel */
+    function setUser(
+        string calldata uid, address assetCtrtAddr, address extOwnedAddr,
+        uint authLevel)
+        external onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) ckExtOwnedAddr(extOwnedAddr) uidExists(uid) {
 
-        uidToAssetbook[uid] = assetbookAddr;
-        assetbookToUser[assetbookAddr].uid = uid;
-        assetbookToUser[assetbookAddr].authLevel = authLevel;
-        emit SetOldUser(uid, assetbookAddr, authLevel, now);
+        assetCtrtAddrToUid[users[uid].assetCtrtAddr] = "";
+        users[uid].assetCtrtAddr = assetCtrtAddr;
+        users[uid].extOwnedAddr = extOwnedAddr;
+        users[uid].authLevel = authLevel;
+
+        assetCtrtAddrToUid[assetCtrtAddr] = uid;
+        emit SetOldUser(uid, assetCtrtAddr, extOwnedAddr, authLevel, now);
     }
 
     /**@dev get user’s information via user’s Id or uid*/
-    function getUserFromUid(string memory uid) public view ckUidLength(uid) returns (address assetbookAddr, uint authLevel) {
-        assetbookAddr = uidToAssetbook[uid];
-        authLevel = assetbookToUser[assetbookAddr].authLevel;
+    function getUser(string memory uid) public view ckUid(uid) returns (
+        string memory uid_, address assetCtrtAddr, address extOwnedAddr, uint authLevel) {
+          uid_ = uid;
+        return(uid_, users[uid].assetCtrtAddr, users[uid].extOwnedAddr, users[uid].authLevel);
     }
-    /**@dev get user’s information via user’s Id or uid*/
-    function getUserFromAssetbook(address assetbookAddr) public view ckAssetbookValid(assetbookAddr) returns (string memory uid, uint authLevel) {
-        uid = assetbookToUser[assetbookAddr].uid;
-        authLevel = assetbookToUser[assetbookAddr].authLevel;
+
+    /**@dev set user’s assetCtrtAddr */
+    function setAssetCtrtAddr(string calldata uid, address assetCtrtAddr) external
+    onlyAdmin ckUid(uid) ckAssetCtrtAddr(assetCtrtAddr) uidExists(uid) {
+
+        assetCtrtAddrToUid[users[uid].assetCtrtAddr] = "";
+        assetCtrtAddrToUid[assetCtrtAddr] = uid;
+        users[uid].assetCtrtAddr = assetCtrtAddr;
+        emit SetAssetCtrtAddr(uid, assetCtrtAddr, now);
+    }
+
+    /**@dev set user’s EOA Ethereum externally owned address*/
+    function setExtOwnedAddr(string calldata uid, address extOwnedAddr) external
+    onlyAdmin ckUid(uid) ckExtOwnedAddr(extOwnedAddr) uidExists(uid) {
+        users[uid].extOwnedAddr = extOwnedAddr;
+        emit SetExtOwnedAddr(uid, users[uid].assetCtrtAddr, extOwnedAddr, users[uid].authLevel, now);
     }
 
     /**@dev set user’s authLevel */
     function setUserAuthLevel(string calldata uid, uint authLevel) external
-    onlyAdmin ckUidLength(uid) uidToAssetbookExists(uid) {
-        assetbookToUser[uidToAssetbook[uid]].authLevel = authLevel;
+    onlyAdmin ckUid(uid) uidExists(uid) {
+        users[uid].authLevel = authLevel;
+    }
+
+    /**@dev get uid from user’s asset contract address */
+    function getUidFromAssetCtrtAddr(address assetCtrtAddr) public view 
+        ckAssetCtrtAddr(assetCtrtAddr) returns (string memory uid) {
+        uid = assetCtrtAddrToUid[assetCtrtAddr];
     }
 
 
 
     /**@dev check if the user with uid is approved */
-    function isUidApproved(string memory uid) public view 
-        ckUidLength(uid) uidToAssetbookExists(uid) returns (bool) {
-        return (assetbookToUser[uidToAssetbook[uid]].authLevel > 0);
+    function isUserApproved(string memory uid) public view 
+      ckUid(uid) uidExists(uid) returns (bool) {
+        return (users[uid].authLevel > 0);
     }
 
     /**@dev check if asset contract address is approved, by finding its uid then checking the uid’s info */
-    function isAssetbookApproved(address assetbookAddr) public view returns (bool) {
-        return assetbookToUser[assetbookAddr].authLevel > 0;
+    function isAddrApproved(address assetCtrtAddr) public view returns (bool, string memory uid) {
+        require(assetCtrtAddr.isContract(), "assetCtrtAddr should contain contract code");
+        //require(assetCtrtAddr != address(0), "assetCtrtAddr should not be zero");
+        uid = assetCtrtAddrToUid[assetCtrtAddr];
+        return (isUserApproved(uid), uid);
     }
 
-    function isFundingApprovedDebug(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) 
-      external view returns (uint authLevel, uint, uint, bool, uint, uint balanceBuyAmount, bool) {
-      //amount and balance are in token qty* price
-        authLevel = assetbookToUser[assetbookAddr].authLevel;
-        balanceBuyAmount = balance.add(buyAmount);
-
-        if(fundingType == 1){// 1 PublicOffering
-            uint maxBuyAmountPublic = restrictions[authLevel].maxBuyAmountPublic;
-            uint maxBalancePublic = restrictions[authLevel].maxBalancePublic;
-
-            return(authLevel, fundingType, maxBuyAmountPublic, maxBuyAmountPublic >= buyAmount, maxBalancePublic, balanceBuyAmount, maxBalancePublic >= balanceBuyAmount);
-
-        } else if(fundingType == 2){// "PrivatePlacement"
-            uint maxBuyAmountPrivate = restrictions[authLevel].maxBuyAmountPrivate;
-            uint maxBalancePrivate = restrictions[authLevel].maxBalancePrivate;
-
-            return(authLevel, fundingType, maxBuyAmountPrivate, maxBuyAmountPrivate >= buyAmount, maxBalancePrivate, balanceBuyAmount, maxBalancePrivate >= balanceBuyAmount);
-
-        } else {
-            return(authLevel, fundingType, 1618, false, 3398, balanceBuyAmount, false);
-        }
-    }
 
     /**@dev check if asset contract address & buyAmount & balance are approved, by finding its uid then checking the uid’s info */
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool) {
-      //amount and balance are in token qty* price
-        uint authLevel = assetbookToUser[assetbookAddr].authLevel;
-        uint balanceBuyAmount = balance.add(buyAmount);
+    function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool) {//amount and balance are in token qty* price
 
+        (bool boolAddrApproved, string memory uid) = isAddrApproved(assetCtrtAddr);
+
+        uint authLevel = users[uid].authLevel;
         require(buyAmount > 0, "buyAmount shoube be > 0");
         if(fundingType == 1){// 1 PublicOffering
             require(restrictions[authLevel].maxBuyAmountPublic >= buyAmount, "buyAmount should be <= maxBuyAmountPublic");
-            require(restrictions[authLevel].maxBalancePublic >= balanceBuyAmount, "balance + buyAmount should be <= maxBalancePublic");
+            require(restrictions[authLevel].maxBalancePublic >= balance.add(buyAmount), "balance + buyAmount should be <= maxBalancePublic");
 
         } else if(fundingType == 2){// "PrivatePlacement"
             require(restrictions[authLevel].maxBuyAmountPrivate >= buyAmount, "buyAmount should be <= maxBuyAmountPrivate");
-            require(restrictions[authLevel].maxBalancePrivate >= balanceBuyAmount, "balance + buyAmount should be <= maxBalancePrivate");
+            require(restrictions[authLevel].maxBalancePrivate >= balance.add(buyAmount), "balance + buyAmount should be <= maxBalancePrivate");
         } else {
             revert("fundingType value is out of range");
         }
-        return (authLevel > 0);
+        return boolAddrApproved;
     }
 
     /**@dev get regulation's restrictions, amount and balance in fiat */
-    function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public {
-        if(isAfterDeployment) {
-            require(msg.sender == admin, "only admin can call this function");
-        }
+    function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public onlyAdminDeployer {
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;
         restrictions[authLevel].maxBuyAmountPrivate = maxBuyAmountPrivate;
@@ -240,7 +252,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     }
 
 
-    //function() external payable { revert("should not send any ether directly"); }
+    function() external payable { revert("should not send any ether directly"); }
 }
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering(P.O.) and private placement(P.P.), for each symbol; currency = NTD

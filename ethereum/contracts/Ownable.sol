@@ -1,6 +1,7 @@
 pragma solidity ^0.5.4;
 
 contract Ownable {
+    address public deployer;
     address public owner;
     address public chairman;
     address public director;
@@ -19,6 +20,10 @@ contract Ownable {
         // director = msg.sender;
         // manager = msg.sender;
         // admin = msg.sender;
+    }
+    modifier onlyAdminDeployer() {
+        require(msg.sender == admin || msg.sender == deployer, "only admin or deployer can call this function");
+        _;
     }
     modifier onlyAdmin() {
         require(msg.sender == admin, "only admin can call this function");
