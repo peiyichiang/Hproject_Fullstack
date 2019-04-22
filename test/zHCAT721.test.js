@@ -1,6 +1,9 @@
 /**
 $ yarn global add mocha
-$ yarn run test721
+$ yarn run testhcat
+$ yarn run testcf
+$ yarn run testim
+$ yarn run testpm
 */
 console.log('process.argv', process.argv, process.argv[3]);
 const assert = require('assert');
@@ -289,11 +292,11 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 const CFSD2 = timeCurrent+1;
 const CFED2 = timeCurrent+10;
-let reason, addrPlatformCtrt, uid, extOwnedAddr, authLevel, assetbookAddr;
+let reason, addrPlatformCtrt, uid, authLevel, assetbookAddr;
 
-let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
+let tokenId, _from, uriStr, uriBytes32, uriStrB;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
-let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
+let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, bool1;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
 
@@ -594,8 +597,7 @@ describe('Tests on HCAT721', () => {
     console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
     console.log('addrRegistry', addrRegistry);
     uid = "A500000001"; assetbookAddr = addrAssetBook1; authLevel = 5;
-    await instRegistry.methods.addUser(
-      uid, assetbookAddr, authLevel)
+    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('Registry: getUserFromUid()');
@@ -605,8 +607,7 @@ describe('Tests on HCAT721', () => {
     assert.equal(user1M[1], authLevel);
 
     uid = "A500000002"; assetbookAddr = addrAssetBook2; authLevel = 5;
-    await instRegistry.methods.addUser(
-      uid, assetbookAddr, authLevel)
+    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let user2M = await instRegistry.methods.getUserFromUid(uid).call();
