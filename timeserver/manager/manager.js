@@ -12,10 +12,10 @@ function createServer() {
     const server = net.createServer(c => {
 
         c.on("data", (data) => {
-            sendTimeToCrowdfunding(data.toString())
-            sendTimeToRent(data.toString())
+            //sendTimeToCrowdfunding(data.toString())
+            //sendTimeToRent(data.toString())
             sendTimeToOrder(data.toString())
-            sendTimeToERC721SPLC(data.toString())
+            //sendTimeToERC721SPLC(data.toString())
         });
 
         c.on("end", () => {
@@ -38,7 +38,7 @@ function sendTimeToCrowdfunding(data) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
-                    contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString()).then(print)
+                    //contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString()).then(print)
                 }
             }
         }
@@ -50,7 +50,7 @@ function sendTimeToRent(data) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].sc_rentContractaddress !== 'undefined' && result[i].sc_rentContractaddress != null) {
-                    contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString()).then(print)
+                    //contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString()).then(print)
                 }
             }
         }
@@ -62,10 +62,14 @@ function sendTimeToOrder(data) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].o_purchaseDate !== 'undefined') {
-                    if (data.toString() >= result[i].o_purchaseDate.add3Day()) {
-                        mysql.setOrderExpired(result[i].o_id, function () {
-                            print(result[i].o_id, "已修改");
-                        })
+                    try {
+                        if (data.toString() >= result[i].o_purchaseDate.add3Day()) {
+                            mysql.setOrderExpired(result[i].o_id, function () {
+                                print(result[i].o_id + " 已修改");
+                            })
+                        }
+                    } catch (error) {
+                        print(result[i].o_purchaseDate + " 格式錯誤")
                     }
                 }
             }
@@ -78,7 +82,7 @@ function sendTimeToERC721SPLC(data) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
-                    contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString()).then(print)
+                    //contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString()).then(print)
                 }
             }
         }
@@ -91,7 +95,6 @@ Object.prototype.add3Day = function () {
     let day = parseInt(this.toString().slice(6, 8));
     let hour = parseInt(this.toString().slice(8, 10));
     let minute = parseInt(this.toString().slice(10, 12));
-    console.log(this.toString())
     return new Date(year, month - 1, day + 3, hour, minute).myFormat();
 }
 
