@@ -31,7 +31,8 @@ var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContra
 var MultiSigContractAPIRouter = require('./routes/MultiSigContractAPI');
 var ContractsRouter = require('./routes/Contracts');
 
-
+//Chiu
+require('./timeserver/manager/manager')
 
 // var usersRouter = require('./routes/users');
 // DataBase
