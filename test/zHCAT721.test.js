@@ -1701,7 +1701,7 @@ describe('Tests on CrowdFunding', () => {
     }
     if (error) {assert(false);}
 
-    if(1==1){
+    if(1==2){
       //-------------------==Pause the crowdfunding
       serverTime = CFSD2+3;
       console.log('\nPause funding');
@@ -1733,13 +1733,13 @@ describe('Tests on CrowdFunding', () => {
 
       if(1==2) {
         reason = 'a good reason...';
-        console.log('\nAbort');
+        console.log('\nTerminate');
         await instCrowdFunding.methods.abort(reason, serverTime)
         .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
   
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
-        assert.equal(stateDescriptionM, "aborted:"+reason);
+        assert.equal(stateDescriptionM, "terminated:"+reason);
   
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);
@@ -1770,7 +1770,7 @@ describe('Tests on CrowdFunding', () => {
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "fundingClosed: ended with unsold items");
+      assert.equal(stateDescriptionM, "fundingClosed: goal reached but not sold out");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
