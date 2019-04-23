@@ -29,7 +29,7 @@ interface RegistryITF {
 //TokenControllerITF(addrTokenController).isAdmin(msg.sender);
 interface TokenControllerITF {
     function isAdmin(address sender) external view returns (bool);
-    function isActiveOperational() external view returns (bool);
+    function isTokenApprovedOperational() external view returns (bool);
 }
 
 //------------------------HCAT721: Helium Cryptic Asset Token
@@ -275,7 +275,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
 
-        require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
+        require(TokenControllerITF(addrTokenController).isTokenApprovedOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
 
