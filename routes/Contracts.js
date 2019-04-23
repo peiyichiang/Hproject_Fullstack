@@ -465,8 +465,8 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
 
 });
 
-/**funding Abort*/
-router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res, next) {
+/**funding terminate*/
+router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = 2019052100000;
@@ -492,7 +492,7 @@ router.post('/crowdFundingContract/:tokenSymbol/abort', async function (req, res
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
 
             /*用後台公私鑰sign*/
-            let encodedData = crowdFunding.methods.abort(reason, currentTime).encodeABI();
+            let encodedData = crowdFunding.methods.terminate(reason, currentTime).encodeABI();
             let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
 
             res.send({
