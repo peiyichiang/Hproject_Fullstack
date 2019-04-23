@@ -1301,7 +1301,7 @@
         // 緊急下架
         function Aborted(State) {
             tokenSymbol = CurrentSYMBOL;
-            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/abort", {
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/terminate", {
                 reason: document.getElementById('abortedReasonMessage-text').value
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
