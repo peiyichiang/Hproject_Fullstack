@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var jwt = require('jsonwebtoken');
+var cookieParser = require('cookie-parser');
 
 //撈取資料(Platform_Auditor專用)
 router.get('/Product', function(req, res, next) {
@@ -90,7 +91,8 @@ router.get('/ProductByFMN', function(req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     //獲取審核中的產品資料
-    mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?', [JWT_decoded.payload.m_id , "creation"] , function(err, rows) {
+    // mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ? AND p_state = ?', [JWT_decoded.payload.m_id , "creation"] , function(err, rows) {
+    mysqlPoolQuery('SELECT * FROM product WHERE p_fundmanager = ?', JWT_decoded.payload.m_id , function(err, rows) {
         if (err) {
             console.log(err);
         }
@@ -154,7 +156,8 @@ router.get('/ProductByFMA', function(req, res, next) {
         }
         var data = rows;
 
-        mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"publish"]  , function(err, rows) {
+        // mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"publish"]  , function(err, rows) {
+        mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?)", JWT_decoded.payload.m_company , function(err, rows) {
             if (err) {
                 console.log(err);
             }
@@ -719,6 +722,39 @@ router.get('/EditProductByPlatformAuditor', function(req, res, next) {
 
 });
 
+//設置產品的狀態：將產品狀態設為退回creation，或設置為funding(Platform Auditor專用)
+router.post('/SetProductStateByPlatformAuditor', function(req, res, next) {
+    console.log('------------------------==\n@Product/EditProductByPlatformAuditor:\nreq.query', req.query, 'req.body', req.body);
+  
+      var mysqlPoolQuery = req.pool;
+      var symbol = req.body.tokenSymbol;
+      var State = req.body.tokenState;
+  
+      //獲取當前時間作為PA通過審核的時間
+      //範例：1/30/2019, 3:23:19 PM
+      var currentTime=new Date().toLocaleString().toString();
+      if(State=="creation"){
+          //假如是被退回，就將審核時間清空
+          currentTime="";
+      }
+  
+      var sql = {
+          p_state: State,
+          p_PAdate:currentTime
+      };
+  
+      var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
+          if (err) {
+            console.log(err);
+            res.send(err);
+          }else{
+            res.send({status:"true"});
+          }
+          
+      });
+  
+});
+
 //設置產品的p_FMANote並將產品狀態設為draft(FMA專用)
 router.get('/SetFMANoteAndReturnByFMA', function(req, res, next) {
     var token=req.cookies.access_token;
@@ -812,6 +848,57 @@ router.get('/SetPANoteAndReturnByPA', function(req, res, next) {
   
         res.setHeader('Content-Type', 'application/json');
         res.redirect('/BackendUser/BackendUser_Platform_Auditor');
+    });
+  
+});
+
+//設置產品的p_PANote並將產品狀態設為creation(Platform Auditor專用)
+router.post('/SetAbortedReasonByPA', function(req, res, next) {
+    // var token=req.cookies.access_token;
+    // // console.log("@@@：" + req.cookies);
+    // if (token) {
+    //     // 驗證JWT token
+    //     jwt.verify(token, "my_secret_key", function (err, decoded) {
+    //       if (err) {
+    //         //JWT token驗證失敗
+    //         res.render('error', { message: '帳號密碼錯誤', error: '' });
+    //         return;
+    //       } else {
+    //         //JWT token驗證成功
+    //         console.log("＠＠＠＠＠＠：" + decoded.payload.m_permission);
+    //         if(decoded.payload.m_permission!="Platform_Auditor"){
+    //             res.render('error', { message: '權限不足', error: '' });
+    //             return;
+    //         }
+    //       }
+    //     })
+    // } else {
+    //     //不存在JWT token
+    //     res.render('error', { message: '請先登入111', error: '' });
+    //     return;
+    // }
+
+    var mysqlPoolQuery = req.pool;
+    var symbol = req.body.tokenSymbol;
+    var AbortedReason = req.body.AbortedReason;
+
+    console.log("＊＊＊symbol:" + symbol);
+    console.log("note:" + AbortedReason);
+  
+    var sql = {
+        p_abortedReason:AbortedReason
+    };
+  
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function(err, rows) {
+        if (err) {
+            console.log(err);
+        }
+
+        res.status(200);
+        res.send({
+            "message": "設置AbortedReasont成功",
+            "result": rows
+        });
     });
   
 });

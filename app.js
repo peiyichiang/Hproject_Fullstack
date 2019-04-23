@@ -6,6 +6,9 @@ var logger = require('morgan');
 var cors = require('cors');
 var session = require('express-session');
 var multer = require('multer');
+var debugSQL = require('debug')('dev:mysql');
+
+require("dotenv").config();
 
 //智豪
 var indexRouter = require('./routes/TxRecord');
@@ -13,8 +16,6 @@ var productRouter = require('./routes/Product');
 var backendUserRouter = require('./routes/backend_user');
 //有容
 var userRouter = require('./routes/user');
-//Ray
-var NFTokenSPLCRouter = require('./routes/ERC721ContractAPI');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
@@ -28,6 +29,7 @@ var CrowdFundingContractAPIRouter = require('./routes/CrowdFundingContractAPI');
 var ProductManagerContractAPIRouter = require('./routes/ProductManagerContractAPI');
 var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContractAPI');
 var MultiSigContractAPIRouter = require('./routes/MultiSigContractAPI');
+var ContractsRouter = require('./routes/Contracts');
 
 //Chiu
 require('./timeserver/manager/manager')
@@ -37,14 +39,15 @@ require('./timeserver/manager/manager')
 var mysql = require("mysql");
 
 var pool = mysql.createPool({
-    host: "140.119.101.130",//outside: 140.119.101.130, else 192.168.0.2 or localhost
-    user: "root",
-    password: "bchub",
-    database: "htoken"
+    host: process.env.DB_HOST,//outside: 140.119.101.130, else 192.168.0.2 or localhost
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT
 });
 
 var mysqlPoolQuery = function (sql, options, callback) {
-    console.log(sql, options, callback);
+    debugSQL(sql, options, callback);
     if (typeof options === "function") {
         callback = options;
         options = undefined;
@@ -56,7 +59,7 @@ var mysqlPoolQuery = function (sql, options, callback) {
             conn.query(sql, options, function (err, results, fields) {
                 // callback
                 callback(err, results, fields);
-                console.log('connection sussessful. http://localhost:3000/Product/GET/ProductList');
+                console.log(`connection sussessful.http://localhost:${process.env.PORT}/Product/ProductList`);
             });
             // release connection。
             // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
@@ -150,7 +153,6 @@ app.post('/upload', cpUpload, function (req, res, next) {
 
 //有容
 app.use('/user', userRouter);
-app.use('/NFTokenSPLC', NFTokenSPLCRouter);
 app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
 app.use('/RegistryContractAPI', RegistryContractAPIRouter);
@@ -162,6 +164,7 @@ app.use('/CrowdFundingContractAPI', CrowdFundingContractAPIRouter);
 app.use('/ProductManagerContractAPI', ProductManagerContractAPIRouter);
 app.use('/IncomeManagementContractAPI', IncomeManagementContractAPIRouter);
 app.use('/MultiSigContractAPI', MultiSigContractAPIRouter);
+app.use('/Contracts', ContractsRouter);
 
 
 
@@ -183,5 +186,5 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
-console.log('end of server code, http://localhost:3000/Product/ProductList');
+console.log(`end of server code, http://localhost:${process.env.PORT}/Product/ProductList`);
 module.exports = app;

@@ -3,33 +3,7 @@ var router = express.Router();
 var nodemailer = require('nodemailer');
 
 
-// home page
-router.get('/', function (req, res, next) {
-
-    var mysqlPoolQuery = req.pool;
-
-    mysqlPoolQuery('SELECT * FROM htoken.order', function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        var data = rows;
-
-        // use index.ejs
-        res.render('payment', { title: 'paymentGW', data: data });
-    });
-
-});
-
-router.get('/pay', async function (req, res, next) {
-    res.render('payByCreditCard', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"] });
-});
-
-/*
-router.get('/GET/bank', async function (req, res, next) {
-    res.render('payByTransfer', { amount: 16800, o_IDs: ["MYRR1701_4920358206", "MYRR1701_1545109098627"],v_account: "822-03113250581281" });
-});
-*/
-
+///////////刷卡部分//////////
 router.post('/postToBank', async function (req, res, next) {
     var paymentInfo = JSON.parse(req.body.JSONtoBank)
     console.log(paymentInfo)

@@ -19,7 +19,7 @@ var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B75780
 const multiSigContract = require('../ethereum/contracts/build/MultiSig.json');
 
 
-//deploy asset contract
+//deploy multiSig contract
 router.post('/deploy', function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
