@@ -4,34 +4,25 @@ const jwt = require('jsonwebtoken');
 var async = require('async');
 var router = express.Router();
 
-//新增資料：接收資料的post
+//新增資料：接收資料的post http://localhost:3000/Order/AddOrder
 router.post('/AddOrder', function (req, res, next) {
     console.log('------------------------==\n@Order/POST/AddOrder');
-    var mysqlPoolQuery = req.pool; let symbol;
+    let symbol = req.body.symbol;
     console.log('req.query', req.query, 'req.body', req.body);
-    if (req.body.symbol) {
-        symbol = req.body.symbol;
-    } else { symbol = req.query.symbol; }
 
     var mysqlPoolQuery = req.pool;
     //當前時間
-    var timeStamp = Date.now() / 1000 | 0;//new Date().getTime();
-    var currentDate = new Date().myFormat();
-    /*var date = currentDate.getDate();
-    if (date < 10) { date = '0' + date; }
-    var month = currentDate.getMonth() + 1; //Be careful! January is 0 not 1
-    if (month < 10) { month = '0' + month; }
-    var year = currentDate.getFullYear();
-    var yyyymmdd = year.toString() + month.toString() + date.toString();
-    console.log('timeStamp', timeStamp, 'yyyymmdd', yyyymmdd, year, month, date);*/
-    console.log('---------------==',currentDate);
+    var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
+    var currentDate = new Date().myFormat();//yyyymmddhhmm
+    console.log('---------------== currentDate:', currentDate);
     const nationalId = req.body.nationalId;
     const nationalIdLast5 = nationalId.toString().slice(-5);
-    console.log('nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
+    const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
+    console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
 
     var sql = {
-        o_id: symbol + "_" + nationalIdLast5 + "_" + timeStamp,
-        o_symbol: req.body.symbol,
+        o_id: orderId,
+        o_symbol: symbol,
         o_userIdentityNumber: nationalId,
         o_fromAddress: Math.random().toString(36).substring(2, 15),
         o_txHash: Math.random().toString(36).substring(2, 15),

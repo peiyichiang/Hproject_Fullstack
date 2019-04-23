@@ -6,12 +6,16 @@ const fs = require('fs');
 const mysql = require('../lib/mysql.js');
 const contract = require('../lib/contractAPI.js');
 
-createServer()
+const portForIncomingTime = 7010;
+
+createServer();
 
 function createServer() {
     const server = net.createServer(c => {
+      console.log('inside net.createServer');
 
         c.on("data", (data) => {
+            print(data);
             //sendTimeToCrowdfunding(data.toString())
             //sendTimeToRent(data.toString())
             sendTimeToOrder(data.toString())
@@ -28,7 +32,7 @@ function createServer() {
     server.on('error', (err) => {
         throw err;
     });
-    server.listen(7010, () => {
+    server.listen(portForIncomingTime, () => {
         print(`server bound`);
     });
 }

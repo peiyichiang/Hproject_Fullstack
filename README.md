@@ -110,7 +110,16 @@ yarn run start
 
 App will be opened in browser at `http://localhost:3000/`
 
-## 9. Live Preview
+### 9. Set to receive incoming time
+```
+Go to http://140.119.101.130:7000/
+Enter your current running IP:
+140.119.101.33	portForIncomingTime_value  	HeliumXYZ001
+portForIncomingTime has the value defined inside timeServer/manager.js
+
+```
+
+### 10. Live Preview
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin
