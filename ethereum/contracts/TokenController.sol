@@ -8,10 +8,10 @@ contract TokenController is Ownable {
     uint public TimeUnlock;//The time to unlock tokens from lock up period
     uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
     bool public isLockedForRelease;// true or false: check if the token is locked for release
-    bool public isActive;// true or false: check if the token is active
+    bool public isTokenApproved;// true or false: check if the token is active
 
-    // check if the tokenState is in one of the following states: underLockupPeriod, operational, or expired
-    enum TokenState{underLockupPeriod, operational, expired}
+    // check if the tokenState is in one of the following states: lockupPeriod, operational, or expired
+    enum TokenState{lockupPeriod, operational, expired}
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
@@ -21,8 +21,8 @@ contract TokenController is Ownable {
         TimeRelease = _TimeRelease;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
-        tokenState = TokenState.underLockupPeriod;
-        isActive = true;
+        tokenState = TokenState.lockupPeriod;
+        isTokenApproved = true;
         require(management.length > 4, "management.length should be > 4");
         owner = management[4];
         chairman = management[3];
@@ -41,8 +41,8 @@ contract TokenController is Ownable {
     }
 
     // to check if the HCAT721 token is in good operational state, which is between the Lockup period end time and the invalid time
-    function isActiveOperational() external view returns (bool){
-        return (tokenState == TokenState.operational && isActive);
+    function isTokenApprovedOperational() external view returns (bool){
+        return (tokenState == TokenState.operational && isTokenApproved);
     }
 
     // to give variable values including TimeRelease, TimeUnlock, TimeValid, isLockedForRelease
@@ -54,12 +54,12 @@ contract TokenController is Ownable {
           isLockedForRelease_ = isLockedForRelease;
     }
 
-    // to update the tokenState to be one of the three states: underLockupPeriod, operational, expired
+    // to update the tokenState to be one of the three states: lockupPeriod, operational, expired
     function updateState(uint timeCurrent) external onlyAdmin ckTime(timeCurrent){
         if(timeCurrent < TimeUnlock){
-            tokenState = TokenState.underLockupPeriod;
+            tokenState = TokenState.lockupPeriod;
 
-        } else if(timeCurrent > TimeUnlock && timeCurrent < TimeValid && isActive){
+        } else if(timeCurrent > TimeUnlock && timeCurrent < TimeValid && isTokenApproved){
             tokenState = TokenState.operational;
 
         } else if(timeCurrent > TimeValid){
@@ -67,14 +67,16 @@ contract TokenController is Ownable {
         }       
     }
 
-    //To set the value of IsActive variable before isLockedForRelease becomes true
-    function setIsActive(bool _isActive) external onlyAdmin ckLock {
-        isActive = _isActive;
+    //To extend validTime value
+    function extendTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) {
+        require(_TimeValid > TimeValid, "proposed _TimeValid should be >= existing TimeValid");
+        TimeValid = _TimeValid;
     }
 
-    //To set validTime value before isLockedForRelease becomes true
-    function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) ckLock {
-        TimeValid = _TimeValid;
+    //---------------------==subject to variable lockup
+    //To set the value of isTokenApproved variable before isLockedForRelease becomes true
+    function tokenApprove(bool _isTokenApproved) external onlyAdmin ckLock {
+        isTokenApproved = _isTokenApproved;
     }
 
     //To set timeUnlock value before isLockedForRelease becomes true
@@ -92,5 +94,5 @@ contract TokenController is Ownable {
         isLockedForRelease = true;
     }
 
-    function() external payable { revert("should not send any ether directly"); }
+    //function() external payable { revert("should not send any ether directly"); }
 }
