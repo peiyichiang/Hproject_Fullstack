@@ -20,15 +20,6 @@ var userRouter = require('./routes/user');
 var orderRouter = require('./routes/Order');
 //冠毅
 var paymentGWRouter = require('./routes/PaymentGW');
-var RegistryContractAPIRouter = require('./routes/RegistryContractAPI');
-var AssetBookContractAPIRouter = require('./routes/AssetBookContractAPI');
-var PlatformContractAPIRouter = require('./routes/PlatformContractAPI');
-var ERC721ContractAPIRouter = require('./routes/ERC721ContractAPI');
-var TokenControllerContractAPIRouter = require('./routes/TokenControllerContractAPI');
-var CrowdFundingContractAPIRouter = require('./routes/CrowdFundingContractAPI');
-var ProductManagerContractAPIRouter = require('./routes/ProductManagerContractAPI');
-var IncomeManagementContractAPIRouter = require('./routes/IncomeManagementContractAPI');
-var MultiSigContractAPIRouter = require('./routes/MultiSigContractAPI');
 var ContractsRouter = require('./routes/Contracts');
 
 //Chiu
@@ -155,15 +146,6 @@ app.post('/upload', cpUpload, function (req, res, next) {
 app.use('/user', userRouter);
 app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
-app.use('/RegistryContractAPI', RegistryContractAPIRouter);
-app.use('/AssetBookContractAPI', AssetBookContractAPIRouter);
-app.use('/PlatformContractAPI', PlatformContractAPIRouter);
-app.use('/ERC721ContractAPI', ERC721ContractAPIRouter);
-app.use('/TokenControllerContractAPI', TokenControllerContractAPIRouter);
-app.use('/CrowdFundingContractAPI', CrowdFundingContractAPIRouter);
-app.use('/ProductManagerContractAPI', ProductManagerContractAPIRouter);
-app.use('/IncomeManagementContractAPI', IncomeManagementContractAPIRouter);
-app.use('/MultiSigContractAPI', MultiSigContractAPIRouter);
 app.use('/Contracts', ContractsRouter);
 
 
