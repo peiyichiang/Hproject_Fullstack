@@ -651,8 +651,8 @@ describe('Tests on HCAT721', () => {
     console.log('tokenURI', web3.utils.toAscii(tokenURI_M), tokenURI);
     //assert.equal(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
-    let isActiveOperational = await instTokenController.methods.isActiveOperational().call();
-    assert.equal(isActiveOperational, false);
+    let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
+    assert.equal(isTokenApprovedOperational, false);
 
 
     let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
@@ -898,8 +898,8 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenUnlock;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isActiveOperational().call();
-    console.log('isActiveOperational()', bool1);
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational()', bool1);
     assert.equal(bool1, false);
 
     //enum TokenState{underLockupPeriod, operational, expired}
@@ -928,8 +928,8 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isActiveOperational().call(); 
-    console.log('isActiveOperational()', bool1);
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call(); 
+    console.log('isTokenApprovedOperational()', bool1);
     assert.equal(bool1, true);
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
@@ -1161,8 +1161,8 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenValid+1;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isActiveOperational().call();
-    console.log('isActiveOperational()', bool1);
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational()', bool1);
     assert.equal(bool1, false);
 
     //enum TokenState{underLockupPeriod, operational, expired}
