@@ -20,7 +20,8 @@ yarn global add mocha
 yarn global add nodemon
 cp example.env .env
 ```
-complete .env
+Complete .env variable values
+
 ### 3. Install web3 version 1.0.0-beta.37
 
 Install web3@1.0.0-beta.37 to prevent Ganache-cli provider error

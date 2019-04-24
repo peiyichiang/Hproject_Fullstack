@@ -1,25 +1,39 @@
-const os = require('os');
+// const os = require('os');
+// const path = require('path');
+// const fs = require('fs');
 const net = require("net");
-const path = require('path');
-const fs = require('fs');
 
-const mysql = require('../lib/mysql.js');
-const contract = require('../lib/contractAPI.js');
+const {mysqlPoolQuery, getCrowdFundingCtrtAddr,
+  getIncomeManagerCtrtAddr, getOrderDate,
+  getHCAT721ControllerCtrtAddr,
+  setOrderExpired, setCrowdFundingState} = require('../lib/mysql.js');
+//const {mysqlPoolQuery} = require('../../app');
+
+const {sendTimeTokenController, sendTimeCFctrt, sendTimeIMctrt} = require('../lib/contractAPI.js');
 
 const portForIncomingTime = 7010;
+let currentCount = 0;
+const maxCount = 10;// time period in minutes
 
 createServer();
+// if(currentCount < maxCount+1){
+//   console.log('[timeserver] currentCount', currentCount);
+//   currentCount++;
+// } else {
+//   currentCount = 1;
+//   print('[timeserver] currentCount', currentCount);
+// }
 
 function createServer() {
     const server = net.createServer(c => {
       console.log('inside net.createServer');
 
-        c.on("data", (data) => {
-            print(data);
-            //sendTimeToCrowdfunding(data.toString())
-            //sendTimeToRent(data.toString())
-            sendTimeToOrder(data.toString())
-            //sendTimeToERC721SPLC(data.toString())
+        c.on("data", (timeCurrent) => {
+            print(timeCurrent);
+            sendTimeToOrder(timeCurrent.toString());
+            updateCrowdFundingDB(timeCurrent.toString());
+            //checkHCAT721(timeCurrent.toString());
+            //checkIncomeManager(timeCurrent.toString());
         });
 
         c.on("end", () => {
@@ -34,41 +48,90 @@ function createServer() {
     });
     server.listen(portForIncomingTime, () => {
         print(`server bound`);
-    });
+        let timeCurrent = 201905200000;
+        updateCrowdFundingDB(timeCurrent.toString());
+      });
 }
 
-function sendTimeToCrowdfunding(data) {
-    mysql.getCrowdfundingContractAddress(function (result) {
-        if (result.length != 0) {
-            for (let i in result) {
-                if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
-                    //contract.sendTimeToCrowdfundingContract(result[i].sc_crowdsaleaddress, data.toString()).then(print)
-                }
-            }
+
+function updateCrowdFundingDB(timeCurrent){
+  console.log('inside updateCrowdFundingDB()');
+  let pstate1 = "initial";
+  let pstate2 = "funding";
+  let pstate3 = "fundingGoalReached";
+  let symbol, pstateNew;
+  var qur = mysqlPoolQuery(
+    'SELECT * FROM htoken.product WHERE (p_state = ? AND p_CFSD <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+')', [pstate1, pstate2, pstate3], function (err, result) {
+    const resultLen = result.length;
+    console.log('result length', resultLen);
+
+    if (err) {
+      console.log(err);
+    } else if (resultLen != 0) {
+      for (let i in result) {
+        symbol = result[i].p_SYMBOL;
+        console.log('symbol', symbol);
+        if (symbol !== 'undefined' && symbol !== 'null' && symbol.length >=3){
+
+          getCrowdFundingCtrtAddr(symbol, (addrCF) => {
+              console.log('addrCF is found:', addrCF);
+          });
+          if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
+            //sendTimeCFctrt(result[i].sc_crowdsaleaddress, timeCurrent.toString()).then(print)
+          }
+          
+          if(result[i].p_state == pstate1){//if p_state == "initial"
+            pstateNew = 'funding';
+          } else {
+            //if(result[i].p_state == pstate2 || result[i].p_state == pstate3)
+            pstateNew = '';
+          }
+          try {
+            setCrowdFundingState(symbol, result[i].p_state, function () {
+              print(symbol + ' fixed p_state: '+ pstate1+ ' => '+pstateNew);
+            })
+          } catch (error) {
+              print(result[i] + " 格式錯誤");
+          }
         }
-    })
+      }
+    }
+  });
 }
 
-function sendTimeToRent(data) {
-    mysql.getRentContractAddress(function (result) {
+// function updateCrowdFundingDB(timeCurrent) {
+//     getCrowdFundingCtrtAddr(function (result) {
+//         if (result.length != 0) {
+//             for (let i in result) {
+//                 if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
+//                     //sendTimeCFctrt(result[i].sc_crowdsaleaddress, timeCurrent.toString()).then(print)
+//                 }
+//             }
+//         }
+//     })
+// }
+
+function checkIncomeManager(timeCurrent) {
+    getIncomeManagerCtrtAddr(function (result) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].sc_rentContractaddress !== 'undefined' && result[i].sc_rentContractaddress != null) {
-                    //contract.sendTimeToRentContract(result[i].sc_rentContractaddress, data.toString()).then(print)
+                    //sendTimeIMCtrt(result[i].sc_rentContractaddress, timeCurrent.toString()).then(print)
                 }
             }
         }
     })
 }
 
-function sendTimeToOrder(data) {
-    mysql.getOrderDate(function (result) {
+
+function sendTimeToOrder(timeCurrent) {
+    getOrderDate(function (result) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].o_purchaseDate !== 'undefined') {
                     try {
-                        if (data.toString() >= result[i].o_purchaseDate.add3Day()) {
-                            mysql.setOrderExpired(result[i].o_id, function () {
+                        if (timeCurrent.toString() >= result[i].o_purchaseDate.add3Day()) {
+                            setOrderExpired(result[i].o_id, function () {
                                 print(result[i].o_id + " 已修改");
                             })
                         }
@@ -81,12 +144,12 @@ function sendTimeToOrder(data) {
     })
 }
 
-function sendTimeToERC721SPLC(data) {
-    mysql.getERC721ControllerContractAddress(function (result) {
+function checkHCAT721(timeCurrent) {
+    getHCAT721ControllerCtrtAddr(function (result) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
-                    //contract.sendTimeToTokenController(result[i].sc_erc721Controller, data.toString()).then(print)
+                    //sendTimeTokenController(result[i].sc_erc721Controller, timeCurrent.toString()).then(print)
                 }
             }
         }
@@ -103,5 +166,5 @@ Object.prototype.add3Day = function () {
 }
 
 function print(s) {
-    console.log('[timeserver] ' + s)
+    console.log('[timeserver/manager/manager.js] ' + s)
 }

@@ -35,7 +35,7 @@ const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
 
 /**time server*/
 timer.getTime().then(function (time) {
-    console.log(`current time: ${time}`)
+    console.log(`[Routes/Contract.js] current time: ${time}`)
 })
 
 /**management address */

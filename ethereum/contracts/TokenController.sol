@@ -59,17 +59,16 @@ contract TokenController is Ownable {
         if(timeCurrent < TimeUnlock){
             tokenState = TokenState.lockupPeriod;
 
-        } else if(timeCurrent > TimeUnlock && timeCurrent < TimeValid && isTokenApproved){
+        } else if(timeCurrent >= TimeUnlock && timeCurrent < TimeValid){
             tokenState = TokenState.operational;
 
-        } else if(timeCurrent > TimeValid){
+        } else {//timeCurrent >= TimeValid
             tokenState = TokenState.expired;
         }       
     }
 
     //To extend validTime value
-    function extendTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) {
-        require(_TimeValid > TimeValid, "proposed _TimeValid should be >= existing TimeValid");
+    function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) {
         TimeValid = _TimeValid;
     }
 

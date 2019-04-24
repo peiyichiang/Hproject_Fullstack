@@ -9,7 +9,7 @@ const TokenController = require('../../ethereum/contracts/build/TokenController.
 var backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 var backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-function sendTimeToRentContract(addr, time) {
+function sendTimeIMctrt(addr, time) {
     let contract = new web3.eth.Contract(IncomeManagement.abi, addr);
     return contract.methods.getIncomeSchedule(time)
         .call()
@@ -21,7 +21,7 @@ function sendTimeToRentContract(addr, time) {
         })
 }
 
-async function sendTimeToCrowdfundingContract(addr, time) {
+async function sendTimeCFctrt(addr, time) {
     /*use admin EOA to sign transaction*/
     let CrowdFundingContract = new web3.eth.Contract(CrowdFunding.abi, addr);
     let encodedData = CrowdFundingContract.methods.setServerTime(time).encodeABI();
@@ -31,7 +31,7 @@ async function sendTimeToCrowdfundingContract(addr, time) {
     return result;
 }
 
-function sendTimeToTokenController(addr, time) {
+function sendTimeTokenController(addr, time) {
     return web3.eth.getAccounts()
         .then(function (accounts) {
             let contract = new web3.eth.Contract(TokenController.abi, addr);
@@ -85,7 +85,7 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-    sendTimeToRentContract,
-    sendTimeToCrowdfundingContract,
-    sendTimeToTokenController,
+  sendTimeTokenController,
+  sendTimeCFctrt,
+  sendTimeIMctrt
 }

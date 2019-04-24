@@ -32,8 +32,8 @@ contract CrowdFunding is Ownable {
 
     // Each incoming fund will be recorded in each investor’s InvestmentRecord
     struct InvestmentRecord {
-      address assetbook;//assetbook address
-      uint256 investedTokenQty;//invested token quantity
+        address assetbook;//assetbook address
+        uint256 investedTokenQty;//invested token quantity
     }
     mapping(uint => InvestmentRecord) public investmentRecords;
     uint public fundingCindex;//last submitted index and total count of all invested funds
@@ -96,8 +96,7 @@ contract CrowdFunding is Ownable {
     function updateState(uint serverTime) public onlyAdmin {
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         require(serverTime > serverTimeMin, "serverTime should be greater than default time");
-        serverTime = serverTime;
-        
+
         if(quantitySold >= maxTotalSupply){
             fundingState = FundingState.fundingClosed;
             stateDescription = "fundingClosed: sold out";
@@ -201,22 +200,23 @@ contract CrowdFunding is Ownable {
         updateState(serverTime);
     }
 
-    // to get a list of investors’ assetbooks and the amount of tokens they have sercured 
-    function getInvestors(uint indexStart, uint amount) 
+    // to get a list of investors’ assetbooks and the amount of tokens they have sercured
+    function getInvestors(uint indexStart, uint amount)
         external view returns(address[] memory assetbooks, uint[] memory investedTokenQtyArray) {
-        uint amount_; uint indexStart_;
+        uint amount_;
+        uint indexStart_;
         if(indexStart == 0 && amount == 0) {
-          indexStart_ = 1;
-          amount_ = fundingCindex;
+            indexStart_ = 1;
+            amount_ = fundingCindex;
 
         } else {
             indexStart_ = indexStart;
             require(amount > 0, "amount must be > 0");
             require(indexStart > 0, "indexStart must be > 0");
             if(indexStart.add(amount).sub(1) > fundingCindex) {
-              amount_ = fundingCindex.sub(indexStart).add(1);
+                amount_ = fundingCindex.sub(indexStart).add(1);
             } else {
-              amount_ = amount;
+                amount_ = amount;
             }
         }
         assetbooks = new address[](amount_);

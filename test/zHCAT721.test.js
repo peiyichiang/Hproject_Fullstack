@@ -895,17 +895,20 @@ describe('Tests on HCAT721', () => {
 
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
-    timeCurrent = TimeTokenUnlock;
+    timeCurrent = TimeTokenUnlock-1;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
-    console.log('isTokenApprovedOperational()', bool1);
-    assert.equal(bool1, false);
 
     //enum TokenState{underLockupPeriod, operational, expired}
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
     assert.equal(tokenStateM, 0);
+
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational()', bool1);
+    assert.equal(bool1, false);
+
+
 
     error = false;
     try {
@@ -1161,14 +1164,17 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenValid+1;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
-    console.log('isTokenApprovedOperational()', bool1);
-    assert.equal(bool1, false);
 
     //enum TokenState{underLockupPeriod, operational, expired}
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
     assert.equal(tokenStateM, 2);
+    
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational()', bool1);
+    assert.equal(bool1, false);
+
+
 
 
     error = false;

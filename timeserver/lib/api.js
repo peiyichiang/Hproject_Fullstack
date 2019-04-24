@@ -7,7 +7,7 @@ function getTime() {
             let time = fs.readFileSync(path.resolve(__dirname, "../time.txt"), "utf8").toString()
             resolve(time)
         } catch (error) {
-            console.log(`cannot find timeserver time. Use server time instead`);
+            console.log(`cannot find timeserver time. Use local time instead`);
             let time = new Date().myFormat()
             resolve(time)
         }
