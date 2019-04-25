@@ -31,7 +31,7 @@ function createServer() {
         c.on("data", (timeCurrent) => {
             print(timeCurrent);
             sendTimeToOrder(timeCurrent.toString());
-            updateCrowdFundingDB(timeCurrent.toString());
+            updateCrowdFunding(timeCurrent.toString());
             //checkHCAT721(timeCurrent.toString());
             //checkIncomeManager(timeCurrent.toString());
         });
@@ -49,13 +49,13 @@ function createServer() {
     server.listen(portForIncomingTime, () => {
         print(`server bound`);
         let timeCurrent = 201905200000;
-        updateCrowdFundingDB(timeCurrent.toString());
+        updateCrowdFunding(timeCurrent.toString());
       });
 }
 
 
-function updateCrowdFundingDB(timeCurrent){
-  console.log('inside updateCrowdFundingDB()');
+function updateCrowdFunding(timeCurrent){
+  console.log('inside updateCrowdFunding()');
   let pstate1 = "initial";
   let pstate2 = "funding";
   let pstate3 = "fundingGoalReached";
@@ -73,12 +73,26 @@ function updateCrowdFundingDB(timeCurrent){
         console.log('symbol', symbol);
         if (symbol !== 'undefined' && symbol !== 'null' && symbol.length >=3){
 
+          /**
+           * CALL existing APIs to get crowdfunding address, 
+           * then call updateState()
+           * Contracts.js: /crowdFundingContract/:tokenSymbol/updateState
+           * 
+           * get tokenState in CrowdfundingCtrt via Contracts.js ???? => write pstates ??!!
+           */
+
           getCrowdFundingCtrtAddr(symbol, (addrCF) => {
-              console.log('addrCF is found:', addrCF);
+            console.log('addrCF is found:', addrCF);
+            if (typeof addrCF === 'undefined' || addrCF === null) {
+              console.error('[error in value] addrCF', addrCF);
+            } else {
+              sendTimeCFctrt(addrCF, timeCurrent.toString()).then(print)
+
+            }
+   
           });
-          if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
-            //sendTimeCFctrt(result[i].sc_crowdsaleaddress, timeCurrent.toString()).then(print)
-          }
+
+          //Get crowdfunding result
           
           if(result[i].p_state == pstate1){//if p_state == "initial"
             pstateNew = 'funding';
@@ -99,12 +113,12 @@ function updateCrowdFundingDB(timeCurrent){
   });
 }
 
-// function updateCrowdFundingDB(timeCurrent) {
+// function updateCrowdFunding(timeCurrent) {
 //     getCrowdFundingCtrtAddr(function (result) {
 //         if (result.length != 0) {
 //             for (let i in result) {
-//                 if (typeof result[i].sc_crowdsaleaddress !== 'undefined' && result[i].sc_crowdsaleaddress != null) {
-//                     //sendTimeCFctrt(result[i].sc_crowdsaleaddress, timeCurrent.toString()).then(print)
+//                 if (typeof addrCF !== 'undefined' && addrCF != null) {
+//                     //sendTimeCFctrt(addrCF, timeCurrent.toString()).then(print)
 //                 }
 //             }
 //         }
@@ -149,6 +163,7 @@ function checkHCAT721(timeCurrent) {
         if (result.length != 0) {
             for (let i in result) {
                 if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
+                  //instTokenController.setTimeCurrent
                     //sendTimeTokenController(result[i].sc_erc721Controller, timeCurrent.toString()).then(print)
                 }
             }

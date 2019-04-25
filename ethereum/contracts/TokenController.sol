@@ -15,10 +15,10 @@ contract TokenController is Ownable {
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _TimeRelease, 
+    constructor(uint _timeCurrent, 
       uint _TimeUnlock, uint _TimeValid,
       address[] memory management) public {
-        TimeRelease = _TimeRelease;
+        TimeRelease = _timeCurrent;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
         tokenState = TokenState.lockupPeriod;
@@ -31,16 +31,12 @@ contract TokenController is Ownable {
         admin = management[0];
     }
 
-    modifier ckLock() {
-        require(!isLockedForRelease, "only allowed before locked up");
-        _;
-    }
     modifier ckTime(uint _time) {
         require(_time > 201903070000, "_time is <= 201903070000 or not in the format of yyyymmddhhmm");
         _;
     }
 
-    // to check if the HCAT721 token is in good operational state, which is between the Lockup period end time and the invalid time
+    // to check if the HCAT721 token is in good operational state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
     function isTokenApprovedOperational() external view returns (bool){
         return (tokenState == TokenState.operational && isTokenApproved);
     }
@@ -71,26 +67,30 @@ contract TokenController is Ownable {
     function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) {
         TimeValid = _TimeValid;
     }
-
-    //---------------------==subject to variable lockup
     //To set the value of isTokenApproved variable before isLockedForRelease becomes true
-    function tokenApprove(bool _isTokenApproved) external onlyAdmin ckLock {
+    function tokenApprove(bool _isTokenApproved) external onlyAdmin {
         isTokenApproved = _isTokenApproved;
     }
 
+    //---------------------==subject to variable lockup
     //To set timeUnlock value before isLockedForRelease becomes true
     function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckLock {
         TimeUnlock = _TimeUnlock;
     }
 
-    //To set timeRelease before isLockedForRelease becomes true
-    function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckLock {
-        TimeRelease = _TimeRelease;
-    }
-
     //To lock the above variable values so no further variable value change is possible
     function lockForTokenRelease() external onlyAdmin ckLock {
         isLockedForRelease = true;
+    }
+
+    //To set timeRelease before isLockedForRelease becomes true
+    // function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckLock {
+    //     TimeRelease = _TimeRelease;
+    // }
+
+    modifier ckLock() {
+        require(!isLockedForRelease, "only allowed before locked up");
+        _;
     }
 
     //function() external payable { revert("should not send any ether directly"); }
