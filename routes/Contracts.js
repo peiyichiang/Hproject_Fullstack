@@ -305,7 +305,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
             let assetBookAddr = req.params.assetBookAddr;
             let quantityToInvest = req.body.quantityToInvest;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
-            console.log("assetBookAddr:"+assetBookAddr+"\nquantityToInvest:"+quantityToInvest+"\n"+"currentTime:"+currentTime);
+            console.log("assetBookAddr:" + assetBookAddr + "\nquantityToInvest:" + quantityToInvest + "\n" + "currentTime:" + currentTime);
             /*用後台公私鑰sign*/
             let encodedData = crowdFunding.methods.invest(assetBookAddr, quantityToInvest, currentTime).encodeABI();
             let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
@@ -504,7 +504,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
 
 });
 
-/**get status（開發用） */
+/**get status（timeserver用） */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
@@ -539,14 +539,15 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
                 CFED2: CFED2
             });
         }
+
     });
 });
 
-/**funding updateState（開發用）*/
+/**funding updateState （timeserver用）*/
 router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 2019052100000;
+    let currentTime = req.body.time;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -610,6 +611,70 @@ router.post('/tokenControllerContract', async function (req, res, next) {
         .on('error', function (error) {
             res.send(error.toString());
         })
+});
+
+/**tokencontroller updateState（timeserver用）*/
+router.post('/tokenControllerContract/:tokenSymbol/updateState', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+    let currentTime = req.body.time;
+    //let currentTime = 2019052100000;
+    /*
+        await timer.getTime().then(function(time) {
+            currentTime = time;
+        })
+    */
+    console.log(`現在時間: ${currentTime}`)
+
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_erc721Controller);
+            let tokenControllerAddr = DBresult[0].sc_erc721Controller;
+            let tokenController = new web3.eth.Contract(tokenControllerContract.abi, tokenControllerAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = tokenController.methods.updateState(currentTime).encodeABI();
+            let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenControllerAddr, encodedData);
+
+            res.send({
+                DBresult: DBresult,
+                TxResult: TxResult
+            })
+        }
+    });
+
+});
+
+/**get status （timeserver用） */
+router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_erc721Controller);
+            let tokenControllerAddr = DBresult[0].sc_erc721Controller;
+            let tokenController = new web3.eth.Contract(tokenControllerContract.abi, tokenControllerAddr);
+            let status = await tokenController.methods.tokenState().call({ from: backendAddr });
+
+            res.send(status);
+        }
+
+    });
 });
 
 
@@ -712,8 +777,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
     let fundingType = req.body.fundingType;
     let price = req.body.price;
 
-    
-    
+
+
     let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
     let currentTime;
     await timer.getTime().then(function (time) {
@@ -787,6 +852,32 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
             res.send(error.toString());
         })
 
+});
+
+/**get isScheduleGoogForRelease（timeserver用） */
+router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoogForRelease', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+    let currentTime = req.body.time;
+
+    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_incomeManagementaddress);
+            let incomeManagerAddr = DBresult[0].sc_incomeManagementaddress;
+            let incomeManager = new web3.eth.Contract(incomeManagerContract.abi, incomeManagerAddr);
+            let isScheduleGoodForRelease = await incomeManager.methods.isScheduleGoodForRelease(currentTime).call({ from: backendAddr });
+
+            res.send(isScheduleGoodForRelease);
+        }
+
+    });
 });
 
 
@@ -905,5 +996,6 @@ function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
 
     })
 }
+
 
 module.exports = router;
