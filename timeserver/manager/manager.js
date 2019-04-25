@@ -1,15 +1,15 @@
 // const os = require('os');
-// const path = require('path');
-// const fs = require('fs');
+const path = require('path');
+const fs = require('fs');
 const net = require("net");
 
-const {mysqlPoolQuery, getCrowdFundingCtrtAddr,
-  getIncomeManagerCtrtAddr, getOrderDate,
-  getHCAT721ControllerCtrtAddr,
-  setOrderExpired, setCrowdFundingState} = require('../lib/mysql.js');
+const { mysqlPoolQuery, getCrowdFundingCtrtAddr,
+    getIncomeManagerCtrtAddr, getOrderDate,
+    getHCAT721ControllerCtrtAddr,
+    setOrderExpired, setCrowdFundingState } = require('../lib/mysql.js');
 //const {mysqlPoolQuery} = require('../../app');
 
-const {sendTimeTokenController, sendTimeCFctrt, sendTimeIMctrt} = require('../lib/contractAPI.js');
+const { sendTimeTokenController, sendTimeCFctrt, sendTimeIMctrt } = require('../lib/contractAPI.js');
 
 const portForIncomingTime = 7010;
 let currentCount = 0;
@@ -26,13 +26,16 @@ createServer();
 
 function createServer() {
     const server = net.createServer(c => {
-      console.log('inside net.createServer');
+        console.log('inside net.createServer');
 
         c.on("data", (timeCurrent) => {
+            fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), date, function (err) {
+                if (err) console.error(`寫入時間失敗`)
+            })
             print(timeCurrent);
-            sendTimeToOrder(timeCurrent.toString());
+            checkTimeOfOrder(timeCurrent.toString());
             updateCrowdFunding(timeCurrent.toString());
-            //checkHCAT721(timeCurrent.toString());
+            //updateHCAT721(timeCurrent.toString());
             //checkIncomeManager(timeCurrent.toString());
         });
 
@@ -53,6 +56,20 @@ function createServer() {
       });
 }
 
+function updateHCAT721(timeCurrent) {
+  console.log('inside updateHCAT721()');
+  let pstate1 = "initial";
+  getHCAT721ControllerCtrtAddr(function (result) {
+      if (result.length != 0) {
+          for (let i in result) {
+              if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
+                //instTokenController.setTimeCurrent
+                  //sendTimeTokenController(result[i].sc_erc721Controller, timeCurrent.toString()).then(print)
+              }
+          }
+      }
+  })
+}
 
 function updateCrowdFunding(timeCurrent){
   console.log('inside updateCrowdFunding()');
@@ -138,7 +155,7 @@ function checkIncomeManager(timeCurrent) {
 }
 
 
-function sendTimeToOrder(timeCurrent) {
+function checkTimeOfOrder(timeCurrent) {
     getOrderDate(function (result) {
         if (result.length != 0) {
             for (let i in result) {
@@ -158,18 +175,7 @@ function sendTimeToOrder(timeCurrent) {
     })
 }
 
-function checkHCAT721(timeCurrent) {
-    getHCAT721ControllerCtrtAddr(function (result) {
-        if (result.length != 0) {
-            for (let i in result) {
-                if (typeof result[i].sc_erc721Controller !== 'undefined' && result[i].sc_erc721Controller != null) {
-                  //instTokenController.setTimeCurrent
-                    //sendTimeTokenController(result[i].sc_erc721Controller, timeCurrent.toString()).then(print)
-                }
-            }
-        }
-    })
-}
+
 
 Object.prototype.add3Day = function () {
     let year = parseInt(this.toString().slice(0, 4));

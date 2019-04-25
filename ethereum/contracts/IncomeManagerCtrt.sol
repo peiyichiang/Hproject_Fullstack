@@ -47,9 +47,9 @@ contract IncomeManagerCtrt is Ownable {
         supervisor = newSupervisor;
     }
 
-    //check if the current dateTimeNow has income schedule that is ready to be released
-    function isScheduleGoodForRelease(uint dateTimeNow) external view returns (bool) {
-        Schedule memory icSch = idxToSchedule[dateToIdx[dateTimeNow]];
+    //check if the inputTime has income schedule that is ready to be released
+    function isScheduleGoodForRelease(uint inputTime) external view returns (bool) {
+        Schedule memory icSch = idxToSchedule[dateToIdx[inputTime]];
         return (icSch.isApproved && icSch.forecastedPayableTime > dateTimeMin && icSch.forecastedPayableAmount > 0 && icSch.actualPaymentTime == 0 && icSch.actualPaymentAmount == 0);
     }
 
@@ -88,7 +88,14 @@ contract IncomeManagerCtrt is Ownable {
     }
 
     event EditIncomeSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
-    function editIncomeSchedule(uint schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlySupervisor {
+    function editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlySupervisor {
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
+
         uint forecastedPayableTimeOld = idxToSchedule[schIndex].forecastedPayableTime;
         delete dateToIdx[forecastedPayableTimeOld];
         
@@ -102,7 +109,14 @@ contract IncomeManagerCtrt is Ownable {
     }
 
 
-    function getIncomeSchedule(uint schIndex) external view returns (uint forecastedPayableTime, uint forecastedPayableAmount, uint actualPaymentTime, uint actualPaymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
+    function getIncomeSchedule(uint _schIndex) external view returns (uint forecastedPayableTime, uint forecastedPayableAmount, uint actualPaymentTime, uint actualPaymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
+
         Schedule memory icSch = idxToSchedule[schIndex];
 
         forecastedPayableTime = icSch.forecastedPayableTime;
@@ -114,20 +128,27 @@ contract IncomeManagerCtrt is Ownable {
         isErrorResolved = icSch.isErrorResolved;
     }
 
-    function getIncomeScheduleList(uint indexStart, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
+    function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
+
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
 
         uint amount_; uint indexStart_;
-        if(indexStart == 0) {//all get all schedules
+        if(schIndex == 0) {//all get all schedules
             indexStart_ = 1;
             amount_ = schCindex;
 
-        } else if (amount < 1 || amount > schCindex.sub(indexStart).add(1)) {
+        } else if (amount < 1 || amount > schCindex.sub(schIndex).add(1)) {
             //all get all remaining schedules
-            indexStart_ = indexStart;
+            indexStart_ = schIndex;
             amount_ = schCindex.sub(indexStart_).add(1);
 
         } else {
-            indexStart_ = indexStart;
+            indexStart_ = schIndex;
             amount_ = amount;
         }
 
@@ -154,16 +175,18 @@ contract IncomeManagerCtrt is Ownable {
 
     }
 
-    function getSchIndex(uint schIndex, uint forecastedPayableTime) public view returns (uint rsIndex) {
-        if (schIndex == 0) {
-            require(forecastedPayableTime != 0, "Both schIndex or forecastedPayableTime are 0. Error");
-            rsIndex = dateToIdx[forecastedPayableTime];
-        } else {
-            rsIndex = schIndex;
-        }
+    function getSchIndex(uint schTime) public view returns (uint rsIndex) {
+        require(schTime != 0, "schTime cannot be 0");
+        rsIndex = dateToIdx[schTime];
     }
 
-    function removeIncomeSchedule(uint schIndex) external onlySupervisor {
+    function removeIncomeSchedule(uint _schIndex) external onlySupervisor {
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
         require(idxToSchedule[schIndex].actualPaymentTime == 0 || idxToSchedule[schIndex].actualPaymentAmount == 0, "Cannot remove already paid schedule!");
         delete idxToSchedule[schIndex].forecastedPayableTime;
         delete idxToSchedule[schIndex].forecastedPayableAmount;
@@ -174,13 +197,28 @@ contract IncomeManagerCtrt is Ownable {
 
 
     /*設定isApproved */
-    function imApprove(uint schIndex, bool boolValue) external onlySupervisor {
+    function imApprove(uint _schIndex, bool boolValue) external onlySupervisor {
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
+
         idxToSchedule[schIndex].isApproved = boolValue;
     }
 
 
     /**設定 isIncomePaid，如果有錯誤發生，設定errorCode */
-    function setPaymentReleaseResults(uint schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlySupervisor {
+    function setPaymentReleaseResults(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlySupervisor {
+
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
+
         require(idxToSchedule[schIndex].isApproved, "such schedule must have been approved first");
         idxToSchedule[schIndex].actualPaymentTime = actualPaymentTime;
         idxToSchedule[schIndex].actualPaymentAmount = actualPaymentAmount;
@@ -193,7 +231,13 @@ contract IncomeManagerCtrt is Ownable {
     event SetPaymentReleaseResults(uint indexed actualPaymentTime, uint actualPaymentAmount, uint8 errorCode);
 
     /**設定isErrorResolved */
-    function setErrResolution(uint schIndex, bool boolValue) external onlySupervisor {
+    function setErrResolution(uint _schIndex, bool boolValue) external onlySupervisor {
+        uint schIndex;
+        if(_schIndex > dateTimeMin){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
         idxToSchedule[schIndex].isErrorResolved = boolValue;
     }
 

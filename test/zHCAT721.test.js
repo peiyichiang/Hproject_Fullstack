@@ -1257,7 +1257,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('new schCindex:', result);
     assert.equal(result, 1);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
     assert.equal(result, 1);
 
@@ -1328,12 +1328,12 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('new schCindex:', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(_index, forecastedPayableTime).call();
-    console.log('getSchIndex(_index, forecastedPayableTime):', result);
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
+    console.log('getSchIndex(forecastedPayableTime):', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
-    console.log('getSchIndex(0, forecastedPayableTime):', result);
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
+    console.log('getSchIndex(forecastedPayableTime):', result);
     assert.equal(result, _index);
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
@@ -1353,7 +1353,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
     forecastedPayableAmounts = [3700, 3800, 3900];
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
     assert.equal(result, _index);
 

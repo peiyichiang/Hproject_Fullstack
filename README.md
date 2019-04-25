@@ -105,7 +105,14 @@ yarn run livechain --c 1 --f 9 -a serverTime
 yarn run livechain --c 1 --f 10 -a 2 -b 1
 ```
 
-### 8. Run the app
+### 8. Setup Timeserver sending part
+```
+https://github.com/node-schedule/node-schedule
+'*/10 * * * * *'  ... for every 10 seconds
+'59 * * * * *'  ... for every 59th minute
+```
+
+### 9. Run the app
 
 ```
 yarn run start
@@ -113,7 +120,7 @@ yarn run start
 
 App will be opened in browser at `http://localhost:3000/`
 
-### 9. Set to receive incoming time
+### 10. Set to receive incoming time
 ```
 Go to http://140.119.101.130:7000/
 Enter your current running IP:
@@ -122,7 +129,7 @@ portForIncomingTime has the value defined inside timeServer/manager.js
 
 ```
 
-### 10. Live Preview
+### 11. Live Preview
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin
