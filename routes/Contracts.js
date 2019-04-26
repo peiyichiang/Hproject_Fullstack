@@ -553,7 +553,7 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
             currentTime = time;
         })
     */
-    console.log(`current time: ${currentTime}`)
+    console.log(`entered time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -624,7 +624,7 @@ router.post('/tokenControllerContract/:tokenSymbol/updateState', async function 
             currentTime = time;
         })
     */
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`entered time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -854,11 +854,12 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 
 });
 
-/**get isScheduleGoogForRelease（timeserver用） */
-router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoogForRelease', async function (req, res, next) {
+/**get isScheduleGoodForRelease（timeserver用） */
+router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = req.body.time;
+    console.log(`entered time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -951,13 +952,13 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
 
 
 /*sign rawtx*/
-function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
+function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
     return new Promise((resolve, reject) => {
 
         web3.eth.getTransactionCount(userEthAddr)
             .then(nonce => {
 
-                let userPrivateKey = Buffer.from(userRowPrivateKey.slice(2), 'hex');
+                let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),

@@ -24,7 +24,7 @@ var mysqlPoolQuery = function (sql, options, callback) {
           conn.query(sql, options, function (err, results, fields) {
               // callback
               callback(err, results, fields);
-              console.log(`[connection sussessful @ mysql.js] http://localhost:${process.env.PORT}/Product/ProductList`);
+              console.log(`[connection sussessful @ 111mysql.js] http://localhost:${process.env.PORT}/Product/ProductList`);
           });
           // release connection。
           // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
