@@ -211,6 +211,8 @@ function checkIncomeManager(timeCurrent) {
     } else if (resultLen != 0) {
       for (let i in result) {
         let symbol = result[i].ia_SYMBOL;
+        let iatime = ia_time; 
+        let isPayableTime = ia_Payable_Period_End;
         console.log('symbol to update state:', symbol);
         if (symbol === undefined || symbol === null || symbol.length <4){
           console.log('[Error @ updateIncomeManager(timeCurrent)]: symbol is not valid => Not an incomeManager schedule, symbole:', symbol);
