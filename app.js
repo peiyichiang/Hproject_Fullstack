@@ -23,41 +23,43 @@ var paymentGWRouter = require('./routes/PaymentGW');
 var ContractsRouter = require('./routes/Contracts');
 
 //Chiu
-require('./timeserver/manager/manager')
+require('./timeserver/manager')
 
 // var usersRouter = require('./routes/users');
 // DataBase
-var mysql = require("mysql");
+const { mysqlPoolQuery } = require('./timeserver/lib/mysql.js');
 
-var pool = mysql.createPool({
-    host: process.env.DB_HOST,//outside: 140.119.101.130, else 192.168.0.2 or localhost
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT
-});
+// var mysql = require("mysql");
 
-var mysqlPoolQuery = function (sql, options, callback) {
-    debugSQL(sql, options, callback);
-    if (typeof options === "function") {
-        callback = options;
-        options = undefined;
-    }
-    pool.getConnection(function (err, conn) {
-        if (err) {
-            callback(err, null, null);
-        } else {
-            conn.query(sql, options, function (err, results, fields) {
-                // callback
-                callback(err, results, fields);
-                console.log(`connection sussessful.http://localhost:${process.env.PORT}/Product/ProductList`);
-            });
-            // release connection。
-            // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
-            conn.release();
-        }
-    });
-};
+// var pool = mysql.createPool({
+//     host: process.env.DB_HOST,//outside: 140.119.101.130, else 192.168.0.2 or localhost
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASS,
+//     database: process.env.DB_NAME,
+//     port: process.env.DB_PORT
+// });
+
+// var mysqlPoolQuery = function (sql, options, callback) {
+//     debugSQL(sql, options, callback);
+//     if (typeof options === "function") {
+//         callback = options;
+//         options = undefined;
+//     }
+//     pool.getConnection(function (err, conn) {
+//         if (err) {
+//             callback(err, null, null);
+//         } else {
+//             conn.query(sql, options, function (err, results, fields) {
+//                 // callback
+//                 callback(err, results, fields);
+//                 console.log(`connection sussessful.http://localhost:${process.env.PORT}/Product/ProductList`);
+//             });
+//             // release connection。
+//             // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
+//             conn.release();
+//         }
+//     });
+// };
 
 
 
@@ -168,6 +170,6 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
-console.log(`[end of line @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
+console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 module.exports = app;

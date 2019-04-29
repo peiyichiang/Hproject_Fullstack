@@ -1,53 +1,8 @@
-const path = require('path');
-const fs = require('fs');
-const net = require("net");
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-var mysql = require("mysql");
-var debugSQL = require('debug')('dev:mysql');
-require('dotenv').config()
-
-var pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT
-});
-
-var mysqlPoolQuery = function (sql, options, callback) {
-  debugSQL(sql, options, callback);
-  if (typeof options === "function") {
-      callback = options;
-      options = undefined;
-  }
-  pool.getConnection(function (err, conn) {
-      if (err) {
-          callback(err, null, null);
-      } else {
-          conn.query(sql, options, function (err, results, fields) {
-              // callback
-              callback(err, results, fields);
-              console.log(`[DB connection sussessful @ timeserver manager.js]`);
-          });
-          // release connection。
-          // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
-          conn.release();
-      }
-  });
-};
-
-// const { mysqlPoolQuery, getCrowdFundingCtrtAddr,
-//     getIncomeManagerCtrtAddr, getOrderDate,
-//     getHCAT721ControllerCtrtAddr,
-//     setOrderExpired, setCrowdFundingState } = require('../lib/mysql.js');
-// const { sendTimeTokenController, sendTimeCFctrt, sendTimeIMctrt } = require('../lib/contractAPI.js');
-
-const portForIncomingTime = 7010;
-let currentCount = 0;
-const maxCount = 10;// time period in minutes
+const { mysqlPoolQuery } = require('./mysql.js');
 
 //-----------------==Copied from routes/Contracts.js
 /*Infura HttpProvider Endpoint*/
@@ -66,47 +21,24 @@ const tokenControllerContract = require('../../ethereum/contracts/build/TokenCon
 const crowdFundingContract = require('../../ethereum/contracts/build/CrowdFunding.json');
 const HCAT721_AssetTokenContract = require('../../ethereum/contracts/build/HCAT721_AssetToken.json');
 const incomeManagerContract = require('../../ethereum/contracts/build/IncomeManagerCtrt.json');
+
+const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
+const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
+const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
+
 //-----------------==
 
-createServer();
-// if(currentCount < maxCount+1){
-//   console.log('[timeserver] currentCount', currentCount);
-//   currentCount++;
-// } else {
-//   currentCount = 1;
-//   print('[timeserver] currentCount', currentCount);
-// }
-
-function createServer() {
-    const server = net.createServer(c => {
-        console.log('\ninside net.createServer');
-
-        c.on("data", (timeCurrent) => {
-            fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), timeCurrent, function (err) {
-                if (err) console.error(`寫入時間失敗`);
-            })
-            print(timeCurrent);
-            checkTimeOfOrder(timeCurrent.toString());
-            updateCrowdFunding(timeCurrent.toString());
-            //updateTokenController(timeCurrent.toString());
-            //checkIncomeManager(timeCurrent.toString());
-        });
-
-        c.on("end", () => {
-            print("end");
-        });
-        c.pipe(c);
-
-    });
-
-    server.on('error', (err) => {
-        throw err;
-    });
-    server.listen(portForIncomingTime, () => {
-        print(`server bound`);
-      });
+function setCrowdfundingDBState(symbol, pstate){
+  console.log('inside setCrowdfundingDBState()... change p_state');
+  mysqlPoolQuery(
+    'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [pstate, symbol], function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('result', result);
+    }
+  });
 }
-
 
 function updateCrowdFunding(timeCurrent){
   console.log('inside updateCrowdFunding(), timeCurrent:', timeCurrent);
@@ -116,7 +48,7 @@ function updateCrowdFunding(timeCurrent){
   var qur = mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = ? AND p_CFSD <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+')', [pstate1, pstate2, pstate3], function (err, result) {
     const resultLen = result.length;
-    console.log('result length', resultLen);
+    console.log('result length', resultLen, 'inside updateCrowdFunding', result);
 
     if (err) {
       console.log(err);
@@ -129,6 +61,8 @@ function updateCrowdFunding(timeCurrent){
           console.log('[Error @ updateCrowdFunding(timeCurrent)]: symbol is not valid', symbol);
 
         } else {
+          setCrowdfundingDBState(symbol, pstate2);
+
           mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
             if (err) {
                 console.log(err);
@@ -138,7 +72,7 @@ function updateCrowdFunding(timeCurrent){
 
               let inst_crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
 
-              let encodedData = inst_crowdFunding.methods.updateState(currentTime).encodeABI();
+              let encodedData = inst_crowdFunding.methods.updateState(timeCurrent).encodeABI();
               let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
 
               let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
@@ -182,7 +116,7 @@ function updateTokenController(timeCurrent) {
               let inst_tokenController = new web3.eth.Contract(tokenControllerContract.abi, tokenControllerAddr);
   
               /*用後台公私鑰sign*/
-              let encodedData = inst_tokenController.methods.updateState(currentTime).encodeABI();
+              let encodedData = inst_tokenController.methods.updateState(timeCurrent).encodeABI();
               let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenControllerAddr, encodedData);
 
               let tokenState = await tokenController.methods.tokenState().call({ from: backendAddr });
@@ -227,7 +161,7 @@ function checkIncomeManager(timeCurrent) {
 
               let inst_incomeManager = new web3.eth.Contract(incomeManagerContract.abi, incomeManagerAddr);
 
-              let isScheduleGoodForRelease = await inst_incomeManager.methods.isScheduleGoodForRelease(currentTime).call({ from: backendAddr });
+              let isScheduleGoodForRelease = await inst_incomeManager.methods.isScheduleGoodForRelease(timeCurrent).call({ from: backendAddr });
 
               if(isScheduleGoodForRelease){
                 console.log('isScheduleGoodForRelease', isScheduleGoodForRelease);
@@ -299,15 +233,6 @@ function checkTimeOfOrder(timeCurrent) {
 
 
 
-Object.prototype.add3Day = function () {
-    let year = parseInt(this.toString().slice(0, 4));
-    let month = parseInt(this.toString().slice(4, 6));
-    let day = parseInt(this.toString().slice(6, 8));
-    let hour = parseInt(this.toString().slice(8, 10));
-    let minute = parseInt(this.toString().slice(10, 12));
-    return new Date(year, month - 1, day + 3, hour, minute).myFormat();
-}
-
 /*sign rawtx*/
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
   return new Promise((resolve, reject) => {
@@ -355,6 +280,55 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
   })
 }
 
+
+
+//------------------------==
+function sendTimeIMctrt(addr, time) {
+    let contract = new web3.eth.Contract(IncomeManagement.abi, addr);
+    return contract.methods.getIncomeSchedule(time)
+        .call()
+        .then(function (result) {
+            return `${addr} success`
+        })
+        .catch(function (error) {
+            return `${addr} fail`
+        })
+}
+
+async function sendTimeCFctrt(addr, time) {
+    /*use admin EOA to sign transaction*/
+    let CrowdFundingContract = new web3.eth.Contract(CrowdFunding.abi, addr);
+    let encodedData = CrowdFundingContract.methods.setServerTime(time).encodeABI();
+
+    let result = await signTx(backendAddr, backendRawPrivateKey, addr, encodedData);
+
+    return result;
+}
+
+function sendTimeTokenController(addr, time) {
+    return web3.eth.getAccounts()
+        .then(function (accounts) {
+            let contract = new web3.eth.Contract(TokenController.abi, addr);
+            return contract.methods.setTimeCurrent(time)
+                .send({
+                    from: accounts[0],
+                    gasPrice: 0
+                })
+        })
+        .then(function (result) {
+            return `${addr} success`
+        })
+        .catch(function (error) {
+            return `${addr} fail`
+        })
+}
+
+
 function print(s) {
-    console.log('[timeserver/manager/manager.js] ' + s)
+  console.log('[timeserver/lib/blockchain.js] ' + s)
+}
+
+module.exports = {
+  checkTimeOfOrder, updateCrowdFunding, updateTokenController, checkIncomeManager,
+  setCrowdfundingDBState
 }
