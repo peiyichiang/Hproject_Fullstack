@@ -15,7 +15,7 @@
     "testasset": "mocha --grep AssetBook",
     "testregistry": "mocha --grep Registry",
     "testarray": "mocha --grep ArrayUtils",
-    "testts": "node timeserver/test.js"
+    "testts": "node timeserver/timeserverTest.js"
   },
   "dependencies": {
     "bcrypt": "^3.0.2",

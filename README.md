@@ -112,6 +112,15 @@ https://github.com/node-schedule/node-schedule
 '59 * * * * *'  ... for every 59th minute
 ```
 
+### 9. Test Timeserver Automation
+```
+$ yarn run testts --c C
+```
+  1: get funding state value
+  2: reset symbol "HHtoekn12222", "Htoken001", "Htoken0030" to p_state = initial
+  3: set timeCurrent = CFSD
+  4: set timeCurrent = CFED
+
 ### 9. Run the app
 
 ```

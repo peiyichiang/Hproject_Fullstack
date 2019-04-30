@@ -11,20 +11,21 @@ var pool = mysql.createPool({
     port: process.env.DB_PORT
 });
 
-var mysqlPoolQuery = function (sql, options, callback) {
+const mysqlPoolQuery = async (sql, options, callback) => {
   debugSQL(sql, options, callback);
   if (typeof options === "function") {
       callback = options;
       options = undefined;
   }
-  pool.getConnection(function (err, conn) {
+  pool.getConnection(async function (err, conn) {
       if (err) {
           callback(err, null, null);
       } else {
-          conn.query(sql, options, function (err, results, fields) {
+          conn.query(sql, options, async function (err, results, fields) {
               // callback
               callback(err, results, fields);
-              console.log(`[connection sussessful @ mysql.js] http://localhost:${process.env.PORT}/Product/ProductList`);
+              console.log(`[connection sussessful @ mysql.js] `);
+              // http://localhost:${process.env.PORT}/Product/ProductList
           });
           // release connection。
           // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
@@ -33,31 +34,40 @@ var mysqlPoolQuery = function (sql, options, callback) {
   });
 };
 
-function setCrowdFundingState(symbol, cfstate, cb) {
-  console.log('setCrowdFundingState');
-  let newState = '';
-  if(cfstate == "initial"){ newState = "funding";
-  } else if(cfstate == '') 
-
-  var qur = mysqlPoolQuery(
-    'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [newState, symbol], function (err, result) {
-      //console.log('result', result);
+function getFundingStateDB(symbol){
+  console.log('inside getFundingStateDB()... get p_state');
+  mysqlPoolQuery(
+    'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('symbol', symbol, 'pstate', result[0], 'CFSD', result[1], 'CFED', result[2]);
+    }
+  });
+}
+function setFundingStateDB(symbol, pstate, CFSD, CFED){
+  console.log('inside setFundingStateDB()... change p_state');
+  if(CFSD !== undefined && CFED !== undefined){
+    mysqlPoolQuery(
+      'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?', [pstate, CFSD, CFED, symbol], function (err, result) {
       if (err) {
         console.log(err);
+      } else {
+        console.log('symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED,'result', result);
       }
-      cb(result);
-    }
-  );
+    });
+  } else {
+    mysqlPoolQuery(
+      'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [pstate, symbol], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('symbol', symbol, 'pstate', pstate, 'result', result);
+      }
+    });
+  }
 }
 
-// function setCrowdFundingState(o_id, cb) {
-//   pool.query('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [[[o_id]]], function (err, result) {
-//       if (err) {
-//           print(err);
-//       }
-//       cb(result)
-//   })
-// }
 
 function getCrowdFundingCtrtAddr(symbol, cb) {
   console.log('getCrowdFundingCtrtAddr');
@@ -71,14 +81,7 @@ function getCrowdFundingCtrtAddr(symbol, cb) {
     }
   );
 }
-// function getCrowdFundingCtrtAddr(cb) {
-//     pool.query('SELECT sc_crowdsaleaddress FROM smart_contracts', function (err, rows) {
-//         if (err) {
-//             print(err);
-//         }
-//         cb(rows);
-//     })
-// }
+
 
 function getIncomeManagerCtrtAddr(cb) {
     pool.query('SELECT sc_incomeManagementaddress FROM smart_contracts', function (err, rows) {
@@ -127,5 +130,5 @@ module.exports = {
     getOrderDate,
     getHCAT721ControllerCtrtAddr,
     setOrderExpired,
-    setCrowdFundingState
+    setFundingStateDB, getFundingStateDB
 }

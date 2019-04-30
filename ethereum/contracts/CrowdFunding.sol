@@ -91,6 +91,19 @@ contract CrowdFunding is Ownable {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
+    function getContractDetails() public view returns(uint serverTimeMin_, uint maxTokenQtyForEachInvestmentFund_, string memory tokenSymbol_, string memory pricingCurrency_, uint initialAssetPricing_, uint maxTotalSupply_, uint quantityGoal_, uint quantitySold_, uint CFSD2_, uint CFED2_) {
+        serverTimeMin_ = serverTimeMin;
+        maxTokenQtyForEachInvestmentFund_ = maxTokenQtyForEachInvestmentFund;
+        tokenSymbol_ = tokenSymbol;
+        pricingCurrency_ = pricingCurrency;
+        initialAssetPricing_ = initialAssetPricing;
+        maxTotalSupply_ = maxTotalSupply;
+        quantityGoal_ = quantityGoal;
+        quantitySold_ = quantitySold;
+        CFSD2_ = CFSD2;
+        CFED2_ = CFED2;
+    }
+
 
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
     function updateState(uint serverTime) public onlyAdmin {
