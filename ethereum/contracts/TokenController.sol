@@ -4,7 +4,7 @@ import "./Ownable.sol";
 
 contract TokenController is Ownable {
     // 201902180900, 201902180901, 201902180902, 201902180907
-    uint public TimeRelease;// Token Release date and time
+    uint public TimeAtDeployment;// Token Release date and time
     uint public TimeUnlock;//The time to unlock tokens from lock up period
     uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
     bool public isLockedForRelease;// true or false: check if the token is locked for release
@@ -18,7 +18,7 @@ contract TokenController is Ownable {
     constructor(uint _timeCurrent, 
       uint _TimeUnlock, uint _TimeValid,
       address[] memory management) public {
-        TimeRelease = _timeCurrent;
+        TimeAtDeployment = _timeCurrent;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
         tokenState = TokenState.lockupPeriod;
@@ -41,10 +41,10 @@ contract TokenController is Ownable {
         return (tokenState == TokenState.operational && isTokenApproved);
     }
 
-    // to give variable values including TimeRelease, TimeUnlock, TimeValid, isLockedForRelease
+    // to give variable values including TimeAtDeployment, TimeUnlock, TimeValid, isLockedForRelease
     function getHTokenControllerDetails() public view returns (
-        uint TimeRelease_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_) {
-          TimeRelease_ = TimeRelease;
+        uint TimeAtDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_) {
+          TimeAtDeployment_ = TimeAtDeployment;
           TimeUnlock_ = TimeUnlock;
           TimeValid_ = TimeValid;
           isLockedForRelease_ = isLockedForRelease;
@@ -83,9 +83,9 @@ contract TokenController is Ownable {
         isLockedForRelease = true;
     }
 
-    //To set timeRelease before isLockedForRelease becomes true
-    // function setReleaseTime(uint _TimeRelease) external onlyAdmin ckTime(_TimeRelease) ckLock {
-    //     TimeRelease = _TimeRelease;
+    //To set TimeAtDeployment before isLockedForRelease becomes true
+    // function setReleaseTime(uint _TimeAtDeployment) external onlyAdmin ckTime(_TimeAtDeployment) ckLock {
+    //     TimeAtDeployment = _TimeAtDeployment;
     // }
 
     modifier ckLock() {

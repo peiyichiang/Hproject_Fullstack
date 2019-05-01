@@ -46,14 +46,14 @@ function getFundingStateDB(symbol){
   });
 }
 function setFundingStateDB(symbol, pstate, CFSD, CFED){
-  console.log('inside setFundingStateDB()... change p_state');
-  if(CFSD !== undefined && CFED !== undefined){
+  console.log('\ninside setFundingStateDB()... change p_state');
+  if(CFSD !== undefined && CFED !== undefined && Number.isInteger(CFSD) && Number.isInteger(CFED)){
     mysqlPoolQuery(
       'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?', [pstate, CFSD, CFED, symbol], function (err, result) {
       if (err) {
         console.log(err);
       } else {
-        console.log('symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED,'result', result);
+        console.log('[DB] symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED,'result', result);
       }
     });
   } else {
@@ -62,13 +62,48 @@ function setFundingStateDB(symbol, pstate, CFSD, CFED){
       if (err) {
         console.log(err);
       } else {
-        console.log('symbol', symbol, 'pstate', pstate, 'result', result);
+        console.log('[DB] symbol', symbol, 'pstate', pstate, 'result', result);
       }
     });
   }
 }
 
+//------------------------==
+function setTokenStateDB(symbol, pstate, lockupPeriod, validdate){
+  console.log('\ninside setTokenStateDB()... change p_state');
+  if(Number.isInteger(lockupPeriod) && Number.isInteger(validdate)){
+    mysqlPoolQuery(
+      'UPDATE htoken.product SET p_state = ?, p_lockupPeriod = ?, p_validdate = ? WHERE p_SYMBOL = ?', [pstate, lockupPeriod, validdate, symbol], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('[DB] symbol', symbol, 'pstate', pstate, 'lockupPeriod', lockupPeriod, 'validdate', validdate,'result', result);
+      }
+    });
+  } else {
+    mysqlPoolQuery(
+      'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [pstate, symbol], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('[DB] symbol', symbol, 'pstate', pstate, 'result', result);
+      }
+    });
+  }
+}
 
+function getTokenStateDB(symbol){
+  console.log('inside getTokenStateDB()... get p_state');
+  mysqlPoolQuery(
+    'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('symbol', symbol, 'pstate', result[0], 'CFSD', result[1], 'CFED', result[2]);
+    }
+  });
+}
+//------------------------==
 function getCrowdFundingCtrtAddr(symbol, cb) {
   console.log('getCrowdFundingCtrtAddr');
   var qur = mysqlPoolQuery(
@@ -130,5 +165,6 @@ module.exports = {
     getOrderDate,
     getHCAT721ControllerCtrtAddr,
     setOrderExpired,
-    setFundingStateDB, getFundingStateDB
+    setFundingStateDB, getFundingStateDB,
+    setTokenStateDB, getTokenStateDB
 }

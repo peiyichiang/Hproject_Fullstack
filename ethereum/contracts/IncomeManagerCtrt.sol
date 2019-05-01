@@ -10,8 +10,8 @@ contract IncomeManagerCtrt is Ownable {
     uint public dateTimeMin = 201901220900;// the minimum dataTime allowed
 
     uint public schCindex;//last submitted index and total count of current schedules, and also the index count. It starts from 1 to 80. SPLC life time has a total of 80 schedules
-    mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
+    mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
     
     // cash flow: FMX -> platform -> investors
     // records of parameters stored in each schedule

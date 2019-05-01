@@ -1,15 +1,29 @@
 const timer = require('./lib/api.js');
 const { setFundingStateDB, getFundingStateDB } = require('./lib/mysql.js');
-const { checkTimeOfOrder, updateCrowdFunding, updateTokenController, checkIncomeManager, updateCFC_fundingState, getCFC_fundingState, getCFC_Details } = require('./lib/blockchain.js');
+const { checkTimeOfOrder, updateCrowdFunding, updateTokenController, getTCC_tokenState, checkIncomeManager, updateCFC_fundingState, getCFC_fundingState, getCFC_Details } = require('./lib/blockchain.js');
 
 
 let choice = 2, crowdFundingAddr, timeCurrent, arg0, arg1, arg2;
 const CFSD_Base= 201905200000;
 const CFED_Base= 201906200000;
 
+const symbolArray = ["HHtoekn12222", "Htoken001", "Htoken0030"];
 const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
 
-const symbolArray = ["HHtoekn12222", "Htoken001", "Htoken0030"];
+//KAOS1903  KAOS1902  KAOS1901
+const tokenControllerAddrArray= ["0xBbf07aADDf5f7380701152fBB16f54d4857aeBcc"
+, '0x760270C0917Bc71ED048F4c0D6498e047b09586A', '0xaf235B7f7eBb85fc6dcaD7b18936eeBe84eeEa5d'];
+
+/**
+ * to deploy crowdfunding contract
+ * POST: http://localhost:3000/Contracts/crowdFundingContract/RAAY1903
+ * 
+ * to deploy tokencontroller contract
+ * POST: http://localhost:3000/Contracts/tokenControllerContract
+ * TimeAtDeployment, TimeUnlock, TimeValid, Management: 5 addrs
+ * 
+ */
+//symbolIndex= 0, 
 
 /**
   Set both DB and CrowdFunding contract state to initial
@@ -67,11 +81,23 @@ timer.getTime().then(function(time) {
     console.log(`last recorded time via lib/api.js: ${time}`)
 });
 
-//------------------==
-// 0: getCFC_fundingState(ctrtAddr), 1: choice 0 x all ctrtAddrs, 2: updateCFC_fundingState(t<CFSD) ctrt_ndex, 3: choice 2 x all ctrtAddrs, 10: reset DB CFC funding states, 11: updateCrowdFunding(timeCurrent = CFSD_Base), 12: updateCrowdFunding(timeCurrent = CFED_Base);
-/**const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
- */
+/**------------------==
+Options according to test flow:
 
+0: choice 0 x all ctrtAddrs, 
+10: reset DB CFC funding states, 
+21: updateCrowdFunding(timeCurrent == CFSD_Base);
+22: updateCrowdFunding(timeCurrent == CFED_Base);
+
+2: reset CFC to initial: updateCFC_fundingState(ctrt_ndex), 
+//3: reset CFC all to initial... choice 2 x all ctrtAddrs, 
+11: reset DB to CFSD_Base, 
+
+1: getCFC_fundingState(ctrtAddr), 
+12: updateCrowdFunding(timeCurrent = CFED_Base);
+
+const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
+*/
  if(choice === 0){
   for(let i = 0; i < crowdFundingAddrArray.length; i++){
     getCFC_fundingState(crowdFundingAddrArray[i]);
@@ -103,8 +129,10 @@ timer.getTime().then(function(time) {
 } else if(choice === 11) {
   const pstate = "initial"; let CFSD, CFED;
   for(let i = 0; i < symbolArray.length; i++){
-    CFSD = CFSD_Base + i*10;
-    CFED = CFED_Base + i*10;
+    CFSD = CFSD_Base;
+    CFED = CFED_Base;
+    //CFSD = CFSD_Base + i*10;
+    //CFED = CFED_Base + i*10;
     console.log('symbol', symbolArray[i], 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED);
     setFundingStateDB(symbolArray[i], pstate, CFSD, CFED);
   }
@@ -113,7 +141,7 @@ timer.getTime().then(function(time) {
   crowdFundingAddr = crowdFundingAddrArray[arg0];
   getCFC_Details(crowdFundingAddr);
 
-
+//---------
 } else if(choice === 21) {
   const timeCurrent = CFSD_Base;
   console.log('choice === 21. timeCurrent === CFSD_Base', timeCurrent, CFSD_Base);
@@ -124,6 +152,15 @@ timer.getTime().then(function(time) {
   console.log('choice === 22. timeCurrent == CFED_Base', timeCurrent, CFED_Base);
   updateCrowdFunding(timeCurrent);
 
+//--------------------==TokenController tokenState
+} else if(choice === 30){
+    console.log('choice == 30. check tokenController tokenStates...');
+    for(let i = 0; i < tokenControllerAddrArray.length; i++){
+      getTCC_tokenState(tokenControllerAddrArray[i]);
+    }
+    console.log(tokenControllerAddrArray);
+
+    
 } else {
   console.log('choice is out of range');
 }

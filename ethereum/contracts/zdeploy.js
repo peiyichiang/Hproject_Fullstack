@@ -4,41 +4,47 @@ yarn run deploy --c 1 --ctrtName contractName
 ```
 where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
 
-and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
+and contractName can be either platform, multisig, assetbook, registry, tokencontroller, hcat721, or crowdfunding.
 
 */
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+const {mysqlPoolQuery} = require('../../timeserver/lib/mysql');
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenURI, tokenURI_bytes32;
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenURI;
 console.log('process.argv', process.argv);
 if (process.argv.length < 6) {
   console.log('not enough arguments. Make it like: yarn run deploy --chain 1 --ctrtName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('ctrtName = platform, multisig, assetbook, registry, erc721splc, crowdfunding');
+  console.log('ctrtName = platform, multisig, assetbook, registry, hcat721, crowdfunding');
   process.exit(1);
 }
 const chain = parseInt(process.argv[3]);//0;
 const ctrtName = process.argv[5];//'assetbook';
-let timeCurrent = 201903081040, Bufferfrom = true;
-console.log('chain = ', chain, ', Bufferfrom =', Bufferfrom, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
+let timeCurrent = 201905010000;
+console.log('chain = ', chain, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
 
 let Backend, AssetOwner1, AssetOwner2, acc3, acc4;
 let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, Backendpk;
 let addrPlatform, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
-let addrERC721SPLC, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
+let addrHCAT721, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
 
-const nftName = "NCCU site No.1(2018)";
-const nftSymbol = "NCCU1801";
+const nftName = "KAOS1903 site No.3(2019)";
+const nftSymbol = "KAOS1903";
 const siteSizeInKW = 300;
-const maxTotalSupply = 773;
-const initialAssetPricing = 17000;
+const maxTotalSupply = 1173;
+const initialAssetPricing = 18000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
-  /**https://iancoleman.io/bip39
+  /**
+  From KuanYi:
+  "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+  "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
+ 
+  https://iancoleman.io/bip39
   m/44'/60'/0'/0/0 	0xa6cc621A179f01A719ee57dB4637A4A1f603A442 	0x02afa51468bfb825ddfa794b360f42c016da3dba10df065a11650b63799befed45 	0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
 
   m/44'/60'/0'/0/1 	0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2 	0x025e0eaf152f741fc91f437d0b6dfdaf96c076ad98010a0d60ba0490c05a46bbdd 	0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca
@@ -50,8 +56,10 @@ if (chain === 1) {//POA private chain
   m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
    */
   tokenURI = nftSymbol+"/uri";
-  Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
-  BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
+  Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+  BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
+  //Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
+  //BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
   AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
   AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
   AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
@@ -61,36 +69,34 @@ if (chain === 1) {//POA private chain
 
   /** deployed contracts
      yarn run deploy --c 1 --ctrtName contractName
-    'ctrtName = platform, multisig, assetbook, registry, tokencontroller, erc721splc, crowdfunding'
+    'ctrtName = platform, assetbook, registry, tokencontroller, hcat721, crowdfunding'
    */
-  addrPlatform = "0xC4Ea4B5347C8159Ad4ec41bD65Ac2f737b3395E7";
-  addrMultiSig1 = "0x0C7BFaDb47d333AB0cCe259f5aD1a2D718648e38";
-  addrMultiSig2 = "0xd982Ba277F08e248c449Ed71721bB02D3Ac7186f";
-  addrAssetBook1 = "0xa0Ee9E186471aA7F7F0158002a7A4BaDA26a1C41";
-  addrAssetBook2 = "0x37C7BaD3c16eF235205D02E50F1c91E0CD740684";
-  addrRegistry =   "0xfD5a28CbD39F787F8fEf5af098F6d753AdB72791";
-  addrTokenController = "0xBc6381e1EbDab9c3E4389b7887A6a9183CCC1893";
-  addrERC721SPLC = "0xBbDaFBe4c8EA4500725ffdA782942128D7a34CDD";
-  addrCrowdFunding = "0x45b323B1ccDbf10B9B71c5DB5a99005cA27714f3";
+  addrPlatform = "0x8f080E9302a0D9B5aeF27Af73644784cD6eDc077";
+  addrAssetBook1 = "0x70DAe800604f95168516C06d0dcD2d2555287B1C";
+  addrAssetBook2 = "0x6B874a5D23C6dE379b898CA39cA589bF6A3146E2";
+  addrRegistry =   "0x2261379cb2c547d699cd1847Ac950db2117fEb08";
 
-  // addrPlatform = "0x83Bc6D371C67EE0Bae73B0Af65219D56862FfcBC";
-  // addrMultiSig1 = "0x2Ce700F9CAD3F282588e9E9F036E63a67b666094";
-  // addrMultiSig2 = "0x4F6652c9a0A4a52b9d9c98801fA7aE9E2Dd7503F";
-  // addrAssetBook1 = "0x480Bf7d6fF9d9440d9960fB92424e641F14f90A6";
-  // addrAssetBook2 = "0x7b25D658702c8c15e5b97AF2fbfFdEf5c9882A7d";
-  // addrRegistry =   "0xCec672c1E3A042802449565b8fbeec5133998161";
-  // addrTokenController = "0xAFf9aEF820d17Bf3069cD647ec8e214f60927c9b";
-  // addrERC721SPLC = "0x38c8edC86B316DD8E8Ee04391B87345b904ea992";
-  // addrCrowdFunding = "0xf516b84A9b8bf8ABC2b7Ff6bC111544C38608739";
+  //KAOS1903
+  addrTokenController = "0xBbf07aADDf5f7380701152fBB16f54d4857aeBcc";
+  addrHCAT721 = "0x891eD624E47bE55ed846EA92287eE2814F0401eE";
+  addrCrowdFunding = "0xE1603520BCcf52AC230d89e4e9fb392D8f92b08D";
+
+  //KAOS1902
+  //addrTokenController = "0x760270C0917Bc71ED048F4c0D6498e047b09586A";
+  //addrHCAT721 = "0xfFAC15307D01E16757a9cAd05c59B35986C725Ce";
+  //addrCrowdFunding = "0xc5efEEB4ceb9e7D0186bD45B69Dd282ffa20838A";
+
+  //KAOS1901
+  // addrTokenController = "0xaf235B7f7eBb85fc6dcaD7b18936eeBe84eeEa5d";
+  // addrHCAT721 = "0x6013Ee0515BE555A232bB6D1C79B66E4bBAD5be7";
+  // addrCrowdFunding = "0x0e0A302d7732407aAA1a90D6cDfdAa7f439Ceb35";
 
   // addrPlatform = "";
-  // addrMultiSig1 = "";
-  // addrMultiSig2 = "";
   // addrAssetBook1 = "";
   // addrAssetBook2 = "";
   // addrRegistry =   "";
   // addrTokenController = "";
-  // addrERC721SPLC = "";
+  // addrHCAT721 = "";
   // addrCrowdFunding = "";
 
   //addrIncomeManagement = "";
@@ -104,12 +110,11 @@ if (chain === 1) {//POA private chain
 
   const nodeUrl = "http://140.119.101.130:8545";
 
-  if (Bufferfrom){
-    console.log('Backendpk use Buffer.from');
-    Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
-    AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
-    AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
-  } 
+  console.log('Backendpk use Buffer.from');
+  Backendpk = Buffer.from(BackendpkRaw.substr(2), 'hex');
+  AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
+  AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
+
   provider = new PrivateKeyProvider(Backendpk, nodeUrl);
   web3 = new Web3(provider);
   prefix = '0x';
@@ -143,7 +148,7 @@ if (chain === 1) {//POA private chain
 
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
-let instRegistry, instTokenController, instERC721SPLC, instCrowdFunding,  instIncomeManagement, instProductManager;
+let instRegistry, instTokenController, instHCAT721, instCrowdFunding,  instIncomeManager, instProductManager;
 let management, platformCtAdmin;
 let balance0, balance1, balance2;
 
@@ -153,19 +158,15 @@ const addrZero = "0x0000000000000000000000000000000000000000";
 let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 
-const TimeTokenLaunch = timeCurrent+3;
-const TimeTokenUnlock = timeCurrent+4; 
-const TimeTokenValid =  timeCurrent+9;
-
-
-
+const TimeTokenUnlock = timeCurrent+10; 
+const TimeTokenValid =  timeCurrent+100;
 const _tokenSymbol = nftSymbol;
 const _tokenPrice = initialAssetPricing;
 const _currency = pricingCurrency;
 const _quantityMax = maxTotalSupply;
-const _goalInPercentage = 97;
+const _quantityGoal = Math.round(maxTotalSupply*0.95);
 const _CFSD2 = timeCurrent+1;
-const _CFED2 = timeCurrent+10;
+const _CFED2 = timeCurrent+7;
 let _serverTime = timeCurrent;
 //--------------------==
 console.log('Load contract json file compiled from sol file');
@@ -273,24 +274,24 @@ if (TokenController === undefined){
   //console.log(TokenController);
 }
 
-const ERC721SPLC = require('./build/ERC721SPLC_HToken.json');
-if (ERC721SPLC === undefined){
-  console.log('[Error] ERC721SPLC is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const HCAT721 = require('./build/HCAT721_AssetToken.json');
+if (HCAT721 === undefined){
+  console.log('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] ERC721SPLC is defined');
-  if (ERC721SPLC.abi === undefined){
-    console.log('[Error] ERC721SPLC.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] HCAT721 is defined');
+  if (HCAT721.abi === undefined){
+    console.log('[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC.abi is defined');
-      //console.log('ERC721SPLC.abi:', ERC721SPLC.abi);
+    console.log('[Good] HCAT721.abi is defined');
+      //console.log('HCAT721.abi:', HCAT721.abi);
   }
-  if (ERC721SPLC.bytecode === undefined || ERC721SPLC.bytecode.length < 10){
-    console.log('[Error] ERC721SPLC.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (HCAT721.bytecode === undefined || HCAT721.bytecode.length < 10){
+    console.log('[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ERC721SPLC.bytecode is defined');
-      //console.log('ERC721SPLC.bytecode:', ERC721SPLC.bytecode);
+    console.log('[Good] HCAT721.bytecode is defined');
+      //console.log('HCAT721.bytecode:', HCAT721.bytecode);
   }
-  //console.log(ERC721SPLC);
+  //console.log(HCAT721);
 }
 
 const CrowdFunding = require('./build/CrowdFunding.json');
@@ -313,7 +314,7 @@ if (CrowdFunding === undefined){
   //console.log(CrowdFunding);
 }
 
-const IncomeManagement = require('./build/IncomeManagement.json');
+const IncomeManagement = require('./build/IncomeManagerCtrt.json');
 if (IncomeManagement === undefined){
   console.log('[Error] IncomeManagement is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -521,7 +522,7 @@ const deploy = async () => {
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      timeCurrent, TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management ];
+      timeCurrent, TimeTokenUnlock, TimeTokenValid, management ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
@@ -540,28 +541,32 @@ const deploy = async () => {
     addrTokenController = instTokenController.options.address;
     console.log('addrTokenController:', addrTokenController);
 
-  } else if (ctrtName === 'erc721splc') {
-    //Deploying ERC721SPLC contract...
-    /**
-     * 
-     * https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
-    203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
-    */
 
-    tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
-    const argsERC721SPLC = [
-    nftName, nftSymbol, siteSizeInKW, maxTotalSupply, 
-    initialAssetPricing, pricingCurrency, IRR20yrx100,
+  } else if (ctrtName === 'hcat721') {
+    //Deploying HCAT721 contract...
+    /**https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
+     * bytes32 _nftName, bytes32 _nftSymbol, 
+        uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
+        bytes32 _pricingCurrency, uint _IRR20yrx100,
+        address _addrRegistry, address _addrTokenController,
+        bytes32 _tokenURI
+    */
+    const nftName_bytes32 = web3.utils.fromAscii(nftName);
+    const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
+    const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
+    const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+    const argsHCAT721 = [
+    nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
+    initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
     addrRegistry, addrTokenController, tokenURI_bytes32];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
     // address _addrRegistryITF, address _addrTokenControllerITF
   
-    console.log('\nDeploying ERC721SPLC contract...');
-    instERC721SPLC = await new web3.eth.Contract(ERC721SPLC.abi)
-    .deploy({ data: prefix+ERC721SPLC.bytecode, arguments: argsERC721SPLC })
+    console.log('\nDeploying HCAT721 contract...');
+    instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
+    .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
@@ -570,13 +575,13 @@ const deploy = async () => {
         console.log('error:', error.toString());
     });
 
-    console.log('ERC721SPLC.sol has been deployed');
-    if (instERC721SPLC === undefined) {
-      console.log('[Error] instERC721SPLC is NOT defined');
-      } else {console.log('[Good] instERC721SPLC is defined');}
-    instERC721SPLC.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrERC721SPLC = instERC721SPLC.options.address;
-    console.log('addrERC721SPLC:', addrERC721SPLC);
+    console.log('HCAT721.sol has been deployed');
+    if (instHCAT721 === undefined) {
+      console.log('[Error] instHCAT721 is NOT defined');
+      } else {console.log('[Good] instHCAT721 is defined');}
+    instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrHCAT721 = instHCAT721.options.address;
+    console.log('addrHCAT721:', addrHCAT721);
     /**
     value: '0', from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3.utils.toWei('10','ether')
@@ -584,7 +589,7 @@ const deploy = async () => {
 
   } else if (ctrtName === 'crowdfunding') {
    console.log('\nDeploying CrowdFunding contract...');
-   const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _goalInPercentage, _CFSD2, _CFED2, _serverTime, management];
+   const argsCrowdFunding = [_tokenSymbol, _tokenPrice, _currency, _quantityMax, _quantityGoal, _CFSD2, _CFED2, _serverTime, management];
    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
     .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
@@ -603,12 +608,28 @@ const deploy = async () => {
     addrCrowdFunding = instCrowdFunding.options.address;
     console.log('addrCrowdFunding:', addrCrowdFunding);
 
+    mysqlPoolQuery('INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_erc721address, sc_totalsupply, sc_remaining, sc_erc721Controller) VALUES (?, ?, ?, ?, ?)', [nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, maxTotalSupply, addrTokenController], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("\nSmart contract table has been added with a new row");
+      }
+    });
+
+    
+    mysqlPoolQuery('INSERT INTO htoken.product (p_SYMBOL, p_name, p_pricing,  p_currency, p_irr, p_releasedate, p_validdate, p_size, p_totalrelease, p_CFSD, p_CFED, p_state, p_fundingGoal, p_lockupperiod ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [nftSymbol, nftName, initialAssetPricing, pricingCurrency, IRR20yrx100, timeCurrent, TimeTokenUnlock, siteSizeInKW, maxTotalSupply, _CFSD2, _CFED2, "initial", _quantityGoal, TimeTokenValid], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("\nProduct table has been added with one new row");
+      }
+    });
     /*
   } else if (ctrtName === 'incomemanagement') {
-    const addrTokenCtrt = addrERC721SPLC;
+    const addrTokenCtrt = addrHCAT721;
     const argsIncomeManagement =[TimeAnchor, addrTokenCtrt, addrPA_Ctrt, addrFMXA_Ctrt, addrPlatformCtrt];
 
-    instIncomeManagement = await new web3.eth.Contract(IncomeManagement.abi)
+    instIncomeManager = await new web3.eth.Contract(IncomeManagement.abi)
     .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
@@ -619,11 +640,11 @@ const deploy = async () => {
     });
 
     console.log('IncomeManagement.sol has been deployed');
-    if (instIncomeManagement === undefined) {
-      console.log('[Error] instIncomeManagement is NOT defined');
-      } else {console.log('[Good] instIncomeManagement is defined');}
-    instIncomeManagement.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrIncomeManagement = instIncomeManagement.options.address;
+    if (instIncomeManager === undefined) {
+      console.log('[Error] instIncomeManager is NOT defined');
+      } else {console.log('[Good] instIncomeManager is defined');}
+    instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrIncomeManagement = instIncomeManager.options.address;
     console.log('addrIncomeManagement:', addrIncomeManagement);
 
 

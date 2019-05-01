@@ -31,9 +31,9 @@ function createServer() {
             })
             print(timeCurrent);
             checkTimeOfOrder(timeCurrent.toString());
-            updateCrowdFunding(timeCurrent.toString());
-            //updateTokenController(timeCurrent.toString());
-            //checkIncomeManager(timeCurrent.toString());
+            updateCrowdFunding(parseInt(timeCurrent.toString()));
+            //updateTokenController(parseInt(timeCurrent.toString()));
+            //checkIncomeManager(parseInt(timeCurrent.toString()));
         });
 
         c.on("end", () => {
