@@ -427,7 +427,7 @@ const doesPassCompliance = (authLevel, balance, buyAmount, fundingType) => {
 }
 
 //通過User ID獲取Completed Order
-router.get('/GetCompletedOrdersByUserIdentityNumber',function(req, res, next) {
+router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
   console.log('------------------------==\n@Order/GetCompletedOrdersByUserIdentityNumber');
   var token=req.query.JWT_Token;
     if (token) {
