@@ -16,6 +16,8 @@ var productRouter = require('./routes/Product');
 var backendUserRouter = require('./routes/backend_user');
 //有容
 var userRouter = require('./routes/user');
+var incomeManagementRouter = require('./routes/incomeManagementAPI');
+
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
@@ -149,8 +151,7 @@ app.use('/user', userRouter);
 app.use('/Order', orderRouter);
 app.use('/paymentGW', paymentGWRouter);
 app.use('/Contracts', ContractsRouter);
-
-
+app.use('/incomeManagementAPI',incomeManagementRouter)
 
 
 // app.use('/users', usersRouter);
