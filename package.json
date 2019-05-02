@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "solc": "cd ethereum/contracts && node zcompile.js",
-    "deploy": "cd ethereum/contracts && node zdeploy.js",
+    "deploy": "node ethereum/contracts/zdeploy.js",
     "livechain": "cd ethereum/contracts && node zlivechain.js",
     "start": "nodemon ./bin/www",
     "test": "mocha",

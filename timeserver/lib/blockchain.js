@@ -66,7 +66,7 @@ const updateTCC_tokenState = async (tokenControllerAddr, timeCurrent) => {
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenControllerAddr, encodedData);
   console.log('\nTxResult', TxResult);
 
-  let tokenState = await tokenController.methods.tokenState().call({ from: backendAddr });
+  let tokenState = await inst_tokenController.methods.tokenState().call({ from: backendAddr });
   console.log('\ntokenState:', tokenState);
   console.log('tokenControllerAddr', tokenControllerAddr);
   return tokenState;
@@ -145,12 +145,12 @@ const sequentialRun = async (arrayInput, waitTime, timeCurrent, actionType) => {
           console.log(`\n${actionType} addr is found for`, symbol, targetAddr);
           //return;
 
-          writeToBCDB(targetAddr, timeCurrent, symbol, actionType);
-          console.log('[Success] writingToBlock() is completed');
+          writeToBlockchainAndDatabase(targetAddr, timeCurrent, symbol, actionType);
+          console.log('[Success] writingToBlockchainAndDatabase() is completed');
         }
       });
     }
-    console.log('main tread is paused for waiting', waitTime, 'seconds');
+    console.log('main tread is paused for waiting', waitTime, 'miliseconds');
     await waitFor(waitTime);
   });
   console.log('--------------==Done');
@@ -190,7 +190,7 @@ const updateTokenController = async (timeCurrent) => {
   }
 
   mysqlPoolQuery(
-    'SELECT p_SYMBOL FROM htoken.product WHERE p_lockupperiod <= ? OR p_validdate <= ?', [timeCurrent, timeCurrent], function (err, symbolArray) {
+    'SELECT p_SYMBOL FROM htoken.product WHERE p_lockuptime <= ? OR p_validdate <= ?', [timeCurrent, timeCurrent], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
     console.log('\nsymbolArray length @ updateTokenController', symbolArrayLen, ', symbolArray:', symbolArray);
 
@@ -201,30 +201,8 @@ const updateTokenController = async (timeCurrent) => {
     }
   });
 }
-//-------------------==Income Manager
-const checkIncomeManager = async (timeCurrent) => {
-  console.log('\ninside checkIncomeManager(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
-  if(!Number.isInteger(timeCurrent)){
-    console.log('[Error] timeCurrent should be an integer');
-    return;
-  }
-  //let payableTime = ia_time; 
-  //let payableAmount = ia_Payable_Period_End;
-  //'SELECT htoken.income_arrangement.ia_SYMBOL,htoken.income_arrangement.ia_time , htoken.income_arrangement.ia_Payable_Period_End From htoken.income_arrangement where income_arrangement.ia_time = ?'
-  mysqlPoolQuery(
-    'SELECT htoken.income_arrangement.ia_SYMBOL From htoken.income_arrangement where income_arrangement.ia_time <= ?',[timeCurrent], function (err, resultArray) {
-    const resultArrayLen = resultArray.length;
-    console.log('symbolArray length @ checkIncomeManager', resultArrayLen);
 
-    if (err) {
-      console.log('[Error] @ searching symbols:', err);
-    } else if (resultArrayLen > 0) {
-      sequentialRun(resultArrayLen, 13000, timeCurrent, 'incomemanager');
-    }
-  });
-}
-
-const writeToBCDB = async (targetAddr, timeCurrent, symbol, actionType) => {
+const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, actionType) => {
   if(actionType === 'crowdfunding'){
     const fundingStateStr = await updateCFC_fundingState(targetAddr, timeCurrent);
     console.log('fundingState', fundingStateStr, 'typeof', typeof fundingStateStr);
@@ -256,17 +234,19 @@ const writeToBCDB = async (targetAddr, timeCurrent, symbol, actionType) => {
       default:
         setFundingStateDB(symbol, 'undefined', undefined, undefined);
     }
+
   } else if(actionType === 'tokencontroller'){
+    console.log('\n-----------------=inside writeToBlockchainAndDatabase(), actionType: tokencontroller');
     const tokenStateStr = await updateTCC_tokenState(targetAddr, timeCurrent);
     console.log('tokenState', tokenStateStr, 'typeof', typeof tokenStateStr);
     const tokenState = parseInt(tokenStateStr);
-    // lockupPeriod, operational, expired
+    // lockupPeriod, normal, expired
     switch(tokenState) {
       case 0:
         setTokenStateDB(symbol, 'lockupPeriod', undefined, undefined);
         break;
       case 1:
-        setTokenStateDB(symbol, 'operational', undefined, undefined);
+        setTokenStateDB(symbol, 'normal', undefined, undefined);
         break;
       case 2:
         setTokenStateDB(symbol, 'expired', undefined, undefined);
@@ -306,10 +286,31 @@ const writeToBCDB = async (targetAddr, timeCurrent, symbol, actionType) => {
       console.log('[Error] date is found as an incomeManager date in DB but not such in IncomeManager.sol!!! isScheduleGoodForRelease:', isScheduleGoodForRelease);
     }
   }
-  console.log('end of writeToBCDB() for', symbol, 'actionType:', actionType);
+  console.log('end of writeToBlockchainAndDatabase() for', symbol, 'actionType:', actionType);
 }
 
+//-------------------==Income Manager
+const checkIncomeManager = async (timeCurrent) => {
+  console.log('\ninside checkIncomeManager(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+  if(!Number.isInteger(timeCurrent)){
+    console.log('[Error] timeCurrent should be an integer');
+    return;
+  }
+  //let payableTime = ia_time; 
+  //let payableAmount = ia_Payable_Period_End;
+  //'SELECT htoken.income_arrangement.ia_SYMBOL,htoken.income_arrangement.ia_time , htoken.income_arrangement.ia_Payable_Period_End From htoken.income_arrangement where income_arrangement.ia_time = ?'
+  mysqlPoolQuery(
+    'SELECT htoken.income_arrangement.ia_SYMBOL From htoken.income_arrangement where income_arrangement.ia_time <= ?',[timeCurrent], function (err, resultArray) {
+    const resultArrayLen = resultArray.length;
+    console.log('symbolArray length @ checkIncomeManager', resultArrayLen);
 
+    if (err) {
+      console.log('[Error] @ searching symbols:', err);
+    } else if (resultArrayLen > 0) {
+      sequentialRun(resultArrayLen, 13000, timeCurrent, 'incomemanager');
+    }
+  });
+}
 
 
 
@@ -450,8 +451,8 @@ function print(s) {
 }
 
 module.exports = {
-  checkTimeOfOrder, updateCrowdFunding, 
-  getTCC_tokenState, updateTokenController, 
-  checkIncomeManager,
-  updateCFC_fundingState, getCFC_fundingState, getCFC_Details
+  checkTimeOfOrder, getCFC_Details,
+  getCFC_fundingState, updateCrowdFunding, updateCFC_fundingState,
+  getTCC_tokenState, updateTokenController, updateTCC_tokenState,
+  checkIncomeManager
 }

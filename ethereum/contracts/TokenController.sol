@@ -10,8 +10,8 @@ contract TokenController is Ownable {
     bool public isLockedForRelease;// true or false: check if the token is locked for release
     bool public isTokenApproved;// true or false: check if the token is active
 
-    // check if the tokenState is in one of the following states: lockupPeriod, operational, or expired
-    enum TokenState{lockupPeriod, operational, expired}
+    // check if the tokenState is in one of the following states: inInitialLockUpPeriod, normal, or expired
+    enum TokenState{inInitialLockUpPeriod, normal, expired}
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
@@ -21,7 +21,7 @@ contract TokenController is Ownable {
         TimeAtDeployment = _timeCurrent;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
-        tokenState = TokenState.lockupPeriod;
+        tokenState = TokenState.inInitialLockUpPeriod;
         isTokenApproved = true;
         require(management.length > 4, "management.length should be > 4");
         owner = management[4];
@@ -36,27 +36,28 @@ contract TokenController is Ownable {
         _;
     }
 
-    // to check if the HCAT721 token is in good operational state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
+    // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
     function isTokenApprovedOperational() external view returns (bool){
-        return (tokenState == TokenState.operational && isTokenApproved);
+        return (tokenState == TokenState.normal && isTokenApproved);
     }
 
     // to give variable values including TimeAtDeployment, TimeUnlock, TimeValid, isLockedForRelease
     function getHTokenControllerDetails() public view returns (
-        uint TimeAtDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_) {
+        uint TimeAtDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_, bool isTokenApproved_) {
           TimeAtDeployment_ = TimeAtDeployment;
           TimeUnlock_ = TimeUnlock;
           TimeValid_ = TimeValid;
           isLockedForRelease_ = isLockedForRelease;
+          isTokenApproved_ = isTokenApproved;
     }
 
-    // to update the tokenState to be one of the three states: lockupPeriod, operational, expired
+    // to update the tokenState to be one of the three states: inInitialLockUpPeriod, normal, expired
     function updateState(uint timeCurrent) external onlyAdmin ckTime(timeCurrent){
         if(timeCurrent < TimeUnlock){
-            tokenState = TokenState.lockupPeriod;
+            tokenState = TokenState.inInitialLockUpPeriod;
 
         } else if(timeCurrent >= TimeUnlock && timeCurrent < TimeValid){
-            tokenState = TokenState.operational;
+            tokenState = TokenState.normal;
 
         } else {//timeCurrent >= TimeValid
             tokenState = TokenState.expired;

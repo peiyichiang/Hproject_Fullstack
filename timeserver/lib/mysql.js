@@ -8,7 +8,7 @@ var pool = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT
+    port: process.env.DB_PORT,
 });
 
 const mysqlPoolQuery = async (sql, options, callback) => {
@@ -33,6 +33,26 @@ const mysqlPoolQuery = async (sql, options, callback) => {
       }
   });
 };
+
+const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock) => {
+  mysqlPoolQuery('INSERT INTO htoken.product (p_SYMBOL, p_name, p_location, p_pricing,  p_duration, p_currency, p_irr, p_releasedate, p_validdate, p_size, p_totalrelease, p_fundmanager, p_CFSD, p_CFED, p_state, p_fundingGoal, p_lockuptime, p_tokenState ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, "initial", _quantityGoal, TimeTokenUnlock, "lockupperiod"], function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("\nProduct table has been added with one new row. result:", result);
+    }
+  });
+}
+
+const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
+  mysqlPoolQuery('INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_erc721address, sc_totalsupply, sc_remaining, sc_incomeManagementaddress, sc_erc721Controller) VALUES (?, ?, ?, ?, ?, ?, ?)', [nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, maxTotalSupply, addrIncomeManager, addrTokenController], function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("\nSmart contract table has been added with one new row. result:", result);
+    }
+  });
+}
 
 function getFundingStateDB(symbol){
   console.log('inside getFundingStateDB()... get p_state');
@@ -69,37 +89,37 @@ function setFundingStateDB(symbol, pstate, CFSD, CFED){
 }
 
 //------------------------==
-function setTokenStateDB(symbol, pstate, lockupPeriod, validdate){
-  console.log('\ninside setTokenStateDB()... change p_state');
-  if(Number.isInteger(lockupPeriod) && Number.isInteger(validdate)){
+function setTokenStateDB(symbol, tokenState, lockuptime, validdate){
+  console.log('\ninside setTokenStateDB()... change p_tokenState');
+  if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
     mysqlPoolQuery(
-      'UPDATE htoken.product SET p_state = ?, p_lockupPeriod = ?, p_validdate = ? WHERE p_SYMBOL = ?', [pstate, lockupPeriod, validdate, symbol], function (err, result) {
+      'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?', [tokenState, lockuptime, validdate, symbol], function (err, result) {
       if (err) {
         console.log(err);
       } else {
-        console.log('[DB] symbol', symbol, 'pstate', pstate, 'lockupPeriod', lockupPeriod, 'validdate', validdate,'result', result);
+        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate,'result', result);
       }
     });
   } else {
     mysqlPoolQuery(
-      'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [pstate, symbol], function (err, result) {
+      'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?', [tokenState, symbol], function (err, result) {
       if (err) {
         console.log(err);
       } else {
-        console.log('[DB] symbol', symbol, 'pstate', pstate, 'result', result);
+        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'result', result);
       }
     });
   }
 }
 
 function getTokenStateDB(symbol){
-  console.log('inside getTokenStateDB()... get p_state');
+  console.log('inside getTokenStateDB()... get p_tokenState');
   mysqlPoolQuery(
-    'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
+    'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
     if (err) {
       console.log(err);
     } else {
-      console.log('symbol', symbol, 'pstate', result[0], 'CFSD', result[1], 'CFED', result[2]);
+      console.log('symbol', symbol, 'tokenState', result[0], 'lockuptime', result[1], 'validdate', result[2]);
     }
   });
 }
@@ -166,5 +186,6 @@ module.exports = {
     getHCAT721ControllerCtrtAddr,
     setOrderExpired,
     setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB
+    setTokenStateDB, getTokenStateDB,
+    addProductRow, addSmartContractRow
 }
