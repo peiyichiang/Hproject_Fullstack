@@ -10,12 +10,12 @@ function returnNumberWithCommas(x) {
 /* getIncomeHistoryBySymbol */
 router.get('/getAssetHistoryListBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
-    let keys = [req.query.symbol, req.query.assetBookAddress];
+    let keys = [req.query.symbol, req.query.userEmailAddress];
     let queryString = `
     SELECT ar_Accumulated_Income_Paid AS income, 
            ar_User_Acquired_Cost AS acquiredCost
     FROM htoken.investor_assetRecord 
-    WHERE ar_tokenSYMBOL = ? && ar_ownerAssetbookAddr = ?
+    WHERE ar_tokenSYMBOL = ? && ar_investorEmail = ?
     `;
     const query = (queryString, keys) => {
         return new Promise((resolve, reject) => {
@@ -46,12 +46,12 @@ router.get('/getAssetHistoryListBySymbol', function (req, res, next) {
         })
 });
 
-/* getLatestAssetHistory(assetBookAddress)
+/* getLatestAssetHistory(userEmailAddress)
  * return:[latestAssetHistory]
  */
 router.get('/getLatestAssetHistory', async function (req, res, next) {
     var mysqlPoolQuery = req.pool;
-    let assetBookAddress = req.query.assetBookAddress
+    let userEmailAddress = req.query.userEmailAddress
 
     let queryString = `
     SELECT ar_tokenSYMBOL AS symbol,
@@ -64,16 +64,16 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
            payablePeriodTotal
     
     FROM (
-    SELECT ar_ownerAssetbookAddr AS assetBookAddress,
+    SELECT ar_investorEmail AS userEmailAddress,
            ar_tokenSYMBOL AS symbol,
            MAX(ar_Time) AS time
     FROM htoken.investor_assetRecord
-    GROUP BY assetBookAddress,
+    GROUP BY userEmailAddress,
              symbol
     ) AS T1
 
     INNER JOIN htoken.investor_assetRecord AS T2
-    ON T1.assetBookAddress = T2.ar_ownerAssetbookAddr AND 
+    ON T1.userEmailAddress = T2.ar_investorEmail AND 
        T1.symbol = T2.ar_tokenSYMBOL AND
        T1.time = T2.ar_Time
 
@@ -106,7 +106,7 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
         });
     };
 
-    query(queryString, assetBookAddress)
+    query(queryString, userEmailAddress)
         .then((latestAssetHistoryList) => {
             latestAssetHistoryList.map(
                 latestAssetHistoryByToken => {
