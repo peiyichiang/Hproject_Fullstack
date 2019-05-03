@@ -1,10 +1,15 @@
 pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
 //deploy parameters: none
-import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract Registry is Ownable {
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+}
+
+contract Registry {
     using SafeMath for uint256;
     using AddressUtils for address;
 
@@ -43,15 +48,10 @@ contract Registry is Ownable {
     string public currencyType;
     uint public uintMax = 2**256 - 1;
     bool public isAfterDeployment;
+    address public HeliumAddr;
 
-    constructor(address[] memory management) public {
-        require(management.length > 4, "management.length should be > 4");
-        owner = management[4];
-        chairman = management[3];
-        director = management[2];
-        manager = management[1];
-        admin = management[0];
-
+    constructor(address _HeliumAddr) public {
+        HeliumAddr = _HeliumAddr;
         currencyType = "NTD";
         //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate); 
         setRestrictions(1, 0, 0, uintMax, uintMax);
@@ -69,6 +69,11 @@ authLevel & STO investor classification on purchase amount and holding balance r
 4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
 5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
 */
+    
+    modifier onlyCustomerService() {
+        require(HeliumITF(HeliumAddr).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+        _;
+    }
 
     /**@dev check uid value */
     modifier ckUidLength(string memory uid) {
@@ -95,9 +100,13 @@ authLevel & STO investor classification on purchase amount and holding balance r
         _;
     }
 
+    function setHeliumAddr(address _HeliumAddr) external  onlyCustomerService{
+        HeliumAddr = _HeliumAddr;
+    }
+
     /**@dev add user with his user Id(uid), asset contract address(assetbookAddr) */
-    function addUser(string calldata uid, address assetbookAddr, uint authLevel) external
-        onlyAdmin ckUidLength(uid) ckAssetbookValid(assetbookAddr) {
+    function addUser(string calldata uid, address assetbookAddr, uint authLevel) external onlyCustomerService
+        ckUidLength(uid) ckAssetbookValid(assetbookAddr) {
 
         require(uidToAssetbook[uid] == address(0), "user already exists: assetbookAddr not empty");
         userCindex = userCindex.add(1);
@@ -111,8 +120,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     }
 
     /**@dev set existing user’s information: this uid, assetbookAddr, authLevel */
-    function setUser(string calldata uid, address assetbookAddr, uint authLevel) 
-        external onlyAdmin ckUidLength(uid) ckAssetbookValid(assetbookAddr) uidToAssetbookExists(uid) {
+    function setUser(string calldata uid, address assetbookAddr, uint authLevel) external ckUidLength(uid) ckAssetbookValid(assetbookAddr) uidToAssetbookExists(uid) onlyCustomerService{
 
         uidToAssetbook[uid] = assetbookAddr;
         assetbookToUser[assetbookAddr].uid = uid;
@@ -132,12 +140,9 @@ authLevel & STO investor classification on purchase amount and holding balance r
     }
 
     /**@dev set user’s authLevel */
-    function setUserAuthLevel(string calldata uid, uint authLevel) external
-    onlyAdmin ckUidLength(uid) uidToAssetbookExists(uid) {
+    function setUserAuthLevel(string calldata uid, uint authLevel) external ckUidLength(uid) uidToAssetbookExists(uid) onlyCustomerService{
         assetbookToUser[uidToAssetbook[uid]].authLevel = authLevel;
     }
-
-
 
     /**@dev check if the user with uid is approved */
     function isUidApproved(string memory uid) public view 
@@ -196,7 +201,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     /**@dev get regulation's restrictions, amount and balance in fiat */
     function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public {
         if(isAfterDeployment) {
-            require(msg.sender == admin, "only admin can call this function");
+            require(HeliumITF(HeliumAddr).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         }
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;
@@ -204,38 +209,38 @@ authLevel & STO investor classification on purchase amount and holding balance r
         restrictions[authLevel].maxBalancePrivate = maxBalancePrivate;
         emit SetRestrictions(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate);
     }
-    function setMaxBuyAmountPublic(uint authLevel, uint maxBuyAmountPublic) external onlyAdmin {
+    function setMaxBuyAmountPublic(uint authLevel, uint maxBuyAmountPublic) external onlyCustomerService{
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         emit SetMaxBuyAmountPublic(authLevel, maxBuyAmountPublic);
     }
     event SetMaxBuyAmountPublic(uint authLevel, uint maxBuyAmountPublic);//amount in fiat
 
-    function setMaxBalancePublic(uint authLevel, uint maxBalancePublic) external onlyAdmin {
+    function setMaxBalancePublic(uint authLevel, uint maxBalancePublic) external onlyCustomerService{
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;
         emit SetMaxBalancePublic(authLevel, maxBalancePublic);
     }
     event SetMaxBalancePublic(uint authLevel, uint maxBalancePublic);//amount in fiat
 
-    function setMaxBuyAmountPrivate(uint authLevel, uint maxBuyAmountPrivate) external onlyAdmin {
+    function setMaxBuyAmountPrivate(uint authLevel, uint maxBuyAmountPrivate) external onlyCustomerService{
         restrictions[authLevel].maxBuyAmountPrivate = maxBuyAmountPrivate;
         emit SetMaxBuyAmountPrivate(authLevel, maxBuyAmountPrivate);
     }
     event SetMaxBuyAmountPrivate(uint authLevel, uint maxBuyAmountPrivate);//amount in fiat
 
-    function setMaxBalancePrivate(uint authLevel, uint maxBalancePrivate) external onlyAdmin {
+    function setMaxBalancePrivate(uint authLevel, uint maxBalancePrivate) external onlyCustomerService{
         restrictions[authLevel].maxBalancePrivate = maxBalancePrivate;
         emit SetMaxBalancePrivate(authLevel, maxBalancePrivate);
     }
     event SetMaxBalancePrivate(uint authLevel, uint maxBalancePrivate);//amount in fiat
 
-    // function getRestrictions(uint authLevel) external onlyAdmin returns (uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate){
+    // function getRestrictions(uint authLevel) external returns (uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate){
     //     maxBuyAmountPublic = restrictions[authLevel].maxBuyAmountPublic;
     //     maxBalancePublic = restrictions[authLevel].maxBalancePublic;
     //     maxBuyAmountPrivate = restrictions[authLevel].maxBuyAmountPrivate;
     //     maxBalancePrivate = restrictions[authLevel].maxBalancePrivate;
     // }
 
-    function setCurrencyType(string calldata _currencyType) external onlyAdmin {
+    function setCurrencyType(string calldata _currencyType) external onlyCustomerService{
         currencyType = _currencyType;
     }
 

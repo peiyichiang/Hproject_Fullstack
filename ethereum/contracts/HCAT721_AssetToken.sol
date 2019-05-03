@@ -26,16 +26,20 @@ interface RegistryITF {
     function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
 }
 
-//TokenControllerITF(addrTokenController).isAdmin(msg.sender);
 interface TokenControllerITF {
-    function isAdmin(address sender) external view returns (bool);
     function isTokenApprovedOperational() external view returns (bool);
 }
 
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+}
 //------------------------HCAT721: Helium Cryptic Asset Token
 contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF, 
     using SafeMath for uint256;
     using AddressUtils for address;
+    address public HeliumAddr;
 
     mapping(address => Account) internal accounts;//accounts[user]
     struct Account {
@@ -76,7 +80,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI) public {
+        bytes32 _tokenURI, address _HeliumAddr) public {
         name = _nftName;
         symbol = _nftSymbol;
         tokenURI = _tokenURI;
@@ -89,6 +93,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         
         addrRegistry = _addrRegistry;
         addrTokenController = _addrTokenController;
+        HeliumAddr = _HeliumAddr;
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
@@ -211,18 +216,21 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
         }
     }
-
-    function isAdminHCAT721() external view returns(bool) {
-        return TokenControllerITF(addrTokenController).isAdmin(msg.sender);
+    modifier onlyAdmin() {
+        require(HeliumITF(HeliumAddr).checkAdmin(msg.sender), "only Helium_Admin is allowed to call this function");
+        _;
     }
+    function setHeliumAddr(address _HeliumAddr) external onlyAdmin{
+        HeliumAddr = _HeliumAddr;
+    }
+
     //Legal Compliance, also block address(0)
     //fundingType: 1 public crowdfunding, 2 private placement
     //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
     function isFundingApprovedHCAT721(address _to, uint amount, uint price, uint fundingType) external view returns(bool) {
         return RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
     }
-    function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public {
-        require(TokenControllerITF(addrTokenController).isAdmin(msg.sender), 'only admin can mint tokens');
+    function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public onlyAdmin{
 
         require(RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
 

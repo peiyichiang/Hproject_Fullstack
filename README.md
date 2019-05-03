@@ -107,7 +107,7 @@ yarn run livechain --c 1 --f 10 -a 2 -b 1
 
 ### 8. Setup Timeserver sending part
 ```
-https://github.com/node-schedule/node-schedule
+'*/5 * * * * *'
 '*/10 * * * * *'  ... for every 10 seconds
 '59 * * * * *'  ... for every 59th minute
 ```

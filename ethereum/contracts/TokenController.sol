@@ -1,14 +1,19 @@
 pragma solidity ^0.5.4;
 
-import "./Ownable.sol";
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+}
 
-contract TokenController is Ownable {
+contract TokenController {
     // 201902180900, 201902180901, 201902180902, 201902180907
     uint public TimeAtDeployment;// Token Release date and time
     uint public TimeUnlock;//The time to unlock tokens from lock up period
     uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
     bool public isLockedForRelease;// true or false: check if the token is locked for release
     bool public isTokenApproved;// true or false: check if the token is active
+    address public HeliumAddr;
 
     // check if the tokenState is in one of the following states: inInitialLockUpPeriod, normal, or expired
     enum TokenState{inInitialLockUpPeriod, normal, expired}
@@ -16,24 +21,26 @@ contract TokenController is Ownable {
 
     // 201902190900, 201902190901, 201902190902, 201902191745
     constructor(uint _timeCurrent, 
-      uint _TimeUnlock, uint _TimeValid,
-      address[] memory management) public {
+      uint _TimeUnlock, uint _TimeValid, address _HeliumAddr) public {
         TimeAtDeployment = _timeCurrent;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
         tokenState = TokenState.inInitialLockUpPeriod;
         isTokenApproved = true;
-        require(management.length > 4, "management.length should be > 4");
-        owner = management[4];
-        chairman = management[3];
-        director = management[2];
-        manager = management[1];
-        admin = management[0];
+        HeliumAddr = _HeliumAddr;
     }
 
     modifier ckTime(uint _time) {
         require(_time > 201903070000, "_time is <= 201903070000 or not in the format of yyyymmddhhmm");
         _;
+    }
+
+    modifier onlyAdmin() {
+        require(HeliumITF(HeliumAddr).checkAdmin(msg.sender), "only Helium_Admin is allowed to call this function");
+        _;
+    }
+    function setHeliumAddr(address _HeliumAddr) external onlyAdmin{
+        HeliumAddr = _HeliumAddr;
     }
 
     // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading

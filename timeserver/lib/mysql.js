@@ -123,6 +123,44 @@ function getTokenStateDB(symbol){
     }
   });
 }
+
+//------------------------==
+function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
+  console.log('\ninside setTokenStateDB()... change p_tokenState');
+  if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
+    mysqlPoolQuery(
+      'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?', [tokenState, lockuptime, validdate, symbol], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate,'result', result);
+      }
+    });
+  } else {
+    mysqlPoolQuery(
+      'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?', [tokenState, symbol], function (err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'result', result);
+      }
+    });
+  }
+}
+
+function isIMScheduleGoodDB(symbol){
+  console.log('inside isIMScheduleGoodDB()');
+  mysqlPoolQuery(
+    'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('symbol', symbol, 'tokenState', result[0], 'lockuptime', result[1], 'validdate', result[2]);
+    }
+  });
+}
+
+
 //------------------------==
 function getCrowdFundingCtrtAddr(symbol, cb) {
   console.log('getCrowdFundingCtrtAddr');
@@ -182,10 +220,11 @@ module.exports = {
     mysqlPoolQuery,
     getCrowdFundingCtrtAddr,
     getIncomeManagerCtrtAddr,
-    getOrderDate,
     getHCAT721ControllerCtrtAddr,
+    getOrderDate,
     setOrderExpired,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
-    addProductRow, addSmartContractRow
+    addProductRow, addSmartContractRow, 
+    isIMScheduleGoodDB, setIMScheduleDB
 }

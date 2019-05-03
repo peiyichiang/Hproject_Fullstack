@@ -27,16 +27,16 @@ const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
 
 
 //-------------------==Crowdfunding
-const getCFC_fundingState = async (crowdFundingAddr) => {
-  console.log('[getCFC_fundingState] crowdFundingAddr', crowdFundingAddr);
+const getFundingStateCFC = async (crowdFundingAddr) => {
+  console.log('[getFundingStateCFC] crowdFundingAddr', crowdFundingAddr);
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
   let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
   console.log('fundingState', fundingState, 'crowdFundingAddr', crowdFundingAddr);
   //console.log('typeof fundingState', typeof fundingState);
 }
 
-const updateCFC_fundingState = async (crowdFundingAddr, timeCurrent) => {
-  console.log('\n[updateCFC_fundingState] crowdFundingAddr', crowdFundingAddr, 'timeCurrent', timeCurrent);
+const updateFundingStateCFC = async (crowdFundingAddr, timeCurrent) => {
+  console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'timeCurrent', timeCurrent);
   const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
   const encodedData = inst_crowdFunding.methods.updateState(timeCurrent).encodeABI();
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
@@ -50,16 +50,16 @@ const updateCFC_fundingState = async (crowdFundingAddr, timeCurrent) => {
 
 
 //-----------------==TokenController
-const getTCC_tokenState = async (tokenControllerAddr) => {
-  console.log('[getCFC_fundingState] tokenControllerAddr', tokenControllerAddr);
+const getTokenStateTCC = async (tokenControllerAddr) => {
+  console.log('[getFundingStateCFC] tokenControllerAddr', tokenControllerAddr);
   const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
   let tokenState = await instTokenController.methods.tokenState().call({ from: backendAddr });
   console.log('tokenState', tokenState, 'tokenControllerAddr', tokenControllerAddr);
   //console.log('typeof tokenState', typeof tokenState);
 }
 
-const updateTCC_tokenState = async (tokenControllerAddr, timeCurrent) => {
-  console.log('\n[updateTCC_tokenState] tokenControllerAddr', tokenControllerAddr, 'timeCurrent', timeCurrent);
+const updateTokenStateTCC = async (tokenControllerAddr, timeCurrent) => {
+  console.log('\n[updateTokenStateTCC] tokenControllerAddr', tokenControllerAddr, 'timeCurrent', timeCurrent);
   const inst_tokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
     
   const encodedData = inst_tokenController.methods.updateState(timeCurrent).encodeABI();
@@ -82,8 +82,8 @@ const checkIMC_isSchGoodForRelease = async (incomemanagerAddr, timeCurrent) => {
 }
 
 //getContractDetails()
-const getCFC_Details = async (crowdFundingAddr) => {
-  console.log('[getCFC_Details] crowdFundingAddr', crowdFundingAddr);
+const getDetailsCFC = async (crowdFundingAddr) => {
+  console.log('[getDetailsCFC] crowdFundingAddr', crowdFundingAddr);
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
 
   let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
@@ -159,9 +159,9 @@ const sequentialRun = async (arrayInput, waitTime, timeCurrent, actionType) => {
 
 // HHtoekn12222  Htoken001  Htoken0030
 //-------------------------------==DB + BC
-//-------------------==updateCrowdFunding
-const updateCrowdFunding = async (timeCurrent) => {
-  console.log('\ninside updateCrowdFunding(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+//-------------------==updateCFC
+const updateCFC = async (timeCurrent) => {
+  console.log('\ninside updateCFC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
     console.log('[Error] timeCurrent should be an integer');
     return;
@@ -172,7 +172,7 @@ const updateCrowdFunding = async (timeCurrent) => {
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = ? AND p_CFSD <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+')', [pstate1, pstate2, pstate3], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateCrowdFunding:', symbolArrayLen, ', symbolArray:', symbolArray);
+    console.log('\nsymbolArray length @ updateCFC:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
@@ -182,8 +182,8 @@ const updateCrowdFunding = async (timeCurrent) => {
   });
 }
 //-------------------==Token Controller
-const updateTokenController = async (timeCurrent) => {
-  console.log('\ninside updateTokenController(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+const updateTCC = async (timeCurrent) => {
+  console.log('\ninside updateTCC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
     console.log('[Error] timeCurrent should be an integer');
     return;
@@ -192,7 +192,7 @@ const updateTokenController = async (timeCurrent) => {
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE p_lockuptime <= ? OR p_validdate <= ?', [timeCurrent, timeCurrent], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateTokenController', symbolArrayLen, ', symbolArray:', symbolArray);
+    console.log('\nsymbolArray length @ updateTCC', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
@@ -204,7 +204,7 @@ const updateTokenController = async (timeCurrent) => {
 
 const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, actionType) => {
   if(actionType === 'crowdfunding'){
-    const fundingStateStr = await updateCFC_fundingState(targetAddr, timeCurrent);
+    const fundingStateStr = await updateFundingStateCFC(targetAddr, timeCurrent);
     console.log('fundingState', fundingStateStr, 'typeof', typeof fundingStateStr);
     const fundingState = parseInt(fundingStateStr);
     /* 0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 
@@ -237,7 +237,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
 
   } else if(actionType === 'tokencontroller'){
     console.log('\n-----------------=inside writeToBlockchainAndDatabase(), actionType: tokencontroller');
-    const tokenStateStr = await updateTCC_tokenState(targetAddr, timeCurrent);
+    const tokenStateStr = await updateTokenStateTCC(targetAddr, timeCurrent);
     console.log('tokenState', tokenStateStr, 'typeof', typeof tokenStateStr);
     const tokenState = parseInt(tokenStateStr);
     // lockupPeriod, normal, expired
@@ -290,8 +290,8 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
 }
 
 //-------------------==Income Manager
-const checkIncomeManager = async (timeCurrent) => {
-  console.log('\ninside checkIncomeManager(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+const isScheduleGoodIMC = async (timeCurrent) => {
+  console.log('\ninside isScheduleGoodIMC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
     console.log('[Error] timeCurrent should be an integer');
     return;
@@ -302,7 +302,7 @@ const checkIncomeManager = async (timeCurrent) => {
   mysqlPoolQuery(
     'SELECT htoken.income_arrangement.ia_SYMBOL From htoken.income_arrangement where income_arrangement.ia_time <= ?',[timeCurrent], function (err, resultArray) {
     const resultArrayLen = resultArray.length;
-    console.log('symbolArray length @ checkIncomeManager', resultArrayLen);
+    console.log('symbolArray length @ isScheduleGoodIMC', resultArrayLen);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
@@ -311,7 +311,6 @@ const checkIncomeManager = async (timeCurrent) => {
     }
   });
 }
-
 
 
 
@@ -396,27 +395,14 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
                   .on('error', function (err) {
                       console.log(err);
                       reject(err);
-                  })
-          })
+                  });
+          });
 
-  })
+  });
 }
-
 
 
 //------------------------==
-function sendTimeIMctrt(addr, time) {
-    let contract = new web3.eth.Contract(IncomeManagement.abi, addr);
-    return contract.methods.getIncomeSchedule(time)
-        .call()
-        .then(function (result) {
-            return `${addr} success`
-        })
-        .catch(function (error) {
-            return `${addr} fail`
-        })
-}
-
 async function sendTimeCFctrt(addr, time) {
     /*use admin EOA to sign transaction*/
     let CrowdFunding = new web3.eth.Contract(CrowdFunding.abi, addr);
@@ -427,32 +413,13 @@ async function sendTimeCFctrt(addr, time) {
     return result;
 }
 
-function sendTimeTokenController(addr, time) {
-    return web3.eth.getAccounts()
-        .then(function (accounts) {
-            let contract = new web3.eth.Contract(TokenController.abi, addr);
-            return contract.methods.setTimeCurrent(time)
-                .send({
-                    from: accounts[0],
-                    gasPrice: 0
-                })
-        })
-        .then(function (result) {
-            return `${addr} success`
-        })
-        .catch(function (error) {
-            return `${addr} fail`
-        })
-}
-
-
 function print(s) {
   console.log('[timeserver/lib/blockchain.js] ' + s)
 }
 
 module.exports = {
-  checkTimeOfOrder, getCFC_Details,
-  getCFC_fundingState, updateCrowdFunding, updateCFC_fundingState,
-  getTCC_tokenState, updateTokenController, updateTCC_tokenState,
-  checkIncomeManager
+  checkTimeOfOrder, getDetailsCFC,
+  getFundingStateCFC, updateFundingStateCFC, updateCFC, 
+  getTokenStateTCC, updateTokenStateTCC, updateTCC, 
+  isScheduleGoodIMC
 }

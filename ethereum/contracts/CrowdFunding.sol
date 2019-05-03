@@ -1,9 +1,12 @@
 pragma solidity ^0.5.4;
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
-import "./Ownable.sol";
 import "./SafeMath.sol";
-
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+}
 interface ERC721TokenReceiverITF_CF {
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
 }
@@ -12,10 +15,10 @@ interface RegistryITF {
     function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
 }
 
-contract CrowdFunding is Ownable {
+contract CrowdFunding {
     using SafeMath for uint256;
     using AddressUtils for address;
-
+    address public HeliumAddr;
     event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, FundingState indexed _fundingState, string _stateDescription);
     event TokenInvested(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
     
@@ -59,9 +62,7 @@ contract CrowdFunding is Ownable {
         uint _quantityGoal,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
-        uint serverTime,
-        address[] memory management
-
+        uint serverTime, address _HeliumAddr
     ) public {
         ckStringLength(_tokenSymbol, 3, 32);
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
@@ -81,13 +82,8 @@ contract CrowdFunding is Ownable {
         CFED2 = _CFED2;// yyyymmddhhmm
         fundingState = FundingState.initial;//init the project state
         require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
-
-        require(management.length > 4, "management.length should be > 4");
-        owner = management[4];
-        chairman = management[3];
-        director = management[2];
-        manager = management[1];
-        admin = management[0];
+        
+        HeliumAddr = _HeliumAddr;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
@@ -103,10 +99,15 @@ contract CrowdFunding is Ownable {
         CFSD2_ = CFSD2;
         CFED2_ = CFED2;
     }
-
-
+    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
+        HeliumAddr = _HeliumAddr;
+    }
+    modifier onlyPlatformSupervisor() {
+        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
+        _;
+    }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
-    function updateState(uint serverTime) public onlyAdmin {
+    function updateState(uint serverTime) public onlyPlatformSupervisor {
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
         require(serverTime > serverTimeMin, "serverTime should be greater than default time");
 
@@ -143,7 +144,7 @@ contract CrowdFunding is Ownable {
 
 
     // to pause current crowdfunding process
-    function pauseFunding(uint serverTime) external onlyAdmin {
+    function pauseFunding(uint serverTime) external onlyPlatformSupervisor {
         fundingState = FundingState.fundingPaused;
         stateDescription = "funding paused";
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
@@ -151,7 +152,7 @@ contract CrowdFunding is Ownable {
 
     // to resume crowdfunding and also reset the crowdfunding end day and maxTotalSupply values
     event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _maxTotalSupply);
-    function resumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external onlyAdmin {
+    function resumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external onlyPlatformSupervisor {
 
         require(serverTime > CFSD2, "serverTime should be > CFSD2");
         if(_CFED2 == 0 && _maxTotalSupply == 0) {
@@ -168,7 +169,7 @@ contract CrowdFunding is Ownable {
     }
 
     // to terminate the current crowdfunding process, possibly due to external unexpected force
-    function terminate(string calldata _reason, uint serverTime) external onlyAdmin {
+    function terminate(string calldata _reason, uint serverTime) external onlyPlatformSupervisor {
         ckStringLength(_reason, 7, 32);
         fundingState = FundingState.terminated;
         stateDescription = append("terminated:", _reason);
@@ -181,7 +182,7 @@ contract CrowdFunding is Ownable {
     }
 
     // to record each funding source and the amount tokens secured by that funding 
-    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyAdmin {
+    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor {
 
         //require(RegistryITF(addrRegistry).isFundingApproved(_assetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
         //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType)

@@ -1,13 +1,19 @@
 pragma solidity ^0.5.4;
 //pragma experimental ABIEncoderV2;
-import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract IncomeManagerCtrt is Ownable {
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+}
+
+contract IncomeManagerCtrt {
     using SafeMath for uint256;
     address public tokenCtrt;//the token address
     address public supervisor;//the supervisor
     uint public dateTimeMin = 201901220900;// the minimum dataTime allowed
+    address public HeliumAddr;
 
     uint public schCindex;//last submitted index and total count of current schedules, and also the index count. It starts from 1 to 80. SPLC life time has a total of 80 schedules
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
@@ -26,26 +32,22 @@ contract IncomeManagerCtrt is Ownable {
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(address _tokenCtrt, address _supervisor,
-        address[] memory managementTeam) public {
+    constructor(address _tokenCtrt, address _supervisor, address _HeliumAddr) public {
         tokenCtrt = _tokenCtrt;
         supervisor = _supervisor;//can be EOA or Helium contract
-
-        require(managementTeam.length > 4, "managementTeam.length should be > 4");
-        owner = managementTeam[4];
-        chairman = managementTeam[3];
-        director = managementTeam[2];
-        manager = managementTeam[1];
-        admin = managementTeam[0];
+        HeliumAddr = _HeliumAddr;
+    }
+    function setHeliumAddr(address _HeliumAddr) external onlySupervisor{
+        HeliumAddr = _HeliumAddr;
     }
     modifier onlySupervisor(){
-        require(msg.sender == supervisor, "only supervisor is allowed");
+        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only customerService is allowed to call this function");
         _;
     }
-    function changeSupervisor(address newSupervisor) external {
-        require(msg.sender == admin, "only admin is allowed");
-        supervisor = newSupervisor;
-    }
+    // function changeSupervisor(address newSupervisor) external {
+    //     require(msg.sender == admin, "only admin is allowed");
+    //     supervisor = newSupervisor;
+    // }
 
     //check if the inputTime has income schedule that is ready to be released
     function isScheduleGoodForRelease(uint inputTime) external view returns (bool) {

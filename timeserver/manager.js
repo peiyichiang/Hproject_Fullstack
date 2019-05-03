@@ -2,8 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const net = require("net");
 // const Web3 = require('web3');
-// const Tx = require('ethereumjs-tx');
-// //const PrivateKeyProvider = require("truffle-privatekey-provider");
+
 
 const { mysqlPoolQuery } = require('./lib/mysql.js');
 const { checkTimeOfOrder, updateCrowdFunding, updateTokenController, checkIncomeManager } = require('./lib/blockchain.js');
@@ -12,14 +11,7 @@ const portForIncomingTime = 7010;
 let currentCount = 0;
 const maxCount = 10;// time period in minutes
 
-createServer();
-// if(currentCount < maxCount+1){
-//   console.log('[timeserver] currentCount', currentCount);
-//   currentCount++;
-// } else {
-//   currentCount = 1;
-//   print('[timeserver] currentCount', currentCount);
-// }
+//createServer();//disabled => copied to timeserverSource directly
 
 function createServer() {
     const server = net.createServer(c => {

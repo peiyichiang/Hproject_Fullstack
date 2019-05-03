@@ -1,7 +1,6 @@
-pragma solidity ^0.5.1;
+pragma solidity ^0.5.4;
 
-
-interface Helium_interface{
+interface HeliumITF{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
     function checkAdmin(address _eoa) external view returns(bool _isAdmin);
@@ -31,12 +30,20 @@ contract Helium {
     
     mapping(address => PermissionTable) public PermissionList;
     
-    constructor(address _Helium_Chairman, address _Helium_Director, address _Helium_Manager, address _Helium_Owner) public{
-        Helium_Admin = msg.sender;
-        Helium_Chairman = _Helium_Chairman;
-        Helium_Director = _Helium_Director;
-        Helium_Manager = _Helium_Manager;
-        Helium_Owner = _Helium_Owner;
+    constructor(address[] memory management) public{
+      //address[] _Helium_Admin, address _Helium_Chairman, address _Helium_Director, address _Helium_Manager, address _Helium_Owner
+        require(management.length > 4, "management.length should be > 4");
+        Helium_Admin = management[0];
+        Helium_Chairman = management[1];
+        Helium_Director = management[2];
+        Helium_Manager = management[3];
+        Helium_Owner = management[4];
+
+        // Helium_Admin = _Helium_Admin;//msg.sender;
+        // Helium_Chairman = _Helium_Chairman;
+        // Helium_Director = _Helium_Director;
+        // Helium_Manager = _Helium_Manager;
+        // Helium_Owner = _Helium_Owner;
     }
     
     //Helium
@@ -157,7 +164,7 @@ contract Helium {
     }
 
     function checkAdmin(address _eoa) external view returns(bool _isAdmin) {
-        require(_eoa == Helium_Admin);
+        require(_eoa == Helium_Admin, "only Helium_Admin can call this function");
         return true;
     }
 
