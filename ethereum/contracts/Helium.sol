@@ -4,6 +4,7 @@ pragma solidity ^0.5.1;
 interface Helium_interface{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
 }
 
 contract Helium {
