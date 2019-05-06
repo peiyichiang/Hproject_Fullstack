@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>registryContractAPI</title>
+    <style>
+        .flex {
+            display: flex;
+        }
+
+        .item {
+            flex: 1;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <button id="deploy">部署合約</button>
+        <button id="registerUser">註冊會員</button>
+        <button id="setAccountStatus">設定會員狀態</button>
+        <button id="setEthAddr">設定會員ETH帳戶</button>
+        <button id="getUserCount">會員數量</button>
+        <button id="getUserInfo">會員資訊</button>
+        <button id="getOwner">合約owner</button>
+    </div>
+
+    <div class="item" style="width:500px;">
+        <h3>活動紀錄</h3>
+        <pre id="logger"></pre>
+    </div>
+
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+</body>
+
+<script>
+    let logger = $('#logger');
+    //把log印在網頁上
+    function log(...inputs) {
+        for (let input of inputs) {
+            if (typeof input === 'object') {
+                input = JSON.stringify(input, null, 2)
+            }
+            logger.html(input + '\n' + logger.html())
+        }
+    }
+
+    $('#deploy').on('click', function () {
+        log("deploying");
+
+        $.post('/registryContractAPI/deploy' , function (result) {
+            log(result);
+        })
+    })
+
+    $('#getOwner').on('click', function () {
+        $.get('/registryContractAPI/getOwner', function (result) {
+            log(result);
+        })
+    })
+
+    $('#getUserCount').on('click', function () {
+        $.get('/registryContractAPI/getUserCount', function (result) {
+            log(result);
+        })
+    })
+
+    $('#getUserInfo').on('click', function () {
+        $.get('/registryContractAPI/getUserInfo', function (result) {
+            log(result);
+        })
+    })
+
+    $('#registerUser').on('click', function () {
+        $.post('/registryContractAPI/registerUser', function (result) {
+            log(result);
+        })
+    })
+
+    $('#setAccountStatus').on('click', function () {
+        $.post('/registryContractAPI/setAccountStatus', function (result) {
+            log(result);
+        })
+    })
+
+    $('#setEthAddr').on('click', function () {
+        $.post('/registryContractAPI/setEthAddr', function (result) {
+            log(result);
+        })
+    })
+
+
+
+
+</script>
+
+
+</html>

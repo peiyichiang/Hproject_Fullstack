@@ -1,9 +1,6 @@
 /**
 $ yarn global add mocha
-$ yarn run testhcat
-$ yarn run testcf
-$ yarn run testim
-$ yarn run testpm
+$ yarn run test721
 */
 console.log('process.argv', process.argv, process.argv[3]);
 const assert = require('assert');
@@ -317,9 +314,9 @@ let reason, uid, authLevel, assetbookAddr;
 let admin, chairman, director, manager, owner, isSenderAllowed;
 let adminM, chairmanM, directorM, managerM, ownerM;
 
-let tokenId, _from, uriStr, uriBytes32, uriStrB;
+let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
-let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, bool1;
+let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
 
@@ -670,8 +667,8 @@ describe('Tests on HCAT721', () => {
     console.log('tokenURI', web3.utils.toAscii(tokenURI_M), tokenURI);
     //assert.equal(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
-    let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
-    assert.equal(isTokenApprovedOperational, false);
+    let isActiveOperational = await instTokenController.methods.isActiveOperational().call();
+    assert.equal(isActiveOperational, false);
 
 
     let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
@@ -1713,7 +1710,7 @@ describe('Tests on CrowdFunding', () => {
     }
     if (error) {assert(false);}
 
-    if(1==2){
+    if(1==1){
       //-------------------==Pause the crowdfunding
       serverTime = CFSD2+3;
       console.log('\nPause funding');
@@ -1745,13 +1742,13 @@ describe('Tests on CrowdFunding', () => {
 
       if(1==2) {
         reason = 'a good reason...';
-        console.log('\nTerminate');
+        console.log('\nAbort');
         await instCrowdFunding.methods.abort(reason, serverTime)
         .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
-        assert.equal(stateDescriptionM, "terminated:"+reason);
+        assert.equal(stateDescriptionM, "aborted:"+reason);
   
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);
@@ -1782,7 +1779,7 @@ describe('Tests on CrowdFunding', () => {
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "fundingClosed: goal reached but not sold out");
+      assert.equal(stateDescriptionM, "fundingClosed: ended with unsold items");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);

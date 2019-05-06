@@ -1,8 +1,6 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
 
-require('dotenv').config()
-
 var pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -179,7 +177,7 @@ function getCrowdFundingCtrtAddr(symbol, cb) {
 function getIncomeManagerCtrtAddr(cb) {
     pool.query('SELECT sc_incomeManagementaddress FROM smart_contracts', function (err, rows) {
         if (err) {
-            print(err);
+            console.log(err);
         }
         cb(rows);
     })
@@ -188,7 +186,7 @@ function getIncomeManagerCtrtAddr(cb) {
 function getOrderDate(cb) {
     pool.query('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
         if (err) {
-            print(err);
+            console.log(err);
         }
         cb(rows);
     })
@@ -197,16 +195,16 @@ function getOrderDate(cb) {
 function getHCAT721ControllerCtrtAddr(cb) {
     pool.query('SELECT sc_erc721Controller FROM smart_contracts', function (err, rows) {
         if (err) {
-            print(err);
+            console.log(err);
         }
         cb(rows);
     })
 }
 
 function setOrderExpired(o_id, cb) {
-    pool.query('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [[[o_id]]], function (err, result) {
-        if (err) {
-            print(err);
+    pool.query('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [[[o_id]]], function(err, result) {
+        if(err) {
+            console.log(err);
         }
         cb(result)
     })

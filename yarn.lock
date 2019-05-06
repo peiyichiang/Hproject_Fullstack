@@ -1488,6 +1488,19 @@ crypto-random-string@^1.0.0:
   resolved "https://registry.yarnpkg.com/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
   integrity sha1-ojD2T1aDEOFJgAmUB5DsmVRbyn4=
 
+csv2sql-stream@0.0.22:
+  version "0.0.22"
+  resolved "https://registry.yarnpkg.com/csv2sql-stream/-/csv2sql-stream-0.0.22.tgz#e85b92d0e2add1d471b96ac413dd2961152a198c"
+  integrity sha1-6FuS0OKt0dRxuWrEE90pYRUqGYw=
+  dependencies:
+    csv "0.3.7"
+    squel "1.1.3"
+
+csv@0.3.7:
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/csv/-/csv-0.3.7.tgz#a4f8a363f0072cd155181e6bb49bd58e5497b31c"
+  integrity sha1-pPijY/AHLNFVGB5rtJvVjlSXsxw=
+
 dashdash@^1.12.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/dashdash/-/dashdash-1.14.1.tgz#853cfa0f7cbe2fed5de20326b8dd581035f6e2f0"
@@ -5216,6 +5229,11 @@ sqlstring@2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/sqlstring/-/sqlstring-2.3.1.tgz#475393ff9e91479aea62dcaf0ca3d14983a7fb40"
   integrity sha1-R1OT/56RR5rqYtyvDKPRSYOn+0A=
+
+squel@1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/squel/-/squel-1.1.3.tgz#81648a5d5d6857145c486fcf2006e869c7b9b5e9"
+  integrity sha1-gWSKXV1oVxRcSG/PIAboace5tek=
 
 sshpk@^1.7.0:
   version "1.16.1"
