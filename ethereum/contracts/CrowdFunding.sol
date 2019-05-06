@@ -3,9 +3,7 @@ pragma solidity ^0.5.4;
 
 import "./SafeMath.sol";
 interface HeliumITF{
-    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
-    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
 }
 interface ERC721TokenReceiverITF_CF {
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
@@ -98,6 +96,10 @@ contract CrowdFunding {
         quantitySold_ = quantitySold;
         CFSD2_ = CFSD2;
         CFED2_ = CFED2;
+    }
+
+    function checkPlatformSupervisor() external view returns (bool){
+        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
     }
     function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
         HeliumAddr = _HeliumAddr;

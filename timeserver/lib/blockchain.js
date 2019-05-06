@@ -139,7 +139,12 @@ const sequentialRun = async (arrayInput, waitTime, timeCurrent, actionType) => {
       mysqlPoolQuery('SELECT '+sqlColumn+' FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
         if (err) {
             console.log(`[Error] @ getting ${actionType} addr from symbol:`,err);
+
+          } else if(DBresult.length == 0){
+          console.log('found symbol(s) is/are not found in the smart contract table');
+
         } else {
+          console.log('targetAddr is going to be defined next... DBresult:', DBresult);
           let targetAddr = DBresult[0][sqlColumn];
           //let targetAddr = DBresult[0].sc_crowdsaleaddress;
           console.log(`\n${actionType} addr is found for`, symbol, targetAddr);

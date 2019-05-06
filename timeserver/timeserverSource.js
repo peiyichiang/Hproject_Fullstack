@@ -10,7 +10,7 @@ const { checkTimeOfOrder, updateCFC, updateTokenController, checkIncomeManager }
 // '*/5 * * * * *'
 // '10 * * * * *'  ... for every 10 seconds
 // '59 * * * * *'  ... for every 59th minute
-schedule.scheduleJob('5 * * * * *', function () {
+schedule.scheduleJob('*/10 * * * * *', function () {
     let date = new Date().myFormat()
     console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
 
@@ -19,7 +19,7 @@ schedule.scheduleJob('5 * * * * *', function () {
     });
 
     print(date);
-    checkTimeOfOrder(date.toString());
+    checkTimeOfOrder(date.toString());//to convert from buffer to string
     updateCFC(parseInt(date.toString()));
     //updateTokenController(parseInt(date.toString()));
     //checkIncomeManager(parseInt(date.toString()));

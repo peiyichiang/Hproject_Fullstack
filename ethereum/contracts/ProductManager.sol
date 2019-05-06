@@ -4,8 +4,6 @@ deploy parameters: none
 */
 import "./SafeMath.sol";
 interface HeliumITF{
-    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
-    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
     function checkAdmin(address _eoa) external view returns(bool _isAdmin);
 }
 contract ProductManager {
@@ -26,6 +24,7 @@ contract ProductManager {
     constructor(address _HeliumAddr) public {
         HeliumAddr = _HeliumAddr;
     }
+
     function setHeliumAddr(address _HeliumAddr) external onlyAdmin{
         HeliumAddr = _HeliumAddr;
     }
@@ -33,6 +32,10 @@ contract ProductManager {
         require(HeliumITF(HeliumAddr).checkAdmin(msg.sender), "only  Helium_Admin is allowed to call this function");
         _;
     }
+    function checkAdmin() external view returns (bool){
+        return (HeliumITF(HeliumAddr).checkAdmin(msg.sender));
+    }
+
     function addNewCtrtGroup(bytes32 symbol,
         address addrCrowdFundingCtrt, address addrTokenControllerCtrt,
         address addrTokenCtrt, address addrIncomeManagerCtrt)

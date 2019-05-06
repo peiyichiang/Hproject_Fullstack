@@ -313,8 +313,9 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 const CFSD2 = timeCurrent+1;
 const CFED2 = timeCurrent+10;
-let reason, addrPlatformCtrt, uid, authLevel, assetbookAddr;
-let admin, chairman, director, manager, owner;
+let reason, uid, authLevel, assetbookAddr;
+let admin, chairman, director, manager, owner, isSenderAllowed;
+let adminM, chairmanM, directorM, managerM, ownerM;
 
 let tokenId, _from, uriStr, uriBytes32, uriStrB;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
@@ -375,53 +376,9 @@ beforeEach( async function() {
     addrHeliumCtrt = instHelium.options.address;
     console.log('addrHeliumCtrt:', addrHeliumCtrt);
 
-    console.log('\nDeploying Platform contract...');
-    //JSON.parse() is not needed because the abi and bytecode are already objects
-    console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
-    const argsPlatform = [addrHeliumCtrt];
-    console.log('\nDeploying Platform contract...');
-    instPlatform =  await new web3.eth.Contract(Platform.abi)
-    .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    //.then(console.log);
-    console.log('Platform.sol has been deployed');
-    if (instPlatform === undefined) {
-      console.log('[Error] instPlatform is NOT defined');
-      } else {console.log('[Good] instPlatform is defined');}
-    instPlatform.setProvider(provider);
-    addrPlatformCtrt = instPlatform.options.address;
-    console.log('addrPlatformCtrt:', addrPlatformCtrt);
 
-
-    // const argsMultiSig1 = [AssetOwner1, addrPlatformCtrt];
-    // const argsMultiSig2 = [AssetOwner2, addrPlatformCtrt];
-    // console.log('\nDeploying multiSig contracts...');
-    // instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
-    // .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-    // .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    // //.then(console.log);
-    // console.log('MultiSig1 has been deployed');
-    // if (instMultiSig1 === undefined) {
-    //   console.log('[Error] instMultiSig1 is NOT defined');
-    //   } else {console.log('[Good] instMultiSig1 is defined');}
-    // instMultiSig1.setProvider(provider);
-    // addrMultiSig1 = instMultiSig1.options.address;
-    // console.log('addrMultiSig1:', addrMultiSig1);
-
-    // instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
-    // .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-    // .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    // //.then(console.log);
-    // console.log('MultiSig2 has been deployed');
-    // if (instMultiSig2 === undefined) {
-    //   console.log('[Error] instMultiSig2 is NOT defined');
-    //   } else {console.log('[Good] instMultiSig2 is defined');}
-    // instMultiSig2.setProvider(provider);
-    // addrMultiSig2 = instMultiSig2.options.address;
-    // console.log('addrMultiSig2:', addrMultiSig2);
-
-    argsAssetBook1 = [ AssetOwner1, addrPlatformCtrt];
-    argsAssetBook2 = [ AssetOwner2, addrPlatformCtrt];
+    argsAssetBook1 = [ AssetOwner1, addrHeliumCtrt];
+    argsAssetBook2 = [ AssetOwner2, addrHeliumCtrt];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
@@ -521,7 +478,7 @@ beforeEach( async function() {
 
     //---------=IncomeManagerCtrt related contracts
     console.log('\nDeploying IncomeManager contract...');
-    //addrPlatformCtrt -> platformSupervisor for now...
+    //addrHeliumCtrt -> platformSupervisor for now...
     const argsIncomeManagerCtrt =[addrHCAT721, platformSupervisor, addrHeliumCtrt];
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
@@ -584,7 +541,7 @@ describe('Tests on HCAT721', () => {
     this.timeout(19500);
 
     console.log('\n------------==Check deployment');
-    assert.ok(addrPlatformCtrt);
+    assert.ok(addrHeliumCtrt);
     // assert.ok(addrMultiSig1);
     // assert.ok(addrMultiSig2);
     assert.ok(addrAssetBook1);
@@ -608,29 +565,29 @@ describe('Tests on HCAT721', () => {
 
       console.log('\nCheck getPlatformContractAddr()');
       let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
-      assert.equal(platformM1, addrPlatformCtrt);
+      assert.equal(platformM1, addrHeliumCtrt);
       let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
-      assert.equal(platformM2, addrPlatformCtrt);
+      assert.equal(platformM2, addrHeliumCtrt);
     }
 
     console.log('\n------------==Check Helium contract');
-    let ownerM = await instTokenController.methods.owner().call();
-    let chairmanM = await instTokenController.methods.chairman().call();
-    let directorM = await instTokenController.methods.director().call();
-    let managerM = await instTokenController.methods.manager().call();
-    let adminM = await instTokenController.methods.admin().call();
+    adminM = await instHelium.methods.Helium_Admin().call();
+    assert.equal(adminM, admin);
+    console.log('check1')
 
-    assert.equal(adminM, owner);
+    chairmanM = await instHelium.methods.Helium_Chairman().call();
     assert.equal(chairmanM, chairman);
-    assert.equal(directorM, director);
-    assert.equal(managerM, manager);
-    assert.equal(ownerM, owner);
 
-    // owner = managementTeam[4];
-    // chairman = managementTeam[3];
-    // director = managementTeam[2];
-    // manager = managementTeam[1];
-    // admin = managementTeam[0];
+    directorM = await instHelium.methods.Helium_Director().call();
+    assert.equal(directorM, director);
+
+    managerM = await instHelium.methods.Helium_Manager().call();
+    assert.equal(managerM, manager);
+
+    ownerM = await instHelium.methods.Helium_Owner().call();
+    assert.equal(ownerM, owner);
+    console.log('Helium contract all checked good');
+
 
     console.log('\n------------==Check AssetBook contract 1 & 2');
     console.log('addrAssetBook1', addrAssetBook1);
@@ -936,6 +893,10 @@ describe('Tests on HCAT721', () => {
     TimeTokenUnlockM = tokenControllerDetail[2];
     TimeTokenValidM = tokenControllerDetail[3];
     console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM);
+
+    isSenderAllowed = await instTokenController.methods.checkPlatformSupervisor().call({from: admin});
+    assert.equal(isSenderAllowed, true);
+    console.log('checkPlatformSupervisor() is confirmed working');
 
 
     //----------------==Send tokens before Unlock Time
@@ -1531,12 +1492,12 @@ describe('Tests on IncomeManagerCtrt', () => {
 //   });
 // });
 
-//-----------------------------------------==
+//-----------------------------------------==Product Manager
 describe('Tests on ProductManager', () => {
 
   it('ProductManager functions test', async function() {
     console.log('\ninside productManager test...');
-    const argsProductManager = [managementTeam];
+    const argsProductManager = [addrHeliumCtrt];
 
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })

@@ -668,11 +668,14 @@ const deploy = async () => {
 
     if (instCrowdFunding === undefined) {
       console.log('[Error] instCrowdFunding is NOT defined');
-      } else {console.log('[Good] instCrowdFunding is defined');}
+    } else {console.log('[Good] instCrowdFunding is defined');}
+    
     instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrCrowdFunding = instCrowdFunding.options.address;
     console.log('addrCrowdFunding:', addrCrowdFunding);
 
+
+    //-------------------==
     console.log('\nto add product row into DB');
     addProductRow(nftSymbol, nftSymbol, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
     

@@ -1,9 +1,7 @@
 pragma solidity ^0.5.4;
 
 interface HeliumITF{
-    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
-    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
 }
 
 contract TokenController {
@@ -35,14 +33,16 @@ contract TokenController {
         _;
     }
 
-    modifier onlyAdmin() {
-        require(HeliumITF(HeliumAddr).checkAdmin(msg.sender), "only Helium_Admin is allowed to call this function");
+    modifier onlyPlatformSupervisor() {
+        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         _;
     }
-    function setHeliumAddr(address _HeliumAddr) external onlyAdmin{
+    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
         HeliumAddr = _HeliumAddr;
     }
-
+    function checkPlatformSupervisor() external view returns (bool){
+        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
+    }
     // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
     function isTokenApprovedOperational() external view returns (bool){
         return (tokenState == TokenState.normal && isTokenApproved);
@@ -59,7 +59,7 @@ contract TokenController {
     }
 
     // to update the tokenState to be one of the three states: inInitialLockUpPeriod, normal, expired
-    function updateState(uint timeCurrent) external onlyAdmin ckTime(timeCurrent){
+    function updateState(uint timeCurrent) external onlyPlatformSupervisor ckTime(timeCurrent){
         if(timeCurrent < TimeUnlock){
             tokenState = TokenState.inInitialLockUpPeriod;
 
@@ -72,27 +72,27 @@ contract TokenController {
     }
 
     //To extend validTime value
-    function setTimeValid(uint _TimeValid) external onlyAdmin ckTime(_TimeValid) {
+    function setTimeValid(uint _TimeValid) external onlyPlatformSupervisor ckTime(_TimeValid) {
         TimeValid = _TimeValid;
     }
     //To set the value of isTokenApproved variable before isLockedForRelease becomes true
-    function tokenApprove(bool _isTokenApproved) external onlyAdmin {
+    function tokenApprove(bool _isTokenApproved) external onlyPlatformSupervisor {
         isTokenApproved = _isTokenApproved;
     }
 
     //---------------------==subject to variable lockup
     //To set timeUnlock value before isLockedForRelease becomes true
-    function setTimeUnlock(uint _TimeUnlock) external onlyAdmin ckTime(_TimeUnlock) ckLock {
+    function setTimeUnlock(uint _TimeUnlock) external onlyPlatformSupervisor ckTime(_TimeUnlock) ckLock {
         TimeUnlock = _TimeUnlock;
     }
 
     //To lock the above variable values so no further variable value change is possible
-    function lockForTokenRelease() external onlyAdmin ckLock {
+    function lockForTokenRelease() external onlyPlatformSupervisor ckLock {
         isLockedForRelease = true;
     }
 
     //To set TimeAtDeployment before isLockedForRelease becomes true
-    // function setReleaseTime(uint _TimeAtDeployment) external onlyAdmin ckTime(_TimeAtDeployment) ckLock {
+    // function setReleaseTime(uint _TimeAtDeployment) external onlyPlatformSupervisor ckTime(_TimeAtDeployment) ckLock {
     //     TimeAtDeployment = _TimeAtDeployment;
     // }
 

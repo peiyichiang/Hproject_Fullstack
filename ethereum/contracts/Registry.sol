@@ -5,8 +5,6 @@ import "./SafeMath.sol";
 
 interface HeliumITF{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
-    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
-    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
 }
 
 contract Registry {
@@ -74,6 +72,13 @@ authLevel & STO investor classification on purchase amount and holding balance r
         require(HeliumITF(HeliumAddr).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         _;
     }
+    function setHeliumAddr(address _HeliumAddr) external onlyCustomerService{
+        HeliumAddr = _HeliumAddr;
+    }
+    function checkCustomerService() external view returns (bool){
+        return (HeliumITF(HeliumAddr).checkCustomerService(msg.sender));
+    }
+
 
     /**@dev check uid value */
     modifier ckUidLength(string memory uid) {
@@ -98,10 +103,6 @@ authLevel & STO investor classification on purchase amount and holding balance r
     modifier uidToAssetbookExists(string memory uid) {
         require(uidToAssetbook[uid] != address(0), "user does not exist: assetbookAddr is empty");
         _;
-    }
-
-    function setHeliumAddr(address _HeliumAddr) external  onlyCustomerService{
-        HeliumAddr = _HeliumAddr;
     }
 
     /**@dev add user with his user Id(uid), asset contract address(assetbookAddr) */
