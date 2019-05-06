@@ -1,9 +1,6 @@
 /**
 $ yarn global add mocha
-$ yarn run testhcat
-$ yarn run testcf
-$ yarn run testim
-$ yarn run testpm
+$ yarn run test721
 */
 console.log('process.argv', process.argv, process.argv[3]);
 const assert = require('assert');
@@ -292,11 +289,11 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 const CFSD2 = timeCurrent+1;
 const CFED2 = timeCurrent+10;
-let reason, addrPlatformCtrt, uid, authLevel, assetbookAddr;
+let reason, addrPlatformCtrt, uid, extOwnedAddr, authLevel;
 
-let tokenId, _from, uriStr, uriBytes32, uriStrB;
+let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
-let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, bool1;
+let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, isLaunchedM, bool1, bool2, assetIdsFromAssetBook;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
 
@@ -596,8 +593,9 @@ describe('Tests on HCAT721', () => {
     //----------------==Registry contract
     console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
     console.log('addrRegistry', addrRegistry);
-    uid = "A500000001"; assetbookAddr = addrAssetBook1; authLevel = 5;
-    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    uid = "A500000001"; assetCtAddr = addrAssetBook1; extOwnedAddr = AssetOwner1; authLevel = 5;
+    await instRegistry.methods.addUser(
+      uid, assetCtAddr, extOwnedAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('Registry: getUser()');
@@ -608,8 +606,9 @@ describe('Tests on HCAT721', () => {
     assert.equal(user1M[2], extOwnedAddr);
     assert.equal(user1M[3], authLevel);
 
-    uid = "A500000002"; assetbookAddr = addrAssetBook2; authLevel = 5;
-    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    uid = "A500000002"; assetCtAddr = addrAssetBook2; extOwnedAddr = AssetOwner2; authLevel = 5;
+    await instRegistry.methods.addUser(
+      uid, assetCtAddr, extOwnedAddr, authLevel)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let user2M = await instRegistry.methods.getUser(uid).call();
@@ -655,8 +654,8 @@ describe('Tests on HCAT721', () => {
     console.log('tokenURI', web3.utils.toAscii(tokenURI_M), tokenURI);
     //assert.equal(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
-    let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
-    assert.equal(isTokenApprovedOperational, false);
+    let isActiveOperational = await instTokenController.methods.isActiveOperational().call();
+    assert.equal(isActiveOperational, false);
 
 
     let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
@@ -902,8 +901,8 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenUnlock;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
-    console.log('isTokenApprovedOperational()', bool1);
+    bool1 = await instTokenController.methods.isActiveOperational().call();
+    console.log('isActiveOperational()', bool1);
     assert.equal(bool1, false);
 
     //enum TokenState{underLockupPeriod, operational, expired}
@@ -932,8 +931,8 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isTokenApprovedOperational().call(); 
-    console.log('isTokenApprovedOperational()', bool1);
+    bool1 = await instTokenController.methods.isActiveOperational().call(); 
+    console.log('isActiveOperational()', bool1);
     assert.equal(bool1, true);
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
@@ -1165,8 +1164,8 @@ describe('Tests on HCAT721', () => {
     timeCurrent = TimeTokenValid+1;
     await instTokenController.methods.updateState(timeCurrent)
     .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
-    console.log('isTokenApprovedOperational()', bool1);
+    bool1 = await instTokenController.methods.isActiveOperational().call();
+    console.log('isActiveOperational()', bool1);
     assert.equal(bool1, false);
 
     //enum TokenState{underLockupPeriod, operational, expired}
@@ -1705,7 +1704,7 @@ describe('Tests on CrowdFunding', () => {
     }
     if (error) {assert(false);}
 
-    if(1==2){
+    if(1==1){
       //-------------------==Pause the crowdfunding
       serverTime = CFSD2+3;
       console.log('\nPause funding');
@@ -1737,13 +1736,13 @@ describe('Tests on CrowdFunding', () => {
 
       if(1==2) {
         reason = 'a good reason...';
-        console.log('\nTerminate');
+        console.log('\nAbort');
         await instCrowdFunding.methods.abort(reason, serverTime)
         .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
   
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
-        assert.equal(stateDescriptionM, "terminated:"+reason);
+        assert.equal(stateDescriptionM, "aborted:"+reason);
   
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);
@@ -1774,7 +1773,7 @@ describe('Tests on CrowdFunding', () => {
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "fundingClosed: goal reached but not sold out");
+      assert.equal(stateDescriptionM, "fundingClosed: ended with unsold items");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);

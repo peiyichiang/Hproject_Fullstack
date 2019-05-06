@@ -119,9 +119,9 @@ http://140.119.101.130:3000/BackendUser/BackendUserLogin
 
 Backend Roles:
 Platform_Admin
-Platform_Auditor
+Platform_Supervisor
 Platform_CustomerService
 Company_FundManagerN
-Company_FundManagerA
+Company_FundManagerS
 
 http://heliumcryptic.website
