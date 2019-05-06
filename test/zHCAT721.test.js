@@ -33,6 +33,26 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
+const Helium = require('../ethereum/contracts/build/Helium.json');
+if (Helium === undefined){
+  console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] Helium is defined');
+  if (Helium.abi === undefined){
+    console.log('[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Helium.abi is defined');
+      //console.log('Helium.abi:', Helium.abi);
+  }
+  if (Helium.bytecode === undefined || Helium.bytecode.length < 10){
+    console.log('[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Helium.bytecode is defined');
+      //console.log('Helium.bytecode:', Helium.bytecode);
+  }
+  //console.log(Helium);
+}
+
 const Platform = require('../ethereum/contracts/build/Platform.json');
 if (Platform === undefined){
   console.log('[Error] Platform is Not Defined <<<<<<<<<<<<<<<<<<<<<');
@@ -245,6 +265,7 @@ if (ProductManager === undefined){
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
 const maxTokenQtyForEachInvestmentFund = 120;
+let instHelium, addrHeliumCtrt;
 let instRegistry, addrRegistry;
 let instTokenController, addrTokenController;
 let instHCAT721, addrHCAT721;
@@ -252,7 +273,7 @@ let instCrowdFunding, addrCrowdFunding;
 let instIncomeManagerCtrt, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
 
-let accounts, managementTeam, acc3, acc4;//acc3 and acc4 are used for chairman and owner roles
+let accounts, managementTeam;
 let AssetOwner1, AssetOwner2, platformSupervisor, operator;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
@@ -289,7 +310,9 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 
 const CFSD2 = timeCurrent+1;
 const CFED2 = timeCurrent+10;
-let reason, addrPlatformCtrt, uid, extOwnedAddr, authLevel;
+let reason, uid, authLevel, assetbookAddr;
+let admin, chairman, director, manager, owner, isSenderAllowed;
+let adminM, chairmanM, directorM, managerM, ownerM;
 
 let tokenId, to, _from, uriStr, uriBytes32, uriStrB, tokenOwner;
 let tokenOwnerM, tokenControllerDetail, timeCurrentM;
@@ -301,21 +324,23 @@ beforeEach( async function() {
     this.timeout(9500);
     console.log('\n--------==New beforeEach cycle');
     accounts = await web3.eth.getAccounts();
-    platformSupervisor = accounts[0];
+    admin = accounts[0];
     AssetOwner1 = accounts[1];
     AssetOwner2 = accounts[2];
-    acc3 = accounts[3];
-    acc4 = accounts[4];
     platformSupervisor = accounts[3];
-    fundManager = accounts[4];
     operator = accounts[4];
 
-    managementTeam = [platformSupervisor, AssetOwner1, AssetOwner2, acc3, acc4];
-    console.log('platformSupervisor', platformSupervisor);
+    chairman = AssetOwner1;
+    director = AssetOwner2;
+    manager  = platformSupervisor;
+    owner = operator;
+
+    managementTeam = [admin, chairman, director, manager, owner];
+    console.log('admin', admin);
     console.log('AssetOwner1', AssetOwner1);
     console.log('AssetOwner2', AssetOwner2);
-    console.log('acc3', acc3);
-    console.log('acc4', acc4);
+    console.log('platformSupervisor', platformSupervisor);
+    console.log('operator', operator);
     console.log('managementTeam', managementTeam);
 
     // console.log('AssetOwner1, to addr, or accounts[1]');
@@ -329,60 +354,34 @@ beforeEach( async function() {
         console.log('AssetOwner1',  AssetOwner1, balanceAO1);
         console.log('AssetOwner2',  AssetOwner2, balanceAO2);
     }
+    
 
-    console.log('\nDeploying Platform contract...');
+    console.log('\nDeploying Helium contract...');
     //JSON.parse() is not needed because the abi and bytecode are already objects
     console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
-    const argsPlatform = [platformSupervisor, managementTeam];
-    console.log('\nDeploying Platform contract...');
-    instPlatform =  await new web3.eth.Contract(Platform.abi)
-    .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    const argsHelium = [managementTeam];
+    console.log('\nDeploying Helium contract...');
+    instHelium =  await new web3.eth.Contract(Helium.abi)
+    .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
-    console.log('Platform.sol has been deployed');
-    if (instPlatform === undefined) {
-      console.log('[Error] instPlatform is NOT defined');
-      } else {console.log('[Good] instPlatform is defined');}
-    instPlatform.setProvider(provider);
-    addrPlatformCtrt = instPlatform.options.address;
-    console.log('addrPlatformCtrt:', addrPlatformCtrt);
+    console.log('Helium.sol has been deployed');
+    if (instHelium === undefined) {
+      console.log('[Error] instHelium is NOT defined');
+      } else {console.log('[Good] instHelium is defined');}
+    instHelium.setProvider(provider);
+    addrHeliumCtrt = instHelium.options.address;
+    console.log('addrHeliumCtrt:', addrHeliumCtrt);
 
 
-    // const argsMultiSig1 = [AssetOwner1, addrPlatformCtrt];
-    // const argsMultiSig2 = [AssetOwner2, addrPlatformCtrt];
-    // console.log('\nDeploying multiSig contracts...');
-    // instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
-    // .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-    // .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    // //.then(console.log);
-    // console.log('MultiSig1 has been deployed');
-    // if (instMultiSig1 === undefined) {
-    //   console.log('[Error] instMultiSig1 is NOT defined');
-    //   } else {console.log('[Good] instMultiSig1 is defined');}
-    // instMultiSig1.setProvider(provider);
-    // addrMultiSig1 = instMultiSig1.options.address;
-    // console.log('addrMultiSig1:', addrMultiSig1);
-
-    // instMultiSig2 =  await new web3.eth.Contract(MultiSig.abi)
-    // .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-    // .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    // //.then(console.log);
-    // console.log('MultiSig2 has been deployed');
-    // if (instMultiSig2 === undefined) {
-    //   console.log('[Error] instMultiSig2 is NOT defined');
-    //   } else {console.log('[Good] instMultiSig2 is defined');}
-    // instMultiSig2.setProvider(provider);
-    // addrMultiSig2 = instMultiSig2.options.address;
-    // console.log('addrMultiSig2:', addrMultiSig2);
-
-    argsAssetBook1 = [ AssetOwner1, addrPlatformCtrt];
-    argsAssetBook2 = [ AssetOwner2, addrPlatformCtrt];
+    argsAssetBook1 = [ AssetOwner1, addrHeliumCtrt];
+    argsAssetBook2 = [ AssetOwner2, addrHeliumCtrt];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
     instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook1 })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook1 === undefined) {
@@ -394,7 +393,7 @@ beforeEach( async function() {
 
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook2 === undefined) {
@@ -407,10 +406,10 @@ beforeEach( async function() {
     
     //Deploying Registry contract...
     console.log('\nDeploying Registry contract...');
-    const argsRegistry = [managementTeam];
+    const argsRegistry = [addrHeliumCtrt];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('Registry.sol has been deployed');
     if (instRegistry === undefined) {
@@ -423,10 +422,10 @@ beforeEach( async function() {
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, managementTeam ];
+      TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, addrHeliumCtrt ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('TokenController.sol has been deployed');
     if (instTokenController === undefined) {
       console.log('[Error] instTokenController is NOT defined');
@@ -443,11 +442,11 @@ beforeEach( async function() {
     const argsHCAT721 = [
     tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, addrTokenController, tokenURI_bytes32];
+    addrRegistry, addrTokenController, tokenURI_bytes32, addrHeliumCtrt];
     console.log('\nDeploying HCAT721 contract...');
     instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
     .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('HCAT721.sol has been deployed');
     if (instHCAT721 === undefined) {
       console.log('[Error] instHCAT721 is NOT defined');
@@ -456,15 +455,15 @@ beforeEach( async function() {
     addrHCAT721 = instHCAT721.options.address;
     console.log('addrHCAT721:', addrHCAT721);
     /**
-    value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
+    value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3.utils.toWei('10','ether')
     */
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeCurrent, managementTeam];
+    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeCurrent, addrHeliumCtrt];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-      .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('CrowdFunding.sol has been deployed');
     if (instCrowdFunding === undefined) {
       console.log('[Error] instCrowdFunding is NOT defined');
@@ -475,11 +474,12 @@ beforeEach( async function() {
 
 
     //---------=IncomeManagerCtrt related contracts
-    //addrPlatformCtrt -> platformSupervisor for now...
-    const argsIncomeManagerCtrt =[addrHCAT721, platformSupervisor, managementTeam];
+    console.log('\nDeploying IncomeManager contract...');
+    //addrHeliumCtrt -> platformSupervisor for now...
+    const argsIncomeManagerCtrt =[addrHCAT721, platformSupervisor, addrHeliumCtrt];
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('\nIncomeManagerCtrt.sol has been deployed');
     if (instIncomeManagerCtrt === undefined) {
       console.log('[Error] instIncomeManagerCtrt is NOT defined');
@@ -492,7 +492,7 @@ beforeEach( async function() {
     console.log('\nDeploying ArrayTesting contract...');
     instArrayUtils = await new web3.eth.Contract(ArrayTesting.abi)
      .deploy({ data: prefix+ArrayTesting.bytecode })
-     .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
      console.log('ArrayTesting.sol has been deployed');
      if (instArrayUtils === undefined) {
        console.log('[Error] instArrayUtils is NOT defined');
@@ -538,7 +538,7 @@ describe('Tests on HCAT721', () => {
     this.timeout(19500);
 
     console.log('\n------------==Check deployment');
-    assert.ok(addrPlatformCtrt);
+    assert.ok(addrHeliumCtrt);
     // assert.ok(addrMultiSig1);
     // assert.ok(addrMultiSig2);
     assert.ok(addrAssetBook1);
@@ -562,10 +562,29 @@ describe('Tests on HCAT721', () => {
 
       console.log('\nCheck getPlatformContractAddr()');
       let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
-      assert.equal(platformM1, addrPlatformCtrt);
+      assert.equal(platformM1, addrHeliumCtrt);
       let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
-      assert.equal(platformM2, addrPlatformCtrt);
+      assert.equal(platformM2, addrHeliumCtrt);
     }
+
+    console.log('\n------------==Check Helium contract');
+    adminM = await instHelium.methods.Helium_Admin().call();
+    assert.equal(adminM, admin);
+    console.log('check1')
+
+    chairmanM = await instHelium.methods.Helium_Chairman().call();
+    assert.equal(chairmanM, chairman);
+
+    directorM = await instHelium.methods.Helium_Director().call();
+    assert.equal(directorM, director);
+
+    managerM = await instHelium.methods.Helium_Manager().call();
+    assert.equal(managerM, manager);
+
+    ownerM = await instHelium.methods.Helium_Owner().call();
+    assert.equal(ownerM, owner);
+    console.log('Helium contract all checked good');
+
 
     console.log('\n------------==Check AssetBook contract 1 & 2');
     console.log('addrAssetBook1', addrAssetBook1);
@@ -593,30 +612,24 @@ describe('Tests on HCAT721', () => {
     //----------------==Registry contract
     console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
     console.log('addrRegistry', addrRegistry);
-    uid = "A500000001"; assetCtAddr = addrAssetBook1; extOwnedAddr = AssetOwner1; authLevel = 5;
-    await instRegistry.methods.addUser(
-      uid, assetCtAddr, extOwnedAddr, authLevel)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    uid = "A500000001"; assetbookAddr = addrAssetBook1; authLevel = 5;
+    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    console.log('Registry: getUser()');
-    let user1M = await instRegistry.methods.getUser(uid).call();
+    console.log('Registry: getUserFromUid()');
+    let user1M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('user1M', user1M);
-    assert.equal(user1M[0], uid);
-    assert.equal(user1M[1], assetCtAddr);
-    assert.equal(user1M[2], extOwnedAddr);
-    assert.equal(user1M[3], authLevel);
+    assert.equal(user1M[0], assetbookAddr);
+    assert.equal(user1M[1], authLevel);
 
-    uid = "A500000002"; assetCtAddr = addrAssetBook2; extOwnedAddr = AssetOwner2; authLevel = 5;
-    await instRegistry.methods.addUser(
-      uid, assetCtAddr, extOwnedAddr, authLevel)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    uid = "A500000002"; assetbookAddr = addrAssetBook2; authLevel = 5;
+    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    let user2M = await instRegistry.methods.getUser(uid).call();
+    let user2M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('\nuser2M', user2M);
-    assert.equal(user2M[0], uid);
-    assert.equal(user2M[1], assetCtAddr);
-    assert.equal(user2M[2], extOwnedAddr);
-    assert.equal(user2M[3], authLevel);
+    assert.equal(user2M[0], assetbookAddr);
+    assert.equal(user2M[1], authLevel);
 
 
     //----------------==
@@ -624,7 +637,7 @@ describe('Tests on HCAT721', () => {
     console.log('addrHCAT721', addrHCAT721);
 
     // await instHCAT721.methods.set_admin(AssetOwner1, platformSupervisor).send({
-    //   value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue
+    //   value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
     // });//set_tokenDump(address _tokenDump, address vendor)
 
     tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
@@ -706,7 +719,7 @@ describe('Tests on HCAT721', () => {
 
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
-    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('after minting tokenId =', tokenId);
     assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
@@ -747,7 +760,7 @@ describe('Tests on HCAT721', () => {
 
     console.log('\nmintSerialNFT()... amount =', amount);
     await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-      value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
@@ -799,7 +812,7 @@ describe('Tests on HCAT721', () => {
     
     console.log('\nstart minting via mintSerialNFTBatch()');
     await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-      value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
+      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 7);
@@ -841,11 +854,11 @@ describe('Tests on HCAT721', () => {
       _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;
       console.log('mintSerialNFT()... amount =', amount);
       await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-        value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+        value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {
-      console.log('[Success] STO Compliance for balance of assetCtrt1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
+      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
       assert(err);
     }
     if (error) {assert(false);}
@@ -857,11 +870,11 @@ describe('Tests on HCAT721', () => {
       _to = addrAssetBook1; amount = 8; serverTime = timeCurrent;
       console.log('mintSerialNFT()... amount =', amount);
       await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-        value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+        value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {
-      console.log('[Success] STO Compliance for buyAmount of assetCtrt1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 100));
+      console.log('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 100));
       assert(err);
     }
     if (error) {assert(false);}
@@ -870,23 +883,6 @@ describe('Tests on HCAT721', () => {
     //-----------------==Check Token Controller: time
     console.log('\n------------==Check TokenController parameters: time');
     console.log('addrTokenController', addrTokenController);
-    let owner = await instTokenController.methods.owner().call();
-    let chairman = await instTokenController.methods.chairman().call();
-    let director = await instTokenController.methods.director().call();
-    let manager = await instTokenController.methods.manager().call();
-    let admin = await instTokenController.methods.admin().call();
-
-    assert.equal(owner, acc4);
-    assert.equal(chairman, acc3);
-    assert.equal(director, AssetOwner2);
-    assert.equal(manager, AssetOwner1);
-    assert.equal(admin, platformSupervisor);
-
-    // owner = managementTeam[4];
-    // chairman = managementTeam[3];
-    // director = managementTeam[2];
-    // manager = managementTeam[1];
-    // admin = managementTeam[0];
 
     tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
     timeCurrentM = tokenControllerDetail[0];
@@ -895,20 +891,27 @@ describe('Tests on HCAT721', () => {
     TimeTokenValidM = tokenControllerDetail[3];
     console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM);
 
+    isSenderAllowed = await instTokenController.methods.checkPlatformSupervisor().call({from: admin});
+    assert.equal(isSenderAllowed, true);
+    console.log('checkPlatformSupervisor() is confirmed working');
+
 
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
-    timeCurrent = TimeTokenUnlock;
+    timeCurrent = TimeTokenUnlock-1;
     await instTokenController.methods.updateState(timeCurrent)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isActiveOperational().call();
-    console.log('isActiveOperational()', bool1);
-    assert.equal(bool1, false);
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     //enum TokenState{underLockupPeriod, operational, expired}
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
     assert.equal(tokenStateM, 0);
+
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational()', bool1);
+    assert.equal(bool1, false);
+
+
 
     error = false;
     try {
@@ -919,7 +922,7 @@ describe('Tests on HCAT721', () => {
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetCtrt1 to assetCtrt2 failed: timeCurrent should be > TimeTokenUnlock', timeCurrent, TimeTokenUnlock, err.toString().substr(0, 190));
+      console.log('[Success] sending tokenId 1 from assetbook1 to assetbook2 failed: timeCurrent should be > TimeTokenUnlock', timeCurrent, TimeTokenUnlock, err.toString().substr(0, 190));
       assert(err);
     }
     if (error) {assert(false);}
@@ -930,9 +933,9 @@ describe('Tests on HCAT721', () => {
     console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
     timeCurrent = TimeTokenUnlock+1;
     await instTokenController.methods.updateState(timeCurrent)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isActiveOperational().call(); 
-    console.log('isActiveOperational()', bool1);
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call(); 
+    console.log('isTokenApprovedOperational()', bool1);
     assert.equal(bool1, true);
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
@@ -1163,15 +1166,18 @@ describe('Tests on HCAT721', () => {
     console.log('\n------------==Send tokens after valid date');
     timeCurrent = TimeTokenValid+1;
     await instTokenController.methods.updateState(timeCurrent)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instTokenController.methods.isActiveOperational().call();
-    console.log('isActiveOperational()', bool1);
-    assert.equal(bool1, false);
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     //enum TokenState{underLockupPeriod, operational, expired}
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
     assert.equal(tokenStateM, 2);
+    
+    bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational()', bool1);
+    assert.equal(bool1, false);
+
+
 
 
     error = false;
@@ -1184,7 +1190,7 @@ describe('Tests on HCAT721', () => {
 
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetCtrt2 to assetCtrt1 failed: timeCurrent should be < TimeTokenValid', timeCurrent, TimeTokenValid, 'err:', err.toString().substr(0, 150));
+      console.log('[Success] sending tokenId 1 from assetbook2 to assetbook1 failed: timeCurrent should be < TimeTokenValid', timeCurrent, TimeTokenValid, 'err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1247,14 +1253,14 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
     await instIncomeManagerCtrt.methods.addSchedule(forecastedPayableTime, forecastedPayableAmount)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nafter adding a new schedule...');
     result = await instIncomeManagerCtrt.methods.schCindex().call();
     console.log('new schCindex:', result);
     assert.equal(result, 1);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
     assert.equal(result, 1);
 
@@ -1275,7 +1281,7 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     console.log('\n--------==imApprove()');
     await instIncomeManagerCtrt.methods.imApprove(_index, true)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('getIncomeSchedule():', result);
@@ -1297,7 +1303,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     _paymentAmount = forecastedPayableAmount;
     _errorCode = 0;
     await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('getIncomeSchedule():', result);
@@ -1318,19 +1324,19 @@ describe('Tests on IncomeManagerCtrt', () => {
     _index = 2; forecastedPayableTime = 201906110000; forecastedPayableAmount = 3300;
 
     await instIncomeManagerCtrt.methods.addSchedule(forecastedPayableTime, forecastedPayableAmount)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==after adding a new schedule...');
     result = await instIncomeManagerCtrt.methods.schCindex().call();
     console.log('new schCindex:', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(_index, forecastedPayableTime).call();
-    console.log('getSchIndex(_index, forecastedPayableTime):', result);
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
+    console.log('getSchIndex(forecastedPayableTime):', result);
     assert.equal(result, _index);
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
-    console.log('getSchIndex(0, forecastedPayableTime):', result);
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
+    console.log('getSchIndex(forecastedPayableTime):', result);
     assert.equal(result, _index);
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
@@ -1350,7 +1356,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
     forecastedPayableAmounts = [3700, 3800, 3900];
 
-    result = await instIncomeManagerCtrt.methods.getSchIndex(0, forecastedPayableTime).call();
+    result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
     assert.equal(result, _index);
 
@@ -1360,7 +1366,7 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     await instIncomeManagerCtrt.methods.AddScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.schCindex().call();
     console.log('new schCindex:', result);
@@ -1389,7 +1395,7 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     console.log('\n--------==imApprove()');
     await instIncomeManagerCtrt.methods.imApprove(_index, true)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('getIncomeSchedule():', _index, forecastedPayableTime, forecastedPayableAmount, result);
@@ -1411,7 +1417,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     _paymentAmount = forecastedPayableAmount;
     _errorCode = 21;
     await instIncomeManagerCtrt.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('', result);
@@ -1429,7 +1435,7 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     await instIncomeManagerCtrt.methods.setErrResolution(_index, true)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
     console.log('\n--------==setErrResolution()', result);
@@ -1453,7 +1459,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     _index = 2; forecastedPayableTime = 201906110222; forecastedPayableAmount = 4000;
 
     await instIncomeManagerCtrt.methods.editIncomeSchedule(_index, forecastedPayableTime, forecastedPayableAmount)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==getIncomeScheduleList()');
     indexStart = 1; amount = 0;
@@ -1464,7 +1470,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('\n--------==removeIncomeSchedule()');
     _index = 3; forecastedPayableTime = 201906110999;
     await instIncomeManagerCtrt.methods.removeIncomeSchedule(_index)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==getIncomeScheduleList()');
     indexStart = 1; amount = 0;
@@ -1483,16 +1489,16 @@ describe('Tests on IncomeManagerCtrt', () => {
 //   });
 // });
 
-//-----------------------------------------==
+//-----------------------------------------==Product Manager
 describe('Tests on ProductManager', () => {
 
   it('ProductManager functions test', async function() {
     console.log('\ninside productManager test...');
-    const argsProductManager = [managementTeam];
+    const argsProductManager = [addrHeliumCtrt];
 
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
-    .send({ from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('ProductManager.sol has been deployed');
     if (instProductManager === undefined) {
       console.log('[Error] instProductManager is NOT defined');
@@ -1510,7 +1516,7 @@ describe('Tests on ProductManager', () => {
     let symbol = "Taipei101";
     let symbol_b32 = web3.utils.fromAscii(symbol);
     await instProductManager.methods.addNewCtrtGroup(symbol_b32, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManagerCtrt)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let ctrtGroup = await instProductManager.methods.getCtrtGroup(symbol_b32).call();
     console.log('\ctrtGroup', ctrtGroup);
@@ -1574,7 +1580,7 @@ describe('Tests on CrowdFunding', () => {
     serverTime = CFSD2-1;
     console.log('set servertime = CFSD2-1', serverTime);
     await instCrowdFunding.methods.updateState(serverTime)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('\nstateDescriptionM', stateDescriptionM);
@@ -1588,7 +1594,7 @@ describe('Tests on CrowdFunding', () => {
     serverTime = CFSD2;
     console.log('\nset serverTime = CFSD2', CFSD2);
     await instCrowdFunding.methods.updateState(serverTime)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1602,7 +1608,7 @@ describe('Tests on CrowdFunding', () => {
       serverTime = CFED2;
       console.log('\nset serverTime = CFED2', CFED2);
       await instCrowdFunding.methods.updateState(serverTime)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
@@ -1617,7 +1623,7 @@ describe('Tests on CrowdFunding', () => {
     serverTime = CFSD2+1;
     console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
     // await instCrowdFunding.methods.makeFundingActive(serverTime)
-    // .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    // .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('\nremainingTokenQtyM:', remainingTokenQtyM);
@@ -1637,14 +1643,14 @@ describe('Tests on CrowdFunding', () => {
     // console.log('quotient is integer');
 
     for(i = 0; i < quotient; i++) {
-      await instCrowdFunding.methods.invest(addrAssetBook1, maxTokenQtyForEachInvestmentFund, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      await instCrowdFunding.methods.invest(addrAssetBook1, maxTokenQtyForEachInvestmentFund, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
       console.log('invest()... take ', i);
     }
     remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('remainingTokenQtyM:', remainingTokenQtyM, ' V.s. modResult:', modResult, '... maxTotalSupply', maxTotalSupply, ', quantityGoal', quantityGoal, 'quantitySoldM', quantitySoldM);
     assert.equal(remainingTokenQtyM, modResult+maxTotalSupply-quantityGoal);
 
-    await instCrowdFunding.methods.invest(addrAssetBook1, modResult, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    await instCrowdFunding.methods.invest(addrAssetBook1, modResult, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('invest(modResult=', modResult, ')');
     quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
     console.log('quantitySoldM:', quantitySoldM, 'V.s. quantityGoal:', quantityGoal);
@@ -1665,7 +1671,7 @@ describe('Tests on CrowdFunding', () => {
     console.log('\nset serverTime = CFSD2-1');
     serverTime = CFSD2-1;
     await instCrowdFunding.methods.updateState(serverTime)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1679,7 +1685,7 @@ describe('Tests on CrowdFunding', () => {
     serverTime = CFSD2;
     console.log('\nset serverTime = CFSD2');
     await instCrowdFunding.methods.updateState(serverTime)
-    .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
@@ -1696,7 +1702,7 @@ describe('Tests on CrowdFunding', () => {
     let error = false;
     try {
       console.log('\nTrying to invest quantityAvailable+1');
-      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1, serverTime).send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable+1, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable, 'err:', err.toString().substr(0, 100));
@@ -1709,7 +1715,7 @@ describe('Tests on CrowdFunding', () => {
       serverTime = CFSD2+3;
       console.log('\nPause funding');
       await instCrowdFunding.methods.pauseFunding(serverTime)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
@@ -1723,7 +1729,7 @@ describe('Tests on CrowdFunding', () => {
       serverTime = CFSD2+3;
       console.log('\nResume funding');
       await instCrowdFunding.methods.resumeFunding(CFED2, maxTotalSupply, serverTime)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
@@ -1738,7 +1744,7 @@ describe('Tests on CrowdFunding', () => {
         reason = 'a good reason...';
         console.log('\nAbort');
         await instCrowdFunding.methods.abort(reason, serverTime)
-        .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+        .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
@@ -1753,7 +1759,7 @@ describe('Tests on CrowdFunding', () => {
         //-------------------==Buying the available quantity
         console.log('\nTrying to invest quantityAvailable');
         await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable, serverTime)
-        .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+        .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
@@ -1769,7 +1775,7 @@ describe('Tests on CrowdFunding', () => {
       console.log('\nCFED2 has been reached');
       serverTime = CFED2;
       await instCrowdFunding.methods.updateState(serverTime)
-      .send({ value: '0', from: platformSupervisor, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);

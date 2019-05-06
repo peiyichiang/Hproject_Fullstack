@@ -33,10 +33,27 @@ T -->|是|S
 T -->|否|V[案件终止, 终止所有代幣權利和義務]
 
 ```
-
+```mermaid
 graph TD
 A[新用戶註冊] -->|上傳照片/編輯個人資料| B[用戶審核區]
 B --> |提交審核|C{是否通過管理者審核}
 C -->|否: 駁回| B
-C -->|是: 用戶升級| D[用戶活躍區&正常交易行為]
-D --> |可疑的交易行為|C
+C -->|是: 用戶升級| D[活躍區&正常交易行為]
+D --> |可疑的交易行為|C{是否通過FES審核}
+```
+
+//Deploy and test new tokends
+```mermaid
+graph TD
+A[System Startup] -->|platformSupervisor, managementTeam| B[Deploy Platform smart contract]
+B -->|AssetOwner1, addrPlatformCtrt| C[Deploy AssetBook1 smart contract]
+B -->|AssetOwner2, addrPlatformCtrt| D[Deploy AssetBook2 smart contract]
+
+A -->|managementTeam| E[Deploy Registry smart contract]
+A -->|TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, managementTeam| F[Deploy TokenController smart contract]
+E --> |addrRegistry|G[HCAT721]
+F --> |addrTokenController|G
+A --> |new token symbol, etc..|G
+
+
+```

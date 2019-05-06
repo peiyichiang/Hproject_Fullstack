@@ -1,6 +1,10 @@
 pragma solidity ^0.5.4;
 import "./SafeMath.sol";
 
+interface HeliumITF{
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+}
+
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x150b7a02.*/
 interface ERC721TokenReceiverITF {
     function onERC721Received(address operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
@@ -22,20 +26,19 @@ contract SupportsInterface is ERC165ITF {
 
 //RegistryITF(addrRegistry).isAddrApproved(_to);
 interface RegistryITF {
-    function isAddrApproved(address assetCtrtAddr) external view returns (bool);
-    function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
+    function isAssetbookApproved(address assetbookAddr) external view returns (bool);
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
 }
 
-//TokenControllerITF(addrTokenController).isAdmin(msg.sender);
 interface TokenControllerITF {
-    function isAdmin(address sender) external view returns (bool);
-    function isActiveOperational() external view returns (bool);
+    function isTokenApprovedOperational() external view returns (bool);
 }
 
 //------------------------HCAT721: Helium Cryptic Asset Token
 contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF, 
     using SafeMath for uint256;
     using AddressUtils for address;
+    address public HeliumAddr;
 
     mapping(address => Account) internal accounts;//accounts[user]
     struct Account {
@@ -76,7 +79,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI) public {
+        bytes32 _tokenURI, address _HeliumAddr) public {
         name = _nftName;
         symbol = _nftSymbol;
         tokenURI = _tokenURI;
@@ -89,11 +92,23 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         
         addrRegistry = _addrRegistry;
         addrTokenController = _addrTokenController;
+        HeliumAddr = _HeliumAddr;
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
-    
+
+    modifier onlyPlatformSupervisor() {
+        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        _;
+    }
+    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
+        HeliumAddr = _HeliumAddr;
+    }
+    function checkPlatformSupervisor() external view returns (bool){
+        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
+    }
+
     function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
         uint totalSupply_, uint initialAssetPricing_, 
@@ -212,12 +227,15 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
     }
 
+    //Legal Compliance, also block address(0)
     //fundingType: 1 public crowdfunding, 2 private placement
-    function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public {
-        require(TokenControllerITF(addrTokenController).isAdmin(msg.sender), 'only admin can mint tokens');
+    //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
+    function isFundingApprovedHCAT721(address _to, uint amount, uint price, uint fundingType) external view returns(bool) {
+        return RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+    }
 
-        //Legal Compliance, also block address(0)
-        //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
+    function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public onlyPlatformSupervisor{
+
         require(RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
 
         if (_to.isContract()) {//also checks for none zero address
@@ -236,13 +254,13 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint idxStartReq; uint idxEndReq;
         if (idxStart == 0 && idxEnd == 0 && accounts[_to].indexToId[0] == 0) {
           //idxStartReq = 0;
-            idxEndReq = amount.sub(1);
+          idxEndReq = amount.sub(1);
         } else if (idxStart > idxEnd) {
           //idxStartReq = 0;
-            idxEndReq = amount.sub(1);
+          idxEndReq = amount.sub(1);
         } else {
-            idxStartReq = idxEnd.add(1);
-            idxEndReq = idxEnd.add(amount);
+          idxStartReq = idxEnd.add(1);
+          idxEndReq = idxEnd.add(amount);
         }
 
         for(uint i = idxStartReq; i <= idxEndReq; i = i.add(1)) {
@@ -271,9 +289,9 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
         require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
-        require(RegistryITF(addrRegistry).isAddrApproved(_to), "_to is not in compliance");
+        require(RegistryITF(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
 
-        require(RegistryITF(addrRegistry).isAddrApproved(_from), "_from is not in compliance");
+        require(RegistryITF(addrRegistry).isAssetbookApproved(_from), "_from is not in compliance");
 
         _safeTransferFromBatch(_from, _to, amount, price, serverTime);
     }
@@ -370,7 +388,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     }
     event TokenApprove(address indexed tokenOwner, address indexed operator, uint amount);
 
-    function() external payable { revert("should not send any ether directly"); }
+    //function() external payable { revert("should not send any ether directly"); }
 }
 
 //--------------------==

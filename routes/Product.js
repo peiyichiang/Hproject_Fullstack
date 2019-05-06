@@ -963,8 +963,57 @@ router.get('/ProductList', function (req, res) {
     });
 });
 
+router.get('/LaunchedProductList', function (req, res) {
+    console.log('------------------------==\n@Product/ProductList');
+    let mysqlPoolQuery = req.pool;
+      mysqlPoolQuery('SELECT * FROM product WHERE p_state = \'funding\'', function (err, result) {
+          if (err) {
+              res.status(400)
+              res.json({
+                  "message": "產品列表取得失敗:\n" + err
+              })
+          }
+          else {
+              res.status(200);
+              res.json({
+                  "message": "產品列表取得成功！",
+                  "result": result
+              });
+          }
+          /* code = 304? */
+      });
+  });
+
 //Ray ... htoken.  omitted
 router.get('/ProductBySymbol', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    console.log('------------------------==\n@Product/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
+    let symbol; const status = 'na';
+    if (req.body.symbol) {
+        symbol = req.body.symbol;
+    } else { symbol = req.query.symbol; }
+    //console.log('symbol', symbol);
+
+    let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    //console.log('qstr1', qstr1);
+    mysqlPoolQuery(qstr1, [symbol], function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] 產品symbol not found 取得失敗:\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message": "[Success] 產品symbol found 取得成功！",
+                "result": result
+            });
+        }
+    });
+});
+
+router.get('/LaunchedProductBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log('------------------------==\n@Product/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
     let symbol; const status = 'na';

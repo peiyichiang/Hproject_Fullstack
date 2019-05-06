@@ -20,7 +20,8 @@ yarn global add mocha
 yarn global add nodemon
 cp example.env .env
 ```
-complete .env
+Complete .env variable values
+
 ### 3. Install web3 version 1.0.0-beta.37
 
 Install web3@1.0.0-beta.37 to prevent Ganache-cli provider error
@@ -104,7 +105,23 @@ yarn run livechain --c 1 --f 9 -a serverTime
 yarn run livechain --c 1 --f 10 -a 2 -b 1
 ```
 
-### 8. Run the app
+### 8. Setup Timeserver sending part
+```
+'*/5 * * * * *'
+'*/10 * * * * *'  ... for every 10 seconds
+'59 * * * * *'  ... for every 59th minute
+```
+
+### 9. Test Timeserver Automation
+```
+$ yarn run testts --c C
+```
+  1: get funding state value
+  2: reset symbol "HHtoekn12222", "Htoken001", "Htoken0030" to p_state = initial
+  3: set timeCurrent = CFSD
+  4: set timeCurrent = CFED
+
+### 9. Run the app
 
 ```
 yarn run start
@@ -112,7 +129,16 @@ yarn run start
 
 App will be opened in browser at `http://localhost:3000/`
 
-## 9. Live Preview
+### 10. Set to receive incoming time
+```
+Go to http://140.119.101.130:7000/
+Enter your current running IP:
+140.119.101.33	portForIncomingTime_value  	HeliumXYZ001
+portForIncomingTime has the value defined inside timeServer/manager.js
+
+```
+
+### 11. Live Preview
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin

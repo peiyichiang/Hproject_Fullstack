@@ -1,19 +1,23 @@
 pragma solidity ^0.5.4;
 
 import "./SafeMath.sol";
-import "./Ownable.sol";
 
 //MultiSigITF_Platform(addrMultiSigITF_Platform).platformVote(_timeCurrent)
 interface MultiSigITF_Platform {
     function platformCtrtVote(uint256 _timeCurrent) external;
 }
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+}
 
-
-contract Platform is Ownable {
+contract Platform {
     using SafeMath for uint256;
     uint public managerAmount;
+    address public HeliumAddr;
     address public platformSupervisor;
-
+    
     struct Platforms{
         string platformManagerId; //platform Manager id
         address platformManagerAddr; //platform Manager address
@@ -27,19 +31,16 @@ contract Platform is Ownable {
     event changePlatformManagerEvent(address indexed oldManagerAddr, address indexed newManagerAddr, string id, uint256 timestamp);
 
 
-    constructor(address _platformSupervisor, address[] memory managementTeam) public{
-        platformSupervisor = _platformSupervisor;
-        require(managementTeam.length > 4, "managementTeam.length should be > 4");
-        owner = managementTeam[4];
-        chairman = managementTeam[3];
-        director = managementTeam[2];
-        manager = managementTeam[1];
-        admin = managementTeam[0];
+    constructor(address _HeliumAddr) public{
+        HeliumAddr = _HeliumAddr;
     }
-
+    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
+        HeliumAddr = _HeliumAddr;
+    }
     //檢查是否為 platformSupervisor
     modifier onlyPlatformSupervisor(){
-        require(msg.sender == platformSupervisor, "請檢查是否為合約 platformSupervisor");
+        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only customerService is allowed to call this function");
+        //require(msg.sender == platformSupervisor, "請檢查是否為合約 platformSupervisor");
         _;
     }
 
