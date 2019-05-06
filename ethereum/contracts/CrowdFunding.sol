@@ -41,11 +41,9 @@ contract CrowdFunding {
 
     //fundingClosed: maxTotalSupply is reached or CFED2 is reached with quantitySold > quantityGoal
     //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
-    // the fundingState can be one of the following states: initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted
-    enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}
+    // the fundingState can be one of the following states: initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated
+    enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
     FundingState public fundingState;
-    bool public isActive;
-    bool public isAborted;
     string public stateDescription;
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
     uint public fundingType;
@@ -122,7 +120,7 @@ contract CrowdFunding {
         } else if(quantitySold >= quantityGoal){
             if (serverTime >= CFED2){
                 fundingState = FundingState.fundingClosed;
-                stateDescription = "fundingClosed: ended with unsold items";
+                stateDescription = "fundingClosed: goal reached but not sold out";
             } else if (serverTime >= CFSD2){
                 fundingState = FundingState.fundingGoalReached;
                 stateDescription = "fundingGoalReached: still funding and has reached goal";
@@ -133,7 +131,6 @@ contract CrowdFunding {
 
         } else {
             if (serverTime >= CFED2){
-                isAborted = true;
                 fundingState = FundingState.fundingNotClosed;
                 stateDescription = "fundingNotClosed: ended with goal not reached";
             } else if (serverTime >= CFSD2){
@@ -147,11 +144,6 @@ contract CrowdFunding {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, stateDescription);
     }
 
-    // // to mark the current crowdfunding active to receive funding
-    // function makeFundingActive(uint serverTime) external onlyAdmin {
-    //     isActive = true;
-    //     emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "makeFundingActive");
-    // }
 
     // to pause current crowdfunding process
     function pauseFunding(uint serverTime) external onlyPlatformSupervisor {
@@ -175,17 +167,15 @@ contract CrowdFunding {
             maxTotalSupply = _maxTotalSupply;
             emit ResumeFunding(tokenSymbol, _CFED2, _maxTotalSupply);
         }
-        isActive = true;
         updateState(serverTime);
     }
 
     // to terminate the current crowdfunding process, possibly due to external unexpected force
     function terminate(string calldata _reason, uint serverTime) external onlyPlatformSupervisor {
         ckStringLength(_reason, 7, 32);
-        isAborted = true;
-        fundingState = FundingState.aborted;
-        stateDescription = append("aborted:", _reason);
-        emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, stateDescription);
+        fundingState = FundingState.terminated;
+        stateDescription = append("terminated:", _reason);
+        emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, append("terminated:", _reason));
     }
 
     // to get the remaining amount of tokens available for further funding
@@ -199,9 +189,9 @@ contract CrowdFunding {
         //require(RegistryITF(addrRegistry).isFundingApproved(_assetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
         //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType)
 
-        if(serverTime >= CFSD2 && fundingState == FundingState.initial){
-            fundingState = FundingState.funding;
-        }
+        // if(serverTime >= CFSD2 && fundingState == FundingState.initial){
+        //     fundingState = FundingState.funding;
+        // }
 
         if (_assetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
@@ -211,13 +201,12 @@ contract CrowdFunding {
             require(false,"_assetbook address should contain ERC721 compatible asset contract");
         }
 
-        require(_quantityToInvest > 0, "_quantityToInvest should be greater than zero");
-        require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be less than maxTokenQtyForEachInvestmentFund");
-        require(!isAborted, "crowdFunding has been aborted");
+        require(_quantityToInvest > 0, "_quantityToInvest should be > 0");
+        require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be <= maxTokenQtyForEachInvestmentFund");
         quantitySold = quantitySold.add(_quantityToInvest);
-        require(quantitySold <= maxTotalSupply, "insufficient available token quantity");
+        require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
 
-        require(fundingState == FundingState.funding || fundingState == FundingState.fundingGoalReached, "funding is aborted or not started yet");
+        require(fundingState == FundingState.funding || fundingState == FundingState.fundingGoalReached, "funding is terminated or not started yet");
 
         fundingCindex = fundingCindex.add(1);
         investmentRecords[fundingCindex].assetbook = _assetbook;

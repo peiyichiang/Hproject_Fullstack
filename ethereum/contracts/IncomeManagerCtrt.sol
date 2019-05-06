@@ -241,7 +241,7 @@ contract IncomeManagerCtrt {
         idxToSchedule[schIndex].isErrorResolved = boolValue;
     }
 
-    function() external payable { revert("should not send any ether directly"); }
+    //function() external payable { revert("should not send any ether directly"); }
 
 }
 

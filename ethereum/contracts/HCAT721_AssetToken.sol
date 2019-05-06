@@ -287,7 +287,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         }
 
-        require(TokenControllerITF(addrTokenController).isActiveOperational(),'token cannot be transferred due to either unlock period or after valid date');
+        require(TokenControllerITF(addrTokenController).isTokenApprovedOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
         require(RegistryITF(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
 
