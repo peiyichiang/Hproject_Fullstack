@@ -58,7 +58,7 @@
                 <th class="nowrap">投報率</th>
                 <!--  -->
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <!-- <th class="nowrap">PA審核通過的日期</th> -->
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
@@ -75,6 +75,7 @@
                 <th class="nowrap">預估回收年限</th>
                 <th class="nowrap">預估進度圖</th>
                 <th class="nowrap">產品文件</th>
+                <th class="nowrap">CSV文件</th>
                 <th class="nowrap">產品icon</th>
                 <th class="nowrap">退回</th>
                 <th class="nowrap">上架</th>
@@ -159,12 +160,18 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                    <% } %>
+                </td>
+                <td>
+                    <%if (data[i].p_csvFIle != null && data[i].p_csvFIle !="") { %>
+                    <a target="_blank"
+                        href="http://127.0.0.1:3030/<%= data[i].p_csvFIle.replace('public','')  %>">CSV</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -177,7 +184,7 @@
                 </td>
                 <td>
                     <button type="button" class="btn btn-success" id="fund<%= i %>" name="funding" value="funding"
-                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].p_fundingGoal  %>','funding',this.id);">上架</button>
+                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].p_fundingGoal  %>','funding','<%= data[i].p_csvFIle  %>',this.id);">上架</button>
                 </td>
 
                 <!-- <td>
@@ -218,7 +225,7 @@
                 <th class="nowrap">投報率</th>
                 <!--  -->
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">PA審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
@@ -321,12 +328,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -399,7 +406,7 @@
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">投報率</th>
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
                 <th class="nowrap">Token發行日</th>
@@ -490,12 +497,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -543,7 +550,7 @@
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">投報率</th>
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
                 <th class="nowrap">Token發行日</th>
@@ -632,12 +639,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -673,7 +680,7 @@
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">投報率</th>
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
                 <th class="nowrap">Token發行日</th>
@@ -681,6 +688,7 @@
                 <th class="nowrap">案場規模(kw)</th>
                 <th class="nowrap">總發行量(token)</th>
                 <th class="nowrap">發行專案的產品經理</th>
+                <th class="nowrap">p_fundingKind</th>
                 <th class="nowrap">該專案處理狀態</th>
                 <th class="nowrap">預估平均年收益</th>
                 <th class="nowrap">預估回收金額</th>
@@ -767,12 +775,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -823,7 +831,7 @@
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">投報率</th>
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
                 <th class="nowrap">Token發行日</th>
@@ -913,19 +921,19 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
                         name="refunded" value="refunded"
-                        onclick="Aborted('<%= data[i].p_SYMBOL  %>','refunded',this.id);">退款
+                        onclick="refunded('<%= data[i].p_SYMBOL  %>','refunded',this.id);">退款
                     </button>
                 </td>
             </tr>
@@ -960,7 +968,7 @@
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">投報率</th>
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
                 <th class="nowrap">Token發行日</th>
@@ -1049,12 +1057,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -1090,7 +1098,7 @@
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">投報率</th>
                 <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMA審核通過的日期</th>
+                <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">開始購買/眾籌日期</th>
                 <th class="nowrap">結束購買/眾籌日期</th>
                 <th class="nowrap">Token發行日</th>
@@ -1179,12 +1187,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -1248,7 +1256,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="Aborted('aborted');">確定緊急下架</button>
+                    <button type="button" class="btn btn-primary" onclick="Aborted('aborted',this.id);">確定緊急下架</button>
                 </div>
             </div>
         </div>
@@ -1259,12 +1267,11 @@
         crossorigin="anonymous"></script>
     <script>
         function Edit(SYMBOL, State) {
-            window.location.href = "/Product/EditProductByPlatformAuditor?symbol=" + SYMBOL + "&State=" + State;
+            window.location.href = "/Product/EditProductByPlatformSupervisor?symbol=" + SYMBOL + "&State=" + State;
         }
 
         // 用來記錄當前被點到退回按鈕的產品SYMBOL
         var CurrentSYMBOL = "";
-
         // 用來設置CurrentSYMBOL
         function SetCurrentSYMBOL(SYMBOL) {
             CurrentSYMBOL = SYMBOL;
@@ -1299,7 +1306,11 @@
         })
 
         // 緊急下架
-        function Aborted(State) {
+        function Aborted(State,buttonID) {
+            //等待狀態
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).disabled = true;
+
             tokenSymbol = CurrentSYMBOL;
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/terminate", {
                 reason: document.getElementById('abortedReasonMessage-text').value
@@ -1310,7 +1321,7 @@
                 if (result.TxResult.status == true) {
                     // 設定產品狀態為aborted
                     // 設置產品
-                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -1333,8 +1344,10 @@
 
         // 恢復募資
         function FundingRestart(tokenSymbol, State, buttonID, CFED2, quantityMax) {
-            // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            //等待狀態
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
+
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/resume", {
                 CFED2: CFED2,
                 quantityMax: quantityMax
@@ -1344,7 +1357,7 @@
 
                 if (result.TxResult.status == true) {
                     // 設置產品
-                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -1358,10 +1371,11 @@
 
         // 退款
         function refunded(tokenSymbol, State, buttonID) {
-            // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            //等待狀態
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
-            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                 tokenState: State,
                 tokenSymbol: tokenSymbol
             }, function (result) {
@@ -1374,15 +1388,17 @@
 
         // 暫停募資
         function FundingPaused(tokenSymbol, State, buttonID) {
-            // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            //等待狀態
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
+
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/pause", function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
 
                 if (result.TxResult.status == true) {
                     // 設置產品
-                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -1397,7 +1413,7 @@
         }
 
         // 上架 = 募資
-        function Fund(tokenSymbol, tokenPrice, currency, quantityMax, CFSD2, CFED2, fundingGoal, State, buttonID) {
+        function Fund(tokenSymbol, tokenPrice, currency, quantityMax, CFSD2, CFED2, fundingGoal, State, IncomeCSVFilePath ,buttonID) {
             // 等待狀態
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
@@ -1405,8 +1421,8 @@
             console.log(tokenSymbol);
             console.log("State:" + State);
             console.log("deploying...");
-            console.log(fundingGoal);
-
+            console.log(fundingGoal);                    
+            
             /*部署CrowdFundingContract*/
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol, {
                 tokenPrice: tokenPrice,
@@ -1420,14 +1436,23 @@
                 console.log(result);
 
                 if (result.status == true) {
-                    $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
-                        tokenState: State,
-                        tokenSymbol: tokenSymbol
+                    // 將IncomeCSV文件寫入資料庫
+                    console.log("#:" + IncomeCSVFilePath);
+                    $.post("http://localhost:3030/Product/IncomeCSV", {
+                        IncomeCSVFilePath: IncomeCSVFilePath
                     }, function (result) {
                         console.log(result);
-                        // 設置好後重新整理
-                        location.reload();
+                        // 設置產品狀態
+                        $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                            tokenState: State,
+                            tokenSymbol: tokenSymbol
+                        }, function (result) {
+                            console.log(result);
+                            // 設置好後重新整理
+                            location.reload();
+                        })
                     })
+
                 }
             });
 
@@ -1475,7 +1500,7 @@
                         console.log(result);
                         //console.log(result.deployResult.contractAddress);
                         if (result.status == true) {
-                            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                                 tokenState: State,
                                 tokenSymbol: nftSymbol
                             }, function (result) {
@@ -1492,10 +1517,10 @@
 
         // 募資失敗
         function FundingNotClosed(tokenSymbol, State, buttonID) {
-            // document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
-            $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                 tokenState: State,
                 tokenSymbol: tokenSymbol
             }, function (result) {
@@ -1570,7 +1595,7 @@
                                     console.log(result);
                                     if (result.result.status == true) {
                                         // 將產品狀態設置為FundingComplete
-                                        $.post("http://localhost:3030/Product/SetProductStateByPlatformAuditor", {
+                                        $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                                             tokenState: State,
                                             tokenSymbol: nftSymbol
                                         }, function (result) {

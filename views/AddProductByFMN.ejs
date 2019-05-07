@@ -6,6 +6,8 @@
     <title></title>
     <!-- <link rel="stylesheet" href="/css/HeaderFooter.css"> -->
     <!-- <link rel="stylesheet" href="/css/AddProductByFMN.css"> -->
+    <!-- <link rel="stylesheet" href="/css/AddProductByFMN_.css"> -->
+    <link rel="stylesheet" href="">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
@@ -75,13 +77,23 @@
                      </div>
             </div>
             <div class="form-row">
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-4">
                       <label for="p_size">案場規模(kw)</label>
                       <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:8">
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-4">
                           <label for="p_totalrelease">總發行量(token)</label>
                           <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:999">
+                     </div>
+                     <div class="form-group col-md-4">
+                      <label for="p_fundingType">公募/私募</label>
+                        <br>
+                        <label>
+                          <input type="radio"  name="p_fundingType" id="p_fundingType" value="OO" checked>公募
+                        </label>
+                        <label>
+                          <input type="radio"  name="p_fundingType" id="p_fundingType" value="OP">私募
+                        </label>
                      </div>
             </div>
             <div class="form-row">
@@ -145,6 +157,7 @@
             <!-- 以下為隱藏欄位，為上傳文件的網址 -->
             <input type="text" name="p_icon" id="p_icon" hidden>
             <input type="text" name="p_assetdocs" id="p_assetdocs" hidden>
+            <input type="text" name="p_csvFIle" id="p_csvFIle" hidden>
             <input type="text" name="p_Image1" id="p_Image1" hidden>
             <input type="text" name="p_Image2" id="p_Image2" hidden>
             <input type="text" name="p_Image3" id="p_Image3" hidden>
@@ -159,13 +172,17 @@
         <!-- 文件上傳表單 -->
         <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
             <div class="form-row">
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-4">
                             <label for="file">產品文件</label>
                             <input type="file" class="form-control" name="file" id="file">
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-4">
                             <label for="icon">產品icon</label>
                             <input type="file" class="form-control" name="icon" id="icon">
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label for="csvFIle">CSV文件</label>
+                      <input type="file" class="form-control" name="csvFIle" id="csvFIle">
                     </div>
             </div>
             <div class="form-row">
