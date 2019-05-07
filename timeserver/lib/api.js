@@ -4,10 +4,10 @@ const path = require('path')
 function getTime() {
     return new Promise(function (resolve, reject) {
         try {
-            let time = fs.readFileSync(path.resolve(__dirname, "../time.txt"), "utf8").toString()
+            let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString()
             resolve(time)
         } catch (error) {
-            console.log(`找不到timeserver的時間，使用伺服器時間`)
+            console.log(`cannot find timeserver time. Use local time instead`);
             let time = new Date().myFormat()
             resolve(time)
         }

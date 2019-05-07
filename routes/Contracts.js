@@ -26,7 +26,7 @@ const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
 const registryContract = require('../ethereum/contracts/build/Registry.json');
 const HCAT721_AssetTokenContract = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
 const incomeManagerContract = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
-const productManagerContract = require('../ethereum/contracts/build/productManager.json');
+const productManagerContract = require('../ethereum/contracts/build/ProductManager.json');
 
 
 const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
@@ -35,7 +35,7 @@ const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
 
 /**time server*/
 timer.getTime().then(function (time) {
-    console.log(`現在時間: ${time}`)
+    console.log(`[Routes/Contract.js] current time: ${time}`)
 })
 
 /**management address */
@@ -236,7 +236,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     /*await timer.getTime().then(function (time) {
         currentTime = time;
     });*/
-    console.log(`現在時間: ${currentTime}`);
+    console.log(`current time: ${currentTime}`);
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
 
@@ -289,7 +289,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
             currentTime = time;
         })
     */
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -397,7 +397,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     await timer.getTime().then(function (time) {
         currentTime = time;
     })
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -435,7 +435,7 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
             currentTime = time;
         })
     */
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -475,7 +475,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
             currentTime = time;
         })
     */
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -553,7 +553,7 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
             currentTime = time;
         })
     */
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`entered time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -624,7 +624,7 @@ router.post('/tokenControllerContract/:tokenSymbol/updateState', async function 
             currentTime = time;
         })
     */
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`entered time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -784,7 +784,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
     await timer.getTime().then(function (time) {
         currentTime = time;
     })
-    console.log(`現在時間: ${currentTime}`)
+    console.log(`current time: ${currentTime}`)
     console.log(to);
     console.log(amount);
 
@@ -854,11 +854,12 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 
 });
 
-/**get isScheduleGoogForRelease（timeserver用） */
-router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoogForRelease', async function (req, res, next) {
+/**get isScheduleGoodForRelease（timeserver用） */
+router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = req.body.time;
+    console.log(`entered time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
@@ -951,13 +952,13 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
 
 
 /*sign rawtx*/
-function signTx(userEthAddr, userRowPrivateKey, contractAddr, encodedData) {
+function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
     return new Promise((resolve, reject) => {
 
         web3.eth.getTransactionCount(userEthAddr)
             .then(nonce => {
 
-                let userPrivateKey = Buffer.from(userRowPrivateKey.slice(2), 'hex');
+                let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),

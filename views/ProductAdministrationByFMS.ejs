@@ -43,7 +43,7 @@
             <th class="nowrap">投報率</th>                        
             <!--  -->
             <th class="nowrap">專案開始日期</th>
-            <!-- <th class="nowrap">FMA審核通過的日期</th>
+            <!-- <th class="nowrap">FMS審核通過的日期</th>
             <th class="nowrap">PA審核通過的日期</th> -->
             <th class="nowrap">開始購買/眾籌日期</th>
             <th class="nowrap">結束購買/眾籌日期</th>
@@ -62,6 +62,7 @@
             <th class="nowrap">PA審核退回備註</th>
             <th class="nowrap">產品文件</th>
             <th class="nowrap">產品icon</th>
+            <th class="nowrap">CSV文件</th>
             <th class="nowrap">發佈</th>
             <th class="nowrap">退回</th>
         </tr>
@@ -144,12 +145,17 @@
                 </td>
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                        <a target="_blank" href="http://127.0.0.1:3000/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        <a target="_blank" href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                        <img src="http://127.0.0.1:3000/<%= data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                        <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                    <% } %>
+                </td>
+                <td>
+                    <%if (data[i].p_csvFIle != null && data[i].p_csvFIle != "") { %>
+                        <a target="_blank" href="http://127.0.0.1:3030/<%= data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
                     <% } %>
                 </td>
                 <td>
@@ -167,7 +173,7 @@
 </div>
 <!-- 平台正在審核的產品清單 -->
 <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
-        <span>審核中</span>
+        <span>專案處理狀態</span>
 </div>
 <div class="table-responsive">
     <table class="table table-hover table-striped">
@@ -181,7 +187,7 @@
             <th class="nowrap">投報率</th>                        
             <!--  -->
             <th class="nowrap">專案開始日期</th>
-            <th class="nowrap">FMA審核通過的日期</th>
+            <th class="nowrap">FMS審核通過的日期</th>
             <!-- <th class="nowrap">PA審核通過的日期</th> -->
             <th class="nowrap">開始購買/眾籌日期</th>
             <th class="nowrap">結束購買/眾籌日期</th>
@@ -199,6 +205,7 @@
             <!-- <th class="nowrap">預估進度圖</th> -->
             <th class="nowrap">產品文件</th>
             <th class="nowrap">產品icon</th>
+            <th class="nowrap">CSV文件</th>
         </tr>
         <% for ( var i = 0 ; i < dataPublish.length ; i++){ %>
             <tr>
@@ -275,19 +282,24 @@
                 </td> -->
                 <td>
                     <%if (dataPublish[i].p_assetdocs != null && dataPublish[i].p_assetdocs !="") { %>
-                        <a target="_blank" href="http://127.0.0.1:3000/<%= dataPublish[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        <a target="_blank" href="http://127.0.0.1:3030/<%= dataPublish[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (dataPublish[i].p_icon != null && dataPublish[i].p_icon !="") { %>
-                        <img src="http://127.0.0.1:3000/<%= dataPublish[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                        <img src="http://127.0.0.1:3030/<%= dataPublish[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                    <% } %>
+                </td>
+                <td>
+                    <%if (dataPublish[i].p_csvFIle != null && dataPublish[i].p_csvFIle !="") { %>
+                        <a target="_blank" href="http://127.0.0.1:3030/<%= dataPublish[i].p_csvFIle.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
             </tr>
             <% } %>
     </table>
 </div>
-<!-- 按下退回時，要出現的產品備註(p_FMANote)的Modal -->
+<!-- 按下退回時，要出現的產品備註(p_FMSNote)的Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -321,11 +333,11 @@
         var CurrentSYMBOL="";
         // 編輯按鈕觸發
         function Edit(SYMBOL) {
-            window.location.href = "/Product/EditProductByFMA?symbol=" + SYMBOL;
+            window.location.href = "/Product/EditProductByFMS?symbol=" + SYMBOL;
         }
         // 退回按鈕觸發(目前不使用)
         function ReturnBack(SYMBOL) {
-            window.location.href = "/Product/SetProductDraftByFMA?symbol=" + SYMBOL;
+            window.location.href = "/Product/SetProductDraftByFMS?symbol=" + SYMBOL;
         }
         // 用來設置CurrentSYMBOL
         function SetCurrentSYMBOL(SYMBOL){
@@ -336,7 +348,7 @@
         function SaveNoteAndReturn(){
             var SYMBOL=CurrentSYMBOL;
             var NOTE=document.getElementById('message-text').value;
-            window.location.href = "/Product/SetFMANoteAndReturnByFMA?symbol=" + SYMBOL + "&note=" + NOTE;
+            window.location.href = "/Product/SetFMSNoteAndReturnByFMS?symbol=" + SYMBOL + "&note=" + NOTE;
         }
 
         // Modal觸發

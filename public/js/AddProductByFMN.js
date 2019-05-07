@@ -30,6 +30,10 @@ function UploadImage(){
                     $("#p_icon").val(data.filePath['icon'][0].path);
                     // console.log(data.filePath['icon'][0].path);
                 }
+                if(data.filePath['csvFIle']!=null){
+                    $("#p_csvFIle").val(data.filePath['csvFIle'][0].path);
+                    // console.log(data.filePath['icon'][0].path);
+                }
                 if(data.filePath['image1']!=null){      
                     $("#p_Image1").val(data.filePath['image1'][0].path);
                     // console.log("Image1：" + data.filePath['image1'][0].path);

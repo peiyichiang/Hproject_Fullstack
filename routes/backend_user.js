@@ -291,16 +291,16 @@ router.post('/BackendUserLogin', function (req, res, next) {
                     if (rows[0].m_permission == "Platform_Admin") {
                         // res.setHeader('Content-Type', 'application/json');
                         res.redirect('/BackendUser/backend_user');
-                    } else if (rows[0].m_permission == "Platform_Auditor") {
+                    } else if (rows[0].m_permission == "Platform_Supervisor") {
                         // res.setHeader('Content-Type', 'application/json');
-                        res.redirect('/BackendUser/BackendUser_Platform_Auditor');
+                        res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
                     } else if (rows[0].m_permission == "Platform_CustomerService") {
                         // res.setHeader('Content-Type', 'application/json');
                         res.redirect('/BackendUser/BackendUser_CustomerService');
                     } else if (rows[0].m_permission == "Company_FundManagerN") {
                         res.redirect('/product/ProductByFMN');
-                    } else if (rows[0].m_permission == "Company_FundManagerA") {
-                        res.redirect('/product/ProductByFMA');
+                    } else if (rows[0].m_permission == "Company_FundManagerS") {
+                        res.redirect('/product/ProductByFMS');
                     } else if (rows[0].m_permission == "NA") {
                         res.render('error', { message: 'NA', error: '' });
                     }
@@ -338,16 +338,16 @@ router.post('/BackendUserLogin', function (req, res, next) {
             //     if (rows[0].m_permission == "Platform_Admin") {
             //         // res.setHeader('Content-Type', 'application/json');
             //         res.redirect('/BackendUser/backend_user');
-            //     } else if (rows[0].m_permission == "Platform_Auditor") {
+            //     } else if (rows[0].m_permission == "Platform_Supervisor") {
             //         // res.setHeader('Content-Type', 'application/json');
-            //         res.redirect('/BackendUser/BackendUser_Platform_Auditor');
+            //         res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
             //     } else if (rows[0].m_permission == "Platform_CustomerService") {
             //         // res.setHeader('Content-Type', 'application/json');
             //         res.redirect('/BackendUser/BackendUser_CustomerService');
             //     } else if (rows[0].m_permission == "Company_FundManagerN") {
             //         res.redirect('/product/ProductByFMN');
-            //     } else if (rows[0].m_permission == "Company_FundManagerA") {
-            //         res.redirect('/product/ProductByFMA');
+            //     } else if (rows[0].m_permission == "Company_FundManagerS") {
+            //         res.redirect('/product/ProductByFMS');
             //     } else if (rows[0].m_permission == "NA") {
             //         res.render('error', { message: 'NA', error: '' });
             //     }
@@ -405,8 +405,8 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
 
 });
 
-//BackendUser_Platform_Auditor登入後跳轉到該頁面
-router.get('/BackendUser_Platform_Auditor', function (req, res, next) {
+//BackendUser_Platform_Supervisor登入後跳轉到該頁面
+router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
     var token=req.cookies.access_token;
     var JWT_decoded;
     if (token) {
@@ -420,7 +420,7 @@ router.get('/BackendUser_Platform_Auditor', function (req, res, next) {
             } else {
                 //JWT token驗證成功
                 JWT_decoded = decoded;
-                if (decoded.payload.m_permission != "Platform_Auditor") {
+                if (decoded.payload.m_permission != "Platform_Supervisor") {
                     res.render('error', { message: '權限不足', error: '' });
                     return;
                 }

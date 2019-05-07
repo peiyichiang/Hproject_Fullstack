@@ -16,16 +16,20 @@ interface HCAT721ITF_assetbook {
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
 }
 
+interface HeliumITF{
+    function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
+}
+
 contract MultiSig {
     using SafeMath for uint256;
     using AddressUtils for address;
 
     address public assetOwner; /** @dev 用戶 EOA */
-    address public platformCtrt; /** @dev 平台方 */
+    address public addrHeliumContract; /** @dev 平台方 */
     address[] public endorserCtrts; /** @dev 背書者的 (一到三個人) */
-    // we require platformCtrt and endorserCtrt because EOA may change ...
+    // we require addrHeliumContract and endorserCtrt because EOA may change ...
     uint public assetOwner_flag;
-    uint public platformCtrt_flag;
+    uint public HeliumContract_flag;
     uint public endorserCtrts_flag;
 
     /** @dev multiSig相關event */
@@ -33,7 +37,7 @@ contract MultiSig {
     event ChangeEndorserCtrtEvent(address indexed oldEndorserCtrt, address indexed newEndorserCtrt, uint256 timestamp);
     event AddEndorserEvent(address indexed endorserCtrts, uint256 timestamp);
     event AssetOwnerVoteEvent(address indexed assetOwner, uint256 timestamp);
-    event PlatformCtrtVoteEvent(address indexed platformCtrt, uint256 timestamp);
+    event HeliumCtrtVoteEvent(address indexed addrHeliumContract, uint256 timestamp);
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
 
     /** @dev 檢查是否為合約擁有者 */
@@ -53,11 +57,18 @@ contract MultiSig {
         emit AssetOwnerVoteEvent(msg.sender, _timeCurrent);
     }
 
-    // for platformCtrt to vote
-    function platformCtrtVote(uint256 _timeCurrent) external {
-        require(msg.sender == platformCtrt, "sender must be Platform Contract");
-        platformCtrt_flag = 1;
-        emit PlatformCtrtVoteEvent(msg.sender, _timeCurrent);
+    function setHeliumAddr(address _addrHeliumContract) external {
+        require(checkCustomerService(), "only a customer service rep can call this function");
+        addrHeliumContract = _addrHeliumContract;
+    }
+    function checkCustomerService() public view returns (bool){
+        return (HeliumITF(addrHeliumContract).checkCustomerService(msg.sender));
+    }
+    // for addrHeliumContract to vote
+    function HeliumContractVote(uint256 _timeCurrent) external {
+        require(checkCustomerService(), "only a customer service rep can call this function");
+        HeliumContract_flag = 1;
+        emit HeliumCtrtVoteEvent(msg.sender, _timeCurrent);
     }
 
     // for endorserCtrt to vote on other multiSig contracts
@@ -76,13 +87,13 @@ contract MultiSig {
 
     // to calculate the sum of all vote flags
     function calculateVotes() public view returns (uint) {
-        return (assetOwner_flag + platformCtrt_flag + endorserCtrts_flag);
+        return (assetOwner_flag + HeliumContract_flag + endorserCtrts_flag);
     }
 
     /** @dev 重置簽章狀態 */
     function resetVoteStatus() internal {
         assetOwner_flag = 0;
-        platformCtrt_flag = 0;
+        HeliumContract_flag = 0;
         endorserCtrts_flag = 0;
     }
 
@@ -141,9 +152,9 @@ contract AssetBook is MultiSig {
 
 
     //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201903061045
-    constructor (address _assetOwner, address _platformCtrt) public {
+    constructor (address _assetOwner, address _addrHeliumContract) public {
         assetOwner = _assetOwner;
-        platformCtrt = _platformCtrt;
+        addrHeliumContract = _addrHeliumContract;
     }
 
     /** @dev get assets info: asset symbol and balance on this assetbook’s account
