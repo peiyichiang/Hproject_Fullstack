@@ -60,7 +60,8 @@ contract CrowdFunding {
         uint _quantityGoal,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
-        uint serverTime, address _HeliumAddr
+        uint serverTime,
+        address _HeliumAddr
     ) public {
         ckStringLength(_tokenSymbol, 3, 32);
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約

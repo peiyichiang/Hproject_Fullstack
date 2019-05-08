@@ -19,7 +19,7 @@ const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75
 const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /**contracts info*/
-const heliumContract = require('../ethereum/contracts/build/Platform.json');
+const heliumContract = require('../ethereum/contracts/build/Helium.json');
 const tokenControllerContract = require('../ethereum/contracts/build/TokenController.json');
 const crowdFundingContract = require('../ethereum/contracts/build/CrowdFunding.json');
 const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
@@ -29,19 +29,17 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/ProductManager.json');
 
 
-const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
-const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
-const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
+const heliumContractAddr = "0x9C201b1A3628fd6464F4297fbe85e0Fc20666b0f";
+const registryContractAddr = "0x9CDEf88c4C1Bb8CdA1EE4ed19B2Bb88723C56E93";
+const productManagerContractAddr = "0xAdfD0067cAD50756Ee5A8C00675afC98c44a89A4";
+const supervisorAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
+
 
 /**time server*/
 timer.getTime().then(function (time) {
     console.log(`[Routes/Contract.js] current time: ${time}`)
 })
-
-/**management address */
-const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
-
-
 
 
 
@@ -55,12 +53,11 @@ router.post('/heliumContract', function (req, res, next) {
     //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
-    let heliumContractAdmin = req.body.heliumContractAdmin;
     const helium = new web3deploy.eth.Contract(heliumContract.abi);
 
     helium.deploy({
         data: heliumContract.bytecode,
-        arguments: [heliumContractAdmin, management]
+        arguments: [management]
     })
         .send({
             from: backendAddr,
@@ -95,7 +92,7 @@ router.post('/registryContract', function (req, res, next) {
 
     registry.deploy({
         data: registryContract.bytecode,
-        arguments: [management]
+        arguments: [heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -242,7 +239,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 
     crowdFunding.deploy({
         data: crowdFundingContract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, fundingGoal, CFSD2, CFED2, currentTime, management]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, fundingGoal, CFSD2, CFED2, currentTime, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -598,7 +595,7 @@ router.post('/tokenControllerContract', async function (req, res, next) {
 
     tokenController.deploy({
         data: tokenControllerContract.bytecode,
-        arguments: [TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
+        arguments: [TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -705,7 +702,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) 
 
     ERC721SPLC.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -815,7 +812,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 
     incomeManager.deploy({
         data: incomeManagerContract.bytecode,
-        arguments: [erc721address, heliumContractAddr, management]
+        arguments: [erc721address, supervisorAddr, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -895,7 +892,7 @@ router.post('/productManagerContract', function (req, res, next) {
 
     productManager.deploy({
         data: productManagerContract.bytecode,
-        arguments: [management]
+        arguments: [heliumContractAddr]
     })
         .send({
             from: backendAddr,
