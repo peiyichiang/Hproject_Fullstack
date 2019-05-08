@@ -1,4 +1,4 @@
-import BigNumber from "./bignumber.mjs"
+const BigNumber = require('bignumber.js');
 //https://github.com/MikeMcl/bignumber.js/
 /** 
  * http://mikemcl.github.io/bignumber.js/#decimal-places
@@ -12,9 +12,11 @@ import BigNumber from "./bignumber.mjs"
 */
 
 //each holdingDays element has one tokenId
-const income = (holdingDays, period, periodIncome, prevTokenAmount, soldAmount) => {
-  if(holdingDays.length === 0){
-    console.log('[Warning] holdingDays has length of zero! holdingDays:', holdingDays);
+const income = (holdingDays, period, periodIncome, prevTokenAmount) => {
+  const soldAmount = holdingDays.length;
+  if( soldAmount === 0){
+    console.log('[Error] holdingDays has length of zero! holdingDays:', holdingDays);
+    return -1;
   }
   if(period < 1){
     console.log('[Error] period < 1. period:', period);
@@ -24,6 +26,7 @@ const income = (holdingDays, period, periodIncome, prevTokenAmount, soldAmount) 
     return -1;
   }
 
+  //the only input value that may have rounding error
   if(periodIncome < 0){
     console.log('[Error] periodIncome < 0');
     return -1;
@@ -45,16 +48,18 @@ const income = (holdingDays, period, periodIncome, prevTokenAmount, soldAmount) 
     return -1;
   }
 
-  //const holdingDaysB = new BigNumber(holdingDays);
-  const holdingDaysB = new BigNumber(holdingDays);
-  const holdingDaysB = new BigNumber(holdingDays);
-  const holdingDaysB = new BigNumber(holdingDays);
-  const holdingDaysB = new BigNumber(holdingDays);
+  if(prevTokenAmount < soldAmount){
+    console.log('prevTokenAmount should be >= soldAmount')
+    return -1;
+  }
 
-  const totalDays = arrSum(holdingDaysB);
-  const income = (totalDays * periodIncome * 0.7 / period)
-    + ((prevTokenAmount - soldAmount) * periodIncome);
-  return income;
+  //const holdingDaysB = new BigNumber(holdingDays);
+  const totalDays = arrSum(holdingDays);
+  const totalDaysB = new BigNumber(totalDays);
+
+  const incomeBN = new BigNumber(((totalDaysB.times(0.7).dividedBy(period)).plus(prevTokenAmount - soldAmount)).times(periodIncome));
+  console.log('\nincome in BN:', incomeBN, 'totalDays', totalDays);
+  return incomeBN;
 }
 
 const arrMin = arr => Math.min(...arr);

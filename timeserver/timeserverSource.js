@@ -4,13 +4,25 @@ const schedule = require('node-schedule');
 const path = require('path');
 const fs = require('fs');
 
+/**
+"time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
+ */
 //const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { checkTimeOfOrder, updateCFC, updateTokenController, checkIncomeManager } = require('./lib/blockchain.js');
+const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager } = require('./lib/blockchain.js');
 
-// '*/5 * * * * *'
-// '10 * * * * *'  ... for every 10 seconds
-// '59 * * * * *'  ... for every 59th minute
-schedule.scheduleJob('*/10 * * * * *', function () {
+const mode = 1;
+const timeInverval = 10;
+const atEveryNsecond = 59;
+let modeStr;
+if(mode === 1){
+  modeStr = '*/'+timeInverval;
+} else {
+  modeStr = ''+atEveryNsecond;
+}
+// '*/5 * * * * *' ... for every 5 seconds
+// '10 * * * * *'  ... for every 10th seconds
+// '59 * * * * *'  ... for every 59th seconds
+schedule.scheduleJob(modeStr+' * * * * *', function () {
     let date = new Date().myFormat()
     console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
 
@@ -19,7 +31,7 @@ schedule.scheduleJob('*/10 * * * * *', function () {
     });
 
     print(date);
-    checkTimeOfOrder(date.toString());//to convert from buffer to string
+    updateTimeOfOrders(date.toString());//to convert from buffer to string
     updateCFC(parseInt(date.toString()));
     //updateTokenController(parseInt(date.toString()));
     //checkIncomeManager(parseInt(date.toString()));
