@@ -165,8 +165,9 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         // let to = extraInputArray[2];
         // let fundingType = extraInputArray[3];
         // let price = extraInputArray[4];
-        mintToken(item, extraInputArray[1], extraInputArray[2], extraInputArray[3], extraInputArray[4]);// see this function defined below...
-        //mintToken(amountToMint, contractAddr, to, fundingType, price);
+        mintToken(item, extraInputArray[1], extraInputArray[2], extraInputArray[3], extraInputArray[4]);
+        // see this function defined below...
+        // mintToken(amountToMint, contractAddr, to, fundingType, price);
 
       } else if(actionType === 'updateTimeOfOrders'){
         const oid = item.o_id;
@@ -210,13 +211,8 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
     console.log('main tread is paused for waiting', waitTime, 'miliseconds');
     await waitFor(waitTime);
   });
-  console.log('--------------==Done');
-  console.log('All input array elements have been cycled through');
-  if(actionType === 'mintToken'){
-    res.send({
-      result: '[Success] Please check minted token counts'
-    });
-  }
+  console.log('\n--------------==Done');
+  console.log('SequentialRun() has been completed.\nAll input array elements have been cycled through');
 }
 
 //mintToken(amountToMint, contractAddr, to, fundingType, price);
