@@ -219,11 +219,11 @@ function print(s) {
 
 module.exports = {
     mysqlPoolQuery,
-    getCrowdFundingCtrtAddr,
-    getIncomeManagerCtrtAddr,
-    getHCAT721ControllerCtrtAddr,
-    getOrderDate,
-    setOrderExpired,
+    //getCrowdFundingCtrtAddr,
+    //getIncomeManagerCtrtAddr,
+    //getHCAT721ControllerCtrtAddr,
+    //getOrderDate,
+    //setOrderExpired,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 

@@ -1,4 +1,4 @@
-const { income } = require('./income.js');
+const { incomeHoldingDayArray } = require('./income.js');
 const moment = require('moment');
 
 let calculatedIncome, moment1, moment2, daysPassed;
@@ -42,6 +42,20 @@ console.log('TimeArray', TimeArray);
 console.log('BookValueArray', BookValueArray);
 console.log('DaysPassedArray', DaysPassedArray);
 
+console.log('\n----------------------==');
+let oPurchaseDate='20190509';
+let oPurchaseDateM = moment(oPurchaseDate, ['YYYYMMDD']);
+console.log('oPurchaseDateM', oPurchaseDateM.format('YYYYMMDDHHmm'));
+console.log('oPurchaseDateM', oPurchaseDateM.format('YYYYMMDD'));
+
+let timeCurrent = '20190513';
+let timeCurrentM = moment(timeCurrent, ['YYYYMMDD']);
+console.log('timeCurrentM', timeCurrentM.format('YYYYMMDD'));
+if (timeCurrentM >= oPurchaseDateM.add(3, 'days')) {
+  console.log('yes');
+} else {
+  console.log('no');
+}
 
 console.log('\n----------------------==');
 period = 90; 
@@ -49,16 +63,16 @@ periodIncome = 300;
 
 holdingDays = [0, 30, 60, 89, 90];
 prevTokenAmount = 5; 
-calculatedIncome = income(holdingDays, period, periodIncome, prevTokenAmount);
+calculatedIncome = incomeHoldingDayArray(holdingDays, period, periodIncome, prevTokenAmount);
 console.log('calculatedIncome:', calculatedIncome);//627.666666666666666666
 
 holdingDays = [0, 30, 60, 89, 90, 120];
 prevTokenAmount = 6; 
-calculatedIncome = income(holdingDays, period, periodIncome, prevTokenAmount);
+calculatedIncome = incomeHoldingDayArray(holdingDays, period, periodIncome, prevTokenAmount);
 console.log('calculatedIncome:', calculatedIncome);//907.666666666666666668
 
 holdingDays = [0, 30, 60, 89, 90, 120];
 prevTokenAmount = 7; 
-calculatedIncome = income(holdingDays, period, periodIncome, prevTokenAmount);
+calculatedIncome = incomeHoldingDayArray(holdingDays, period, periodIncome, prevTokenAmount);
 console.log('calculatedIncome:', calculatedIncome);//1207.666666666666666668
 

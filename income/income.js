@@ -1,4 +1,6 @@
 const BigNumber = require('bignumber.js');
+const { mysqlPoolQuery } = require('../timeserver/lib/mysql');
+
 //https://github.com/MikeMcl/bignumber.js/
 /** 
  * http://mikemcl.github.io/bignumber.js/#decimal-places
@@ -11,14 +13,24 @@ const BigNumber = require('bignumber.js');
     https://floating-point-gui.de/formats/exact/
 */
 
+// incomeDaysSumFromDB("0x123", "HTOK2019")
+const incomeDaysSumFromDB = (arguments, period, periodIncome, prevTokenAmount) => {
+  const addrAssetbook = arguments[0];
+  const symbol = arguments[1];
+  mysqlPoolQuery('SELECT SUM(t_holdingDays) FROM htoken.transaction_info where t_txCount = 1 AND t_fromAssetbook = ? AND t_tokenSYMBOL = ?', [addrAssetbook, symbol], function (err, result) {
+    if (err) {
+      console.log(`\n[Error] Failed at getting sum of holdingDays. addrAssetbook: ${addrAssetbook}, symbol: ${symbol}, err: ${err}`);
+      return -1;
+    } else {
+      console.log(`\n[Success] Sum of holdingDays: ${result}`);
+      return result;
+    }
+  });
+}
+
 //each holdingDays element has one tokenId
-const income = (holdingDays, period, periodIncome, prevTokenAmount) => {
-  SQL = 'SELECT SUM(t_holdingDays) FROM htoken.transaction_info where t_txCount = 1 AND t_fromAssetbook = "0x123" AND t_tokenSYMBOL = "HTOK2019"'
-  const soldAmount = holdingDays.length;
-  if( soldAmount === 0){
-    console.log('[Error] holdingDays has length of zero! holdingDays:', holdingDays);
-    return -1;
-  }
+const incomeHoldingDayArray = (holdingDays, period, periodIncome, prevTokenAmount) => {
+
   if(period < 1){
     console.log('[Error] period < 1. period:', period);
     return -1;
@@ -41,6 +53,11 @@ const income = (holdingDays, period, periodIncome, prevTokenAmount) => {
     return -1;
   }
 
+  const soldAmount = holdingDays.length;
+  if( soldAmount === 0){
+    console.log('[Error] holdingDays has length of zero! holdingDays:', holdingDays);
+    return -1;
+  }
   if(!Number.isInteger(soldAmount)){
     console.log('[Error] soldAmount is not an integer. soldAmount:', soldAmount);
     return -1;
@@ -79,5 +96,5 @@ const arrAvg = arr => arr.reduce((a,b) => a + b, 0) / arr.length
 //Finding the Average value of an Array.
 
 
-module.exports = {arrMin, arrMax, arrSum, arrAvg, income};
-//const { income } = require('./income.js');
+module.exports = {arrMin, arrMax, arrSum, arrAvg, incomeHoldingDayArray};
+//const { incomeHoldingDayArray } = require('./income.js');
