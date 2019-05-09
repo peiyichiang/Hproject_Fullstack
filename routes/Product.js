@@ -974,9 +974,9 @@ router.get('/LaunchedProductList', function (req, res) {
                 p_pricing AS pricing,
                 p_currency AS currency,
                 p_totalrelease AS maxProductQuantity,
-                p_pricing * p_irr * 0.01 AS astimatedIncomePerToken
+                ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken
        FROM product 
-       WHERE p_state = \'funding\'`, function (err, productArray) {
+       WHERE p_state = \'publish\'`, function (err, productArray) {
             if (err) {
                 res.status(400)
                 res.json({
@@ -984,10 +984,6 @@ router.get('/LaunchedProductList', function (req, res) {
                 })
             }
             else {
-                productArray.map(
-                    product => {
-                        product.pricing = '$' + product.pricing + ' ' + product.currency
-                    });
                 res.status(200);
                 res.json({
                     "message": "產品列表取得成功！",
