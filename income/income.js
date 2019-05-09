@@ -13,6 +13,7 @@ const BigNumber = require('bignumber.js');
 
 //each holdingDays element has one tokenId
 const income = (holdingDays, period, periodIncome, prevTokenAmount) => {
+  SQL = 'SELECT SUM(t_holdingDays) FROM htoken.transaction_info where t_txCount = 1 AND t_fromAssetbook = "0x123" AND t_tokenSYMBOL = "HTOK2019"'
   const soldAmount = holdingDays.length;
   if( soldAmount === 0){
     console.log('[Error] holdingDays has length of zero! holdingDays:', holdingDays);

@@ -115,6 +115,10 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
     console.log('[Error] extraInputArray should not be empty');
     return;
   }
+  if(waitTime < 5000){
+    console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
+    return;
+  }
   const actionType = extraInputArray[0];
   console.log('actionType:', actionType);
   let sqlColumn;
@@ -145,7 +149,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       symbol = item.p_SYMBOL;
     } else if(item.hasOwnProperty('ia_SYMBOL')){
       symbol = item.ia_SYMBOL;
-    } else if(actionType === 'mintToken' && Math.isInteger(item)){
+    } else if(actionType === 'mintToken' && Math.isInteger(item) && extraInputArray.length === 5){
       symbol = '00000000';
       console.log('item is an integer => mintToken mode');
     }
@@ -155,7 +159,16 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
 
     } else {
 
-      if(actionType === 'updateTimeOfOrders'){
+      if(actionType === 'mintToken') {
+        // const amountToMint = item;
+        // const contractAddr = extraInputArray[1];
+        // let to = extraInputArray[2];
+        // let fundingType = extraInputArray[3];
+        // let price = extraInputArray[4];
+        mintToken(item, extraInputArray[1], extraInputArray[2], extraInputArray[3], extraInputArray[4]);// see this function defined below...
+        //mintToken(amountToMint, contractAddr, to, fundingType, price);
+
+      } else if(actionType === 'updateTimeOfOrders'){
         const oid = item.o_id;
         const oPurchaseDate = item.o_purchaseDate;
         try {
@@ -171,14 +184,6 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         } catch (error) {
             print(`\n[Error] the purchaseDate ${oPurchaseDate} is of invalid format. order id: ${oid}, error: ${error}`);
         }
-
-      } else if(actionType === 'mintToken') {
-        const amountToMint = item;
-        const contractAddr = extraInputArray[1];
-        let to = extraInputArray[2];
-        let fundingType = extraInputArray[3];
-        let price = extraInputArray[4];
-        mintToken(amountToMint, contractAddr, to, fundingType, price);
 
       } else {
         //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
@@ -209,7 +214,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
   console.log('All input array elements have been cycled through');
   if(actionType === 'mintToken'){
     res.send({
-      result: '[Success] Check token counts'
+      result: '[Success] Please check minted token counts'
     });
   }
 }
@@ -217,6 +222,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
 //mintToken(amountToMint, contractAddr, to, fundingType, price);
 const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => {
   await timer.getTime().then(function (currentTime) {
+    console.log('blockchain.js: mintToken(), timeCurrent:', timeCurrent);
     const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
     let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, targetAddr, encodedData);

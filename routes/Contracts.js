@@ -798,6 +798,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
     })
 });
 
+
+//for sequential minting tokens ... if mint amount > max 120 to the same target address, the blockchain minting can only accept 120 at one time, so we need to wait for it to finished before minting some more tokens
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async function (req, res, next) {
   let contractAddr = req.body.erc721address;
   let to = req.body.assetBookAddr;
@@ -807,6 +809,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async funct
 
   const maxMintAmount = 120;
   const timeIntervalOfNewBlocks = 13000;
+  const timeCurrent = 201905300000;
   let quotient = Math.floor(amount/maxMintAmount);
   let remainder = amount - maxMintAmount * quotient;
 
@@ -814,8 +817,10 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async funct
   inputArray.push(remainder);
   console.log('inputArray', inputArray);
 
-  sequentialRun(inputArray, timeIntervalOfNewBlocks, 201905300000, ['mintToken', contractAddr, to, fundingType, price]);
+  // defined in /timeserver/lib/blockchain.js
+  sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
 });
+
 
 /**@dev incomeManager ------------------------------------------------------------------------------------- */
 /*deploy incomeManager contract*/
