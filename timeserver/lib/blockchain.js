@@ -1,7 +1,11 @@
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
+const timer = require('./api.js');
 
 const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB } = require('./mysql.js');
+
+const timeIntervalOfNewBlocks = 13000;
+const timeIntervalUpdateTimeOfOrders = 1;
 
 //-----------------==Copied from routes/Contracts.js
 /*Infura HttpProvider Endpoint*/
@@ -104,8 +108,18 @@ async function asyncForEach(array, callback) {
   }
 }
 
-const sequentialRun = async (arrayInput, waitTime, timeCurrent, actionType) => {
+const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputArray) => {
   console.log('\ninside sequentialRun()... going to get each symbol...');
+  
+  if(extraInputArray.length < 1){
+    console.log('[Error] extraInputArray should not be empty');
+    return;
+  }
+  if(waitTime < 5000){
+    console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
+    return;
+  }
+  const actionType = extraInputArray[0];
   console.log('actionType:', actionType);
   let sqlColumn;
   switch(actionType) {
@@ -118,49 +132,104 @@ const sequentialRun = async (arrayInput, waitTime, timeCurrent, actionType) => {
     case 'incomemanager':
       sqlColumn = 'sc_incomeManagementaddress';
       break;
+    case 'updateTimeOfOrders':
+      sqlColumn = '';
+      break;
+    case 'mintToken':
+      sqlColumn = '';
+      break;
     default:
       console.log('[Error] actionType is not valid:', actionType);
       return;
   }
 
-  await asyncForEach(arrayInput, async (item) => {
+  await asyncForEach(mainInputArray, async (item) => {
     let symbol;
     if(item.hasOwnProperty('p_SYMBOL')){
       symbol = item.p_SYMBOL;
     } else if(item.hasOwnProperty('ia_SYMBOL')){
       symbol = item.ia_SYMBOL;
+    } else if(actionType === 'mintToken' && Math.isInteger(item) && extraInputArray.length === 5){
+      symbol = '00000000';
+      console.log('item is an integer => mintToken mode');
     }
     console.log('\n--------------==next symbol:', symbol);
-    if (symbol === undefined || symbol === null || symbol.length <4){
+    if (symbol === undefined || symbol === null || symbol.length < 8){
       console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
 
     } else {
-      //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
-      mysqlPoolQuery('SELECT '+sqlColumn+' FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
-        if (err) {
-            console.log(`[Error] @ getting ${actionType} addr from symbol:`,err);
 
-          } else if(DBresult.length == 0){
-          console.log('found symbol(s) is/are not found in the smart contract table');
+      if(actionType === 'mintToken') {
+        // const amountToMint = item;
+        // const contractAddr = extraInputArray[1];
+        // let to = extraInputArray[2];
+        // let fundingType = extraInputArray[3];
+        // let price = extraInputArray[4];
+        mintToken(item, extraInputArray[1], extraInputArray[2], extraInputArray[3], extraInputArray[4]);// see this function defined below...
+        //mintToken(amountToMint, contractAddr, to, fundingType, price);
 
-        } else {
-          console.log('targetAddr is going to be defined next... DBresult:', DBresult);
-          let targetAddr = DBresult[0][sqlColumn];
-          //let targetAddr = DBresult[0].sc_crowdsaleaddress;
-          console.log(`\n${actionType} addr is found for`, symbol, targetAddr);
-          //return;
-
-          writeToBlockchainAndDatabase(targetAddr, timeCurrent, symbol, actionType);
-          console.log('[Success] writingToBlockchainAndDatabase() is completed');
+      } else if(actionType === 'updateTimeOfOrders'){
+        const oid = item.o_id;
+        const oPurchaseDate = item.o_purchaseDate;
+        try {
+          if (parseInt(timeCurrent) >= oPurchaseDate.add3Day()) {
+            mysqlPoolQuery('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [oid], function (err, result) {
+              if (err) {
+                console.log(`\n[Error] Failed at setting order table o_paymentStatus to expired at orderId = ${oid}, err: ${err}`);
+              } else {
+                  print(`\n[Success] the status of oid ${oid} has been updated to expired`);
+              }
+            });
+          }
+        } catch (error) {
+            print(`\n[Error] the purchaseDate ${oPurchaseDate} is of invalid format. order id: ${oid}, error: ${error}`);
         }
-      });
+
+      } else {
+        //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
+        mysqlPoolQuery('SELECT '+sqlColumn+' FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
+          if (err) {
+              console.log(`[Error] @ getting ${actionType} addr from symbol:`,err);
+  
+            } else if(DBresult.length == 0){
+            console.log('found symbol(s) is/are not found in the smart contract table');
+  
+          } else {
+            console.log('targetAddr is going to be defined next... DBresult:', DBresult);
+            let targetAddr = DBresult[0][sqlColumn];
+            //let targetAddr = DBresult[0].sc_crowdsaleaddress;
+            console.log(`\n${actionType} addr is found for`, symbol, targetAddr);
+            //return;
+  
+            writeToBlockchainAndDatabase(targetAddr, timeCurrent, symbol, actionType);
+            console.log('[Success] writingToBlockchainAndDatabase() is completed');
+          }
+        });
+      }
     }
     console.log('main tread is paused for waiting', waitTime, 'miliseconds');
     await waitFor(waitTime);
   });
   console.log('--------------==Done');
   console.log('All input array elements have been cycled through');
+  if(actionType === 'mintToken'){
+    res.send({
+      result: '[Success] Please check minted token counts'
+    });
+  }
 }
+
+//mintToken(amountToMint, contractAddr, to, fundingType, price);
+const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => {
+  await timer.getTime().then(function (currentTime) {
+    console.log('blockchain.js: mintToken(), timeCurrent:', timeCurrent);
+    const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
+    let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, targetAddr, encodedData);
+    console.log('TxResult', TxResult);
+  });
+}
+
 
 // HHtoekn12222  Htoken001  Htoken0030
 //-------------------------------==DB + BC
@@ -182,10 +251,11 @@ const updateCFC = async (timeCurrent) => {
     if (err) {
       console.log('[Error] @ searching symbols:', err);
     } else if (symbolArrayLen > 0) {
-      sequentialRun(symbolArray, 13000, timeCurrent, 'crowdfunding');
+      sequentialRun(symbolArray, timeIntervalOfNewBlocks, timeCurrent, ['crowdfunding']);
     }
   });
 }
+
 //-------------------==Token Controller
 const updateTCC = async (timeCurrent) => {
   console.log('\ninside updateTCC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
@@ -202,7 +272,7 @@ const updateTCC = async (timeCurrent) => {
     if (err) {
       console.log('[Error] @ searching symbols:', err);
     } else if (symbolArrayLen > 0) {
-      sequentialRun(symbolArray, 13000, timeCurrent, 'tokencontroller');
+      sequentialRun(symbolArray, timeIntervalOfNewBlocks, timeCurrent, ['tokencontroller']);
     }
   });
 }
@@ -312,47 +382,27 @@ const isScheduleGoodIMC = async (timeCurrent) => {
     if (err) {
       console.log('[Error] @ searching symbols:', err);
     } else if (resultArrayLen > 0) {
-      sequentialRun(resultArrayLen, 13000, timeCurrent, 'incomemanager');
+      sequentialRun(resultArrayLen, timeIntervalOfNewBlocks, timeCurrent, ['incomemanager']);
     }
   });
 }
 
+//-----------------------==
+const updateTimeOfOrders = async (timeCurrent) => {
+  console.log('\ninside updateTimeOfOrders(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+  if(!Number.isInteger(timeCurrent)){
+    console.log('[Error] timeCurrent should be an integer');
+    return;
+  }
 
-
-//    pool.query('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
-function checkTimeOfOrder(timeCurrent) {
-  console.log('inside checkTimeOfOrder(), timeCurrent:', timeCurrent);
-
-  mysqlPoolQuery('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, result) {
-    const resultLen = result.length;
-    console.log('order_id and purchaseDate Array length @ checkTimeOfOrder', resultLen);
+  mysqlPoolQuery('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, resultArray) {
+    const resultArrayLen = resultArray.length;
+    console.log('\nArray length @ updateTimeOfOrders', resultArrayLen, ', order_id and purchaseDate:', resultArray);
 
     if (err) {
-      console.log(err);
-
-    } else if (resultLen != 0) {
-      for (let i in result) {
-        let symbol = result[i].ia_SYMBOL;
-        console.log('symbol to update state:', symbol);
-        if (symbol === undefined || symbol === null || symbol.length <4){
-          console.log('[Error @ checkTimeOfOrder(timeCurrent)]: symbol is not valid => Not an incomeManager schedule, symbole:', symbol);
-
-        } else {
-          try {
-            if (parseInt(timeCurrent) >= result[i].o_purchaseDate.add3Day()) {
-              mysqlPoolQuery('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [result[i].o_id], function (err, result) {
-                if (err) {
-                  console.log(err);
-                } else {
-                    print(result[i].o_id + " 已修改");
-                }
-              });
-            }
-          } catch (error) {
-              print(result[i].o_purchaseDate + " invalid format");
-          }
-        }
-      }
+      console.log('[Error] @ searching o_id and o_purchaseDate:', err);
+    } else if (resultArrayLen > 0) {
+      sequentialRun(resultArray, timeIntervalUpdateTimeOfOrders, timeCurrent, ['updateTimeOfOrders']);
     }
   });
 }
@@ -423,7 +473,7 @@ function print(s) {
 }
 
 module.exports = {
-  checkTimeOfOrder, getDetailsCFC,
+  updateTimeOfOrders, getDetailsCFC, sequentialRun,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC

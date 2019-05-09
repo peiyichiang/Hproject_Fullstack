@@ -160,7 +160,7 @@ function isIMScheduleGoodDB(symbol){
   });
 }
 
-
+/*
 //------------------------==
 function getCrowdFundingCtrtAddr(symbol, cb) {
   console.log('getCrowdFundingCtrtAddr');
@@ -177,7 +177,7 @@ function getCrowdFundingCtrtAddr(symbol, cb) {
 
 
 function getIncomeManagerCtrtAddr(cb) {
-    pool.query('SELECT sc_incomeManagementaddress FROM smart_contracts', function (err, rows) {
+    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM smart_contracts', function (err, rows) {
         if (err) {
             print(err);
         }
@@ -186,7 +186,7 @@ function getIncomeManagerCtrtAddr(cb) {
 }
 
 function getOrderDate(cb) {
-    pool.query('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
+    mysqlPoolQuery('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
         if (err) {
             print(err);
         }
@@ -195,7 +195,7 @@ function getOrderDate(cb) {
 }
 
 function getHCAT721ControllerCtrtAddr(cb) {
-    pool.query('SELECT sc_erc721Controller FROM smart_contracts', function (err, rows) {
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM smart_contracts', function (err, rows) {
         if (err) {
             print(err);
         }
@@ -204,13 +204,14 @@ function getHCAT721ControllerCtrtAddr(cb) {
 }
 
 function setOrderExpired(o_id, cb) {
-    pool.query('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [[[o_id]]], function (err, result) {
+    mysqlPoolQuery('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [[[o_id]]], function (err, result) {
         if (err) {
             print(err);
         }
         cb(result)
     })
 }
+*/
 
 function print(s) {
     console.log('[timeserver@mysql] ' + s)

@@ -110,6 +110,8 @@ yarn run livechain --c 1 --f 10 -a 2 -b 1
 '*/5 * * * * *'
 '*/10 * * * * *'  ... for every 10 seconds
 '59 * * * * *'  ... for every 59th minute
+
+yarn run tsself ... to start timseserver self version not sending to others
 ```
 
 ### 9. Test Timeserver Automation
@@ -121,7 +123,13 @@ $ yarn run testts --c C
   3: set timeCurrent = CFSD
   4: set timeCurrent = CFED
 
-### 9. Run the app
+### 12. Run the app
+
+```
+yarn run testic  ... to run the Income Manager tests
+```
+
+### 12. Run the app
 
 ```
 yarn run start
@@ -129,7 +137,7 @@ yarn run start
 
 App will be opened in browser at `http://localhost:3000/`
 
-### 10. Set to receive incoming time
+### 13. Set to receive incoming time
 ```
 Go to http://140.119.101.130:7000/
 Enter your current running IP:
@@ -138,7 +146,7 @@ portForIncomingTime has the value defined inside timeServer/manager.js
 
 ```
 
-### 11. Live Preview
+### 14. Live Preview
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin

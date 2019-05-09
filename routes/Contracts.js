@@ -4,7 +4,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const timer = require('../timeserver/lib/api.js')
 const router = express.Router();
-
+const { sequentialRun } = require('../timeserver/lib/blockchain');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -793,6 +793,29 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
     res.send({
         result: result
     })
+});
+
+
+//for sequential minting tokens ... if mint amount > max 120 to the same target address, the blockchain minting can only accept 120 at one time, so we need to wait for it to finished before minting some more tokens
+router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async function (req, res, next) {
+  let contractAddr = req.body.erc721address;
+  let to = req.body.assetBookAddr;
+  let amount = req.body.amount;
+  let fundingType = req.body.fundingType;
+  let price = req.body.price;
+
+  const maxMintAmount = 120;
+  const timeIntervalOfNewBlocks = 13000;
+  const timeCurrent = 201905300000;
+  let quotient = Math.floor(amount/maxMintAmount);
+  let remainder = amount - maxMintAmount * quotient;
+
+  const inputArray = Array(quotient).fill(maxMintAmount);
+  inputArray.push(remainder);
+  console.log('inputArray', inputArray);
+
+  // defined in /timeserver/lib/blockchain.js
+  sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
 });
 
 
