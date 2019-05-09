@@ -807,6 +807,9 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async funct
   let fundingType = req.body.fundingType;
   let price = req.body.price;
 
+  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+  let tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(to).call();
+
   const maxMintAmount = 120;
   const timeIntervalOfNewBlocks = 13000;
   const timeCurrent = 201905300000;
@@ -817,8 +820,30 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async funct
   inputArray.push(remainder);
   console.log('inputArray', inputArray);
 
+  // No while loop! We need human inspections done before automatically minting more tokens
+
   // defined in /timeserver/lib/blockchain.js
-  sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
+  // to mint tokens in different batches of numbers, which is recorded in inputArray
+  await sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
+
+  //Check success of minting by checking the total token balance of the target address
+  console.log('after sequentialRun() is completed...');
+  let tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(to).call();
+  let gainedAmount = tokenBalanceAfterMinting - tokenBalanceBeforeMinting;
+  let shortageAmount = amount - gainedAmount;
+  if(gainedAmount === amount){
+    res.send({
+      result: '[Success] All token minting have been processed successfully. Now the new target address has gained the expected token amount of '+amount,
+      success: true,
+      shortageAmount: shortageAmount
+    });
+  } else {
+    res.send({
+      result: '[Failed] Now the new target address has only gained '+gainedAmount+' new tokens, which needs additional '+shortageAmount+' tokens to fulfill the order. Please double check results before minting more.',
+      success: false,
+      shortageAmount: shortageAmount
+    });
+  }
 });
 
 
