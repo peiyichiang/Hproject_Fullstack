@@ -101,7 +101,7 @@ const getDetailsCFC = async (crowdFundingAddr) => {
   console.log('fundingState', fundingState, 'CFSD2', CFSD2, 'CFED2', CFED2);
 }
 
-const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
@@ -160,6 +160,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
     } else if(actionType === 'updateTimeOfOrders'){
       symbol = 'Backend_updateTime';
     }
+
     console.log('\n--------------==next symbol:', symbol);
     if (symbol === undefined || symbol === null || symbol.length < 8){
       console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);

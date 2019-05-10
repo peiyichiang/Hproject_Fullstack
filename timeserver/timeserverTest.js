@@ -45,19 +45,19 @@ if (arguLen == 3 && process.argv[2] === '--h') {
   console.log("\x1b[32m", '10: reset CFC funding states in DB');
   console.log("\x1b[32m", '11: updateCFC(time = CFSD2)');
   console.log("\x1b[32m", '12: updateCFC(time = CFED2)');
-  process.exit(1);
+  process.exit(0);
   // process.on('exit', function(code) {  
   //   return console.log(`About to exit with code ${code}`);
   // });
 } else if (arguLen < 6) {
   console.log('not enough arguments. --h for help');
-  process.exit(1);
+  process.exit(0);
 } else {
   //Number.isInteger(process.argv[3])
   choice = parseInt(process.argv[5]);
   if (choice < 0 || choice > 50){
     console.log('choice value is out of range. choice: ', choice);
-    process.exit(1);
+    process.exit(0);
   }
   if (arguLen < 6) {
     arg0 = 0;
