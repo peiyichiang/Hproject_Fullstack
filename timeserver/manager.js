@@ -2,10 +2,8 @@ const path = require('path');
 const fs = require('fs');
 const net = require("net");
 // const Web3 = require('web3');
-
-
-const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { checkTimeOfOrder, updateCrowdFunding, updateTokenController, checkIncomeManager } = require('./lib/blockchain.js');
+//const { mysqlPoolQuery } = require('./lib/mysql.js');
+const { checkTimeOfOrder, updateCrowdFunding, updateTokenController, checkIncomeManager } = require('./blockchain.js');
 
 const portForIncomingTime = 7010;
 let currentCount = 0;

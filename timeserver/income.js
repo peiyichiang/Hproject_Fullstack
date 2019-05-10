@@ -1,6 +1,6 @@
 const BigNumber = require('bignumber.js');
 
-const { mysqlPoolQuery } = require('../timeserver/lib/mysql');
+const { mysqlPoolQuery } = require('./mysql');
 
 //BigNumber.set({ DECIMAL_PLACES: 10, ROUNDING_MODE: 4 });
 //https://github.com/MikeMcl/bignumber.js/

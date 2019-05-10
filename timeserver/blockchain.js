@@ -17,18 +17,18 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 //web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /**後台公私鑰*/
+console.log('loading blockchain.js smart contract json files');
 const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
-const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
 const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
-const TokenController = require('../../ethereum/contracts/build/TokenController.json');
-const CrowdFunding = require('../../ethereum/contracts/build/CrowdFunding.json');
-const HCAT721 = require('../../ethereum/contracts/build/HCAT721_AssetToken.json');
-const IncomeManager = require('../../ethereum/contracts/build/IncomeManagerCtrt.json');
+const TokenController = require('../ethereum/contracts/build/TokenController.json');
+const CrowdFunding = require('../ethereum/contracts/build/CrowdFunding.json');
+const HCAT721 = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
+const IncomeManager = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
 
-const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
-const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
-const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
+//const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
+//const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
+//const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
 
 
 //-------------------==Crowdfunding
@@ -179,6 +179,10 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       } else if(actionType === 'updateTimeOfOrders'){
         const oid = item.o_id;
         const oPurchaseDate = item.o_purchaseDate;
+        if(oPurchaseDate.length < 6){
+          console.log('[Error] oPurchaseDate length is not 12');
+          return;
+        }
         try {
           const oPurchaseDateM = moment(oPurchaseDate, ['YYYYMMDD']);
           const timeCurrentM = moment(timeCurrent, ['YYYYMMDD']);
@@ -274,7 +278,7 @@ const updateTCC = async (timeCurrent) => {
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE p_lockuptime <= ? OR p_validdate <= ?', [timeCurrent, timeCurrent], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateTCC', symbolArrayLen, ', symbolArray:', symbolArray);
+    console.log('\nsymbolArray length @ updateTCC:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
@@ -404,7 +408,7 @@ const updateTimeOfOrders = async (timeCurrent) => {
 
   mysqlPoolQuery('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, resultArray) {
     const resultArrayLen = resultArray.length;
-    console.log('\nArray length @ updateTimeOfOrders', resultArrayLen, ', order_id and purchaseDate:', resultArray);
+    console.log('\nArray length @ updateTimeOfOrders:', resultArrayLen, ', order_id and purchaseDate:', resultArray);
 
     // const oidArray = [], purchaseDateArray = [];
     // for (let i = 0; i < resultArray.length; i++) {

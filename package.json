@@ -10,7 +10,7 @@
     "tsself": "node timeserver/timeserverSource.js",
     "tsmanager": "node timeserver/manager/manager.js",
     "testts": "node timeserver/timeserverTest.js",
-    "testic": "node income/incomeTester.js",
+    "testic": "node timeserver/incomeTester.js",
     "testethereum": "mocha",
     "testcf": "mocha --grep CrowdFunding",
     "testhcat": "mocha --grep HCAT721",

@@ -10,6 +10,7 @@ var debugSQL = require('debug')('dev:mysql');
 
 require("dotenv").config();
 
+console.log('loading /app.js modules');
 //智豪
 var indexRouter = require('./routes/TxRecord');
 var productRouter = require('./routes/Product');
@@ -23,47 +24,13 @@ var orderRouter = require('./routes/Order');
 //冠毅
 var paymentGWRouter = require('./routes/PaymentGW');
 var ContractsRouter = require('./routes/Contracts');
-
-//Chiu
-require('./timeserver/manager')
-
 // var usersRouter = require('./routes/users');
+
 // DataBase
-const { mysqlPoolQuery } = require('./timeserver/lib/mysql.js');
+const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
-// var mysql = require("mysql");
-
-// var pool = mysql.createPool({
-//     host: process.env.DB_HOST,//outside: 140.119.101.130, else 192.168.0.2 or localhost
-//     user: process.env.DB_USER,
-//     password: process.env.DB_PASS,
-//     database: process.env.DB_NAME,
-//     port: process.env.DB_PORT
-// });
-
-// var mysqlPoolQuery = function (sql, options, callback) {
-//     debugSQL(sql, options, callback);
-//     if (typeof options === "function") {
-//         callback = options;
-//         options = undefined;
-//     }
-//     pool.getConnection(function (err, conn) {
-//         if (err) {
-//             callback(err, null, null);
-//         } else {
-//             conn.query(sql, options, function (err, results, fields) {
-//                 // callback
-//                 callback(err, results, fields);
-//                 console.log(`connection sussessful.http://localhost:${process.env.PORT}/Product/ProductList`);
-//             });
-//             // release connection。
-//             // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
-//             conn.release();
-//         }
-//     });
-// };
-
-
+// Timeserver
+require('./timeserver/timeserverSource');
 
 
 var app = express();
@@ -151,5 +118,5 @@ app.use(function (err, req, res, next) {
 console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 
-require('./timeserver/timeserverSource');
+
 module.exports = app;

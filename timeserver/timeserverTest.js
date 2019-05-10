@@ -1,10 +1,10 @@
-const timer = require('./lib/api.js');
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB } = require('./lib/mysql.js');
+const timer = require('./api.js');
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB } = require('./mysql.js');
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC } = require('./lib/blockchain.js');
+  isScheduleGoodIMC } = require('./blockchain.js');
 
 let choice = 2, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
 
