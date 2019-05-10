@@ -8,7 +8,7 @@ const fs = require('fs');
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
 //const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager } = require('./lib/blockchain.js');
+const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager } = require('./blockchain.js');
 
 const mode = 1;
 const timeInverval = 10;
@@ -22,7 +22,7 @@ if(mode === 1){
 // '*/5 * * * * *' ... for every 5 seconds
 // '10 * * * * *'  ... for every 10th seconds
 // '59 * * * * *'  ... for every 59th seconds
-schedule.scheduleJob(modeStr+' * * * * *', function () {
+schedule.scheduleJob(modeStr+' * * * * *', async function () {
     let date = new Date().myFormat()
     console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
 
@@ -30,11 +30,19 @@ schedule.scheduleJob(modeStr+' * * * * *', function () {
         if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
     });
 
-    print(date);
-    updateTimeOfOrders(date.toString());//to convert from buffer to string
-    updateCFC(parseInt(date.toString()));
-    //updateTokenController(parseInt(date.toString()));
-    //checkIncomeManager(parseInt(date.toString()));
+    let timeCurrent;
+    try{
+      timeCurrent = parseInt(date.toString());
+    } catch(err) {
+      console.log('[Error] timeCurrent is not an integer', date.toString());
+      process.exit(0);
+    } 
+  
+    console.log('[timeserver/timeserverSource.js] timeCurrent: '+timeCurrent);
+    await updateTimeOfOrders(timeCurrent);//to convert from buffer to string
+    await updateCFC(timeCurrent);
+    //await updateTokenController(timeCurrent);
+    //await checkIncomeManager(timeCurrent);
 
 
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
@@ -59,19 +67,17 @@ schedule.scheduleJob(modeStr+' * * * * *', function () {
 //     client.end();
 // }
 
-Date.prototype.myFormat = function () {
-    return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
-};
 
-Object.prototype.add3Day = function () {
-  let year = parseInt(this.toString().slice(0, 4));
-  let month = parseInt(this.toString().slice(4, 6));
-  let day = parseInt(this.toString().slice(6, 8));
-  let hour = parseInt(this.toString().slice(8, 10));
-  let minute = parseInt(this.toString().slice(10, 12));
-  return new Date(year, month - 1, day + 3, hour, minute).myFormat();
-}
+//if (timeCurrent >= oPurchaseDate.add3Day()) {
+// Date.prototype.myFormat = function () {
+//     return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
+// };
 
-function print(s) {
-  console.log('[timeserver/timeserverSource.js] ' + s)
-}
+// Object.prototype.add3Day = function () {
+//   let year = parseInt(this.toString().slice(0, 4));
+//   let month = parseInt(this.toString().slice(4, 6));
+//   let day = parseInt(this.toString().slice(6, 8));
+//   let hour = parseInt(this.toString().slice(8, 10));
+//   let minute = parseInt(this.toString().slice(10, 12));
+//   return new Date(year, month - 1, day + 3, hour, minute).myFormat();
+// }

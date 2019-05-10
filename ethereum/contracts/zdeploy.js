@@ -9,7 +9,7 @@ cName = platform, assetbook, registry, tokc, hcat, cf, db
 
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const {addProductRow, addSmartContractRow} = require('../../timeserver/lib/mysql.js');
+const {addProductRow, addSmartContractRow} = require('../../timeserver/mysql.js');
 
 let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenURI;
 console.log('process.argv', process.argv);

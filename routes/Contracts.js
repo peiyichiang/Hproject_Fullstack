@@ -2,9 +2,9 @@ const express = require('express');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const timer = require('../timeserver/lib/api.js')
+const timer = require('../timeserver/api.js')
 const router = express.Router();
-const { sequentialRun } = require('../timeserver/lib/blockchain');
+const { sequentialRun } = require('../timeserver/blockchain.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
