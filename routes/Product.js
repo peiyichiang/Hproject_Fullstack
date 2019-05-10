@@ -916,29 +916,39 @@ router.post('/SetAbortedReasonByPA', function(req, res, next) {
 router.post('/IncomeCSV', function(req, res, next) {
     var IncomeCSVFilePath = "./" + req.body.IncomeCSVFilePath;
     console.log(IncomeCSVFilePath);
-    res.status(200);
-    res.send({
-        "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
-        "messageForUser": ""
-    });
-    // 將csv轉換成sql語句
-    csv2sql.transform("income_arrangement",fs.createReadStream(IncomeCSVFilePath))
-    .on('data',function(sql){
-        //console.log(sql);
-        var mysqlPoolQuery = req.pool;
-        var qur = mysqlPoolQuery(sql, function(err, rows) {
-            if (err) {
-                console.log(err);
-            }
-        });
+    if(IncomeCSVFilePath.indexOf(".csv")!=-1){
+        // 將csv轉換成sql語句
+        csv2sql.transform("income_arrangement",fs.createReadStream(IncomeCSVFilePath))
+        .on('data',function(sql){
+            //console.log(sql);
+            var mysqlPoolQuery = req.pool;
+            var qur = mysqlPoolQuery(sql, function(err, rows) {
+                if (err) {
+                    console.log(err);
+                }else{
+                    res.status(200);
+                    res.send({
+                        "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
+                        "messageForUser": ""
+                    });
+                }
+            });
 
-    })
-    .on('end',function(rows){
-        // console.log(rows); // 5 - Num of rows handled, including header
-    })
-    .on('error', function(error){
-        console.error(error); //Handle error
-    })
+        })
+        .on('end',function(rows){
+            // console.log(rows); // 5 - Num of rows handled, including header
+        })
+        .on('error', function(error){
+            console.error(error); //Handle error
+        })
+    }else{
+        res.status(200);
+        res.send({
+            "messageForDeveloper": "沒有CSV文件",
+            "messageForUser": ""
+        });
+    }
+
 });
 
 //有容

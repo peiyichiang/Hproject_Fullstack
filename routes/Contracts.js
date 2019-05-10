@@ -426,7 +426,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
 router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 2019052100000;
+    let currentTime = 201905210000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
