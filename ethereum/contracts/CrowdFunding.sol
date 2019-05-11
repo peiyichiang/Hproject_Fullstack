@@ -80,6 +80,7 @@ contract CrowdFunding {
         CFSD2 = _CFSD2;
         CFED2 = _CFED2;// yyyymmddhhmm
         fundingState = FundingState.initial;//init the project state
+        stateDescription = "initial";
         require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
         
         HeliumAddr = _HeliumAddr;

@@ -280,7 +280,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 2019052100000;
+    let currentTime = 201906010000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -501,7 +501,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
 
 });
 
-/**get status（timeserver用） */
+/**get status */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
@@ -515,6 +515,8 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
             });
         }
         else {
+            console.log()
+            console.log(tokenSymbol);
             console.log(DBresult[0].sc_crowdsaleaddress);
             let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
