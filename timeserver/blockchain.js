@@ -17,7 +17,7 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 //web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
 
 /**後台公私鑰*/
-console.log('loading blockchain.js smart contract json files');
+//console.log('loading blockchain.js smart contract json files');
 const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
 const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
@@ -33,62 +33,62 @@ const IncomeManager = require('../ethereum/contracts/build/IncomeManagerCtrt.jso
 
 //-------------------==Crowdfunding
 const getFundingStateCFC = async (crowdFundingAddr) => {
-  console.log('[getFundingStateCFC] crowdFundingAddr', crowdFundingAddr);
+  //console.log('[getFundingStateCFC] crowdFundingAddr', crowdFundingAddr);
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
   let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
-  console.log('fundingState', fundingState, 'crowdFundingAddr', crowdFundingAddr);
-  //console.log('typeof fundingState', typeof fundingState);
+  //console.log('fundingState', fundingState, 'crowdFundingAddr', crowdFundingAddr);
+  ////console.log('typeof fundingState', typeof fundingState);
 }
 
 const updateFundingStateCFC = async (crowdFundingAddr, timeCurrent) => {
-  console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'timeCurrent', timeCurrent);
+  //console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'timeCurrent', timeCurrent);
   const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
   const encodedData = inst_crowdFunding.methods.updateState(timeCurrent).encodeABI();
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
-  console.log('\nTxResult', TxResult);
+  //console.log('\nTxResult', TxResult);
 
   let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
-  console.log('\nfundingState:', fundingState);
-  console.log('crowdFundingAddr', crowdFundingAddr);
+  //console.log('\nfundingState:', fundingState);
+  //console.log('crowdFundingAddr', crowdFundingAddr);
   return fundingState;
 }
 
 
 //-----------------==TokenController
 const getTokenStateTCC = async (tokenControllerAddr) => {
-  console.log('[getFundingStateCFC] tokenControllerAddr', tokenControllerAddr);
+  //console.log('[getFundingStateCFC] tokenControllerAddr', tokenControllerAddr);
   const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
   let tokenState = await instTokenController.methods.tokenState().call({ from: backendAddr });
-  console.log('tokenState', tokenState, 'tokenControllerAddr', tokenControllerAddr);
-  //console.log('typeof tokenState', typeof tokenState);
+  //console.log('tokenState', tokenState, 'tokenControllerAddr', tokenControllerAddr);
+  ////console.log('typeof tokenState', typeof tokenState);
 }
 
 const updateTokenStateTCC = async (tokenControllerAddr, timeCurrent) => {
-  console.log('\n[updateTokenStateTCC] tokenControllerAddr', tokenControllerAddr, 'timeCurrent', timeCurrent);
+  //console.log('\n[updateTokenStateTCC] tokenControllerAddr', tokenControllerAddr, 'timeCurrent', timeCurrent);
   const inst_tokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
     
   const encodedData = inst_tokenController.methods.updateState(timeCurrent).encodeABI();
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenControllerAddr, encodedData);
-  console.log('\nTxResult', TxResult);
+  //console.log('\nTxResult', TxResult);
 
   let tokenState = await inst_tokenController.methods.tokenState().call({ from: backendAddr });
-  console.log('\ntokenState:', tokenState);
-  console.log('tokenControllerAddr', tokenControllerAddr);
+  //console.log('\ntokenState:', tokenState);
+  //console.log('tokenControllerAddr', tokenControllerAddr);
   return tokenState;
 }
 
 const checkIMC_isSchGoodForRelease = async (incomemanagerAddr, timeCurrent) => {
-  console.log('\n[checkIMC_isSchGoodForRelease] incomemanagerAddr', incomemanagerAddr, 'timeCurrent', timeCurrent);
+  //console.log('\n[checkIMC_isSchGoodForRelease] incomemanagerAddr', incomemanagerAddr, 'timeCurrent', timeCurrent);
   const inst_incomeManager = new web3.eth.Contract(IncomeManager.abi, incomeManagerAddr);
   let isScheduleGoodForRelease = await inst_incomeManager.methods.isScheduleGoodForRelease(timeCurrent).call({ from: backendAddr });
-  console.log('\nisScheduleGoodForRelease:', isScheduleGoodForRelease);
-  console.log('incomemanagerAddr', incomemanagerAddr);
+  //console.log('\nisScheduleGoodForRelease:', isScheduleGoodForRelease);
+  //console.log('incomemanagerAddr', incomemanagerAddr);
   return isScheduleGoodForRelease;
 }
 
 //getContractDetails()
 const getDetailsCFC = async (crowdFundingAddr) => {
-  console.log('[getDetailsCFC] crowdFundingAddr', crowdFundingAddr);
+  //console.log('[getDetailsCFC] crowdFundingAddr', crowdFundingAddr);
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
 
   let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
@@ -98,7 +98,7 @@ const getDetailsCFC = async (crowdFundingAddr) => {
   //let quantitySold = await instCrowdFunding.methods.quantitySold().call({ from: backendAddr })
   let CFSD2 = await instCrowdFunding.methods.CFSD2().call({ from: backendAddr })
   let CFED2 = await instCrowdFunding.methods.CFED2().call({ from: backendAddr })
-  console.log('fundingState', fundingState, 'CFSD2', CFSD2, 'CFED2', CFED2);
+  //console.log('fundingState', fundingState, 'CFSD2', CFSD2, 'CFED2', CFED2);
 }
 
 const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
@@ -110,22 +110,22 @@ async function asyncForEach(array, callback) {
 }
 
 const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputArray) => {
-  console.log('\ninside sequentialRun()... going to get each symbol...');
-  console.log(`mainInputArray= ${mainInputArray}, waitTime= ${waitTime}, timeCurrent= ${timeCurrent}, extraInputArray= ${extraInputArray}`);
+  //console.log('\ninside sequentialRun()... going to get each symbol...');
+  //console.log(`mainInputArray= ${mainInputArray}, waitTime= ${waitTime}, timeCurrent= ${timeCurrent}, extraInputArray= ${extraInputArray}`);
   
   if(!Number.isInteger(timeCurrent)){
-    console.log('[Error] timeCurrent is not an integer. timeCurrent:', timeCurrent);
+    //console.log('[Error] timeCurrent is not an integer. timeCurrent:', timeCurrent);
   }
   const actionType = extraInputArray[0];
   if(extraInputArray.length < 1){
-    console.log('[Error] extraInputArray should not be empty');
+    //console.log('[Error] extraInputArray should not be empty');
     return;
   }
   if(waitTime < 5000 && actionType !== 'updateTimeOfOrders'){
-    console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
+    //console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
     return;
   }
-  console.log('actionType:', actionType);
+  //console.log('actionType:', actionType);
   let sqlColumn;
   switch(actionType) {
     case 'crowdfunding':
@@ -144,7 +144,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       sqlColumn = '';
       break;
     default:
-      console.log('[Error] actionType is not valid:', actionType);
+      //console.log('[Error] actionType is not valid:', actionType);
       return;
   }
 
@@ -156,14 +156,14 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       symbol = item.ia_SYMBOL;
     } else if(actionType === 'mintToken' && Number.isInteger(item) && extraInputArray.length === 5){
       symbol = 'Backend_mintToken';
-      console.log('item is an integer => mintToken mode');
+      //console.log('item is an integer => mintToken mode');
     } else if(actionType === 'updateTimeOfOrders'){
       symbol = 'Backend_updateTime';
     }
 
     console.log('\n--------------==next symbol:', symbol);
     if (symbol === undefined || symbol === null || symbol.length < 8){
-      console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
+      //console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
 
     } else {
 
@@ -181,18 +181,18 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         const oid = item.o_id;
         const oPurchaseDate = item.o_purchaseDate;
         if(oPurchaseDate.length < 6){
-          console.log('[Error] oPurchaseDate length is not 12');
+          //console.log('[Error] oPurchaseDate length is not 12');
           return;
         }
         try {
           const oPurchaseDateM = moment(oPurchaseDate, ['YYYYMMDD']);
           const timeCurrentM = moment(timeCurrent, ['YYYYMMDD']);
-          //console.log('timeCurrentM', timeCurrentM.format('YYYYMMDD'), ' Vs. 3+ oPurchaseDateM', oPurchaseDateM.format('YYYYMMDD'));
+          ////console.log('timeCurrentM', timeCurrentM.format('YYYYMMDD'), ' Vs. 3+ oPurchaseDateM', oPurchaseDateM.format('YYYYMMDD'));
           if (timeCurrentM >= oPurchaseDateM.add(3, 'days')) {
-            console.log('timeCurrent is found >= oPurchaseDate');
+            //console.log('timeCurrent is found >= oPurchaseDate');
             mysqlPoolQuery('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [oid], function (err, result) {
               if (err) {
-                console.log(`\n[Error] Failed at setting order table o_paymentStatus to expired at orderId = ${oid}, err: ${err}`);
+                //console.log(`\n[Error] Failed at setting order table o_paymentStatus to expired at orderId = ${oid}, err: ${err}`);
               } else {
                   print(`\n[Success] the status of oid ${oid} has been updated to expired. result: ${result}`);
               }
@@ -206,35 +206,35 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
         mysqlPoolQuery('SELECT '+sqlColumn+' FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
           if (err) {
-              console.log(`[Error] @ getting ${actionType} addr from symbol:`,err);
+              //console.log(`[Error] @ getting ${actionType} addr from symbol:`,err);
   
             } else if(DBresult.length == 0){
-            console.log('found symbol(s) is/are not found in the smart contract table');
+            //console.log('found symbol(s) is/are not found in the smart contract table');
   
           } else {
-            console.log('targetAddr is going to be defined next... DBresult:', DBresult);
+            //console.log('targetAddr is going to be defined next... DBresult:', DBresult);
             let targetAddr = DBresult[0][sqlColumn];
             //let targetAddr = DBresult[0].sc_crowdsaleaddress;
-            console.log(`\n${actionType} addr is found for`, symbol, targetAddr);
+            //console.log(`\n${actionType} addr is found for`, symbol, targetAddr);
             //return;
   
             writeToBlockchainAndDatabase(targetAddr, timeCurrent, symbol, actionType);
-            console.log('[Success] writingToBlockchainAndDatabase() is completed');
+            //console.log('[Success] writingToBlockchainAndDatabase() is completed');
           }
         });
       }
     }
-    console.log('main tread is paused for waiting', waitTime, 'miliseconds');
+    //console.log('main tread is paused for waiting', waitTime, 'miliseconds');
     await waitFor(waitTime);
   });
-  console.log('\n--------------==Done');
-  console.log('SequentialRun() has been completed.\nAll input array elements have been cycled through');
+  //console.log('\n--------------==Done');
+  //console.log('SequentialRun() has been completed.\nAll input array elements have been cycled through');
 }
 
 //mintToken(amountToMint, contractAddr, to, fundingType, price);
 const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => {
   await timer.getTime().then(async function (currentTime) {
-    console.log('blockchain.js: mintToken(), timeCurrent:', timeCurrent);
+    //console.log('blockchain.js: mintToken(), timeCurrent:', currentTime);
     const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
     let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
@@ -247,9 +247,9 @@ const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => 
 //-------------------------------==DB + BC
 //-------------------==updateCFC
 const updateCFC = async (timeCurrent) => {
-  console.log('\ninside updateCFC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+  //console.log('\ninside updateCFC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
-    console.log('[Error] timeCurrent should be an integer');
+    //console.log('[Error] timeCurrent should be an integer');
     return;
   }
   const pstate1 = "initial";
@@ -258,10 +258,10 @@ const updateCFC = async (timeCurrent) => {
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = ? AND p_CFSD <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+')', [pstate1, pstate2, pstate3], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateCFC:', symbolArrayLen, ', symbolArray:', symbolArray);
+    //console.log('\nsymbolArray length @ updateCFC:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
-      console.log('[Error] @ searching symbols:', err);
+      //console.log('[Error] @ searching symbols:', err);
     } else if (symbolArrayLen > 0) {
       sequentialRun(symbolArray, timeIntervalOfNewBlocks, timeCurrent, ['crowdfunding']);
     }
@@ -270,19 +270,19 @@ const updateCFC = async (timeCurrent) => {
 
 //-------------------==Token Controller
 const updateTCC = async (timeCurrent) => {
-  console.log('\ninside updateTCC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+  //console.log('\ninside updateTCC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
-    console.log('[Error] timeCurrent should be an integer');
+    //console.log('[Error] timeCurrent should be an integer');
     return;
   }
 
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE p_lockuptime <= ? OR p_validdate <= ?', [timeCurrent, timeCurrent], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateTCC:', symbolArrayLen, ', symbolArray:', symbolArray);
+    //console.log('\nsymbolArray length @ updateTCC:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
-      console.log('[Error] @ searching symbols:', err);
+      //console.log('[Error] @ searching symbols:', err);
     } else if (symbolArrayLen > 0) {
       sequentialRun(symbolArray, timeIntervalOfNewBlocks, timeCurrent, ['tokencontroller']);
     }
@@ -292,7 +292,7 @@ const updateTCC = async (timeCurrent) => {
 const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, actionType) => {
   if(actionType === 'crowdfunding'){
     const fundingStateStr = await updateFundingStateCFC(targetAddr, timeCurrent);
-    console.log('fundingState', fundingStateStr, 'typeof', typeof fundingStateStr);
+    //console.log('fundingState', fundingStateStr, 'typeof', typeof fundingStateStr);
     const fundingState = parseInt(fundingStateStr);
     /* 0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 
        4 fundingClosed, 5 fundingNotClosed, 6 terminated}*/
@@ -323,9 +323,9 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
     }
 
   } else if(actionType === 'tokencontroller'){
-    console.log('\n-----------------=inside writeToBlockchainAndDatabase(), actionType: tokencontroller');
+    //console.log('\n-----------------=inside writeToBlockchainAndDatabase(), actionType: tokencontroller');
     const tokenStateStr = await updateTokenStateTCC(targetAddr, timeCurrent);
-    console.log('tokenState', tokenStateStr, 'typeof', typeof tokenStateStr);
+    //console.log('tokenState', tokenStateStr, 'typeof', typeof tokenStateStr);
     const tokenState = parseInt(tokenStateStr);
     // lockupPeriod, normal, expired
     switch(tokenState) {
@@ -344,7 +344,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
 
   } else if(actionType === 'incomemanager'){
     const isScheduleGoodForRelease = await checkIMC_isSchGoodForRelease(targetAddr, timeCurrent);
-    console.log('isScheduleGoodForRelease', isScheduleGoodForRelease);
+    //console.log('isScheduleGoodForRelease', isScheduleGoodForRelease);
     if(isScheduleGoodForRelease){
       /**
        * Call bank to release income to customers
@@ -364,23 +364,23 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
       //write bank's confirmation into IncomeManager.sol
       let encodedData = inst_incomeManager.methods.setPaymentReleaseResults(timeCurrent, actualPaymentTime, actualPaymentAmount, errorCode).encodeABI();
       let TxResult = await signTx(backendAddr, backendRawPrivateKey, targetAddr, encodedData);
-      console.log('TxResult', TxResult);
+      //console.log('TxResult', TxResult);
 
       //const scheduleDetails = await inst_incomeManager.methods.getIncomeSchedule(schIndex).call({ from: backendAddr });
-      //console.log('[Success @ updateIncomeManager(timeCurrent)] scheduleDetails:', scheduleDetails);
+      ////console.log('[Success @ updateIncomeManager(timeCurrent)] scheduleDetails:', scheduleDetails);
 
     } else {
-      console.log('[Error] date is found as an incomeManager date in DB but not such in IncomeManager.sol!!! isScheduleGoodForRelease:', isScheduleGoodForRelease);
+      //console.log('[Error] date is found as an incomeManager date in DB but not such in IncomeManager.sol!!! isScheduleGoodForRelease:', isScheduleGoodForRelease);
     }
   }
-  console.log('end of writeToBlockchainAndDatabase() for', symbol, 'actionType:', actionType);
+  //console.log('end of writeToBlockchainAndDatabase() for', symbol, 'actionType:', actionType);
 }
 
 //-------------------==Income Manager
 const isScheduleGoodIMC = async (timeCurrent) => {
-  console.log('\ninside isScheduleGoodIMC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+  //console.log('\ninside isScheduleGoodIMC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
-    console.log('[Error] timeCurrent should be an integer');
+    //console.log('[Error] timeCurrent should be an integer');
     return;
   }
   //let payableTime = ia_time; 
@@ -389,10 +389,10 @@ const isScheduleGoodIMC = async (timeCurrent) => {
   mysqlPoolQuery(
     'SELECT htoken.income_arrangement.ia_SYMBOL From htoken.income_arrangement where income_arrangement.ia_time <= ?',[timeCurrent], function (err, resultArray) {
     const resultArrayLen = resultArray.length;
-    console.log('symbolArray length @ isScheduleGoodIMC', resultArrayLen);
+    //console.log('symbolArray length @ isScheduleGoodIMC', resultArrayLen);
 
     if (err) {
-      console.log('[Error] @ searching symbols:', err);
+      //console.log('[Error] @ searching symbols:', err);
     } else if (resultArrayLen > 0) {
       sequentialRun(resultArrayLen, timeIntervalOfNewBlocks, timeCurrent, ['incomemanager']);
     }
@@ -401,15 +401,15 @@ const isScheduleGoodIMC = async (timeCurrent) => {
 
 //-----------------------==
 const updateTimeOfOrders = async (timeCurrent) => {
-  console.log('\ninside updateTimeOfOrders(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
+  //console.log('\ninside updateTimeOfOrders(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
-    console.log('[Error] timeCurrent should be an integer');
+    //console.log('[Error] timeCurrent should be an integer');
     return;
   }
 
   mysqlPoolQuery('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, resultArray) {
     const resultArrayLen = resultArray.length;
-    console.log('\nArray length @ updateTimeOfOrders:', resultArrayLen, ', order_id and purchaseDate:', resultArray);
+    //console.log('\nArray length @ updateTimeOfOrders:', resultArrayLen, ', order_id and purchaseDate:', resultArray);
 
     // const oidArray = [], purchaseDateArray = [];
     // for (let i = 0; i < resultArray.length; i++) {
@@ -418,7 +418,7 @@ const updateTimeOfOrders = async (timeCurrent) => {
     // }
   
     if (err) {
-      console.log('[Error] @ searching o_id and o_purchaseDate:', err);
+      //console.log('[Error] @ searching o_id and o_purchaseDate:', err);
     } else if (resultArrayLen > 0) {
       sequentialRun(resultArray, timeIntervalUpdateTimeOfOrders, timeCurrent, ['updateTimeOfOrders']);
     }
@@ -435,7 +435,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
           .then(nonce => {
 
               let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
-              console.log('userPrivateKey:', userPrivateKey);
+              //console.log('userPrivateKey:', userPrivateKey);
               let txParams = {
                   nonce: web3.utils.toHex(nonce),
                   gas: 9000000,
@@ -452,21 +452,21 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
               const serializedTx = tx.serialize();
               const rawTx = '0x' + serializedTx.toString('hex');
 
-              console.log('☆ RAW TX ☆\n', rawTx);
+              //console.log('☆ RAW TX ☆\n', rawTx);
 
               web3.eth.sendSignedTransaction(rawTx)
                   .on('transactionHash', hash => {
-                      console.log(hash);
+                      //console.log(hash);
                   })
                   .on('confirmation', (confirmationNumber, receipt) => {
-                      // console.log('confirmation', confirmationNumber);
+                      // //console.log('confirmation', confirmationNumber);
                   })
                   .on('receipt', function (receipt) {
-                      console.log(receipt);
+                      //console.log(receipt);
                       resolve(receipt)
                   })
                   .on('error', function (err) {
-                      console.log(err);
+                      //console.log(err);
                       reject(err);
                   });
           });
@@ -487,7 +487,7 @@ async function sendTimeCFctrt(addr, time) {
 }
 
 function print(s) {
-  console.log('[timeserver/lib/blockchain.js] ' + s)
+  //console.log('[timeserver/lib/blockchain.js] ' + s)
 }
 
 module.exports = {

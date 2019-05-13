@@ -20,7 +20,7 @@ const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75
 const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
 
 /**contracts info*/
-const heliumContract = require('../ethereum/contracts/build/Platform.json');
+const heliumContract = require('../ethereum/contracts/build/Helium.json');
 const tokenControllerContract = require('../ethereum/contracts/build/TokenController.json');
 const crowdFundingContract = require('../ethereum/contracts/build/CrowdFunding.json');
 const assetBookContract = require('../ethereum/contracts/build/AssetBook.json');
@@ -30,19 +30,17 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/ProductManager.json');
 
 
-const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
-const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
-const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
+const heliumContractAddr = "0x9C201b1A3628fd6464F4297fbe85e0Fc20666b0f";
+const registryContractAddr = "0x9CDEf88c4C1Bb8CdA1EE4ed19B2Bb88723C56E93";
+const productManagerContractAddr = "0xAdfD0067cAD50756Ee5A8C00675afC98c44a89A4";
+const supervisorAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
+
 
 /**time server*/
 timer.getTime().then(function (time) {
     console.log(`[Routes/Contract.js] current time: ${time}`)
 })
-
-/**management address */
-const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
-
-
 
 
 
@@ -56,12 +54,11 @@ router.post('/heliumContract', function (req, res, next) {
     //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
     const web3deploy = new Web3(provider);
 
-    let heliumContractAdmin = req.body.heliumContractAdmin;
     const helium = new web3deploy.eth.Contract(heliumContract.abi);
 
     helium.deploy({
         data: heliumContract.bytecode,
-        arguments: [heliumContractAdmin, management]
+        arguments: [management]
     })
         .send({
             from: backendAddr,
@@ -96,7 +93,7 @@ router.post('/registryContract', function (req, res, next) {
 
     registry.deploy({
         data: registryContract.bytecode,
-        arguments: [management]
+        arguments: [heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -243,7 +240,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 
     crowdFunding.deploy({
         data: crowdFundingContract.bytecode,
-        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, fundingGoal, CFSD2, CFED2, currentTime, management]
+        arguments: [tokenSymbol, tokenPrice, currency, quantityMax, fundingGoal, CFSD2, CFED2, currentTime, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -284,7 +281,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 2019052100000;
+    let currentTime = 201906010000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -430,7 +427,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
 router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 2019052100000;
+    let currentTime = 201905210000;
     /*
         await timer.getTime().then(function(time) {
             currentTime = time;
@@ -505,7 +502,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
 
 });
 
-/**get status（timeserver用） */
+/**get status */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
@@ -519,6 +516,8 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
             });
         }
         else {
+            console.log()
+            console.log(tokenSymbol);
             console.log(DBresult[0].sc_crowdsaleaddress);
             let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
             let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
@@ -599,7 +598,7 @@ router.post('/tokenControllerContract', async function (req, res, next) {
 
     tokenController.deploy({
         data: tokenControllerContract.bytecode,
-        arguments: [TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, management]
+        arguments: [TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -706,7 +705,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) 
 
     ERC721SPLC.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -803,57 +802,102 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
 //for sequential minting tokens ... if mint amount > max 120 to the same target address, the blockchain minting can only accept 120 at one time, so we need to wait for it to finished before minting some more tokens
 // http://localhost:3030/Contracts/ERC721SPLCContract/Htoken05/mintSequential
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async function (req, res, next) {
-  const contractAddr = req.body.erc721address;
-  const to = req.body.assetBookAddr;
-  if(!Number.isInteger(amount)){
-    res.send({
-      result: '[Failed] amount should be an integer'+amount,
-      success: false,
-    });
     return;
-  }
-  const amount = parseInt(req.body.amount);
-  const fundingType = req.body.fundingType;
-  const price = req.body.price;
+    let contractAddr = req.body.erc721address;
+    let to = req.body.assetBookAddr;
+    const amount = parseInt(req.body.amount);
+    let fundingType = req.body.fundingType;
+    let price = req.body.price;
 
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
-  let tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(to).call();
+    const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+    let tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(to).call();
 
-  const maxMintAmount = 120;
-  const timeIntervalOfNewBlocks = 13000;
-  const timeCurrent = 201905300000;//fake time, we will fetch the accurate time just before minting tokens
-  let quotient = Math.floor(amount/maxMintAmount);
-  let remainder = amount - maxMintAmount * quotient;
+    const maxMintAmount = 100;
+    const timeIntervalOfNewBlocks = 13000;
+    const timeCurrent = 201905300000;
+    let quotient = Math.floor(amount / maxMintAmount);
+    let remainder = amount - maxMintAmount * quotient;
 
-  const inputArray = Array(quotient).fill(maxMintAmount);
-  inputArray.push(remainder);
-  console.log('inputArray', inputArray);
+    const inputArray = Array(quotient).fill(maxMintAmount);
+    inputArray.push(remainder);
+    console.log('inputArray', inputArray);
 
-  // No while loop! We need human inspections done before automatically minting more tokens
+    // No while loop! We need human inspections done before automatically minting more tokens
 
-  // defined in /timeserver/lib/blockchain.js
-  // to mint tokens in different batches of numbers, which is recorded in inputArray
-  await sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
+    // defined in /timeserver/lib/blockchain.js
+    // to mint tokens in different batches of numbers, which is recorded in inputArray
+    await sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
 
-  //Check success of minting by checking the total token balance of the target address
-  console.log('after sequentialRun() is completed...');
-  let tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(to).call();
-  let gainedAmount = tokenBalanceAfterMinting - tokenBalanceBeforeMinting;
-  let shortageAmount = amount - gainedAmount;
-  console.log('tokenBalanceBeforeMinting', tokenBalanceBeforeMinting, 'tokenBalanceAfterMinting', tokenBalanceAfterMinting, 'gainedAmount', gainedAmount, 'shortageAmount', shortageAmount);
-  if(gainedAmount === amount){
-    res.send({
-      result: '[Success] All token minting have been processed successfully. Now the new target address has gained the expected token amount of '+amount,
-      success: true,
-      shortageAmount: shortageAmount
+    //Check success of minting by checking the total token balance of the target address
+    console.log('after sequentialRun() is completed...');
+    let tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(to).call();
+    let gainedAmount = tokenBalanceAfterMinting - tokenBalanceBeforeMinting;
+    let shortageAmount = amount - gainedAmount;
+    if (gainedAmount === amount) {
+        res.send({
+            result: '[Success] All token minting have been processed successfully. Now the new target address has gained the expected token amount of ' + amount,
+            success: true,
+            shortageAmount: shortageAmount
+        });
+    } else {
+        res.send({
+            result: '[Failed] Now the new target address has only gained ' + gainedAmount + ' new tokens, which needs additional ' + shortageAmount + ' tokens to fulfill the order. Please double check results before minting more.',
+            success: false,
+            shortageAmount: shortageAmount
+        });
+    }
+});
+
+/**get tokenId  */
+router.get('/HCAT721_AssetTokenContract/:tokenSymbol/:assetBookAddr', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let assetBookAddr = req.params.assetBookAddr;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_erc721address);
+            let contractAddr = DBresult[0].sc_erc721address;
+            let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+            let tokenId = await HCAT721_AssetToken.methods.balanceOf(assetBookAddr).call({ from: backendAddr });
+
+            res.send(tokenId);
+        }
+
     });
-  } else {
-    res.send({
-      result: '[Failed] Now the new target address has only gained '+gainedAmount+' new tokens, which needs additional '+shortageAmount+' tokens to fulfill the order. Please double check results before minting more.',
-      success: false,
-      shortageAmount: shortageAmount
+});
+
+
+/**get tokenId  */
+router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_erc721address);
+            let contractAddr = DBresult[0].sc_erc721address;
+            let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+            let tokenId = await HCAT721_AssetToken.methods.tokenId().call({ from: backendAddr });
+
+            res.send(tokenId);
+        }
+
     });
-  }
 });
 
 
@@ -918,7 +962,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 
     incomeManager.deploy({
         data: incomeManagerContract.bytecode,
-        arguments: [erc721address, heliumContractAddr, management]
+        arguments: [erc721address, supervisorAddr, heliumContractAddr]
     })
         .send({
             from: backendAddr,
@@ -998,7 +1042,7 @@ router.post('/productManagerContract', function (req, res, next) {
 
     productManager.deploy({
         data: productManagerContract.bytecode,
-        arguments: [management]
+        arguments: [heliumContractAddr]
     })
         .send({
             from: backendAddr,
