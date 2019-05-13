@@ -122,8 +122,8 @@ const sequentialRunSuperCheck = async (toAddressArray, amountArray, contractAddr
   console.log('\ninside sequentialRunSuperCheck()... going to get each toAddress...');
   const waitTimeSuperCheck = 1000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-  checkItem =(item) => { Number.isInterger(item); }
-  If(!amountArray.every(checkItem)){
+  const checkItem =(item) => { Number.isInteger(item); }
+  if(!amountArray.every(checkItem)){
     return;
   }
 
@@ -148,8 +148,8 @@ const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fun
   console.log('\ninside sequentialRunSuper()... going to get each toAddress...');
   const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-  checkItem =(item) => { Number.isInterger(item); }
-  If(!amountArray.every(checkItem)){
+  checkItem =(item) => { Number.isInteger(item); }
+  if(!amountArray.every(checkItem)){
     return;
   }
 
