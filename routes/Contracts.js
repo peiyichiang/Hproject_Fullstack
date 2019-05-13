@@ -5,6 +5,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const timer = require('../timeserver/api.js')
 const router = express.Router();
 const { sequentialRun } = require('../timeserver/blockchain.js');
+const { addTxnInfoRow, addTxnInfoRowFromObj } = require('../timeserver/mysql');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -800,19 +801,27 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
 
 
 //for sequential minting tokens ... if mint amount > max 120 to the same target address, the blockchain minting can only accept 120 at one time, so we need to wait for it to finished before minting some more tokens
+// http://localhost:3030/Contracts/ERC721SPLCContract/Htoken05/mintSequential
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async function (req, res, next) {
-  let contractAddr = req.body.erc721address;
-  let to = req.body.assetBookAddr;
-  let amount = req.body.amount;
-  let fundingType = req.body.fundingType;
-  let price = req.body.price;
+  const contractAddr = req.body.erc721address;
+  const to = req.body.assetBookAddr;
+  if(!Number.isInteger(amount)){
+    res.send({
+      result: '[Failed] amount should be an integer'+amount,
+      success: false,
+    });
+    return;
+  }
+  const amount = parseInt(req.body.amount);
+  const fundingType = req.body.fundingType;
+  const price = req.body.price;
 
   const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
   let tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(to).call();
 
   const maxMintAmount = 120;
   const timeIntervalOfNewBlocks = 13000;
-  const timeCurrent = 201905300000;
+  const timeCurrent = 201905300000;//fake time, we will fetch the accurate time just before minting tokens
   let quotient = Math.floor(amount/maxMintAmount);
   let remainder = amount - maxMintAmount * quotient;
 
@@ -831,6 +840,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async funct
   let tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(to).call();
   let gainedAmount = tokenBalanceAfterMinting - tokenBalanceBeforeMinting;
   let shortageAmount = amount - gainedAmount;
+  console.log('tokenBalanceBeforeMinting', tokenBalanceBeforeMinting, 'tokenBalanceAfterMinting', tokenBalanceAfterMinting, 'gainedAmount', gainedAmount, 'shortageAmount', shortageAmount);
   if(gainedAmount === amount){
     res.send({
       result: '[Success] All token minting have been processed successfully. Now the new target address has gained the expected token amount of '+amount,
@@ -845,6 +855,51 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async funct
     });
   }
 });
+
+
+router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function (req, res, next) {
+  const contractAddr = req.body.erc721address;
+  const _from = req.body.from;
+  const to = req.body.assetBookAddr;
+  const amount = req.body.amount;
+  const price = req.body.price;
+  const serverTime = req.body.serverTime;
+
+  const tokenSymbol = req.body.tokenSymbol;
+
+  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+  let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
+  //safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime)
+  let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+
+  console.log('after safeTransferFromBatch() is completed...');
+  const txid = tokenSymbol+period+tokenId+txCount
+  const tokenId = tokenId;
+  const txCount = txCount;
+  const holdingDays = holdingDays;
+  const txTime = txTime;
+  const balanceOffromassetbook = balanceOffromassetbook;
+
+  const fromAssetbook = _from;
+  const toAssetbook = to;
+
+  let success = true;
+  await addTxnInfoRow(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook).catch((err) => {
+    console.log('\n[Error @ addTxnInfoRow()]', err)
+    success = false;
+  });
+  if(success){
+    res.send({
+      status: "success"
+    });
+  } else {
+    res.send({
+      status: "fail"
+    });
+  }
+});
+
 
 
 /**@dev incomeManager ------------------------------------------------------------------------------------- */

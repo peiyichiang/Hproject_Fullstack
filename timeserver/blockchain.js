@@ -154,7 +154,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       symbol = item.p_SYMBOL;
     } else if(item.hasOwnProperty('ia_SYMBOL')){
       symbol = item.ia_SYMBOL;
-    } else if(actionType === 'mintToken' && Math.isInteger(item) && extraInputArray.length === 5){
+    } else if(actionType === 'mintToken' && Number.isInteger(item) && extraInputArray.length === 5){
       symbol = 'Backend_mintToken';
       console.log('item is an integer => mintToken mode');
     } else if(actionType === 'updateTimeOfOrders'){
@@ -237,7 +237,7 @@ const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => 
     console.log('blockchain.js: mintToken(), timeCurrent:', timeCurrent);
     const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
     let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, targetAddr, encodedData);
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
     console.log('TxResult', TxResult);
   });
 }

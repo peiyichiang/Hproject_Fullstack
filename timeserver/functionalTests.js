@@ -149,8 +149,7 @@ calculatedIncome = incomeFromHoldingDays(holdingDays, period, periodIncome, prev
 //1207.666666666666666668
 
 //(120÷90×0.7+4)×300 => 1480
-const args = ["nonArray", "HTOK2019", "0x123"];
-const waitTime = 1000;
+
 
 const incomeFromHoldingDaysSection = async (args, period, periodIncome, prevTokenAmount) => {
   console.log('\n----------------==\ninside incomeFromHoldingDaysSection()...');
@@ -158,7 +157,6 @@ const incomeFromHoldingDaysSection = async (args, period, periodIncome, prevToke
   const incomeBN_out = await incomeFromHoldingDays(args, period, periodIncome, prevTokenAmount).catch((err) => console.log('[Error @ incomeFromHoldingDays()]', err));
   console.log('incomeBN_out', incomeBN_out);
 
-  //await waitFor(waitTime);
   process.exit(0);
 }
 
@@ -179,28 +177,29 @@ function MakeTxnInfoRow(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, 
 
 
 const txnInfoObjArray=[];
-const addTxnInfoRowSection = () => {
+const addTxnInfoRowSection = (symbolArray, assetbookArray, holdingDaysArray, txTimeArray) => {
   console.log('\n\n\n----------------==inside addTxnInfoRowSection()');
+  const waitTime = 1000;
   /**the value of previous period token balance ... investor_assetRecord table ar_holding_amount_in_the_end_of_period
   */
-  const symbolArray= ['AAAB1902', 'AAAC1903'];
-  const userArray  = ['0xassetbook001', '0xassetbook002'];
-  const holdingDaysArray = [1, 30, 60, 89]; 
-  const txTimeArray = [201905050505, 201905050506, 201905050507, 201905050508];
   balanceOffromassetbook = 0;
   // tokenSymbol = 'AAAB1901'; fromAssetbook = '0xUser001'; holdingDays = 10; 
   // txid = tokenSymbol+'001'; toAssetbook = ''; 
   // tokenId = 1; txCount = 1; txTime = 201905100505;
   // balanceOffromassetbook = 7;//=> find the one with the biggest txTime => currentAmount
 
-  toAssetbook = ''; tokenId = 0; txCount = 1;
+  toAssetbook = ''; period = 7; tokenId = 0; txCount = 1;
   for (let symbolIdx = 0; symbolIdx < symbolArray.length; symbolIdx++) {
-    for (let userIdx = 0; userIdx < userArray.length; userIdx++) {
+    for (let userIdx = 0; userIdx < assetbookArray.length; userIdx++) {
       console.log('inside for loops x2. tokenId:', tokenId);
-      txnInfoObj = new MakeTxnInfoRow(symbolArray[symbolIdx]+'_'+tokenId, symbolArray[symbolIdx], userArray[userIdx], toAssetbook, tokenId, txCount, holdingDaysArray[tokenId], txTimeArray[tokenId], balanceOffromassetbook);
-      //txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook
-      txnInfoObjArray.push(txnInfoObj);
-      tokenId += 1;
+
+      for (let holdingDaysIdx = 0; holdingDaysIdx < holdingDaysArray.length; holdingDaysIdx++) {
+                                      //txid = symbol +period + tokenId + txCount
+        txnInfoObj = new MakeTxnInfoRow(symbolArray[symbolIdx]+period+tokenId+txCount, symbolArray[symbolIdx], assetbookArray[userIdx], toAssetbook, tokenId, txCount, holdingDaysArray[holdingDaysIdx], txTimeArray[holdingDaysIdx], balanceOffromassetbook);
+        //txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook
+        txnInfoObjArray.push(txnInfoObj);
+        tokenId += 1;
+      }
     }
   }
   console.log('\n----------------==txnInfoObjArray\n', txnInfoObjArray);
@@ -221,11 +220,29 @@ const sequentialRun = async (arrayInput, waitTime) => {
   process.exit(0);
 }
 
-if(choice === 1){
+
+//-----------------------------==
+const symbolArray= ['AAAB1902', 'AAAC1903'];
+const assetbookArray  = ['0xassetbook001', '0xassetbook002'];
+const holdingDaysArray = [1, 30, 60, 89]; 
+const txTimeArray = [201905050505, 201905050506, 201905050507, 201905050508];
+
+
+if(holdingDaysArray.length !== txTimeArray.length){
+  console.log('[Error] holdingDaysArray.length should === txTimeArray.length');
+  return;
+}
+if(choice < 9){
+  //args = ["nonArray", symbol, addrAssetbook ];
+  console.log('\n---------------------==\nto calculate income: symbol=', symbolArray[choice], ', assetbook=', assetbookArray[choice]);
+  const args = ["nonArray", symbolArray[choice], assetbookArray[choice]];
+  const period = 90;
+  const periodIncome = 300;
+  const prevTokenAmount = 7;
   incomeFromHoldingDaysSection(args, period, periodIncome, prevTokenAmount);
 
-} else if(choice === 2){
-  addTxnInfoRowSection();
+} else if(choice === 9){
+  addTxnInfoRowSection(symbolArray, assetbookArray, holdingDaysArray, txTimeArray);
   /*
   txid= ; tokenSymbol= ; fromAssetbook= ; 
   toAssetbook= ; tokenId= ; txCount= ; 

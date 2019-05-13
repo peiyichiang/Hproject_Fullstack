@@ -41,8 +41,7 @@ const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, t
   return new Promise((resolve, reject) => {
     mysqlPoolQuery('INSERT INTO htoken.transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook], function (err, result) {
       if (err) {
-        console.log('\n[Error @ writing data into transaction_info row]', err);
-        reject(err);
+        reject('[Error @ writing data into transaction_info row]', err);
       } else {
         console.log("\ntransaction_info table has been added with one new row. result:", result);
         resolve(result);
@@ -56,8 +55,7 @@ const addTxnInfoRowFromObj = (row) => {
   return new Promise((resolve, reject) => {
     mysqlPoolQuery('INSERT INTO htoken.transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.txid, row.tokenSymbol, row.fromAssetbook, row.toAssetbook, row.tokenId, row.txCount, row.holdingDays, row.txTime, row.balanceOffromassetbook], function (err, result) {
       if (err) {
-        console.log('\n[Error @ writing data into transaction_info row]', err);
-        reject(err);
+        reject('[Error @ writing data into transaction_info row]', err);
       } else {
         console.log("\ntransaction_info table has been added with one new row. result:", result);
         resolve(result);

@@ -135,6 +135,7 @@ to run the income.js tests
 yarn run start
 ```
 App will be opened in browser at `http://localhost:3000/`
+if you want to run it without timeserver, then comment out "require('./timeserver/timeserverSource');" inside /app.js
 
 ### 18. Set to receive incoming time
 ```

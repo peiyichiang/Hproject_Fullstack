@@ -42,6 +42,7 @@ const incomeFromHoldingDays = (args, period, periodIncome, prevTokenAmount) => {
       reject('[Error] prevTokenAmount < 0. prevTokenAmount:', prevTokenAmount);
     }
 
+    //check if args are an array of holdingDays OR
     if(Number.isInteger(args[0])){
       //each args is a holdingDays number that has one tokenId
       const soldAmount = args.length;
@@ -67,6 +68,7 @@ const incomeFromHoldingDays = (args, period, periodIncome, prevTokenAmount) => {
       console.log('\nincome in BN:', incomeBN, 'totalDays', totalDays);
       resolve(incomeBN);
     
+    //check if args are an array of string, symbol, addrAssetbook
     } else if(args.length === 3) {
       const symbol = args[1];
       const addrAssetbook = args[2];
