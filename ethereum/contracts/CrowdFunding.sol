@@ -204,7 +204,7 @@ contract CrowdFunding {
         }
 
         require(_quantityToInvest > 0, "_quantityToInvest should be > 0");
-        require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be <= maxTokenQtyForEachInvestmentFund");
+        //require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be <= maxTokenQtyForEachInvestmentFund");
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
 
