@@ -15,7 +15,7 @@ router.post('/AddOrder', function (req, res, next) {
     var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
     var currentDate = new Date().myFormat();//yyyymmddhhmm
     console.log('---------------== currentDate:', currentDate);
-    const nationalId = req.body.nationalId;
+    const nationalId = req.body.userIdentity;
     const nationalIdLast5 = nationalId.toString().slice(-5);
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
@@ -34,21 +34,21 @@ router.post('/AddOrder', function (req, res, next) {
 
     console.log(sql);
 
-    var qur = mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, rows) {
+    var qur = mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
         if (err) {
             console.log(err);
-            res.render('error', { message: '寫入失敗', error: '' });
+            res.status(400);
+            res.json({
+                "message": "訂單寫入資料庫失敗:\n" + err
+            });
+        } else {
+            res.status(200);
+            res.json({
+                "message": "訂單寫入資料庫成功",
+                "result": result
+            });
         }
-        res.render('error', { message: '寫入成功', error: '' });
     });
-    // mysqlPoolQuery('SELECT * FROM htoken.order', function(err, rows) {
-    //     if (err) {
-    //         console.log(err);
-    //     }
-    //     var data = rows;
-    //     console.log(JSON.stringify(data));
-    // });
-
 });
 
 //SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';

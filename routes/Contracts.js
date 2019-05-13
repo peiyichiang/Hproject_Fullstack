@@ -4,8 +4,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const timer = require('../timeserver/api.js')
 const router = express.Router();
-const { sequentialRun, sequentialRunSuper, sequentialRunSuperCheck } = require('../timeserver/blockchain.js');
-const { addTxnInfoRow, addTxnInfoRowFromObj } = require('../timeserver/mysql');
+const { sequentialRunSuper, sequentialRunSuperCheck } = require('../timeserver/blockchain.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -885,51 +884,6 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (r
 
     });
 });
-
-
-router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function (req, res, next) {
-  const contractAddr = req.body.erc721address;
-  const _from = req.body.from;
-  const to = req.body.assetBookAddr;
-  const amount = req.body.amount;
-  const price = req.body.price;
-  const serverTime = req.body.serverTime;
-
-  const tokenSymbol = req.body.tokenSymbol;
-
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
-  let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
-  //safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime)
-  let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-
-
-  console.log('after safeTransferFromBatch() is completed...');
-  const txid = tokenSymbol+period+tokenId+txCount
-  const tokenId = tokenId;
-  const txCount = txCount;
-  const holdingDays = holdingDays;
-  const txTime = txTime;
-  const balanceOffromassetbook = balanceOffromassetbook;
-
-  const fromAssetbook = _from;
-  const toAssetbook = to;
-
-  let success = true;
-  await addTxnInfoRow(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook).catch((err) => {
-    console.log('\n[Error @ addTxnInfoRow()]', err)
-    success = false;
-  });
-  if(success){
-    res.send({
-      status: "success"
-    });
-  } else {
-    res.send({
-      status: "fail"
-    });
-  }
-});
-
 
 
 /**@dev incomeManager ------------------------------------------------------------------------------------- */

@@ -354,7 +354,8 @@ router.get('/UserLogin', function (req, res, next) {
                             var data = {
                                 u_email: result[0].u_email,
                                 u_identityNumber: result[0].u_identityNumber,
-                                u_assetbookContractAddress: result[0].u_assetbookContractAddress
+                                u_assetbookContractAddress: result[0].u_assetbookContractAddress,
+                                u_investorLevel: result[0].u_investorLevel
                             };
                             time = {
                                 expiresIn: '24h'
