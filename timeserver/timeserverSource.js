@@ -24,7 +24,7 @@ if(mode === 1){
 // '59 * * * * *'  ... for every 59th seconds
 schedule.scheduleJob(modeStr+' * * * * *', async function () {
     let date = new Date().myFormat()
-    console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
+    //console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
 
     fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), date, function (err) {
         if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
@@ -38,9 +38,9 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       process.exit(0);
     } 
   
-    console.log('[timeserver/timeserverSource.js] timeCurrent: '+timeCurrent);
-    await updateTimeOfOrders(timeCurrent);//to convert from buffer to string
-    await updateCFC(timeCurrent);
+    //console.log('[timeserver/timeserverSource.js] timeCurrent: '+timeCurrent);
+    //await updateTimeOfOrders(timeCurrent);//to convert from buffer to string
+    //await updateCFC(timeCurrent);
     //await updateTokenController(timeCurrent);
     //await checkIncomeManager(timeCurrent);
 

@@ -800,49 +800,101 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
 
 //for sequential minting tokens ... if mint amount > max 120 to the same target address, the blockchain minting can only accept 120 at one time, so we need to wait for it to finished before minting some more tokens
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequential', async function (req, res, next) {
-  let contractAddr = req.body.erc721address;
-  let to = req.body.assetBookAddr;
-  let amount = req.body.amount;
-  let fundingType = req.body.fundingType;
-  let price = req.body.price;
+    let contractAddr = req.body.erc721address;
+    let to = req.body.assetBookAddr;
+    const amount = parseInt(req.body.amount);
+    let fundingType = req.body.fundingType;
+    let price = req.body.price;
 
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
-  let tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(to).call();
+    const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+    let tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(to).call();
 
-  const maxMintAmount = 120;
-  const timeIntervalOfNewBlocks = 13000;
-  const timeCurrent = 201905300000;
-  let quotient = Math.floor(amount/maxMintAmount);
-  let remainder = amount - maxMintAmount * quotient;
+    const maxMintAmount = 100;
+    const timeIntervalOfNewBlocks = 13000;
+    const timeCurrent = 201905300000;
+    let quotient = Math.floor(amount / maxMintAmount);
+    let remainder = amount - maxMintAmount * quotient;
 
-  const inputArray = Array(quotient).fill(maxMintAmount);
-  inputArray.push(remainder);
-  console.log('inputArray', inputArray);
+    const inputArray = Array(quotient).fill(maxMintAmount);
+    inputArray.push(remainder);
+    console.log('inputArray', inputArray);
 
-  // No while loop! We need human inspections done before automatically minting more tokens
+    // No while loop! We need human inspections done before automatically minting more tokens
 
-  // defined in /timeserver/lib/blockchain.js
-  // to mint tokens in different batches of numbers, which is recorded in inputArray
-  await sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
+    // defined in /timeserver/lib/blockchain.js
+    // to mint tokens in different batches of numbers, which is recorded in inputArray
+    await sequentialRun(inputArray, timeIntervalOfNewBlocks, timeCurrent, ['mintToken', contractAddr, to, fundingType, price]);
 
-  //Check success of minting by checking the total token balance of the target address
-  console.log('after sequentialRun() is completed...');
-  let tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(to).call();
-  let gainedAmount = tokenBalanceAfterMinting - tokenBalanceBeforeMinting;
-  let shortageAmount = amount - gainedAmount;
-  if(gainedAmount === amount){
-    res.send({
-      result: '[Success] All token minting have been processed successfully. Now the new target address has gained the expected token amount of '+amount,
-      success: true,
-      shortageAmount: shortageAmount
+    //Check success of minting by checking the total token balance of the target address
+    console.log('after sequentialRun() is completed...');
+    let tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(to).call();
+    let gainedAmount = tokenBalanceAfterMinting - tokenBalanceBeforeMinting;
+    let shortageAmount = amount - gainedAmount;
+    if (gainedAmount === amount) {
+        res.send({
+            result: '[Success] All token minting have been processed successfully. Now the new target address has gained the expected token amount of ' + amount,
+            success: true,
+            shortageAmount: shortageAmount
+        });
+    } else {
+        res.send({
+            result: '[Failed] Now the new target address has only gained ' + gainedAmount + ' new tokens, which needs additional ' + shortageAmount + ' tokens to fulfill the order. Please double check results before minting more.',
+            success: false,
+            shortageAmount: shortageAmount
+        });
+    }
+});
+
+/**get tokenId  */
+router.get('/HCAT721_AssetTokenContract/:tokenSymbol/:assetBookAddr', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let assetBookAddr = req.params.assetBookAddr;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_erc721address);
+            let contractAddr = DBresult[0].sc_erc721address;
+            let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+            let tokenId = await HCAT721_AssetToken.methods.balanceOf(assetBookAddr).call({ from: backendAddr });
+
+            res.send(tokenId);
+        }
+
     });
-  } else {
-    res.send({
-      result: '[Failed] Now the new target address has only gained '+gainedAmount+' new tokens, which needs additional '+shortageAmount+' tokens to fulfill the order. Please double check results before minting more.',
-      success: false,
-      shortageAmount: shortageAmount
+});
+
+
+/**get tokenId  */
+router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    let mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+        if (err) {
+            //console.log(err);
+            res.send({
+                err: err,
+                status: false
+            });
+        }
+        else {
+            console.log(DBresult[0].sc_erc721address);
+            let contractAddr = DBresult[0].sc_erc721address;
+            let HCAT721_AssetToken = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+            let tokenId = await HCAT721_AssetToken.methods.tokenId().call({ from: backendAddr });
+
+            res.send(tokenId);
+        }
+
     });
-  }
 });
 
 
