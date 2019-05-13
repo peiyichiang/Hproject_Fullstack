@@ -1592,7 +1592,7 @@
                             fundingType: fundingType
                         }, async function (result) {
                             console.log(result);
-                            if (result.result.status == true) {
+                            if (result.success == true) {
                                 console.log(i + 1 + "/" + assetBookAddrs.length + "has minted...");
                                 count++;
                             }
