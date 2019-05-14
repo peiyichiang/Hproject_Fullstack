@@ -52,17 +52,19 @@ router.get('/getAssetHistoryListBySymbol', function (req, res, next) {
 router.get('/getLatestAssetHistory', async function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let userEmailAddress = req.query.userEmailAddress
+    console.log(userEmailAddress)
 
     let queryString = `
     SELECT ar_tokenSYMBOL AS symbol,
            ar_Holding_Amount_in_the_end_of_Period AS holdingAmount, 
            ar_Accumulated_Income_Paid AS incomeTotal, 
            ar_User_Acquired_Cost AS acquiredCostTotal,
+           ar_investorEmail AS ar_investorEmail,
            ia_single_Actual_Income_Payment_in_the_Period AS incomeOfLatestPeriod,
            ia_Payable_Period_End AS payablePeriodEnd,
            p_name AS name,
            payablePeriodTotal
-    
+           
     FROM (
     SELECT ar_investorEmail AS userEmailAddress,
            ar_tokenSYMBOL AS symbol,
@@ -71,7 +73,7 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
     GROUP BY userEmailAddress,
              symbol
     ) AS T1
-
+    
     INNER JOIN htoken.investor_assetRecord AS T2
     ON T1.userEmailAddress = T2.ar_investorEmail AND 
        T1.symbol = T2.ar_tokenSYMBOL AND
@@ -91,6 +93,8 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
     GROUP BY ia_SYMBOL
     ) AS T5
     ON T1.symbol = T5.ia_SYMBOL
+    
+	WHERE ar_investorEmail = ?
     ;`
 
     const query = (queryString, keys) => {
@@ -114,17 +118,24 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
                     latestAssetHistoryByToken.acquiredCostTotal = returnNumberWithCommas(latestAssetHistoryByToken.acquiredCostTotal)
                     latestAssetHistoryByToken.incomeOfLatestPeriod = returnNumberWithCommas(latestAssetHistoryByToken.incomeOfLatestPeriod)
                 });
-            res.status(200);
-            res.json({
-                "message": "[Success] 我的資產取得成功！",
-                "result": latestAssetHistoryList
-            });
+            if (latestAssetHistoryList.length > 0) {
+                res.status(200);
+                res.json({
+                    "message": "[Success] 我的資產取得成功！",
+                    "result": latestAssetHistoryList
+                });
+            } else {
+                res.status(400);
+                res.json({
+                    "message": "[Error] 我的資產取得失敗: 找不到資產"
+                });
+            }
         })
         .catch((err) => {
             console.log(err);
             res.status(400);
             res.json({
-                "message": "[Error] 我的資產取得失敗:\n" + err
+                "message": "[Error] 我的資產取得失敗: " + err
             });
         })
 });

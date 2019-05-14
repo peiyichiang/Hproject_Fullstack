@@ -1581,55 +1581,48 @@
                     console.log(amounts);
                     console.log(amounts.length);
                     console.log("minting...");
-                    let count = 0;
+                    await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mintSequentialPerCtrt", {
+                        toAddressArray: assetBookAddrs.join(),
+                        erc721address: erc721address,
+                        amountArray: amounts.join(),
+                        price: price,
+                        fundingType: fundingType
+                    }, async function (result) {
+                        console.log(result);
+                        if (result.success == true) {
+                            $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
+                                erc721address: erc721address
+                            }, function (result) {
 
-                    for (let i = 0; i < assetBookAddrs.length; i++) {
-                        await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mintSequential", {
-                            assetBookAddr: assetBookAddrs[i],
-                            erc721address: erc721address,
-                            amount: amounts[i],
-                            price: price,
-                            fundingType: fundingType
-                        }, async function (result) {
-                            console.log(result);
-                            if (result.success == true) {
-                                console.log(i + 1 + "/" + assetBookAddrs.length + "has minted...");
-                                count++;
-                            }
+                                console.log("income:" + result);
+                                console.log("income:" + result.deployResult);
+                                if (result.status == true) {
+                                    $.post("http://localhost:3030/Contracts/productManagerContract/" + nftSymbol, {
+                                        erc721address: erc721address,
+                                        crowdFundingCtrtAddr: crowdFundingCtrtAddr,
+                                        tokenControllerCtrtAddr: tokenControllerCtrtAddr,
+                                        incomeManagementCtrtAddr: result.deployResult.contractAddress
+                                    }, function (result) {
 
-                        });
-                    }
-                    if (count == assetBookAddrs.length) {
-                        $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
-                            erc721address: erc721address
-                        }, function (result) {
+                                        console.log(result);
+                                        if (result.result.status == true) {
+                                            // 將產品狀態設置為FundingComplete
+                                            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                                                tokenState: State,
+                                                tokenSymbol: nftSymbol
+                                            }, function (result) {
+                                                console.log(result);
+                                                // 設置好後重新整理
+                                                location.reload();
+                                            })
+                                        }
+                                    });
+                                }
+                            });
+                        }
 
-                            console.log("income:" + result);
-                            console.log("income:" + result.deployResult);
-                            if (result.status == true) {
-                                $.post("http://localhost:3030/Contracts/productManagerContract/" + nftSymbol, {
-                                    erc721address: erc721address,
-                                    crowdFundingCtrtAddr: crowdFundingCtrtAddr,
-                                    tokenControllerCtrtAddr: tokenControllerCtrtAddr,
-                                    incomeManagementCtrtAddr: result.deployResult.contractAddress
-                                }, function (result) {
+                    })
 
-                                    console.log(result);
-                                    if (result.result.status == true) {
-                                        // 將產品狀態設置為FundingComplete
-                                        $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                                            tokenState: State,
-                                            tokenSymbol: nftSymbol
-                                        }, function (result) {
-                                            console.log(result);
-                                            // 設置好後重新整理
-                                            location.reload();
-                                        })
-                                    }
-                                });
-                            }
-                        });
-                    }
                 });
             });
         }

@@ -802,11 +802,15 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
 // http://localhost:3030/Contracts/ERC721SPLCContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
     console.log(`\n---------------------==\nAPI mintSequentialPerCtrt...`);
-    const toAddressArray = req.body.toAddressArray;
-    const amountArray = req.body.amountArray;
+    const toAddressArray = req.body.toAddressArray.split(",");
+    const amountArray = req.body.amountArray.split(",").map(function(item) {
+        return parseInt(item, 10);
+    });
     const contractAddr = req.body.erc721address;
     const fundingType = req.body.fundingType;
     const price = req.body.price;
+
+    console.log(toAddressArray);
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
