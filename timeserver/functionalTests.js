@@ -127,7 +127,23 @@ console.log(x.times(11).times(9).dividedBy(3));// 12441
 console.log('\nrounding test???');
 
 
+console.log('\n----------------==Test every()');
+checkItem =(item) =>  Number.isInteger(item);
+const amountArray = [1, 2, 3, 323, 679, 'dsd'];
+if(!amountArray.every(checkItem)){
+  console.log('amountArray has string');
+  //return;
+} else {
+  console.log('amountArray has all integers');
+}
 
+const amountArray2 = [1, 2, 3, 323, 679];
+if(!amountArray2.every(checkItem)){
+  console.log('amountArray has string');
+  //return;
+} else {
+  console.log('amountArray has all integers');
+}
 
 console.log('\n----------------==\nTest incomeFromHolidays calculation');
 period = 90; 
