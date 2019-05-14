@@ -105,6 +105,10 @@ const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
+    console.log("array:"+array);
+    console.log("index:"+index);
+    console.log(array[index]);
+
     await callback(array[index], index, array);
   }
 }
@@ -114,6 +118,10 @@ async function asyncForEachSuper(array, array2, callback) {
     return;
   }
   for (let index = 0; index < array.length; index++) {
+    console.log("array:"+array2);
+    console.log("index:"+index);
+    console.log(array2[index]);
+
     await callback(array[index], array2[index], index, array);
   }
 }
@@ -148,10 +156,10 @@ const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fun
   console.log('\ninside sequentialRunSuper()... going to get each toAddress...');
   const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-  checkItem =(item) => { Number.isInteger(item); }
+  /*checkItem =(item) => { Number.isInteger(item); }
   if(!amountArray.every(checkItem)){
     return;
-  }
+  }*/
 
   const maxMintAmountPerRun = 100;
   const timeIntervalOfNewBlocks = 13000;
@@ -165,7 +173,7 @@ const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fun
     subAmountArray.push(remainder);
     console.log('subAmountArray:', subAmountArray);
     await sequentialRun(subAmountArray, timeIntervalOfNewBlocks, 201905300000, ['mintTokenToEachAddr', contractAddr, toAddress, fundingType, price]);//timeCurrent 201905300000 is not important here
-    console.log('SequentialRunSuper/asyncForEachSuper() is paused for waiting', waitTime, 'miliseconds');
+    console.log('SequentialRunSuper/asyncForEachSuper() is paused for waiting', waitTimeSuper, 'miliseconds');
     await waitFor(waitTimeSuper);
   });
   console.log('\n--------------==Done sequentialRunSuper()');
@@ -235,7 +243,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         let toAddress = extraInputArray[2];
         let fundingType = extraInputArray[3];
         let price = extraInputArray[4];
-        mintToken(amountToMint, contractAddr, toAddress, fundingType, price);
+        await mintToken(amountToMint, contractAddr, toAddress, fundingType, price);
         // see the above function defined below...
 
       } else if(actionType === 'updateTimeOfOrders'){
