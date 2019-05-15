@@ -33,7 +33,7 @@ const TimeTokenUnlock = timeCurrent+20;
 const TimeTokenValid =  timeCurrent+90;
 const fundmanager = 'Company_FundManagerN';
 
-let Backend, AssetOwner1, AssetOwner2, acc3, acc4, management;
+let Backend, AssetOwner1, AssetOwner2, acc3, acc4, managementTeam;
 let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, Backendpk;
 let addrHelium, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
 let addrHCAT721, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
@@ -68,7 +68,7 @@ if (chain === 1) {//POA private chain
   acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
   acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
 
-  management = [Backend, AssetOwner1, AssetOwner2, acc3, acc4];
+  managementTeam = [Backend, AssetOwner1, AssetOwner2, acc3, acc4];
   /** deployed contracts
       yarn run deploy -c 1 -s 1 -cName db
       cName = helium, assetbook, registry, cf, tokc, hcat, db
@@ -233,6 +233,25 @@ let instAssetBook1, instAssetBook2, instAsset3, instAsset4;
 //--------------------==
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
+const TestCtrt = require('./build/TestCtrt.json');
+if (TestCtrt === undefined){
+  console.log('[Error] TestCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] TestCtrt is defined');
+  if (TestCtrt.abi === undefined){
+    console.log('[Error] TestCtrt.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] TestCtrt.abi is defined');
+      //console.log('TestCtrt.abi:', TestCtrt.abi);
+  }
+  if (TestCtrt.bytecode === undefined || TestCtrt.bytecode.length < 10){
+    console.log('[Error] TestCtrt.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] TestCtrt.bytecode is defined');
+      //console.log('TestCtrt.bytecode:', TestCtrt.bytecode);
+  }
+  //console.log(TestCtrt);
+}
 
 const Helium = require('./build/Helium.json');
 if (Helium === undefined){
@@ -252,26 +271,6 @@ if (Helium === undefined){
       //console.log('Helium.bytecode:', Helium.bytecode);
   }
   //console.log(Helium);
-}
-
-const MultiSig = require('./build/MultiSig.json');
-if (MultiSig === undefined){
-  console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-} else {
-  console.log('[Good] MultiSig is defined');
-  if (MultiSig.abi === undefined){
-    console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] MultiSig.abi is defined');
-      //console.log('MultiSig.abi:', MultiSig.abi);
-  }
-  if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
-    console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] MultiSig.bytecode is defined');
-      //console.log('MultiSig.bytecode:', MultiSig.bytecode);
-  }
-  //console.log(MultiSig);
 }
 
 const AssetBook = require('./build/AssetBook.json');
@@ -442,7 +441,7 @@ const deploy = async () => {
 
     if (ctrtName === 'helium') {
       //Deploying Helium contract...
-      const argsHelium = [management];
+      const argsHelium = [managementTeam];
       console.log('\nDeploying Helium contract...');
       instHelium =  await new web3.eth.Contract(Helium.abi)
       .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
@@ -462,6 +461,32 @@ const deploy = async () => {
       addrHelium = instHelium.options.address;
       console.log('addrHelium:', addrHelium);
       process.exit(0);
+
+
+      //yarn run deploy -c 1 -s 1 -cName db
+    } else if (ctrtName === 'testctrt') {
+      console.log('\nDeploying testCtrt contracts...');
+      const HCAT721SerialNumber = 2020;
+      const argsTestCtrt = [HCAT721SerialNumber, addrHelium];
+      instTestCtrt =  await new web3.eth.Contract(TestCtrt.abi)
+      .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
+      .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+
+      console.log('TestCtrt has been deployed');
+      if (instTestCtrt === undefined) {
+        console.log('[Error] instTestCtrt is NOT defined');
+        } else {console.log('[Good] instTestCtrt is defined');}
+      instTestCtrt.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      addrTestCtrt = instTestCtrt.options.address;
+      console.log('addrTestCtrt:', addrTestCtrt);
+      process.exit(0);
+
 
     } else if (ctrtName === 'multisig') {
       const argsMultiSig1 = [AssetOwner1, addrHelium];

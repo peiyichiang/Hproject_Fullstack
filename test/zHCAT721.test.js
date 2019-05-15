@@ -698,6 +698,7 @@ describe('Tests on HCAT721', () => {
     accountIdsAll = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
     console.log('HCAT accountIdsAll =', accountIdsAll);
 
+
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
     await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });

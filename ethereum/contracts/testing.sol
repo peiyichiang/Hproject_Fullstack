@@ -1,5 +1,30 @@
 pragma solidity ^0.5.4;
 //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c"
+import "./SafeMath.sol";
+
+interface HeliumITF{
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+}
+contract TestCtrt {
+    uint public HCAT721SerialNumber;
+    address public addrHelium;
+
+    constructor (uint _HCAT721SerialNumber, address _addrHelium) public {
+        HCAT721SerialNumber = _HCAT721SerialNumber;
+        addrHelium = _addrHelium;
+    }
+
+    modifier onlyPlatformSupervisor() {
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        _;
+    }
+    function setHCAT721SerialNumber(uint _hcatSerialNum) public onlyPlatformSupervisor{
+        HCAT721SerialNumber = _hcatSerialNum;
+    }
+    function setHCAT721SerialNumberNG(uint _hcatSerialNum) public {
+        HCAT721SerialNumber = _hcatSerialNum;
+    }
+}
 contract ERC721Testing {
     using SafeMath for uint256;
     

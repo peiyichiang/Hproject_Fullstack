@@ -98,16 +98,6 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
 
-    modifier onlyPlatformSupervisor() {
-        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
-        _;
-    }
-    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
-        addrHelium = _addrHelium;
-    }
-    function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
-    }
 
     function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
@@ -227,6 +217,17 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
     }
 
+    modifier onlyPlatformSupervisor() {
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        _;
+    }
+    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        addrHelium = _addrHelium;
+    }
+    function checkPlatformSupervisor() external view returns (bool){
+        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
+    }
     //Legal Compliance, also block address(0)
     //fundingType: 1 public crowdfunding, 2 private placement
     //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
