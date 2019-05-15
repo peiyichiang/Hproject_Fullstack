@@ -123,21 +123,21 @@ $ yarn run testts --c C
   3: set timeCurrent = CFSD
   4: set timeCurrent = CFED
 
-### 12. Run the app
-
+### 12. Test Income.js
 ```
-yarn run testic  ... to run the Income Manager tests
+yarn run testic
 ```
+to run the income.js tests
 
-### 12. Run the app
+### 17. Run the app
 
 ```
 yarn run start
 ```
-
 App will be opened in browser at `http://localhost:3000/`
+if you want to run it without timeserver, then comment out "require('./timeserver/timeserverSource');" inside /app.js
 
-### 13. Set to receive incoming time
+### 18. Set to receive incoming time
 ```
 Go to http://140.119.101.130:7000/
 Enter your current running IP:
@@ -146,7 +146,7 @@ portForIncomingTime has the value defined inside timeServer/manager.js
 
 ```
 
-### 14. Live Preview
+### 19. Live Preview
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin

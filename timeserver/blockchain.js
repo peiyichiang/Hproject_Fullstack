@@ -101,13 +101,77 @@ const getDetailsCFC = async (crowdFundingAddr) => {
   //console.log('fundingState', fundingState, 'CFSD2', CFSD2, 'CFED2', CFED2);
 }
 
-const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
 }
+async function asyncForEachSuper(array, array2, callback) {
+  if(array.length !== array2.length){
+    console.log('[Error] array and array1 should be of the same length');
+    return;
+  }
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], array2[index], index, array);
+  }
+}
+
+const sequentialRunSuperCheck = async (toAddressArray, amountArray, contractAddr) => {
+  console.log('\ninside sequentialRunSuperCheck()... going to get each toAddress...');
+  const waitTimeSuperCheck = 1000;
+  //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
+  const checkItem =(item) => { Number.isInteger(item); }
+  if(!amountArray.every(checkItem)){
+    return;
+  }
+
+  const balanceArray = [];
+  let tokenBalanceAfterMinting;
+  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+  await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
+    console.log(`\n--------------==next: ${toAddress} should have ${amountStr} tokens`);
+    tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(toAddress).call();
+    if(parseInt(amountStr) === tokenBalanceAfterMinting){
+      balanceArray.push(true);
+    }
+    //console.log('SequentialRunSuperCheck/asyncForEachSuper() is paused for waiting', waitTimeSuperCheck, 'miliseconds');
+    await waitFor(waitTimeSuperCheck);
+  });
+  console.log('\n--------------==Done SequentialRunSuperCheck()');
+  console.log('[Completed] All of the investor list has been cycled through');
+  return balanceArray;
+}
+
+const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fundingType, price) => {
+  console.log('\ninside sequentialRunSuper()... going to get each toAddress...');
+  const waitTimeSuper = 13000;
+  //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
+  checkItem =(item) => { Number.isInteger(item); }
+  if(!amountArray.every(checkItem)){
+    return;
+  }
+
+  const maxMintAmountPerRun = 100;
+  const timeIntervalOfNewBlocks = 13000;
+  await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
+    console.log(`\n--------------==next: ${toAddress} is minted ${amountStr} tokens`);
+    const amount = parseInt(amountStr);
+    const quotient = Math.floor(amount / maxMintAmountPerRun);
+    const remainder = amount - maxMintAmountPerRun * quotient;
+
+    const subAmountArray = Array(quotient).fill(maxMintAmountPerRun);
+    subAmountArray.push(remainder);
+    console.log('subAmountArray:', subAmountArray);
+    await sequentialRun(subAmountArray, timeIntervalOfNewBlocks, 201905300000, ['mintTokenToEachAddr', contractAddr, toAddress, fundingType, price]);//timeCurrent 201905300000 is not important here
+    console.log('SequentialRunSuper/asyncForEachSuper() is paused for waiting', waitTime, 'miliseconds');
+    await waitFor(waitTimeSuper);
+  });
+  console.log('\n--------------==Done sequentialRunSuper()');
+  console.log('[Completed] All of the investor list has been cycled through');
+}
+
 
 const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputArray) => {
   //console.log('\ninside sequentialRun()... going to get each symbol...');
@@ -138,9 +202,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       sqlColumn = 'sc_incomeManagementaddress';
       break;
     case 'updateTimeOfOrders':
-      sqlColumn = '';
-      break;
-    case 'mintToken':
+    case 'mintTokenToEachAddr':
       sqlColumn = '';
       break;
     default:
@@ -154,27 +216,27 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       symbol = item.p_SYMBOL;
     } else if(item.hasOwnProperty('ia_SYMBOL')){
       symbol = item.ia_SYMBOL;
-    } else if(actionType === 'mintToken' && Number.isInteger(item) && extraInputArray.length === 5){
-      symbol = 'Backend_mintToken';
-      //console.log('item is an integer => mintToken mode');
+    } else if(actionType === 'mintTokenToEachAddr' && Number.isInteger(item) && extraInputArray.length === 5){
+      symbol = 'Backend_mintTokenToEachAddr';
+      //console.log('item is an integer => mintTokenToEachAddr mode');
     } else if(actionType === 'updateTimeOfOrders'){
       symbol = 'Backend_updateTime';
     }
-    //console.log('\n--------------==next symbol:', symbol);
+
+    console.log('\n--------------==next symbol:', symbol);
     if (symbol === undefined || symbol === null || symbol.length < 8){
-      //console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
+      console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
 
     } else {
 
-      if(actionType === 'mintToken') {
-        // const amountToMint = item;
-        // const contractAddr = extraInputArray[1];
-        // let to = extraInputArray[2];
-        // let fundingType = extraInputArray[3];
-        // let price = extraInputArray[4];
-        mintToken(item, extraInputArray[1], extraInputArray[2], extraInputArray[3], extraInputArray[4]);
-        // see this function defined below...
-        // mintToken(amountToMint, contractAddr, to, fundingType, price);
+      if(actionType === 'mintTokenToEachAddr') {
+        const amountToMint = item;
+        const contractAddr = extraInputArray[1];
+        let toAddress = extraInputArray[2];
+        let fundingType = extraInputArray[3];
+        let price = extraInputArray[4];
+        mintToken(amountToMint, contractAddr, toAddress, fundingType, price);
+        // see the above function defined below...
 
       } else if(actionType === 'updateTimeOfOrders'){
         const oid = item.o_id;
@@ -223,7 +285,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         });
       }
     }
-    //console.log('main tread is paused for waiting', waitTime, 'miliseconds');
+    //console.log('SequentialRun/asyncForEach() is paused for waiting', waitTime, 'miliseconds');
     await waitFor(waitTime);
   });
   //console.log('\n--------------==Done');
@@ -237,7 +299,7 @@ const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => 
     const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
     let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-    //console.log('TxResult', TxResult);
+    console.log('TxResult', TxResult);
   });
 }
 
@@ -490,7 +552,7 @@ function print(s) {
 }
 
 module.exports = {
-  updateTimeOfOrders, getDetailsCFC, sequentialRun,
+  updateTimeOfOrders, getDetailsCFC, sequentialRun, sequentialRunSuper, sequentialRunSuperCheck,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC
