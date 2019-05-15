@@ -3,6 +3,7 @@ const moment = require('moment');
 const BigNumber = require('bignumber.js');
 
 const { mysqlPoolQuery, addTxnInfoRow, addTxnInfoRowFromObj } = require('./mysql');
+const { sequentialRunSuper } = require('./blockchain.js');
 
 let choice, txnInfoRow, txnInfoObj;
 // yarn run testfn -c C
@@ -126,7 +127,7 @@ console.log(x.times(11).times(9).dividedBy(3));// 12441
 
 console.log('\nrounding test???');
 
-
+/*
 console.log('\n----------------==Test every()');
 checkItem =(item) =>  Number.isInteger(item);
 const amountArray = [1, 2, 3, 323, 679, 'dsd'];
@@ -143,7 +144,7 @@ if(!amountArray2.every(checkItem)){
   //return;
 } else {
   console.log('amountArray has all integers');
-}
+}*/
 
 console.log('\n----------------==\nTest incomeFromHolidays calculation');
 period = 90; 
@@ -236,6 +237,17 @@ const sequentialRun = async (arrayInput, waitTime) => {
   process.exit(0);
 }
 
+const sequentialRunSuperFn = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price) => {
+  const [isFailed, balanceArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+    console.log('[Error @ sequentialRunSuper]', err);
+    // res.send({
+    //   success: false,
+    //   result: '[Failed @ sequentialRunSuper()], err:'+err,
+    // });
+    return;
+  });
+  console.log('isFailed', isFailed, 'balanceArray', balanceArray);
+}
 
 //-----------------------------==
 const symbolArray= ['AAAB1902', 'AAAC1903'];
@@ -249,6 +261,7 @@ if(holdingDaysArray.length !== txTimeArray.length){
   return;
 }
 if(choice < 9){
+  //yarn run testfn -c 0
   //args = ["nonArray", symbol, addrAssetbook ];
   console.log('\n---------------------==\nto calculate income: symbol=', symbolArray[choice], ', assetbook=', assetbookArray[choice]);
   const args = ["nonArray", symbolArray[choice], assetbookArray[choice]];
@@ -265,7 +278,28 @@ if(choice < 9){
   holdingDays= ; txTime= ; balanceOffromassetbook= ;
   await addTxnInfoRowSection(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook);
   */
+} else if(choice === 11){
+  //yarn run testfn -c 11
+  console.log('\n---------------------==\nsequentialRunSuper()');
+  //copied from zdeploy.js
+  Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+  BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
+  //Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
+  //BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
+  AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
+  AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
+  AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
+  AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
+  acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
+  acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
 
+  const toAddressArray =[AssetOwner1, AssetOwner2];
+  const amountArray = [136, 112];//236, 312
+  const tokenCtrtAddr = '0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0';
+  const fundingType = 1;//PO: 1, PP: 2
+  const price = 20000;
+
+  sequentialRunSuperFn(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price);
 }
 
 /*=> make income tables

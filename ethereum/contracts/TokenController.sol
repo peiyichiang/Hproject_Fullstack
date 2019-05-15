@@ -11,7 +11,7 @@ contract TokenController {
     uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
     bool public isLockedForRelease;// true or false: check if the token is locked for release
     bool public isTokenApproved;// true or false: check if the token is active
-    address public HeliumAddr;
+    address public addrHelium;
 
     // check if the tokenState is in one of the following states: inInitialLockUpPeriod, normal, or expired
     enum TokenState{inInitialLockUpPeriod, normal, expired}
@@ -19,13 +19,13 @@ contract TokenController {
 
     // 201902190900, 201902190901, 201902190902, 201902191745
     constructor(uint _timeCurrent, 
-      uint _TimeUnlock, uint _TimeValid, address _HeliumAddr) public {
+      uint _TimeUnlock, uint _TimeValid, address _addrHelium) public {
         TimeAtDeployment = _timeCurrent;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
         tokenState = TokenState.inInitialLockUpPeriod;
         isTokenApproved = true;
-        HeliumAddr = _HeliumAddr;
+        addrHelium = _addrHelium;
     }
 
     modifier ckTime(uint _time) {
@@ -34,14 +34,14 @@ contract TokenController {
     }
 
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         _;
     }
-    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
-        HeliumAddr = _HeliumAddr;
+    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
+        addrHelium = _addrHelium;
     }
     function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
+        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
     function isTokenApprovedOperational() external view returns (bool){

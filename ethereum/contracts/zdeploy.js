@@ -1,10 +1,9 @@
 /**
-```
-yarn run deploy --c 1  -n 1 -cName db
-```
 chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
-
-cName = platform, assetbook, registry, tokc, hcat, cf, db
+*/
+/** deployed contracts
+    yarn run deploy -c 1 -s 1 -cName db
+    cName = helium, assetbook, registry, cf, tokc, hcat, db
 */
 
 const Web3 = require('web3');
@@ -16,15 +15,14 @@ console.log('process.argv', process.argv);
 if (process.argv.length < 8) {
   console.log('not enough arguments. Make it like: yarn run deploy -n 1 --chain 1 --cName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('cName = platform, assetbook, registry, tokc, hcat, cf, db');
+  console.log('cName = helium, assetbook, registry, tokc, hcat, cf, db');
   process.exit(1);
 }
 const chain = parseInt(process.argv[3]);//0;
 const symNum = parseInt(process.argv[5]);
 const ctrtName = process.argv[7];//'assetbook';
 
-let nftSymbol, nftName, location, maxTotalSupply, siteSizeInKW, initialAssetPricing,
- IRR20yrx100, duration, quantityGoal;
+let nftSymbol, nftName, location, maxTotalSupply, siteSizeInKW, initialAssetPricing, IRR20yrx100, duration, quantityGoal;
 
 //To be copied to timeserverTest.js
 const timeCurrent = 201905170000;
@@ -34,16 +32,10 @@ const TimeReleaseDate = timeCurrent+10;
 const TimeTokenUnlock = timeCurrent+20; 
 const TimeTokenValid =  timeCurrent+90;
 const fundmanager = 'Company_FundManagerN';
-const pricingCurrency = "NTD";
 
-const _tokenPrice = initialAssetPricing;
-const _currency = pricingCurrency;
-const _quantityMax = maxTotalSupply;
-let _serverTime = timeCurrent;
-
-let Backend, AssetOwner1, AssetOwner2, acc3, acc4;
+let Backend, AssetOwner1, AssetOwner2, acc3, acc4, management;
 let BackendpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, Backendpk;
-let addrPlatform, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
+let addrHelium, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
 let addrHCAT721, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
 console.log('chain = ', chain, ', ctrtName =', ctrtName, ', timeCurrent =', timeCurrent);
 
@@ -65,7 +57,6 @@ if (chain === 1) {//POA private chain
 
   m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
    */
-  tokenURI = nftSymbol+"/uri";
   Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
   BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
   //Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
@@ -77,41 +68,48 @@ if (chain === 1) {//POA private chain
   acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
   acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
 
+  management = [Backend, AssetOwner1, AssetOwner2, acc3, acc4];
   /** deployed contracts
-      yarn run deploy --c 1  -n 1 -cName db
-      cName = platform, assetbook, registry, cf, tokc, hcat, db
+      yarn run deploy -c 1 -s 1 -cName db
+      cName = helium, assetbook, registry, cf, tokc, hcat, db
    */
-  addrPlatform =   "0xC0b1e784eF5C102BF11556a3064c2a8a4Cf0B9db";
-  addrAssetBook1 = "0xEe82A287dA8b0049deC3D39bc1b935b02c38Ad28";
-  addrAssetBook2 = "0x9b16562F28b302276292b3b7850c0c380b9B4D2E";
-  addrRegistry =   "0x5d9E15A583e3638332AC9E3982827fE42547534f";
+  addrHelium = "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7";
+  addrAssetBook1 = "0x10C2E71CE92d637E6dc30BC1d252441A2E0865B0";
+  addrAssetBook2 = "0xe1A64597056f5bf55268dF75F251e546879da89c";
+  addrRegistry =   "0xe86976cEd3bb9C924235B904F43b829E4A32fa0d";
 
-
-  function symbolObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, IRR20yrx100, duration, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+  //fundingType= 1 PO, 2 PP
+  function symbolObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
     this.nftSymbol = nftSymbol;
     this.maxTotalSupply = maxTotalSupply;
     this.quantityGoal = Math.round(maxTotalSupply*0.95);
     this.siteSizeInKW = siteSizeInKW;
     this.initialAssetPricing = initialAssetPricing;
+    this.pricingCurrency = pricingCurrency;
+    this.fundingType = fundingType;
     this.IRR20yrx100 = IRR20yrx100;
     this.duration = duration;
     this.nftName = nftSymbol+" site No.n(2019)";
     this.location = nftSymbol.substr(0, nftSymbol.length-4);
+    this.timeOfDeployment = timeOfDeployment;
     this.addrCrowdFunding = addrCrowdFunding;
     this.addrTokenController = addrTokenController;
     this.addrHCAT721 = addrHCAT721;
     this.addrIncomeManager = addrIncomeManager;
   }
-  const symbolObj0 = new symbolObject("AKOS1901", "", "", 973, 0, 300, 18000, 470, 20, "0x2ca5B13A94AAb64b2302F53bB6d15DAE31D26E8D", "0x62092A989e72e61467F2DD52de6675F5B052C899", "0xD08F9CFcD5c57356A8D9eAe6a542906ea43649AB", "");
-  const symbolObj1 = new symbolObject("ARRR1901", "", "", 973, 0, 300, 18000, 470, 20, "0xfC03EBedc573DB572DeF77E3638c6042a5Ed3481", "0x66cd2bb2B13C31BAbA299DFf07Bd0912C6Ae466E", "0x21022926f2FE0850b6Ac1172167e7e6519f653f6", "");
-  const symbolObj2 = new symbolObject("ATTT1901", "", "", 1073, 0, 400, 19000, 490, 20, "0x9e8035e07767fE7de84adF5D362d8ccB53559960", "0x0BBd1A47ff1a2E9946803a66eAda4f235BaC2C23", "0x2Ec126C78ae895E26ce69F90759565c5DdB59d14", "");
+  /** deployed contracts
+      yarn run deploy -c 1 -s 1 -cName db
+      cName = helium, assetbook, registry, cf, tokc, hcat, db
+   */
+  //addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
+  const symbolObj0 = new symbolObject("AAOS1901", "", "", 973, 0, 300, 18000, "NTD", 470, 20, 201905150000, 1, "0x677835e97c4Dc35cc1D9eCd737Cc6Fc1380e1bDD", "0xF8Bbc068b325Fe7DA1Ef9bE8f69de38CB7299D10", "0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0", "");
+  const symbolObj1 = new symbolObject("ABOS1901", "", "", 2073, 0, 300, 19000, "NTD", 470, 20, 201905150000, 1, "", "", "", "");
+  const symbolObj2 = new symbolObject("ACOS1901", "", "", 5073, 0, 400, 20000, "NTD", 490, 20, 201905150000, 1, "", "", "", "");
   
   const symObjArray = [symbolObj0, symbolObj1, symbolObj2];
-  //const symObjArrayLen = symObjArray.length;
   const symArray = [];
   const crowdFundingAddrArray= [];
   const tokenControllerAddrArray= [];
-  //for(let i=0; i<symObjArrayLen; i++){
   
   symObjArray.forEach( (obj) => {
     symArray.push(obj.nftSymbol);
@@ -129,6 +127,30 @@ if (chain === 1) {//POA private chain
   const TimeTokenValid =  timeCurrent+90;
   const fundmanager = 'Company_FundManagerN';
   const pricingCurrency = "NTD";`);
+
+  /** deployed contracts
+      yarn run deploy -c 1 -n 1 -cName db
+      cName = helium, assetbook, registry, tokc, hcat, cf, db
+  */
+  nftSymbol = symObjArray[symNum].nftSymbol;
+  maxTotalSupply = symObjArray[symNum].maxTotalSupply;
+  quantityGoal = symObjArray[symNum].quantityGoal;
+  siteSizeInKW = symObjArray[symNum].siteSizeInKW;
+  initialAssetPricing = symObjArray[symNum].initialAssetPricing;
+  pricingCurrency = symObjArray[symNum].pricingCurrency;
+  IRR20yrx100 = symObjArray[symNum].IRR20yrx100;
+  duration = symObjArray[symNum].duration;
+  nftName = symObjArray[symNum].nftName;
+  location = symObjArray[symNum].location;
+  timeOfDeployment = symObjArray[symNum].timeOfDeployment;
+  fundingType = symObjArray[symNum].fundingType;
+  addrCrowdFunding = symObjArray[symNum].addrCrowdFunding;
+  addrTokenController = symObjArray[symNum].addrTokenController;
+  addrHCAT721 = symObjArray[symNum].addrHCAT721;
+  addrIncomeManager = symObjArray[symNum].addrIncomeManager;
+
+  tokenURI = nftSymbol+"/uri";
+
   console.log(`
   const timeCurrent = ${timeCurrent};
   const CFSD2 = ${CFSD2};
@@ -138,36 +160,18 @@ if (chain === 1) {//POA private chain
   const TimeTokenValid =  ${TimeTokenValid};
   const fundmanager = '${fundmanager}';
   const pricingCurrency = '${pricingCurrency}';`);
-  return;
-  /** deployed contracts
-      yarn run deploy --c 1  -n 1 -cName db
-      cName = platform, assetbook, registry, tokc, hcat, cf, db
-   */
-  nftSymbol = symObjArray[symNum].nftSymbol;
-  maxTotalSupply = symObjArray[symNum].maxTotalSupply;
-  quantityGoal = symObjArray[symNum].quantityGoal;
-  siteSizeInKW = symObjArray[symNum].siteSizeInKW;
-  initialAssetPricing = symObjArray[symNum].initialAssetPricing;
-  IRR20yrx100 = symObjArray[symNum].IRR20yrx100;
-  duration = symObjArray[symNum].duration;
-  nftName = symObjArray[symNum].nftName;
-  location = symObjArray[symNum].location;
-  addrCrowdFunding = symObjArray[symNum].addrCrowdFunding;
-  addrTokenController = symObjArray[symNum].addrTokenController;
-  addrHCAT721 = symObjArray[symNum].addrHCAT721;
-  addrIncomeManager = symObjArray[symNum].addrIncomeManager;
 
   console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
 
-  // addrPlatform =   "";
   // addrAssetBook1 = "";
   // addrAssetBook2 = "";
   // addrRegistry =   "";
 
+  // addrCrowdFunding = "";
   // addrTokenController = "";
   // addrHCAT721 = "";
-  // addrCrowdFunding = "";
   // addrIncomeManager = "";
+
   // addrProductManager = "";  
 
 
@@ -217,7 +221,6 @@ if (chain === 1) {//POA private chain
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
 let instRegistry, instTokenController, instHCAT721, instCrowdFunding,  instIncomeManager, instProductManager;
-let management, platformCtAdmin;
 let balance0, balance1, balance2;
 
 //const rate = new BigNumber('1e22').mul(value);
@@ -231,24 +234,24 @@ let instAssetBook1, instAssetBook2, instAsset3, instAsset4;
 console.log('Load contract json file compiled from sol file');
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 
-const Platform = require('./build/Platform.json');
-if (Platform === undefined){
-  console.log('[Error] Platform is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const Helium = require('./build/Helium.json');
+if (Helium === undefined){
+  console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] Platform is defined');
-  if (Platform.abi === undefined){
-    console.log('[Error] Platform.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] Helium is defined');
+  if (Helium.abi === undefined){
+    console.log('[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Platform.abi is defined');
-      //console.log('Platform.abi:', Platform.abi);
+    console.log('[Good] Helium.abi is defined');
+      //console.log('Helium.abi:', Helium.abi);
   }
-  if (Platform.bytecode === undefined || Platform.bytecode.length < 10){
-    console.log('[Error] Platform.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (Helium.bytecode === undefined || Helium.bytecode.length < 10){
+    console.log('[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Platform.bytecode is defined');
-      //console.log('Platform.bytecode:', Platform.bytecode);
+    console.log('[Good] Helium.bytecode is defined');
+      //console.log('Helium.bytecode:', Helium.bytecode);
   }
-  //console.log(Platform);
+  //console.log(Helium);
 }
 
 const MultiSig = require('./build/MultiSig.json');
@@ -419,13 +422,11 @@ if (ProductManager === undefined){
 const deploy = async () => {
     console.log('\n--------==To deploy');
 
-    management = [Backend, AssetOwner1, AssetOwner2, acc3, acc4];
     console.log('Backend', Backend);
     console.log('AssetOwner1', AssetOwner1);
     console.log('AssetOwner2', AssetOwner2);
     console.log('acc3', acc3);
     console.log('acc4', acc4);
-    console.log('management', management);
 
     if (2===1) {
         balance0 = await web3.eth.getBalance(Backend);//returns strings!
@@ -439,13 +440,12 @@ const deploy = async () => {
     console.log('\nDeploying contracts...');
     //JSON.parse() is not needed because the abi and bytecode are already objects
 
-    if (ctrtName === 'platform') {
-      //Deploying Platform contract...
-      platformCtAdmin = Backend;
-      const argsPlatform = [platformCtAdmin, management];
-      console.log('\nDeploying Platform contract...');
-      instPlatform =  await new web3.eth.Contract(Platform.abi)
-      .deploy({ data: prefix+Platform.bytecode, arguments: argsPlatform })
+    if (ctrtName === 'helium') {
+      //Deploying Helium contract...
+      const argsHelium = [management];
+      console.log('\nDeploying Helium contract...');
+      instHelium =  await new web3.eth.Contract(Helium.abi)
+      .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
       .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
@@ -454,18 +454,18 @@ const deploy = async () => {
           console.log('error:', error.toString());
       });
 
-      console.log('Platform.sol has been deployed');
-      if (instPlatform === undefined) {
-        console.log('[Error] instPlatform is NOT defined');
-        } else {console.log('[Good] instPlatform is defined');}
-      instPlatform.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      addrPlatform = instPlatform.options.address;
-      console.log('addrPlatform:', addrPlatform);
+      console.log('Helium.sol has been deployed');
+      if (instHelium === undefined) {
+        console.log('[Error] instHelium is NOT defined');
+        } else {console.log('[Good] instHelium is defined');}
+      instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      addrHelium = instHelium.options.address;
+      console.log('addrHelium:', addrHelium);
+      process.exit(0);
 
     } else if (ctrtName === 'multisig') {
-
-      const argsMultiSig1 = [AssetOwner1, addrPlatform];
-      const argsMultiSig2 = [AssetOwner2, addrPlatform];
+      const argsMultiSig1 = [AssetOwner1, addrHelium];
+      const argsMultiSig2 = [AssetOwner2, addrHelium];
 
       console.log('\nDeploying multiSig contracts...');
       instMultiSig1 =  await new web3.eth.Contract(MultiSig.abi)
@@ -506,14 +506,12 @@ const deploy = async () => {
 
       console.log('addrMultiSig1:', addrMultiSig1);
       console.log('addrMultiSig2:', addrMultiSig2);
+      process.exit(0);
 
 
   } else if (ctrtName === 'assetbook') {
-    // addrMultiSig1 = '0xAF5065cD6A1cCe522D8ce712A5C7C52682740565';
-    // addrMultiSig2 = '0xc993fD11a829d96015Cea876D46ac67B5aADCAF1';
-    // addrPlatform = '0x9AC39FFC9de438F52DD3232ee07e95c5CDeDd4F9';
-    argsAssetBook1 = [ AssetOwner1, addrPlatform];
-    argsAssetBook2 = [ AssetOwner2, addrPlatform];
+    argsAssetBook1 = [ AssetOwner1, addrHelium];
+    argsAssetBook2 = [ AssetOwner2, addrHelium];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
@@ -553,12 +551,12 @@ const deploy = async () => {
 
     console.log('addrAssetBook1:', addrAssetBook1);
     console.log('addrAssetBook2:', addrAssetBook2);
-    //*/
+    process.exit(0);
 
   } else if (ctrtName === 'registry') {
     //Deploying Registry contract...
     console.log('\nDeploying Registry contract...');
-    const argsRegistry = [management];
+    const argsRegistry = [addrHelium];
     instRegistry =  await new web3.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
@@ -576,12 +574,13 @@ const deploy = async () => {
     instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrRegistry = instRegistry.options.address;
     console.log('addrRegistry:', addrRegistry);
+    process.exit(0);
 
   } else if (ctrtName === 'tokc') {
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      timeCurrent, TimeTokenUnlock, TimeTokenValid, management ];
+      timeCurrent, TimeTokenUnlock, TimeTokenValid, addrHelium ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
@@ -601,7 +600,7 @@ const deploy = async () => {
     instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrTokenController = instTokenController.options.address;
     console.log('addrTokenController:', addrTokenController);
-
+    process.exit(0);
 
   } else if (ctrtName === 'hcat') {
     //Deploying HCAT721 contract...
@@ -619,7 +618,7 @@ const deploy = async () => {
     const argsHCAT721 = [
     nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, addrTokenController, tokenURI_bytes32];
+    addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium];
     // string memory _nftName, string memory _nftSymbol, 
     // uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
     // string memory _pricingCurrency, uint _IRR20yrx100,
@@ -650,9 +649,32 @@ const deploy = async () => {
     value: web3.utils.toWei('10','ether')
     */
 
+    //-------------------==
+    console.log('\nto add product row into DB');
+    addProductRow(nftSymbol, nftSymbol, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
+    
+    console.log('\nto add smart contract row into DB');
+    addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
+ 
+    console.log('\naddrCrowdFunding:', addrCrowdFunding);
+    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
+    process.exit(0);
+
+  } else if (ctrtName === 'db') {
+
+    console.log('\nto add product row into DB');
+    addProductRow(nftSymbol, nftSymbol, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
+    
+    console.log('\nto add smart contract row into DB');
+    addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
+ 
+    console.log('\nsymNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
+
+    process.exit(0);
+
   } else if (ctrtName === 'cf') {
    console.log('\nDeploying CrowdFunding contract...');
-   const argsCrowdFunding = [nftSymbol, _tokenPrice, _currency, _quantityMax, quantityGoal, CFSD2, CFED2, _serverTime, management];
+   const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeOfDeployment, addrHelium];
    instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
     .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
@@ -675,31 +697,9 @@ const deploy = async () => {
     console.log('addrCrowdFunding:', addrCrowdFunding);
 
 
-    //-------------------==
-    console.log('\nto add product row into DB');
-    addProductRow(nftSymbol, nftSymbol, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
-    
-    console.log('\nto add smart contract row into DB');
-    addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
- 
-    console.log('\naddrCrowdFunding:', addrCrowdFunding);
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-
-  } else if (ctrtName === 'db') {
-
-    console.log('\nto add product row into DB');
-    addProductRow(nftSymbol, nftSymbol, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
-    
-    console.log('\nto add smart contract row into DB');
-    addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
- 
-    console.log('\nsymNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-
-
   /*
   } else if (ctrtName === 'incomemanagement') {
-    const addrTokenCtrt = addrHCAT721;
-    const argsIncomeManagement =[TimeAnchor, addrTokenCtrt, addrPA_Ctrt, addrFMXA_Ctrt, addrPlatformCtrt];
+    const argsIncomeManagement =[addrHCAT721, addrHeliumCtrt];
 
     instIncomeManager = await new web3.eth.Contract(IncomeManagement.abi)
     .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
@@ -721,8 +721,10 @@ const deploy = async () => {
 
 
   } else if (ctrtName === 'productmanager') {
+    const argsProductManager =[addrHCAT721, addrHeliumCtrt];
+
     instProductManager = await new web3.eth.Contract(ProductManager.abi)
-    .deploy({ data: ProductManager.bytecode })
+    .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
     .send({ from: Backend, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
@@ -740,12 +742,9 @@ const deploy = async () => {
     console.log('addrProductManager:', addrProductManager);
     */
 
-    // addrPA_Ctrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
-    // addrFMXA_Ctrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
-    // addrPlatformCtrt = "0xd0F1163434C7b9FF10C093c3c4138E6e691FADb4";
   } else {
     console.log('ctrtName is not found');
-    process.exit(1);
+    process.exit(0);
   }
 
 

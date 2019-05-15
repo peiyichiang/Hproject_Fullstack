@@ -4,7 +4,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const timer = require('../timeserver/api.js')
 const router = express.Router();
-const { sequentialRunSuper, sequentialRunSuperCheck } = require('../timeserver/blockchain.js');
+const { sequentialRunSuper } = require('../timeserver/blockchain.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -806,8 +806,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const amountArray = req.body.amountArray.split(",").map(function(item) {
         return parseInt(item, 10);
     });
-    const contractAddr = req.body.erc721address;
-    const fundingType = req.body.fundingType;
+    const tokenCtrtAddr = req.body.erc721address;
+    const fundingType = req.body.fundingType;//PO: 1, PP: 2
     const price = req.body.price;
 
     console.log(toAddressArray);
@@ -815,7 +815,14 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const isFailed = await sequentialRunSuper(toAddressArray, amountArray, contractAddr, fundingType, price);
+    const [isFailed, balanceArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+      console.log('[Error @ sequentialRunSuper]', err);
+      res.send({
+        success: false,
+        result: '[Failed @ sequentialRunSuper()], err:'+err,
+      });
+      return;
+    });
 
     if (isFailed) {
       res.send({

@@ -101,31 +101,33 @@ const getDetailsCFC = async (crowdFundingAddr) => {
   console.log('fundingState', fundingState, 'CFSD2', CFSD2, 'CFED2', CFED2);
 }
 
+
+//-------------------------==
 const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
-async function asyncForEach(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    console.log("array:"+array);
-    console.log("index:"+index);
-    console.log(array[index]);
-    await callback(array[index], index, array);
+async function asyncForEachBasic(arrayBasic, callback) {
+  for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
+    console.log("arrayBasic:"+arrayBasic);
+    console.log("idxBasic:"+idxBasic);
+    console.log(arrayBasic[idxBasic]);
+    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
   }
 }
-async function asyncForEachSuper(array, array2, callback) {
-  if(array.length === array2.length){
-    for (let index = 0; index < array.length; index++) {
-      console.log("array:"+array2);
-      console.log("index:"+index);
-      console.log(array2[index]);
-      await callback(array[index], array2[index], index, array);
+async function asyncForEachSuper(array1, array2, callback) {
+  if(array1.length === array2.length){
+    for (let idxSuper = 0; idxSuper < array1.length; idxSuper++) {
+      console.log("array1:"+array2);
+      console.log("idxSuper:"+idxSuper);
+      console.log(array2[idxSuper]);
+      await callback(array1[idxSuper], array2[idxSuper], idxSuper, array1);
     }
   } else {
-    console.log('[Error] array and array1 should be of the same length');
+    console.log('[Error] array1 and array2 should be of the same length');
   }
 }
 
-const sequentialRunSuperCheck = async (toAddressArray, amountArray, contractAddr) => {
-  return new Promise((resolve, reject) => {
+const sequentialRunSuperCheck = async (toAddressArray, amountArray, tokenCtrtAddr) => {
+  return new Promise(async (resolve, reject) => {
     console.log('\ninside sequentialRunSuperCheck()... going to get each toAddress...');
     const waitTimeSuperCheck = 1000;
     //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
@@ -136,7 +138,7 @@ const sequentialRunSuperCheck = async (toAddressArray, amountArray, contractAddr
 
     const balanceArray = [];
     let tokenBalanceAfterMinting;
-    const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+    const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, tokenCtrtAddr);
     await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
       console.log(`\n--------------==next: ${toAddress} should have ${amountStr} tokens`);
       tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(toAddress).call();
@@ -152,9 +154,10 @@ const sequentialRunSuperCheck = async (toAddressArray, amountArray, contractAddr
   });
 }
 
-const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fundingType, price) => {
-  return new Promise((resolve, reject) => {
-    console.log('\ninside sequentialRunSuper()... going to get each toAddress...');
+
+const sequentialRunSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n----------------------==inside sequentialRunSuper()... going to get each toAddress...');
     const waitTimeSuper = 13000;
     //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
     checkItem =(item) => Number.isInteger(item);
@@ -165,7 +168,7 @@ const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fun
     const maxMintAmountPerRun = 100;
     const timeIntervalOfNewBlocks = 13000;
     await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
-      console.log(`\n--------------==next: ${toAddress} is minted ${amountStr} tokens`);
+      console.log(`\n--------------==[asyncForEachSuper] next: minting to ${toAddress} ${amountStr} tokens`);
       const amount = parseInt(amountStr);
       const quotient = Math.floor(amount / maxMintAmountPerRun);
       const remainder = amount - maxMintAmountPerRun * quotient;
@@ -173,23 +176,23 @@ const sequentialRunSuper = async (toAddressArray, amountArray, contractAddr, fun
       const subAmountArray = Array(quotient).fill(maxMintAmountPerRun);
       subAmountArray.push(remainder);
       console.log('subAmountArray:', subAmountArray);
-      await sequentialRun(subAmountArray, timeIntervalOfNewBlocks, 201905300000, ['mintTokenToEachAddr', contractAddr, toAddress, fundingType, price]);//timeCurrent 201905300000 is not important here
+      await sequentialRun(subAmountArray, timeIntervalOfNewBlocks, 201905300000, ['mintTokenToEachBatch', tokenCtrtAddr, toAddress, fundingType, price]);//timeCurrent 201905300000 is not important here
       console.log('SequentialRunSuper/asyncForEachSuper() is paused for waiting', waitTimeSuper, 'miliseconds');
       await waitFor(waitTimeSuper);
     });
     console.log('\n--------------==Done sequentialRunSuper()');
     console.log('[Completed] All of the investor list has been cycled through');
 
-    const balanceArray = await sequentialRunSuperCheck(toAddressArray, amountArray, contractAddr);
+    const balanceArray = await sequentialRunSuperCheck(toAddressArray, amountArray, tokenCtrtAddr);
     const isFailed = balanceArray.includes(false);
     console.log('isFailed', isFailed);
-    resolve(isFailed);
+    resolve(isFailed, balanceArray);
   });
 }
 
 
 const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputArray) => {
-  console.log('\ninside sequentialRun()... going to get each symbol...');
+  console.log('\n----------==inside sequentialRun()...');
   //console.log(`mainInputArray= ${mainInputArray}, waitTime= ${waitTime}, timeCurrent= ${timeCurrent}, extraInputArray= ${extraInputArray}`);
   
   if(!Number.isInteger(timeCurrent)){
@@ -201,7 +204,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
     return;
   }
   if(waitTime < 5000 && actionType !== 'updateTimeOfOrders'){
-    //console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
+    console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
     return;
   }
   //console.log('actionType:', actionType);
@@ -217,7 +220,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       sqlColumn = 'sc_incomeManagementaddress';
       break;
     case 'updateTimeOfOrders':
-    case 'mintTokenToEachAddr':
+    case 'mintTokenToEachBatch':
       sqlColumn = '';
       break;
     default:
@@ -225,15 +228,18 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
       return;
   }
 
-  await asyncForEach(mainInputArray, async (item) => {
+  await asyncForEachBasic(mainInputArray, async (item) => {
     let symbol;
     if(item.hasOwnProperty('p_SYMBOL')){
       symbol = item.p_SYMBOL;
+
     } else if(item.hasOwnProperty('ia_SYMBOL')){
       symbol = item.ia_SYMBOL;
-    } else if(actionType === 'mintTokenToEachAddr' && Number.isInteger(item) && extraInputArray.length === 5){
-      symbol = 'Backend_mintTokenToEachAddr';
-      console.log('item is an integer => mintTokenToEachAddr mode');
+
+    } else if(actionType === 'mintTokenToEachBatch' && Number.isInteger(item) && extraInputArray.length === 5){
+      symbol = 'Backend_mintToken_each_batch';
+      console.log('item is an integer => mintTokenToEachBatch mode');
+
     } else if(actionType === 'updateTimeOfOrders'){
       symbol = 'Backend_updateTime';
     }
@@ -244,13 +250,14 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
 
     } else {
 
-      if(actionType === 'mintTokenToEachAddr') {
+      if(actionType === 'mintTokenToEachBatch') {
         const amountToMint = item;
-        const contractAddr = extraInputArray[1];
+        const tokenCtrtAddr = extraInputArray[1];
         let toAddress = extraInputArray[2];
         let fundingType = extraInputArray[3];
         let price = extraInputArray[4];
-        await mintToken(amountToMint, contractAddr, toAddress, fundingType, price);
+        console.log(`to call mintToken(): amountToMint: ${amountToMint}, tokenCtrtAddr: ${tokenCtrtAddr}, toAddress: ${toAddress}, fundingType: ${fundingType}, price: ${price}`);
+        await mintToken(amountToMint, tokenCtrtAddr, toAddress, fundingType, price);
         // see the above function defined below...
 
       } else if(actionType === 'updateTimeOfOrders'){
@@ -300,20 +307,23 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
         });
       }
     }
-    console.log('SequentialRun/asyncForEach() is paused for waiting', waitTime, 'miliseconds');
+    console.log('SequentialRun/asyncForEachBasic() is paused for waiting', waitTime, 'miliseconds');
     await waitFor(waitTime);
   });
   console.log('\n--------------==Done');
   console.log('SequentialRun() has been completed.\nAll input array elements have been cycled through');
 }
 
-//mintToken(amountToMint, contractAddr, to, fundingType, price);
-const mintToken = async (amountToMint, contractAddr, to, fundingType, price) => {
+//mintToken(amountToMint, tokenCtrtAddr, to, fundingType, price);
+const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) => {
+  console.log('inside mintToken()');
   await timer.getTime().then(async function (currentTime) {
     //console.log('blockchain.js: mintToken(), timeCurrent:', currentTime);
-    const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
+    console.log('acquired currentTime', currentTime);
+    const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData);
+    //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
     console.log('TxResult', TxResult);
   });
 }
