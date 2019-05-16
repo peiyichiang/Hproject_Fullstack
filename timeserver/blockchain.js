@@ -7,6 +7,7 @@ const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, g
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateTimeOfOrders = 1000;
+const maxMintAmountPerRun = 100;
 
 //-----------------==Copied from routes/Contracts.js
 /*Infura HttpProvider Endpoint*/
@@ -103,22 +104,55 @@ const getDetailsCFC = async (crowdFundingAddr) => {
 
 
 //-------------------------==
+const breakdownArrays = (toAddressArray, amountArray) => {
+  console.log('\n-----------------==\ninside breakdownArrays: amountArray', amountArray, '\ntoAddressArray', toAddressArray);
+
+  if(toAddressArray.length !== amountArray.length){
+    console.log('amountArray and toAddressArray should have the same length!');
+    return;
+  }
+
+  console.log('for loop...');
+  const amountArrayOut = [];
+  const toAddressArrayOut = [];
+  for (let idx = 0; idx < amountArray.length; idx++) {
+    const amount = parseInt(amountArray[idx]);
+    console.log('idx', idx, ', amount', amount);
+
+    if(amount > maxMintAmountPerRun){
+      const quotient = Math.floor(amount / maxMintAmountPerRun);
+      const remainder = amount - maxMintAmountPerRun * quotient;
+      const subAmountArray = Array(quotient).fill(maxMintAmountPerRun);
+      subAmountArray.push(remainder);
+      amountArrayOut.push(...subAmountArray);
+
+      const subToAddressArray = Array(subAmountArray.length).fill(toAddressArray[idx]);
+      toAddressArrayOut.push(...subToAddressArray);
+      //amountArrayOut.splice(amountArrayOut.length, 0, ...subAmountArray);
+    } else {
+      amountArrayOut.push(amount);
+      toAddressArrayOut.push(toAddressArray[idx]);
+    }
+    console.log('amountArrayOut', amountArrayOut);
+    console.log('toAddressArrayOut', toAddressArrayOut);
+  }
+  return [amountArrayOut, toAddressArrayOut];
+}
+
 const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function asyncForEachBasic(arrayBasic, callback) {
+  console.log("arrayBasic:"+arrayBasic);
   for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
-    console.log("arrayBasic:"+arrayBasic);
-    console.log("idxBasic:"+idxBasic);
-    console.log(arrayBasic[idxBasic]);
+    console.log("idxBasic:"+idxBasic, arrayBasic[idxBasic]);
     await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
   }
 }
 async function asyncForEachSuper(array1, array2, callback) {
+  console.log("inside asyncForEachSuper. array1", array1, "array2:", array2);
   if(array1.length === array2.length){
     for (let idxSuper = 0; idxSuper < array1.length; idxSuper++) {
-      console.log("array1:"+array2);
-      console.log("idxSuper:"+idxSuper);
-      console.log(array2[idxSuper]);
+      console.log("idxSuper:", idxSuper, array1[idxSuper], array2[idxSuper]);
       await callback(array1[idxSuper], array2[idxSuper], idxSuper, array1);
     }
   } else {
@@ -136,21 +170,24 @@ const sequentialRunSuperCheck = async (toAddressArray, amountArray, tokenCtrtAdd
       reject('amountArray has non integer item');
     }
 
-    const balanceArray = [];
-    let tokenBalanceAfterMinting;
+    const isCorrectAmountArray = [];
     const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, tokenCtrtAddr);
+
     await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
-      console.log(`\n--------------==next: ${toAddress} should have ${amountStr} tokens`);
-      tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(toAddress).call();
+      console.log(`\n--------------==next: Check ${toAddress} should have ${amountStr} tokens`);
+      const tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(toAddress).call();
       if(parseInt(amountStr) === tokenBalanceAfterMinting){
-        balanceArray.push(true);
+        isCorrectAmountArray.push(true);
+      } else {
+        isCorrectAmountArray.push(false);
       }
       console.log('SequentialRunSuperCheck/asyncForEachSuper() is paused for waiting', waitTimeSuperCheck, 'miliseconds');
       await waitFor(waitTimeSuperCheck);
     });
+
     console.log('\n--------------==Done SequentialRunSuperCheck()');
     console.log('[Completed] All of the investor list has been cycled through');
-    resolve(balanceArray);
+    resolve(isCorrectAmountArray);
   });
 }
 
@@ -165,28 +202,36 @@ const sequentialRunSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fu
       reject('amountArray has non integer item');
     }
 
-    const maxMintAmountPerRun = 100;
-    const timeIntervalOfNewBlocks = 13000;
-    await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
-      console.log(`\n--------------==[asyncForEachSuper] next: minting to ${toAddress} ${amountStr} tokens`);
-      const amount = parseInt(amountStr);
-      const quotient = Math.floor(amount / maxMintAmountPerRun);
-      const remainder = amount - maxMintAmountPerRun * quotient;
+    const result = breakdownArrays(toAddressArray, amountArray);
+    const amountArrayOut = result[0];
+    const toAddressArrayOut = result[1];
+    console.log('\namountArrayOut out', amountArrayOut);
+    console.log('toAddressOut out', toAddressOut);
 
-      const subAmountArray = Array(quotient).fill(maxMintAmountPerRun);
-      subAmountArray.push(remainder);
-      console.log('subAmountArray:', subAmountArray);
-      await sequentialRun(subAmountArray, timeIntervalOfNewBlocks, 201905300000, ['mintTokenToEachBatch', tokenCtrtAddr, toAddress, fundingType, price]);//timeCurrent 201905300000 is not important here
+    const currentTime = await timer.getTime();
+    console.log('acquired currentTime', currentTime);
+
+    await asyncForEachSuper(toAddressArrayOut, amountArrayOut, async (toAddress, amount) => {
+      console.log(`\n--------------==next: mint to ${toAddress} ${amount} tokens`);
+
+      console.log(`mintToken(): amount: ${amount}, tokenCtrtAddr: ${tokenCtrtAddr}, toAddress: ${toAddress}, fundingType: ${fundingType}, price: ${price}`);
+
+      const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+      let encodedData = inst_HCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, currentTime).encodeABI();
+      let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData);
+      console.log('TxResult', TxResult);
+      
       console.log('SequentialRunSuper/asyncForEachSuper() is paused for waiting', waitTimeSuper, 'miliseconds');
       await waitFor(waitTimeSuper);
     });
     console.log('\n--------------==Done sequentialRunSuper()');
     console.log('[Completed] All of the investor list has been cycled through');
 
-    const balanceArray = await sequentialRunSuperCheck(toAddressArray, amountArray, tokenCtrtAddr);
-    const isFailed = balanceArray.includes(false);
-    console.log('isFailed', isFailed);
-    resolve(isFailed, balanceArray);
+    const isCorrectAmountArray = await sequentialRunSuperCheck(toAddressArray, amountArray, tokenCtrtAddr);
+    const isFailed = isCorrectAmountArray.includes(false);
+    console.log('\n--------------==Done sequentialRunSuperCheck()');
+    console.log('isFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
+    resolve(isFailed, isCorrectAmountArray);
   });
 }
 

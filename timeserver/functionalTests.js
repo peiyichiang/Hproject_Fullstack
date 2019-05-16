@@ -57,6 +57,16 @@ async function asyncForEach(array, callback) {
 }
 
 
+Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
+BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
+//Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
+//BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
+AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
+AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
+AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
+AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
+acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
+
 
 moment1 = moment().format();
 console.log('moment1', moment1);
@@ -167,6 +177,49 @@ calculatedIncome = incomeFromHoldingDays(holdingDays, period, periodIncome, prev
 
 //(120÷90×0.7+4)×300 => 1480
 
+
+//yarn run testfn -c 13
+const breakdownArrays = () => {
+  //toAddressArray, amountArray
+  const maxMintAmountPerRun = 100;
+  AssetOwner1 = "0x1";
+  AssetOwner2 = "0x2";
+  acc3 = "0x3";
+  const amountArray = [236, 312, 173];
+  const toAddressArray =[AssetOwner1, AssetOwner2, acc3];
+  console.log('\n-----------------==\namountArray', amountArray, '\ntoAddressArray', toAddressArray);
+
+  if(toAddressArray.length !== amountArray.length){
+    console.log('amountArray and toAddressArray should have the same length!');
+    return;
+  }
+
+  console.log('for loop...');
+  const amountArrayOut = [];
+  const toAddressArrayOut = [];
+  for (let idx = 0; idx < amountArray.length; idx++) {
+    const amount = amountArray[idx];
+    console.log('idx', idx, ', amount', amount);
+
+    if(amount > maxMintAmountPerRun){
+      const quotient = Math.floor(amount / maxMintAmountPerRun);
+      const remainder = amount - maxMintAmountPerRun * quotient;
+      const subAmountArray = Array(quotient).fill(maxMintAmountPerRun);
+      subAmountArray.push(remainder);
+      amountArrayOut.push(...subAmountArray);
+
+      const subToAddressArray = Array(subAmountArray.length).fill(toAddressArray[idx]);
+      toAddressArrayOut.push(...subToAddressArray);
+      //amountArrayOut.splice(amountArrayOut.length, 0, ...subAmountArray);
+    } else {
+      amountArrayOut.push(amount);
+      toAddressArrayOut.push(toAddressArray[idx]);
+    }
+    console.log('amountArrayOut', amountArrayOut);
+    console.log('toAddressArrayOut', toAddressArrayOut);
+  }
+  return [amountArrayOut, toAddressArrayOut];
+}
 
 const incomeFromHoldingDaysSection = async (args, period, periodIncome, prevTokenAmount) => {
   console.log('\n----------------==\ninside incomeFromHoldingDaysSection()...');
@@ -282,15 +335,7 @@ if(choice < 9){
   //yarn run testfn -c 11
   console.log('\n---------------------==\nsequentialRunSuper()');
   //copied from zdeploy.js
-  Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-  BackendpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
-  //Backend = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
-  //BackendpkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
-  AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
-  AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
-  AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
-  AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
-  acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
+
   acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
 
   const toAddressArray =[AssetOwner1, AssetOwner2];
@@ -300,6 +345,17 @@ if(choice < 9){
   const price = 20000;
 
   sequentialRunSuperFn(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price);
+
+  //yarn run testfn -c 13
+} else if(choice === 13){
+
+  //const toAddressArray =[AssetOwner1, AssetOwner2];
+  //const amountArray = [136, 112];//236, 312
+  const [amountArrayOut, toAddressOut] = breakdownArrays();
+  console.log('\namountArrayOut out', amountArrayOut);
+  console.log('toAddressOut out', toAddressOut);
+  //breakdownArrays(toAddressArray, amountArray);
+
 }
 
 /*=> make income tables

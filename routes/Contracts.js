@@ -815,26 +815,25 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const [isFailed, balanceArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+    const [isFailed, isCorrectAmountArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
       console.log('[Error @ sequentialRunSuper]', err);
       res.send({
         success: false,
         result: '[Failed @ sequentialRunSuper()], err:'+err,
       });
-      return;
     });
 
-    if (isFailed) {
+    if (isFailed || isFailed === undefined) {
       res.send({
         success: false,
-        result: '[Failed] Check balanceArray',
-        balanceArray: balanceArray,
+        result: '[Failed] Check isCorrectAmountArray',
+        isCorrectAmountArray: isCorrectAmountArray,
       });
     } else {
       res.send({
         success: true,
         result: '[Success] All balances are correct',
-        balanceArray: balanceArray,
+        isCorrectAmountArray: isCorrectAmountArray,
       });
     }
 });
