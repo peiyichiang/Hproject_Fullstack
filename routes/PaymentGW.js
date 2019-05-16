@@ -4,20 +4,21 @@ var nodemailer = require('nodemailer');
 
 
 ///////////刷卡部分//////////
+//模擬銀行API（簡略版）
 router.post('/postToBank', async function (req, res, next) {
     var paymentInfo = JSON.parse(req.body.JSONtoBank)
     console.log(paymentInfo)
-    //console.log(paymentInfo)
     await setTimeout(function () {
-        let bank = true;
-
+        res.status(200);
         res.json({
-            bank: bank,
-            amount: paymentInfo.amount
+            "message": "[Success] Success",
+            "result": true,
+            "amount": paymentInfo.amount
         });
     }, 3000);
 });
 
+//更新訂單狀態
 router.post('/updateOrder', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
@@ -31,20 +32,20 @@ router.post('/updateOrder', function (req, res, next) {
         mysqlPoolQuery('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
-                res.send({
-                    status: "fail",
-                    o_IDs: element
-                });
+                res.status(400);
+                res.json({ "message": "[Error] Failure :" + err });
             }
         });
     });
-    res.send({
-        status: "success",
-        o_IDs: order.o_IDs
+    res.status(200);
+    res.json({
+        "message": "[Success] Success",
+        "o_IDs": order.o_IDs
     });
 
 });
 
+//寄付款成功信件
 router.post('/sendPaidMail', function (req, res, next) {
 
     var mailInfo = JSON.parse(req.body.mailInfo);
@@ -58,7 +59,7 @@ router.post('/sendPaidMail', function (req, res, next) {
         }
     });
 
-    var text = '<h2>付款成功</h2> <p>'+mailInfo.name+'您好：<br>我們已收到您的付款，訂單編號為:<br>'+ mailInfo.o_IDs+'，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
+    var text = '<h2>付款成功</h2> <p>' + mailInfo.name + '您好：<br>我們已收到您的付款，訂單編號為:<br>' + mailInfo.o_IDs + '，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
 
     var options = {
         //寄件者
@@ -74,19 +75,28 @@ router.post('/sendPaidMail', function (req, res, next) {
     //發送信件方法
     transporter.sendMail(options, function (error, info) {
         if (error) {
-            console.log(error);
+            console.log(err);
+            res.status(400);
+            res.json({ "message": "[Error] Failure :" + err });
         } else {
             console.log('訊息發送: ' + info.response);
-            res.send('success')
+            res.status(200);
+            res.json({
+                "message": "[Success] Success",
+                "info": info.response
+            });
         }
     });
+
 })
 
 ///////////匯款部分//////////
-router.get('/bank', async function (req, res, next) {
+//回傳虛擬帳號資訊
+router.get('/virtualAccount', async function (req, res, next) {
     res.json({ v_account: "822-03113250581281" });
 });
 
+//寄付款資訊信件
 router.post('/sendTransferInfoMail', function (req, res, next) {
 
     var mailInfo = JSON.parse(req.body.mailInfo);
@@ -100,7 +110,7 @@ router.post('/sendTransferInfoMail', function (req, res, next) {
         }
     });
 
-    var text = '<h2>匯款資訊'+mailInfo.v_account+'</h2> <p>'+mailInfo.name+'您好：<br>此次預計付款訂單編號為:<br>'+ mailInfo.o_IDs+'。<br>請將以下金額匯入指定帳戶:<br>'+mailInfo.amount+'NTD。<br>以下是您的匯款資訊:<br>'+ mailInfo.v_account +'  </p>'
+    var text = '<h2>匯款資訊' + mailInfo.v_account + '</h2> <p>' + mailInfo.name + '您好：<br>此次預計付款訂單編號為:<br>' + mailInfo.o_IDs + '。<br>請將以下金額匯入指定帳戶:<br>' + mailInfo.amount + 'NTD。<br>以下是您的匯款資訊:<br>' + mailInfo.v_account + '  </p>'
 
     var options = {
         //寄件者
@@ -116,10 +126,16 @@ router.post('/sendTransferInfoMail', function (req, res, next) {
     //發送信件方法
     transporter.sendMail(options, function (error, info) {
         if (error) {
-            console.log(error);
+            console.log(err);
+            res.status(400);
+            res.json({ "message": "[Error] Failure :" + err });
         } else {
             console.log('訊息發送: ' + info.response);
-            res.send('success')
+            res.status(200);
+            res.json({
+                "message": "[Success] Success",
+                "info": info.response
+            });
         }
     });
 })
@@ -138,17 +154,16 @@ router.post('/bindOrder', function (req, res, next) {
         mysqlPoolQuery('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
-                res.json({
-                    status: "fail",
-                    o_IDs: element
-                });
+                res.status(400);
+                res.json({ "message": "[Error] Failure :" + err });
             }
         });
     });
+    res.status(200);
     res.json({
-        status: "success",
-        o_IDs: order.o_IDs,
-        v_account: req.body.v_account
+        "message": "[Success] Success",
+        "o_IDs": order.o_IDs,
+        "v_account": req.body.v_account
     });
 
 });
