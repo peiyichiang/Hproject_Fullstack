@@ -136,7 +136,7 @@ const breakdownArrays = (toAddressArray, amountArray) => {
     console.log('amountArrayOut', amountArrayOut);
     console.log('toAddressArrayOut', toAddressArrayOut);
   }
-  return [amountArrayOut, toAddressArrayOut];
+  return [toAddressArrayOut, amountArrayOut];
 }
 
 const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
@@ -153,7 +153,7 @@ async function asyncForEachSuper(array1, array2, callback) {
   if(array1.length === array2.length){
     for (let idxSuper = 0; idxSuper < array1.length; idxSuper++) {
       console.log("idxSuper:", idxSuper, array1[idxSuper], array2[idxSuper]);
-      await callback(array1[idxSuper], array2[idxSuper], idxSuper, array1);
+      await callback(array1[idxSuper], array2[idxSuper], idxSuper);
     }
   } else {
     console.log('[Error] array1 and array2 should be of the same length');
@@ -161,78 +161,77 @@ async function asyncForEachSuper(array1, array2, callback) {
 }
 
 const sequentialRunSuperCheck = async (toAddressArray, amountArray, tokenCtrtAddr) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\ninside sequentialRunSuperCheck()... going to get each toAddress...');
-    const waitTimeSuperCheck = 1000;
+  //return new Promise(async (resolve, reject) => {
+    console.log('\n------==inside sequentialRunSuperCheck()');
     //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
     const checkItem =(item) => Number.isInteger(item);
     if(!amountArray.every(checkItem)){
-      reject('amountArray has non integer item');
+      console.log('[error @ sequentialRunSuperCheck()] amountArray has non integer item');
+      return;
     }
 
     const isCorrectAmountArray = [];
     const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, tokenCtrtAddr);
 
     await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amountStr) => {
-      console.log(`\n--------------==next: Check ${toAddress} should have ${amountStr} tokens`);
+      console.log(`\n--------------==next: ${toAddress} should have ${amountStr} tokens`);
       const tokenBalanceAfterMinting = await inst_HCAT721.methods.balanceOf(toAddress).call();
-      if(parseInt(amountStr) === tokenBalanceAfterMinting){
-        isCorrectAmountArray.push(true);
-      } else {
-        isCorrectAmountArray.push(false);
-      }
+      isCorrectAmountArray.push(parseInt(amountStr) === tokenBalanceAfterMinting);
+
       console.log('SequentialRunSuperCheck/asyncForEachSuper() is paused for waiting', waitTimeSuperCheck, 'miliseconds');
-      await waitFor(waitTimeSuperCheck);
     });
 
     console.log('\n--------------==Done SequentialRunSuperCheck()');
     console.log('[Completed] All of the investor list has been cycled through');
-    resolve(isCorrectAmountArray);
-  });
+    return isCorrectAmountArray;
+    //resolve(isCorrectAmountArray);
+  //});
 }
 
+const sequentialRunSuper = async(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr) => {
+  console.log('\n----------------------==sequentialRunSuper()');
+  const currentTime = await timer.getTime();
+  console.log(`tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}, acquired currentTime: ${currentTime}`);
+  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+  //async function asyncForEachSuper(array1, array2, callback) {}
+  await asyncForEachSuper(toAddressArrayOut, amountArrayOut, async (toAddress, amount) => {
+    console.log(`\n-----------==next: mint to ${toAddress} ${amount} tokens`);
 
-const sequentialRunSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\n----------------------==inside sequentialRunSuper()... going to get each toAddress...');
-    const waitTimeSuper = 13000;
-    //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-    checkItem =(item) => Number.isInteger(item);
-    if(!amountArray.every(checkItem)){
-      reject('amountArray has non integer item');
-    }
-
-    const result = breakdownArrays(toAddressArray, amountArray);
-    const amountArrayOut = result[0];
-    const toAddressArrayOut = result[1];
-    console.log('\namountArrayOut out', amountArrayOut);
-    console.log('toAddressOut out', toAddressOut);
-
-    const currentTime = await timer.getTime();
-    console.log('acquired currentTime', currentTime);
-
-    await asyncForEachSuper(toAddressArrayOut, amountArrayOut, async (toAddress, amount) => {
-      console.log(`\n--------------==next: mint to ${toAddress} ${amount} tokens`);
-
-      console.log(`mintToken(): amount: ${amount}, tokenCtrtAddr: ${tokenCtrtAddr}, toAddress: ${toAddress}, fundingType: ${fundingType}, price: ${price}`);
-
-      const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-      let encodedData = inst_HCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, currentTime).encodeABI();
-      let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData);
-      console.log('TxResult', TxResult);
-      
-      console.log('SequentialRunSuper/asyncForEachSuper() is paused for waiting', waitTimeSuper, 'miliseconds');
-      await waitFor(waitTimeSuper);
-    });
-    console.log('\n--------------==Done sequentialRunSuper()');
-    console.log('[Completed] All of the investor list has been cycled through');
-
-    const isCorrectAmountArray = await sequentialRunSuperCheck(toAddressArray, amountArray, tokenCtrtAddr);
-    const isFailed = isCorrectAmountArray.includes(false);
-    console.log('\n--------------==Done sequentialRunSuperCheck()');
-    console.log('isFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
-    resolve(isFailed, isCorrectAmountArray);
+    const encodedData = inst_HCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, currentTime).encodeABI();
+    const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch((err) => console.log('\n[Error @ signTx()]', err));
+    console.log('TxResult', TxResult);
   });
+  console.log('\n--------------==Done sequentialRunSuper()');
+  console.log('[Completed] All of the investor list has been cycled through');
+}
+
+const sequentialRunSuperFn = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price) => {
+
+  console.log('\n----------------------==inside sequentialRunSuperFn()... going to get each toAddress...');
+  //const waitTimeSuper = 13000;
+  //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
+  checkItem =(item) => Number.isInteger(item);
+  if(!amountArray.every(checkItem)){
+    reject('amountArray has non integer item');
+  }
+
+  const [toAddressArrayOut, amountArrayOut] = breakdownArrays(toAddressArray, amountArray);
+  //console.log(`toAddressArray: ${toAddressArray}, amountArray: ${amountArray}
+  //toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
+  await sequentialRunSuper(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr).catch((err) => {
+    console.log('[Error @ sequentialRunSuper]', err);
+    return;
+  });
+
+  console.log('\n--------------==after minting tokens, check balances now...');
+  const isCorrectAmountArray = await sequentialRunSuperCheck(toAddressArray, amountArray, tokenCtrtAddr).catch((err) => {
+    console.log('[Error @ sequentialRunSuperCheck]', err);
+  });
+  const isFailed = isCorrectAmountArray.includes(false);
+  console.log('\n--------------==Done sequentialRunSuperCheck()');
+  console.log('isFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
+  return [isFailed, isCorrectAmountArray];
+  //resolve(isFailed, isCorrectAmountArray);
 }
 
 
@@ -622,6 +621,7 @@ function print(s) {
 
 module.exports = {
   updateTimeOfOrders, getDetailsCFC, sequentialRun, sequentialRunSuper, sequentialRunSuperCheck,
+  breakdownArrays, sequentialRunSuperFn,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC

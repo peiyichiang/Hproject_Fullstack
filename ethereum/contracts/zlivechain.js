@@ -33,7 +33,7 @@ yarn run livechain -c 1 --f 7 -a 2 -b 1
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const {sequentialRunSuper} = require('../../timeserver/blockchain');
+const { sequentialRunSuperFn} = require('../../timeserver/blockchain');
 
 let provider, web3, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, argbool;
 
@@ -876,6 +876,23 @@ const mintTokenFn1 = async () => {
 }
 
 
+//yarn run livechain -c 1 --f 37 -a 1 -b 3
+const sequentialRunSuperFnAPI = async () => {
+  console.log('\n---------------------==\nsequentialRunSuperFnAPI()');
+  acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
+
+  const toAddressArray =[assetbook1, assetbook2, assetbook3];
+  const amountArray = [236, 312, 407];//236, 312
+  const tokenCtrtAddr = '0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0';
+  const fundingType = 2;//PO: 1, PP: 2
+  const price = 20000;
+
+  const [isFailed, isCorrectAmountArray] = await sequentialRunSuperFn(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+    console.log('[Error @ sequentialRunSuperFn]', err);
+  });
+  console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+}
+
 /*
 2: showAccountAssetBooks
 yarn run livechain -c 1 --f 2
@@ -1027,18 +1044,6 @@ yarn run livechain -c 1 --f 4 -a 2 -b 130
 yarn run livechain -c 1 --f 5 -a 1 -b 3
 */
 // 32 
-const mintSequentialPerCtrt = async () => {
-  const toAddressArray = [];//assetbook1, 2, 3
-  const amountArray =  [236, 173];//312, 
-  const tokenCtrtAddr = addrHCAT721_Test;
-  const fundingType = 2;//PO: 1, PP: 2
-  const price = 18000;
-
-  const [isFailed, isCorrectAmountArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
-    console.log('[Error @ sequentialRunSuper]', err);
-  });
-
-}
 
 const transferTokens = async (assetbookNum, amount) => {
   //-------------------------==Send tokens:
@@ -1253,8 +1258,8 @@ if (func === 0) {
 } else if (func === 31) {
   testCtrt();
 
-} else if (func === 32) {
-  mintSequentialPerCtrt();
+} else if (func === 37) {
+  sequentialRunSuperFnAPI();
 
 }
 showMenu();
