@@ -3,23 +3,23 @@ $ yarn run livechain -c C --f F --arg1 arg1
 C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 F = 
 
-0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amountToMint), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)
+0: setupTest,  1: getTokenController, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)
 
 0: setupTest
 yarn run livechain -c 1 --f 0
 
-1: getSystemInfo
+1: getTokenController
 yarn run livechain -c 1 --f 1
 
 2: showAccountAssetBooks
 yarn run livechain -c 1 --f 2
 
-3: mintTokens(assetbookNum, amountToMint)
-yarn run livechain -c 1 --f 3 -a assetbookNum, -b amountToMint
-yarn run livechain -c 1 --f 3 -a 2 -b 120
-
-4: showAssetInfo(tokenId)
+3: showAssetInfo(tokenId)
 yarn run livechain -c 1 --f 4 -a tokenId
+
+3: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 3 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 3 -a 2 -b 120
 
 5: sendAssetBeforeAllowed(),
 yarn run livechain -c 1 --f 5
@@ -33,6 +33,7 @@ yarn run livechain -c 1 --f 7 -a 2 -b 1
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+const {sequentialRunSuper} = require('../../timeserver/blockchain');
 
 let provider, web3, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, argbool;
 
@@ -41,7 +42,7 @@ const arguLen = process.argv.length;
 if (arguLen == 3 && process.argv[2] === '--h') {
   console.log("\x1b[32m", '$ yarn run livechain -c C --f F -a A -b b');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log("\x1b[32m", 'F = 0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: showAssetInfo(tokenId), 4: mintTokens(assetbookNum, amountToMint), 8: sendAssetBeforeAllowed(), 9: setServerTime(newServerTime), 9: transferTokens(assetbookNum, amount)');
+  console.log("\x1b[32m", 'F = 0: setupTest,  1: getTokenController, 2: showAccountAssetBooks, 3: showAssetInfo(tokenId), 4: mintTokens(assetbookNum, amount), 8: sendAssetBeforeAllowed(), 9: setServerTime(newServerTime), 9: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'a, b, ... are arguments used in above functions ...');
   process.exit(1);
   // process.on('exit', function(code) {  
@@ -91,7 +92,7 @@ console.log('chain = ', chain, ', txnNum =', txnNum, ', timeCurrent =', timeCurr
 
 let adminpk, AssetOwner1pk, AssetOwner2pk, acc3pk, acc4pk;
 let addrPlatform, addrMultiSig1, addrMultiSig2, addrAssetBook1, addrAssetBook2, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrTestCtrt;
-let amount, to, _from, tokenIds, tokenIdMX, nodeUrl, authLevelM, amountInitAB1, backendAddr, backendRawPrivateKey;
+let amount, to, _from, tokenIds, tokenIdMX, nodeUrl, authLevelM, amountInitAB1;
 
 let nftSymbol, nftName, location, maxTotalSupply, siteSizeInKW, initialAssetPricing, IRR20yrx100, duration, quantityGoal, fundingType;
 let isFundingApprovedHCAT721, checkPlatformSupervisor;
@@ -141,9 +142,9 @@ if (chain === 1) {//POA private chain
     addrRegistry = "0xe86976cEd3bb9C924235B904F43b829E4A32fa0d";
 
     //addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
-    const symbolObj0 = new symbolObject("AAOS1901", "", "", 973, 0, 300, 18000, "NTD", 470, 20, 201905150000, 1, "0x677835e97c4Dc35cc1D9eCd737Cc6Fc1380e1bDD", "0xF8Bbc068b325Fe7DA1Ef9bE8f69de38CB7299D10", "0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0", "");
-    const symbolObj1 = new symbolObject("ABOS1901", "", "", 2073, 0, 300, 19000, "NTD", 470, 20, 201905150000, 1, "", "", "", "");
-    const symbolObj2 = new symbolObject("ACOS1901", "", "", 5073, 0, 400, 20000, "NTD", 490, 20, 201905150000, 1, "", "", "", "");
+    const symbolObj0 = new symbolObject("AAOS1901", "", "", 973, 0, 300, 18000, "NTD", 470, 20, 201905150000, 2, "0x677835e97c4Dc35cc1D9eCd737Cc6Fc1380e1bDD", "0xF8Bbc068b325Fe7DA1Ef9bE8f69de38CB7299D10", "0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0", "");
+    const symbolObj1 = new symbolObject("ABOS1901", "", "", 2073, 0, 300, 19000, "NTD", 470, 20, 201905150000, 2, "", "", "", "");
+    const symbolObj2 = new symbolObject("ACOS1901", "", "", 5073, 0, 400, 20000, "NTD", 490, 20, 201905150000, 2, "", "", "", "");
 
     const symObjArray = [symbolObj0, symbolObj1, symbolObj2];
     const symArray = [];
@@ -175,6 +176,7 @@ if (chain === 1) {//POA private chain
     addrHCAT721 = symObjArray[symNum].addrHCAT721;
     addrIncomeManager = symObjArray[symNum].addrIncomeManager;
 
+    addrHCAT721_Test = '0x6978c55dee93a2351150A8C34BD5a2ddA6D1d327';
 
     admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
     adminpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
@@ -197,8 +199,9 @@ if (chain === 1) {//POA private chain
     AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
     AssetOwner2pk = Buffer.from(AssetOwner2pkRaw.substr(2), 'hex');
 
-    backendAddr = admin;
-    backendRawPrivateKey = adminpkRaw;
+    //backendRawPrivateKey = '0x....'
+    //await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
+
     //provider = new PrivateKeyProvider(adminpk, nodeUrl);//adminpk, AssetOwner1pk, AssetOwner2pk
     //web3 = new Web3(provider);
 
@@ -241,6 +244,7 @@ MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 data
 
 //--------------------==
 console.log('Load contract json file compiled from sol file');
+
 //const { interface, bytecode } = require('../compile');//dot dot for one level up
 const TestCtrt = require('./build/TestCtrt.json');
 if (TestCtrt === undefined) {
@@ -363,6 +367,25 @@ if (HCAT721 === undefined) {
   //console.log(HCAT721);
 }
 
+const HCAT721_Test = require('./build/HCAT721_AssetToken_Test.json');
+if (HCAT721_Test === undefined) {
+  console.log('[Error] HCAT721_Test is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] HCAT721_Test is defined');
+  if (HCAT721_Test.abi === undefined) {
+    console.log('[Error] HCAT721_Test.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] HCAT721_Test.abi is defined');
+    //console.log('HCAT721_Test.abi:', HCAT721_Test.abi);
+  }
+  if (HCAT721_Test.bytecode === undefined || HCAT721_Test.bytecode.length < 10) {
+    console.log('[Error] HCAT721_Test.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] HCAT721_Test.bytecode is defined');
+    //console.log('HCAT721_Test.bytecode:', HCAT721_Test.bytecode);
+  }
+  //console.log(HCAT721_Test);
+}
 
 const CrowdFunding = require('./build/CrowdFunding.json');
 if (CrowdFunding === undefined) {
@@ -454,27 +477,39 @@ let isTokenApprovedOperational, bool2, uid;
 /**
 $ yarn run livechain -c C --f F --arg1 arg1
 C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
-F = 0: setupTest, 1: getSystemInfo, 2: showAccountAssetBooks, 4: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount), 
+F = 0: setupTest, 1: getTokenController, 2: showAccountAssetBooks, 4: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount), 
 arg1, arg2, ... are arguments used in above functions ...
 */
 
+const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
+const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
+
+const instAssetBook1 = new web3.eth.Contract(AssetBook.abi, addrAssetBook1);
+const instAssetBook2 = new web3.eth.Contract(AssetBook.abi, addrAssetBook2);
+
+const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
+
+const choiceOfHCAT721 = 1
+let inst_HCAT721;
+if(choiceOfHCAT721===1){
+  console.log('use HCAT721_Test!!!');
+  inst_HCAT721 = new web3.eth.Contract(HCAT721_Test.abi, addrHCAT721_Test);
+} else if(choiceOfHCAT721===2){
+  console.log('use HCAT721');
+  inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+}
+
+const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
+
+
+// const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, addrCrowdFunding);
+// const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
+// const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
 
 //yarn run livechain -c 1 --f 0
 const setupTest = async () => {
   //const addr1 = web3.utils.toChecksumAddress(addrPlatform);
-  const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
-  const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-  //const instMultiSig1 = new web3.eth.Contract(MultiSig.abi,addrMultiSig1);
-  //const instMultiSig2 = new web3.eth.Contract(MultiSig.abi,addrMultiSig2);
-  const instAssetBook1 = new web3.eth.Contract(AssetBook.abi, addrAssetBook1);
-  const instAssetBook2 = new web3.eth.Contract(AssetBook.abi, addrAssetBook2);
-  const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
-  // const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, addrCrowdFunding);
-  // const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
-  // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
-
   //instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
 
   console.log('\n--------==Start tests...');
@@ -653,30 +688,13 @@ const setupTest = async () => {
 };
 
 //yarn run livechain -c 1 --f 1
-const getSystemInfo = async () => {
+const getTokenController = async () => {
 
-  //const instPlatform = new web3.eth.Contract(Platform.abi, addrPlatform);
-  //const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-  // const instMultiSig1 = new web3.eth.Contract(MultiSig.abi, addrMultiSig1);
-  // const instMultiSig2 = new web3.eth.Contract(MultiSig.abi, addrMultiSig2);
-
-  const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
   console.log('addrTokenController', addrTokenController);
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
   tokenIdM = await inst_HCAT721.methods.tokenId().call();
   console.log('isTokenApprovedOperational() =', isTokenApprovedOperational);
   console.log('tokenId or tokenCount from assetCtrt', tokenIdM);
-
-  // console.log('\n------------==Check MultiSig contract 1 & 2');
-  // console.log('addrMultiSig1', addrMultiSig1);
-  // console.log('addrMultiSig2', addrMultiSig2);
-  // let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
-  // console.log('assetOwnerM1', assetOwnerM1);
-  // checkEq(assetOwnerM1, AssetOwner1);
-  // let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
-  // console.log('assetOwnerM2', assetOwnerM2);
-  // checkEq(assetOwnerM2, AssetOwner2);
 
   //-----------------==Check Token Controller: time
   /*
@@ -718,141 +736,64 @@ const getSystemInfo = async () => {
   //   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call(); 
   // }
   console.log('isTokenApprovedOperational()', isTokenApprovedOperational);
-  console.log('getSystemInfo() is completed');
+  console.log('getTokenController() is completed');
   process.exit(0);
 }
 
+/*
+2: showAccountAssetBooks
+yarn run livechain -c 1 --f 2
 
-//yarn run livechain -c 1 --f 3 -a 1 -b 3
-const mintTokens = async (assetbookNum, amountToMint) => {
-  console.log('-------------==mintTokens ... Mint Token Batch');
-  console.log('assetbookNum', assetbookNum, 'amountToMint', amountToMint);
+3: showAssetInfo(tokenId)
+yarn run livechain -c 1 --f 3 -a tokenId
 
-  if (assetbookNum < 1 || assetbookNum > 2) {
-    console.log('assetbookNum value should be >= 1 and <= 2. assetbookNum = ', assetbookNum);
-    process.exit(1);
-  } else if (amountToMint < 1) {
-    console.log('amountToMint value should be >= 1. amountToMint = ', assetbookNum);
-    process.exit(1);
-  } else {
-    console.log('assetbookNum = ', assetbookNum);
-  }
+4: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 4 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 4 -a 2 -b 130
 
-
-  //addrPlatform  addrRegistry  addrMultiSig1 addrAssetBook1  addrTokenController  addrHCAT721
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
-  tokenIdM = await inst_HCAT721.methods.tokenId().call();
-  tokenIdMX = parseInt(tokenIdM);
-  console.log('\ncurrent tokenId = ', tokenIdMX);
-  //checkEq(tokenIdM, tokenIdMX.toString());
-
-  if (assetbookNum === 1) {
-    to = addrAssetBook1;
-    instAssetBookX = new web3.eth.Contract(AssetBook.abi, to);
-  } else if (assetbookNum === 2) {
-    to = addrAssetBook2;
-    instAssetBookX = new web3.eth.Contract(AssetBook.abi, to);
-  } else {
-    console.log('not valid assetbookNum... assetbookNum =', assetbookNum);
-    process.exit(1);
-  }
-
-  console.log('\n------------==Mint Token in Batch: tokenId =', tokenIdMX + 1, 'to', tokenIdMX + amountToMint, ' to AssetBook' + assetbookNum, 'amountToMint', amountToMint, typeof amountToMint, 'initialAssetPricing', initialAssetPricing, typeof initialAssetPricing, 'fundingType', fundingType, typeof fundingType, 'serverTime', serverTime, typeof serverTime);
-
-  balanceM = await inst_HCAT721.methods.balanceOf(to).call();
-  amountInitAB1 = parseInt(balanceM);
-  console.log('target assetbook has balanceM:', balanceM, 'amountInitAB1', amountInitAB1);
-
-  isFundingApprovedHCAT721 = await inst_HCAT721.methods.isFundingApprovedHCAT721(to, amountToMint, initialAssetPricing, fundingType).call();
-  checkPlatformSupervisor = await inst_HCAT721.methods.checkPlatformSupervisor().call({ from: admin });
-  console.log('\nisFundingApprovedHCAT721', isFundingApprovedHCAT721, '\ncheckPlatformSupervisor', checkPlatformSupervisor);
-
-  /**
-  const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
-  let encodedData = instTestCtrt.methods.setHCAT721SerialNumberNG(newNum).encodeABI();
-  let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrTestCtrt, encodedData);
-  console.log('TxResult', TxResult);
-   */
-  //Transaction has been reverted by the EVM:
-  console.log('\nbefore mintSerialNFT()');
-  if (1 === 1) {
-    const tokenCtrtAddr = addrHCAT721;
-    let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, initialAssetPricing, fundingType, serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch((err) => console.log('[Error @ signTx()]', err));
-    console.log('TxResult', TxResult);
-
-  } else {
-    await inst_HCAT721.methods.mintSerialNFT(to, amountToMint, initialAssetPricing, fundingType, serverTime).send({
-      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
-    }).on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      }).on('error', function (error) {
-        console.log('error:', error.toString());
-      });
-  }
-
-  tokenIdMX += amountToMint;
-  tokenIdM = await inst_HCAT721.methods.tokenId().call();
-  checkEq(tokenIdM, tokenIdMX.toString());
-
-  if (amountToMint > 2) {
-    tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX - 2).call();
-    checkEq(tokenOwnerM, to);
-    tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX - 1).call();
-    checkEq(tokenOwnerM, to);
-
-  } else if (amountToMint > 1) {
-    tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX - 1).call();
-    checkEq(tokenOwnerM, to);
-  }
-  tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX).call();
-  checkEq(tokenOwnerM, to);
-
-  // console.log('\ncheck getToken(): Id = ', tokenIdMX-2, tokenIdMX-1, tokenIdMX);
-  // tokenInfo = await inst_HCAT721.methods.getToken(tokenIdMX-2).call();
-  // console.log('\ntokenInfo from HCAT721 id = :', tokenIdMX-2, tokenInfo);
-  // checkEq(tokenInfo[0], to);
-  // checkEq(tokenInfo[1], initialAssetPricing.toString());
-
-  // tokenInfo = await inst_HCAT721.methods.getToken(tokenIdMX-1).call();
-  // checkEq(tokenInfo[0], to);
-  // checkEq(tokenInfo[1], initialAssetPricing.toString());
-
-  // tokenInfo = await inst_HCAT721.methods.getToken(tokenIdMX).call();
-  // checkEq(tokenInfo[0], to);
-  // checkEq(tokenInfo[1], initialAssetPricing.toString());
-
-  balanceM = await inst_HCAT721.methods.balanceOf(to).call();
-  amountInitAB1 = parseInt(balanceM);
-  console.log('after minting balanceM:', balanceM, 'amountInitAB1', amountInitAB1);
-
-  console.log('\n-----------==Switching to showAccountAssetBooks()...');
-  showAccountAssetBooks();
-  console.log('mintTokens() has been completed');
-  process.exit(0);
-}
-
-
-
+5: mintTokenFn1
+yarn run livechain -c 1 --f 5 -a 1 -b 3
+*/
 const showAssetInfo = async (_tokenId) => {
   console.log('\n--------==showAssetInfo from HCAT721...');
 
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+  tokenIdM = await inst_HCAT721.methods.tokenId().call();
+  tokenIdMX = parseInt(tokenIdM);
+  let totalSupply = await inst_HCAT721.methods.totalSupply().call();
+  console.log('\ntotalSupply', totalSupply);
+  let nftNameM = await inst_HCAT721.methods.name().call();
+  let nftsymbolM = await inst_HCAT721.methods.symbol().call();
+  let initialAssetPricingM = await inst_HCAT721.methods.initialAssetPricing().call();
+  let IRR20yrx100M = await inst_HCAT721.methods.IRR20yrx100().call();
+  let maxTotalSupplyM = await inst_HCAT721.methods.maxTotalSupply().call();
+  let pricingCurrencyM = await inst_HCAT721.methods.pricingCurrency().call();
+  let siteSizeInKWM = await inst_HCAT721.methods.siteSizeInKW().call();
+  let tokenURI_M = await inst_HCAT721.methods.tokenURI().call();
+  let isNormalModeEnabled = await inst_HCAT721.methods.isNormalModeEnabled().call();
 
-  tokenInfo = await inst_HCAT721.methods.getToken(_tokenId).call();
-  console.log('_tokenId', _tokenId, 'tokenInfo', tokenInfo);
-  console.log('addrAssetBook1', addrAssetBook1);
+  console.log(`\nnftNameM ${web3.utils.toAscii(nftNameM)}, nftsymbolM ${web3.utils.toAscii(nftsymbolM)}, tokenURI ${web3.utils.toAscii(tokenURI_M)}, pricingCurrencyM ${web3.utils.toAscii(pricingCurrencyM)}, initialAssetPricingM ${initialAssetPricingM}, IRR20yrx100M ${IRR20yrx100M},  siteSizeInKWM ${siteSizeInKWM}, isNormalModeEnabled ${isNormalModeEnabled}, maxTotalSupplyM ${maxTotalSupplyM}, tokenId ${tokenIdMX}, totalSupply ${totalSupply}`);
+
+  console.log('\naddrAssetBook1', addrAssetBook1);
   console.log('addrAssetBook2', addrAssetBook2);
   process.exit(0);
 }
 
+/*
+2: showAccountAssetBooks
+yarn run livechain -c 1 --f 2
 
+3: showAssetInfo(tokenId)
+yarn run livechain -c 1 --f 3 -a tokenId
+
+4: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 4 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 4 -a 2 -b 130
+
+5: mintTokenFn1
+yarn run livechain -c 1 --f 5 -a 1 -b 3
+*/
 const showAccountAssetBooks = async () => {
   console.log('\n--------==AssetOwner1: AssetBook and HCAT721...');
-
-  const instAssetBook1 = new web3.eth.Contract(AssetBook.abi, addrAssetBook1);
-  const instAssetBook2 = new web3.eth.Contract(AssetBook.abi, addrAssetBook2);
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
 
   tokenIds = await inst_HCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
   balanceXM = await inst_HCAT721.methods.balanceOf(addrAssetBook1).call();
@@ -877,27 +818,227 @@ const showAccountAssetBooks = async () => {
   process.exit(0);
 }
 
+/*
+2: showAccountAssetBooks
+yarn run livechain -c 1 --f 2
 
-const arraysSortedEqual = (array1, array2) => {
-  if (array1 === array2) return true;
-  if (array1 == null || array2 == null) return false;
-  if (array1.length != array2.length) return false;
+3: showAssetInfo(tokenId)
+yarn run livechain -c 1 --f 3 -a tokenId
 
-  // If you don't care about the order of the elements inside
-  // the array, you should sort both arrays here.
-  // Please note that calling sort on an array will modify that array.
-  // you might want to clone your array first.
+4: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 4 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 4 -a 2 -b 130
 
-  let array1out = array1.sort((a, b) => a - b); // For ascending sort
-  let array2out = array2.sort((a, b) => a - b); // For ascending sort
-  //numArray.sort((array1, array2) => array2 - array1); // For descending sort
+5: mintTokenFn1
+yarn run livechain -c 1 --f 5 -a 1 -b 3
+*/
+// 5 mintTokenFn1
+const mintTokenFn1 = async () => {
+  console.log('inside mintTokenFn1');
+  let to = addrAssetBook1;
+  let amount = 160;
+  let fundingType = 2;//PO: 1, PP: 2
+  let price = 18000;
+  let currentTime = 201905170500;
 
-  for (let i = 0; i < array1out.length; ++i) {
-    if (array1out[i] !== array2out[i]) return false;
-  }
-  return true;
+  const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
+  const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
+  const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+  
+  tokenIdM = await inst_HCAT721.methods.tokenId().call();
+  tokenIdMX = parseInt(tokenIdM);
+  let totalSupply = await inst_HCAT721.methods.totalSupply().call();
+  console.log('\ntotalSupply', totalSupply);
+  let nftNameM = await inst_HCAT721.methods.name().call();
+  let nftsymbolM = await inst_HCAT721.methods.symbol().call();
+  let maxTotalSupplyM = await inst_HCAT721.methods.maxTotalSupply().call();
+  let pricingCurrencyM = await inst_HCAT721.methods.pricingCurrency().call();
+  let tokenURI_M = await inst_HCAT721.methods.tokenURI().call();
+  let isNormalModeEnabled = await inst_HCAT721.methods.isNormalModeEnabled().call();
+
+  console.log(`\nnftNameM ${web3.utils.toAscii(nftNameM)}, nftsymbolM ${web3.utils.toAscii(nftsymbolM)}, tokenURI ${web3.utils.toAscii(tokenURI_M)}, pricingCurrencyM ${web3.utils.toAscii(pricingCurrencyM)}, isNormalModeEnabled ${isNormalModeEnabled}, maxTotalSupplyM ${maxTotalSupplyM}, tokenId ${tokenIdMX}, totalSupply ${totalSupply}`);
+
+  //process.exit(0);
+
+  // await timer.getTime().then(function (time) {
+  //     currentTime = time;
+  // })
+  console.log(`\ncurrent time: ${currentTime}, to ${to}, amount ${amount}, fundingType ${fundingType}, price ${price}`);
+
+  let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amount, price, fundingType, currentTime).encodeABI();
+  let contractAddr = addrHCAT721_Test;
+  let result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData).catch((err) => console.log('\n[Error @ signTx()]', err));
+  console.log('result', result);
+
+  totalSupply = await inst_HCAT721.methods.totalSupply().call();
+  console.log('\ntotalSupply', totalSupply);
+
 }
 
+
+/*
+2: showAccountAssetBooks
+yarn run livechain -c 1 --f 2
+
+3: showAssetInfo(tokenId)
+yarn run livechain -c 1 --f 3 -a tokenId
+
+4: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 4 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 4 -a 2 -b 130
+
+5: mintTokenFn1
+yarn run livechain -c 1 --f 5 -a 1 -b 3
+*/
+const mintTokens = async (assetbookNum, amount) => {
+  console.log('-------------==mintTokens ... Mint Token Batch');
+  console.log('assetbookNum', assetbookNum, 'amount', amount);
+
+  if (assetbookNum < 1 || assetbookNum > 2) {
+    console.log('assetbookNum value should be >= 1 and <= 2. assetbookNum = ', assetbookNum);
+    process.exit(1);
+  } else if (amount < 1) {
+    console.log('amount value should be >= 1. amount = ', assetbookNum);
+    process.exit(1);
+  } else {
+    console.log('assetbookNum = ', assetbookNum);
+  }
+
+  addrHCAT721_Test = '0x6978c55dee93a2351150A8C34BD5a2ddA6D1d327';
+
+  //addrPlatform  addrRegistry  addrMultiSig1 addrAssetBook1  addrTokenController  addrHCAT721
+
+  tokenIdM = await inst_HCAT721.methods.tokenId().call();
+  tokenIdMX = parseInt(tokenIdM);
+  console.log('\ncurrent tokenId = ', tokenIdMX);
+  //checkEq(tokenIdM, tokenIdMX.toString());
+
+  if (assetbookNum === 1) {
+    to = addrAssetBook1;
+  } else if (assetbookNum === 2) {
+    to = addrAssetBook2;
+  } else {
+    console.log('not valid assetbookNum... assetbookNum =', assetbookNum);
+    process.exit(1);
+  }
+
+  //yarn run livechain -c 1 --f 3 -a 1 -b 3
+  //yarn run livechain -c 1 --f 3 -a assetbookNum, -b amount
+  console.log('\n------------==Mint Token in Batch: tokenId =', tokenIdMX + 1, 'to', tokenIdMX + amount, ' to AssetBook' + assetbookNum, 'amount', amount, typeof amount, 'initialAssetPricing', initialAssetPricing, typeof initialAssetPricing, 'fundingType', fundingType, typeof fundingType, 'serverTime', serverTime, typeof serverTime);
+
+  balanceM = await inst_HCAT721.methods.balanceOf(to).call();
+  amountInitAB1 = parseInt(balanceM);
+  console.log('target assetbook has balanceM:', balanceM, 'amountInitAB1', amountInitAB1);
+
+  const mintSerialNFT_ReqCheck = await inst_HCAT721.methods.mintSerialNFT_ReqCheck(to, amount, initialAssetPricing, fundingType, serverTime).call({from: admin});
+  console.log('\nmintSerialNFT_ReqCheck', mintSerialNFT_ReqCheck);
+  checkEq(mintSerialNFT_ReqCheck[0],true);
+  checkEq(mintSerialNFT_ReqCheck[1],true);
+  checkEq(mintSerialNFT_ReqCheck[2],amount+initialAssetPricing+serverTime+'');
+
+  const ReqCheck_isContract = await inst_HCAT721.methods.ReqCheck_isContract(to).call();
+  console.log('\nReqCheck_isContract', ReqCheck_isContract);
+  checkEq(ReqCheck_isContract[0],true);
+  checkEq(ReqCheck_isContract[1],true);
+
+  //process.exit(0);
+  /**
+  let encodedData = instTestCtrt.methods.setHCAT721SerialNumberNG(newNum).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrTestCtrt, encodedData);
+  console.log('TxResult', TxResult);
+  
+  signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
+  */
+
+  
+  let isNormalModeEnabled = await inst_HCAT721.methods.isNormalModeEnabled().call();
+  console.log('\nisNormalModeEnabled', isNormalModeEnabled);
+
+  const tokenCtrtAddr = addrHCAT721;
+  let encodedData = inst_HCAT721.methods.setTestMode(false).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, tokenCtrtAddr, encodedData).catch((err) => console.log('[Error @ signTx()]', err));
+  console.log('TxResult', TxResult);
+
+  isNormalModeEnabled = await inst_HCAT721.methods.isNormalModeEnabled().call();
+  console.log('\nisNormalModeEnabled', isNormalModeEnabled);
+  process.exit(0);
+  //Transaction has been reverted by the EVM:
+
+
+  //----------------------------==
+  console.log('\nbefore mintSerialNFT()');
+  const choice = 1;
+  if (choice === 1) {
+    let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amount, initialAssetPricing, fundingType, serverTime).encodeABI();
+    let TxResult = await signTx(admin, adminpkRaw, tokenCtrtAddr, encodedData).catch((err) => console.log('[Error @ signTx()]', err));
+    console.log('TxResult', TxResult);
+
+  } else if(choice === 0){
+
+  } else {
+    await inst_HCAT721.methods.mintSerialNFT(to, amount, initialAssetPricing, fundingType, serverTime).send({
+      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
+    }).on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      }).on('error', function (error) {
+        console.log('error:', error.toString());
+      });
+  }
+
+  tokenIdMX += amount;
+  tokenIdM = await inst_HCAT721.methods.tokenId().call();
+  checkEq(tokenIdM, tokenIdMX.toString());
+
+  if (amount > 2) {
+    tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX - 2).call();
+    checkEq(tokenOwnerM, to);
+    tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX - 1).call();
+    checkEq(tokenOwnerM, to);
+
+  } else if (amount > 1) {
+    tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX - 1).call();
+    checkEq(tokenOwnerM, to);
+  }
+  tokenOwnerM = await inst_HCAT721.methods.ownerOf(tokenIdMX).call();
+  checkEq(tokenOwnerM, to);
+
+  balanceM = await inst_HCAT721.methods.balanceOf(to).call();
+  amountInitAB1 = parseInt(balanceM);
+  console.log('after minting balanceM:', balanceM, 'amountInitAB1', amountInitAB1);
+
+  console.log('\n-----------==Switching to showAccountAssetBooks()...');
+  await showAccountAssetBooks();
+  console.log('mintTokens() has been completed');
+  process.exit(0);
+}
+
+/*
+2: showAccountAssetBooks
+yarn run livechain -c 1 --f 2
+
+3: showAssetInfo(tokenId)
+yarn run livechain -c 1 --f 3 -a tokenId
+
+4: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 4 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 4 -a 2 -b 130
+
+5: mintTokenFn1
+yarn run livechain -c 1 --f 5 -a 1 -b 3
+*/
+// 32 
+const mintSequentialPerCtrt = async () => {
+  const toAddressArray = [];//assetbook1, 2, 3
+  const amountArray =  [236, 173];//312, 
+  const tokenCtrtAddr = addrHCAT721_Test;
+  const fundingType = 2;//PO: 1, PP: 2
+  const price = 18000;
+
+  const [isFailed, isCorrectAmountArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+    console.log('[Error @ sequentialRunSuper]', err);
+  });
+
+}
 
 const transferTokens = async (assetbookNum, amount) => {
   //-------------------------==Send tokens:
@@ -983,8 +1124,6 @@ const sendAssetBeforeAllowed = async () => {
   //----------------==Send tokens before allowed time
   console.log('\n------------==Send tokens before allowed time');
 
-  const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
-
   await instTokenController.methods.setTimeCurrent(timeCurrent)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
@@ -1019,7 +1158,7 @@ const testCtrt = async () => {
   console.log('\n---------------==inside testCtrt');
   let newNum;
   addrTestCtrt = '0xAB7CBD512dF8226b5Ad6062982959DE6A64b7cA2';
-  const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
+
   let HCAT721SerialNumber = await instTestCtrt.methods.HCAT721SerialNumber().call();
   console.log('\nHCAT721SerialNumber', HCAT721SerialNumber);
 
@@ -1029,7 +1168,7 @@ const testCtrt = async () => {
   process.exit(0);
   newNum = 2030;
   let encodedData = instTestCtrt.methods.setHCAT721SerialNumberNG(newNum).encodeABI();
-  let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrTestCtrt, encodedData);
+  let TxResult = await signTx(admin, adminpkRaw, addrTestCtrt, encodedData);
   console.log('TxResult', TxResult);
 
   /*//Error: Returned error: unknown account
@@ -1046,36 +1185,77 @@ const showMenu = () => {
   console.log('\n');
   console.log("\x1b[32m", '$ yarn run testlive1 --chain C --func F --arg1 arg1 --arg2 arg2');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log("\x1b[32m", 'F = 0: setupTest,  1: getSystemInfo, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amountToMint), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
+  console.log("\x1b[32m", 'F = 0: setupTest,  1: getTokenController, 2: showAccountAssetBooks, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'arg1, arg2, ... are arguments used in above functions ...');
 }
+
+const arraysSortedEqual = (array1, array2) => {
+  if (array1 === array2) return true;
+  if (array1 == null || array2 == null) return false;
+  if (array1.length != array2.length) return false;
+
+  // If you don't care about the order of the elements inside
+  // the array, you should sort both arrays here.
+  // Please note that calling sort on an array will modify that array.
+  // you might want to clone your array first.
+
+  let array1out = array1.sort((a, b) => a - b); // For ascending sort
+  let array2out = array2.sort((a, b) => a - b); // For ascending sort
+  //numArray.sort((array1, array2) => array2 - array1); // For descending sort
+
+  for (let i = 0; i < array1out.length; ++i) {
+    if (array1out[i] !== array2out[i]) return false;
+  }
+  return true;
+}
 //-------------------------------==
+/*
+2: showAccountAssetBooks
+yarn run livechain -c 1 --f 2
+
+3: showAssetInfo(tokenId)
+yarn run livechain -c 1 --f 3 -a tokenId
+
+4: mintTokens(assetbookNum, amount)
+yarn run livechain -c 1 --f 4 -a assetbookNum, -b amount
+yarn run livechain -c 1 --f 4 -a 2 -b 130
+
+5: mintTokenFn1
+yarn run livechain -c 1 --f 5 -a 1 -b 3
+*/
 if (func === 0) {
   setupTest();
 
 } else if (func === 1) {
-  getSystemInfo();
+  getTokenController();
 
 } else if (func === 2) {
   showAccountAssetBooks();
 
 } else if (func === 3) {
-  mintTokens(arg1, arg2);
-
-} else if (func === 4) {
   showAssetInfo(arg1);
 
+} else if (func === 4) {
+  mintTokens(arg1, arg2);
+
 } else if (func === 5) {
-  sendAssetBeforeAllowed();
+  mintTokenFn1();
 
 } else if (func === 6) {
-  setServerTime(arg1);
+  sendAssetBeforeAllowed();
 
 } else if (func === 7) {
+  setServerTime(arg1);
+
+} else if (func === 8) {
   transferTokens(arg1, arg2);
 
 } else if (func === 31) {
   testCtrt();
+
+} else if (func === 32) {
+  mintSequentialPerCtrt();
+
 }
 showMenu();
 
@@ -1151,45 +1331,45 @@ const signTxn = (fromAddr, ctrtAddr, encodedData, privateKey) => {
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
   return new Promise((resolve, reject) => {
 
-    web3.eth.getTransactionCount(userEthAddr)
-      .then(nonce => {
+      web3.eth.getTransactionCount(userEthAddr)
+          .then(nonce => {
 
-        let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
-        let txParams = {
-          nonce: web3.utils.toHex(nonce),
-          gas: 9000000,
-          gasPrice: 0,
-          //gasPrice: web3js.utils.toHex(20 * 1e9),
-          //gasLimit: web3.utils.toHex(3400000),
-          to: contractAddr,
-          value: 0,
-          data: encodedData
-        }
+              let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
+              console.log(userPrivateKey);
+              let txParams = {
+                  nonce: web3.utils.toHex(nonce),
+                  gas: 9000000,
+                  gasPrice: 0,
+                  //gasPrice: web3js.utils.toHex(20 * 1e9),
+                  //gasLimit: web3.utils.toHex(3400000),
+                  to: contractAddr,
+                  value: 0,
+                  data: encodedData
+              }
 
-        let tx = new Tx(txParams);
-        tx.sign(userPrivateKey);
-        const serializedTx = tx.serialize();
-        const rawTx = '0x' + serializedTx.toString('hex');
+              let tx = new Tx(txParams);
+              tx.sign(userPrivateKey);
+              const serializedTx = tx.serialize();
+              const rawTx = '0x' + serializedTx.toString('hex');
 
-        //console.log('☆ RAW TX ☆\n', rawTx);
+              //console.log('☆ RAW TX ☆\n', rawTx);
 
-        web3.eth.sendSignedTransaction(rawTx)
-          .on('transactionHash', hash => {
-            //console.log(hash);
+              web3.eth.sendSignedTransaction(rawTx)
+                  .on('transactionHash', hash => {
+                      console.log(hash);
+                  })
+                  .on('confirmation', (confirmationNumber, receipt) => {
+                      // console.log('confirmation', confirmationNumber);
+                  })
+                  .on('receipt', function (receipt) {
+                      console.log(receipt);
+                      resolve(receipt)
+                  })
+                  .on('error', function (err) {
+                      console.log(err);
+                      reject(err);
+                  })
           })
-          .on('confirmation', (confirmationNumber, receipt) => {
-            // //console.log('confirmation', confirmationNumber);
-          })
-          .on('receipt', function (receipt) {
-            //console.log(receipt);
-            resolve(receipt)
-          })
-          .on('error', function (err) {
-            //console.log(err);
-            reject(err);
-          });
-      });
 
-  });
+  })
 }
-

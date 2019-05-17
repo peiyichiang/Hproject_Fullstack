@@ -341,7 +341,7 @@ if(choice < 9){
   const toAddressArray =[AssetOwner1, AssetOwner2];
   const amountArray = [136, 112];//236, 312
   const tokenCtrtAddr = '0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0';
-  const fundingType = 1;//PO: 1, PP: 2
+  const fundingType = 2;//PO: 1, PP: 2
   const price = 20000;
 
   sequentialRunSuperFn(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price);
