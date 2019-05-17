@@ -349,7 +349,7 @@
                 <td>
                     <button type="button" style="width: 90px;" class="btn btn-success" name="archive"
                         id="FundingFinished<%= i %>" value="archive"
-                        onclick="FundingFinished('<%= data[i].p_name  %>','<%= data[i].p_SYMBOL  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_size  %>','<%= data[i].p_irr  %>',this.id,'<%= data[i].p_releasedate  %>','<%= data[i].p_validdate  %>','<%= data[i].p_lockupperiod  %>','<%= data[i].p_HCAT721uri  %>')">募資結束
+                        onclick="FundingFinished()">募資結束
                     </button>
                 </td>
                 <!-- <td>
@@ -522,8 +522,7 @@
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
                         name="Aborted" value="Aborted" data-toggle="modal" data-target="#abortedReasonModal"
-                        data-whatever="@mdo"
-                        onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');SetCurrentButtonID(this.id);">緊急下架
+                        data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');SetCurrentButtonID(this.id);">緊急下架
                     </button>
                 </td>
             </tr>
@@ -1264,8 +1263,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="Aborted('aborted',this.id);"
-                        data-dismiss="modal">確定緊急下架</button>
+                    <button type="button" class="btn btn-primary" onclick="Aborted('aborted',this.id);" data-dismiss="modal">確定緊急下架</button>
                 </div>
             </div>
         </div>
@@ -1286,9 +1284,9 @@
             CurrentSYMBOL = SYMBOL;
         }
 
-        var CurrentBtnID = "";
-        function SetCurrentButtonID(BtnID) {
-            CurrentBtnID = BtnID;
+        var CurrentBtnID="";
+        function SetCurrentButtonID(BtnID){
+            CurrentBtnID=BtnID;
         }
 
         // 儲存備注並退回
@@ -1320,7 +1318,7 @@
         })
 
         // 緊急下架
-        function Aborted(State, buttonID) {
+        function Aborted(State,buttonID) {
             //等待狀態
             document.getElementById(CurrentBtnID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(CurrentBtnID).disabled = true;
@@ -1428,7 +1426,7 @@
         }
 
         // 上架 = 募資
-        function Fund(tokenSymbol, tokenPrice, currency, quantityMax, CFSD2, CFED2, fundingGoal, State, IncomeCSVFilePath, buttonID) {
+        function Fund(tokenSymbol, tokenPrice, currency, quantityMax, CFSD2, CFED2, fundingGoal, State, IncomeCSVFilePath ,buttonID) {
             // 等待狀態
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
@@ -1436,8 +1434,8 @@
             console.log(tokenSymbol);
             console.log("State:" + State);
             console.log("deploying...");
-            console.log(fundingGoal);
-
+            console.log(fundingGoal);                    
+            
             /*部署CrowdFundingContract*/
             $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol, {
                 tokenPrice: tokenPrice,
@@ -1473,83 +1471,80 @@
 
         }
 
-        //募資結束
-        function FundingFinished(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, IRR20yrx100, buttonID, TimeTokenLaunch, TimeTokenValid, lockupperiod, HCAT721uri) {
-            $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/status", function (result) {
+        function FundingFinished(){
+            alert("募資結束");
+        }
+
+        // 募資成功
+        function FundingComplete(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, IRR20yrx100, State, buttonID, TimeTokenLaunch, TimeTokenValid, lockupperiod, HCAT721uri) {
+            console.log(nftSymbol);
+            console.log(State);
+            console.log(buttonID);
+            console.log(lockupperiod);
+
+            // 等待狀態
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).disabled = true;
+
+            /*部署CrowdFundingContract*/
+            console.log("TokenControllerContract deploying...");
+            $.post("http://localhost:3030/Contracts/tokenControllerContract", {
+                TimeTokenLaunch: TimeTokenLaunch,
+                TimeTokenUnlock: lockupperiod,
+                TimeTokenValid: TimeTokenValid
+            }, function (result) {
+                //var result = JSON.parse(resultJSON);
                 console.log(result);
-                console.log(result.fundingState);
+                console.log(result.contractAddress);
+                console.log(nftSymbol);
+                console.log(HCAT721uri);
 
-                if (result.fundingState == 4) {
-                    console.log(nftSymbol);
-                    console.log(result.fundingState);
-                    console.log(buttonID);
-                    console.log(lockupperiod);
 
-                    // 等待狀態
-                    document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
-                    document.getElementById(buttonID).disabled = true;
+                let tokencontrollerContract = result.contractAddress;
 
-                    /*部署TokenControllerContract*/
-                    console.log("TokenControllerContract deploying...");
-                    $.post("http://localhost:3030/Contracts/tokenControllerContract", {
-                        TimeTokenLaunch: TimeTokenLaunch,
-                        TimeTokenUnlock: lockupperiod,
-                        TimeTokenValid: TimeTokenValid
+                if (result.status == true) {
+                    $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol, {
+                        nftName: nftName,
+                        siteSizeInKW: siteSizeInKW,
+                        maxTotalSupply: maxTotalSupply,
+                        initialAssetPricing: initialAssetPricing,
+                        pricingCurrency: pricingCurrency,
+                        IRR20yrx100: IRR20yrx100,
+                        addrERC721SPLC_ControllerITF: tokencontrollerContract,
+                        tokenURI: HCAT721uri
                     }, function (result) {
                         //var result = JSON.parse(resultJSON);
                         console.log(result);
-                        console.log(result.contractAddress);
-                        console.log(nftSymbol);
-                        console.log(HCAT721uri);
-
-
-                        let tokencontrollerContract = result.contractAddress;
-
+                        //console.log(result.deployResult.contractAddress);
                         if (result.status == true) {
-                            $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol, {
-                                nftName: nftName,
-                                siteSizeInKW: siteSizeInKW,
-                                maxTotalSupply: maxTotalSupply,
-                                initialAssetPricing: initialAssetPricing,
-                                pricingCurrency: pricingCurrency,
-                                IRR20yrx100: IRR20yrx100,
-                                addrERC721SPLC_ControllerITF: tokencontrollerContract,
-                                tokenURI: HCAT721uri
+                            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                                tokenState: State,
+                                tokenSymbol: nftSymbol
                             }, function (result) {
-                                //var result = JSON.parse(resultJSON);
                                 console.log(result);
-                                //console.log(result.deployResult.contractAddress);
-                                if (result.status == true) {
-                                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                                        tokenState: "FundingClosed",
-                                        tokenSymbol: nftSymbol
-                                    }, function (result) {
-                                        console.log(result);
-                                        // 設置好後重新整理
-                                        location.reload();
-                                    })
-                                }
-                            });
+                                // 設置好後重新整理
+                                location.reload();
+                            })
                         }
                     });
-                } else if (result.fundingState == 5) {
-                    document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
-                    document.getElementById(buttonID).disabled = true;
-                    // 設置產品
-                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                        tokenState: "FundingNotClosed",
-                        tokenSymbol: nftSymbol
-                    }, function (result) {
-                        console.log(result);
-                        // 設置好後重新整理
-                        location.reload();
-                    })
-                } else {
-                    alert(result.stateDescription);
-                    location.reload();
                 }
-            })
+            });
 
+        }
+
+        // 募資失敗
+        function FundingNotClosed(tokenSymbol, State, buttonID) {
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).disabled = true;
+            // 設置產品
+            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                tokenState: State,
+                tokenSymbol: tokenSymbol
+            }, function (result) {
+                console.log(result);
+                // 設置好後重新整理
+                location.reload();
+            })
 
         }
 
@@ -1581,48 +1576,55 @@
                     console.log(amounts);
                     console.log(amounts.length);
                     console.log("minting...");
-                    await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mintSequentialPerCtrt", {
-                        toAddressArray: assetBookAddrs.join(),
-                        erc721address: erc721address,
-                        amountArray: amounts.join(),
-                        price: price,
-                        fundingType: fundingType
-                    }, async function (result) {
-                        console.log(result);
-                        if (result.success == true) {
-                            $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
-                                erc721address: erc721address
-                            }, function (result) {
+                    let count = 0;
 
-                                console.log("income:" + result);
-                                console.log("income:" + result.deployResult);
-                                if (result.status == true) {
-                                    $.post("http://localhost:3030/Contracts/productManagerContract/" + nftSymbol, {
-                                        erc721address: erc721address,
-                                        crowdFundingCtrtAddr: crowdFundingCtrtAddr,
-                                        tokenControllerCtrtAddr: tokenControllerCtrtAddr,
-                                        incomeManagementCtrtAddr: result.deployResult.contractAddress
-                                    }, function (result) {
+                    for (let i = 0; i < assetBookAddrs.length; i++) {
+                        await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mint", {
+                            assetBookAddr: assetBookAddrs[i],
+                            erc721address: erc721address,
+                            amount: amounts[i],
+                            price: price,
+                            fundingType: fundingType
+                        }, async function (result) {
+                            console.log(result);
+                            if (result.result.status == true) {
+                                console.log(i + 1 + "/" + assetBookAddrs.length + "has minted...");
+                                count++;
+                            }
 
-                                        console.log(result);
-                                        if (result.result.status == true) {
-                                            // 將產品狀態設置為FundingComplete
-                                            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                                                tokenState: State,
-                                                tokenSymbol: nftSymbol
-                                            }, function (result) {
-                                                console.log(result);
-                                                // 設置好後重新整理
-                                                location.reload();
-                                            })
-                                        }
-                                    });
-                                }
-                            });
-                        }
+                        });
+                    }
+                    if (count == assetBookAddrs.length) {
+                        $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
+                            erc721address: erc721address
+                        }, function (result) {
 
-                    })
+                            console.log("income:"+result);
+                            console.log("income:"+result.deployResult);
+                            if (result.status == true) {
+                                $.post("http://localhost:3030/Contracts/productManagerContract/" + nftSymbol, {
+                                    erc721address: erc721address,
+                                    crowdFundingCtrtAddr: crowdFundingCtrtAddr,
+                                    tokenControllerCtrtAddr: tokenControllerCtrtAddr,
+                                    incomeManagementCtrtAddr: result.deployResult.contractAddress
+                                }, function (result) {
 
+                                    console.log(result);
+                                    if (result.result.status == true) {
+                                        // 將產品狀態設置為FundingComplete
+                                        $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                                            tokenState: State,
+                                            tokenSymbol: nftSymbol
+                                        }, function (result) {
+                                            console.log(result);
+                                            // 設置好後重新整理
+                                            location.reload();
+                                        })
+                                    }
+                                });
+                            }
+                        });
+                    }
                 });
             });
         }
