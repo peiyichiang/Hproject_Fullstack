@@ -16,7 +16,7 @@ interface RegistryITF {
 contract CrowdFunding {
     using SafeMath for uint256;
     using AddressUtils for address;
-    address public HeliumAddr;
+    address public addrHelium;
     event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, FundingState indexed _fundingState, string _stateDescription);
     event TokenInvested(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
     
@@ -61,7 +61,7 @@ contract CrowdFunding {
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
         uint serverTime,
-        address _HeliumAddr
+        address _addrHelium
     ) public {
         ckStringLength(_tokenSymbol, 3, 32);
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
@@ -83,7 +83,7 @@ contract CrowdFunding {
         stateDescription = "initial";
         require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
         
-        HeliumAddr = _HeliumAddr;
+        addrHelium = _addrHelium;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
@@ -101,13 +101,13 @@ contract CrowdFunding {
     }
 
     function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
+        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
-    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
-        HeliumAddr = _HeliumAddr;
+    function setHeliumAddr(address _addrHelium) external onlyPlatformSupervisor{
+        addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
         _;
     }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */

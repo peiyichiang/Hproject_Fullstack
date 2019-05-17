@@ -38,7 +38,7 @@ interface TokenControllerITF {
 contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF, 
     using SafeMath for uint256;
     using AddressUtils for address;
-    address public HeliumAddr;
+    address public addrHelium;
 
     mapping(address => Account) internal accounts;//accounts[user]
     struct Account {
@@ -79,7 +79,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI, address _HeliumAddr) public {
+        bytes32 _tokenURI, address _addrHelium) public {
         name = _nftName;
         symbol = _nftSymbol;
         tokenURI = _tokenURI;
@@ -92,22 +92,12 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         
         addrRegistry = _addrRegistry;
         addrTokenController = _addrTokenController;
-        HeliumAddr = _HeliumAddr;
+        addrHelium = _addrHelium;
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
 
-    modifier onlyPlatformSupervisor() {
-        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
-        _;
-    }
-    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
-        HeliumAddr = _HeliumAddr;
-    }
-    function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
-    }
 
     function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
@@ -227,6 +217,17 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
     }
 
+    modifier onlyPlatformSupervisor() {
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        _;
+    }
+    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        addrHelium = _addrHelium;
+    }
+    function checkPlatformSupervisor() external view returns (bool){
+        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
+    }
     //Legal Compliance, also block address(0)
     //fundingType: 1 public crowdfunding, 2 private placement
     //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
@@ -246,7 +247,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
         require(amount > 0, "amount must be > 0");
         totalSupply = tokenId.add(amount);
-        require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
+        //require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
         emit MintSerialNFT(_to, amount, price, serverTime, fundingType);
 
         uint idxEnd = accounts[_to].idxEnd;

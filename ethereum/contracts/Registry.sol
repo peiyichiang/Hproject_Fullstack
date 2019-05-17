@@ -46,10 +46,10 @@ contract Registry {
     string public currencyType;
     uint public uintMax = 2**256 - 1;
     bool public isAfterDeployment;
-    address public HeliumAddr;
+    address public addrHelium;
 
-    constructor(address _HeliumAddr) public {
-        HeliumAddr = _HeliumAddr;
+    constructor(address _addrHelium) public {
+        addrHelium = _addrHelium;
         currencyType = "NTD";
         //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate); 
         setRestrictions(1, 0, 0, uintMax, uintMax);
@@ -69,14 +69,14 @@ authLevel & STO investor classification on purchase amount and holding balance r
 */
     
     modifier onlyCustomerService() {
-        require(HeliumITF(HeliumAddr).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+        require(HeliumITF(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         _;
     }
-    function setHeliumAddr(address _HeliumAddr) external onlyCustomerService{
-        HeliumAddr = _HeliumAddr;
+    function setAddrHelium(address _addrHelium) external onlyCustomerService{
+        addrHelium = _addrHelium;
     }
     function checkCustomerService() external view returns (bool){
-        return (HeliumITF(HeliumAddr).checkCustomerService(msg.sender));
+        return (HeliumITF(addrHelium).checkCustomerService(msg.sender));
     }
 
 
@@ -202,7 +202,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     /**@dev get regulation's restrictions, amount and balance in fiat */
     function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public {
         if(isAfterDeployment) {
-            require(HeliumITF(HeliumAddr).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+            require(HeliumITF(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         }
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;

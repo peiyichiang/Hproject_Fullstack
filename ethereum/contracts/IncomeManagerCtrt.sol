@@ -9,9 +9,8 @@ interface HeliumITF{
 contract IncomeManagerCtrt {
     using SafeMath for uint256;
     address public tokenCtrt;//the token address
-    address public supervisor;//the supervisor
     uint public dateTimeMin = 201901220900;// the minimum dataTime allowed
-    address public HeliumAddr;
+    address public addrHelium;
 
     uint public schCindex;//last submitted index and total count of current schedules, and also the index count. It starts from 1 to 80. SPLC life time has a total of 80 schedules
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
@@ -30,20 +29,19 @@ contract IncomeManagerCtrt {
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(address _tokenCtrt, address _supervisor, address _HeliumAddr) public {
+    constructor(address _tokenCtrt, address _addrHelium) public {
         tokenCtrt = _tokenCtrt;
-        supervisor = _supervisor;//can be EOA or Helium contract
-        HeliumAddr = _HeliumAddr;
+        addrHelium = _addrHelium;
     }
 
     function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender));
+        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
-    function setHeliumAddr(address _HeliumAddr) external onlyPlatformSupervisor{
-        HeliumAddr = _HeliumAddr;
+    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
+        addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor(){
-        require(HeliumITF(HeliumAddr).checkPlatformSupervisor(msg.sender), "only customerService is allowed to call this function");
+        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only customerService is allowed to call this function");
         _;
     }
 

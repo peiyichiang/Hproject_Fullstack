@@ -4,7 +4,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const timer = require('../timeserver/api.js')
 const router = express.Router();
-const { sequentialRunSuper, sequentialRunSuperCheck } = require('../timeserver/blockchain.js');
+const { sequentialRunSuper } = require('../timeserver/blockchain.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -802,33 +802,38 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
 // http://localhost:3030/Contracts/ERC721SPLCContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
     console.log(`\n---------------------==\nAPI mintSequentialPerCtrt...`);
-    const toAddressArray = req.body.toAddressArray;
-    const amountArray = req.body.amountArray;
-    const contractAddr = req.body.erc721address;
-    const fundingType = req.body.fundingType;
+    const toAddressArray = req.body.toAddressArray.split(",");
+    const amountArray = req.body.amountArray.split(",").map(function(item) {
+        return parseInt(item, 10);
+    });
+    const tokenCtrtAddr = req.body.erc721address;
+    const fundingType = req.body.fundingType;//PO: 1, PP: 2
     const price = req.body.price;
+
+    console.log(toAddressArray);
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    await sequentialRunSuper(toAddressArray, amountArray, contractAddr, fundingType, price);
-
-    console.log(`\n-------------==\nbefore sequentialRunSuperCheck()...`);
-    const balanceArray = await sequentialRunSuperCheck(toAddressArray, amountArray, contractAddr);
-    const isFailed = balanceArray.includes(false);
-    console.log('isFailed', isFailed);
-
-    if (isFailed) {
+    const [isFailed, isCorrectAmountArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+      console.log('[Error @ sequentialRunSuper]', err);
       res.send({
         success: false,
-        result: '[Failed] Check balanceArray',
-        balanceArray: balanceArray,
+        result: '[Failed @ sequentialRunSuper()], err:'+err,
+      });
+    });
+
+    if (isFailed || isFailed === undefined) {
+      res.send({
+        success: false,
+        result: '[Failed] Check isCorrectAmountArray',
+        isCorrectAmountArray: isCorrectAmountArray,
       });
     } else {
       res.send({
         success: true,
         result: '[Success] All balances are correct',
-        balanceArray: balanceArray,
+        isCorrectAmountArray: isCorrectAmountArray,
       });
     }
 });
@@ -883,6 +888,50 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (r
         }
 
     });
+});
+
+
+router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function (req, res, next) {
+  const contractAddr = req.body.erc721address;
+  const _from = req.body.from;
+  const to = req.body.assetBookAddr;
+  const amount = req.body.amount;
+  const price = req.body.price;
+  const serverTime = req.body.serverTime;
+
+  const tokenSymbol = req.body.tokenSymbol;
+
+  const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+  let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
+  //safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime)
+  let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+
+
+  console.log('after safeTransferFromBatch() is completed...');
+  const txid = tokenSymbol+period+tokenId+txCount
+  const tokenId = tokenId;
+  const txCount = txCount;
+  const holdingDays = holdingDays;
+  const txTime = txTime;
+  const balanceOffromassetbook = balanceOffromassetbook;
+
+  const fromAssetbook = _from;
+  const toAssetbook = to;
+
+  let success = true;
+  await addTxnInfoRow(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook).catch((err) => {
+    console.log('\n[Error @ addTxnInfoRow()]', err)
+    success = false;
+  });
+  if(success){
+    res.send({
+      status: "success"
+    });
+  } else {
+    res.send({
+      status: "fail"
+    });
+  }
 });
 
 

@@ -118,16 +118,15 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
                     latestAssetHistoryByToken.acquiredCostTotal = returnNumberWithCommas(latestAssetHistoryByToken.acquiredCostTotal)
                     latestAssetHistoryByToken.incomeOfLatestPeriod = returnNumberWithCommas(latestAssetHistoryByToken.incomeOfLatestPeriod)
                 });
-            if (latestAssetHistoryList.length > 0) {
                 res.status(200);
+            if (latestAssetHistoryList.length > 0) {
                 res.json({
                     "message": "[Success] 我的資產取得成功！",
                     "result": latestAssetHistoryList
                 });
             } else {
-                res.status(400);
                 res.json({
-                    "message": "[Error] 我的資產取得失敗: 找不到資產"
+                    "message": "[Success] 我的資產取得成功: 找不到資產"
                 });
             }
         })

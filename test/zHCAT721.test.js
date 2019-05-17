@@ -56,26 +56,6 @@ if (Helium === undefined){
   //console.log(Helium);
 }
 
-const Platform = require('../ethereum/contracts/build/Platform.json');
-if (Platform === undefined){
-  console.log('[Error] Platform is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-} else {
-  console.log('[Good] Platform is defined');
-  if (Platform.abi === undefined){
-    console.log('[Error] Platform.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] Platform.abi is defined');
-      //console.log('Platform.abi:', Platform.abi);
-  }
-  if (Platform.bytecode === undefined || Platform.bytecode.length < 10){
-    console.log('[Error] Platform.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] Platform.bytecode is defined');
-      //console.log('Platform.bytecode:', Platform.bytecode);
-  }
-  //console.log(Platform);
-}
-
 // const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
 // if (MultiSig === undefined){
 //   console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
@@ -478,8 +458,7 @@ beforeEach( async function() {
 
     //---------=IncomeManagerCtrt related contracts
     console.log('\nDeploying IncomeManager contract...');
-    //addrHeliumCtrt -> platformSupervisor for now...
-    const argsIncomeManagerCtrt =[addrHCAT721, platformSupervisor, addrHeliumCtrt];
+    const argsIncomeManagerCtrt =[addrHCAT721, addrHeliumCtrt];
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -550,7 +529,6 @@ describe('Tests on HCAT721', () => {
     assert.ok(addrTokenController);
     assert.ok(addrHCAT721);
     assert.ok(addrCrowdFunding);
-    //assert.ok(addrPlatformSupervisorCtrt);
     console.log('Deployment Check: Good');
 
     let _assetAddr = addrHCAT721;
@@ -639,7 +617,7 @@ describe('Tests on HCAT721', () => {
     console.log('\n------------==Check HCAT721 parameters');
     console.log('addrHCAT721', addrHCAT721);
 
-    // await instHCAT721.methods.set_admin(AssetOwner1, platformSupervisor).send({
+    // await instHCAT721.methods.set_admin(AssetOwner1).send({
     //   value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
     // });//set_tokenDump(address _tokenDump, address vendor)
 
@@ -719,6 +697,7 @@ describe('Tests on HCAT721', () => {
 
     accountIdsAll = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
     console.log('HCAT accountIdsAll =', accountIdsAll);
+
 
     console.log('\n------------==Mint token');
     console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');

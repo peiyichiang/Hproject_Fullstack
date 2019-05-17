@@ -8,7 +8,7 @@ interface HeliumITF{
 }
 contract ProductManager {
     using SafeMath for uint256;
-    address public HeliumAddr;
+    address public addrHelium;
     
     uint public groupCindex;
     mapping(bytes32 => CtrtGroup) public symbolToCtrtGroup;
@@ -21,19 +21,19 @@ contract ProductManager {
         address TokenCtrt;
         address IncomeManagerCtrt;
     }
-    constructor(address _HeliumAddr) public {
-        HeliumAddr = _HeliumAddr;
+    constructor(address _addrHelium) public {
+        addrHelium = _addrHelium;
     }
 
-    function setHeliumAddr(address _HeliumAddr) external onlyAdmin{
-        HeliumAddr = _HeliumAddr;
+    function setAddrHelium(address _addrHelium) external onlyAdmin{
+        addrHelium = _addrHelium;
     }
     modifier onlyAdmin() {
-        require(HeliumITF(HeliumAddr).checkAdmin(msg.sender), "only  Helium_Admin is allowed to call this function");
+        require(HeliumITF(addrHelium).checkAdmin(msg.sender), "only  Helium_Admin is allowed to call this function");
         _;
     }
     function checkAdmin() external view returns (bool){
-        return (HeliumITF(HeliumAddr).checkAdmin(msg.sender));
+        return (HeliumITF(addrHelium).checkAdmin(msg.sender));
     }
 
     function addNewCtrtGroup(bytes32 symbol,
