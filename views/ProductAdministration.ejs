@@ -1474,7 +1474,7 @@
         }
 
         //募資結束
-        function FundingFinished(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, IRR20yrx100, buttonID, TimeTokenLaunch, TimeTokenValid, lockupperiod, HCAT721uri) {
+        function FundingFinished(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, irr, buttonID, TimeTokenLaunch, TimeTokenValid, lockupperiod, HCAT721uri) {
             $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/status", function (result) {
                 console.log(result);
                 console.log(result.fundingState);
@@ -1501,6 +1501,9 @@
                         console.log(result.contractAddress);
                         console.log(nftSymbol);
                         console.log(HCAT721uri);
+                        let IRR20yrx100 = irr*100;
+                        console.log(IRR20yrx100);
+
 
 
                         let tokencontrollerContract = result.contractAddress;

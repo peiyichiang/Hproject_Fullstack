@@ -799,7 +799,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mint', async function (req, 
 
 
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
-// http://localhost:3030/Contracts/ERC721SPLCContract/Htoken05/mintSequentialPerCtrt
+// http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
     console.log(`\n---------------------==\nAPI mintSequentialPerCtrt...`);
     const toAddressArray = req.body.toAddressArray.split(",");

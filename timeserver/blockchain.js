@@ -206,7 +206,7 @@ const sequentialRunSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fu
     const amountArrayOut = result[0];
     const toAddressArrayOut = result[1];
     console.log('\namountArrayOut out', amountArrayOut);
-    console.log('toAddressOut out', toAddressOut);
+    console.log('toAddressOut out', toAddressArrayOut);
 
     const currentTime = await timer.getTime();
     console.log('acquired currentTime', currentTime);
