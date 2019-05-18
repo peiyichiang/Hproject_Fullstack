@@ -31,7 +31,7 @@ const TimeTokenUnlock = timeCurrent+20;
 const TimeTokenValid =  timeCurrent+90;
 const fundmanager = 'Company_FundManagerN';
 
-let admin, AssetOwner1, AssetOwner2, acc3, acc4, managementTeam;
+let admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, managementTeam;
 let adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, adminpk;
 let addrHelium, addrMultiSig1, addrMultiSig2, addrRegistry, addrTokenController;
 let addrHCAT721, addrAssetBook1, addrAssetBook2, addrIncomeManagement, addrProductManager;
@@ -63,12 +63,14 @@ if (chain === 1) {//POA private chain
   AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
   AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
   AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
-  acc3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
-  acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
-  acc5 = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
-  //acc5pkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
+  AssetOwner3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
+  AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
+  AssetOwner4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
+  AssetOwner4pkRaw = "0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f";
+  AssetOwner5 = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
+  //AssetOwner5pkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
 
-  managementTeam = [admin, AssetOwner1, AssetOwner2, acc3, acc4];
+  managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4];
   /** deployed contracts
       yarn run deploy -c 1 -s 1 -cName db
       cName = helium, assetbook, registry, cf, tokc, hcat, db
@@ -76,6 +78,7 @@ if (chain === 1) {//POA private chain
   addrHelium =     "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7";
   addrAssetBook1 = "0x10C2E71CE92d637E6dc30BC1d252441A2E0865B0";
   addrAssetBook2 = "0xe1A64597056f5bf55268dF75F251e546879da89c";
+  addrAssetBook3 = "";
   addrRegistry =   "0xe86976cEd3bb9C924235B904F43b829E4A32fa0d";
 
   //fundingType= 1 PO, 2 PP
@@ -186,45 +189,36 @@ if (chain === 1) {//POA private chain
 
   // addrProductManager = "";  
 
-
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
   console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
 
-  const nodeUrl = "http://140.119.101.130:8545";
+  const nodeUrl = "http://140.119.101.130:8545";//POA
 
   adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
   provider = new PrivateKeyProvider(adminpk, nodeUrl);
-  //const provider = new PrivateKeyProvider(adminpk, 'http://140.119.101.130:8545');
-  /**ganache */
-  //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
   web3deploy = new Web3(provider);
+  web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
   console.log('web3.version', web3deploy.version);
-  web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
   prefix = '0x';
 
 } else if (chain === 2) {//2: POW private chain
-  /*ganache*/
-  //web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
-
-  //gasLimitValue = 5000000 for POW private chain
   const options = { gasLimit: 9000000 };
-  gasLimitValue = '9000000';
+  gasLimitValue = '5000000';// for POW private chain
   gasPriceValue = '20000000000';//100000000000000000
   provider = ganache.provider(options);
   const nodeUrl = "http://140.119.101.130:8540";
+  provider = new PrivateKeyProvider(adminpk, nodeUrl);//ganache
+  web3deploy = new Web3(provider);
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 
 } else if (chain === 3) {
-  /*Infura HttpProvider Endpoint*/
-  //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
-
-  //gasLimitValue = 5000000 for POW Infura Rinkeby chain
   const options = { gasLimit: 7000000 };
-  gasLimitValue = '7000000';
+  gasLimitValue = '5000000';// for POW Infura Rinkeby chain
   gasPriceValue = '20000000000';//100000000000000000
   provider = ganache.provider(options);
   const nodeUrl = "https://rinkeby.infura.io/v3/b789f67c3ef041a8ade1433c4b33de0f";
+  //const noeeUrl = "https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d";
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 
 } else {
@@ -240,13 +234,11 @@ if (chain === 1) {//POA private chain
 
 let instRegistry, instTokenController, instHCAT721, instCrowdFunding,  instIncomeManager, instProductManager;
 let balance0, balance1, balance2;
+let argsAssetBookN, argsAssetBook1, argsAssetBook2, argsAssetBook3, argsAssetBook4;
+let instAssetBookN, instAssetBook1, instAssetBook2, instAssetBook3, instAssetBook4; 
 
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
-
-let argsAssetBook1, argsAssetBook2;
-let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
-
 
 //--------------------==
 console.log('\n---------------==Load contract json file compiled from sol file');
@@ -453,7 +445,14 @@ if (ProductManager === undefined){
   //console.log(ProductManager);
 }
 
-
+//  await asyncForEachBasic(mainInputArray, async (item) => {
+async function asyncForEachBasic(arrayBasic, callback) {
+  console.log("arrayBasic:"+arrayBasic);
+  for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
+    console.log("idxBasic:"+idxBasic, arrayBasic[idxBasic]);
+    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
+  }
+}
 
 
 const deploy = async () => {
@@ -462,8 +461,8 @@ const deploy = async () => {
     console.log('admin', admin);
     console.log('AssetOwner1', AssetOwner1);
     console.log('AssetOwner2', AssetOwner2);
-    console.log('acc3', acc3);
-    console.log('acc4', acc4);
+    console.log('AssetOwner3', AssetOwner3);
+    console.log('AssetOwner4', AssetOwner4);
 
     if (2===1) {
         balance0 = await web3deploy.eth.getBalance(admin);//returns strings!
@@ -572,15 +571,43 @@ const deploy = async () => {
       process.exit(0);
 
 
+  //yarn run deploy -c 1 -s 1 -cName db
   } else if (ctrtName === 'assetbook') {
-    argsAssetBook1 = [ AssetOwner1, addrHelium];
-    argsAssetBook2 = [ AssetOwner2, addrHelium];
-
-    //Deploying AssetBook contract... 
+    const addrAssetBookArray = [];
     console.log('\nDeploying AssetBook contracts...');
+    const mainInputArray = [AssetOwner1, AssetOwner2, AssetOwner3];
+    await asyncForEachBasic(mainInputArray, async (item, idx) => {
+      argsAssetBookN = [item, addrHelium];
+      instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
+      .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
+      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+      if (instAssetBookN === undefined) {
+        console.log(`\n[Error] instAssetBook${idx+1} is NOT defined`);
+        } else {console.log(`[Good] instAssetBook${idx+1} is defined`);}
     
-    instAssetBook1 =  await new web3deploy.eth.Contract(AssetBook.abi)
-    .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook1 })
+      console.log(`AssetBook${idx+1} has been deployed`);
+      console.log(`addrAssetBook${idx+1}: ${instAssetBookN.options.address}`);
+      addrAssetBookArray.push(instAssetBookN.options.address);
+      console.log(`Finished deploying AssetBook${idx+1}...`);
+    });
+    addrAssetBook1 = addrAssetBookArray[0];
+    addrAssetBook2 = addrAssetBookArray[1];
+    addrAssetBook3 = addrAssetBookArray[2];
+    process.exit(0);
+
+  //yarn run deploy -c 1 -s 1 -cName db
+  } else if (ctrtName === 'assetbookx'){
+    console.log('\nDeploying AssetBook contract x1...');
+    const assetowner = "";
+    const argsAssetBookx = [assetowner, addrHelium];
+    instAssetBookx =  await new web3deploy.eth.Contract(AssetBook.abi)
+    .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookx })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
@@ -589,35 +616,14 @@ const deploy = async () => {
         console.log('error:', error.toString());
     });
 
-    console.log('AssetBook1 has been deployed');
-    //instAssetBook1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrAssetBook1 = instAssetBook1.options.address;
-    console.log('addrAssetBook1:', addrAssetBook1);
-    console.log('\nwaiting for addrAssetBook2...');
-
-    instAssetBook2 =  await new web3deploy.eth.Contract(AssetBook.abi)
-    .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
-
-    console.log('AssetBook2 has been deployed');
-    if (instAssetBook2 === undefined) {
-      console.log('[Error] instAssetBook2 is NOT defined');
-      } else {console.log('[Good] instAssetBook2 is defined');}
-    instAssetBook2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrAssetBook2 = instAssetBook2.options.address;
-
-    console.log('addrAssetBook1:', addrAssetBook1);
-    console.log('addrAssetBook2:', addrAssetBook2);
+    console.log('Another assetbook has been deployed');
+    if (instAssetBookx === undefined) {
+      console.log('\n[Error] instAssetBook is NOT defined');
+      } else {console.log('[Good] instAssetBook is defined');}
+    console.log('addrAssetBookx:', instAssetBookx.options.address);
     process.exit(0);
 
   } else if (ctrtName === 'registry') {
-    //Deploying Registry contract...
     console.log('\nDeploying Registry contract...');
     const argsRegistry = [addrHelium];
     instRegistry =  await new web3deploy.eth.Contract(Registry.abi)
