@@ -934,7 +934,7 @@ const sequentialMintSuperAPI = async () => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
-  if(isFailed) {
+  if(isFailed || isFailed === undefined || isFailed === null) {
     console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
   } else {
     console.log('\n[Success] All minting actions have been completed successfully');
