@@ -914,10 +914,9 @@ authLevel & STO investor classification on purchase amount and holding balance r
 const addAssetBookAPI = async () => {
   const assetBookAddr = addrAssetBook3;
   const userID = "A500000003", authLevel = 5;
-  const userM = await addAssetBook(assetBookAddr, userID, authLevel);
-  //checkEq(userM[0], assetBookAddr);
-  //checkEq(userM[1], authLevel.toString());
+  const [assetBookAddrM, authLevelM] = await addAssetBook(assetBookAddr, userID, authLevel);
 }
+
 
 //yarn run livechain -c 1 --f 37 -a 1 -b 3
 const sequentialMintSuperAPI = async () => {

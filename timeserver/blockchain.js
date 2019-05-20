@@ -40,6 +40,11 @@ if(choiceOfHCAT721===1){
 //const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
 //const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
 
+const isEmpty = value => 
+    value === undefined ||
+    value === null ||
+    (typeof value === 'object' && Object.keys(value).length === 0) ||
+    (typeof value === 'string' && value.trim().length === 0);
 
 //-------------------==Crowdfunding
 const getFundingStateCFC = async (crowdFundingAddr) => {
@@ -459,7 +464,7 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
 
 // HHtoekn12222  Htoken001  Htoken0030
 //-------------------------------==DB + BC
-//-------------------==updateCFC
+//-------------------==Crowdfunding
 const updateCFC = async (timeCurrent) => {
   console.log('\ninside updateCFC(), timeCurrent:', timeCurrent, 'typeof', typeof timeCurrent);
   if(!Number.isInteger(timeCurrent)){
@@ -481,6 +486,102 @@ const updateCFC = async (timeCurrent) => {
     }
   });
 }
+
+
+const addInvestorAssebooksIntoCFC = async () => {
+  console.log('\ninside addInvestorAssebooksIntoCFC()...');
+  mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "completed"', [] , async function(err, symbols) {
+    if (err) {
+      console.log('[Error @ addInvestorAssetbooksIntoCFC: get symbols]', err);
+    } else {
+      console.log('symbols', symbols);
+      await asyncForEachBasic(symbols, async (symbol) => {
+        console.log(`\n--------------==next: ${symbol}`);
+        mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol] , async function(err, result) {
+          if (err) {
+            console.log('[Error @ getting crowdsaleaddress from symbol]', err);
+          } else {
+            if(result.length > 1){
+              console.log('[Error] Got multiple crowdsaleaddresses are found from one symbol!');
+              return;
+            }
+            const crowdFundingAddr = result[0];
+
+            mysqlPoolQuery('SELECT o_userIdentityNumber, o_tokenCount FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "completed"', [symbol] , async function(err, result) {
+              if (err) {
+                console.log('[Error @ o_userIdentityNumber]', err);
+              } else {
+                console.log('result', result);
+                const uidArray = result[0];
+                const tokenCountArray = result[1];
+  
+                await asyncForEachBasic(uidArray, async (uid, idx) => {
+                  if(!Number.isInteger(tokenCountArray[idx])){
+                    console.log('[Error] tokenCount must be an integer!');
+                    return;
+                  }
+                  const tokenCount = parseInt(tokenCountArray[idx]);
+                  console.log(`\n----------==next: uid = ${uid}, idx = ${idx}, tokenCount = ${tokenCount}`);
+                  mysqlPoolQuery('SELECT u_assetbookContractAddress FROM htoken.user WHERE o_userIdentityNumber = ?', [uid] , async function(err, result) {
+                    if (err) {
+                      console.log('[Error @ getting assetbookContractAddress from uid]', err);
+                    } else {
+                      if(result.length > 1){
+                        console.log('[Error] Got multiple assetbookContractAddresses from one UserID!');
+                        return;
+                      }
+                      const addrAssetbook = result[0];
+                      if(isEmpty(addrAssetbook)){
+                        console.log('[Error] addrAssetbook is empty. addrAssetbook:', addrAssetbook);
+                        return;
+                      }
+                      console.log('addrAssetbook', addrAssetbook);
+
+                      const currentTime = await timer.getTime();
+                      //write addrAssetbook & tokenCount into crowdfundingAddr
+
+                      const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+                      const encodedData = inst_crowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
+                      //invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor)  OR  investInBatch(address[] calldata _assetbookArr, uint[] calldata _quantityToInvestArr, uint serverTime)
+                      let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+                      console.log('\nTxResult', TxResult);
+                    
+                      //let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
+                      //console.log('\nfundingState:', fundingState);
+                      //return fundingState;
+  
+                    }
+                  });
+                });
+              }
+            });
+
+          }
+
+
+        });
+
+      });
+    }
+  
+  });
+}
+
+//to get all the list: set inputs to both zeros
+const getInvestorsFromCFC = async (indexStart, amount) => {
+  console.log('\ngetInvestorsFromCFC()...');
+  if(!Number.isInteger(indexStart) || !Number.isInteger(amount)){
+    console.log(`[Error] Non integer is found: indexStart: ${indexStart}, amount: ${amount}`);
+    return [[],[]];
+  }
+
+  const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+  const [assetbookArray, investedTokenQtyArray] = await inst_crowdFunding.methods.getInvestors(indexStart, amount).call();  //getInvestors(uint indexStart, uint amount) external view returns(address[] memory assetbookArray, uint[] memory investedTokenQtyArray)
+  console.log(`\nassetbookArray: ${assetbookArray}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+  return [assetbookArray, investedTokenQtyArray];
+}
+
+
 
 //-------------------==Token Controller
 const updateTCC = async (timeCurrent) => {
@@ -707,7 +808,8 @@ module.exports = {
   updateTimeOfOrders, getDetailsCFC, 
   sequentialRun, sequentialMint, sequentialCheckBalancesAfter, sequentialCheckBalances,
   breakdownArrays, sequentialMintSuper, sequentialMintSuperNoMint,
-  getFundingStateCFC, updateFundingStateCFC, updateCFC, 
+  getFundingStateCFC, updateFundingStateCFC, updateCFC,
+  addInvestorAssebooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC
 }

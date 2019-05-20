@@ -16,12 +16,20 @@ interface RegistryITF {
 contract CrowdFunding {
     using SafeMath for uint256;
     using AddressUtils for address;
+
     address public addrHelium;
-    event UpdateState(string indexed _tokenSymbol, uint _quantitySold, uint serverTime, FundingState indexed _fundingState, string _stateDescription);
-    event TokenInvested(address indexed _assetbook, uint _quantityToInvest, uint serverTime);
-    
+
+    event UpdateState(
+        string indexed _tokenSymbol,
+        uint _quantitySold, uint serverTime,
+        FundingState indexed _fundingState,
+        string _stateDescription
+    );
+    event TokenInvested(address indexed _addrAssetbook, uint _quantityToInvest, uint serverTime);
+
     uint public serverTimeMin = 201902250000;
-    uint public maxTokenQtyForEachInvestmentFund = 120;// the max allowed token quantity for each investment fund, according to the token minting function limit
+    uint public maxTokenQtyForEachInvestmentFund = 120;
+    // the max allowed token quantity for each investment fund, according to the token minting function limit
     string public tokenSymbol; //token symbol for crowdfunding
     string public pricingCurrency; // type of funding pricingCurrency: NTD, USD, RMB, etc...
     uint public initialAssetPricing; // funding price for each token
@@ -49,7 +57,7 @@ contract CrowdFunding {
     uint public fundingType;
     //address public addrRegistry;
 
-    /*  at initialization, setup the owner 
+    /*  at initialization, setup the owner
     "hTaipei001", 17000, "NTD", 900, 98, 201902191800, 201902191810, 201902191710, "", "", "", "", ""
     */
     constructor  (
@@ -82,12 +90,16 @@ contract CrowdFunding {
         fundingState = FundingState.initial;//init the project state
         stateDescription = "initial";
         require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
-        
+
         addrHelium = _addrHelium;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
-    function getContractDetails() public view returns(uint serverTimeMin_, uint maxTokenQtyForEachInvestmentFund_, string memory tokenSymbol_, string memory pricingCurrency_, uint initialAssetPricing_, uint maxTotalSupply_, uint quantityGoal_, uint quantitySold_, uint CFSD2_, uint CFED2_) {
+    function getContractDetails() public view returns(
+        uint serverTimeMin_, uint maxTokenQtyForEachInvestmentFund_,
+        string memory tokenSymbol_, string memory pricingCurrency_,
+        uint initialAssetPricing_, uint maxTotalSupply_,
+        uint quantityGoal_, uint quantitySold_, uint CFSD2_, uint CFED2_) {
         serverTimeMin_ = serverTimeMin;
         maxTokenQtyForEachInvestmentFund_ = maxTokenQtyForEachInvestmentFund;
         tokenSymbol_ = tokenSymbol;
@@ -181,26 +193,34 @@ contract CrowdFunding {
     }
 
     // to get the remaining amount of tokens available for further funding
-    function getRemainingTokenQty() view external returns(uint remainingQty) {
-        remainingQty = maxTotalSupply - quantitySold;
+    function getRemainingTokenQty() external view returns(uint remainingQty) {
+        remainingQty = maxTotalSupply.sub(quantitySold);
     }
 
-    // to record each funding source and the amount tokens secured by that funding 
-    function invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor {
 
-        //require(RegistryITF(addrRegistry).isFundingApproved(_assetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
+    function investInBatch(address[] calldata _assetbookArr, uint[] calldata _quantityToInvestArr, uint serverTime) external {
+        require(_assetbookArr.length == _quantityToInvestArr.length, "input arrays must be of the same length");
+        for(uint i = 0; i < _assetbookArr.length; i = i.add(1)) {
+            invest(_assetbookArr[i], _quantityToInvestArr[i], serverTime);
+        }
+    }
+
+    // to record each funding source and the amount tokens secured by that funding
+    function invest(address _addrAssetbook, uint _quantityToInvest, uint serverTime) public onlyPlatformSupervisor {
+
+        //require(RegistryITF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
         //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType)
 
         // if(serverTime >= CFSD2 && fundingState == FundingState.initial){
         //     fundingState = FundingState.funding;
         // }
 
-        if (_assetbook.isContract()) {
-            bytes4 retval = ERC721TokenReceiverITF_CF(_assetbook).onERC721Received(
+        if (_addrAssetbook.isContract()) {
+            bytes4 retval = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
                 msg.sender, msg.sender, 1, "");// assume tokenId = 1;
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         } else {
-            require(false,"_assetbook address should contain ERC721 compatible asset contract");
+            require(false,"_addrAssetbook address should contain ERC721 compatible asset contract");
         }
 
         require(_quantityToInvest > 0, "_quantityToInvest should be > 0");
@@ -208,19 +228,22 @@ contract CrowdFunding {
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
 
-        require(fundingState == FundingState.funding || fundingState == FundingState.fundingGoalReached, "funding is terminated or not started yet");
+        require(
+            fundingState == FundingState.funding ||
+            fundingState == FundingState.fundingGoalReached,
+            "funding is terminated or not started yet");
 
         fundingCindex = fundingCindex.add(1);
-        investmentRecords[fundingCindex].assetbook = _assetbook;
+        investmentRecords[fundingCindex].assetbook = _addrAssetbook;
         investmentRecords[fundingCindex].investedTokenQty = _quantityToInvest;
 
-        emit TokenInvested(_assetbook, _quantityToInvest, serverTime);
+        emit TokenInvested(_addrAssetbook, _quantityToInvest, serverTime);
         updateState(serverTime);
     }
 
-    // to get a list of investors’ assetbooks and the amount of tokens they have sercured
+    // to get a list of investors’ assetbookArray and the amount of tokens they have sercured
     function getInvestors(uint indexStart, uint amount)
-        external view returns(address[] memory assetbooks, uint[] memory investedTokenQtyArray) {
+        external view returns(address[] memory assetbookArray, uint[] memory investedTokenQtyArray) {
         uint amount_;
         uint indexStart_;
         if(indexStart == 0 && amount == 0) {
@@ -237,11 +260,11 @@ contract CrowdFunding {
                 amount_ = amount;
             }
         }
-        assetbooks = new address[](amount_);
+        assetbookArray = new address[](amount_);
         investedTokenQtyArray = new uint[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)) {
-            assetbooks[i] = investmentRecords[i.add(indexStart_)].assetbook;
+            assetbookArray[i] = investmentRecords[i.add(indexStart_)].assetbook;
             investedTokenQtyArray[i] = investmentRecords[i.add(indexStart_)].investedTokenQty;
         }
     }
