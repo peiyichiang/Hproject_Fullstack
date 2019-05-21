@@ -490,69 +490,91 @@ const updateCFC = async (timeCurrent) => {
 
 const addInvestorAssebooksIntoCFC = async () => {
   console.log('\ninside addInvestorAssebooksIntoCFC()...');
-  mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "completed"', [] , async function(err, symbols) {
+  mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"', [] , async function(err, symbols) {
     if (err) {
-      console.log('[Error @ addInvestorAssetbooksIntoCFC: get symbols]', err);
+      console.error('[Error @ addInvestorAssetbooksIntoCFC: get symbols]', err);
+
+    } else if(symbols.length === 0){
+      console.log('Got no paid order');
+
     } else {
       console.log('symbols', symbols);
-      await asyncForEachBasic(symbols, async (symbol) => {
+
+      await asyncForEachBasic(symbols, async (symbolObj) => {
+        const symbol = symbolObj.o_symbol;
         console.log(`\n--------------==next: ${symbol}`);
+
         mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol] , async function(err, result) {
           if (err) {
-            console.log('[Error @ getting crowdsaleaddress from symbol]', err);
-          } else {
-            if(result.length > 1){
-              console.log('[Error] Got multiple crowdsaleaddresses are found from one symbol!');
-              return;
-            }
-            const crowdFundingAddr = result[0];
+            console.error('[Error] getting crowdsaleaddress from symbol', symbol, ', ', err);
 
-            mysqlPoolQuery('SELECT o_userIdentityNumber, o_tokenCount FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "completed"', [symbol] , async function(err, result) {
+          } else if(result.length > 1){
+              console.error('[Error] Found multiple crowdsaleaddresses from one symbol! result', result);
+
+          } else if(result.length === 0){
+              console.error('[Error] Found none crowdsaleaddresses from symbol', symbol, ', result', result);
+
+          } else {
+            const crowdFundingAddr = result[0];
+            console.log('crowdFundingAddr', crowdFundingAddr);
+
+            mysqlPoolQuery('SELECT o_userIdentityNumber, o_tokenCount FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"', [symbol] , async function(err, result) {
               if (err) {
-                console.log('[Error @ o_userIdentityNumber]', err);
+                console.error('[Error @ o_userIdentityNumber]', err);
+
+              } else if(result.length === 0){
+                console.error('[Error] Got no paid order where symbol', symbol, 'result', result);
+
               } else {
                 console.log('result', result);
-                const uidArray = result[0];
+                const userIdArray = result[0];
                 const tokenCountArray = result[1];
+                console.log('userIdArray', userIdArray, 'tokenCountArray', tokenCountArray);
   
-                await asyncForEachBasic(uidArray, async (uid, idx) => {
+                /*
+                await asyncForEachBasic(userIdArray, async (userId, idx) => {
                   if(!Number.isInteger(tokenCountArray[idx])){
-                    console.log('[Error] tokenCount must be an integer!');
-                    return;
-                  }
-                  const tokenCount = parseInt(tokenCountArray[idx]);
-                  console.log(`\n----------==next: uid = ${uid}, idx = ${idx}, tokenCount = ${tokenCount}`);
-                  mysqlPoolQuery('SELECT u_assetbookContractAddress FROM htoken.user WHERE o_userIdentityNumber = ?', [uid] , async function(err, result) {
-                    if (err) {
-                      console.log('[Error @ getting assetbookContractAddress from uid]', err);
-                    } else {
-                      if(result.length > 1){
-                        console.log('[Error] Got multiple assetbookContractAddresses from one UserID!');
-                        return;
-                      }
-                      const addrAssetbook = result[0];
-                      if(isEmpty(addrAssetbook)){
-                        console.log('[Error] addrAssetbook is empty. addrAssetbook:', addrAssetbook);
-                        return;
-                      }
-                      console.log('addrAssetbook', addrAssetbook);
+                    console.log(`[Error] tokenCount must be an integer! idx: ${idx}, tokenCountArray[idx]: ${tokenCountArray[idx]}`);
 
-                      const currentTime = await timer.getTime();
-                      //write addrAssetbook & tokenCount into crowdfundingAddr
+                  } else {
+                    const tokenCount = parseInt(tokenCountArray[idx]);
+                    console.log(`\n----------==next: idx = ${idx}, userId = ${userId}, tokenCount = ${tokenCount}`);
+                    mysqlPoolQuery('SELECT u_assetbookContractAddress FROM htoken.user WHERE o_userIdentityNumber = ?', [userId] , async function(err, result) {
+                      if (err) {
+                        console.error('[Error @ getting assetbookContractAddress from userId]', err);
 
-                      const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-                      const encodedData = inst_crowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
-                      //invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor)  OR  investInBatch(address[] calldata _assetbookArr, uint[] calldata _quantityToInvestArr, uint serverTime)
-                      let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
-                      console.log('\nTxResult', TxResult);
-                    
-                      //let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
-                      //console.log('\nfundingState:', fundingState);
-                      //return fundingState;
+                      } else if(result.length > 1){
+                        console.error('[Error] Got multiple assetbookContractAddresses from one userId', userId, ', result', result);
+
+                      } else if(result.length === 0){
+                        console.error('[Error] Got no assetbookContractAddresses from userId', userId, ', result', result);
+
+                      } else {
+                        const addrAssetbook = result[0];
+                        console.log('addrAssetbook', addrAssetbook);
+                        if(isEmpty(addrAssetbook)){
+                          console.error('[Error] addrAssetbook is empty. addrAssetbook:', addrAssetbook);
+
+                        } else {
+                          const currentTime = await timer.getTime();
+                          //write addrAssetbook & tokenCount into crowdfundingAddr
+    
+                          const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+                          const encodedData = inst_crowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
+                          //invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor)  OR  investInBatch(address[] calldata _assetbookArr, uint[] calldata _quantityToInvestArr, uint serverTime)
+                          let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+                          console.log('\nTxResult', TxResult);
+                        
+                          //let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
+                          //console.log('\nfundingState:', fundingState);
+                          //return fundingState;
   
-                    }
-                  });
-                });
+                        }    
+                      }
+                    });
+  
+                  }
+                });//await asyncForEachBasic(userIdArray   */
               }
             });
 

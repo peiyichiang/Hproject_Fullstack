@@ -95,22 +95,22 @@ let isFundingApprovedHCAT721, checkPlatformSupervisor;
 
 const uriBase = "nccu0".trim();
 
-function symbolObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+function symbolObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager) {
   this.nftSymbol = nftSymbol;
   this.maxTotalSupply = maxTotalSupply;
-  this.quantityGoal = Math.round(maxTotalSupply * 0.95);
+  this.quantityGoal = quantityGoal;
   this.siteSizeInKW = siteSizeInKW;
   this.initialAssetPricing = initialAssetPricing;
   this.pricingCurrency = pricingCurrency;
   this.fundingType = fundingType;
   this.IRR20yrx100 = IRR20yrx100;
   this.duration = duration;
-  this.nftName = nftSymbol + " site No.n(2019)";
-  this.location = nftSymbol.substr(0, nftSymbol.length - 4);
+  this.nftName = nftSymbol+" site No.n(2019)";
+  this.location = nftSymbol.substr(0, nftSymbol.length-4);
   this.timeOfDeployment = timeOfDeployment;
-  this.addrCrowdFunding = addrCrowdFunding;
   this.addrTokenController = addrTokenController;
   this.addrHCAT721 = addrHCAT721;
+  this.addrCrowdFunding = addrCrowdFunding;
   this.addrIncomeManager = addrIncomeManager;
 }
 
@@ -146,7 +146,7 @@ if (chain === 1) {//POA private chain
     }
     
     //addrCrowdFunding, addrTokenController, _addrHCAT721, addrIncomeManager
-    const symbolObj0 = new symbolObject("AAOS1901", "", "", 973, 0, 300, 18000, "NTD", 470, 20, 201905150000, 2, "0x677835e97c4Dc35cc1D9eCd737Cc6Fc1380e1bDD", "0xF8Bbc068b325Fe7DA1Ef9bE8f69de38CB7299D10", _addrHCAT721, "");
+    const symbolObj0 = new symbolObject("AAOS1903", "nftName", "location", 986, 973, 300, 18000, "NTD", 470, 20, serverTime, 2, "0xBC62fbFA144f3bAeea7889DB17e581dd48CAF16C", "0x423E610E7Ba9781D598593c1387fd854995bAe57", "0x2DC32EF8EA02D8965B813a466e1dB35bbd3a80b5", "");
     const symbolObj1 = new symbolObject("ABOS1901", "", "", 2073, 0, 300, 19000, "NTD", 470, 20, 201905150000, 2, "", "", _addrHCAT721, "");
     const symbolObj2 = new symbolObject("ACOS1901", "", "", 5073, 0, 400, 20000, "NTD", 490, 20, 201905150000, 2, "", "", _addrHCAT721, "");
 
@@ -162,6 +162,7 @@ if (chain === 1) {//POA private chain
     });
     console.log('\nconst symArray =', symArray, ';\nconst crowdFundingAddrArray =', crowdFundingAddrArray, ';\nconst tokenControllerAddrArray =', tokenControllerAddrArray, ';');
 
+    nftName = symObjArray[symNum].nftName;
     nftSymbol = symObjArray[symNum].nftSymbol;
     maxTotalSupply = symObjArray[symNum].maxTotalSupply;
     quantityGoal = symObjArray[symNum].quantityGoal;
@@ -170,15 +171,14 @@ if (chain === 1) {//POA private chain
     pricingCurrency = symObjArray[symNum].pricingCurrency;
     IRR20yrx100 = symObjArray[symNum].IRR20yrx100;
     duration = symObjArray[symNum].duration;
-    nftName = symObjArray[symNum].nftName;
     location = symObjArray[symNum].location;
     timeOfDeployment = symObjArray[symNum].timeOfDeployment;
     fundingType = symObjArray[symNum].fundingType;
-
-    addrCrowdFunding = symObjArray[symNum].addrCrowdFunding;
     addrTokenController = symObjArray[symNum].addrTokenController;
     addrHCAT721 = symObjArray[symNum].addrHCAT721;
+    addrCrowdFunding = symObjArray[symNum].addrCrowdFunding;
     addrIncomeManager = symObjArray[symNum].addrIncomeManager;
+
 
 /**
 const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';

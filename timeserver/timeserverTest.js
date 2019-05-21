@@ -1,5 +1,5 @@
 const timer = require('./api.js');
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB } = require('./mysql.js');
+const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB, addOrders } = require('./mysql.js');
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
@@ -78,9 +78,11 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 }
 
 //-----------------==
-timer.getTime().then(function(time) {
-    console.log(`last recorded time via lib/api.js: ${time}`)
-});
+const currentTime = await timer.getTime();
+console.log('currentTime', currentTime);
+// timer.getTime().then(function(time) {
+//     console.log(`last recorded time via lib/api.js: ${time}`)
+// });
 
 /**------------------==
 Options according to test flow:
@@ -99,45 +101,7 @@ Options according to test flow:
 
 const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
 */
-const addPaidOrders = async () => {
-  return new Promise((resolve, reject) => {
-    console.log('------------------------==\n@addPaidOrders');
 
-    var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
-    var currentDate = new Date().myFormat();//yyyymmddhhmm
-    console.log('---------------== currentDate:', currentDate);
-    const nationalId = 'F555777999';
-    const nationalIdLast5 = nationalId.toString().slice(-5);
-    const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
-    console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
-
-    let symbol = ''; //=> Add a few different symbols
-
-    var sql = {
-        o_id: orderId,
-        o_symbol: symbol,
-        o_userIdentityNumber: nationalId,
-        o_fromAddress: Math.random().toString(36).substring(2, 15),
-        o_txHash: Math.random().toString(36).substring(2, 15),
-        o_tokenCount: req.body.tokenCount,
-        o_fundCount: req.body.fundCount,
-        o_purchaseDate: currentDate,
-        o_paymentStatus: "waiting"
-    };//random() to prevent duplicate NULL entry!
-
-    console.log(sql);
-
-    mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
-        if (err) {
-            reject(err);
-        } else {
-            console.log("result", result);
-            resolve(result);
-        }
-    });
-
-  });
-}
 
 
 const addInvestorAssebooksIntoCFC_API = async () => {
@@ -148,17 +112,36 @@ const getInvestorsCFC_API = async () => {
   crowdFundingAddr = crowdFundingAddrArray[arg0];
   const investorArray = await getInvestorsCFC(0,0);
   console.log('investorArray:', investorArray);
+}
+const writeAssetbooksIntoCFC = async () => {
+  //make orders
+  const nationalId = 'R555777999';
+  const symbol = 'AAOS1903';
+  let tokenCount = 10;
+  let fundCount = 18000;
+  let orderStatus = "paid";
+  await addOrders(nationalId, symbol, tokenCount, fundCount, orderStatus);
 
+  //deploy smart contracts of symbol, cf
+  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController)
+
+  //make userId -> assetbook
+  process.exit(0);
 }
 
+//yarn run testts -a 2 -c 5
+if(choice === 5){// test auto writing paid orders into crowdfunding contract
+  writeAssetbooksIntoCFC();
 
-if(choice === 0){
+} else if(choice === 6){
+  addInvestorAssebooksIntoCFC();
 
 } else if(choice === 1){
   crowdFundingAddr = crowdFundingAddrArray[arg0];
   getDetailsCFC(crowdFundingAddr);
 
 //------------==Crowdfunding
+//yarn run testts -a 2 -c 20
 } else if(choice === 10) {
   console.log('choice == 10. check crowdfunding fundingStates...');
   crowdFundingAddrArray.forEach( cfAddr => {
@@ -339,6 +322,6 @@ if(choice === 0){
   console.log('choice is out of range');
 }
 
-console.log('\nenum FundingState{0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 4 fundingClosed, 5 fundingNotClosed, 6 terminated}');
+//console.log('\nenum FundingState{0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 4 fundingClosed, 5 fundingNotClosed, 6 terminated}');
 
-console.log('\n0: choice 0 x all ctrtAddrs, 1: getFundingStateCFC(ctrtAddr), 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: get funding states in DB, 11: set funding states in DB, 21: updateCFC(time = CFSD2), 22: updateCFC(time = CFED2);');
+//console.log('\n0: choice 0 x all ctrtAddrs, 1: getFundingStateCFC(ctrtAddr), 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: get funding states in DB, 11: set funding states in DB, 21: updateCFC(time = CFSD2), 22: updateCFC(time = CFED2);');

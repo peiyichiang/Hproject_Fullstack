@@ -27,7 +27,7 @@ contract CrowdFunding {
     );
     event TokenInvested(address indexed _addrAssetbook, uint _quantityToInvest, uint serverTime);
 
-    uint public serverTimeMin = 201902250000;
+    uint public serverTimeMin = 201905110000;
     uint public maxTokenQtyForEachInvestmentFund = 120;
     // the max allowed token quantity for each investment fund, according to the token minting function limit
     string public tokenSymbol; //token symbol for crowdfunding
@@ -58,7 +58,7 @@ contract CrowdFunding {
     //address public addrRegistry;
 
     /*  at initialization, setup the owner
-    "hTaipei001", 17000, "NTD", 900, 98, 201902191800, 201902191810, 201902191710, "", "", "", "", ""
+    "TKOS1901", 18000, "NTD", 900, 890, 201905211800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7"
     */
     constructor  (
         string memory _tokenSymbol,
