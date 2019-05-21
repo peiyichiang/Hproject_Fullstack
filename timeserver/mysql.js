@@ -66,6 +66,7 @@ const addTxnInfoRowFromObj = (row) => {
 
 
 const addProductRow = (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock) => {
+  console.log('inside addProductRow()...');
   return new Promise((resolve, reject) => {
     mysqlPoolQuery('INSERT INTO htoken.product (p_SYMBOL, p_name, p_location, p_pricing,  p_duration, p_currency, p_irr, p_releasedate, p_validdate, p_size, p_totalrelease, p_fundmanager, p_CFSD, p_CFED, p_state, p_fundingGoal, p_lockuptime, p_tokenState ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, "initial", _quantityGoal, TimeTokenUnlock, "lockupperiod"], function (err, result) {
       if (err) {
@@ -78,19 +79,77 @@ const addProductRow = (nftSymbol, nftName, location, initialAssetPricing, durati
   });
 }
 
-const addSmartContractRow = (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
+
+const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
+  console.log('inside addSmartContractRow()...');
   return new Promise((resolve, reject) => {
-    mysqlPoolQuery('INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_erc721address, sc_totalsupply, sc_remaining, sc_incomeManagementaddress, sc_erc721Controller) VALUES (?, ?, ?, ?, ?, ?, ?)', [nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, maxTotalSupply, addrIncomeManager, addrTokenController], function (err, result) {
+    var sql = {
+      sc_symbol: nftSymbol,
+      sc_crowdsaleaddress: addrCrowdFunding,
+      sc_erc721address: addrHCAT721,
+      sc_totalsupply: maxTotalSupply,
+      sc_remaining: maxTotalSupply,
+      sc_incomeManagementaddress: addrIncomeManager,
+      sc_erc721Controller: addrTokenController,
+    };
+    console.log(sql);
+
+    mysqlPoolQuery('INSERT INTO htoken.smart_contracts SET ?', sql, function (err, result) {
       if (err) {
-        reject('\n[Error @ writing data into smart_contracts rows]', err);
+        console.log('[Error @ writing data into smart_contracts rows]');
+        //reject('\n[Error @ writing data into smart_contracts rows]', err);
+        reject(err);
       } else {
         console.log("\nSmart contract table has been added with one new row. result:", result);
-        resolve(result);
+        //console.log("result", result);
+        resolve(true);
       }
     });
+
   });
 }
 
+
+const addOrders = async (nationalId, symbol, tokenCount, fundCount, orderStatus) => {
+  return new Promise((resolve, reject) => {
+    console.log('------------------------==addOrders');
+    console.log('inside addOrders. orderStatus', orderStatus, ', symbol', symbol);
+    var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
+    var currentDate = new Date().myFormat();//yyyymmddhhmm
+    console.log('currentDate:', currentDate, ', timeStamp', timeStamp);
+    const nationalIdLast5 = nationalId.toString().slice(-5);
+    const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
+    console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
+
+    var sql = {
+        o_id: orderId,
+        o_symbol: symbol,
+        o_userIdentityNumber: nationalId,
+        o_fromAddress: Math.random().toString(36).substring(2, 15),
+        o_txHash: Math.random().toString(36).substring(2, 15),
+        o_tokenCount: tokenCount,
+        o_fundCount: fundCount,
+        o_purchaseDate: currentDate,
+        o_paymentStatus: orderStatus
+    };//random() to prevent duplicate NULL entry!
+
+    console.log(sql);
+
+    mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
+      if (err) {
+        console.log("error", err);
+        reject(err);
+      } else {
+        console.log("result", result);
+        resolve(true);
+      }
+    });
+
+  });
+}
+
+
+//---------------------------==
 function getFundingStateDB(symbol){
   console.log('inside getFundingStateDB()... get p_state');
   mysqlPoolQuery(
@@ -255,7 +314,7 @@ function print(s) {
 }
 
 module.exports = {
-    mysqlPoolQuery,
+    mysqlPoolQuery, addOrders,
     //getCrowdFundingCtrtAddr,
     //getIncomeManagerCtrtAddr,
     //getHCAT721ControllerCtrtAddr,

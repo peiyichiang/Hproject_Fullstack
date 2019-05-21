@@ -10,7 +10,7 @@ var router = express.Router();
  * 2.expired: order has passed expiry time and still not paid
  * 3.cancelledByUser: order has been cancelled by the user who made the order.
  * 4.pendingByPlatform: order has been changed to this status by the platform
- * 5.completed: order has been paid in full
+ * 5.paid: order has been paid in full
  * 6.txnFinished: order has been added to the CrowdFunding contract 
  */
 //新增資料：接收資料的post http://localhost:3000/Order/AddOrder
@@ -93,7 +93,8 @@ router.get('/SumAllOrdersBySymbol', function (req, res, next) {
 router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumWaitingOrdersBySymbol');
     let qstr1 = 'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?';
-    var mysqlPoolQuery = req.pool; const status = 'waiting';
+    var mysqlPoolQuery = req.pool; 
+    const status = 'waiting';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol, userId, qstrz;
     if (req.body.symbol) {
@@ -268,10 +269,10 @@ router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
         });
 });
 
-//http://localhost:3000/Order/SumCompletedOrdersBySymbol
-router.get('/SumCompletedOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/SumCompletedOrdersBySymbol');
-    var mysqlPoolQuery = req.pool; const status = 'completed';
+//http://localhost:3000/Order/SumPaidOrdersBySymbol
+router.get('/SumPaidOrdersBySymbol', function (req, res, next) {
+    console.log('------------------------==\n@Order/SumPaidOrdersBySymbol');
+    var mysqlPoolQuery = req.pool; const status = 'paid';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol) {
@@ -320,7 +321,7 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
   var fundingTypeArray = ["PublicOffering", "PrivatePlacement", "1", "2"];
 
   var qur = mysqlPoolQuery(
-      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'completed', 'waiting'], function (err, orderBalance) {
+      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'paid', 'waiting'], function (err, orderBalance) {
           if (err) {
               console.log(err);
               res.status(400);
@@ -435,9 +436,9 @@ const doesPassCompliance = (authLevel, balance, buyAmount, fundingType) => {
 
 }
 
-//通過User ID獲取Completed Order
-router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
-  console.log('------------------------==\n@Order/GetCompletedOrdersByUserIdentityNumber');
+//通過User ID獲取paid Order
+router.get('/getPaidOrdersByUserIdentityNumber',function(req, res, next) {
+  console.log('------------------------==\n@Order/getPaidOrdersByUserIdentityNumber');
   var token=req.query.JWT_Token;
     if (token) {
         // 驗證JWT token
@@ -456,7 +457,7 @@ router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
             // console.log("＊JWT Content:" + decoded.u_identityNumber);
             //從order中查找完成的訂單，計算該使用者的資產
             var mysqlPoolQuery = req.pool;
-            mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_userIdentityNumber = ? AND o_paymentStatus = ?', [decoded.u_identityNumber , "completed"] , async function(err, rows) {
+            mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_userIdentityNumber = ? AND o_paymentStatus = ?', [decoded.u_identityNumber , "paid"] , async function(err, rows) {
                 if (err) {
                     console.log(err);
                     res.json({
@@ -468,7 +469,7 @@ router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
                     sqls=[];
                     symbols=[];
                     for(var i=0;i<rows.length;i++){
-                        sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_userIdentityNumber = "' + decoded.u_identityNumber + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "completed"');
+                        sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_userIdentityNumber = "' + decoded.u_identityNumber + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "paid"');
                         symbols.push(rows[i].o_symbol);
                     }
 
