@@ -3,6 +3,7 @@ const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, 
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
+  addInvestorAssebooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC } = require('./blockchain.js');
 
@@ -98,6 +99,59 @@ Options according to test flow:
 
 const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
 */
+const addPaidOrders = async () => {
+  return new Promise((resolve, reject) => {
+    console.log('------------------------==\n@addPaidOrders');
+
+    var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
+    var currentDate = new Date().myFormat();//yyyymmddhhmm
+    console.log('---------------== currentDate:', currentDate);
+    const nationalId = 'F555777999';
+    const nationalIdLast5 = nationalId.toString().slice(-5);
+    const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
+    console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
+
+    let symbol = ''; //=> Add a few different symbols
+
+    var sql = {
+        o_id: orderId,
+        o_symbol: symbol,
+        o_userIdentityNumber: nationalId,
+        o_fromAddress: Math.random().toString(36).substring(2, 15),
+        o_txHash: Math.random().toString(36).substring(2, 15),
+        o_tokenCount: req.body.tokenCount,
+        o_fundCount: req.body.fundCount,
+        o_purchaseDate: currentDate,
+        o_paymentStatus: "waiting"
+    };//random() to prevent duplicate NULL entry!
+
+    console.log(sql);
+
+    mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
+        if (err) {
+            reject(err);
+        } else {
+            console.log("result", result);
+            resolve(result);
+        }
+    });
+
+  });
+}
+
+
+const addInvestorAssebooksIntoCFC_API = async () => {
+  await addInvestorAssebooksIntoCFC();
+}
+
+const getInvestorsCFC_API = async () => {
+  crowdFundingAddr = crowdFundingAddrArray[arg0];
+  const investorArray = await getInvestorsCFC(0,0);
+  console.log('investorArray:', investorArray);
+
+}
+
+
 if(choice === 0){
 
 } else if(choice === 1){
@@ -164,6 +218,11 @@ if(choice === 0){
     setFundingStateDB(sym, fundingState, CFSD_NEW, CFED_NEW);
   });
 
+
+} else if(choice === 20){
+
+  
+} else if(choice === 20){
 
 //--------------------==TokenController tokenState
 //yarn run testts -a 2 -c 20

@@ -8,7 +8,7 @@ const fs = require('fs');
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
 //const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager } = require('./blockchain.js');
+const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager, addInvestorAssebooksIntoCFC } = require('./blockchain.js');
 
 const mode = 1;
 const timeInverval = 10;
@@ -39,6 +39,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
     } 
   
     //console.log('[timeserver/timeserverSource.js] timeCurrent: '+timeCurrent);
+    //await addInvestorAssebooksIntoCFC();
     //await updateTimeOfOrders(timeCurrent);//to convert from buffer to string
     //await updateCFC(timeCurrent);
     //await updateTokenController(timeCurrent);

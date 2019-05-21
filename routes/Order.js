@@ -4,6 +4,15 @@ const jwt = require('jsonwebtoken');
 var async = require('async');
 var router = express.Router();
 
+/**
+ * Order Status Types: 
+ * 1.waiting: order has been added. Waiting for payment
+ * 2.expired: order has passed expiry time and still not paid
+ * 3.cancelledByUser: order has been cancelled by the user who made the order.
+ * 4.pendingByPlatform: order has been changed to this status by the platform
+ * 5.completed: order has been paid in full
+ * 6.txnFinished: order has been added to the CrowdFunding contract 
+ */
 //新增資料：接收資料的post http://localhost:3000/Order/AddOrder
 router.post('/AddOrder', function (req, res, next) {
     console.log('------------------------==\n@Order/POST/AddOrder');
@@ -179,7 +188,7 @@ router.get('/OrdersByFromAddr', function (req, res, next) {
 //http://localhost:3000/Order/SumCancelledOrdersBySymbol
 router.get('/SumCancelledOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumCancelledOrdersBySymbol');
-    var mysqlPoolQuery = req.pool; const status = 'cancelled';
+    var mysqlPoolQuery = req.pool; const status = 'cancelledByUser';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol) {
