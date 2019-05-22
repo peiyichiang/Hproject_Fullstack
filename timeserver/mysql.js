@@ -1,6 +1,6 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
-
+const bcrypt = require('bcrypt');
 require('dotenv').config()
 
 var pool = mysql.createPool({
@@ -110,10 +110,58 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
 }
 
 
-const addOrders = async (nationalId, symbol, tokenCount, fundCount, orderStatus) => {
+const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) => {
   return new Promise((resolve, reject) => {
-    console.log('------------------------==addOrders');
-    console.log('inside addOrders. orderStatus', orderStatus, ', symbol', symbol);
+    console.log('------------------------==@user/addUserRow');
+    let salt;
+    //const account = web3.eth.accounts.create();
+    const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+    //Generate a salt and hash on separate function calls.
+    //each password that we hash is going to have a unique salt and a unique hash. As we learned before, this helps us mitigate greatly rainbow table attacks.
+    bcrypt
+      .genSalt(saltRounds)
+      .then(saltNew => {
+        salt = saltNew;
+        console.log(`Salt: ${salt}`);
+        return bcrypt.hash(password, salt);
+      })
+      .then(hash => {
+        console.log(`Password Hash: ${hash}`);
+        let userNew = {
+          u_email: email,
+          u_salt: salt,
+          u_password_hash: hash,
+          u_identityNumber: identityNumber,
+          u_imagef: '',
+          u_imageb: '',
+          u_bankBooklet: '',
+          u_eth_add: eth_add,
+          u_verify_status: 0,
+          u_cellphone: cellphone,
+          u_name: name,
+          u_assetbookContractAddress: addrAssetBook,
+          u_investorLevel: investorLevel,
+        };
+
+        console.log(userNew);
+        mysqlPoolQuery('INSERT INTO htoken.user SET ?', userNew, function (err, result) {
+          if (err) {
+            console.log("[Failed]", err);
+            reject(err);
+          } else {
+            console.log("[Success]", result);
+            resolve(true);
+          }
+        });
+      });
+  });
+}
+
+
+const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, orderStatus) => {
+  return new Promise((resolve, reject) => {
+    console.log('------------------------==addOrderRow');
+    console.log('inside addOrderRow. orderStatus', orderStatus, ', symbol', symbol);
     var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
     var currentDate = new Date().myFormat();//yyyymmddhhmm
     console.log('currentDate:', currentDate, ', timeStamp', timeStamp);
@@ -314,15 +362,17 @@ function print(s) {
 }
 
 module.exports = {
-    mysqlPoolQuery, addOrders,
-    //getCrowdFundingCtrtAddr,
-    //getIncomeManagerCtrtAddr,
-    //getHCAT721ControllerCtrtAddr,
-    //getOrderDate,
-    //setOrderExpired,
+    mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB
 }
+/**
+    //getCrowdFundingCtrtAddr,
+    //getIncomeManagerCtrtAddr,
+    //getHCAT721ControllerCtrtAddr,
+    //getOrderDate,
+    //setOrderExpired,
+ */

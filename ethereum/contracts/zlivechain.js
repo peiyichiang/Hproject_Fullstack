@@ -35,7 +35,10 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, argbool;
+let {  addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, productObjectArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum } = require('../ethereum/contracts/zdeploy');
+
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2;
+
 
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
@@ -76,43 +79,18 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 
   }
 }
-let admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4;
-let adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw;
 
-let symNum = 0;
+
 const timeInitial = 201903081040;
 let timeCurrent = timeInitial, txnNum = 2, isShowCompiledCtrt = false;
 console.log('chain = ', chain, ', txnNum =', txnNum, ', timeCurrent =', timeCurrent);
 
-
-let adminpk, AssetOwner1pk, AssetOwner2pk, AssetOwner3pk, AssetOwner4pk;
-let addrPlatform, addrMultiSig1, addrMultiSig2, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrTestCtrt, assetbook1M, assetbook2M;
+let addrTestCtrt, assetbook1M, assetbook2M;
 let amount, to, _from, tokenIds, tokenIdMX, nodeUrl, authLevelM, amountInitAB1;
-let choiceOfHCAT721;
-
-let nftSymbol, nftName, location, maxTotalSupply, siteSizeInKW, initialAssetPricing, IRR20yrx100, duration, quantityGoal, fundingType;
-let isFundingApprovedHCAT721, checkPlatformSupervisor;
+let choiceOfHCAT721, isFundingApprovedHCAT721, checkPlatformSupervisor;
 
 const uriBase = "nccu0".trim();
 
-function symbolObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager) {
-  this.nftSymbol = nftSymbol;
-  this.maxTotalSupply = maxTotalSupply;
-  this.quantityGoal = quantityGoal;
-  this.siteSizeInKW = siteSizeInKW;
-  this.initialAssetPricing = initialAssetPricing;
-  this.pricingCurrency = pricingCurrency;
-  this.fundingType = fundingType;
-  this.IRR20yrx100 = IRR20yrx100;
-  this.duration = duration;
-  this.nftName = nftSymbol+" site No.n(2019)";
-  this.location = nftSymbol.substr(0, nftSymbol.length-4);
-  this.timeOfDeployment = timeOfDeployment;
-  this.addrTokenController = addrTokenController;
-  this.addrHCAT721 = addrHCAT721;
-  this.addrCrowdFunding = addrCrowdFunding;
-  this.addrIncomeManager = addrIncomeManager;
-}
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
@@ -129,13 +107,6 @@ if (chain === 1) {//POA private chain
     prefix = '0x';
 
 
-    //------------==Copied from zdeploy.js
-    addrHelium = "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7";
-    addrAssetBook1 = "0x10C2E71CE92d637E6dc30BC1d252441A2E0865B0";
-    addrAssetBook2 = "0xe1A64597056f5bf55268dF75F251e546879da89c";
-    addrAssetBook3 = "0x22e2691be1312F69549d23A2C2d3AA3d55D56c92";
-    addrRegistry = "0xe86976cEd3bb9C924235B904F43b829E4A32fa0d";
-
     choiceOfHCAT721 = 1; // 1: HCAT721_Test, 2: HCAT721
     if(choiceOfHCAT721===1){
       console.log('use HCAT721_Test!!!');
@@ -145,58 +116,9 @@ if (chain === 1) {//POA private chain
       _addrHCAT721 = "0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0";
     }
     
-    //addrCrowdFunding, addrTokenController, _addrHCAT721, addrIncomeManager
-    const symbolObj0 = new symbolObject("AAOS1903", "nftName", "location", 986, 973, 300, 18000, "NTD", 470, 20, serverTime, 2, "0xBC62fbFA144f3bAeea7889DB17e581dd48CAF16C", "0x423E610E7Ba9781D598593c1387fd854995bAe57", "0x2DC32EF8EA02D8965B813a466e1dB35bbd3a80b5", "");
-    const symbolObj1 = new symbolObject("ABOS1901", "", "", 2073, 0, 300, 19000, "NTD", 470, 20, 201905150000, 2, "", "", _addrHCAT721, "");
-    const symbolObj2 = new symbolObject("ACOS1901", "", "", 5073, 0, 400, 20000, "NTD", 490, 20, 201905150000, 2, "", "", _addrHCAT721, "");
-
-    const symObjArray = [symbolObj0, symbolObj1, symbolObj2];
-    const symArray = [];
-    const crowdFundingAddrArray = [];
-    const tokenControllerAddrArray = [];
-
-    symObjArray.forEach((obj) => {
-      symArray.push(obj.nftSymbol);
-      crowdFundingAddrArray.push(obj.addrCrowdFunding);
-      tokenControllerAddrArray.push(obj.addrTokenController)
-    });
-    console.log('\nconst symArray =', symArray, ';\nconst crowdFundingAddrArray =', crowdFundingAddrArray, ';\nconst tokenControllerAddrArray =', tokenControllerAddrArray, ';');
-
-    nftName = symObjArray[symNum].nftName;
-    nftSymbol = symObjArray[symNum].nftSymbol;
-    maxTotalSupply = symObjArray[symNum].maxTotalSupply;
-    quantityGoal = symObjArray[symNum].quantityGoal;
-    siteSizeInKW = symObjArray[symNum].siteSizeInKW;
-    initialAssetPricing = symObjArray[symNum].initialAssetPricing;
-    pricingCurrency = symObjArray[symNum].pricingCurrency;
-    IRR20yrx100 = symObjArray[symNum].IRR20yrx100;
-    duration = symObjArray[symNum].duration;
-    location = symObjArray[symNum].location;
-    timeOfDeployment = symObjArray[symNum].timeOfDeployment;
-    fundingType = symObjArray[symNum].fundingType;
-    addrTokenController = symObjArray[symNum].addrTokenController;
-    addrHCAT721 = symObjArray[symNum].addrHCAT721;
-    addrCrowdFunding = symObjArray[symNum].addrCrowdFunding;
-    addrIncomeManager = symObjArray[symNum].addrIncomeManager;
+    console.log('\nconst symbolArray =', symbolArray, ';\nconst crowdFundingAddrArray =', crowdFundingAddrArray, ';\nconst tokenControllerAddrArray =', tokenControllerAddrArray, ';');
 
 
-/**
-const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
-const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
-const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
-*/
-    admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-    adminpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
-    AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
-    AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
-    AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
-    AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
-    AssetOwner3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
-    AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";    
-    AssetOwner4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
-    AssetOwner4pkRaw = "0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f";
-    AssetOwner5 = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
-    AssetOwner5pkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
 
     chairman = AssetOwner1;
     director = AssetOwner2;
@@ -459,7 +381,6 @@ if (ProductManager === undefined) {
 console.log('\n---------------==Make contract instances from deployment');
 
 console.log('more variables...');
-let managementTeam;
 let balanceM, balance0, balance1, balance2;
 
 //const rate = new BigNumber('1e22').mul(value);
@@ -519,7 +440,6 @@ const setupTest = async () => {
   //const addr1 = web3.utils.toChecksumAddress(addrPlatform);
 
   console.log('\n--------==Start tests...');
-  managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4];
   console.log('admin', admin);
   console.log('AssetOwner1', AssetOwner1);
   console.log('AssetOwner2', AssetOwner2);

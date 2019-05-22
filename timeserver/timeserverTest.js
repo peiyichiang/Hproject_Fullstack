@@ -1,5 +1,8 @@
+let Web3 = require("web3");
+
 const timer = require('./api.js');
-const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB, addOrders } = require('./mysql.js');
+const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB, addOrderRow, addUserRow } = require('./mysql.js');
+
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
@@ -7,15 +10,11 @@ const { checkTimeOfOrder, getDetailsCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC } = require('./blockchain.js');
 
+  let { symbolObject, addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum } = require('../ethereum/contracts/zsetupData');
+
+
 let choice = 2, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
 
-const symArray = [ 'AKOS1901', 'ARRR1901', 'ATTT1901' ] ;
-const crowdFundingAddrArray = [ '0x2ca5B13A94AAb64b2302F53bB6d15DAE31D26E8D',
-  '0xfC03EBedc573DB572DeF77E3638c6042a5Ed3481',
-  '0x9e8035e07767fE7de84adF5D362d8ccB53559960' ] ;
-const tokenControllerAddrArray = [ '0x62092A989e72e61467F2DD52de6675F5B052C899',
-  '0x66cd2bb2B13C31BAbA299DFf07Bd0912C6Ae466E',
-  '0x0BBd1A47ff1a2E9946803a66eAda4f235BaC2C23' ] ;
 
 const timeCurrent = 201905170000;
 const CFSD2 = timeCurrent+1;
@@ -24,7 +23,6 @@ const TimeReleaseDate = timeCurrent+10;
 const TimeTokenUnlock = timeCurrent+20; 
 const TimeTokenValid =  timeCurrent+90;
 const fundmanager = 'Company_FundManagerN';
-const pricingCurrency = "NTD";
 
 /**
   Set both DB and CrowdFunding contract state to initial
@@ -78,11 +76,11 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 }
 
 //-----------------==
-const currentTime = await timer.getTime();
-console.log('currentTime', currentTime);
-// timer.getTime().then(function(time) {
-//     console.log(`last recorded time via lib/api.js: ${time}`)
-// });
+// const currentTime = await timer.getTime();
+// console.log('currentTime', currentTime);
+timer.getTime().then(function(time) {
+    console.log(`last recorded time via timeserver/api.js: ${time}`)
+});
 
 /**------------------==
 Options according to test flow:
@@ -104,7 +102,64 @@ const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x6
 
 
 
+const makePseudoEthAddr = (length) => {
+  let result       = '0x';
+  const characters = 'ABCDEFabcdef0123456789';
+  const charactersLength = characters.length;
+  for ( let i = 0; i < length; i++ ) {
+     result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+//  yarn run testts -a 2 -c 5
+const addUserRowAPI = async () => {
+  console.log('-------------==inside addUserRowAPI');
+  //makePseudoEthAddr(40);
+  const userIdx = 1;
+  console.log('userArray[userIdx]', userArray[userIdx]);
+
+  const email = userArray[userIdx].email;
+  const password = userArray[userIdx].password;
+  const identityNumber = userArray[userIdx].identityNumber;
+  const eth_add = userArray[userIdx].eth_add;
+  const cellphone = userArray[userIdx].cellphone;
+  const name = userArray[userIdx].name;
+  const addrAssetBook = userArray[userIdx].addrAssetBook;
+  const investorLevel = userArray[userIdx].investorLevel;
+
+  await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel).catch(err => console.error('addUserRow() failed:', err));
+  process.exit(0);
+}  
+
+const addSmartContractRowAPI = async () => {
+  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController)
+  process.exit(0);
+}
+
+const writeAssetbooksIntoCFC = async () => {
+  //deploy smart contracts of symbol, cf
+
+  //make userId -> assetbook
+  process.exit(0);
+}
+
+//  yarn run testts -a 2 -c 4
+const addOrderAPI = async() => {
+  const nationalId = 'R555777992';
+
+  //order info have to match that in zsetupData.js
+  const symbol = 'AAOS1903';
+  let tokenCount = 20;
+  let fundCount = 18000;
+  let orderStatus = "paid";
+  await addOrderRow(nationalId, symbol, tokenCount, fundCount, orderStatus);
+  process.exit(0);
+}
+
+// yarn run testts -a 1 -s 1 -c 8
 const addInvestorAssebooksIntoCFC_API = async () => {
+  console.log('-------------------==addInvestorAssebooksIntoCFC_API');
   await addInvestorAssebooksIntoCFC();
 }
 
@@ -113,28 +168,30 @@ const getInvestorsCFC_API = async () => {
   const investorArray = await getInvestorsCFC(0,0);
   console.log('investorArray:', investorArray);
 }
-const writeAssetbooksIntoCFC = async () => {
-  //make orders
-  const nationalId = 'R555777999';
-  const symbol = 'AAOS1903';
-  let tokenCount = 10;
-  let fundCount = 18000;
-  let orderStatus = "paid";
-  await addOrders(nationalId, symbol, tokenCount, fundCount, orderStatus);
-
-  //deploy smart contracts of symbol, cf
-  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController)
-
-  //make userId -> assetbook
-  process.exit(0);
-}
 
 //yarn run testts -a 2 -c 5
-if(choice === 5){// test auto writing paid orders into crowdfunding contract
-  writeAssetbooksIntoCFC();
+if(choice === 0){// test auto writing paid orders into crowdfunding contract
+
+//yarn run testts -a 2 -c 3
+} else if(choice === 3){
+  addSmartContractRowAPI();
+
+//  yarn run testts -a 2 -c 4
+} else if(choice === 4){
+  addOrderAPI();
+
+//  yarn run testts -a 2 -c 5
+} else if(choice === 5){
+  console.log('-------------------==addUserRowAPI()');
+  addUserRowAPI();
 
 } else if(choice === 6){
-  addInvestorAssebooksIntoCFC();
+  writeAssetbooksIntoCFC();
+
+// yarn run testts -a 1 -s 1 -c 8
+} else if(choice === 8){
+  console.log('-------------------==addInvestorAssebooksIntoCFC');
+  addInvestorAssebooksIntoCFC_API();
 
 } else if(choice === 1){
   crowdFundingAddr = crowdFundingAddrArray[arg0];
