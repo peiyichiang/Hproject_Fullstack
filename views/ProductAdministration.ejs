@@ -55,26 +55,26 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <!--  -->
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
                 <!-- <th class="nowrap">PA審核通過的日期</th> -->
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
                 <!--  -->
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">CSV文件</th>
                 <th class="nowrap">產品icon</th>
                 <th class="nowrap">退回</th>
@@ -142,21 +142,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -222,26 +222,26 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <!--  -->
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">PA審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
                 <!--  -->
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
                 <!-- <th class="nowrap">退回</th> -->
                 <!-- <th class="nowrap">募資</th> -->
@@ -311,21 +311,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -411,23 +411,23 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
                 <th class="nowrap">恢復募資</th>
                 <th class="nowrap">緊急下架</th>
@@ -486,21 +486,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -556,23 +556,23 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -629,21 +629,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -686,24 +686,24 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
-                <th class="nowrap">p_fundingKind</th>
+                <th class="nowrap">p_fundingType</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
                 <th class="nowrap">發放代幣</th>
                 <th class="nowrap">緊急下架</th>
@@ -760,26 +760,26 @@
                     <%= data[i].p_fundmanager  %>
                 </td>
                 <td>
-                    <%= data[i].p_fundingKind  %>
+                    <%= data[i].p_fundingType  %>
                 </td>
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -795,7 +795,7 @@
                 <td>
                     <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" class="btn btn-success"
                         name="release" value="release"
-                        onclick="Release('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingKind  %>','ONM',this.id);">發放代幣</button>
+                        onclick="Release('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingType  %>','ONM',this.id);">發放代幣</button>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
@@ -837,23 +837,23 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
                 <th class="nowrap">退款</th>
             </tr>
@@ -911,21 +911,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -974,23 +974,23 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -1047,21 +1047,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
@@ -1104,23 +1104,23 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
-                <th class="nowrap">投報率</th>
+                <th class="nowrap">預期報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th>
                 <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">開始購買/眾籌日期</th>
-                <th class="nowrap">結束購買/眾籌日期</th>
-                <th class="nowrap">Token發行日</th>
-                <th class="nowrap">Token到期日</th>
-                <th class="nowrap">案場規模(kw)</th>
-                <th class="nowrap">總發行量(token)</th>
+                <th class="nowrap">募資起始日</th>
+                <th class="nowrap">募資截止日</th>
+                <th class="nowrap">產品發行日</th>
+                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">專案規模(kw)</th>
+                <th class="nowrap">產品總發行量(個)</th>
                 <th class="nowrap">發行專案的產品經理</th>
                 <th class="nowrap">該專案處理狀態</th>
-                <th class="nowrap">預估平均年收益</th>
-                <th class="nowrap">預估回收金額</th>
-                <th class="nowrap">租金支付週期每幾個月</th>
+                <!-- <th class="nowrap">預估平均年收益</th> -->
+                <!-- <th class="nowrap">預估回收金額</th> -->
+                <th class="nowrap">收益總期數</th>
                 <th class="nowrap">預估回收年限</th>
-                <th class="nowrap">預估進度圖</th>
-                <th class="nowrap">產品文件</th>
+                <!-- <th class="nowrap">預估進度圖</th> -->
+                <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -1177,21 +1177,21 @@
                 <td>
                     <%= data[i].p_state  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_FAY  %>
-                </td>
-                <td>
+                </td> -->
+                <!-- <td>
                     <%= data[i].p_FTRT  %>
-                </td>
+                </td> -->
                 <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_Timeline  %>
-                </td>
+                </td> -->
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"

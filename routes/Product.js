@@ -250,7 +250,7 @@ router.post('/AddProductByFMN', function(req, res, next) {
 
   //因為是FMN新增的產品資料，所以狀態永遠是creation
   //新增該產品資料的Fund Manager則是用存在JWT中的帳號資料
-  console.log("@@@"+req.body.p_fundingKind);
+  console.log("@@@"+req.body.p_fundingType);
   var sql = {
       p_SYMBOL: req.body.p_SYMBOL,
       p_name: req.body.p_name,
@@ -263,7 +263,7 @@ router.post('/AddProductByFMN', function(req, res, next) {
       p_validdate: req.body.p_validdate,
       p_size: req.body.p_size,
       p_totalrelease: req.body.p_totalrelease,
-      p_fundingKind:req.body.p_fundingKind,
+      p_fundingType:req.body.p_fundingType,
       p_fundmanager: JWT_decoded.payload.m_id,
       p_state: "draft",   //草稿
       p_icon:req.body.p_icon,
@@ -461,7 +461,7 @@ router.post('/EditProductByFMN', function(req, res, next) {
         p_validdate: req.body.p_validdate,
         p_size: req.body.p_size,
         p_totalrelease: req.body.p_totalrelease,
-        p_fundingKind:req.body.p_fundingKind,
+        p_fundingType:req.body.p_fundingType,
         p_icon:req.body.p_icon,
         p_assetdocs:req.body.p_assetdocs,
         p_csvFIle:req.body.p_csvFIle,

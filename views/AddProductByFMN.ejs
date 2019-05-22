@@ -64,53 +64,57 @@
             </div>
             <div class="form-row">
                     <div class="form-group col-md-4">
-                      <label for="p_irr">投報率</label>
+                      <label for="p_irr">預期報酬率(%)</label>
                       <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8">
                     </div>
                     <div class="form-group col-md-4">
-                          <label for="p_releasedate">Token發行日</label>
-                          <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:12312019">
+                          <label for="p_releasedate">產品發行日</label>
+                          <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM">
                      </div>
                      <div class="form-group col-md-4">
-                          <label for="p_validdate">Token到期日</label>
-                          <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:12312022">
+                          <label for="p_validdate">產品到期日</label>
+                          <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM">
                      </div>
             </div>
             <div class="form-row">
                     <div class="form-group col-md-4">
-                      <label for="p_size">案場規模(kw)</label>
-                      <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:8">
+                      <label for="p_size">專案規模(kw)</label>
+                      <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:200">
                     </div>
                     <div class="form-group col-md-4">
-                          <label for="p_totalrelease">總發行量(token)</label>
-                          <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:999">
+                          <label for="p_totalrelease">產品總發行量(個)</label>
+                          <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:330">
                      </div>
                      <div class="form-group col-md-4">
-                      <label for="p_fundingKind">公募/私募</label>
+                      <label for="p_fundingType">募款類型</label>
                         <br>
                         <label>
-                          <input type="radio"  name="p_fundingKind" id="p_fundingKind" value="1" checked>公募
+                          <input type="radio"  name="p_fundingType" id="p_fundingType" value="1" checked>公募(PO)
                         </label>
                         <label>
-                          <input type="radio"  name="p_fundingKind" id="p_fundingKind" value="2">私募
+                          <input type="radio"  name="p_fundingType" id="p_fundingType" value="2">私募(PP)
                         </label>
                      </div>
             </div>
             <div class="form-row">
-                    <div class="form-group col-md-4">
-                      <label for="p_FAY">預估平均年收益</label>
+                    <!-- <div class="form-group col-md-4">
+                      <label for="p_FAY">預估平均年收益/label>
                       <input type="text" class="form-control" name="p_FAY" id="p_FAY" placeholder="ex:4.8">
                     </div>
                     <div class="form-group col-md-4">
                           <label for="p_FTRT">預估回收金額</label>
                           <input type="text" class="form-control" name="p_FTRT" id="p_FTRT" placeholder="ex:15327">
+                     </div> -->
+                     <div class="form-group col-md-6">
+                          <label for="p_RPT">收益總期數</label>
+                          <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:80">
                      </div>
-                     <div class="form-group col-md-4">
-                          <label for="p_RPT">租金支付週期每幾個月</label>
-                          <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:4">
-                     </div>
+                     <div class="form-group col-md-6">
+                      <label for="p_FRP">預估回收年限(年數/月數)</label>
+                      <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:20/10">
+                    </div>
             </div>
-            <div class="form-row">
+            <!-- <div class="form-row">
                     <div class="form-group col-md-6">
                       <label for="p_FRP">預估回收年限</label>
                       <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:8">
@@ -119,39 +123,39 @@
                           <label for="p_Timeline">預估進度圖</label>
                           <input type="text" class="form-control" name="p_Timeline" id="p_Timeline" placeholder="ex:">
                      </div>
-            </div>
+            </div> -->
             <div class="form-row">
               <div class="form-group col-md-4">
                   <label for="p_PSD">專案開始日期</label>
-                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:20191231">
+                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-4">
-                <label for="p_CFSD">開始購買/眾籌日期</label>
-                <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:20191231">
+                <label for="p_CFSD">募資起始日</label>
+                <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-4">
-                    <label for="p_CFED">結束購買/眾籌日期</label>
-                    <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:20200331">
+                    <label for="p_CFED">募資截止日</label>
+                    <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM">
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="p_TaiPowerApprovalDate">台電並聯作業日期</label>
-                <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:20191231">
+                <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-6">
                     <label for="p_BOEApprovalDate">能源局同意備案日期</label>
-                    <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:20200331">
+                    <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDDHHMM">
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="p_PVTrialOperationDate">併聯試運轉日期</label>
-                <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:20191231">
+                <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-6">
                     <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
-                    <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:20200331">
+                    <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDDHHMM">
                </div>
             </div>
             <!-- 以下為隱藏欄位，為上傳文件的網址 -->
@@ -173,7 +177,7 @@
         <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
             <div class="form-row">
                     <div class="form-group col-md-4">
-                            <label for="file">產品文件</label>
+                            <label for="file">購售電合約</label>
                             <input type="file" class="form-control" name="file" id="file">
                     </div>
                     <div class="form-group col-md-4">
