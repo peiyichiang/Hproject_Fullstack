@@ -246,8 +246,6 @@ router.post('/post_BookletImage', uploadBookletImage.single('image'), function (
 //-----------------------==
 //http://localhost:3000/user/AddUser
 router.post('/AddUser', function (req, res, next) {
-    var account = web3.eth.accounts.create();
-    console.log(account);
     console.log('------------------------==\n@user/AddUser');
     const qstr1 = 'INSERT INTO htoken.user SET ?';
     var mysqlPoolQuery = req.pool;
@@ -280,7 +278,7 @@ router.post('/AddUser', function (req, res, next) {
                 u_imagef: user.imageURLF,
                 u_imageb: user.imageURLB,
                 u_bankBooklet: user.bankBooklet,
-                u_eth_add: account.address,//user.eth_account,
+                u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
