@@ -358,7 +358,6 @@ router.get('/UserLogin', function (req, res, next) {
                                 u_assetbookContractAddress: result[0].u_assetbookContractAddress,
                                 u_investorLevel: result[0].u_investorLevel,
                                 u_verify_status: result[0].u_verify_status,
-                                u_authlevel: result[0].u_investorLevel
                             };
                             time = {
                                 expiresIn: '24h'
