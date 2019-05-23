@@ -24,10 +24,10 @@ contract SupportsInterface is ERC165ITF {
     }
 }
 
-//RegistryITF(addrRegistry).isAddrApproved(_to);
-interface RegistryITF {
+//RegistryITF_HCAT(addrRegistry).isAddrApproved(_to);
+interface RegistryITF_HCAT {
     function isAssetbookApproved(address assetbookAddr) external view returns (bool);
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount);
 }
 
 interface TokenControllerITF {
@@ -231,13 +231,15 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     //Legal Compliance, also block address(0)
     //fundingType: 1 public crowdfunding, 2 private placement
     //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
-    function isFundingApprovedHCAT721(address _to, uint amount, uint price, uint fundingType) external view returns(bool) {
-        return RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+    function isFundingApprovedHCAT721(address _to, uint amount, uint price, uint fundingType) external view returns(bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount) {
+        return RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
     }
 
     function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public onlyPlatformSupervisor{
 
-        require(RegistryITF(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
+        (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount) = RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+
+        require(isApprovedBuyAmount && isApprovedBalancePlusBuyAmount, "[Registry Compliance] isFundingApproved() failed");
 
         if (_to.isContract()) {//also checks for none zero address
             bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
@@ -290,9 +292,9 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
         require(TokenControllerITF(addrTokenController).isTokenApprovedOperational(),'token cannot be transferred due to either unlock period or after valid date');
         //Legal Compliance
-        require(RegistryITF(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
+        require(RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
 
-        require(RegistryITF(addrRegistry).isAssetbookApproved(_from), "_from is not in compliance");
+        require(RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from), "_from is not in compliance");
 
         _safeTransferFromBatch(_from, _to, amount, price, serverTime);
     }

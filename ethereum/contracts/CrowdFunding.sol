@@ -2,15 +2,18 @@ pragma solidity ^0.5.4;
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
 import "./SafeMath.sol";
-interface HeliumITF{
+interface HeliumITF_CF{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
 interface ERC721TokenReceiverITF_CF {
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
 }
-interface RegistryITF {
+interface RegistryITF_CF {
     function isAddrApproved(address assetCtrtAddr) external view returns (bool);
-    function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool);
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount);
+}
+interface AssetTokenITF_CF {
+    function balanceOf(address user) external view returns (uint balance);
 }
 
 contract CrowdFunding {
@@ -28,16 +31,18 @@ contract CrowdFunding {
     event TokenInvested(address indexed _addrAssetbook, uint _quantityToInvest, uint serverTime);
 
     uint public serverTimeMin = 201905110000;
-    uint public maxTokenQtyForEachInvestmentFund = 120;
+    uint public maxTokenQtyForEachInvestmentFund = 120000000;
     // the max allowed token quantity for each investment fund, according to the token minting function limit
     string public tokenSymbol; //token symbol for crowdfunding
     string public pricingCurrency; // type of funding pricingCurrency: NTD, USD, RMB, etc...
-    uint public initialAssetPricing; // funding price for each token
+    uint public initialAssetPricing; // initial funding price for each token
     uint public maxTotalSupply; //total allowed token quantity for crowdfunding sales
     uint public quantityGoal; //sales minimum goal for sold token quantity
     uint public quantitySold; //accumulated quantity of sold tokens
     uint public CFSD2; //crowdfunding start date in yyyymmddhhmm format
     uint public CFED2; //crowdfunding end date in yyyymmddhhmm format
+    uint public fundingType;
+    address public addrRegistry;
 
     // Each incoming fund will be recorded in each investor’s InvestmentRecord
     struct InvestmentRecord {
@@ -54,8 +59,6 @@ contract CrowdFunding {
     FundingState public fundingState;
     string public stateDescription;
     bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
-    uint public fundingType;
-    //address public addrRegistry;
 
     /*  at initialization, setup the owner
     "TKOS1901", 18000, "NTD", 900, 890, 201905211800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7"
@@ -70,6 +73,9 @@ contract CrowdFunding {
         uint _CFED2,//CrowdFunding End Date
         uint serverTime,
         address _addrHelium
+        //,
+        //uint _fundingType,
+        //address _addrRegistry
     ) public {
         ckStringLength(_tokenSymbol, 3, 32);
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
@@ -92,6 +98,8 @@ contract CrowdFunding {
         require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
 
         addrHelium = _addrHelium;
+        //fundingType = _fundingType;
+        //addrRegistry = _addrRegistry;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
     }
 
@@ -113,13 +121,13 @@ contract CrowdFunding {
     }
 
     function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
+        return (HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     function setHeliumAddr(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
+        require(HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
         _;
     }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
@@ -204,16 +212,24 @@ contract CrowdFunding {
             invest(_assetbookArr[i], _quantityToInvestArr[i], serverTime);
         }
     }
+    // function checkInvestmentAction(address _addrAssetbook, uint _quantityToInvest, uint serverTime) external returns(bool, bool) {
+    //     uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
+    //     return RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
+    // }
 
     // to record each funding source and the amount tokens secured by that funding
     function invest(address _addrAssetbook, uint _quantityToInvest, uint serverTime) public onlyPlatformSupervisor {
+        /*because we only deploy assetToken contract AFTER successfully closed a crowdfunding, therefore at this moment addrHCAT721 does not exist yet, therefore we cannot check the investor's existing token holding balance... or the balance is assumed to be zero.
 
-        //require(RegistryITF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
-        //function isFundingApproved(address assetCtrtAddr, uint buyAmount, uint balance, uint fundingType)
-
-        // if(serverTime >= CFSD2 && fundingState == FundingState.initial){
-        //     fundingState = FundingState.funding;
-        // }
+        uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
+        bool[2] result = RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
+        require(result[0] && result[1], "[Legal Compliance failed] @ Registry:isFundingApproved() failed");
+        
+        //isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount)
+        */
+        if(serverTime >= CFSD2 && fundingState == FundingState.initial){
+            fundingState = FundingState.funding;
+        }
 
         if (_addrAssetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
@@ -278,7 +294,7 @@ contract CrowdFunding {
         require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
     }
 
-    function() external payable { revert("should not send any ether directly"); }
+    //function() external payable { revert("should not send any ether directly"); }
 
 }
 library AddressUtils {

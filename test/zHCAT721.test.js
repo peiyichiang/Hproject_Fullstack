@@ -268,7 +268,7 @@ let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 let addrAssetBook1, addrAssetBook2, addrAsset3, addrAsset4;
 
-let timeCurrent = 201903081040, error;
+let timeCurrent = 201905150000, error;
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
 const TimeTokenValid =  timeCurrent+9;

@@ -521,21 +521,19 @@ const addInvestorAssebooksIntoCFC = async () => {
       console.log('symbols', symbols);
 
       await asyncForEachBasic(symbols, async (symbol) => {
-        console.log(`\n--------------==next: ${symbol}`);
-
         mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol] , async function(err, result) {
           if (err) {
-            console.error('[Error] getting crowdsaleaddress from symbol', symbol, ', err:', err);
+            console.error('\n------==[Error] getting crowdsaleaddress from symbol', symbol, ', err:', err);
 
           } else if(result.length > 1){
-              console.error('[Error] Found multiple crowdsaleaddresses from one symbol! result', result);
+              console.error('\n------==[Error] Found multiple crowdsaleaddresses from one symbol! result', result);
 
           } else if(result.length === 0){
-              console.error('[Error] Found no crowdsaleaddresses from symbol', symbol, ', result', result);
+              console.error('\n------==[Error] Found no crowdsaleaddresses from symbol', symbol, ', result', result);
 
           } else {
             const crowdFundingAddr = result[0].sc_crowdsaleaddress;
-            console.log('crowdFundingAddr', crowdFundingAddr);
+            console.error('\n------==[Good] Found crowdsaleaddresses from symbol', symbol, 'crowdFundingAddr', crowdFundingAddr);
 
             mysqlPoolQuery('SELECT o_userIdentityNumber, o_tokenCount FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"', [symbol] , async function(err, result) {
               if (err) {
@@ -545,42 +543,42 @@ const addInvestorAssebooksIntoCFC = async () => {
                 console.error('[Error] Got no paid order where symbol', symbol, 'result', result);
 
               } else {
-                console.log('result', result);
-                //result[idx].o_userIdentityNumber
-                //result[idx].o_tokenCount
+                console.log(`\n[Good] Found a list of UserID and tokenCount for ${symbol}: ${JSON.stringify(result)}`);
   
                 await asyncForEachBasic(result, async (orderObj, idx) => {
                   const userId = orderObj.o_userIdentityNumber;
-                  const amount = orderObj.o_tokenCount;
-                  console.log(`userId ${userId}, amount: ${amount}`);
+                  const tokenCountStr = orderObj.o_tokenCount;
+                  console.log(`userId ${userId}, tokenCountStr: ${tokenCountStr}`);
 
-                  if(!Number.isInteger(amount)){
-                    console.log(`[Error] tokenCount must be an integer! idx: ${idx}, amount: ${amount}`);
+                  if(!Number.isInteger(tokenCountStr)){
+                    console.log(`[Error] tokenCount must be an integer! idx: ${idx}, tokenCountStr: ${tokenCountStr}`);
 
                   } else {
-                    const tokenCount = parseInt(amount);
-                    console.log(`\n----------==next: idx = ${idx}, userId = ${userId}, tokenCount = ${tokenCount}`);
+                    const tokenCount = parseInt(tokenCountStr);
+                    console.log(`\n------==next: idx = ${idx}, userId = ${userId}, tokenCount = ${tokenCount}`);
                     mysqlPoolQuery('SELECT u_assetbookContractAddress FROM htoken.user WHERE u_identityNumber = ?', [userId] , async function(err, result) {
                       if (err) {
-                        console.error('[Error @ getting assetbookContractAddress from userId]', err);
+                        console.error('\n----==[Error @ getting assetbookContractAddress from userId]', err);
 
                       } else if(result.length > 1){
-                        console.error('[Error] Got multiple assetbookContractAddresses from one userId', userId, ', result', result);
+                        console.error('\n----==[Error] Got multiple assetbookContractAddresses from one userId', userId, ', result', result);
 
                       } else if(result.length === 0){
-                        console.error('[Error] Got no assetbookContractAddresses from userId', userId, ', result', result);
+                        console.error('\n----==[Error] Got no assetbookContractAddresses from userId', userId, ', result', result);
 
                       } else {
                         const addrAssetbook = result[0].u_assetbookContractAddress;
-                        console.log('addrAssetbook', addrAssetbook);
+                        console.log(`\n----==[Good] For ${userId}, found its addrAssetbook ${addrAssetbook}`);
 
                         if(isEmpty(addrAssetbook)){
                           console.error('[Error] addrAssetbook is empty. addrAssetbook:', addrAssetbook);
 
                         } else {
-                          const currentTime = await timer.getTime();
-                          console.log('\n... about to send txn to BC ... addrAssetbook', addrAssetbook, 'tokenCount', tokenCount, 'currentTime', currentTime, 'crowdFundingAddr', crowdFundingAddr);
-                          //write addrAssetbook & tokenCount into crowdfundingAddr
+                          const currentTime = 201905230950;//await timer.getTime();
+                          console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
+    tokenCount: ${tokenCount}, currentTime: ${currentTime}
+    addrAssetbook: ${addrAssetbook}
+    crowdFundingAddr: ${crowdFundingAddr}`);
     
                           const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
                           const encodedData = inst_crowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
@@ -615,15 +613,15 @@ const addInvestorAssebooksIntoCFC = async () => {
 }
 
 //to get all the list: set inputs to both zeros
-const getInvestorsFromCFC = async (indexStart, amount) => {
+const getInvestorsFromCFC = async (indexStart, tokenCountStr) => {
   console.log('\ngetInvestorsFromCFC()...');
-  if(!Number.isInteger(indexStart) || !Number.isInteger(amount)){
-    console.log(`[Error] Non integer is found: indexStart: ${indexStart}, amount: ${amount}`);
-    return [[],[]];
+  if(!Number.isInteger(indexStart) || !Number.isInteger(tokenCountStr)){
+    console.log(`[Error] Non integer is found: indexStart: ${indexStart}, tokenCountStr: ${tokenCountStr}`);
+    return [[-1],[-1]];
   }
-
+  tokenCount = parseInt(tokenCountStr);
   const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-  const [assetbookArray, investedTokenQtyArray] = await inst_crowdFunding.methods.getInvestors(indexStart, amount).call();  //getInvestors(uint indexStart, uint amount) external view returns(address[] memory assetbookArray, uint[] memory investedTokenQtyArray)
+  const [assetbookArray, investedTokenQtyArray] = await inst_crowdFunding.methods.getInvestors(indexStart, tokenCount).call();  //getInvestors(uint indexStart, uint tokenCount) external view returns(address[] memory assetbookArray, uint[] memory investedTokenQtyArray)
   console.log(`\nassetbookArray: ${assetbookArray}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
   return [assetbookArray, investedTokenQtyArray];
 }
