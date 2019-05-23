@@ -157,46 +157,55 @@ authLevel & STO investor classification on purchase amount and holding balance r
     }
 
     function isFundingApprovedDebug(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) 
-      external view returns (uint authLevel, uint, uint, bool, uint, uint balanceBuyAmount, bool) {
-      //amount and balance are in token qty* price
+      external view returns (uint authLevel, uint, uint, bool, uint, uint balancePlusBuyAmount, bool) {
+        //fundingType, maxBuyAmountPublic, maxBuyAmountPublic >= buyAmount, maxBalancePublic
+        //amount and balance are in token qty* price
         authLevel = assetbookToUser[assetbookAddr].authLevel;
-        balanceBuyAmount = balance.add(buyAmount);
+        balancePlusBuyAmount = balance.add(buyAmount);
 
         if(fundingType == 1){// 1 PublicOffering
             uint maxBuyAmountPublic = restrictions[authLevel].maxBuyAmountPublic;
             uint maxBalancePublic = restrictions[authLevel].maxBalancePublic;
 
-            return(authLevel, fundingType, maxBuyAmountPublic, maxBuyAmountPublic >= buyAmount, maxBalancePublic, balanceBuyAmount, maxBalancePublic >= balanceBuyAmount);
+            return(authLevel, fundingType, maxBuyAmountPublic, maxBuyAmountPublic >= buyAmount, maxBalancePublic, balancePlusBuyAmount, maxBalancePublic >= balancePlusBuyAmount);
 
         } else if(fundingType == 2){// "PrivatePlacement"
             uint maxBuyAmountPrivate = restrictions[authLevel].maxBuyAmountPrivate;
             uint maxBalancePrivate = restrictions[authLevel].maxBalancePrivate;
 
-            return(authLevel, fundingType, maxBuyAmountPrivate, maxBuyAmountPrivate >= buyAmount, maxBalancePrivate, balanceBuyAmount, maxBalancePrivate >= balanceBuyAmount);
+            return(authLevel, fundingType, maxBuyAmountPrivate, maxBuyAmountPrivate >= buyAmount, maxBalancePrivate, balancePlusBuyAmount, maxBalancePrivate >= balancePlusBuyAmount);
 
         } else {
-            return(authLevel, fundingType, 1618, false, 3398, balanceBuyAmount, false);
+            return(authLevel, fundingType, 1618, false, 3398, balancePlusBuyAmount, false);
         }
     }
 
     /**@dev check if asset contract address & buyAmount & balance are approved, by finding its uid then checking the uid’s info */
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool) {
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount) {
       //amount and balance are in token qty* price
         uint authLevel = assetbookToUser[assetbookAddr].authLevel;
-        uint balanceBuyAmount = balance.add(buyAmount);
+        uint balancePlusBuyAmount = balance.add(buyAmount);
 
         require(buyAmount > 0, "buyAmount shoube be > 0");
         if(fundingType == 1){// 1 PublicOffering
-            require(restrictions[authLevel].maxBuyAmountPublic >= buyAmount, "buyAmount should be <= maxBuyAmountPublic");
-            require(restrictions[authLevel].maxBalancePublic >= balanceBuyAmount, "balance + buyAmount should be <= maxBalancePublic");
+            isApprovedBuyAmount = restrictions[authLevel].maxBuyAmountPublic >= buyAmount;
+            isApprovedBalancePlusBuyAmount = restrictions[authLevel].maxBalancePublic >= balancePlusBuyAmount;
+            //require(isApprovedBuyAmount, "buyAmount should be <= maxBuyAmountPublic");
+            //require(isApprovedBalancePlusBuyAmount, "balance + buyAmount should be <= maxBalancePublic");
+            return (isApprovedBuyAmount, isApprovedBalancePlusBuyAmount);
 
         } else if(fundingType == 2){// "PrivatePlacement"
-            require(restrictions[authLevel].maxBuyAmountPrivate >= buyAmount, "buyAmount should be <= maxBuyAmountPrivate");
-            require(restrictions[authLevel].maxBalancePrivate >= balanceBuyAmount, "balance + buyAmount should be <= maxBalancePrivate");
+            isApprovedBuyAmount = restrictions[authLevel].maxBuyAmountPrivate >= buyAmount;
+            isApprovedBalancePlusBuyAmount = restrictions[authLevel].maxBalancePrivate >= balancePlusBuyAmount;
+            //require(isApprovedBuyAmount, "buyAmount should be <= maxBuyAmountPrivate");
+            //require(isApprovedBalancePlusBuyAmount, "balance + buyAmount should be <= maxBalancePrivate");
+            return (isApprovedBuyAmount, isApprovedBalancePlusBuyAmount);
+
         } else {
-            revert("fundingType value is out of range");
+            //revert("fundingType value is out of range");
+            return (false, false);
         }
-        return (authLevel > 0);
+        //return (authLevel > 0);
     }
 
     /**@dev get regulation's restrictions, amount and balance in fiat */

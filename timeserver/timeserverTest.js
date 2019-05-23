@@ -159,7 +159,6 @@ const addOrderAPI = async() => {
 
 // yarn run testts -a 1 -s 1 -c 8
 const addInvestorAssebooksIntoCFC_API = async () => {
-  console.log('-------------------==addInvestorAssebooksIntoCFC_API');
   await addInvestorAssebooksIntoCFC();
 }
 
@@ -190,7 +189,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 // yarn run testts -a 1 -s 1 -c 8
 } else if(choice === 8){
-  console.log('-------------------==addInvestorAssebooksIntoCFC');
+  console.log('-------------------==addInvestorAssebooksIntoCFC_API');
   addInvestorAssebooksIntoCFC_API();
 
 } else if(choice === 1){
