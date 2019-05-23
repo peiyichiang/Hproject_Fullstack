@@ -145,7 +145,7 @@ router.post('/send_email', function (req, res) {
         else {
             res.status(200);
             res.json({
-                "message": "驗證信寄送成功： "
+                "message": "驗證信寄送成功"
             })
         }
         // console.log('Message sent: %s', info.messageId);
