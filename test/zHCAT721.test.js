@@ -680,7 +680,8 @@ describe('Tests on HCAT721', () => {
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
     _to = addrAssetBook1; amount = 1; serverTime = timeCurrent;
-    price = 17000; fundingType = 1; tokenId = amount;
+    price = 17000; fundingType = 1;//PO: 1, PP: 2
+    tokenId = amount;
 
     assetbookMX = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log(assetbookMX);
@@ -832,8 +833,12 @@ describe('Tests on HCAT721', () => {
     //-----------------==Check if STO Compliance for balance
     console.log('\n------------==Check if STO Compliance for balance');
     error = false;
+    let isApprovedBuyAmount, isApprovedBalancePlusBuyAmount;
+
+    _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;//PO: 1, PP: 2
+    [isApprovedBuyAmount, isApprovedBalancePlusBuyAmount] = await instHCAT721.methods.isFundingApprovedHCAT721(_to,  amount, price, fundingType).call();
+    console.log(`isApprovedBuyAmount: ${isApprovedBuyAmount}, isApprovedBalancePlusBuyAmount: ${isApprovedBalancePlusBuyAmount}`);
     try {
-      _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;
       console.log('mintSerialNFT()... amount =', amount);
       await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
         value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -841,6 +846,7 @@ describe('Tests on HCAT721', () => {
       error = true;
     } catch (err) {
       console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
+      console.log(`isApprovedBuyAmount: ${isApprovedBuyAmount}, isApprovedBalancePlusBuyAmount: ${isApprovedBalancePlusBuyAmount}`);
       assert(err);
     }
     if (error) {assert(false);}
@@ -851,6 +857,9 @@ describe('Tests on HCAT721', () => {
     try {
       _to = addrAssetBook1; amount = 8; serverTime = timeCurrent;
       console.log('mintSerialNFT()... amount =', amount);
+      const [isApprovedBuyAmount, isApprovedBalancePlusBuyAmount] = await instHCAT721.methods.isFundingApprovedHCAT721(_to,  amount, price, fundingType).call();
+      console.log(`isApprovedBuyAmount: ${isApprovedBuyAmount}, isApprovedBalancePlusBuyAmount: ${isApprovedBalancePlusBuyAmount}`);
+
       await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
         value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 

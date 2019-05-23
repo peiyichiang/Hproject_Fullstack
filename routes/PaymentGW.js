@@ -24,7 +24,7 @@ router.post('/updateOrder', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     var order = JSON.parse(req.body.o_IDs);
     var sql = {
-        o_paymentStatus: "completed"
+        o_paymentStatus: "paid"
     };
 
     order.o_IDs.forEach(element => {

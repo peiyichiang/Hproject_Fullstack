@@ -336,7 +336,7 @@ router.get('/SumReservedOrdersBySymbol', function (req, res, next) {
       symbol = req.body.symbol;
   } else { symbol = req.query.symbol; }
   var qur = mysqlPoolQuery(
-      'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"', [symbol], function (err, result) {
+      'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol], function (err, result) {
           if (err) {
               console.log(err);
               res.status(400);
