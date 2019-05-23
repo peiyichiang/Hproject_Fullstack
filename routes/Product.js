@@ -1011,7 +1011,7 @@ router.get('/LaunchedProductList', function (req, res) {
                 p_PVOnGridDate AS PVOnGridDate,
                 p_fundingType AS fundingType
        FROM product 
-       WHERE p_state = \'publish\'`, function (err, productArray) {
+       WHERE p_state = \'funding\'`, function (err, productArray) {
             if (err) {
                 res.status(400)
                 res.json({
