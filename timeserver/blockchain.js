@@ -155,12 +155,24 @@ const breakdownArrays = (toAddressArray, amountArray) => {
 
 const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
+const excludedSymbols = ['HToken123', 'NCCU1801', 'MYRR1701', 'SUNL1607', 'NCCU1901'];
+
 async function asyncForEachBasic(arrayBasic, callback) {
   console.log("arrayBasic:"+arrayBasic);
   for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
+    const item = arrayBasic[idxBasic];
     console.log(`\n--------------==next:
-    idxBasic: ${idxBasic}, ${arrayBasic[idxBasic]}`);
-    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
+    idxBasic: ${idxBasic}, ${item}`);
+    if(typeof item === 'object' && item !== null){
+      if(excludedSymbols.includes(item.o_symbol)){
+        console.log('Skipping symbol:', item.o_symbol);
+        continue;
+      } else {
+        await callback(item, idxBasic, arrayBasic);
+      }
+    } else {
+      await callback(item, idxBasic, arrayBasic);
+    }
   }
 }
 async function asyncForEachSuper(array1, array2, callback) {
@@ -488,34 +500,41 @@ const updateCFC = async (timeCurrent) => {
 }
 
 
-const addInvestorAssebooksIntoCFC = async () => {
-  console.log('\ninside addInvestorAssebooksIntoCFC()...');
-  mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"', [] , async function(err, symbols) {
-    if (err) {
-      console.error('[Error @ addInvestorAssetbooksIntoCFC: get symbols]', err);
 
-    } else if(symbols.length === 0){
-      console.log('Got no paid order');
+const addInvestorAssebooksIntoCFC = async () => {
+  console.log('\ninside blockchain.js: addInvestorAssebooksIntoCFC()...');
+  mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"', [] , async function(err, results) {
+    if (err) {
+      console.error('[Error @ addInvestorAssetbooksIntoCFC: get results]', err);
+
+    } else if(results.length === 0){
+      console.log('No paid order is found');
 
     } else {
+      console.log('results', results);
+      const symbols = [];
+      if(typeof results[0] === 'object' && results[0] !== null){
+        results.forEach((item)=>{symbols.push(item.o_symbol)});
+      } else {
+        results.forEach((item)=>{symbols.push(item)});
+      }
       console.log('symbols', symbols);
 
-      await asyncForEachBasic(symbols, async (symbolObj) => {
-        const symbol = symbolObj.o_symbol;
+      await asyncForEachBasic(symbols, async (symbol) => {
         console.log(`\n--------------==next: ${symbol}`);
 
         mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol] , async function(err, result) {
           if (err) {
-            console.error('[Error] getting crowdsaleaddress from symbol', symbol, ', ', err);
+            console.error('[Error] getting crowdsaleaddress from symbol', symbol, ', err:', err);
 
           } else if(result.length > 1){
               console.error('[Error] Found multiple crowdsaleaddresses from one symbol! result', result);
 
           } else if(result.length === 0){
-              console.error('[Error] Found none crowdsaleaddresses from symbol', symbol, ', result', result);
+              console.error('[Error] Found no crowdsaleaddresses from symbol', symbol, ', result', result);
 
           } else {
-            const crowdFundingAddr = result[0];
+            const crowdFundingAddr = result[0].sc_crowdsaleaddress;
             console.log('crowdFundingAddr', crowdFundingAddr);
 
             mysqlPoolQuery('SELECT o_userIdentityNumber, o_tokenCount FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"', [symbol] , async function(err, result) {
@@ -527,19 +546,21 @@ const addInvestorAssebooksIntoCFC = async () => {
 
               } else {
                 console.log('result', result);
-                const userIdArray = result[0];
-                const tokenCountArray = result[1];
-                console.log('userIdArray', userIdArray, 'tokenCountArray', tokenCountArray);
+                //result[idx].o_userIdentityNumber
+                //result[idx].o_tokenCount
   
-                /*
-                await asyncForEachBasic(userIdArray, async (userId, idx) => {
-                  if(!Number.isInteger(tokenCountArray[idx])){
-                    console.log(`[Error] tokenCount must be an integer! idx: ${idx}, tokenCountArray[idx]: ${tokenCountArray[idx]}`);
+                await asyncForEachBasic(result, async (orderObj, idx) => {
+                  const userId = orderObj.o_userIdentityNumber;
+                  const amount = orderObj.o_tokenCount;
+                  console.log(`userId ${userId}, amount: ${amount}`);
+
+                  if(!Number.isInteger(amount)){
+                    console.log(`[Error] tokenCount must be an integer! idx: ${idx}, amount: ${amount}`);
 
                   } else {
-                    const tokenCount = parseInt(tokenCountArray[idx]);
+                    const tokenCount = parseInt(amount);
                     console.log(`\n----------==next: idx = ${idx}, userId = ${userId}, tokenCount = ${tokenCount}`);
-                    mysqlPoolQuery('SELECT u_assetbookContractAddress FROM htoken.user WHERE o_userIdentityNumber = ?', [userId] , async function(err, result) {
+                    mysqlPoolQuery('SELECT u_assetbookContractAddress FROM htoken.user WHERE u_identityNumber = ?', [userId] , async function(err, result) {
                       if (err) {
                         console.error('[Error @ getting assetbookContractAddress from userId]', err);
 
@@ -550,13 +571,15 @@ const addInvestorAssebooksIntoCFC = async () => {
                         console.error('[Error] Got no assetbookContractAddresses from userId', userId, ', result', result);
 
                       } else {
-                        const addrAssetbook = result[0];
+                        const addrAssetbook = result[0].u_assetbookContractAddress;
                         console.log('addrAssetbook', addrAssetbook);
+
                         if(isEmpty(addrAssetbook)){
                           console.error('[Error] addrAssetbook is empty. addrAssetbook:', addrAssetbook);
 
                         } else {
                           const currentTime = await timer.getTime();
+                          console.log('\n... about to send txn to BC ... addrAssetbook', addrAssetbook, 'tokenCount', tokenCount, 'currentTime', currentTime, 'crowdFundingAddr', crowdFundingAddr);
                           //write addrAssetbook & tokenCount into crowdfundingAddr
     
                           const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
@@ -584,9 +607,11 @@ const addInvestorAssebooksIntoCFC = async () => {
         });
 
       });
+      //process.exit(0);
     }
   
   });
+  
 }
 
 //to get all the list: set inputs to both zeros

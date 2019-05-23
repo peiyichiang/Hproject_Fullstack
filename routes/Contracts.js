@@ -954,7 +954,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 
     incomeManager.deploy({
         data: incomeManagerContract.bytecode,
-        arguments: [erc721address, supervisorAddr, heliumContractAddr]
+        arguments: [erc721address, heliumContractAddr]
     })
         .send({
             from: backendAddr,

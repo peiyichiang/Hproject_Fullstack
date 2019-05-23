@@ -269,7 +269,7 @@ router.post('/AddUser', function (req, res, next) {
             return bcrypt.hash(user.password, salt);
         })
         .then(hash => {
-            console.log(`Hash: ${hash}`);
+            console.log(`Password Hash: ${hash}`);
             let userNew = {
                 u_email: user.email,
                 u_salt: user.salt,

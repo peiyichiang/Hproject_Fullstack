@@ -245,7 +245,7 @@ router.get('/SumExpiredOrdersBySymbol', function (req, res, next) {
 //http://localhost:3000/Order/SumPendingOrdersBySymbol
 router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumPendingOrdersBySymbol');
-    var mysqlPoolQuery = req.pool; const status = 'pending';
+    var mysqlPoolQuery = req.pool; const status = 'pendingByPlatform';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol) {
@@ -268,6 +268,7 @@ router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
             }
         });
 });
+
 
 //http://localhost:3000/Order/SumPaidOrdersBySymbol
 router.get('/SumPaidOrdersBySymbol', function (req, res, next) {
@@ -294,6 +295,62 @@ router.get('/SumPaidOrdersBySymbol', function (req, res, next) {
                 });
             }
         });
+});
+
+
+//http://localhost:3000/Order/SumTxnFinishedOrdersBySymbol
+router.get('/SumTxnFinishedOrdersBySymbol', function (req, res, next) {
+  console.log('------------------------==\n@Order/SumTxnFinishedOrdersBySymbol');
+  var mysqlPoolQuery = req.pool; const status = 'txnFinished';
+  console.log('req.query', req.query, 'req.body', req.body);
+  let symbol;
+  if (req.body.symbol) {
+      symbol = req.body.symbol;
+  } else { symbol = req.query.symbol; }
+  var qur = mysqlPoolQuery(
+      'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+          if (err) {
+              console.log(err);
+              res.status(400);
+              res.json({
+                  "message": "[Error] Failure :\n" + err
+              });
+          } else {
+              res.status(200);
+              res.json({
+                  "message": "[Success] Success",
+                  "result": result
+              });
+          }
+      });
+});
+
+
+//http://localhost:3000/Order/SumReservedOrdersBySymbol
+router.get('/SumReservedOrdersBySymbol', function (req, res, next) {
+  console.log('------------------------==\n@Order/SumReservedOrdersBySymbol');
+  var mysqlPoolQuery = req.pool;
+  console.log('req.query', req.query, 'req.body', req.body);
+  let symbol;
+  if (req.body.symbol) {
+      symbol = req.body.symbol;
+  } else { symbol = req.query.symbol; }
+  var qur = mysqlPoolQuery(
+      'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"', [symbol], function (err, result) {
+          if (err) {
+              console.log(err);
+              res.status(400);
+              res.json({
+                  "message": "[Error] Failure :\n" + err
+              });
+          } else {
+              res.status(200);
+              res.json({
+                  "message": "[Success] Success",
+                  "result": result
+              });
+          }
+      });
 });
 
 
