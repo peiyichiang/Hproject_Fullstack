@@ -19,18 +19,49 @@ if (process.argv.length < 8) {
   process.exit(1);
 }
 // chain    symNum   ctrtName
-const chain = parseInt(process.argv[3]);//0;
 //const symNum = parseInt(process.argv[5]);
-const ctrtName = process.argv[7];//'assetbook';
+let chain, ctrtName;
+let { addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum } = require('./zsetupData');
 
-let { symbolObject, addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum } = require('./zsetupData');
 
+console.log('process.argv', process.argv);
+const arguLen = process.argv.length;
+if (arguLen == 3 && process.argv[2] === '--h') {
+  console.log("\x1b[32m", '$ yarn run livechain -c C --f F -a A -b b');
+  console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
+  console.log("\x1b[32m", '...');
+  console.log("\x1b[32m", 'a, b, ... are arguments used in above functions ...');
+  process.exit(0);
+  // process.on('exit', function(code) {  
+  //   return console.log(`About to exit with code ${code}`);
+  // });
+} else if (arguLen < 4) {
+  console.log('not enough arguments. --h for help');
+  chain = 1;
+} else {
+  //Number.isInteger(process.argv[3])
+  chain = parseInt(process.argv[3]);
+  if (chain < 0) {
+    console.log('chain value should be >= 0. chain = ', chain);
+    process.exit(1);
+  }
+  if (arguLen < 6) {
+    func = 0;
+  } else {
+    func = parseInt(process.argv[5]);
+    if (arguLen < 8) {
+      arg1 = 0;
+    } else {
+      ctrtName = process.argv[7]
+    }
+
+  }
+}
 console.log('chain = ', chain, ', ctrtName =', ctrtName);
+
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
-
-
   // addrProductManager = "";  
 
   gasLimitValue = '7000000';//intrinsic gas too low
@@ -317,6 +348,8 @@ const writeCtrtToDB = async() => {
   console.log('\nsymNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
 }
 
+
+//-----------------------------==
 const deploy = async () => {
     console.log('\n--------==To deploy');
 
@@ -461,6 +494,7 @@ const deploy = async () => {
     addrAssetBook1 = addrAssetBookArray[0];
     addrAssetBook2 = addrAssetBookArray[1];
     addrAssetBook3 = addrAssetBookArray[2];
+    console.log(addrAssetBook1, addrAssetBook2, addrAssetBook3);
     process.exit(0);
 
   //yarn run deploy -c 1 -s 1 -cName db
@@ -701,3 +735,43 @@ const deploy = async () => {
 }
 deploy();
 
+if (func === 0) {
+  setupTest();
+
+} else if (func === 1) {
+  getTokenController();
+
+} else if (func === 2) {
+  showAccountAssetBooks();
+
+} else if (func === 3) {
+  showAssetInfo(arg1);
+
+} else if (func === 4) {
+  mintTokens(arg1, arg2);
+
+} else if (func === 5) {
+  mintTokenFn1();
+
+} else if (func === 6) {
+  sendAssetBeforeAllowed();
+
+} else if (func === 7) {
+  setServerTime(arg1);
+
+} else if (func === 8) {
+  transferTokens(arg1, arg2);
+
+} else if (func === 31) {
+  testCtrt();
+
+} else if (func === 36) {
+  addAssetBookAPI();
+
+} else if (func === 37) {
+  sequentialMintSuperAPI();
+
+} else if (func === 38) {
+  sequentialMintSuperNoMintAPI();
+
+}

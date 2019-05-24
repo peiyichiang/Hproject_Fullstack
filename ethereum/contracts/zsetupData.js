@@ -2,7 +2,7 @@
 console.log('--------------------==zsetupData.js');
 let timeAnchor, CFSD2, CFED2, TimeReleaseDate, TimeTokenUnlock, TimeTokenValid, fundmanager, serverTime;
 
-let symbolObject, addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum;
+let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum;
 
 admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 adminpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
@@ -74,16 +74,14 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 // const currentTime = await timer.getTime();
 // console.log('currentTime', currentTime);
 //To be copied to timeserverTest.js
-serverTime = 201905201700;
+serverTime = 201905241700;
 timeAnchor = serverTime+1000;
 CFSD2 = timeAnchor+1;
 CFED2 = timeAnchor+7;
 TimeReleaseDate = timeAnchor+10;
 TimeTokenUnlock = timeAnchor+20; 
 TimeTokenValid =  timeAnchor+90;
-fundmanager = 'Company_FundManagerN';
-
-const productObj0 = new productObject("AKOS1902", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905150000, 2, "0x677835e97c4Dc35cc1D9eCd737Cc6Fc1380e1bDD", "0xF8Bbc068b325Fe7DA1Ef9bE8f69de38CB7299D10", "0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0", "");
+fundmanager = 'FundManagerN';
 
 /** deployed contracts
     yarn run deploy -c 1 -n 0 -cName cf
@@ -91,19 +89,28 @@ const productObj0 = new productObject("AKOS1902", "nftName", "location", 973, 92
     cName = helium, assetbook, registry, tokc, hcat, cf, db
 */
 /**
-"AAOS1903", 18000, "NTD", 986, 973, 201905201800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0
 nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeOfDeployment, addrHelium
 
 nftSymbol, nftName, location, maxTotalSupply, quantityGoalPercentage, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, 
 fundingType: PO: 1, PP: 2
 addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager
 */
-const productObj1 = new productObject("AAOS1903", "nftName", "location", 986, 973, 300, 18000, "NTD", 470, 20, serverTime, 2, "0xBC62fbFA144f3bAeea7889DB17e581dd48CAF16C", "0x423E610E7Ba9781D598593c1387fd854995bAe57", "0x2DC32EF8EA02D8965B813a466e1dB35bbd3a80b5", "");
-const productObj2 = new productObject("ALOS1901", "nftName", "location", 2073, 2035, 350, 19000, "NTD", 480, 20, serverTime, 2, "", "", "", "");
-const productObj3 = new productObject("AOOS1901", "nftName", "location", 5073, 4937, 400, 20000, "NTD", 490, 20, serverTime, 2, "", "", "", "");
+
+//enter time of deployment then run deploy.js to get the contract addresses...
 
 symNum = 1;
-const productObjArray = [productObj0, productObj1, productObj2, productObj3];
+
+const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905241737, 2, "", "", "", "");
+
+const productObj1 = new productObject("AKOS1901", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, serverTime, 2, "", "", "", "");
+
+const productObj2 = new productObject("ALOS1901", "nftName", "location", 2073, 2035, 750, 19000, "NTD", 480, 20, serverTime, 2, "", "", "", "");
+
+const productObj3 = new productObject("AMOS1901", "nftName", "location", 3173, 3037, 980, 20000, "NTD", 490, 20, serverTime, 2, "", "", "", "");
+
+const productObj4 = new productObject("AOOS1901", "nftName", "location", 5073, 4937, 1400, 20000, "NTD", 490, 20, serverTime, 2, "", "", "", "");
+
+const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4];
 const symbolArray = [];
 crowdFundingAddrArray= [];
 tokenControllerAddrArray= [];
