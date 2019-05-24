@@ -29,9 +29,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/ProductManager.json');
 
 
-const heliumContractAddr = "0x9C201b1A3628fd6464F4297fbe85e0Fc20666b0f";
-const registryContractAddr = "0x9CDEf88c4C1Bb8CdA1EE4ed19B2Bb88723C56E93";
-const productManagerContractAddr = "0xAdfD0067cAD50756Ee5A8C00675afC98c44a89A4";
+const heliumContractAddr = "0x69f43bcBC4B354DeFB353C37bb92296AA4C530B6";
+const registryContractAddr = "0x50fa16Bee2aCd46D41f1F448F8E3BC8b2418F803";
+const productManagerContractAddr = "0xF93e8878d62eaeD5EAb3FDf932a50B89d83B8171";
 const supervisorAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
 
@@ -131,7 +131,6 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
     let mysqlPoolQuery = req.pool;
     let sql = {
         u_assetbookContractAddress: assetBookAddr,
-        u_verify_status: 0,
         u_eth_add: ethAddr,
         u_investorLevel: 1
     };
@@ -229,7 +228,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let fundingGoal = req.body.fundingGoal;
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
-    let currentTime = 201904090000;
+    let currentTime = 201905120000;
     /*await timer.getTime().then(function (time) {
         currentTime = time;
     });*/
@@ -811,6 +810,11 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const price = req.body.price;
 
     console.log(toAddressArray);
+    console.log(amountArray);
+    console.log(tokenCtrtAddr);
+    console.log(fundingType);
+    console.log(price);
+
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js

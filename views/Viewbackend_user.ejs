@@ -103,7 +103,6 @@
                 <th scope="col" class="text-nowrap">手機</th>
                 <th scope="col" class="text-nowrap">以太坊地址</th>
                 <th scope="col" class="text-nowrap">資產合約地址</th>
-                <th scope="col" class="text-nowrap">多重簽章合約地址</th>
                 <th scope="col" class="text-nowrap">狀態</th>
                 <th scope="col" class="text-nowrap">審核通過</th>
             </tr>
@@ -149,20 +148,17 @@
                         <%= FrontEnd_data[i].u_assetbookContractAddress  %>
                     </td>
                     <td class="align-middle">
-                        <%= FrontEnd_data[i].u_multisigContractAddress  %>
-                    </td>
-                    <td class="align-middle">
                         <%= FrontEnd_data[i].u_verify_status  %>
                     </td>
                     <td class="align-middle">
-                        <%if ((FrontEnd_data[i].u_assetbookContractAddress != null && FrontEnd_data[i].u_assetbookContractAddress !="") || (FrontEnd_data[i].u_multisigContractAddress != null && FrontEnd_data[i].u_multisigContractAddress !="")) { %>
+                        <%if ((FrontEnd_data[i].u_assetbookContractAddress != null && FrontEnd_data[i].u_assetbookContractAddress !="") ) { %>
                         <p>
                             approved
                         </p>
                         <% }else if ((FrontEnd_data[i].u_eth_add != null && FrontEnd_data[i].u_eth_add !="")){ %>
                         <button type="button" style="width: 86px;" id="approve<%= i %>" class="btn btn-success"
                             name="Approve" value="Approve"
-                            onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>',this.id);">
+                            onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>',this.id,'<%= FrontEnd_data[i].u_verify_status %>');">
                             Approve
                         </button>
                         <% } %>
@@ -196,41 +192,50 @@
         }
 
 
-        function Approve(ID, email, ethAddr, buttonID) {
-            // 加上等待狀態
-            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
-            document.getElementById(buttonID).disabled = true;
+        function Approve(ID, email, ethAddr, buttonID, status) {
+            console.log("status:" + status);
+            if (status == 0) {
+                alert("尚未進行信箱驗證！！");
+            }
+            else if (status == 1) {
+                // 加上等待狀態
+                document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+                document.getElementById(buttonID).disabled = true;
 
-            console.log("ETH:" + ethAddr);
-            //let heliumContractAddr = await $.get("http://localhost:3030/Contracts/heliumContract");
-            //console.log("heliumContractAddr:" + heliumContractAddr);
+                console.log("ETH:" + ethAddr);
+                //let heliumContractAddr = await $.get("http://localhost:3030/Contracts/heliumContract");
+                //console.log("heliumContractAddr:" + heliumContractAddr);
 
-            /*部署assetContract*/
-            console.log("assetBookContract deploying...");
-            $.post("http://localhost:3030/Contracts/assetbookContract", {
-                assetBookOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"//ethAddr,(key chain開發未完成)
-            }, function (result) {
-                //var result = JSON.parse(resultJSON);
-                console.log(result);
-                console.log(result.contractAddress);
+                /*部署assetContract*/
+                console.log("assetBookContract deploying...");
+                $.post("http://localhost:3030/Contracts/assetbookContract", {
+                    assetBookOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"//ethAddr,(key chain開發未完成)
+                }, function (result) {
+                    //var result = JSON.parse(resultJSON);
+                    console.log(result);
+                    console.log(result.contractAddress);
 
-                /*檢查是否部署成功*/
-                if (result.status == true) {
-                    /*部署成功後，註冊會員白名單*/
-                    console.log("registering...");
-                    $.post("http://localhost:3030/Contracts/registryContract/users/" + ID, {
-                        assetBookAddress: result.contractAddress,
-                        ethAddr: ethAddr,
-                        email: email
-                    }, function (result) {
-                        //var result = JSON.parse(resultJSON);
-                        console.log(result.status);
-                        if(result.status == true){
-                            location.reload();
-                        }
-                    });
-                }
-            });
+                    /*檢查是否部署成功*/
+                    if (result.status == true) {
+                        /*部署成功後，註冊會員白名單*/
+                        console.log("registering...");
+                        $.post("http://localhost:3030/Contracts/registryContract/users/" + ID, {
+                            assetBookAddress: result.contractAddress,
+                            ethAddr: ethAddr,
+                            email: email
+                        }, function (result) {
+                            //var result = JSON.parse(resultJSON);
+                            console.log(result.status);
+                            if (result.status == true) {
+                                location.reload();
+                            }
+                        });
+                    }
+                });
+
+
+
+            }
 
         }
 
