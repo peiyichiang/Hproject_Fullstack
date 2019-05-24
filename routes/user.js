@@ -145,7 +145,7 @@ router.post('/send_email', function (req, res) {
         else {
             res.status(200);
             res.json({
-                "message": "驗證信寄送成功： "
+                "message": "驗證信寄送成功"
             })
         }
         // console.log('Message sent: %s', info.messageId);
@@ -357,7 +357,7 @@ router.get('/UserLogin', function (req, res, next) {
                                 u_identityNumber: result[0].u_identityNumber,
                                 u_assetbookContractAddress: result[0].u_assetbookContractAddress,
                                 u_investorLevel: result[0].u_investorLevel,
-                                u_verify_status: result[0].u_verify_status
+                                u_verify_status: result[0].u_verify_status,
                             };
                             time = {
                                 expiresIn: '24h'
