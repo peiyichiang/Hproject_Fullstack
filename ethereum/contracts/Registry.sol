@@ -3,7 +3,7 @@ pragma solidity ^0.5.4;
 //deploy parameters: none
 import "./SafeMath.sol";
 
-interface HeliumITF{
+interface HeliumITF_Reg{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
 }
 
@@ -69,14 +69,14 @@ authLevel & STO investor classification on purchase amount and holding balance r
 */
     
     modifier onlyCustomerService() {
-        require(HeliumITF(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+        require(HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         _;
     }
     function setAddrHelium(address _addrHelium) external onlyCustomerService{
         addrHelium = _addrHelium;
     }
     function checkCustomerService() external view returns (bool){
-        return (HeliumITF(addrHelium).checkCustomerService(msg.sender));
+        return (HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender));
     }
 
 
@@ -156,62 +156,37 @@ authLevel & STO investor classification on purchase amount and holding balance r
         return assetbookToUser[assetbookAddr].authLevel > 0;
     }
 
-    function isFundingApprovedDebug(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) 
-      external view returns (uint authLevel, uint, uint, bool, uint, uint balancePlusBuyAmount, bool) {
-        //fundingType, maxBuyAmountPublic, maxBuyAmountPublic >= buyAmount, maxBalancePublic
-        //amount and balance are in token qty* price
-        authLevel = assetbookToUser[assetbookAddr].authLevel;
-        balancePlusBuyAmount = balance.add(buyAmount);
-
-        if(fundingType == 1){// 1 PublicOffering
-            uint maxBuyAmountPublic = restrictions[authLevel].maxBuyAmountPublic;
-            uint maxBalancePublic = restrictions[authLevel].maxBalancePublic;
-
-            return(authLevel, fundingType, maxBuyAmountPublic, maxBuyAmountPublic >= buyAmount, maxBalancePublic, balancePlusBuyAmount, maxBalancePublic >= balancePlusBuyAmount);
-
-        } else if(fundingType == 2){// "PrivatePlacement"
-            uint maxBuyAmountPrivate = restrictions[authLevel].maxBuyAmountPrivate;
-            uint maxBalancePrivate = restrictions[authLevel].maxBalancePrivate;
-
-            return(authLevel, fundingType, maxBuyAmountPrivate, maxBuyAmountPrivate >= buyAmount, maxBalancePrivate, balancePlusBuyAmount, maxBalancePrivate >= balancePlusBuyAmount);
-
-        } else {
-            return(authLevel, fundingType, 1618, false, 3398, balancePlusBuyAmount, false);
-        }
-    }
 
     /**@dev check if asset contract address & buyAmount & balance are approved, by finding its uid then checking the uid’s info */
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount) {
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance) {
       //amount and balance are in token qty* price
-        uint authLevel = assetbookToUser[assetbookAddr].authLevel;
-        uint balancePlusBuyAmount = balance.add(buyAmount);
+        authLevel = assetbookToUser[assetbookAddr].authLevel;
+        uint balanceNew = balance.add(buyAmount);
 
-        require(buyAmount > 0, "buyAmount shoube be > 0");
-        if(fundingType == 1){// 1 PublicOffering
-            isApprovedBuyAmount = restrictions[authLevel].maxBuyAmountPublic >= buyAmount;
-            isApprovedBalancePlusBuyAmount = restrictions[authLevel].maxBalancePublic >= balancePlusBuyAmount;
-            //require(isApprovedBuyAmount, "buyAmount should be <= maxBuyAmountPublic");
-            //require(isApprovedBalancePlusBuyAmount, "balance + buyAmount should be <= maxBalancePublic");
-            return (isApprovedBuyAmount, isApprovedBalancePlusBuyAmount);
+        if(fundingType == 1){// 1: PublicOffering
+            maxBuyAmount = restrictions[authLevel].maxBuyAmountPublic;
+            maxBalance = restrictions[authLevel].maxBalancePublic;
+            isOkBuyAmount = maxBuyAmount >= buyAmount;
+            isOkBalanceNew = maxBalance >= balanceNew;
 
-        } else if(fundingType == 2){// "PrivatePlacement"
-            isApprovedBuyAmount = restrictions[authLevel].maxBuyAmountPrivate >= buyAmount;
-            isApprovedBalancePlusBuyAmount = restrictions[authLevel].maxBalancePrivate >= balancePlusBuyAmount;
-            //require(isApprovedBuyAmount, "buyAmount should be <= maxBuyAmountPrivate");
-            //require(isApprovedBalancePlusBuyAmount, "balance + buyAmount should be <= maxBalancePrivate");
-            return (isApprovedBuyAmount, isApprovedBalancePlusBuyAmount);
+        } else if(fundingType == 2){// 2: PrivatePlacement
+            maxBuyAmount = restrictions[authLevel].maxBuyAmountPrivate;
+            maxBalance = restrictions[authLevel].maxBalancePrivate;
+            isOkBuyAmount = maxBuyAmount >= buyAmount;
+            isOkBalanceNew = maxBalance >= balanceNew;
 
         } else {
-            //revert("fundingType value is out of range");
-            return (false, false);
+            maxBuyAmount =        1000;
+            maxBalance   =  1000000000;
+            isOkBuyAmount = maxBuyAmount >= buyAmount;
+            isOkBalanceNew = maxBalance >= balanceNew;
         }
-        //return (authLevel > 0);
     }
 
     /**@dev get regulation's restrictions, amount and balance in fiat */
     function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public {
         if(isAfterDeployment) {
-            require(HeliumITF(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+            require(HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         }
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;

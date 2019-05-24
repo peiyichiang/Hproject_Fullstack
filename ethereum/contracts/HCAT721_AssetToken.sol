@@ -1,7 +1,7 @@
 pragma solidity ^0.5.4;
 import "./SafeMath.sol";
 
-interface HeliumITF{
+interface HeliumITF_HCAT{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
 
@@ -27,7 +27,7 @@ contract SupportsInterface is ERC165ITF {
 //RegistryITF_HCAT(addrRegistry).isAddrApproved(_to);
 interface RegistryITF_HCAT {
     function isAssetbookApproved(address assetbookAddr) external view returns (bool);
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount);
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance);
 }
 
 interface TokenControllerITF {
@@ -72,16 +72,17 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))` ... which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
 
     /** Contract code size over limit of 24576 bytes.
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
-    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441  */
+    0x0348538441, 0x0348538441, 300, 900, 17000, 0x0348538441, 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
+    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441, "0x0dcd2f752394c41875e259e00bb44fd505297caf"  */
     constructor(
         bytes32 _nftName, bytes32 _nftSymbol, 
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
         bytes32 _tokenURI, address _addrHelium) public {
+
         name = _nftName;
-        symbol = _nftSymbol;
+        symbol = _nftSymbol;//may need to check symbol length > 8...
         tokenURI = _tokenURI;
 
         siteSizeInKW = _siteSizeInKW;
@@ -97,7 +98,26 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
-
+    function checkDeploymentConditions(
+        bytes32 _nftName, bytes32 _nftSymbol, 
+        uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing, 
+        bytes32 _pricingCurrency, uint _IRR20yrx100,
+        address _addrRegistry, address _addrTokenController,
+        bytes32 _tokenURI, address _addrHelium    
+      ) public view returns(bool[] memory boolArray) {
+        boolArray = new bool[](11);
+        boolArray[0] = _nftName[0] != 0;
+        boolArray[1] = _nftSymbol[0] != 0;
+        boolArray[5] = _pricingCurrency[0] != 0;
+        boolArray[10] = _tokenURI[0] != 0;
+        boolArray[2] = _siteSizeInKW > 0;
+        boolArray[3] = _maxTotalSupply > 0;
+        boolArray[4] = _initialAssetPricing > 0;
+        boolArray[6] = _IRR20yrx100 > 1;
+        boolArray[7] = _addrRegistry.isContract();
+        boolArray[8] = _addrTokenController.isContract();
+        boolArray[9] = _addrHelium.isContract();
+    }
 
     function getTokenContractDetails() external view returns (
         uint tokenId_, uint siteSizeInKW_, uint maxTotalSupply_,
@@ -218,28 +238,43 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     }
 
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        require(HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         _;
     }
     function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
-        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        require(HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         addrHelium = _addrHelium;
     }
     function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
+        return (HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender));
     }
+
+
     //Legal Compliance, also block address(0)
-    //fundingType: 1 public crowdfunding, 2 private placement
-    //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool)
-    function isFundingApprovedHCAT721(address _to, uint amount, uint price, uint fundingType) external view returns(bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount) {
-        return RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+    //fundingType: 1 Public Offering, 2 Private Placement
+    function checkMintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) external view returns(bool[] memory boolArray, uint[] memory uintArray) {
+        //uint[] memory uintArray  , uint authLevel, uint maxBuyAmount, uint maxBalance
+        boolArray = new bool[](10);
+        uintArray = new uint[](3);
+        boolArray[0] = _to.isContract();
+        boolArray[1] = ERC721TokenReceiverITF(_to).onERC721Received(
+                msg.sender, address(this), 1, "") == MAGIC_ON_ERC721_RECEIVED;
+        boolArray[2] = amount > 0;
+        boolArray[3] = price > 0;
+        boolArray[4] = fundingType > 0;
+        boolArray[5] = serverTime > 201905240900;
+        boolArray[6] = tokenId.add(amount) <= maxTotalSupply;
+        boolArray[7] = HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender);
+        
+        (boolArray[8], boolArray[9], uintArray[0], uintArray[1], uintArray[2]) = RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);//bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount
+        //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance)
     }
 
     function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public onlyPlatformSupervisor{
 
-        (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount) = RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+        (bool isOkBuyAmount, bool isOkBalanceNew, , ,) = RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
 
-        require(isApprovedBuyAmount && isApprovedBalancePlusBuyAmount, "[Registry Compliance] isFundingApproved() failed");
+        require(isOkBuyAmount && isOkBalanceNew, "[Registry Compliance] isFundingApproved() failed");
 
         if (_to.isContract()) {//also checks for none zero address
             bytes4 retval = ERC721TokenReceiverITF(_to).onERC721Received(
@@ -249,7 +284,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
         require(amount > 0, "amount must be > 0");
         totalSupply = tokenId.add(amount);
-        //require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
+        require(totalSupply <= maxTotalSupply, "max allowed token amount has been reached");
         emit MintSerialNFT(_to, amount, price, serverTime, fundingType);
 
         uint idxEnd = accounts[_to].idxEnd;
@@ -277,6 +312,19 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
 
     //---------------------------==Transfer
+    function checkSafeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray) {
+        boolArray = new bool[](9);
+        boolArray[0] = _to.isContract();
+        boolArray[1] = ERC721TokenReceiverITF(_to).onERC721Received(
+                msg.sender, _from, 1, "") == MAGIC_ON_ERC721_RECEIVED;
+        boolArray[2] = amount > 0;
+        boolArray[3] = price > 0;
+        boolArray[4] = _from != _to;
+        boolArray[5] = serverTime > 201905240900;
+        boolArray[6] = TokenControllerITF(addrTokenController).isTokenApprovedOperational();
+        boolArray[7] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to);
+        boolArray[8] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from);
+    }
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
         //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
         //require(_to != address(0), "_to should not be 0x0");//replaced by registry check
@@ -384,12 +432,20 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         require(operator != address(0), "operator should not be 0x0");
         remaining = accounts[user].allowed[operator];
     }
+    function checkTokenApprove(address operator) external pure returns(bool isOperatorNoneZero) {
+        isOperatorNoneZero = operator != address(0);
+    }
     function tokenApprove(address operator, uint amount) external {
         require(operator != address(0), "operator should not be 0x0");
         accounts[msg.sender].allowed[operator] = amount;
         emit TokenApprove(msg.sender, operator, amount);
     }
     event TokenApprove(address indexed tokenOwner, address indexed operator, uint amount);
+
+    function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure returns(bool) {
+        return (bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen);
+        //require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
+    }
 
     //function() external payable { revert("should not send any ether directly"); }
 }

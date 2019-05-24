@@ -1,16 +1,13 @@
 pragma solidity ^0.5.4;
 //deploy parameters: "hTaipei001", 17000, 300, 290, 201902191810, 201902191800
 
+
 import "./SafeMath.sol";
 interface HeliumITF_CF{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
 interface ERC721TokenReceiverITF_CF {
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
-}
-interface RegistryITF_CF {
-    function isAddrApproved(address assetCtrtAddr) external view returns (bool);
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount);
 }
 interface AssetTokenITF_CF {
     function balanceOf(address user) external view returns (uint balance);
@@ -63,6 +60,7 @@ contract CrowdFunding {
     /*  at initialization, setup the owner
     "TKOS1901", 18000, "NTD", 900, 890, 201905211800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7"
     */
+    //Warning: Check input serverTime > servertimeMin
     constructor  (
         string memory _tokenSymbol,
         uint _initialAssetPricing,
@@ -77,30 +75,48 @@ contract CrowdFunding {
         //uint _fundingType,
         //address _addrRegistry
     ) public {
-        ckStringLength(_tokenSymbol, 3, 32);
+        //require(ckStringLength(_tokenSymbol, 8, 32), "_tokenSymbol length out of range");
         tokenSymbol = _tokenSymbol;//設定專案專案erc721合約
-        require(_initialAssetPricing > 0, "_initialAssetPricing should be greater than 0");
+        //require(_initialAssetPricing > 0, "_initialAssetPricing should be greater than 0");
         initialAssetPricing = _initialAssetPricing;
 
-        ckStringLength(_pricingCurrency, 3, 32);
+        //require(ckStringLength(_pricingCurrency, 3, 32), "_pricingCurrency length out of range");
         pricingCurrency = _pricingCurrency;
-        require(_quantityGoal <= _maxTotalSupply, "quantityGoal should be lesser than maxTotalSupply");
+        //require(_quantityGoal <= _maxTotalSupply, "quantityGoal should be lesser than maxTotalSupply");
         maxTotalSupply = _maxTotalSupply;//專案總量
         quantityGoal = _quantityGoal;
-        //quantityGoal = maxTotalSupply.mul(_goalInPercentage).div(100);//專案達標數量, Solidity division will truncates results
 
-        require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
-        require(serverTime < _CFSD2, "serverTime should be < CFSD2");
+        //require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
+        //require(serverTime < _CFSD2, "serverTime should be < CFSD2");
         CFSD2 = _CFSD2;
         CFED2 = _CFED2;// yyyymmddhhmm
         fundingState = FundingState.initial;//init the project state
         stateDescription = "initial";
-        require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
+        //require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
 
         addrHelium = _addrHelium;
         //fundingType = _fundingType;
         //addrRegistry = _addrRegistry;
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
+    }
+    function checkDeploymentConditions(
+        string memory _tokenSymbol, uint _initialAssetPricing,
+        string memory _pricingCurrency,// NTD or USD or RMB ...
+        uint _maxTotalSupply, uint _quantityGoal,
+        uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED2,//CrowdFunding End Date
+        uint serverTime, address _addrHelium      
+
+      ) public view returns(bool[] memory boolArray) {
+        boolArray = new bool[](8);
+        boolArray[0] = _initialAssetPricing > 0;
+        boolArray[1] = _quantityGoal <= _maxTotalSupply;
+        boolArray[2] = _CFSD2 < _CFED2;
+        boolArray[3] = serverTime < _CFSD2;
+        boolArray[4] = serverTime > serverTimeMin;
+        boolArray[5] = ckStringLength(_tokenSymbol, 8, 32);
+        boolArray[6] = ckStringLength(_pricingCurrency, 3, 32);
+        boolArray[7] = _addrHelium.isContract();
     }
 
     function getContractDetails() public view returns(
@@ -120,7 +136,7 @@ contract CrowdFunding {
         CFED2_ = CFED2;
     }
 
-    function checkPlatformSupervisor() external view returns (bool){
+    function checkPlatformSupervisor() public view returns (bool){
         return (HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     function setHeliumAddr(address _addrHelium) external onlyPlatformSupervisor{
@@ -174,6 +190,14 @@ contract CrowdFunding {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
     }
 
+    function checkResumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external view returns(bool[] memory boolArray){
+        boolArray = new bool[](5);
+        boolArray[0] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
+        boolArray[1] = serverTime > CFSD2;
+        boolArray[2] = _CFED2 > CFSD2;
+        boolArray[3] = _CFED2 > serverTime;
+        boolArray[4] = _maxTotalSupply >= quantitySold;
+    }
     // to resume crowdfunding and also reset the crowdfunding end day and maxTotalSupply values
     event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _maxTotalSupply);
     function resumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external onlyPlatformSupervisor {
@@ -192,9 +216,10 @@ contract CrowdFunding {
         updateState(serverTime);
     }
 
+
     // to terminate the current crowdfunding process, possibly due to external unexpected force
     function terminate(string calldata _reason, uint serverTime) external onlyPlatformSupervisor {
-        ckStringLength(_reason, 7, 32);
+        require(ckStringLength(_reason, 7, 32), "_reason length is out of range");
         fundingState = FundingState.terminated;
         stateDescription = append("terminated:", _reason);
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, append("terminated:", _reason));
@@ -212,10 +237,22 @@ contract CrowdFunding {
             invest(_assetbookArr[i], _quantityToInvestArr[i], serverTime);
         }
     }
-    // function checkInvestmentAction(address _addrAssetbook, uint _quantityToInvest, uint serverTime) external returns(bool, bool) {
-    //     uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
-    //     return RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
-    // }
+
+    function checkInvestFunction(address _addrAssetbook, uint _quantityToInvest, uint serverTime) external view returns(
+      bool[] memory boolArray) {
+        boolArray = new bool[](7);
+        boolArray[0] = serverTime >= CFSD2;
+        boolArray[1] = serverTime < CFED2;
+        boolArray[2] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
+        boolArray[3] = _addrAssetbook.isContract();
+        boolArray[4] = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
+                msg.sender, msg.sender, 1, "") == MAGIC_ON_ERC721_RECEIVED;
+
+        boolArray[5] = _quantityToInvest > 0;
+        boolArray[6] = quantitySold.add(_quantityToInvest) <= maxTotalSupply;
+        //uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
+        //return RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
+    }
 
     // to record each funding source and the amount tokens secured by that funding
     function invest(address _addrAssetbook, uint _quantityToInvest, uint serverTime) public onlyPlatformSupervisor {
@@ -224,30 +261,27 @@ contract CrowdFunding {
         uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
         bool[2] result = RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
         require(result[0] && result[1], "[Legal Compliance failed] @ Registry:isFundingApproved() failed");
-        
-        //isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount)
         */
         if(serverTime >= CFSD2 && fundingState == FundingState.initial){
             fundingState = FundingState.funding;
         }
+        require(
+            fundingState == FundingState.funding ||
+            fundingState == FundingState.fundingGoalReached,
+            "funding is terminated or not started yet");
 
         if (_addrAssetbook.isContract()) {
             bytes4 retval = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
                 msg.sender, msg.sender, 1, "");// assume tokenId = 1;
             require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
         } else {
-            require(false,"_addrAssetbook address should contain ERC721 compatible asset contract");
+            require(false,"_addrAssetbook address should contain a contract");
         }
 
         require(_quantityToInvest > 0, "_quantityToInvest should be > 0");
         //require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be <= maxTokenQtyForEachInvestmentFund");
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
-
-        require(
-            fundingState == FundingState.funding ||
-            fundingState == FundingState.fundingGoalReached,
-            "funding is terminated or not started yet");
 
         fundingCindex = fundingCindex.add(1);
         investmentRecords[fundingCindex].assetbook = _addrAssetbook;
@@ -290,8 +324,9 @@ contract CrowdFunding {
         return string(abi.encodePacked(a, b));
     }
 
-    function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure {
-        require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
+    function ckStringLength(string memory _str, uint _minStrLen, uint _maxStrLen) public pure returns(bool) {
+        return (bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen);
+        //require(bytes(_str).length >= _minStrLen && bytes(_str).length <= _maxStrLen, "input string. Check mimimun & maximum length");
     }
 
     //function() external payable { revert("should not send any ether directly"); }
