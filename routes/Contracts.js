@@ -5,6 +5,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const timer = require('../timeserver/api.js')
 const router = express.Router();
 const { sequentialMintSuper } = require('../timeserver/blockchain.js');
+const { reduceArrays } = require('../timeserver/utilities');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -811,6 +812,9 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const price = req.body.price;
 
     console.log(toAddressArray);
+
+    // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
+    // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
