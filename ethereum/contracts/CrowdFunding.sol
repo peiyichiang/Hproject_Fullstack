@@ -44,8 +44,6 @@ contract CrowdFunding {
     // Each incoming fund will be recorded in each investor’s InvestmentRecord
     mapping(address => uint) public addrToQty;
     mapping(uint => address) public idxToAddr;
-    mapping(address => bool) public isAddrOnRecord;
-    //mapping(uint => mapping (address => uint)) public tokenQty;
 
     uint public fundingCindex;//last submitted index and total count of all invested funds
 
@@ -280,13 +278,13 @@ contract CrowdFunding {
 
         require(_quantityToInvest > 0, "_quantityToInvest should be > 0");
         //require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be <= maxTokenQtyForEachInvestmentFund");
+
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
 
-        if(!isAddrOnRecord[_addrAssetbook]){
+        if(addrToQty[_addrAssetbook] == 0){
             fundingCindex = fundingCindex.add(1);
             idxToAddr[fundingCindex] = _addrAssetbook;
-            isAddrOnRecord[_addrAssetbook] = true;
         }
         addrToQty[_addrAssetbook] = addrToQty[_addrAssetbook].add(_quantityToInvest);
 

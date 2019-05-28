@@ -134,22 +134,28 @@ console.log('\nrounding test???');
 
 /*
 console.log('\n----------------==Test every()');
-checkItem =(item) =>  Number.isInteger(item);
-const amountArray = [1, 2, 3, 323, 679, 'dsd'];
-if(!amountArray.every(checkItem)){
-  console.log('amountArray has string');
-  //return;
+checkItem =(item) =>  Number.isInteger(item) && Number(item) > 0;
+const amountArray1 = [1, 2, 3, 323, 679, 'dsd'];
+if(!amountArray1.every(checkItem)){
+  console.log('amountArray has non-integer');
 } else {
   console.log('amountArray has all integers');
 }
 
-const amountArray2 = [1, 2, 3, 323, 679];
+const amountArray2 = [1, 2, 3, 323, 679, 0];
 if(!amountArray2.every(checkItem)){
-  console.log('amountArray has string');
-  //return;
+  console.log('amountArray has zero');
 } else {
   console.log('amountArray has all integers');
-}*/
+}
+const amountArray3 = [1, 2, 3, 323, 679];
+if(!amountArray3.every(checkItem)){
+  console.log('amountArray has zero');
+} else {
+  console.log('amountArray has all non zero integers');
+}//*/
+
+
 
 console.log('\n----------------==\nTest incomeFromHolidays calculation');
 period = 90; 
