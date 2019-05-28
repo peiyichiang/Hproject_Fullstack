@@ -1684,7 +1684,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
 
-    
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
@@ -1734,7 +1736,7 @@ describe('Tests on CrowdFunding', () => {
     }
     if (error) {assert(false);}
 
-    if(1==2){
+    if(1==1){
       //-------------------==Pause the crowdfunding
       serverTime = CFSD2+3;
       console.log('\nPause funding');
@@ -1782,12 +1784,16 @@ describe('Tests on CrowdFunding', () => {
       } else {
         //-------------------==Buying the available quantity
         console.log('\nTrying to invest quantityAvailable');
-        await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable, serverTime)
+        await instCrowdFunding.methods.invest(addrAssetBook2, quantityAvailable, serverTime)
         .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
         assert.equal(stateDescriptionM, "fundingClosed: sold out");
+
+        result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+        console.log('assetbookArray', result[0]);
+        console.log('investedTokenQtyArray', result[1]);
 
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);

@@ -42,11 +42,9 @@ contract CrowdFunding {
     address public addrRegistry;
 
     // Each incoming fund will be recorded in each investor’s InvestmentRecord
-    struct InvestmentRecord {
-        address assetbook;//assetbook address
-        uint256 investedTokenQty;//invested token quantity
-    }
-    mapping(uint => InvestmentRecord) public investmentRecords;
+    mapping(address => uint) public addrToQty;
+    mapping(uint => address) public idxToAddr;
+
     uint public fundingCindex;//last submitted index and total count of all invested funds
 
     //fundingClosed: maxTotalSupply is reached or CFED2 is reached with quantitySold > quantityGoal
@@ -105,7 +103,7 @@ contract CrowdFunding {
         uint _maxTotalSupply, uint _quantityGoal,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
-        uint serverTime, address _addrHelium      
+        uint serverTime, address _addrHelium
 
       ) public view returns(bool[] memory boolArray) {
         boolArray = new bool[](8);
@@ -246,7 +244,7 @@ contract CrowdFunding {
         boolArray[2] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
         boolArray[3] = _addrAssetbook.isContract();
         boolArray[4] = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
-                msg.sender, msg.sender, 1, "") == MAGIC_ON_ERC721_RECEIVED;
+            msg.sender, msg.sender, 1, "") == MAGIC_ON_ERC721_RECEIVED;
 
         boolArray[5] = _quantityToInvest > 0;
         boolArray[6] = quantitySold.add(_quantityToInvest) <= maxTotalSupply;
@@ -280,12 +278,15 @@ contract CrowdFunding {
 
         require(_quantityToInvest > 0, "_quantityToInvest should be > 0");
         //require(_quantityToInvest <= maxTokenQtyForEachInvestmentFund, "_quantityToInvest should be <= maxTokenQtyForEachInvestmentFund");
+
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
 
-        fundingCindex = fundingCindex.add(1);
-        investmentRecords[fundingCindex].assetbook = _addrAssetbook;
-        investmentRecords[fundingCindex].investedTokenQty = _quantityToInvest;
+        if(addrToQty[_addrAssetbook] == 0){
+            fundingCindex = fundingCindex.add(1);
+            idxToAddr[fundingCindex] = _addrAssetbook;
+        }
+        addrToQty[_addrAssetbook] = addrToQty[_addrAssetbook].add(_quantityToInvest);
 
         emit TokenInvested(_addrAssetbook, _quantityToInvest, serverTime);
         updateState(serverTime);
@@ -314,8 +315,10 @@ contract CrowdFunding {
         investedTokenQtyArray = new uint[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)) {
-            assetbookArray[i] = investmentRecords[i.add(indexStart_)].assetbook;
-            investedTokenQtyArray[i] = investmentRecords[i.add(indexStart_)].investedTokenQty;
+            assetbookArray[i] = idxToAddr[i.add(indexStart_)];
+            investedTokenQtyArray[i] = addrToQty[assetbookArray[i]];
+            // assetbookArray[i] = investmentRecords[i.add(indexStart_)].assetbook;
+            // investedTokenQtyArray[i] = investmentRecords[i.add(indexStart_)].investedTokenQty;
         }
     }
 

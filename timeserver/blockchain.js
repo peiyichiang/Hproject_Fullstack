@@ -270,9 +270,9 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-  checkItem =(item) => Number.isInteger(item);
+  checkItem =(item) =>  Number.isInteger(item) && Number(item) > 0;
   if(!amountArray.every(checkItem)){
-    console.log('amountArray has non integer item');
+    console.log('amountArray has non integer or zero element');
     process.exit(1);
   }
 

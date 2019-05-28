@@ -4,6 +4,7 @@ const BigNumber = require('bignumber.js');
 
 const { mysqlPoolQuery, addTxnInfoRow, addTxnInfoRowFromObj } = require('./mysql');
 const { sequentialRunSuper, breakdownArrays } = require('./blockchain.js');
+const { reduceArrays } = require('./utilities');
 
 let choice, txnInfoRow, txnInfoObj;
 // yarn run testfn -c C
@@ -46,7 +47,7 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 
 let calculatedIncome, moment1, moment2, daysPassed;
 let period, periodIncome, prevTokenAmount, soldAmount;
-let txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook;
+let txid, tokenSymbol, fromAssetbook, toAddressArray, amountArray, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook;
 
 
 
@@ -133,22 +134,28 @@ console.log('\nrounding test???');
 
 /*
 console.log('\n----------------==Test every()');
-checkItem =(item) =>  Number.isInteger(item);
-const amountArray = [1, 2, 3, 323, 679, 'dsd'];
-if(!amountArray.every(checkItem)){
-  console.log('amountArray has string');
-  //return;
+checkItem =(item) =>  Number.isInteger(item) && Number(item) > 0;
+const amountArray1 = [1, 2, 3, 323, 679, 'dsd'];
+if(!amountArray1.every(checkItem)){
+  console.log('amountArray has non-integer');
 } else {
   console.log('amountArray has all integers');
 }
 
-const amountArray2 = [1, 2, 3, 323, 679];
+const amountArray2 = [1, 2, 3, 323, 679, 0];
 if(!amountArray2.every(checkItem)){
-  console.log('amountArray has string');
-  //return;
+  console.log('amountArray has zero');
 } else {
   console.log('amountArray has all integers');
-}*/
+}
+const amountArray3 = [1, 2, 3, 323, 679];
+if(!amountArray3.every(checkItem)){
+  console.log('amountArray has zero');
+} else {
+  console.log('amountArray has all non zero integers');
+}//*/
+
+
 
 console.log('\n----------------==\nTest incomeFromHolidays calculation');
 period = 90; 
@@ -170,6 +177,21 @@ calculatedIncome = incomeFromHoldingDays(holdingDays, period, periodIncome, prev
 //1207.666666666666666668
 
 //(120÷90×0.7+4)×300 => 1480
+
+console.log('\n----------------==\nTest adding up amount per assetbook address');
+//toAddressArrayOut ['0x01','0x02','0x03'], amountArrayOut [ 978, 645, 673 ]
+
+let indexes, sum;
+amountArray = [12, 50, 2, 5, 6, 9];
+const idx = [1, 3, 5];//50+5+9=64
+
+//let sum2 = amountArray.reduce((prev, curr, index) => idx.indexOf(index) >= 0 ? prev+curr : prev, 0); console.log('sum2', sum2);
+
+amountArray = [257, 116, 409, 529, 673, 312];//978= 409+257+312, 645= 116+529, 673
+toAddressArray = ['0x01', '0x02', '0x01', '0x02', '0x03', '0x01'];
+const [toAddressArrayOut, amountArrayOut] =reduceArrays(toAddressArray, amountArray);
+console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
+
 
 
 //yarn run testfn -c 13
