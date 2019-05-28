@@ -1027,7 +1027,7 @@ router.get('/LaunchedProductList', function (req, res) {
                     FROM htoken.income_arrangement 
                     GROUP BY ia_SYMBOL) AS T4
         ON T1.p_SYMBOL = T4.ia_SYMBOL
-        WHERE p_state = \'publish\';`, function (err, productArray) {
+        WHERE p_state = \'funding\';`, function (err, productArray) {
             if (err) {
                 res.status(400)
                 res.json({
