@@ -3,7 +3,8 @@ const moment = require('moment');
 const BigNumber = require('bignumber.js');
 
 const { mysqlPoolQuery, addTxnInfoRow, addTxnInfoRowFromObj } = require('./mysql');
-const { sequentialRunSuper } = require('./blockchain.js');
+const { sequentialRunSuper, breakdownArrays } = require('./blockchain.js');
+const { reduceArrays } = require('./utilities');
 
 let choice, txnInfoRow, txnInfoObj;
 // yarn run testfn -c C
@@ -46,15 +47,9 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 
 let calculatedIncome, moment1, moment2, daysPassed;
 let period, periodIncome, prevTokenAmount, soldAmount;
-let txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook;
+let txid, tokenSymbol, fromAssetbook, toAddressArray, amountArray, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook;
 
-const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
 
-async function asyncForEach(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
-  }
-}
 
 
 Backend = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
@@ -139,22 +134,28 @@ console.log('\nrounding test???');
 
 /*
 console.log('\n----------------==Test every()');
-checkItem =(item) =>  Number.isInteger(item);
-const amountArray = [1, 2, 3, 323, 679, 'dsd'];
-if(!amountArray.every(checkItem)){
-  console.log('amountArray has string');
-  //return;
+checkItem =(item) =>  Number.isInteger(item) && Number(item) > 0;
+const amountArray1 = [1, 2, 3, 323, 679, 'dsd'];
+if(!amountArray1.every(checkItem)){
+  console.log('amountArray has non-integer');
 } else {
   console.log('amountArray has all integers');
 }
 
-const amountArray2 = [1, 2, 3, 323, 679];
+const amountArray2 = [1, 2, 3, 323, 679, 0];
 if(!amountArray2.every(checkItem)){
-  console.log('amountArray has string');
-  //return;
+  console.log('amountArray has zero');
 } else {
   console.log('amountArray has all integers');
-}*/
+}
+const amountArray3 = [1, 2, 3, 323, 679];
+if(!amountArray3.every(checkItem)){
+  console.log('amountArray has zero');
+} else {
+  console.log('amountArray has all non zero integers');
+}//*/
+
+
 
 console.log('\n----------------==\nTest incomeFromHolidays calculation');
 period = 90; 
@@ -177,9 +178,24 @@ calculatedIncome = incomeFromHoldingDays(holdingDays, period, periodIncome, prev
 
 //(120÷90×0.7+4)×300 => 1480
 
+console.log('\n----------------==\nTest adding up amount per assetbook address');
+//toAddressArrayOut ['0x01','0x02','0x03'], amountArrayOut [ 978, 645, 673 ]
+
+let indexes, sum;
+amountArray = [12, 50, 2, 5, 6, 9];
+const idx = [1, 3, 5];//50+5+9=64
+
+//let sum2 = amountArray.reduce((prev, curr, index) => idx.indexOf(index) >= 0 ? prev+curr : prev, 0); console.log('sum2', sum2);
+
+amountArray = [257, 116, 409, 529, 673, 312];//978= 409+257+312, 645= 116+529, 673
+toAddressArray = ['0x01', '0x02', '0x01', '0x02', '0x03', '0x01'];
+const [toAddressArrayOut, amountArrayOut] =reduceArrays(toAddressArray, amountArray);
+console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
+
+
 
 //yarn run testfn -c 13
-const breakdownArrays = () => {
+const breakdownArraysBasic = () => {
   //toAddressArray, amountArray
   const maxMintAmountPerRun = 100;
   AssetOwner1 = "0x1";
@@ -274,11 +290,61 @@ const addTxnInfoRowSection = (symbolArray, assetbookArray, holdingDaysArray, txT
   }
   console.log('\n----------------==txnInfoObjArray\n', txnInfoObjArray);
 
-  sequentialRun(txnInfoObjArray, waitTime);
+  sequentialRun_addTxnInfoRowFromObj(txnInfoObjArray, waitTime);
+}
+
+const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
 }
 
 const sequentialRun = async (arrayInput, waitTime) => {
-  console.log('sequentialRun()');
+//  return new Promise(async (resolve, reject) => {
+  console.log('\n------==sequentialRun()');
+  const arrayOut = [];
+  await asyncForEach(arrayInput, async (item) => {
+    console.log(`\ninside asyncForEach(): input item= ${item}`);
+    const waitingT = (item % 5 + 2);
+    const isSuccess = item % 10 === 0;
+    console.log(`waiting for ${waitingT} seconds... isSuccess = ${isSuccess}`);
+    await waitFor(waitingT*1000);
+    arrayOut.push(isSuccess);
+  });
+  console.log('\n--------------==Done');
+  console.log('sequentialRun() has been completed.\nAll input array elements have been cycled through');
+  return arrayOut;
+}
+
+const sequentialRunFn = async () => {
+  console.log('\n----------------------==sequentialRunFn');
+  const toAddressArray = ['0x001', '0x002', '0x003'];
+  const amountArray = [236, 312, 407];//236, 312
+  const [toAddressArrayOut, amountArrayOut] = breakdownArrays(toAddressArray, amountArray);
+  //console.log(`toAddressArray: ${toAddressArray}, amountArray: ${amountArray}
+  //toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
+  const waitTime = 7000;
+  const isCorrectAmountArray = await sequentialRun(amountArrayOut, waitTime).catch((err) => {
+    console.log('[Error @ sequentialRun]', err);
+    return;
+  });
+  const isFailed = isCorrectAmountArray.includes(false);
+  console.log('isFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
+  return [isFailed, isCorrectAmountArray];
+}
+
+//yarn run testfn c- 10
+const sequentialRunFnAPI = async () => {
+  const [isFailed, isCorrectAmountArray] = await sequentialRunFn().catch((err) => {
+    console.log('[Error @ sequentialRunSuperFn]', err);
+  });
+  console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+}
+
+const sequentialRun_addTxnInfoRowFromObj = async (arrayInput, waitTime) => {
+  console.log('sequentialRun_addTxnInfoRowFromObj()');
   await asyncForEach(arrayInput, async (item) => {
     console.log('inside asyncForEach()', item);
     addTxnInfoRowFromObj(item).catch((err) => console.log('[Error @ addTxnInfoRowFromObj()]', err));
@@ -286,22 +352,9 @@ const sequentialRun = async (arrayInput, waitTime) => {
     await waitFor(waitTime);
   });
   console.log('--------------==Done');
-  console.log('SequentialRun() has been completed.\nAll input array elements have been cycled through');
+  console.log('sequentialRun_addTxnInfoRowFromObj() has been completed.\nAll input array elements have been cycled through');
   process.exit(0);
 }
-
-const sequentialRunSuperFn = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price) => {
-  const [isFailed, balanceArray] = await sequentialRunSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
-    console.log('[Error @ sequentialRunSuper]', err);
-    // res.send({
-    //   success: false,
-    //   result: '[Failed @ sequentialRunSuper()], err:'+err,
-    // });
-    return;
-  });
-  console.log('isFailed', isFailed, 'balanceArray', balanceArray);
-}
-
 //-----------------------------==
 const symbolArray= ['AAAB1902', 'AAAC1903'];
 const assetbookArray  = ['0xassetbook001', '0xassetbook002'];
@@ -331,30 +384,24 @@ if(choice < 9){
   holdingDays= ; txTime= ; balanceOffromassetbook= ;
   await addTxnInfoRowSection(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook);
   */
+
+} else if(choice === 10){
+  //yarn run testfn -c 10
+  sequentialRunFnAPI();
+
 } else if(choice === 11){
   //yarn run testfn -c 11
-  console.log('\n---------------------==\nsequentialRunSuper()');
-  //copied from zdeploy.js
 
-  acc4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
-
-  const toAddressArray =[AssetOwner1, AssetOwner2];
-  const amountArray = [136, 112];//236, 312
-  const tokenCtrtAddr = '0xe589C3c07D6733b57adD21F8C17132059Ad6b2b0';
-  const fundingType = 1;//PO: 1, PP: 2
-  const price = 20000;
-
-  sequentialRunSuperFn(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price);
 
   //yarn run testfn -c 13
 } else if(choice === 13){
 
   //const toAddressArray =[AssetOwner1, AssetOwner2];
   //const amountArray = [136, 112];//236, 312
-  const [amountArrayOut, toAddressOut] = breakdownArrays();
+  const [amountArrayOut, toAddressOut] = breakdownArraysBasic();
   console.log('\namountArrayOut out', amountArrayOut);
   console.log('toAddressOut out', toAddressOut);
-  //breakdownArrays(toAddressArray, amountArray);
+  //breakdownArraysBasic(toAddressArray, amountArray);
 
 }
 

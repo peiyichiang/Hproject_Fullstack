@@ -268,7 +268,7 @@ let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 let addrAssetBook1, addrAssetBook2, addrAsset3, addrAsset4;
 
-let timeCurrent = 201903081040, error;
+let timeCurrent = 201905150000, error;
 const TimeTokenLaunch = timeCurrent+3;
 const TimeTokenUnlock = timeCurrent+4; 
 const TimeTokenValid =  timeCurrent+9;
@@ -302,6 +302,8 @@ let tokenOwnerM, tokenControllerDetail, timeCurrentM;
 let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, bool1;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
+let result1, boolArray, uintArray;
+
 
 beforeEach( async function() {
     this.timeout(9500);
@@ -680,7 +682,8 @@ describe('Tests on HCAT721', () => {
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
     _to = addrAssetBook1; amount = 1; serverTime = timeCurrent;
-    price = 17000; fundingType = 1; tokenId = amount;
+    price = 17000; fundingType = 1;//PO: 1, PP: 2
+    tokenId = amount;
 
     assetbookMX = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log(assetbookMX);
@@ -832,31 +835,70 @@ describe('Tests on HCAT721', () => {
     //-----------------==Check if STO Compliance for balance
     console.log('\n------------==Check if STO Compliance for balance');
     error = false;
+    _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;
+    price = 17000;  fundingType = 1; //PO: 1, PP: 2
+    console.log(`mintSerialNFT()... to = addrAssetBook1
+    amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
+
+    //const result2 = await instHCAT721.methods.isFundingApproved(_to, amount, price, fundingType).call();
+    //console.log(result2);
+    
+    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
+    console.log(result1);
+    boolArray = result1[0];
+    uintArray = result1[1];
+    //console.log('boolArray', boolArray);
+  
+    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
+    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
+    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
+    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
+    is msg.sender platformSupervisor: ${boolArray[7]}
+    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
+    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
+    `);
+
     try {
-      _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;
-      console.log('mintSerialNFT()... amount =', amount);
       await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
         value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-
       error = true;
     } catch (err) {
-      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 100));
+      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 120));
       assert(err);
     }
     if (error) {assert(false);}
 
+
     //-----------------==Check if STO Compliance for buyAmount
     console.log('\n------------==Check if STO Compliance for buyAmount');
     error = false;
+    _to = addrAssetBook1; amount = 8; serverTime = timeCurrent;
+    price = 17000;  fundingType = 1; //PO: 1, PP: 2
+    console.log(`mintSerialNFT()... to = addrAssetBook1
+    amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
+
+    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
+    console.log(result1);
+    boolArray = result1[0];
+    uintArray = result1[1];
+    //console.log('boolArray', boolArray);
+  
+    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
+    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
+    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
+    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
+    is msg.sender platformSupervisor: ${boolArray[7]}
+    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
+    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
+    `);
+
     try {
-      _to = addrAssetBook1; amount = 8; serverTime = timeCurrent;
-      console.log('mintSerialNFT()... amount =', amount);
       await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
         value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {
-      console.log('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 100));
+      console.log('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 120));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1642,7 +1684,9 @@ describe('Tests on CrowdFunding', () => {
     console.log('stateDescriptionM', stateDescriptionM);
     assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
 
-    
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
@@ -1692,7 +1736,7 @@ describe('Tests on CrowdFunding', () => {
     }
     if (error) {assert(false);}
 
-    if(1==2){
+    if(1==1){
       //-------------------==Pause the crowdfunding
       serverTime = CFSD2+3;
       console.log('\nPause funding');
@@ -1740,12 +1784,16 @@ describe('Tests on CrowdFunding', () => {
       } else {
         //-------------------==Buying the available quantity
         console.log('\nTrying to invest quantityAvailable');
-        await instCrowdFunding.methods.invest(addrAssetBook1, quantityAvailable, serverTime)
+        await instCrowdFunding.methods.invest(addrAssetBook2, quantityAvailable, serverTime)
         .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
         assert.equal(stateDescriptionM, "fundingClosed: sold out");
+
+        result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+        console.log('assetbookArray', result[0]);
+        console.log('investedTokenQtyArray', result[1]);
 
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);

@@ -1,6 +1,6 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
-
+const bcrypt = require('bcrypt');
 require('dotenv').config()
 
 var pool = mysql.createPool({
@@ -66,6 +66,7 @@ const addTxnInfoRowFromObj = (row) => {
 
 
 const addProductRow = (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock) => {
+  console.log('inside addProductRow()...');
   return new Promise((resolve, reject) => {
     mysqlPoolQuery('INSERT INTO htoken.product (p_SYMBOL, p_name, p_location, p_pricing,  p_duration, p_currency, p_irr, p_releasedate, p_validdate, p_size, p_totalrelease, p_fundmanager, p_CFSD, p_CFED, p_state, p_fundingGoal, p_lockuptime, p_tokenState ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, "initial", _quantityGoal, TimeTokenUnlock, "lockupperiod"], function (err, result) {
       if (err) {
@@ -78,19 +79,125 @@ const addProductRow = (nftSymbol, nftName, location, initialAssetPricing, durati
   });
 }
 
-const addSmartContractRow = (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
+
+const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
+  console.log('inside addSmartContractRow()...');
   return new Promise((resolve, reject) => {
-    mysqlPoolQuery('INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_erc721address, sc_totalsupply, sc_remaining, sc_incomeManagementaddress, sc_erc721Controller) VALUES (?, ?, ?, ?, ?, ?, ?)', [nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, maxTotalSupply, addrIncomeManager, addrTokenController], function (err, result) {
+    var sql = {
+      sc_symbol: nftSymbol,
+      sc_crowdsaleaddress: addrCrowdFunding,
+      sc_erc721address: addrHCAT721,
+      sc_totalsupply: maxTotalSupply,
+      sc_remaining: maxTotalSupply,
+      sc_incomeManagementaddress: addrIncomeManager,
+      sc_erc721Controller: addrTokenController,
+    };
+    console.log(sql);
+
+    mysqlPoolQuery('INSERT INTO htoken.smart_contracts SET ?', sql, function (err, result) {
       if (err) {
-        reject('\n[Error @ writing data into smart_contracts rows]', err);
+        console.log('[Error @ writing data into smart_contracts rows]');
+        //reject('\n[Error @ writing data into smart_contracts rows]', err);
+        reject(err);
       } else {
         console.log("\nSmart contract table has been added with one new row. result:", result);
-        resolve(result);
+        //console.log("result", result);
+        resolve(true);
       }
     });
+
   });
 }
 
+
+const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) => {
+  return new Promise((resolve, reject) => {
+    console.log('------------------------==@user/addUserRow');
+    let salt;
+    //const account = web3.eth.accounts.create();
+    const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+    //Generate a salt and hash on separate function calls.
+    //each password that we hash is going to have a unique salt and a unique hash. As we learned before, this helps us mitigate greatly rainbow table attacks.
+    bcrypt
+      .genSalt(saltRounds)
+      .then(saltNew => {
+        salt = saltNew;
+        console.log(`Salt: ${salt}`);
+        return bcrypt.hash(password, salt);
+      })
+      .then(hash => {
+        console.log(`Password Hash: ${hash}`);
+        let userNew = {
+          u_email: email,
+          u_salt: salt,
+          u_password_hash: hash,
+          u_identityNumber: identityNumber,
+          u_imagef: '',
+          u_imageb: '',
+          u_bankBooklet: '',
+          u_eth_add: eth_add,
+          u_verify_status: 0,
+          u_cellphone: cellphone,
+          u_name: name,
+          u_assetbookContractAddress: addrAssetBook,
+          u_investorLevel: investorLevel,
+        };
+
+        console.log(userNew);
+        mysqlPoolQuery('INSERT INTO htoken.user SET ?', userNew, function (err, result) {
+          if (err) {
+            console.log("[Failed]", err);
+            reject(err);
+          } else {
+            console.log("[Success]", result);
+            resolve(true);
+          }
+        });
+      });
+  });
+}
+
+
+const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, orderStatus) => {
+  return new Promise((resolve, reject) => {
+    console.log('------------------------==addOrderRow');
+    console.log('inside addOrderRow. orderStatus', orderStatus, ', symbol', symbol);
+    var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
+    var currentDate = new Date().myFormat();//yyyymmddhhmm
+    console.log('currentDate:', currentDate, ', timeStamp', timeStamp);
+    const nationalIdLast5 = nationalId.toString().slice(-5);
+    const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
+    console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
+
+    var sql = {
+        o_id: orderId,
+        o_symbol: symbol,
+        o_userIdentityNumber: nationalId,
+        o_fromAddress: Math.random().toString(36).substring(2, 15),
+        o_txHash: Math.random().toString(36).substring(2, 15),
+        o_tokenCount: tokenCount,
+        o_fundCount: fundCount,
+        o_purchaseDate: currentDate,
+        o_paymentStatus: orderStatus
+    };//random() to prevent duplicate NULL entry!
+
+    console.log(sql);
+
+    mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
+      if (err) {
+        console.log("error", err);
+        reject(err);
+      } else {
+        console.log("result", result);
+        resolve(true);
+      }
+    });
+
+  });
+}
+
+
+//---------------------------==
 function getFundingStateDB(symbol){
   console.log('inside getFundingStateDB()... get p_state');
   mysqlPoolQuery(
@@ -255,15 +362,17 @@ function print(s) {
 }
 
 module.exports = {
-    mysqlPoolQuery,
-    //getCrowdFundingCtrtAddr,
-    //getIncomeManagerCtrtAddr,
-    //getHCAT721ControllerCtrtAddr,
-    //getOrderDate,
-    //setOrderExpired,
+    mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB
 }
+/**
+    //getCrowdFundingCtrtAddr,
+    //getIncomeManagerCtrtAddr,
+    //getHCAT721ControllerCtrtAddr,
+    //getOrderDate,
+    //setOrderExpired,
+ */

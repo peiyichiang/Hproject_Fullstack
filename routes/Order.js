@@ -4,6 +4,15 @@ const jwt = require('jsonwebtoken');
 var async = require('async');
 var router = express.Router();
 
+/**
+ * Order Status Types: 
+ * 1.waiting: order has been added. Waiting for payment
+ * 2.expired: order has passed expiry time and still not paid
+ * 3.cancelledByUser: order has been cancelled by the user who made the order.
+ * 4.pendingByPlatform: order has been changed to this status by the platform
+ * 5.paid: order has been paid in full
+ * 6.txnFinished: order has been added to the CrowdFunding contract 
+ */
 //新增資料：接收資料的post http://localhost:3000/Order/AddOrder
 router.post('/AddOrder', function (req, res, next) {
     console.log('------------------------==\n@Order/POST/AddOrder');
@@ -84,7 +93,8 @@ router.get('/SumAllOrdersBySymbol', function (req, res, next) {
 router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumWaitingOrdersBySymbol');
     let qstr1 = 'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?';
-    var mysqlPoolQuery = req.pool; const status = 'waiting';
+    var mysqlPoolQuery = req.pool; 
+    const status = 'waiting';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol, userId, qstrz;
     if (req.body.symbol) {
@@ -179,7 +189,7 @@ router.get('/OrdersByFromAddr', function (req, res, next) {
 //http://localhost:3000/Order/SumCancelledOrdersBySymbol
 router.get('/SumCancelledOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumCancelledOrdersBySymbol');
-    var mysqlPoolQuery = req.pool; const status = 'cancelled';
+    var mysqlPoolQuery = req.pool; const status = 'cancelledByUser';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol) {
@@ -235,7 +245,7 @@ router.get('/SumExpiredOrdersBySymbol', function (req, res, next) {
 //http://localhost:3000/Order/SumPendingOrdersBySymbol
 router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumPendingOrdersBySymbol');
-    var mysqlPoolQuery = req.pool; const status = 'pending';
+    var mysqlPoolQuery = req.pool; const status = 'pendingByPlatform';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol) {
@@ -259,10 +269,11 @@ router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
         });
 });
 
-//http://localhost:3000/Order/SumCompletedOrdersBySymbol
-router.get('/SumCompletedOrdersBySymbol', function (req, res, next) {
-    console.log('------------------------==\n@Order/SumCompletedOrdersBySymbol');
-    var mysqlPoolQuery = req.pool; const status = 'completed';
+
+//http://localhost:3000/Order/SumPaidOrdersBySymbol
+router.get('/SumPaidOrdersBySymbol', function (req, res, next) {
+    console.log('------------------------==\n@Order/SumPaidOrdersBySymbol');
+    var mysqlPoolQuery = req.pool; const status = 'paid';
     console.log('req.query', req.query, 'req.body', req.body);
     let symbol;
     if (req.body.symbol) {
@@ -284,6 +295,62 @@ router.get('/SumCompletedOrdersBySymbol', function (req, res, next) {
                 });
             }
         });
+});
+
+
+//http://localhost:3000/Order/SumTxnFinishedOrdersBySymbol
+router.get('/SumTxnFinishedOrdersBySymbol', function (req, res, next) {
+  console.log('------------------------==\n@Order/SumTxnFinishedOrdersBySymbol');
+  var mysqlPoolQuery = req.pool; const status = 'txnFinished';
+  console.log('req.query', req.query, 'req.body', req.body);
+  let symbol;
+  if (req.body.symbol) {
+      symbol = req.body.symbol;
+  } else { symbol = req.query.symbol; }
+  var qur = mysqlPoolQuery(
+      'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+          if (err) {
+              console.log(err);
+              res.status(400);
+              res.json({
+                  "message": "[Error] Failure :\n" + err
+              });
+          } else {
+              res.status(200);
+              res.json({
+                  "message": "[Success] Success",
+                  "result": result
+              });
+          }
+      });
+});
+
+
+//http://localhost:3000/Order/SumReservedOrdersBySymbol
+router.get('/SumReservedOrdersBySymbol', function (req, res, next) {
+  console.log('------------------------==\n@Order/SumReservedOrdersBySymbol');
+  var mysqlPoolQuery = req.pool;
+  console.log('req.query', req.query, 'req.body', req.body);
+  let symbol;
+  if (req.body.symbol) {
+      symbol = req.body.symbol;
+  } else { symbol = req.query.symbol; }
+  var qur = mysqlPoolQuery(
+      'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol], function (err, result) {
+          if (err) {
+              console.log(err);
+              res.status(400);
+              res.json({
+                  "message": "[Error] Failure :\n" + err
+              });
+          } else {
+              res.status(200);
+              res.json({
+                  "message": "[Success] Success",
+                  "result": result
+              });
+          }
+      });
 });
 
 
@@ -311,7 +378,7 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
   var fundingTypeArray = ["PublicOffering", "PrivatePlacement", "1", "2"];
 
   var qur = mysqlPoolQuery(
-      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'completed', 'waiting'], function (err, orderBalance) {
+      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'paid', 'waiting'], function (err, orderBalance) {
           if (err) {
               console.log(err);
               res.status(400);
@@ -426,9 +493,9 @@ const doesPassCompliance = (authLevel, balance, buyAmount, fundingType) => {
 
 }
 
-//通過User ID獲取Completed Order
-router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
-  console.log('------------------------==\n@Order/GetCompletedOrdersByUserIdentityNumber');
+//通過User ID獲取paid Order
+router.get('/getPaidOrdersByUserIdentityNumber',function(req, res, next) {
+  console.log('------------------------==\n@Order/getPaidOrdersByUserIdentityNumber');
   var token=req.query.JWT_Token;
     if (token) {
         // 驗證JWT token
@@ -447,7 +514,7 @@ router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
             // console.log("＊JWT Content:" + decoded.u_identityNumber);
             //從order中查找完成的訂單，計算該使用者的資產
             var mysqlPoolQuery = req.pool;
-            mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_userIdentityNumber = ? AND o_paymentStatus = ?', [decoded.u_identityNumber , "completed"] , async function(err, rows) {
+            mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_userIdentityNumber = ? AND o_paymentStatus = ?', [decoded.u_identityNumber , "paid"] , async function(err, rows) {
                 if (err) {
                     console.log(err);
                     res.json({
@@ -459,7 +526,7 @@ router.get('/getCompletedOrdersByUserIdentityNumber',function(req, res, next) {
                     sqls=[];
                     symbols=[];
                     for(var i=0;i<rows.length;i++){
-                        sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_userIdentityNumber = "' + decoded.u_identityNumber + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "completed"');
+                        sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_userIdentityNumber = "' + decoded.u_identityNumber + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "paid"');
                         symbols.push(rows[i].o_symbol);
                     }
 

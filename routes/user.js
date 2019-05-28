@@ -112,6 +112,8 @@ router.post('/signIn', function (req, res) {
 //寄驗證信
 router.post('/send_email', function (req, res) {
     let email = req.body.email
+    let passwordHash = req.body.passwordHash
+
     var transporter = nodemailer.createTransport({
         /* Helium */
         host: 'server239.web-hosting.com',
@@ -128,8 +130,7 @@ router.post('/send_email', function (req, res) {
         from: ' <user3@heliumcryptic.club>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: '請點以下連結以完成驗證： http://localhost:3000/user/verify_email?email=' + email, // plain text body
-        // text: '請點以下連結以完成驗證： http://localhost:8000/user/verify_email?email=' + email, // plain text body
+        text: '請點以下連結以完成驗證： http://140.119.101.130:3030/user/verify_email?hash=' + passwordHash, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
@@ -144,7 +145,7 @@ router.post('/send_email', function (req, res) {
         else {
             res.status(200);
             res.json({
-                "message": "驗證信寄送成功： "
+                "message": "驗證信寄送成功"
             })
         }
         // console.log('Message sent: %s', info.messageId);
@@ -156,10 +157,10 @@ router.post('/send_email', function (req, res) {
 
 //驗證信連結
 router.get('/verify_email', function (req, res) {
-    var email = req.query.email
+    var passwordHash = req.query.hash
 
     let mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('UPDATE user SET u_verify_status = 1 WHERE u_email = \'' + email + '\'', function (err) {
+    mysqlPoolQuery('UPDATE user SET u_verify_status = 1 WHERE u_password_hash = \'' + passwordHash + '\'', function (err) {
         if (err) {
             res.sendFile(path.join(__dirname + '/verify_fail.html'));
             //edit page at /routes/verify_fail.html
@@ -245,8 +246,6 @@ router.post('/post_BookletImage', uploadBookletImage.single('image'), function (
 //-----------------------==
 //http://localhost:3000/user/AddUser
 router.post('/AddUser', function (req, res, next) {
-    var account = web3.eth.accounts.create();
-    console.log(account);
     console.log('------------------------==\n@user/AddUser');
     const qstr1 = 'INSERT INTO htoken.user SET ?';
     var mysqlPoolQuery = req.pool;
@@ -261,6 +260,7 @@ router.post('/AddUser', function (req, res, next) {
     const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
     //Generate a salt and hash on separate function calls.
     //each password that we hash is going to have a unique salt and a unique hash. As we learned before, this helps us mitigate greatly rainbow table attacks.
+    let passwordHash = {};
     bcrypt
         .genSalt(saltRounds)
         .then(salt => {
@@ -269,7 +269,7 @@ router.post('/AddUser', function (req, res, next) {
             return bcrypt.hash(user.password, salt);
         })
         .then(hash => {
-            console.log(`Hash: ${hash}`);
+            console.log(`Password Hash: ${hash}`);
             let userNew = {
                 u_email: user.email,
                 u_salt: user.salt,
@@ -278,11 +278,12 @@ router.post('/AddUser', function (req, res, next) {
                 u_imagef: user.imageURLF,
                 u_imageb: user.imageURLB,
                 u_bankBooklet: user.bankBooklet,
-                u_eth_add: account.address,//user.eth_account,
+                u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
             };//Math.random().toString(36).substring(2, 15)
+            passwordHash.passwordHash = hash
 
             console.log(userNew);
             var qur = mysqlPoolQuery(qstr1, userNew, function (err, result) {
@@ -298,7 +299,7 @@ router.post('/AddUser', function (req, res, next) {
                     res.status(200);
                     res.json({
                         "message": "[Success] Success",
-                        "result": result,
+                        "result": passwordHash,
                         "success": true,
                     });
                 }
@@ -332,8 +333,8 @@ router.get('/UserLogin', function (req, res, next) {
         } else {
             res.status(200);
             if (result.length === 0) {
-              console.log("[Not Valid] No email is found", result);
-              res.json({
+                console.log("[Not Valid] No email is found", result);
+                res.json({
                     "message": "[Error] No email is found",
                     "result": result,
                     "success": false
@@ -355,7 +356,8 @@ router.get('/UserLogin', function (req, res, next) {
                                 u_email: result[0].u_email,
                                 u_identityNumber: result[0].u_identityNumber,
                                 u_assetbookContractAddress: result[0].u_assetbookContractAddress,
-                                u_investorLevel: result[0].u_investorLevel
+                                u_investorLevel: result[0].u_investorLevel,
+                                u_verify_status: result[0].u_verify_status,
                             };
                             time = {
                                 expiresIn: '24h'
@@ -386,8 +388,8 @@ router.get('/UserLogin', function (req, res, next) {
                     }).catch(err => console.error('Error at compare password & pwHash', err.message));
 
             } else {
-              console.log("[Duplicated] Duplicate entries are found");
-              res.json({
+                console.log("[Duplicated] Duplicate entries are found");
+                res.json({
                     "message": "[Duplicated] Duplicate entries are found",
                     "result": result,
                     "success": false
@@ -453,158 +455,158 @@ router.get('/UserByEmail', function (req, res, next) {
 
 //http://localhost:3000/user/UserByCellphone
 router.get('/UserByCellphone', function (req, res, next) {
-  console.log('------------------------==\n@Order/UserByCellphone');
-  let qstr1 = 'SELECT * FROM htoken.user WHERE u_cellphone = ?';
-  var mysqlPoolQuery = req.pool;
-  console.log('req.query', req.query, 'req.body', req.body);
-  let cellphone, password;
-  if (req.body.cellphone) {
-      cellphone = req.body.cellphone; password = req.body.password;
-  } else { cellphone = req.query.cellphone; password = req.query.password; }
+    console.log('------------------------==\n@Order/UserByCellphone');
+    let qstr1 = 'SELECT * FROM htoken.user WHERE u_cellphone = ?';
+    var mysqlPoolQuery = req.pool;
+    console.log('req.query', req.query, 'req.body', req.body);
+    let cellphone, password;
+    if (req.body.cellphone) {
+        cellphone = req.body.cellphone; password = req.body.password;
+    } else { cellphone = req.query.cellphone; password = req.query.password; }
 
-  var qur = mysqlPoolQuery(qstr1, cellphone, function (err, result) {
-      if (err) {
-          console.log("[Error] db to/from DB :\n", err);
-          res.status(400);
-          res.json({
-              "message": "[Error] db to/from DB :\n" + err,
-              "success": false
-          });
-      } else {
-          res.status(200);
-          if (result.length === 0) {
-              console.log("[Not Valid] No cellphone is found", result);
-              res.json({
-                  "message": "[Not Valid] No cellphone is found",
-                  "result": result,
-                  "success": false
-              });
+    var qur = mysqlPoolQuery(qstr1, cellphone, function (err, result) {
+        if (err) {
+            console.log("[Error] db to/from DB :\n", err);
+            res.status(400);
+            res.json({
+                "message": "[Error] db to/from DB :\n" + err,
+                "success": false
+            });
+        } else {
+            res.status(200);
+            if (result.length === 0) {
+                console.log("[Not Valid] No cellphone is found", result);
+                res.json({
+                    "message": "[Not Valid] No cellphone is found",
+                    "result": result,
+                    "success": false
+                });
 
-          } else if (result.length === 1) {
-              console.log("[Success] 1 cellphone is found", result);
-              res.json({
-                  "message": "[Success] The entered cellphone is found",
-                  "result": result[0].u_assetbookContractAddress,
-                  "success": true,
-                  //"jwt": token
-              });
+            } else if (result.length === 1) {
+                console.log("[Success] 1 cellphone is found", result);
+                res.json({
+                    "message": "[Success] The entered cellphone is found",
+                    "result": result[0].u_assetbookContractAddress,
+                    "success": true,
+                    //"jwt": token
+                });
 
-          } else {
-              console.log("[Duplicated] Duplicate entries are found");
-              res.json({
-                  "message": "[Duplicated] Duplicate entries are found",
-                  "result": result,
-                  "success": false
-              });
-          }
-      }
-  });
+            } else {
+                console.log("[Duplicated] Duplicate entries are found");
+                res.json({
+                    "message": "[Duplicated] Duplicate entries are found",
+                    "result": result,
+                    "success": false
+                });
+            }
+        }
+    });
 });
 
 
 //http://localhost:3000/user/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
-  console.log('------------------------==\n@Order/UserByUserId');
-  let qstr1 = 'SELECT * FROM htoken.user WHERE u_identityNumber = ?';
-  var mysqlPoolQuery = req.pool;
-  console.log('req.query', req.query, 'req.body', req.body);
-  let status, userId, qstrz;
-  if (req.body.userId) {
-      userId = req.body.userId;
-  } else { userId = req.query.userId; }
-  var qur = mysqlPoolQuery(qstr1, userId, function (err, result) {
-      if (err) {
-          console.log("[Error] Failure :\n", err);
-          res.status(400);
-          res.json({
-              "message": "[Error] Failure :\n" + err,
-              "success": false,
-          });
-      } else {
-          res.status(200);
-          if (result.length === 0) {
-            console.log("[Not Valid] No UserId is found", result);
+    console.log('------------------------==\n@Order/UserByUserId');
+    let qstr1 = 'SELECT * FROM htoken.user WHERE u_identityNumber = ?';
+    var mysqlPoolQuery = req.pool;
+    console.log('req.query', req.query, 'req.body', req.body);
+    let status, userId, qstrz;
+    if (req.body.userId) {
+        userId = req.body.userId;
+    } else { userId = req.query.userId; }
+    var qur = mysqlPoolQuery(qstr1, userId, function (err, result) {
+        if (err) {
+            console.log("[Error] Failure :\n", err);
+            res.status(400);
             res.json({
-                "message": "[Not Valid] No UserId is found",
-                "result": result,
-                "success": false
-            });
-        } else if (result.length === 1) {
-          console.log("[Success] 1 UserId is found", result);
-          var data = {
-            u_identityNumber: result[0].u_identityNumber,
-          };
-          token = jwt.sign(data, 'privatekey', time);
-          res.json({
-              "message": "[Success] The UseId is found",
-              "result": result,
-              "success": true,
-              "data": data,
-              "jwt": token
+                "message": "[Error] Failure :\n" + err,
+                "success": false,
             });
         } else {
-          console.log("[Duplicated] Duplicate entries are found");
-          res.json({
-                "message": "[Duplicated] Duplicate entries are found",
-                "result": result,
-                "success": false
-            });
+            res.status(200);
+            if (result.length === 0) {
+                console.log("[Not Valid] No UserId is found", result);
+                res.json({
+                    "message": "[Not Valid] No UserId is found",
+                    "result": result,
+                    "success": false
+                });
+            } else if (result.length === 1) {
+                console.log("[Success] 1 UserId is found", result);
+                var data = {
+                    u_identityNumber: result[0].u_identityNumber,
+                };
+                token = jwt.sign(data, 'privatekey', time);
+                res.json({
+                    "message": "[Success] The UseId is found",
+                    "result": result,
+                    "success": true,
+                    "data": data,
+                    "jwt": token
+                });
+            } else {
+                console.log("[Duplicated] Duplicate entries are found");
+                res.json({
+                    "message": "[Duplicated] Duplicate entries are found",
+                    "result": result,
+                    "success": false
+                });
+            }
         }
-      }
-  });
+    });
 });
 
 // 獲取Endorser
-router.get('/GetEndorser',function(req, res, next) {
-    var token=req.query.JWT_Token;
-      if (token) {
-          // 驗證JWT token
-          jwt.verify(token, "privatekey",function (err, decoded) {
+router.get('/GetEndorser', function (req, res, next) {
+    var token = req.query.JWT_Token;
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "privatekey", function (err, decoded) {
             if (err) {
-              //JWT token驗證失敗
-              console.log("＊:JWT token驗證失敗");
-              console.log(err);
-              res.json({
-                  "message": "JWT token is invalid.",
-                  "success": false
-              });
-              return;
+                //JWT token驗證失敗
+                console.log("＊:JWT token驗證失敗");
+                console.log(err);
+                res.json({
+                    "message": "JWT token is invalid.",
+                    "success": false
+                });
+                return;
             } else {
-              //JWT token驗證成功
-              console.log("＊JWT Content:" + decoded.u_email);
-              //查詢Endorser Email  
-              let mysqlPoolQuery = req.pool;
-              let query = mysqlPoolQuery('SELECT u_endorser1,u_endorser2,u_endorser3 FROM htoken.user WHERE u_email = ?', decoded.u_email , function (err,result) {
-                if (err) {
-                    console.log("查詢endorser失敗:" + err);
-                    console.log(err);
-                    res.status(400);
-                    res.json({
-                        "message": "[Error] Failure :\n" + err,
-                        "success": false,
-                    });
-                }
-                else {
-                    console.log("查詢endorser成功:");
-                    res.status(200);
-                    res.json({
-                        "message": "[Success] Success",
-                        "result": result,
-                        "success": true,
-                    });
-                }
-              });
+                //JWT token驗證成功
+                console.log("＊JWT Content:" + decoded.u_email);
+                //查詢Endorser Email  
+                let mysqlPoolQuery = req.pool;
+                let query = mysqlPoolQuery('SELECT u_endorser1,u_endorser2,u_endorser3 FROM htoken.user WHERE u_email = ?', decoded.u_email, function (err, result) {
+                    if (err) {
+                        console.log("查詢endorser失敗:" + err);
+                        console.log(err);
+                        res.status(400);
+                        res.json({
+                            "message": "[Error] Failure :\n" + err,
+                            "success": false,
+                        });
+                    }
+                    else {
+                        console.log("查詢endorser成功:");
+                        res.status(200);
+                        res.json({
+                            "message": "[Success] Success",
+                            "result": result,
+                            "success": true,
+                        });
+                    }
+                });
             }
-          })
-      }else {
-          //不存在JWT token
-          console.log("＊:不存在JWT token");
-          res.json({
-              "message": "No JWT Token.Please login.",
-              "success": false
-          });
-          return;
-      }
+        })
+    } else {
+        //不存在JWT token
+        console.log("＊:不存在JWT token");
+        res.json({
+            "message": "No JWT Token.Please login.",
+            "success": false
+        });
+        return;
+    }
 
 });
 
@@ -615,28 +617,28 @@ router.post('/EditEndorser', function (req, res, next) {
     // console.log(req.body.EndorserEmail2);
     // console.log(req.body.EndorserEmail3);
     // console.log("＊＊＊＊" + req.body.userEmail);
-    
-    userEmail=req.body.userEmail;
-    EndorserEmail1=req.body.EndorserEmail1;
-    EndorserEmail2=req.body.EndorserEmail2;
-    EndorserEmail3=req.body.EndorserEmail3;
+
+    userEmail = req.body.userEmail;
+    EndorserEmail1 = req.body.EndorserEmail1;
+    EndorserEmail2 = req.body.EndorserEmail2;
+    EndorserEmail3 = req.body.EndorserEmail3;
 
     var mysqlPoolQuery = req.pool;
     const queryUserByEmail = email => {
         return new Promise((resolve, reject) => {
             // 如果使用者有填寫Endorser Email
-            if(email!="" && email!=null){
+            if (email != "" && email != null) {
                 mysqlPoolQuery(
                     'SELECT * FROM htoken.user WHERE u_email = ? ;',
                     email,
                     (err, rows, fields) => {
-                    //   console.log(rows);
-                      if (err) reject(err);
-                      else resolve(rows);
+                        //   console.log(rows);
+                        if (err) reject(err);
+                        else resolve(rows);
                     }
-                  );
-            // 如果使用者沒填寫
-            }else{
+                );
+                // 如果使用者沒填寫
+            } else {
                 // 隨便傳回一個長度為2的字串，代表使用者沒填寫
                 resolve("11");
             }
@@ -647,83 +649,108 @@ router.post('/EditEndorser', function (req, res, next) {
     var data = [];
     // 檢查EndorserEmail1是否存在資料庫，存在則寫入該使用者的EndorserEmail1
     queryUserByEmail(EndorserEmail1)
-    .then(results => {
-    //   console.log(results.length);
-      data.push(results.length);   
+        .then(results => {
+            //   console.log(results.length);
+            data.push(results.length);
 
-      //假如EndorserEmail1存在資料庫
-      if(results.length==1 || results.length==2){
-        //寫入該使用者的EndorserEmail
-        //假如使用者沒填寫，就清空該endorser email
-        let mysqlPoolQuery = req.pool;
-        let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser1 = ? WHERE u_email = ?', [EndorserEmail1 , userEmail] , function (err) {
-          if (err) {
-              console.log("寫入EndorserEmail1失敗:" + err);
-          }
-          else {
-              console.log("寫入EndorserEmail1成功:");
-          }
+            //假如EndorserEmail1存在資料庫
+            if (results.length == 1 || results.length == 2) {
+                //寫入該使用者的EndorserEmail
+                //假如使用者沒填寫，就清空該endorser email
+                let mysqlPoolQuery = req.pool;
+                let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser1 = ? WHERE u_email = ?', [EndorserEmail1, userEmail], function (err) {
+                    if (err) {
+                        console.log("寫入EndorserEmail1失敗:" + err);
+                    }
+                    else {
+                        console.log("寫入EndorserEmail1成功:");
+                    }
+                });
+            }
+
+            return queryUserByEmail(EndorserEmail2);
+        })
+        .then(results => {
+            // console.log(results.length);
+            data.push(results.length);
+
+            //假如EndorserEmail2存在資料庫
+            if (results.length == 1 || results.length == 2) {
+                //寫入該使用者的EndorserEmail
+                //假如使用者沒填寫，就清空該endorser email
+                let mysqlPoolQuery = req.pool;
+                let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser2 = ? WHERE u_email = ?', [EndorserEmail2, userEmail], function (err) {
+                    if (err) {
+                        console.log("寫入EndorserEmail2失敗:" + err);
+                    }
+                    else {
+                        console.log("寫入EndorserEmail2成功:");
+                    }
+                });
+            }
+
+            return queryUserByEmail(EndorserEmail3);
+        })
+        .then(results => {
+            // console.log(results.length);
+            data.push(results.length);
+
+            //假如EndorserEmail3存在資料庫
+            if (results.length == 1 || results.length == 2) {
+                //寫入該使用者的EndorserEmail
+                //假如使用者沒填寫，就清空該endorser email
+                let mysqlPoolQuery = req.pool;
+                let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser3 = ? WHERE u_email = ?', [EndorserEmail3, userEmail], function (err) {
+                    if (err) {
+                        console.log("寫入EndorserEmail3失敗:" + err);
+                    }
+                    else {
+                        console.log("寫入EndorserEmail3成功:");
+                    }
+                });
+            }
+
+            res.status(200);
+            res.json({
+                "message": "[Success] Success",
+                "result": data,
+                "success": true,
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] Failure :\n" + err,
+                "success": false,
+            });
         });
-      }
 
-      return queryUserByEmail(EndorserEmail2);
-    })
-    .then(results => {
-        // console.log(results.length);
-        data.push(results.length);      
-        
-        //假如EndorserEmail2存在資料庫
-        if(results.length==1 || results.length==2){
-          //寫入該使用者的EndorserEmail
-          //假如使用者沒填寫，就清空該endorser email
-          let mysqlPoolQuery = req.pool;
-          let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser2 = ? WHERE u_email = ?', [EndorserEmail2 , userEmail] , function (err) {
+});
+
+//回傳該使用者信箱是否已經驗證
+router.get('/isUserEmailVerified', function (req, res) {
+    let userEmailAddress = req.query.userEmailAddress;
+    let mysqlPoolQuery = req.pool;
+    console.log(userEmailAddress)
+    mysqlPoolQuery(
+        'SELECT u_verify_status FROM htoken.user WHERE u_email = \'' + userEmailAddress + '\'', function (err, result) {
             if (err) {
-                console.log("寫入EndorserEmail2失敗:" + err);
+                res.status(400)
+                res.json({
+                    "message": "信箱驗證狀態取得失敗:" + err
+                })
             }
             else {
-                console.log("寫入EndorserEmail2成功:");
+                let userVerifiedStatus
+                result[0].u_verify_status == 0 ? userVerifiedStatus = false : userVerifiedStatus = true
+                res.status(200);
+                res.json({
+                    "message": "信箱驗證狀態取得成功！",
+                    "result": userVerifiedStatus
+                });
             }
-          });
-        }
-
-        return queryUserByEmail(EndorserEmail3);
-    })
-    .then(results => {
-        // console.log(results.length);
-        data.push(results.length);      
-        
-        //假如EndorserEmail3存在資料庫
-        if(results.length==1 || results.length==2){
-          //寫入該使用者的EndorserEmail
-          //假如使用者沒填寫，就清空該endorser email
-          let mysqlPoolQuery = req.pool;
-          let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser3 = ? WHERE u_email = ?', [EndorserEmail3 , userEmail] , function (err) {
-            if (err) {
-                console.log("寫入EndorserEmail3失敗:" + err);
-            }
-            else {
-                console.log("寫入EndorserEmail3成功:");
-            }
-          });
-        }
-
-        res.status(200);
-        res.json({
-            "message": "[Success] Success",
-            "result": data,
-            "success": true,
         });
-    })
-    .catch(err => {
-        console.log(err);
-        res.status(400);
-        res.json({
-            "message": "[Error] Failure :\n" + err,
-            "success": false,
-        });
-    });
-
 });
 
 
