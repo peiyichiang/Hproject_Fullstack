@@ -8,7 +8,7 @@ function returnNumberWithCommas(x) {
 }
 
 /* getIncomeHistoryBySymbol */
-router.get('/getAssetHistoryListBySymbol', function (req, res, next) {
+router.get('/AssetHistoryListBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let keys = [req.query.symbol, req.query.userEmailAddress];
     let queryString = `
@@ -49,7 +49,7 @@ router.get('/getAssetHistoryListBySymbol', function (req, res, next) {
 /* getLatestAssetHistory(userEmailAddress)
  * return:[latestAssetHistory]
  */
-router.get('/getLatestAssetHistory', async function (req, res, next) {
+router.get('/LatestAssetHistory', async function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let userEmailAddress = req.query.userEmailAddress
     console.log(userEmailAddress)
@@ -141,7 +141,7 @@ router.get('/getLatestAssetHistory', async function (req, res, next) {
 
 /* 取得此帳號單一token的最新一期結算資料 */
 /* TODO: 資料不完全需重寫 */
-// router.get('/getLatestAssetHistoryBySymbol', function (req, res, next) {
+// router.get('/LatestAssetHistoryBySymbol', function (req, res, next) {
 //     var mysqlPoolQuery = req.pool;
 //     let keys = [req.query.symbol, req.query.assetBookAddress];
 //     let latestIncomeHistory;
