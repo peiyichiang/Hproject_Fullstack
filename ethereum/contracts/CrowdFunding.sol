@@ -27,7 +27,7 @@ contract CrowdFunding {
     );
     event TokenInvested(address indexed _addrAssetbook, uint _quantityToInvest, uint serverTime);
 
-    uint public serverTimeMin = 201905110000;
+    uint public serverTimeMin = 201905281400;
     uint public maxTokenQtyForEachInvestmentFund = 120000000;
     // the max allowed token quantity for each investment fund, according to the token minting function limit
     string public tokenSymbol; //token symbol for crowdfunding
