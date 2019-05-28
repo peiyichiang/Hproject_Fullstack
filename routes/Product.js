@@ -983,7 +983,7 @@ router.get('/LaunchedProductList', function (req, res) {
         p_SYMBOL AS symbol,
         p_pricing AS pricing,
         p_currency AS currency,
-        p_totalrelease -  IFNULL(reservedTokenCount, 0 ) AS retailTokenCount,
+        p_totalrelease AS maxProductQuantity,
         ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
         SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
         SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
@@ -1009,13 +1009,24 @@ router.get('/LaunchedProductList', function (req, res) {
         p_CFED AS CFED,
         p_PVTrialOperationDate AS PVTrialOperationDate,
         p_PVOnGridDate AS PVOnGridDate,
-        p_fundingType AS fundingType
+        p_fundingType AS fundingType,
+        p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
+        IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
-                    FROM htoken.order 
+                    FROM htoken.order
                     WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
                     GROUP BY o_symbol) AS T2
         ON T1.p_SYMBOL = T2.o_symbol
+        LEFT JOIN ( SELECT o_symbol , COUNT(DISTINCT o_userIdentityNumber ) AS purchasedNumberOfPeople
+                    FROM htoken.order
+                    GROUP BY o_symbol) AS T3
+        ON T1.p_SYMBOL = T3.o_symbol
+        LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
+                    FROM htoken.income_arrangement 
+                    GROUP BY ia_SYMBOL) AS T4
+        ON T1.p_SYMBOL = T4.ia_SYMBOL
         WHERE p_state = \'publish\';`, function (err, productArray) {
             if (err) {
                 res.status(400)
@@ -1038,17 +1049,20 @@ router.get('/LaunchedProductList', function (req, res) {
                             product.imageURL8 = "imageURL8"
                             product.imageURL9 = "imageURL9"
                             product.imageURL10 = "imageURL10"
-                            product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                            product.BOEApprovalDate = "BOEApprovalDate"
-                            product.PVTrialOperationDate = "PVTrialOperationDate"
-                            product.PVOnGridDate = "PVOnGridDate"
+                            if (product.taiPowerApprovalDate === null)
+                                product.taiPowerApprovalDate = "taiPowerApprovalDate"
+                            if (product.BOEApprovalDate === null)
+                                product.BOEApprovalDate = "BOEApprovalDate"
+                            if (product.PVTrialOperationDate === null)
+                                product.PVTrialOperationDate = "PVTrialOperationDate"
+                            if (product.PVOnGridDate === null)
+                                product.PVOnGridDate = "PVOnGridDate"
                             if (product.fundingType === "PO") {
                                 product.fundingType = "PublicOffering"
                             } else if (product.fundingType === "PP") {
                                 product.fundingType = "PrivatePlacement"
                             }
                         });
-
                     res.status(200);
                     res.json({
                         "message": "產品列表取得成功！",
