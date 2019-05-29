@@ -3,6 +3,8 @@ var crypto = require('crypto');
 var request = require('request');
 var jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+/* email sender */
+const nodemailer = require('nodemailer');
 
 var router = express.Router();
 
@@ -58,16 +60,6 @@ router.get('/backend_user', function (req, res, next) {
 
 //新增後端使用者資料:註冊頁面(無權限設置，大家都可以訪問)
 router.get('/AddBackendUser', function (req, res, next) {
-    // if(req.session.login!=true){
-    //     res.render('error', { message: '請先登入帳號', error: '' });
-    //     return;
-    // }
-
-    // if(req.session.m_permission!="Platform_Admin"){
-    //     res.render('error', { message: '權限不足', error: '' });
-    //     return;
-    // }
-
     res.render('AddBackendUser', { title: 'Add Backend User' });
 });
 
@@ -90,7 +82,8 @@ router.post('/AddBackendUser', function (req, res, next) {
             m_salt: '0',
             m_passwordhash: hash,
             m_company: req.body.m_company,
-            m_permission: "NA"
+            m_permission: "NA",
+            m_email:req.body.m_email,
         };
 
         console.log("###" + JSON.stringify(sql));
@@ -113,6 +106,124 @@ router.post('/AddBackendUser', function (req, res, next) {
 
 
 });
+
+//忘記密碼
+router.get('/ForgetPassword', function (req, res, next) {
+    res.render('ForgetPassword', { title: 'ForgetPassword' });
+});
+
+//忘記密碼
+router.post('/ForgetPassword', function (req, res, next) {
+    //   var db = req.con;
+    var mysqlPoolQuery = req.pool;
+    var ID = req.body.m_id;
+    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        // console.log(rows.length);
+
+        //查無此帳號
+        if (rows.length == 0) {
+            res.render('error', { message: '查無此帳號', error: '' });
+        } else {
+            //將重新設置連結寄送到信箱
+
+            console.log(rows[0].m_email);
+            email=rows[0].m_email;
+            passwordHash=rows[0].m_passwordhash;
+
+            var transporter = nodemailer.createTransport({
+                /* Helium */
+                host: 'server239.web-hosting.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: "user3@heliumcryptic.club",
+                    pass: "n{#K](MG.Orc"
+                }
+            });
+        
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: ' <user3@heliumcryptic.club>', // sender address
+                to: email, // list of receivers
+                subject: '重新設置密碼', // Subject line
+                text: '請點以下連結重新設置密碼： http://127.0.0.1:3030/BackendUser/ResetPassword?hash=' + passwordHash, // plain text body
+                // html: '<b>Hello world?</b>' // html body
+            };
+        
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    res.status(400)
+                    // res.json({
+                    //     "message": "重新設置密碼連結 寄送失敗：" + err
+                    // })
+                    res.render('error', { message: '重新設置密碼連結 寄送失敗', error: err });
+                }
+                else {
+                    res.status(200);
+                    // res.json({
+                    //     "message": "重新設置密碼連結 寄送成功"
+                    // })
+                    res.render('error', { message: '重新設置密碼連結 寄送成功', error: '' });
+                }
+                // console.log('Message sent: %s', info.messageId);
+                // Preview only available when sending through an Ethereal account
+                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        
+            });
+        }
+
+
+        // res.render('EditBackendUser', { title: 'Edit Product', data: data });
+    });
+});
+
+//重設密碼
+router.post('/ResetPassword', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    var newPassword = req.body.m_password_1;
+    var ResetPasswordHash= req.body.m_ResetPasswordHash;
+    console.log(newPassword);
+    console.log(ResetPasswordHash);
+
+    const saltRounds = 10;
+    bcrypt
+    .genSalt(saltRounds)
+    .then(salt => {
+        console.log(`Salt: ${salt}`);
+        return bcrypt.hash(newPassword, salt);
+    })
+    .then(hash  => {
+        console.log(`Hash: ${hash}`);
+        var sql = {
+            m_passwordhash: hash,
+        };
+
+        console.log("###" + JSON.stringify(sql));
+
+        var qur = mysqlPoolQuery('UPDATE backend_user SET ? WHERE m_passwordhash = ?', [sql, ResetPasswordHash], function (err, rows) {
+            if (err) {
+                console.log(err);
+                res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+            } else {
+                // res.setHeader('Content-Type', 'application/json');
+                // res.redirect('/BackendUser/backend_user');
+                res.render('error', { message: '更改密碼成功', error: '' });
+            }
+        });
+
+    })
+    .catch(err => console.error(err.message));
+});
+
+//重設密碼
+router.get('/ResetPassword', function (req, res, next) {
+    res.render('ResetPassword', { title: 'ResetPassword' });
+});
+
 
 //刪除後端使用者資料：獲取網址上的參數
 router.get('/DeleteBackendUser', function (req, res, next) {
@@ -436,6 +547,15 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
     if(JWT_decoded!==undefined){
         var mysqlPoolQuery = req.pool;
         var data = "";
+
+        var iaData;
+        mysqlPoolQuery("SELECT ia_SYMBOL,ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_single_Calibration_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State =?", "ia_state_underReview"  , function(err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            iaData = rows;
+            console.log("@@" + JSON.stringify(rows));
+        });
     
         mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
             if (err) {
@@ -444,8 +564,8 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
             var data = rows;
     
             // use index.ejs
-            console.log("**:" + JWT_decoded.payload.m_id);
-            res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
+            console.log("***:" + JWT_decoded.payload.m_id);
+            res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data,iaData:iaData });
         });
     }
 

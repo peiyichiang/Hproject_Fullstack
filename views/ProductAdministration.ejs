@@ -32,6 +32,56 @@
         </div>
     </nav>
 
+    <!-- 租金發放審核區：假如ia_State==ia_state_underReview >0，才顯示 -->
+    <div class="tableTitle bg-warning Region"
+        style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
+        <i class="fas fa-plus" style="display: none;"></i>
+        <i class="fas fa-minus"></i>
+        <span style="margin-left:15px;">上租金發放審核區</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <tr class="bg-warning" style="color:white;">
+                <th class="nowrap">Token代號</th>
+                <th class="nowrap">預計發放時間</th>
+                <th class="nowrap">校正前發放金額</th>
+                <th class="nowrap">校正後發放金額</th>
+                <th class="nowrap">審核</th>
+            </tr>
+
+            <% for ( var i = 0 ; i < iaData.length ; i++){ %>
+                <tr>                    
+                    <td>            
+                        <form hidden name="correctActualPaymentForm" id="correctActualPaymentForm" action="/Product/CorrectActualPaymentResult" method="post" accept-charset="utf-8">
+                            <div class="modal-body">
+                                Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol" name="CorrectActualPaymentTokenSymbol">
+                                付款時間：<input type="text" readonly="readonly" id="CorrectActualPaymentTime" name="CorrectActualPaymentTime">
+                                校正結果：<input type="text" id="CorrectActualPaymentResult" name="CorrectActualPaymentResult">
+                            </div>
+                        </form>
+                        
+                        <%= iaData[0].ia_SYMBOL  %>
+                    </td>
+                    <td>
+                        <%= iaData[0].ia_time  %>
+                    </td>
+                    <td>
+                        <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
+                    </td>
+                    <td>
+                        <%= iaData[0].ia_single_Calibration_Actual_Income_Payment_in_the_Period  %>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_approved')">通過</button>&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-danger" onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_unapproved')">退回</button>
+                    </td>
+                </tr>
+            <% } %>
+
+
+        </table>
+    </div>
+
+
     <!-- 平台方待審核區：假如publish狀態的產品數量>0，才顯示 -->
     <% var count=0 %>
     <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -44,7 +94,7 @@
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
-        <span style="margin-left:15px;">平台方待審核區</span>
+        <span style="margin-left:15px;">上架待審核區</span>
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
@@ -1275,6 +1325,15 @@
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>
     <script>
+        function correctActualPayment(iaSymbol,iaTime,isState){
+            // alert(iaSymbol + "," + iaTime + "," + isState);
+            document.getElementById("CorrectActualPaymentTokenSymbol").value=iaSymbol;
+            document.getElementById("CorrectActualPaymentTime").value=iaTime;
+            document.getElementById("CorrectActualPaymentResult").value=isState;
+            document.getElementById('correctActualPaymentForm').submit();
+        }
+
+
         function Edit(SYMBOL, State) {
             window.location.href = "/Product/EditProductByPlatformSupervisor?symbol=" + SYMBOL + "&State=" + State;
         }
