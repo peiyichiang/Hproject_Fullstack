@@ -59,6 +59,13 @@ contract Registry {
         setRestrictions(5, 100000, 100000, uintMax, uintMax);
         isAfterDeployment = true;
     }
+    function checkDeploymentConditions(
+        address _addrHelium
+      ) public view returns(bool[] memory boolArray) {
+        boolArray = new bool[](2);
+        boolArray[0] = _addrHelium.isContract();
+        boolArray[1] = bytes(currencyType).length > 2;
+    }
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
 1 Natural person: 0, 0; UnLTD, UnLTD;
@@ -82,9 +89,8 @@ authLevel & STO investor classification on purchase amount and holding balance r
 
     /**@dev check uid value */
     modifier ckUidLength(string memory uid) {
-        uint uidLength = bytes(uid).length;
-        require(uidLength > 0, "uid cannot be zero length");
-        require(uidLength <= 32, "uid cannot be longer than 32");//compatible to bytes32 format, too
+        require(bytes(uid).length > 0, "uid cannot be zero length");
+        require(bytes(uid).length <= 32, "uid cannot be longer than 32");//compatible to bytes32 format, too
         _;
     }
     /**@dev check asset contract address */
@@ -105,7 +111,21 @@ authLevel & STO investor classification on purchase amount and holding balance r
         _;
     }
 
+
     /**@dev add user with his user Id(uid), asset contract address(assetbookAddr) */
+    function checkAddSetUser(string calldata uid, address assetbookAddr, uint authLevel) external view returns(bool[] memory boolArray) {
+        boolArray = new bool[](7);
+        boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+        //ckUidLength(uid)
+        boolArray[1] = bytes(uid).length > 0;
+        boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
+
+        //ckAssetbookValid(assetbookAddr)
+        boolArray[3] = assetbookAddr != address(0);
+        boolArray[4] = assetbookAddr.isContract();
+        boolArray[5] = uidToAssetbook[uid] == address(0);
+        boolArray[6] = authLevel > 0 && authLevel < 10;
+    }
     function addUser(string calldata uid, address assetbookAddr, uint authLevel) external onlyCustomerService
         ckUidLength(uid) ckAssetbookValid(assetbookAddr) {
 

@@ -1,6 +1,6 @@
 pragma solidity ^0.5.4;
 
-interface HeliumITF{
+interface HeliumITF_Helium{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
     function checkAdmin(address _eoa) external view returns(bool _isAdmin);

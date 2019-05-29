@@ -15,14 +15,19 @@ console.log('process.argv', process.argv);
 if (process.argv.length < 8) {
   console.log('not enough arguments. Make it like: yarn run deploy -n 1 --chain 1 --cName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('cName = helium, assetbook, registry, tokc, hcat, cf, db');
+  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, db');
   process.exit(1);
 }
 // chain    symNum   ctrtName
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
-let { addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum,  TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721 } = require('./zsetupData');
+let { addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+  timeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
+  argsCrowdFunding, argsTokenController, argsHCAT721 } = require('./zsetupData');
 
+const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
+const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
+  
 
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
@@ -320,6 +325,10 @@ if (ProductManager === undefined){
   //console.log(ProductManager);
 }
 
+
+//-----------------------------==Functions
+checkTrue = (item) => item;
+
 //  await asyncForEachBasic(mainInputArray, async (item) => {
 async function asyncForEachBasic(arrayBasic, callback) {
   console.log("arrayBasic:"+arrayBasic);
@@ -472,13 +481,10 @@ const deploy = async () => {
       addrAssetBookArray.push(instAssetBookN.options.address);
       console.log(`Finished deploying AssetBook${idx+1}...`);
     });
-    addrAssetBook1 = addrAssetBookArray[0];
-    addrAssetBook2 = addrAssetBookArray[1];
-    addrAssetBook3 = addrAssetBookArray[2];
     console.log(`\nFinished deploying assetbook 1, 2, 3:
-    addrAssetBook1 = "${addrAssetBook1}";
-    addrAssetBook2 = "${addrAssetBook2}";
-    addrAssetBook3 = "${addrAssetBook3}";`);
+    addrAssetBook1 = "${addrAssetBookArray[0]}";
+    addrAssetBook2 = "${addrAssetBookArray[1]}";
+    addrAssetBook3 = "${addrAssetBookArray[2]}";`);
     process.exit(0);
 
   //yarn run deploy -c 1 -s 1 -cName assetbookx
@@ -532,6 +538,42 @@ const deploy = async () => {
     process.exit(0);
 
 
+  //yarn run deploy -c 1 -n 0 -cName cf
+} else if (ctrtName === 'cf') {
+  console.log('\nDeploying CrowdFunding contract...');
+  console.log('argsCrowdFunding', argsCrowdFunding);
+
+  instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
+   .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
+   .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+   .on('receipt', function (receipt) {
+     console.log('receipt:', receipt);
+   })
+   .on('error', function (error) {
+       console.log('error:', error.toString());
+   });
+
+   console.log('CrowdFunding.sol has been deployed');
+   console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
+
+   if (instCrowdFunding === undefined) {
+     console.log('[Error] instCrowdFunding is NOT defined');
+   } else {console.log('[Good] instCrowdFunding is defined');}
+   
+   instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+   addrCrowdFunding = instCrowdFunding.options.address;
+   console.log('\naddrCrowdFunding:', addrCrowdFunding);
+
+   result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
+   console.log('checkDeploymentConditions():', result);
+   if(result.every(checkTrue)){
+     console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+   } else {
+     console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+   }
+   process.exit(0);
+
+
   //yarn run deploy -c 1 -s 1 -cName tokc
   } else if (ctrtName === 'tokc') {
     //Deploying TokenController contract...
@@ -554,11 +596,15 @@ const deploy = async () => {
       } else {console.log('[Good] instTokenController is defined');}
     instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrTokenController = instTokenController.options.address;
-    console.log('addrTokenController:', addrTokenController);
+    console.log('\naddrTokenController:', addrTokenController);
 
     result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
     console.log('checkDeploymentConditions():', result);
-
+    if(result.every(checkTrue)){
+      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+    } else {
+      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+    }
     // const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
     // let instHCAT721;
     // if(choiceOfHCAT721===1){
@@ -622,10 +668,15 @@ const deploy = async () => {
       } else {console.log('[Good] instHCAT721 is defined');}
     instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrHCAT721 = instHCAT721.options.address;
-    console.log('addrHCAT721 '+ctrtName, addrHCAT721);
+    console.log('\naddrHCAT721 '+ctrtName, addrHCAT721);
 
     result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
     console.log('checkDeploymentConditions():', result);
+    if(result.every(checkTrue)){
+      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+    } else {
+      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+    }
     /**
     value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
     value: web3deploy.utils.toWei('10','ether')
@@ -644,46 +695,9 @@ const deploy = async () => {
     process.exit(0);
 
 
-  //yarn run deploy -c 1 -n 0 -cName cf
-  } else if (ctrtName === 'cf') {
-   console.log('\nDeploying CrowdFunding contract...');
-   console.log('argsCrowdFunding', argsCrowdFunding);
-
-   instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
-    .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
-
-    result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
-    console.log('checkDeploymentConditions():', result);
-
-    console.log('CrowdFunding.sol has been deployed');
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-
-    if (instCrowdFunding === undefined) {
-      console.log('[Error] instCrowdFunding is NOT defined');
-    } else {console.log('[Good] instCrowdFunding is defined');}
-    
-    instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrCrowdFunding = instCrowdFunding.options.address;
-    console.log('addrCrowdFunding:', addrCrowdFunding);
-
-    result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
-    console.log('checkDeploymentConditions():', result);
-
-    process.exit(0);
-
-
   } else if (ctrtName === 'check1'){
     const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
     const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-    const instAssetBook1 = new web3.eth.Contract(AssetBook.abi, addrAssetBook1);
-    const instAssetBook2 = new web3.eth.Contract(AssetBook.abi, addrAssetBook2);
     // const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
     // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 

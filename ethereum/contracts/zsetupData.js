@@ -20,17 +20,20 @@ AssetOwner4pkRaw = "0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18d
 AssetOwner5 = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
 AssetOwner5pkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
 
+const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5];
+const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw];
+
 managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4];
 
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
-    cName = helium, assetbook, registry, cf, tokc, hcat, db
+    cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
  */
 addrHelium =     "0xB27Ba5e65A53A3ecE54b3525dA31dCf0863eb142";
-addrAssetBook1 = "0x1764b307455f3399D1ee73C59813914446D3B8c5";
-addrAssetBook2 = "0xB8199c8A29e36eD73716032dA3E5dc2758bdA222";
-addrAssetBook3 = "0xbddAc1b2F4ceFaD31abd24dB4DB8C55d7d5Ff639";
-addrRegistry =   "0xc4e1018023A188E4FFF3744751b9eD96F2ed14e2";
+addrAssetBook1 = "0x2905D81FfD7EEd9Bf7aDB318B6F53bd567339925";
+addrAssetBook2 = "0x6e2e81a113f8E02253a4aF2A8f8de15902899BFd";
+addrAssetBook3 = "0xf860B042bAab79820dfC40eCc252Ea9E28bD407F";
+addrRegistry =   "0x4C04D788054640DAC8D8c5Cc2640cE851b62D11C";
 
 function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) {
   this.email = email;
@@ -50,7 +53,7 @@ const userArray = [user0, user1, user2, user3];
 
 //fundingType= 1 PO, 2 PP
 //Math.round(maxTotalSupply*quantityGoalPercentage);
-function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager) {
+function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
   this.nftSymbol = nftSymbol;
   this.maxTotalSupply = maxTotalSupply;
   this.quantityGoal = quantityGoal;
@@ -85,7 +88,7 @@ TimeTokenValid =  timeOfDeployment+90;
 fundmanager = 'FundManagerN';
 
 /** deployed contracts
-    yarn run deploy -c 1 -n 0 -cName cf
+    yarn run deploy -c 1 -n 0 -cName tokc
     -c chain    -n symNum   
     cName = helium, assetbook, registry, tokc, hcat, cf, db
 */
@@ -95,12 +98,12 @@ nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, C
 nftSymbol, nftName, location, maxTotalSupply, quantityGoalPercentage, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, timeOfDeployment, 
 fundingType: PO: 1, PP: 2
 
-addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager
+addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
 */
 symNum = 1;
 const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905241737, 2, "", "", "", "");
 
-const productObj1 = new productObject("AKOS1902", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, timeOfDeployment, 2, "0xbe87F89c756DED06b6aD220B83701523De863DEC", "0x7391c2BA2c0F54aB51DEb8d439Bc94ebFa370Cdc", "0xfa3D33BbeBEbbc05aE6FCE067F40E55F3d99Da3A", "");
+const productObj1 = new productObject("AKOS1902", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, timeOfDeployment, 2, "0xCc558E53637b2Fef501861D1c5580F9E6d1991e4", "0x7c6B85Ab65B65CE2f2dfDd9792d610ebB7fF91c0", "0x36fBC316ca6c4a316162b09F7c7e772a55DA5872", "");
 
 const productObj2 = new productObject("ALOS1902", "nftName", "location", 2073, 2035, 750, 19000, "NTD", 480, 20, timeOfDeployment, 2, "", "", "", "");
 
@@ -176,24 +179,25 @@ fundingType: ${fundingType}
 
 const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeOfDeployment, addrHelium];
 
+const argsTokenController = [
+  timeOfDeployment, TimeTokenUnlock, TimeTokenValid, addrHelium ];
+
 const nftName_bytes32 = web3.utils.fromAscii(nftName);
 const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
 const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
 const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+
 const argsHCAT721 = [
 nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
 initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
 addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium];
-
-const argsTokenController = [
-  timeOfDeployment, TimeTokenUnlock, TimeTokenValid, addrHelium ];
 
 const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
 const userIDs = ["A500000001", "A500000002", "A500000003"];
 const authLevels = [5, 5, 5];
 
 module.exports = {
-  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum,
+  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
   timeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
   argsCrowdFunding, argsTokenController, argsHCAT721
 }
