@@ -172,132 +172,65 @@
         <% } %>
     </table>
 </div>
-<!-- 平台正在審核的產品清單 -->
+<!-- 營運管理區 -->
 <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
-        <span>專案處理狀態</span>
+        <span>營運管理區</span>
 </div>
 <div class="table-responsive">
     <table class="table table-hover table-striped">
         <tr class="bg-warning" style="color:white;">
             <th class="nowrap">Token代號</th>
             <th class="nowrap">產品名稱</th>
-            <th class="nowrap">產品所在地</th>
             <th class="nowrap">產品定價</th>
-            <th class="nowrap">專案年期</th>
-            <th class="nowrap">幣別</th>
-            <th class="nowrap">預期報酬率(%)</th>                        
-            <!--  -->
-            <th class="nowrap">專案開始日期</th>
-            <th class="nowrap">FMS審核通過的日期</th>
-            <!-- <th class="nowrap">PA審核通過的日期</th> -->
             <th class="nowrap">募資起始日</th>
             <th class="nowrap">募資截止日</th>
-            <!--  -->
-            <th class="nowrap">產品發行日</th>
-            <th class="nowrap">產品到期日</th>
-            <th class="nowrap">專案規模(kw)</th>
-            <th class="nowrap">產品總發行量(個)</th>
-            <th class="nowrap">發行專案的產品經理</th>
-            <th class="nowrap">該專案處理狀態</th>
-            <!-- <th class="nowrap">預估平均年收益</th> -->
-            <!-- <th class="nowrap">預估回收金額</th> -->
-            <th class="nowrap">收益總期數</th>
-            <th class="nowrap">預估回收年限</th>
-            <!-- <th class="nowrap">預估進度圖</th> -->
-            <th class="nowrap">購售電合約</th>
-            <th class="nowrap">產品icon</th>
-            <th class="nowrap">CSV文件</th>
+            <th class="nowrap">銷售數量</th>
+            <th class="nowrap">銷售金額</th>
+            <th class="nowrap">達成率</th>
+            <th class="nowrap">校正實際收益</th>
         </tr>
         <% for ( var i = 0 ; i < dataPublish.length ; i++){ %>
-            <tr>
-                <td>
-                    <%= dataPublish[i].p_SYMBOL  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_name  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_location  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_pricing  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_currency  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_duration  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_irr  %>
-                </td>                                
-                <!--  -->
-                <td>
-                    <%= dataPublish[i].p_PSD  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_FMXAdate  %>
-                </td>
-                <!-- <td>
-                    <%= dataPublish[i].p_PAdate  %>
-                </td> -->
-                <td>
-                    <%= dataPublish[i].p_CFSD  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_CFED  %>
-                </td>
-                <!--  -->
-                <td>
-                    <%= dataPublish[i].p_releasedate  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_validdate  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_size  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_totalrelease  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_fundmanager  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_state  %>
-                </td>
-                <!-- <td>
-                    <%= dataPublish[i].p_FAY  %>
-                </td> -->
-                <!-- <td>
-                    <%= dataPublish[i].p_FTRT  %>
-                </td> -->
-                <td>
-                    <%= dataPublish[i].p_RPT  %>
-                </td>
-                <td>
-                    <%= dataPublish[i].p_FRP  %>
-                </td>
-                <!-- <td>
-                    <%= dataPublish[i].p_Timeline  %>
-                </td> -->
-                <td>
-                    <%if (dataPublish[i].p_assetdocs != null && dataPublish[i].p_assetdocs !="") { %>
-                        <a target="_blank" href="http://127.0.0.1:3030/<%= dataPublish[i].p_assetdocs.replace('public','')  %>">doc</a>
-                    <% } %>
-                </td>
-                <td>
-                    <%if (dataPublish[i].p_icon != null && dataPublish[i].p_icon !="") { %>
-                        <img src="http://127.0.0.1:3030/<%= dataPublish[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
-                    <% } %>
-                </td>
-                <td>
-                    <%if (dataPublish[i].p_csvFIle != null && dataPublish[i].p_csvFIle !="") { %>
-                        <a target="_blank" href="http://127.0.0.1:3030/<%= dataPublish[i].p_csvFIle.replace('public','')  %>">doc</a>
-                    <% } %>
-                </td>
-            </tr>
+            <%if (dataPublish[i].p_state =="funding" ) { %>
+                <tr>
+                    <td>
+                        <%= dataPublish[i].p_SYMBOL  %>
+                    </td>
+                    <td>
+                        <%= dataPublish[i].p_name  %>
+                    </td>
+                    <td>
+                        <%= dataPublish[i].p_pricing  %>
+                    </td>
+                    <td>
+                        <%= dataPublish[i].p_CFSD  %>
+                    </td>
+                    <td>
+                        <%= dataPublish[i].p_CFED  %>
+                    </td>
+                    <td>
+                        <%if (dataPublish[i].p_paidNumber ==null ) { %>
+                            <%= 0  %>
+                        <% }else{ %>
+                            <%= dataPublish[i].p_paidNumber  %>
+                        <% } %>
+                    </td>
+                    <td>
+                        <%= dataPublish[i].p_paidNumber*dataPublish[i].p_pricing  %>
+                    </td>
+                    <td>
+                            <%if (dataPublish[i].p_paidNumber ==null || dataPublish[i].p_paidNumber ==0 ) { %>
+                                <%= 0  %>
+                            <% }else{ %>
+                                <%= Math.round(((dataPublish[i].p_paidNumber/dataPublish[i].p_fundingGoal)*100)) + "%"  %>
+                            <% } %>
+                    </td>
+                    <td>
+                            <!-- <button type="button" style="width: 90px;" class="btn btn-success" name="calibrate" id="calibrate">校正</button> -->
+                            <button href="#myModal" id="openBtn" data-toggle="modal" class="btn btn-success" onclick="GetIncomeArrangementData('<%= dataPublish[i].p_SYMBOL %>')">校正</button>
+                    </td>
+                </tr>
             <% } %>
+        <% } %>
     </table>
 </div>
 <!-- 按下退回時，要出現的產品備註(p_FMSNote)的Modal -->
@@ -326,10 +259,172 @@
     </div>
 </div>
 
+<!-- 實際收益列表modal -->
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog" style="max-width:900px;">
+          <div class="modal-content">
+            <!-- <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <h3 class="modal-title" style="text-align: right;">Big Title</h3>
+            </div> -->
+            <div class="modal-body">
+              <h5 class="text-center">實際收益校正</h5>
+              <table class="table table-striped table-fixed" id="tblGrid">
+                <thead id="tblHead">
+                  <tr>
+                    <th class='col-4'>付款時間</th>
+                    <th class='col-2'>校正前實際收益</th>
+                    <th class='col-2'>校正後實際收益</th>
+                    <th class='col-2'>狀態</th>
+                    <th class='col-2'>校正</th>
+                  </tr>
+                </thead>
+                <tbody id="IAtable">
+                </tbody>
+              </table>
+              <!-- <div class="form-group">
+                <input type="button" class="btn btn-warning btn-sm pull-right" value="Reset">
+                <div class="clearfix"></div>
+              </div> -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default " data-dismiss="modal">Close</button>
+              <!-- <button type="button" class="btn btn-primary">Save Changes</button> -->
+            </div>
+                    
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+</div>
+
+<!-- 校正實際收益modal -->
+    <div class="modal" id="correctActualPaymentModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+      
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">校正實際收益</h4>
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+      
+            <!-- Modal body -->
+            <form name="correctActualPaymentForm" id="correctActualPaymentForm" action="/Product/CorrectActualPayment" method="post" accept-charset="utf-8">
+                <div class="modal-body">
+                    Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol" name="CorrectActualPaymentTokenSymbol"> <br><br>
+                    付款時間：<input type="text" readonly="readonly" id="CorrectActualPaymentTime" name="CorrectActualPaymentTime"> <br><br>
+                    校正金額：<input type="text" id="CorrectActualPaymentNumber" name="CorrectActualPaymentNumber">
+                </div>
+            </form>
+
+      
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" onclick="SubmitCorrectActualPaymentForm()">送出</button>
+              <button type="button" class="btn btn-danger" data-dismiss="modal">關閉</button>
+            </div>
+      
+          </div>
+        </div>
+      </div>
 
 
 
     <script>
+        // 當前要校正的Token代號
+        let CurrentCorrectTokenSymbol="";
+
+        // 獲取income_arrangement資料
+        function GetIncomeArrangementData(SYMBOL){
+            CurrentCorrectTokenSymbol=SYMBOL;
+            // 宣告一個 XHR 的物件
+            var Req = new XMLHttpRequest(); 
+            // 定義連線方式
+            Req.open('get', "/Product/IncomeArrangement?symbol=" + SYMBOL, true);
+            // 送出請求
+            Req.send();
+            // 如果成功就執行 reqOnload()
+            Req.onload = reqOnload; 
+            // 失敗就 reqError()
+            Req.onerror = reqError;
+        }
+        function reqOnload () {
+            const data = JSON.parse(this.responseText);
+            // console.log(data)
+            for(var i=0;i<data.length;i++){
+                // console.log(data[i].ia_actualPaymentTime);
+                // console.log(data[i].ia_single_Actual_Income_Payment_in_the_Period);
+                if(data[i].ia_single_Calibration_Actual_Income_Payment_in_the_Period==null){
+                    data[i].ia_single_Calibration_Actual_Income_Payment_in_the_Period="尚未校正";
+                }
+
+                // 取得Current Timestamp
+                const dateTime = Date.now();
+                const currentTimestamp = Math.floor(dateTime / 1000);
+
+                // 計算IA Unix Timestamp
+                FormatedTime=data[i].ia_time.substring(0,4) + "-" + data[i].ia_time.substring(4,6)+ "-" + data[i].ia_time.substring(6,8);
+                iaTime_TimeStamp = new Date(FormatedTime).getTime() / 1000;
+                
+                // 所有時間減掉15天
+                // iaTime_TimeStamp=iaTime_TimeStamp-1296000;
+
+                isCorrectBtnDisabled="";
+                // 先假設待校正
+                if(data[i].ia_State==null){
+                    data[i].ia_State="待校正";
+                }
+                // 將過期的狀態 改為：已過期
+                if(iaTime_TimeStamp-86400<currentTimestamp){
+                    data[i].ia_State="已過期";
+                    isCorrectBtnDisabled="disabled";
+
+                }else if (iaTime_TimeStamp-(86400*30)>currentTimestamp){
+                // 時間還沒到的將狀態改為：尚未開放校正
+                    data[i].ia_State="尚未開放校正";
+                    isCorrectBtnDisabled="disabled";
+                }
+
+                // 根據ia_state設置 按鈕狀態
+                if(data[i].ia_State=="ia_state_underReview"){
+                    isCorrectBtnDisabled="disabled";
+                    data[i].ia_State="審核中";
+                }else if(data[i].ia_State=="ia_state_approved"){
+                    isCorrectBtnDisabled="disabled";
+                    data[i].ia_State="審核通過";
+                }else if(data[i].ia_State=="ia_state_unapproved"){
+                    isCorrectBtnDisabled="";
+                    data[i].ia_State="審核失敗";
+                }
+
+
+
+                // 將撈到的資料放到IAtable
+                document.getElementById("IAtable").innerHTML+=
+                "<tr>"+
+                "<td class='col-4'>" + data[i].ia_time.substring(0, data[i].ia_time.length-4) + "</td>" + 
+                "<td class='col-2'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
+                "<td class='col-2'>" + data[i].ia_single_Calibration_Actual_Income_Payment_in_the_Period + "</td>"+
+                "<td class='col-2'>" + data[i].ia_State + "</td>"+
+                "<td class='col-2'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
+                "</tr>";
+            }
+        }
+        function reqError (err) {
+            console.log('錯誤', err)
+        }
+        function SetCorrectActualPayment(iaTime){
+            // alert(CurrentCorrectTokenSymbol + "," + iaTime);
+            document.getElementById("CorrectActualPaymentTokenSymbol").value=CurrentCorrectTokenSymbol;
+            document.getElementById("CorrectActualPaymentTime").value=iaTime;
+
+        }
+
+        // 將要校正的資料送出
+        function SubmitCorrectActualPaymentForm(){
+            document.getElementById('correctActualPaymentForm').submit();
+        }
+
+
         // 用來記錄當前被點到退回按鈕的產品SYMBOL
         var CurrentSYMBOL="";
         // 編輯按鈕觸發

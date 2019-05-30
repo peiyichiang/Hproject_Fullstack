@@ -5,8 +5,10 @@ interface HeliumITF{
 }
 
 contract TokenController {
+    using AddressUtils for address;
+
     // 201902180900, 201902180901, 201902180902, 201902180907
-    uint public TimeAtDeployment;// Token Release date and time
+    uint public TimeAtDeployment;// Time At Deployment
     uint public TimeUnlock;//The time to unlock tokens from lock up period
     uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
     bool public isLockedForRelease;// true or false: check if the token is locked for release
@@ -18,14 +20,25 @@ contract TokenController {
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _timeCurrent, 
+    constructor(uint _timeOfDeployment, 
       uint _TimeUnlock, uint _TimeValid, address _addrHelium) public {
-        TimeAtDeployment = _timeCurrent;
+        TimeAtDeployment = _timeOfDeployment;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
         tokenState = TokenState.inInitialLockUpPeriod;
         isTokenApproved = true;
         addrHelium = _addrHelium;
+    }
+    function checkDeploymentConditions(
+        uint _timeOfDeployment, uint _TimeUnlock,
+        uint _TimeValid, address _addrHelium
+
+      ) public view returns(bool[] memory boolArray) {
+        boolArray = new bool[](4);
+        boolArray[0] = _timeOfDeployment > 201905281400;
+        boolArray[1] = _TimeUnlock > _timeOfDeployment;
+        boolArray[2] = _TimeValid > _TimeUnlock;
+        boolArray[3] = _addrHelium.isContract();
     }
 
     modifier ckTime(uint _time) {
@@ -102,4 +115,11 @@ contract TokenController {
     }
 
     //function() external payable { revert("should not send any ether directly"); }
+}
+library AddressUtils {
+    function isContract(address _addr) internal view returns (bool) {
+        uint256 size;
+        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        return size > 0;
+    }
 }

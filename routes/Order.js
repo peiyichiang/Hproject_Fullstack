@@ -376,9 +376,10 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
   console.log('symbol', symbol, 'uid', uid, 'authLevel', authLevel, 'buyAmount', buyAmount, 'fundingType', fundingType);
 
   var fundingTypeArray = ["PublicOffering", "PrivatePlacement", "1", "2"];
+  //fundingType= PO: 1, PP: 2
 
   var qur = mysqlPoolQuery(
-      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = ? OR o_paymentStatus = ?)', [symbol, uid, 'paid', 'waiting'], function (err, orderBalance) {
+      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, uid], function (err, orderBalance) {
           if (err) {
               console.log(err);
               res.status(400);

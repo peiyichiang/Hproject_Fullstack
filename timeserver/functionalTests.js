@@ -136,23 +136,23 @@ console.log('\nrounding test???');
 console.log('\n----------------==Test every()');
 checkItem =(item) =>  Number.isInteger(item) && Number(item) > 0;
 const amountArray1 = [1, 2, 3, 323, 679, 'dsd'];
-if(!amountArray1.every(checkItem)){
-  console.log('amountArray has non-integer');
-} else {
+if(amountArray1.every(checkItem)){
   console.log('amountArray has all integers');
+} else {
+  console.log('amountArray has non-integer');
 }
 
 const amountArray2 = [1, 2, 3, 323, 679, 0];
-if(!amountArray2.every(checkItem)){
-  console.log('amountArray has zero');
-} else {
+if(amountArray2.every(checkItem)){
   console.log('amountArray has all integers');
+} else {
+  console.log('amountArray has zero');
 }
 const amountArray3 = [1, 2, 3, 323, 679];
-if(!amountArray3.every(checkItem)){
-  console.log('amountArray has zero');
-} else {
+if(amountArray3.every(checkItem)){
   console.log('amountArray has all non zero integers');
+} else {
+  console.log('amountArray has zero');
 }//*/
 
 
