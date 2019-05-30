@@ -21,9 +21,12 @@ if (process.argv.length < 8) {
 // chain    symNum   ctrtName
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
-const { addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+const { userIDs, authLevels, productObjArray, symbolArray, userArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
   TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement } = require('./zsetupData');
+
+let {addrHelium, assetbookArray, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding} = require('./zsetupData');
+const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
@@ -380,8 +383,7 @@ const deploy = async () => {
         console.log('[Error] instHelium is NOT defined');
         } else {console.log('[Good] instHelium is defined');}
       instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      addrHelium = instHelium.options.address;
-      console.log('addrHelium:', addrHelium);
+      console.log(`const addrHelium = ${instHelium.options.address}`);
       process.exit(0);
 
 
@@ -405,8 +407,7 @@ const deploy = async () => {
         console.log('[Error] instTestCtrt is NOT defined');
         } else {console.log('[Good] instTestCtrt is defined');}
       instTestCtrt.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      addrTestCtrt = instTestCtrt.options.address;
-      console.log('addrTestCtrt:', addrTestCtrt);
+      console.log(`addrTestCtrt = ${instTestCtrt.options.address}`);
       process.exit(0);
 
 
@@ -482,10 +483,11 @@ const deploy = async () => {
       console.log(`Finished deploying AssetBook${idx+1}...`);
     });
     console.log(`\nFinished deploying assetbook 1, 2, 3:
-    addrAssetBook1 = "${addrAssetBookArray[0]}";
-    addrAssetBook2 = "${addrAssetBookArray[1]}";
-    addrAssetBook3 = "${addrAssetBookArray[2]}";`);
+    const addrAssetBook1 = "${addrAssetBookArray[0]}";
+    const addrAssetBook2 = "${addrAssetBookArray[1]}";
+    const addrAssetBook3 = "${addrAssetBookArray[2]}";`);
     process.exit(0);
+
 
   //yarn run deploy -c 1 -s 1 -cName assetbookx
   } else if (ctrtName === 'assetbookx'){
@@ -511,8 +513,9 @@ const deploy = async () => {
     if (instAssetBookx === undefined) {
       console.log('\n[Error] instAssetBook is NOT defined');
       } else {console.log('[Good] instAssetBook is defined');}
-    console.log('addrAssetBookx:', instAssetBookx.options.address);
+    console.log(`const addrAssetBookx = ${instAssetBookx.options.address}`);
     process.exit(0);
+
 
   //yarn run deploy -c 1 -s 1 -cName registry
   } else if (ctrtName === 'registry') {
@@ -533,8 +536,7 @@ const deploy = async () => {
       console.log('[Error] instRegistry is NOT defined');
       } else {console.log('[Good] instRegistry is defined');}
     instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrRegistry = instRegistry.options.address;
-    console.log('addrRegistry:', addrRegistry);
+    console.log(`const addrRegistry = ${instRegistry.options.address}`);
     process.exit(0);
 
 
@@ -561,8 +563,7 @@ const deploy = async () => {
    } else {console.log('[Good] instCrowdFunding is defined');}
    
    instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-   addrCrowdFunding = instCrowdFunding.options.address;
-   console.log('\naddrCrowdFunding:', addrCrowdFunding);
+   console.log(`\nconst addrCrowdFunding= ${instCrowdFunding.options.address}`);
 
    result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
    console.log('checkDeploymentConditions():', result);
@@ -595,8 +596,7 @@ const deploy = async () => {
       console.log('[Error] instTokenController is NOT defined');
       } else {console.log('[Good] instTokenController is defined');}
     instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrTokenController = instTokenController.options.address;
-    console.log('\naddrTokenController:', addrTokenController);
+    console.log(`\nconst addrTokenController = ${instTokenController.options.address}`);
 
     result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
     console.log('checkDeploymentConditions():', result);
@@ -667,8 +667,7 @@ const deploy = async () => {
       console.log('[Error] instHCAT721 is NOT defined');
       } else {console.log('[Good] instHCAT721 is defined');}
     instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrHCAT721 = instHCAT721.options.address;
-    console.log('\naddrHCAT721 '+ctrtName, addrHCAT721);
+    console.log(`\nctrtName = ${ctrtName}; const addrHCAT721 = ${instHCAT721.options.address}`);
 
     result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
     console.log('checkDeploymentConditions():', result);
@@ -722,6 +721,7 @@ const deploy = async () => {
     addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
     process.exit(0);
 
+
   } else if (ctrtName === 'im') {
     instIncomeManager = await new web3deploy.eth.Contract(IncomeManagement.abi)
     .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
@@ -738,8 +738,7 @@ const deploy = async () => {
       console.log('[Error] instIncomeManager is NOT defined');
       } else {console.log('[Good] instIncomeManager is defined');}
     instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrIncomeManagement = instIncomeManager.options.address;
-    console.log('addrIncomeManagement:', addrIncomeManagement);
+    console.log(`const addrIncomeManagement = ${instIncomeManager.options.address}`);
 
 
   } else if (ctrtName === 'pm') {
@@ -760,8 +759,7 @@ const deploy = async () => {
       console.log('[Error] instProductManager is NOT defined');
       } else {console.log('[Good] instProductManager is defined');}
     instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrProductManager = instProductManager.options.address;
-    console.log('addrProductManager:', addrProductManager);
+    console.log(`\nconst addrProductManager = ${instProductManager.options.address}`);
 
 
   //yarn run deploy -c 1 -n 0 -cName db1

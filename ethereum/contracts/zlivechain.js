@@ -8,7 +8,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
 
-const {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('./zsetupData');
+const {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
@@ -763,6 +763,7 @@ const mintTokenFn1 = async () => {
 //yarn run livechain -c 1 --f 5 -a 1 -b 190
 const mintTokens = async (assetbookNum, amount) => {
   console.log('-------------==mintTokens ... Mint Token Batch');
+  serverTime = TimeTokenUnlock+1;
   console.log('assetbookNum', assetbookNum, 'amount', amount);
   if (assetbookNum < 1 || assetbookNum > 3) {
     console.log('assetbookNum value should be >= 1 and <= 3. assetbookNum = ', assetbookNum);
@@ -871,12 +872,12 @@ const mintTokens = async (assetbookNum, amount) => {
 //yarn run livechain -c 1 --f 39
 const transferTokensKY = async () => {
   console.log('\ntransferTokensKY...');
-  const contractAddr = "0x36fBC316ca6c4a316162b09F7c7e772a55DA5872";
-  const _from = "0x2905D81FfD7EEd9Bf7aDB318B6F53bd567339925";
-  const to = "0x6e2e81a113f8E02253a4aF2A8f8de15902899BFd";
+  const contractAddr = "0xC4b0CC61E12175Ea0Ed87d29fE7670F5462244F8";
+  const _from = "0x997307566Fd444b3195E348E4E16B52814C4e766";
+  const to = "0x8aC7c2Fb825e822C2255bf2169A325a4cCa56ceA";
   const amount = 1;
   const price = 21000;
-  const serverTime = 201905281435;
+  const serverTime = 201905311435;
 
   const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
   let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
@@ -980,16 +981,21 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   } else {
     console.log('\n[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
   }
-
+  /**
+   * [ true, true, true, true, true,    true, true, true, true, true,    true, false ]
+   */
   // yarn run livechain -c 1 --f 6 -a 1 -b 170 -t 3
-  const encodedData = instHCAT721.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime).encodeABI();//address _from, address _to, uint amount, uint price, uint serverTime
+  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime).encodeABI();//address _from, address _to, uint amount, uint price, uint serverTime
 
   //process.exit(0);
   //TxResult = await signTx(admin, adminpkRaw, addrHCAT721, encodedData);
-  TxResult = await signTx(backendAddr, backendRawPrivateKey, addrHCAT721, encodedData).catch((err) => {
+  TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw , addrAssetBook1, encodedData).catch((err) => {
     console.log('[Error @ signTx()]', err)
     process.exit(1);
   });
+  //backendAddr, backendRawPrivateKey
+  //AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
+
   console.log('TxResult', TxResult);
   /**
   let TxResult = await signTx(admin, adminpkRaw, tokenCtrtAddr, encodedData).catch((err) => console.log('[Error @ signTx()]', err));

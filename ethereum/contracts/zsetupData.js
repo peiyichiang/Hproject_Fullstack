@@ -5,7 +5,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 
 //let addrIncomeManagement, addrProductManager;
 console.log('--------------------==zsetupData.js');
-let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager;
+let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager;
 
 const admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 const adminpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
@@ -22,6 +22,7 @@ const AssetOwner5pkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bed
 
 const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5];
 const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw];
+//AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
 
 const managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4];
 
@@ -29,11 +30,11 @@ const managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner
     yarn run deploy -c 1 -s 1 -cName db
     cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
  */
-addrHelium =     "0x315521e6D7BafAA84823D2Bc4F78893459275501";
-addrAssetBook1 = "0x53E7c6fe9A1e902b8Ca5803Cd050696ED1246a54";
-addrAssetBook2 = "0x188FE930714DB55609eBbeA45f0DCce14BbEF716";
-addrAssetBook3 = "0x350b52dC1E7Aa23b005d397098eF3F6b246F9D54";
-addrRegistry =   "0xE71BDa257B50850Ff573832D06a9fb795A325735";
+const addrHelium =     "0xBA1fBe1FA1E3aF019616Fb7672B7D5438d6BDD63";
+const addrAssetBook1 = "0x997307566Fd444b3195E348E4E16B52814C4e766";
+const addrAssetBook2 = "0x8aC7c2Fb825e822C2255bf2169A325a4cCa56ceA";
+const addrAssetBook3 = "0xd3254243640DFf619E7e59c283fa71c6398385cE";
+const addrRegistry =   "0x03bDB032cfD766087aa3eaf1B9abA9d9B21D0de5";
 
 function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) {
   this.email = email;
@@ -97,9 +98,8 @@ fundmanager = 'FundManagerN';
 //fundingType: PO: 1, PP: 2
 //addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
 symNum = 1;
-const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905241737, 2, "", "", "", "");
-
-const productObj1 = new productObject("AKOS1902", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, 2, "0x5AE9b9B3348A845E67E6B3D3bEa69ae06F65EcbB", "0x47ca433c10c183B930A021fb5E0Ac647E5BFB2e3", "0x5A79f39512735d2Cc1cce8D872ec03587B52aBA1", "");
+//function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+const productObj1 = new productObject("AKOS1903", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, 2, "0xEEacf1b3Ee218770e63437BaEa68bfe3CC45547D", "0x7BCf0682115391791eac27Dcd7dC02D782fa36dE", "0xC4b0CC61E12175Ea0Ed87d29fE7670F5462244F8", "");
 
 const productObj2 = new productObject("ALOS1902", "nftName", "location", 2073, 2035, 750, 19000, "NTD", 480, 20, 2, "", "", "", "");
 
@@ -107,6 +107,7 @@ const productObj3 = new productObject("AMOS1902", "nftName", "location", 3173, 3
 
 const productObj4 = new productObject("AOOS1902", "nftName", "location", 5073, 4937, 1400, 20000, "NTD", 490, 20, 2, "", "", "", "");
 
+const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905241737, 2, "", "", "", "");
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4];
 const symbolArray = [];
 crowdFundingAddrArray= [];
