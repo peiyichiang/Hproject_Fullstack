@@ -256,7 +256,7 @@ let instCrowdFunding, addrCrowdFunding;
 let instIncomeManagerCtrt, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
 
-let accounts, managementTeam;
+let accounts, error;
 let AssetOwner1, AssetOwner2, platformSupervisor, operator;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
@@ -268,10 +268,7 @@ let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 let addrAssetBook1, addrAssetBook2, addrAsset3, addrAsset4;
 
-let timeCurrent = 201905150000, error;
-const TimeTokenLaunch = timeCurrent+3;
-const TimeTokenUnlock = timeCurrent+4; 
-const TimeTokenValid =  timeCurrent+9;
+const { TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('../ethereum/contracts/zsetupData');
 
 const tokenName = "NCCU site No.1(2018)";
 const tokenSymbol = "NCCU1801";
@@ -291,15 +288,14 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 //const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
 //const addrTokenController = "0x39523jt032";
 
-const CFSD2 = timeCurrent+1;
-const CFED2 = timeCurrent+10;
+
 let reason, uid, authLevel, assetbookAddr;
 let admin, chairman, director, manager, owner, isSenderAllowed;
 let adminM, chairmanM, directorM, managerM, ownerM;
 
 let tokenId, _from, uriStr, uriBytes32, uriStrB;
-let tokenOwnerM, tokenControllerDetail, timeCurrentM;
-let TimeTokenLaunchM, TimeTokenUnlockM, TimeTokenValidM, bool1;
+let tokenOwnerM, tokenControllerDetail, TimeAtDeploymentM;
+let TimeOfDeploymentM, TimeTokenUnlockM, TimeTokenValidM, bool1;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
 let result1, boolArray, uintArray;
@@ -407,7 +403,7 @@ beforeEach( async function() {
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      TimeTokenLaunch, TimeTokenUnlock, TimeTokenValid, addrHeliumCtrt ];
+      TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, addrHeliumCtrt ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -427,7 +423,7 @@ beforeEach( async function() {
     const argsHCAT721 = [
     tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, addrTokenController, tokenURI_bytes32, addrHeliumCtrt];
+    addrRegistry, addrTokenController, tokenURI_bytes32, addrHeliumCtrt, TimeOfDeployment];
     console.log('\nDeploying HCAT721 contract...');
     instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
     .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
@@ -445,7 +441,7 @@ beforeEach( async function() {
     */
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, timeCurrent, addrHeliumCtrt];
+    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment, addrHeliumCtrt];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -460,7 +456,7 @@ beforeEach( async function() {
 
     //---------=IncomeManagerCtrt related contracts
     console.log('\nDeploying IncomeManager contract...');
-    const argsIncomeManagerCtrt =[addrHCAT721, addrHeliumCtrt];
+    const argsIncomeManagerCtrt =[addrHCAT721, addrHeliumCtrt, TimeOfDeployment];
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -681,7 +677,7 @@ describe('Tests on HCAT721', () => {
 
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
-    _to = addrAssetBook1; amount = 1; serverTime = timeCurrent;
+    _to = addrAssetBook1; amount = 1; serverTime = CFSD2-1;
     price = 17000; fundingType = 1;//PO: 1, PP: 2
     tokenId = amount;
 
@@ -735,7 +731,7 @@ describe('Tests on HCAT721', () => {
     tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    _to = addrAssetBook1; amount = 3; serverTime = timeCurrent;
+    _to = addrAssetBook1; amount = 3; serverTime = CFSD2-1;
     //let _tos = [_to, _to, _to];
     let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
     const strToBytes32 = str => web3.utils.fromAscii(str);
@@ -788,7 +784,7 @@ describe('Tests on HCAT721', () => {
     //HCAT721: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
-    _to = addrAssetBook2; amount = 3; serverTime = timeCurrent;
+    _to = addrAssetBook2; amount = 3; serverTime = CFSD2-1;
     //_tos = [_to, _to, _to];
     _uriStrs = [uriBase+"5", uriBase+"6", uriBase+"7"];
     _uriBytes32s = _uriStrs.map(strToBytes32);
@@ -835,7 +831,7 @@ describe('Tests on HCAT721', () => {
     //-----------------==Check if STO Compliance for balance
     console.log('\n------------==Check if STO Compliance for balance');
     error = false;
-    _to = addrAssetBook1; amount = 2; serverTime = timeCurrent;
+    _to = addrAssetBook1; amount = 2; serverTime = CFSD2-1;
     price = 17000;  fundingType = 1; //PO: 1, PP: 2
     console.log(`mintSerialNFT()... to = addrAssetBook1
     amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
@@ -872,7 +868,7 @@ describe('Tests on HCAT721', () => {
     //-----------------==Check if STO Compliance for buyAmount
     console.log('\n------------==Check if STO Compliance for buyAmount');
     error = false;
-    _to = addrAssetBook1; amount = 8; serverTime = timeCurrent;
+    _to = addrAssetBook1; amount = 8; serverTime = CFSD2-1;
     price = 17000;  fundingType = 1; //PO: 1, PP: 2
     console.log(`mintSerialNFT()... to = addrAssetBook1
     amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
@@ -909,11 +905,12 @@ describe('Tests on HCAT721', () => {
     console.log('addrTokenController', addrTokenController);
 
     tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
-    timeCurrentM = tokenControllerDetail[0];
-    TimeTokenLaunchM = tokenControllerDetail[1];
-    TimeTokenUnlockM = tokenControllerDetail[2];
-    TimeTokenValidM = tokenControllerDetail[3];
-    console.log('timeCurrent', timeCurrentM, ', TimeTokenLaunch', TimeTokenLaunchM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM);
+    TimeAtDeploymentM = tokenControllerDetail[0];
+    TimeTokenUnlockM = tokenControllerDetail[1];
+    TimeTokenValidM = tokenControllerDetail[2];
+    isLockedForReleaseM = tokenControllerDetail[3];
+    isTokenApprovedM = tokenControllerDetail[4];
+    console.log('TimeOfDeployment', TimeOfDeploymentM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLockedForReleaseM', isLockedForReleaseM, ', isTokenApprovedM', isTokenApprovedM);
 
     isSenderAllowed = await instTokenController.methods.checkPlatformSupervisor().call({from: admin});
     assert.equal(isSenderAllowed, true);
@@ -922,8 +919,8 @@ describe('Tests on HCAT721', () => {
 
     //----------------==Send tokens before Unlock Time
     console.log('\n------------==Send tokens before Unlock Time');
-    timeCurrent = TimeTokenUnlock-1;
-    await instTokenController.methods.updateState(timeCurrent)
+    serverTime = TimeTokenUnlock-1;
+    await instTokenController.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     //enum TokenState{underLockupPeriod, operational, expired}
@@ -940,13 +937,13 @@ describe('Tests on HCAT721', () => {
     error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-      _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+      _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock-1;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetbook1 to assetbook2 failed: timeCurrent should be > TimeTokenUnlock', timeCurrent, TimeTokenUnlock, err.toString().substr(0, 190));
+      console.log('[Success] sending tokenId 1 from assetbook1 to assetbook2 failed: serverTime should be > TimeTokenUnlock', serverTime, TimeTokenUnlock, err.toString().substr(0, 190));
       assert(err);
     }
     if (error) {assert(false);}
@@ -955,8 +952,8 @@ describe('Tests on HCAT721', () => {
 
     //-------------------------==Send tokens
     console.log('\n----------------==Send token by one: amount = 1 from AssetBook2 to AssetBook1');
-    timeCurrent = TimeTokenUnlock+1;
-    await instTokenController.methods.updateState(timeCurrent)
+    serverTime = TimeTokenUnlock+1;
+    await instTokenController.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isTokenApprovedOperational().call(); 
     console.log('isTokenApprovedOperational()', bool1);
@@ -966,7 +963,7 @@ describe('Tests on HCAT721', () => {
     assert.equal(tokenStateM, 1);
 
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1003,13 +1000,13 @@ describe('Tests on HCAT721', () => {
     //------------------------==
     //-----------------==Check AssetBook2
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 17000;
-    _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
+    _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
 
     await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
-    //safeTransferFromBatch(_assetAddr, amount, _to, _timeCurrent)
+    //safeTransferFromBatch(_assetAddr, amount, _to, _serverTime)
 
 
     console.log('\n-----==after sending 5 tokens...');
@@ -1035,7 +1032,7 @@ describe('Tests on HCAT721', () => {
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1067,7 +1064,7 @@ describe('Tests on HCAT721', () => {
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 7; price = 21000;
-    _fromAssetOwner = AssetOwner1; serverTime = timeCurrent;
+    _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook1 sending tokens via safeTransferFromBatch()...');
     await instAssetBook1.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
     .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1134,7 +1131,7 @@ describe('Tests on HCAT721', () => {
 
     console.log('\n----------------==Send token in batch: amount = '+amount+'  from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instHCAT721.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
     .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1173,7 +1170,8 @@ describe('Tests on HCAT721', () => {
     console.log('\n------------==Send tokens with not enough allowance');
     error = false;
     try {
-      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromAssetOwner = AssetOwner2; serverTime = timeCurrent;
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromAssetOwner = AssetOwner2; 
+      serverTime = TimeTokenUnlock+1;
       await instHCAT721.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
       .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1188,8 +1186,8 @@ describe('Tests on HCAT721', () => {
 
     //----------------==Send tokens after valid time
     console.log('\n------------==Send tokens after valid date');
-    timeCurrent = TimeTokenValid+1;
-    await instTokenController.methods.updateState(timeCurrent)
+    serverTime = TimeTokenValid+1;
+    await instTokenController.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     //enum TokenState{underLockupPeriod, operational, expired}
@@ -1209,12 +1207,12 @@ describe('Tests on HCAT721', () => {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
       _fromAssetOwner = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, timeCurrent)
+      await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
       .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {
-      console.log('[Success] sending tokenId 1 from assetbook2 to assetbook1 failed: timeCurrent should be < TimeTokenValid', timeCurrent, TimeTokenValid, 'err:', err.toString().substr(0, 150));
+      console.log('[Success] sending tokenId 1 from assetbook2 to assetbook1 failed: serverTime should be < TimeTokenValid', serverTime, TimeTokenValid, 'err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1254,7 +1252,9 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('\n------------==Check IncomeManagerCtrt parameters');
     let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode;
 
-    _index = 1; forecastedPayableTime = 201905110000; forecastedPayableAmount = 3000;
+    _index = 1;
+    forecastedPayableTime = TimeOfDeployment+1;
+    forecastedPayableAmount = 3000;
 
     console.log('\n--------==Initial conditions');
     result = await instIncomeManagerCtrt.methods.schCindex().call();
@@ -1565,10 +1565,7 @@ describe('Tests on CrowdFunding', () => {
     console.log('\n------------==Check CrowdFunding parameters');
     console.log('addrCrowdFunding', addrCrowdFunding);
 
-    const CFSD2 = timeCurrent+1;
-    //CFED2 = timeCurrent+10;
-    console.log("timeCurrent", timeCurrent, ", CFSD2:", CFSD2, ", CFED2:", CFED2);
-    // timeCurrent = 201902281040;
+    console.log("CFSD2:", CFSD2, ", CFED2:", CFED2);
 
     let tokenSymbolB32M = await instCrowdFunding.methods.tokenSymbol().call();
     tokenSymbolM = web3.utils.toAscii(tokenSymbolB32M);
@@ -1602,7 +1599,7 @@ describe('Tests on CrowdFunding', () => {
     //-------------------==
     console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
     serverTime = CFSD2-1;
-    console.log('set servertime = CFSD2-1', serverTime);
+    console.log('set servertime = CFSD2-1', serverTime);//201905281400;
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 

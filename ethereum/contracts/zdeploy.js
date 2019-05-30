@@ -2,7 +2,7 @@
 chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
 */
 /** deployed contracts
-    yarn run deploy -c 1 -s 1 -cName db
+    yarn run deploy -c 1 -s 1 -cName cf
     cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
 */
 //const timer = require('./api.js');
@@ -22,8 +22,8 @@ if (process.argv.length < 8) {
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
 let { addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  timeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
-  argsCrowdFunding, argsTokenController, argsHCAT721 } = require('./zsetupData');
+  TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
+  argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
@@ -723,8 +723,6 @@ const deploy = async () => {
     process.exit(0);
 
   } else if (ctrtName === 'im') {
-    const argsIncomeManagement =[addrHCAT721, addrHeliumCtrt];
-
     instIncomeManager = await new web3deploy.eth.Contract(IncomeManagement.abi)
     .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
