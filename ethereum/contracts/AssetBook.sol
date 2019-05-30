@@ -277,13 +277,35 @@ contract AssetBook is MultiSig {
         with exchange price of `price`, with the server time being `serverTime`
         Note: the token IDs are chosen according to First In First Out principle
     */
-    function safeTransferFromBatch(address assetAddr, address _to, uint amount,  uint price, uint serverTime) 
-        public ckAssetOwner ckIsContract(assetAddr){
+    function checkSafeTransferFromBatch(address assetAddr, 
+        address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray) {
+
         HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
+        return hcat721.checkSafeTransferFromBatch(_from, _to, amount, price,  serverTime);
+    }
+    function safeTransferFromBatch(address assetAddr, uint assetIndex, address _to, uint amount,  uint price, uint serverTime) 
+        public ckAssetOwner {
+        address assetAddr_;
+        if(assetIndex > 0) {
+            assetAddr_ = assetIndexToAddr[assetIndex];
+        } else {
+            assetAddr_ = assetAddr;
+        }
+        require(assetAddr_.isContract(), "assetAddr has to contain a contract");
+
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr_)));
         hcat721.safeTransferFromBatch(address(this), _to, amount, price, serverTime);
     }
-    function assetbookApprove(address assetAddr, address operator, uint amount) external ckAssetOwner {
-        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr)));
+    function assetbookApprove(address assetAddr, uint assetIndex, address operator, uint amount) external ckAssetOwner {
+        address assetAddr_;
+        if(assetIndex > 0) {
+            assetAddr_ = assetIndexToAddr[assetIndex];
+        } else {
+            assetAddr_ = assetAddr;
+        }
+        require(assetAddr_.isContract(), "assetAddr has to contain a contract");
+
+        HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr_)));
         hcat721.tokenApprove(operator, amount);
     }
 

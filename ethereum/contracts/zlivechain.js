@@ -983,10 +983,18 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   }
   /**
    * [ true, true, true, true, true,    true, true, true, true, true,    true, false ]
+  
+    _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
+    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
+    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
+    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    safeTransferFromBatch(address assetAddr, uint assetIndex, address _to, uint amount,  uint price, uint serverTime) 
    */
   // yarn run livechain -c 1 --f 6 -a 1 -b 170 -t 3
-  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime).encodeABI();//address _from, address _to, uint amount, uint price, uint serverTime
-
+  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(addrHCAT721, 0, _to, amount, price, serverTime);
+  //
   //process.exit(0);
   //TxResult = await signTx(admin, adminpkRaw, addrHCAT721, encodedData);
   TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw , addrAssetBook1, encodedData).catch((err) => {
