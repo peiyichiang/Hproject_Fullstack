@@ -13,7 +13,7 @@
 /*=================上半部=================*/
 .content .signup .up{
 	/* max-width: 1024px; */
-	height: 158px;
+	height: 108px;
 	/*background-color: red;*/
 	text-align: center;
 
@@ -41,7 +41,7 @@
 /*註冊框*/
 .content .signup .down .signUpWindow{
 	max-width: 310px;
-	height: 380px;
+	height: 440px;
 	/*background-color: pink;*/
 	margin:0 auto;
 
@@ -80,7 +80,7 @@
 
 .content .signup .down .signUpWindow .windowDown{
 	/* max-width: 620px; */
-	height: 271px;
+	height: 341px;
 	/* padding-left: 20px; */
 	/*background-color: yellow;*/
 }

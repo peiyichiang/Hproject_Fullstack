@@ -57,12 +57,12 @@ const getFundingStateCFC = async (crowdFundingAddr) => {
 
 const updateFundingStateCFC = async (crowdFundingAddr, timeCurrent) => {
   console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'timeCurrent', timeCurrent);
-  const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-  const encodedData = inst_crowdFunding.methods.updateState(timeCurrent).encodeABI();
+  const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+  const encodedData = instCrowdFunding.methods.updateState(timeCurrent).encodeABI();
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
   console.log('\nTxResult', TxResult);
 
-  let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
+  let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
   console.log('\nfundingState:', fundingState);
   console.log('crowdFundingAddr', crowdFundingAddr);
   return fundingState;
@@ -80,13 +80,13 @@ const getTokenStateTCC = async (tokenControllerAddr) => {
 
 const updateTokenStateTCC = async (tokenControllerAddr, timeCurrent) => {
   console.log('\n[updateTokenStateTCC] tokenControllerAddr', tokenControllerAddr, 'timeCurrent', timeCurrent);
-  const inst_tokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
+  const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
     
-  const encodedData = inst_tokenController.methods.updateState(timeCurrent).encodeABI();
+  const encodedData = instTokenController.methods.updateState(timeCurrent).encodeABI();
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenControllerAddr, encodedData);
   console.log('\nTxResult', TxResult);
 
-  let tokenState = await inst_tokenController.methods.tokenState().call({ from: backendAddr });
+  let tokenState = await instTokenController.methods.tokenState().call({ from: backendAddr });
   console.log('\ntokenState:', tokenState);
   console.log('tokenControllerAddr', tokenControllerAddr);
   return tokenState;
@@ -94,8 +94,8 @@ const updateTokenStateTCC = async (tokenControllerAddr, timeCurrent) => {
 
 const checkIMC_isSchGoodForRelease = async (incomemanagerAddr, timeCurrent) => {
   console.log('\n[checkIMC_isSchGoodForRelease] incomemanagerAddr', incomemanagerAddr, 'timeCurrent', timeCurrent);
-  const inst_incomeManager = new web3.eth.Contract(IncomeManager.abi, incomeManagerAddr);
-  let isScheduleGoodForRelease = await inst_incomeManager.methods.isScheduleGoodForRelease(timeCurrent).call({ from: backendAddr });
+  const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeManagerAddr);
+  let isScheduleGoodForRelease = await instIncomeManager.methods.isScheduleGoodForRelease(timeCurrent).call({ from: backendAddr });
   console.log('\nisScheduleGoodForRelease:', isScheduleGoodForRelease);
   console.log('incomemanagerAddr', incomemanagerAddr);
   return isScheduleGoodForRelease;
@@ -194,11 +194,11 @@ const sequentialCheckBalances = async (toAddressArray, tokenCtrtAddr) => {
     //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
 
     const balanceArrayBefore = [];
-    const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
     await asyncForEachBasic(toAddressArray, async (toAddress) => {
       console.log(`\n--------------==next: check the balance of ${toAddress}`);
-      const tokenBalanceBeforeMinting = await inst_HCAT721.methods.balanceOf(toAddress).call();
+      const tokenBalanceBeforeMinting = await instHCAT721.methods.balanceOf(toAddress).call();
       balanceArrayBefore.push(parseInt(tokenBalanceBeforeMinting));
     });
 
@@ -225,11 +225,11 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
 
     const isCorrectAmountArray = [];
     const balanceArrayAfter = [];
-    const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
     await asyncForEachSuper(toAddressArray, amountArray, async (toAddress, amount, idxSuper) => {
       const balanceBefore = balanceArrayBefore[idxSuper];
-      const tokenBalanceAfterMinting_ = await inst_HCAT721.methods.balanceOf(toAddress).call();
+      const tokenBalanceAfterMinting_ = await instHCAT721.methods.balanceOf(toAddress).call();
       const tokenBalanceAfterMinting = parseInt(tokenBalanceAfterMinting_);
       const increase = tokenBalanceAfterMinting - balanceBefore;
       const isCorrect = (parseInt(amount) === increase);
@@ -251,12 +251,12 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
   console.log('\n----------------------==sequentialMint()');
   const currentTime = await timer.getTime();
   console.log(`tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}, acquired currentTime: ${currentTime}`);
-  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+  const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
   //async function asyncForEachSuper(array1, array2, callback) {}
   await asyncForEachSuper(toAddressArrayOut, amountArrayOut, async (toAddress, amount) => {
     console.log(`\n-----------==next: mint to ${toAddress} ${amount} tokens`);
 
-    const encodedData = inst_HCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, currentTime).encodeABI();
+    const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, currentTime).encodeABI();
     const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch((err) => console.log('\n[Error @ signTx()]', err));
     console.log('TxResult', TxResult);
   });
@@ -465,8 +465,8 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
   await timer.getTime().then(async function (currentTime) {
     //console.log('blockchain.js: mintToken(), timeCurrent:', currentTime);
     console.log('acquired currentTime', currentTime);
-    const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-    let encodedData = inst_HCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    let encodedData = instHCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, currentTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData);
     //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
     console.log('TxResult', TxResult);
@@ -580,13 +580,13 @@ const addInvestorAssebooksIntoCFC = async () => {
     addrAssetbook: ${addrAssetbook}
     crowdFundingAddr: ${crowdFundingAddr}`);
     
-                          const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-                          const encodedData = inst_crowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
+                          const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+                          const encodedData = instCrowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
                           //invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor)  OR  investInBatch(address[] calldata _assetbookArr, uint[] calldata _quantityToInvestArr, uint serverTime)
                           let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
                           console.log('\nTxResult', TxResult);
                         
-                          //let fundingState = await inst_crowdFunding.methods.fundingState().call({ from: backendAddr });
+                          //let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
                           //console.log('\nfundingState:', fundingState);
                           //return fundingState;
   
@@ -620,8 +620,8 @@ const getInvestorsFromCFC = async (indexStart, tokenCountStr) => {
     return [[-1],[-1]];
   }
   tokenCount = parseInt(tokenCountStr);
-  const inst_crowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-  const [assetbookArray, investedTokenQtyArray] = await inst_crowdFunding.methods.getInvestors(indexStart, tokenCount).call();  //getInvestors(uint indexStart, uint tokenCount) external view returns(address[] memory assetbookArray, uint[] memory investedTokenQtyArray)
+  const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+  const [assetbookArray, investedTokenQtyArray] = await instCrowdFunding.methods.getInvestors(indexStart, tokenCount).call();  //getInvestors(uint indexStart, uint tokenCount) external view returns(address[] memory assetbookArray, uint[] memory investedTokenQtyArray)
   console.log(`\nassetbookArray: ${assetbookArray}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
   return [assetbookArray, investedTokenQtyArray];
 }
@@ -714,7 +714,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
        * too long name: ia_single_Forecasted_Payable_Income_in_the_Period, ia_single_Actual_Income_Payment_in_the_Period... actualPaymentTime?
        * Write that result into BC below...
        */
-      const inst_incomeManager = new web3.eth.Contract(IncomeManager.abi, targetAddr);
+      const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, targetAddr);
 
       //for loop for each token owner(bankResult) => {}
       const actualPaymentTime = 0;//bankResult.paymentDateTime
@@ -722,11 +722,11 @@ const writeToBlockchainAndDatabase = async (targetAddr, timeCurrent, symbol, act
       const errorCode = 0;//bankResult.paymentError
 
       //write bank's confirmation into IncomeManager.sol
-      let encodedData = inst_incomeManager.methods.setPaymentReleaseResults(timeCurrent, actualPaymentTime, actualPaymentAmount, errorCode).encodeABI();
+      let encodedData = instIncomeManager.methods.setPaymentReleaseResults(timeCurrent, actualPaymentTime, actualPaymentAmount, errorCode).encodeABI();
       let TxResult = await signTx(backendAddr, backendRawPrivateKey, targetAddr, encodedData);
       console.log('TxResult', TxResult);
 
-      //const scheduleDetails = await inst_incomeManager.methods.getIncomeSchedule(schIndex).call({ from: backendAddr });
+      //const scheduleDetails = await instIncomeManager.methods.getIncomeSchedule(schIndex).call({ from: backendAddr });
       //console.log('[Success @ updateIncomeManager(timeCurrent)] scheduleDetails:', scheduleDetails);
 
     } else {

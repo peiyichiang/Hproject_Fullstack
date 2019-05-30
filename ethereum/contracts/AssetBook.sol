@@ -156,6 +156,35 @@ contract AssetBook is MultiSig {
         assetOwner = _assetOwner;
         addrHeliumContract = _addrHeliumContract;
     }
+    function checkDeploymentConditions(
+        address _assetOwner, address _addrHeliumContract
+      ) public view returns(bool[] memory boolArray) {
+        boolArray = new bool[](2);
+        boolArray[0] = _assetOwner.isContract();
+        boolArray[1] = _addrHeliumContract.isContract();
+    }
+
+    function addAsset(address assetAddr) external ckAssetOwner {
+        if(addrToAssetIndex[assetAddr] == 0){
+            assetCindex = assetCindex.add(1);
+            addrToAssetIndex[assetAddr] = assetCindex;
+            assetIndexToAddr[assetCindex] = assetAddr;
+        }
+    }
+    function deleteAsset(uint assetIndex, address assetAddr) external ckAssetOwner {
+        uint assetIndex_;
+        address assetAddr_;
+        if(assetIndex > 0) {
+            assetIndex_ = assetIndex;
+            assetAddr_ = assetIndexToAddr[assetIndex];
+        } else {
+            require(assetAddr.isContract(), "assetAddr has to contain a contract");
+            assetAddr_ = assetAddr;
+            assetIndex_ = addrToAssetIndex[assetAddr];
+        }
+        delete addrToAssetIndex[assetAddr_];
+        delete assetIndexToAddr[assetIndex_];
+    }
 
     /** @dev get assets info: asset symbol and balance on this assetbook’s account
 			assetAddr is the asset contract address */
@@ -274,7 +303,7 @@ contract AssetBook is MultiSig {
         return MAGIC_ON_ERC721_RECEIVED;
     }
 
-    function() external payable { revert("should not send any ether directly"); }
+    //function() external payable { revert("should not send any ether directly"); }
 }
 
 

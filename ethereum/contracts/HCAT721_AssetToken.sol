@@ -322,7 +322,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     //---------------------------==Transfer
     function checkSafeTransferFromBatch(
         address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray) {
-        boolArray = new bool[](9);
+        boolArray = new bool[](11);
         boolArray[0] = _to.isContract();
         boolArray[1] = ERC721TokenReceiverITF(_to).onERC721Received(
         msg.sender, _from, 1, "") == MAGIC_ON_ERC721_RECEIVED;
@@ -333,6 +333,37 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         boolArray[6] = TokenControllerITF(addrTokenController).isTokenApprovedOperational();
         boolArray[7] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to);
         boolArray[8] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from);
+        boolArray[9] = balanceOf(_from) >= amount;
+
+        boolArray[10] = accounts[_from].allowed[msg.sender] >= amount;
+        /*
+        uint allowedAmount = accounts[_from].allowed[msg.sender];
+        for(uint i = 0; i < amount; i = i.add(1)) {
+            //inside _from account
+            uint idxFrom = i.add(idxX[0]);
+            uint tokenId_ = accounts[_from].indexToId[idxFrom];
+
+            address tokenOwner = idToAsset[tokenId_].owner;
+            require(tokenOwner == _from, "tokenOwner should be _from");
+            //require(tokenOwner != address(0), "owner should not be 0x0");
+
+            if(tokenOwner == msg.sender){
+
+            } else if (allowedAmount > 0){
+                allowedAmount = allowedAmount.sub(1);
+            } else {
+                revert("msg.sender is not tokenOwner, or a token caller does not have enough allowed amount");
+            }
+            // require(
+            // tokenOwner == msg.sender ||
+            // idToAsset[tokenId_].approvedAddr == msg.sender ||
+            // allowedAmount > amount,
+            // "msg.sender should be tokenOwner, an approved, or a token operator has enough allowed amount");
+
+            idToAsset[tokenId_].owner = _to;
+
+            accounts[_to].indexToId[i.add(idxStartReqT)] = tokenId_;
+        }*/
     }
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
         //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
