@@ -1533,7 +1533,7 @@
         }
 
         //募資結束
-        function FundingFinished(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, irr, buttonID, TimeTokenLaunch, TimeTokenValid, lockupperiod, HCAT721uri) {
+        function FundingFinished(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, irr, buttonID, TimeOfDeployment, TimeTokenValid, lockupperiod, HCAT721uri) {
             $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/status", function (result) {
                 console.log(result);
                 console.log(result.fundingState);
@@ -1551,7 +1551,7 @@
                     /*部署TokenControllerContract*/
                     console.log("TokenControllerContract deploying...");
                     $.post("http://localhost:3030/Contracts/tokenControllerContract", {
-                        TimeTokenLaunch: TimeTokenLaunch,
+                        TimeOfDeployment: TimeOfDeployment,
                         TimeTokenUnlock: lockupperiod,
                         TimeTokenValid: TimeTokenValid
                     }, function (result) {
