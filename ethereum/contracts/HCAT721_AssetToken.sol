@@ -62,7 +62,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     uint public initialAssetPricing;// initial asset pricing, which is the pricing published during the crowdfunding event. Typical value 17000
     bytes32 public pricingCurrency;// the currency name that the initialAssetPricing is based on, e.g. NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7;  20 years (per year) IRR times 100;
-    uint public TimeCfDeployment;
+    uint public TimeOfDeployment;
     address public addrRegistry;// address of Registry contract
     address public addrTokenController;// address of TokenController contract
 
@@ -81,7 +81,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI, address _addrHelium, uint _TimeCfDeployment) public {
+        bytes32 _tokenURI, address _addrHelium, uint _TimeOfDeployment) public {
 
         name = _nftName;
         symbol = _nftSymbol;//may need to check symbol length > 8...
@@ -95,7 +95,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         addrRegistry = _addrRegistry;
         addrTokenController = _addrTokenController;
         addrHelium = _addrHelium;
-        TimeCfDeployment = _TimeCfDeployment;
+        TimeOfDeployment = _TimeOfDeployment;
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
@@ -105,7 +105,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI, address _addrHelium, uint _TimeCfDeployment
+        bytes32 _tokenURI, address _addrHelium, uint _TimeOfDeployment
       ) public view returns(bool[] memory boolArray) {
         boolArray = new bool[](12);
         boolArray[0] = _nftName[0] != 0;
@@ -120,7 +120,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         boolArray[8] = _addrTokenController.isContract();
         boolArray[9] = _addrHelium.isContract();
         boolArray[10] = _tokenURI[0] != 0;
-        boolArray[11] = _TimeCfDeployment > 201905281400;
+        boolArray[11] = _TimeOfDeployment > 201905281400;
     }
 
     function getTokenContractDetails() external view returns (
@@ -269,7 +269,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         boolArray[2] = amount > 0;
         boolArray[3] = price > 0;
         boolArray[4] = fundingType > 0;
-        boolArray[5] = serverTime > TimeCfDeployment;
+        boolArray[5] = serverTime > TimeOfDeployment;
         boolArray[6] = tokenId.add(amount) <= maxTotalSupply;
         boolArray[7] = HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender);
         
@@ -333,7 +333,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         boolArray[3] = amount > 0;
         boolArray[4] = price > 0;
         boolArray[5] = _from != _to;
-        boolArray[6] = serverTime > TimeCfDeployment;
+        boolArray[6] = serverTime > TimeOfDeployment;
         boolArray[7] = TokenControllerITF(addrTokenController).isTokenApprovedOperational();
         boolArray[8] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to);
         boolArray[9] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from);
