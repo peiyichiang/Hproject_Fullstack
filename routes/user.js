@@ -282,6 +282,7 @@ router.post('/AddUser', function (req, res, next) {
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
+                u_investorLevel: 1
             };//Math.random().toString(36).substring(2, 15)
             passwordHash.passwordHash = hash
 
