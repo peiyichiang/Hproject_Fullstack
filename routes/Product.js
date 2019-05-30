@@ -1098,45 +1098,82 @@ router.get('/ProductList', function (req, res) {
     });
 });
 
+router.get('/ProductList', function (req, res) {
+    console.log('------------------------==\n@Product/ProductList');
+    let mysqlPoolQuery = req.pool;
+    mysqlPoolQuery('SELECT * FROM product', function (err, result) {
+        if (err) {
+            res.status(400)
+            res.json({
+                "message": "產品列表取得失敗:\n" + err
+            })
+        }
+        else {
+            res.status(200);
+            res.json({
+                "message": "產品列表取得成功！",
+                "result": result
+            });
+        }
+        /* code = 304? */
+    });
+});
+
 router.get('/LaunchedProductList', function (req, res) {
     console.log('------------------------==\n@Product/ProductList');
     let mysqlPoolQuery = req.pool;
     mysqlPoolQuery(
         `SELECT p_irr AS IRR,
-                p_name AS name,
-                p_location AS location,
-                p_SYMBOL AS symbol,
-                p_pricing AS pricing,
-                p_currency AS currency,
-                p_totalrelease AS maxProductQuantity,
-                ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
-                SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
-                SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
-                SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
-                p_size AS size,
-                p_duration AS durationInYear,
-                SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
-                SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
-                SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
-                p_Image1 AS imageURL1,
-                p_Image2 AS imageURL2,
-                p_Image3 AS imageURL3,
-                p_Image4 AS imageURL4,
-                p_Image5 AS imageURL5,
-                p_Image6 AS imageURL6,
-                p_Image7 AS imageURL7,
-                p_Image8 AS imageURL8,
-                p_Image9 AS imageURL9,
-                p_Image10 AS imageURL10,
-                p_TaiPowerApprovalDate AS taiPowerApprovalDate,
-                p_CFSD AS CFSD,
-                p_BOEApprovalDate AS BOEApprovalDate,
-                p_CFED AS CFED,
-                p_PVTrialOperationDate AS PVTrialOperationDate,
-                p_PVOnGridDate AS PVOnGridDate,
-                p_fundingType AS fundingType
-       FROM product 
-       WHERE p_state = \'funding\'`, function (err, productArray) {
+        p_name AS name,
+        p_location AS location,
+        p_SYMBOL AS symbol,
+        p_pricing AS pricing,
+        p_currency AS currency,
+        p_totalrelease AS maxProductQuantity,
+        ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
+        SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
+        SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
+        SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
+        p_size AS size,
+        p_duration AS durationInYear,
+        SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
+        SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
+        SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
+        p_Image1 AS imageURL1,
+        p_Image2 AS imageURL2,
+        p_Image3 AS imageURL3,
+        p_Image4 AS imageURL4,
+        p_Image5 AS imageURL5,
+        p_Image6 AS imageURL6,
+        p_Image7 AS imageURL7,
+        p_Image8 AS imageURL8,
+        p_Image9 AS imageURL9,
+        p_Image10 AS imageURL10,
+        p_TaiPowerApprovalDate AS taiPowerApprovalDate,
+        p_CFSD AS CFSD,
+        p_BOEApprovalDate AS BOEApprovalDate,
+        p_CFED AS CFED,
+        p_PVTrialOperationDate AS PVTrialOperationDate,
+        p_PVOnGridDate AS PVOnGridDate,
+        p_fundingType AS fundingType,
+        p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
+        IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal
+        FROM product AS T1
+        LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
+                    FROM htoken.order
+                    WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
+                    GROUP BY o_symbol) AS T2
+        ON T1.p_SYMBOL = T2.o_symbol
+        LEFT JOIN ( SELECT o_symbol , COUNT(DISTINCT o_userIdentityNumber ) AS purchasedNumberOfPeople
+                    FROM htoken.order
+                    GROUP BY o_symbol) AS T3
+        ON T1.p_SYMBOL = T3.o_symbol
+        LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
+                    FROM htoken.income_arrangement 
+                    GROUP BY ia_SYMBOL) AS T4
+        ON T1.p_SYMBOL = T4.ia_SYMBOL
+        WHERE p_state = \'funding\';`, function (err, productArray) {
             if (err) {
                 res.status(400)
                 res.json({
@@ -1144,38 +1181,49 @@ router.get('/LaunchedProductList', function (req, res) {
                 })
             }
             else {
-                /* TODO: 這些資料的斜線要去掉 */
-                productArray.map(
-                    product => {
-                        product.imageURL1 = "imageURL1"
-                        product.imageURL2 = "imageURL2"
-                        product.imageURL3 = "imageURL3"
-                        product.imageURL4 = "imageURL4"
-                        product.imageURL5 = "imageURL5"
-                        product.imageURL6 = "imageURL6"
-                        product.imageURL7 = "imageURL7"
-                        product.imageURL8 = "imageURL8"
-                        product.imageURL9 = "imageURL9"
-                        product.imageURL10 = "imageURL10"
-                        product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                        product.BOEApprovalDate = "BOEApprovalDate"
-                        product.PVTrialOperationDate = "PVTrialOperationDate"
-                        product.PVOnGridDate = "PVOnGridDate"
-                        if (product.fundingType === "PO") {
-                            product.fundingType = "PublicOffering"
-                        } else if (product.fundingType === "PP") {
-                            product.fundingType = "PrivatePlacement"
-                        }
+                if (productArray.length > 0) {
+                    /* TODO: 這些資料的斜線要去掉 */
+                    productArray.map(
+                        product => {
+                            product.imageURL1 = "imageURL1"
+                            product.imageURL2 = "imageURL2"
+                            product.imageURL3 = "imageURL3"
+                            product.imageURL4 = "imageURL4"
+                            product.imageURL5 = "imageURL5"
+                            product.imageURL6 = "imageURL6"
+                            product.imageURL7 = "imageURL7"
+                            product.imageURL8 = "imageURL8"
+                            product.imageURL9 = "imageURL9"
+                            product.imageURL10 = "imageURL10"
+                            if (product.taiPowerApprovalDate === null)
+                                product.taiPowerApprovalDate = "taiPowerApprovalDate"
+                            if (product.BOEApprovalDate === null)
+                                product.BOEApprovalDate = "BOEApprovalDate"
+                            if (product.PVTrialOperationDate === null)
+                                product.PVTrialOperationDate = "PVTrialOperationDate"
+                            if (product.PVOnGridDate === null)
+                                product.PVOnGridDate = "PVOnGridDate"
+                            if (product.fundingType === "PO") {
+                                product.fundingType = "PublicOffering"
+                            } else if (product.fundingType === "PP") {
+                                product.fundingType = "PrivatePlacement"
+                            }
+                        });
+                    res.status(200);
+                    res.json({
+                        "message": "產品列表取得成功！",
+                        "result": productArray
                     });
-                res.status(200);
-                res.json({
-                    "message": "產品列表取得成功！",
-                    "result": productArray
-                });
+                } else {
+                    res.json({
+                        "message": "產品列表取得成功: 找不到資產"
+                    });
+                }
             }
             /* code = 304? */
         });
 });
+
 
 
 //Ray ... htoken.  omitted
