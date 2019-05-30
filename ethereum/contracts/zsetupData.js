@@ -79,11 +79,14 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 // const currentTime = await timer.getTime();
 // console.log('currentTime', currentTime);
 //To be copied to timeserverTest.js
-const TimeOfDeployment = 201905281410;
-const CFSD2 = TimeOfDeployment+10;
-const CFED2 = TimeOfDeployment+15;
-const TimeTokenUnlock = TimeOfDeployment+20; 
-const TimeTokenValid =  TimeOfDeployment+90;
+const TimeOfDeployment_CF = 201905281410;
+const CFSD2 = TimeOfDeployment_CF+10;
+const CFED2 = TimeOfDeployment_CF+15;
+const TimeOfDeployment_TokCtrl = TimeOfDeployment_CF + 20;
+const TimeOfDeployment_HCAT = TimeOfDeployment_CF + 21;
+const TimeOfDeployment_IM = TimeOfDeployment_CF + 22;
+const TimeTokenUnlock = TimeOfDeployment_CF+30; 
+const TimeTokenValid =  TimeOfDeployment_CF+90;
 fundmanager = 'FundManagerN';
 
 /** deployed contracts
@@ -116,16 +119,6 @@ productObjArray.forEach( (obj) => {
 });
 console.log('\nconst symbolArray =', symbolArray, ';\nconst crowdFundingAddrArray =', crowdFundingAddrArray, ';\nconst tokenControllerAddrArray =', tokenControllerAddrArray,';');
 
-console.log(`
-const TimeOfDeployment = ${TimeOfDeployment};
-const CFSD2 = TimeOfDeployment+1;
-const CFED2 = TimeOfDeployment+7;
-const TimeTokenUnlock = TimeOfDeployment+20; 
-const TimeTokenValid =  TimeOfDeployment+90;
-const fundmanager = 'Company_FundManagerN';
-const pricingCurrency = "NTD";
-const TimeOfDeployment = TimeOfDeployment+1000;
-`);
 console.log('symNum', symNum);
 nftName = productObjArray[symNum].nftName;
 nftSymbol = productObjArray[symNum].nftSymbol;
@@ -148,9 +141,12 @@ addrProductManager= '';
 tokenURI = nftSymbol+"/uri";
 
 console.log(`
-const TimeOfDeployment = ${TimeOfDeployment};
+const TimeOfDeployment_CF = ${TimeOfDeployment_CF};
 const CFSD2 = ${CFSD2};
 const CFED2 = ${CFED2};
+const TimeOfDeployment_TokCtrl = ${TimeOfDeployment_TokCtrl};
+const TimeOfDeployment_HCAT = ${TimeOfDeployment_HCAT};
+const TimeOfDeployment_IM = ${TimeOfDeployment_IM};
 const TimeTokenUnlock = ${TimeTokenUnlock}; 
 const TimeTokenValid =  ${TimeTokenValid};
 const fundmanager = '${fundmanager}';
@@ -165,14 +161,13 @@ addrRegistry: ${addrRegistry}
 addrTokenController = ${addrTokenController}
 addrHCAT721 = '${addrHCAT721}'
 
-duration: ${duration}, TimeOfDeployment: ${TimeOfDeployment}
-fundingType: ${fundingType}
+duration: ${duration}, fundingType: ${fundingType}
 `);
 
-const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment, addrHelium];
+const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment_CF, addrHelium];
 
 const argsTokenController = [
-  TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, addrHelium ];
+  TimeOfDeployment_TokCtrl, TimeTokenUnlock, TimeTokenValid, addrHelium ];
 
 const nftName_bytes32 = web3.utils.fromAscii(nftName);
 const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
@@ -182,7 +177,7 @@ const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
 const argsHCAT721 = [
 nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
 initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,TimeOfDeployment];
+addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,TimeOfDeployment_HCAT];
 const argsIncomeManagement =[addrHCAT721, addrHelium];
 
 const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
@@ -191,7 +186,7 @@ const authLevels = [5, 5, 5];
 
 module.exports = {
   addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
+  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement
 }
   /**

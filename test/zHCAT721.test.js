@@ -268,7 +268,7 @@ let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
 let addrAssetBook1, addrAssetBook2, addrAsset3, addrAsset4;
 
-const { TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('../ethereum/contracts/zsetupData');
+const { TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('../ethereum/contracts/zsetupData');
 
 const tokenName = "NCCU site No.1(2018)";
 const tokenSymbol = "NCCU1801";
@@ -403,7 +403,7 @@ beforeEach( async function() {
     //Deploying TokenController contract...
     console.log('\nDeploying TokenController contract...');
     const argsTokenController = [
-      TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, addrHeliumCtrt ];
+      TimeOfDeployment_TokCtrl, TimeTokenUnlock, TimeTokenValid, addrHeliumCtrt ];
     instTokenController = await new web3.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -423,7 +423,7 @@ beforeEach( async function() {
     const argsHCAT721 = [
     tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, addrTokenController, tokenURI_bytes32, addrHeliumCtrt, TimeOfDeployment];
+    addrRegistry, addrTokenController, tokenURI_bytes32, addrHeliumCtrt, TimeOfDeployment_HCAT];
     console.log('\nDeploying HCAT721 contract...');
     instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
     .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
@@ -441,7 +441,7 @@ beforeEach( async function() {
     */
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment, addrHeliumCtrt];
+    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment_CF, addrHeliumCtrt];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -456,7 +456,7 @@ beforeEach( async function() {
 
     //---------=IncomeManagerCtrt related contracts
     console.log('\nDeploying IncomeManager contract...');
-    const argsIncomeManagerCtrt =[addrHCAT721, addrHeliumCtrt, TimeOfDeployment];
+    const argsIncomeManagerCtrt =[addrHCAT721, addrHeliumCtrt, TimeOfDeployment_IM];
     instIncomeManagerCtrt = await new web3.eth.Contract(IncomeManagerCtrt.abi)
     .deploy({ data: IncomeManagerCtrt.bytecode, arguments: argsIncomeManagerCtrt })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -905,12 +905,12 @@ describe('Tests on HCAT721', () => {
     console.log('addrTokenController', addrTokenController);
 
     tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call(); 
-    TimeAtDeploymentM = tokenControllerDetail[0];
+    TimeOfDeployment_TokCtrlM = tokenControllerDetail[0];
     TimeTokenUnlockM = tokenControllerDetail[1];
     TimeTokenValidM = tokenControllerDetail[2];
     isLockedForReleaseM = tokenControllerDetail[3];
     isTokenApprovedM = tokenControllerDetail[4];
-    console.log('TimeOfDeployment', TimeOfDeploymentM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLockedForReleaseM', isLockedForReleaseM, ', isTokenApprovedM', isTokenApprovedM);
+    console.log('TimeOfDeployment_TokCtrl', TimeOfDeployment_TokCtrlM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLockedForReleaseM', isLockedForReleaseM, ', isTokenApprovedM', isTokenApprovedM);
 
     isSenderAllowed = await instTokenController.methods.checkPlatformSupervisor().call({from: admin});
     assert.equal(isSenderAllowed, true);
@@ -1253,7 +1253,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode;
 
     _index = 1;
-    forecastedPayableTime = TimeOfDeployment+1;
+    forecastedPayableTime = TimeOfDeployment_IM+1;
     forecastedPayableAmount = 3000;
 
     console.log('\n--------==Initial conditions');

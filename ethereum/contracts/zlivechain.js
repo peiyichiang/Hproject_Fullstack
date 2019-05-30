@@ -8,8 +8,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
 
-let {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('./zsetupData');
-const TimeOfDeployment = TimeOfDeployment;
+const {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
@@ -61,7 +60,7 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 
 
 let txnNum = 2, isShowCompiledCtrt = false;
-console.log('chain = ', chain, ', txnNum =', txnNum, ', TimeOfDeployment =', TimeOfDeployment);
+console.log('chain = ', chain, ', txnNum =', txnNum);
 
 let addrTestCtrt, assetbook1M, assetbook2M;
 let amount, to, _from, tokenIds, tokenId_now, nodeUrl, authLevelM;
@@ -1011,7 +1010,7 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
 const sendAssetBeforeAllowed = async () => {
   //----------------==Send tokens before allowed time
   console.log('\n------------==Send tokens before allowed time');
-  serverTime = TimeOfDeployment;
+  serverTime = TimeTokenUnlock+1;
   await instTokenController.methods.setTimeCurrent(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
