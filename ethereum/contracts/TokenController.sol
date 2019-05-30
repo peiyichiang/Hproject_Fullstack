@@ -8,7 +8,7 @@ contract TokenController {
     using AddressUtils for address;
 
     // 201902180900, 201902180901, 201902180902, 201902180907
-    uint public TimeAtDeployment;// Time At Deployment
+    uint public TimeCfDeployment;// Time At Deployment
     uint public TimeUnlock;//The time to unlock tokens from lock up period
     uint public TimeValid;// Token valid time or expiry time. e.g. 203903310000
     bool public isLockedForRelease;// true or false: check if the token is locked for release
@@ -20,9 +20,9 @@ contract TokenController {
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _timeOfDeployment, 
+    constructor(uint _TimeOfDeployment, 
       uint _TimeUnlock, uint _TimeValid, address _addrHelium) public {
-        TimeAtDeployment = _timeOfDeployment;
+        TimeCfDeployment = _TimeOfDeployment;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
         tokenState = TokenState.inInitialLockUpPeriod;
@@ -30,19 +30,19 @@ contract TokenController {
         addrHelium = _addrHelium;
     }
     function checkDeploymentConditions(
-        uint _timeOfDeployment, uint _TimeUnlock,
+        uint _TimeOfDeployment, uint _TimeUnlock,
         uint _TimeValid, address _addrHelium
 
       ) public view returns(bool[] memory boolArray) {
         boolArray = new bool[](4);
-        boolArray[0] = _timeOfDeployment > 201905281400;
-        boolArray[1] = _TimeUnlock > _timeOfDeployment;
+        boolArray[0] = _TimeOfDeployment > 201905281400;
+        boolArray[1] = _TimeUnlock > _TimeOfDeployment;
         boolArray[2] = _TimeValid > _TimeUnlock;
         boolArray[3] = _addrHelium.isContract();
     }
 
     modifier ckTime(uint _time) {
-        require(_time > 201903070000, "_time is <= 201903070000 or not in the format of yyyymmddhhmm");
+        require(_time > TimeCfDeployment, "_time should be > TimeCfDeployment or not in the format of yyyymmddhhmm");
         _;
     }
 
@@ -61,10 +61,10 @@ contract TokenController {
         return (tokenState == TokenState.normal && isTokenApproved);
     }
 
-    // to give variable values including TimeAtDeployment, TimeUnlock, TimeValid, isLockedForRelease
+    // to give variable values including TimeCfDeployment, TimeUnlock, TimeValid, isLockedForRelease
     function getHTokenControllerDetails() public view returns (
-        uint TimeAtDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_, bool isTokenApproved_) {
-          TimeAtDeployment_ = TimeAtDeployment;
+        uint TimeCfDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_, bool isTokenApproved_) {
+          TimeCfDeployment_ = TimeCfDeployment;
           TimeUnlock_ = TimeUnlock;
           TimeValid_ = TimeValid;
           isLockedForRelease_ = isLockedForRelease;
@@ -104,9 +104,9 @@ contract TokenController {
         isLockedForRelease = true;
     }
 
-    //To set TimeAtDeployment before isLockedForRelease becomes true
-    // function setReleaseTime(uint _TimeAtDeployment) external onlyPlatformSupervisor ckTime(_TimeAtDeployment) ckLock {
-    //     TimeAtDeployment = _TimeAtDeployment;
+    //To set TimeCfDeployment before isLockedForRelease becomes true
+    // function setReleaseTime(uint _TimeCfDeployment) external onlyPlatformSupervisor ckTime(_TimeCfDeployment) ckLock {
+    //     TimeCfDeployment = _TimeCfDeployment;
     // }
 
     modifier ckLock() {

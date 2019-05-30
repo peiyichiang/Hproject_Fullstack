@@ -8,7 +8,8 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
 
-let {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, timeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721 } = require('./zsetupData');
+let {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('./zsetupData');
+const TimeOfDeployment = TimeOfDeployment;
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
@@ -58,16 +59,9 @@ if (arguLen == 3 && process.argv[2] === '--h') {
   }
 }
 
-/**
-timeOfDeployment = 201905281410;
-CFSD2 = timeOfDeployment+1;
-CFED2 = timeOfDeployment+7;
-TimeTokenUnlock = timeOfDeployment+20; 
-TimeTokenValid =  timeOfDeployment+90;
-*/
-const timeCurrent = timeOfDeployment;
+
 let txnNum = 2, isShowCompiledCtrt = false;
-console.log('chain = ', chain, ', txnNum =', txnNum, ', timeCurrent =', timeCurrent);
+console.log('chain = ', chain, ', txnNum =', txnNum, ', TimeOfDeployment =', TimeOfDeployment);
 
 let addrTestCtrt, assetbook1M, assetbook2M;
 let amount, to, _from, tokenIds, tokenId_now, nodeUrl, authLevelM;
@@ -367,13 +361,10 @@ let balanceM, balance0, balance1, balance2;
 
 //const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
-
-
-let serverTime = timeCurrent;
 let tokenId, uriStr, uriBytes32, uriStrB, tokenOwner, tokenOwnerM;
 let tokenControllerDetail, timeAtDeployment;
 let TimeUnlockM, TimeValidM, isLockedForRelease, isTokenApproved;
-let isTokenApprovedOperational, bool2, userID;
+let isTokenApprovedOperational, bool2, userID, serverTime;
 
 
 const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
@@ -663,7 +654,7 @@ const getTokenController = async () => {
   checkEq(tokenIdM, '0');
 
   if (!isTokenApprovedOperational) {
-    console.log('Setting timeCurrent to TimeTokenUnlock+1 ...');
+    console.log('Setting serverTime to TimeTokenUnlock+1 ...');
     serverTime = TimeTokenUnlock+1;
     const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrTokenController, encodedData);
@@ -878,8 +869,26 @@ const mintTokens = async (assetbookNum, amount) => {
 }
 
 
+//yarn run livechain -c 1 --f 39
+const transferTokensKY = async () => {
+  console.log('\ntransferTokensKY...');
+  const contractAddr = "0x36fBC316ca6c4a316162b09F7c7e772a55DA5872";
+  const _from = "0x2905D81FfD7EEd9Bf7aDB318B6F53bd567339925";
+  const to = "0x6e2e81a113f8E02253a4aF2A8f8de15902899BFd";
+  const amount = 1;
+  const price = 21000;
+  const serverTime = 201905281435;
+
+  const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
+  let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
+  //safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime)
+  let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+  console.log('TxResult', TxResult);
+} 
+
 //yarn run livechain -c 1 --f 6 -a 1 -b 150 -t 2
-const transferTokens = async (assetbookNumFrom, amount, assetbookNumTo) => {
+const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
+  const amount = parseInt(amountStr);
   console.log(`\n--------==Send tokens\nassetbookNumFrom: ${assetbookNumFrom}, amount: ${amount}, assetbookNumTo: ${assetbookNumTo}`);
   let instAssetBookFrom, instAssetBookTo;
 
@@ -944,22 +953,44 @@ const transferTokens = async (assetbookNumFrom, amount, assetbookNumTo) => {
 
   serverTime = TimeTokenUnlock+5;
   console.log('\nsending tokens via transferAssetBatch()...');
-  console.log(`AssetBook${assetbookNumFrom} sending ${amount} tokens to AssetBook${assetbookNumTo} via safeTransferFromBatch()... balanceFromInitial: ${balanceFromInitial}, balanceToInitial: ${balanceToInitial}, serverTime: ${serverTime}... as TimeTokenUnlock+5`);
 
+  const isAmountInt = Number.isInteger(amount);
+  const isPriceInt = Number.isInteger(price);
+  const isServerTimeInt = Number.isInteger(serverTime);
+  console.log(`via safeTransferFromBatch()... 
+  AssetBook${assetbookNumFrom} sending to AssetBook${assetbookNumTo}
+  ${amount} tokens ${typeof amount} ${isAmountInt}
+  balanceFromInitial: ${balanceFromInitial}, balanceToInitial: ${balanceToInitial}
+  price: ${price} ${typeof price} ${isPriceInt} 
+  serverTime: ${serverTime} ${typeof serverTime} ${isServerTimeInt}
+  ... as TimeTokenUnlock+5
+  _from: ${_from}
+  _to:   ${_to}`);
+  checkEq(isAmountInt, true);
+  checkEq(isPriceInt, true);
+  checkEq(isServerTimeInt, true);
 
-  result = await instHCAT721.methods.checkSafeTransferFromBatch(_from, _to, amount, price, serverTime).call();
+  //const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+  result = await instHCAT721.methods.getTokenContractDetails().call({from: AssetOwner1});
+  console.log('result', result);
+
+  result = await instHCAT721.methods.checkSafeTransferFromBatch(_from, _to, amount, price, serverTime).call({from: AssetOwner1});
   console.log('result', result);
   if(result.every(checkTrue)){
-    console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+    console.log('\n[Success] all checks have passed checkSafeTransferFromBatch()');
   } else {
-    console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+    console.log('\n[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
   }
 
+  // yarn run livechain -c 1 --f 6 -a 1 -b 170 -t 3
   const encodedData = instHCAT721.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime).encodeABI();//address _from, address _to, uint amount, uint price, uint serverTime
 
   //process.exit(0);
   //TxResult = await signTx(admin, adminpkRaw, addrHCAT721, encodedData);
-  TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrHCAT721, encodedData).catch((err) => console.log('[Error @ signTx()]', err));
+  TxResult = await signTx(backendAddr, backendRawPrivateKey, addrHCAT721, encodedData).catch((err) => {
+    console.log('[Error @ signTx()]', err)
+    process.exit(1);
+  });
   console.log('TxResult', TxResult);
   /**
   let TxResult = await signTx(admin, adminpkRaw, tokenCtrtAddr, encodedData).catch((err) => console.log('[Error @ signTx()]', err));
@@ -980,8 +1011,8 @@ const transferTokens = async (assetbookNumFrom, amount, assetbookNumTo) => {
 const sendAssetBeforeAllowed = async () => {
   //----------------==Send tokens before allowed time
   console.log('\n------------==Send tokens before allowed time');
-
-  await instTokenController.methods.setTimeCurrent(timeCurrent)
+  serverTime = TimeOfDeployment;
+  await instTokenController.methods.setTimeCurrent(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
   console.log('isTokenApprovedOperational', isTokenApprovedOperational);
@@ -1001,7 +1032,7 @@ const sendAssetBeforeAllowed = async () => {
       error = true;
     }
   } catch (err) {
-    console.log('[Success] sending 1 token from assetCtrt1 to assetCtrt2 failed because of not meeting the condition: timeCurrent < TimeTokenUnlock', timeCurrent, TimeTokenUnlock);//assert(err);
+    console.log('[Success] sending 1 token from assetCtrt1 to assetCtrt2 failed because of not meeting the condition: serverTime < TimeTokenUnlock', serverTime, TimeTokenUnlock);//assert(err);
   }
   if (error) {
     console.log("\x1b[31m", '[Error] Why did not this fail???', error);
@@ -1164,6 +1195,8 @@ if (func === 0) {
 } else if (func === 38) {
   sequentialMintSuperNoMintAPI();
 
+} else if (func === 39) {
+  transferTokensKY();
 }
 showMenu();
 

@@ -11,7 +11,7 @@ contract IncomeManagerCtrt {
     using AddressUtils for address;
 
     address public tokenCtrt;//the token address
-    uint public serverTimeMin = 201905281400;// the minimum dataTime allowed
+    uint public TimeCfDeployment;// the minimum dataTime allowed
     address public addrHelium;
 
     uint public schCindex;//last submitted index and total count of current schedules, and also the index count. It starts from 1 to 80. SPLC life time has a total of 80 schedules
@@ -31,16 +31,19 @@ contract IncomeManagerCtrt {
     }
 
     // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
-    constructor(address _tokenCtrt, address _addrHelium) public {
+    constructor(address _tokenCtrt, address _addrHelium, uint _TimeCfDeployment) public {
         tokenCtrt = _tokenCtrt;
         addrHelium = _addrHelium;
+        TimeCfDeployment = _TimeCfDeployment;
     }
     function checkDeploymentConditions(
-        address _tokenCtrt, address _addrHelium
+        address _tokenCtrt, address _addrHelium, uint _TimeCfDeployment
       ) public view returns(bool[] memory boolArray) {
-        boolArray = new bool[](2);
+        boolArray = new bool[](3);
         boolArray[0] = _tokenCtrt.isContract();
         boolArray[1] = _addrHelium.isContract();
+        boolArray[2] = _TimeCfDeployment > 201905281400;
+
     }
 
     function checkPlatformSupervisor() external view returns (bool){
@@ -57,12 +60,12 @@ contract IncomeManagerCtrt {
     //check if the inputTime has income schedule that is ready to be released
     function isScheduleGoodForRelease(uint inputTime) external view returns (bool) {
         Schedule memory icSch = idxToSchedule[dateToIdx[inputTime]];
-        return (icSch.isApproved && icSch.forecastedPayableTime > serverTimeMin && icSch.forecastedPayableAmount > 0 && icSch.actualPaymentTime == 0 && icSch.actualPaymentAmount == 0);
+        return (icSch.isApproved && icSch.forecastedPayableTime > TimeCfDeployment && icSch.forecastedPayableAmount > 0 && icSch.actualPaymentTime == 0 && icSch.actualPaymentAmount == 0);
     }
 
     event AddSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
     function addSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
-        require(forecastedPayableTime > serverTimeMin, "forecastedPayableTime has to be in the format of yyyymmddhhmm");
+        require(forecastedPayableTime > TimeCfDeployment, "forecastedPayableTime has to be in the format of yyyymmddhhmm");
         if (schCindex > 0) {
           require(idxToSchedule[schCindex].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime");
         }
@@ -79,7 +82,7 @@ contract IncomeManagerCtrt {
         require(amount_ == forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
         require(amount_ > 0, "input array length must > 0");
 
-        require(forecastedPayableTimes[0] > serverTimeMin, "forecastedPayableTime[0] has to be in yyyymmddhhmm");
+        require(forecastedPayableTimes[0] > TimeCfDeployment, "forecastedPayableTime[0] has to be in yyyymmddhhmm");
         for(uint i = 0; i < amount_; i = i.add(1)){
             
             if (schCindex > 0) {
@@ -97,7 +100,7 @@ contract IncomeManagerCtrt {
     event EditIncomeSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
     function editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
@@ -118,7 +121,7 @@ contract IncomeManagerCtrt {
 
     function getIncomeSchedule(uint _schIndex) external view returns (uint forecastedPayableTime, uint forecastedPayableAmount, uint actualPaymentTime, uint actualPaymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
@@ -138,7 +141,7 @@ contract IncomeManagerCtrt {
     function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
 
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
@@ -189,7 +192,7 @@ contract IncomeManagerCtrt {
 
     function removeIncomeSchedule(uint _schIndex) external onlyPlatformSupervisor {
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
@@ -206,7 +209,7 @@ contract IncomeManagerCtrt {
     /*設定isApproved */
     function imApprove(uint _schIndex, bool boolValue) external onlyPlatformSupervisor {
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
@@ -220,7 +223,7 @@ contract IncomeManagerCtrt {
     function setPaymentReleaseResults(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlyPlatformSupervisor {
 
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
@@ -240,7 +243,7 @@ contract IncomeManagerCtrt {
     /**設定isErrorResolved */
     function setErrResolution(uint _schIndex, bool boolValue) external onlyPlatformSupervisor {
         uint schIndex;
-        if(_schIndex > serverTimeMin){
+        if(_schIndex > TimeCfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;

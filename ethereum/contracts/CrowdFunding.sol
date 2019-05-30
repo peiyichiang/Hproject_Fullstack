@@ -27,7 +27,7 @@ contract CrowdFunding {
     );
     event TokenInvested(address indexed _addrAssetbook, uint _quantityToInvest, uint serverTime);
 
-    uint public serverTimeMin = 201905281400;
+    uint public TimeCfDeployment;
     uint public maxTokenQtyForEachInvestmentFund = 120000000;
     // the max allowed token quantity for each investment fund, according to the token minting function limit
     string public tokenSymbol; //token symbol for crowdfunding
@@ -58,7 +58,6 @@ contract CrowdFunding {
     /*  at initialization, setup the owner
     "TKOS1901", 18000, "NTD", 900, 890, 201905211800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7"
     */
-    //Warning: Check input serverTime > servertimeMin
     constructor  (
         string memory _tokenSymbol,
         uint _initialAssetPricing,
@@ -67,7 +66,7 @@ contract CrowdFunding {
         uint _quantityGoal,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
-        uint serverTime,
+        uint _TimeCfDeployment,
         address _addrHelium
         //,
         //uint _fundingType,
@@ -85,17 +84,17 @@ contract CrowdFunding {
         quantityGoal = _quantityGoal;
 
         //require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
-        //require(serverTime < _CFSD2, "serverTime should be < CFSD2");
+        //require(TimeCfDeployment < _CFSD2, "TimeCfDeployment should be < CFSD2");
         CFSD2 = _CFSD2;
         CFED2 = _CFED2;// yyyymmddhhmm
         fundingState = FundingState.initial;//init the project state
         stateDescription = "initial";
-        //require(serverTime > serverTimeMin, "serverTime should be greater than serverTimeMin");
+        TimeCfDeployment = _TimeCfDeployment;
 
         addrHelium = _addrHelium;
         //fundingType = _fundingType;
         //addrRegistry = _addrRegistry;
-        emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "deployed");
+        emit UpdateState(tokenSymbol, quantitySold, TimeCfDeployment, fundingState, "deployed");
     }
     function checkDeploymentConditions(
         string memory _tokenSymbol, uint _initialAssetPricing,
@@ -103,26 +102,26 @@ contract CrowdFunding {
         uint _maxTotalSupply, uint _quantityGoal,
         uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
         uint _CFED2,//CrowdFunding End Date
-        uint serverTime, address _addrHelium
+        uint _TimeCfDeployment, address _addrHelium
 
       ) public view returns(bool[] memory boolArray) {
         boolArray = new bool[](8);
         boolArray[0] = _initialAssetPricing > 0;
-        boolArray[1] = _quantityGoal <= _maxTotalSupply;
-        boolArray[2] = _CFSD2 < _CFED2;
-        boolArray[3] = serverTime < _CFSD2;
-        boolArray[4] = serverTime > serverTimeMin;
+        boolArray[1] = _maxTotalSupply >= _quantityGoal;
+        boolArray[2] = _TimeCfDeployment > 201905281400;
+        boolArray[3] = _CFSD2 > _TimeCfDeployment;
+        boolArray[4] = _CFED2 > _CFSD2;
         boolArray[5] = ckStringLength(_tokenSymbol, 8, 32);
         boolArray[6] = ckStringLength(_pricingCurrency, 3, 32);
         boolArray[7] = _addrHelium.isContract();
     }
 
     function getContractDetails() public view returns(
-        uint serverTimeMin_, uint maxTokenQtyForEachInvestmentFund_,
+        uint TimeCfDeployment_, uint maxTokenQtyForEachInvestmentFund_,
         string memory tokenSymbol_, string memory pricingCurrency_,
         uint initialAssetPricing_, uint maxTotalSupply_,
         uint quantityGoal_, uint quantitySold_, uint CFSD2_, uint CFED2_) {
-        serverTimeMin_ = serverTimeMin;
+        TimeCfDeployment_ = TimeCfDeployment;
         maxTokenQtyForEachInvestmentFund_ = maxTokenQtyForEachInvestmentFund;
         tokenSymbol_ = tokenSymbol;
         pricingCurrency_ = pricingCurrency;
@@ -147,7 +146,7 @@ contract CrowdFunding {
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
     function updateState(uint serverTime) public onlyPlatformSupervisor {
         //quantitySold has only addition operation, so it is a more reliable variable to do if statement
-        require(serverTime > serverTimeMin, "serverTime should be greater than default time");
+        require(serverTime > TimeCfDeployment, "serverTime should be greater TimeCfDeployment");
 
         if(quantitySold >= maxTotalSupply){
             fundingState = FundingState.fundingClosed;
@@ -183,6 +182,7 @@ contract CrowdFunding {
 
     // to pause current crowdfunding process
     function pauseFunding(uint serverTime) external onlyPlatformSupervisor {
+        require(serverTime > TimeCfDeployment, "serverTime should be greater TimeCfDeployment");
         fundingState = FundingState.fundingPaused;
         stateDescription = "funding paused";
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
@@ -217,6 +217,8 @@ contract CrowdFunding {
 
     // to terminate the current crowdfunding process, possibly due to external unexpected force
     function terminate(string calldata _reason, uint serverTime) external onlyPlatformSupervisor {
+        require(serverTime > TimeCfDeployment, "serverTime should be greater TimeCfDeployment");
+
         require(ckStringLength(_reason, 7, 32), "_reason length is out of range");
         fundingState = FundingState.terminated;
         stateDescription = append("terminated:", _reason);

@@ -62,7 +62,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     uint public initialAssetPricing;// initial asset pricing, which is the pricing published during the crowdfunding event. Typical value 17000
     bytes32 public pricingCurrency;// the currency name that the initialAssetPricing is based on, e.g. NTD or USD
     uint public IRR20yrx100;// 470 represents 4.7;  20 years (per year) IRR times 100;
-
+    uint public TimeCfDeployment;
     address public addrRegistry;// address of Registry contract
     address public addrTokenController;// address of TokenController contract
 
@@ -81,7 +81,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI, address _addrHelium) public {
+        bytes32 _tokenURI, address _addrHelium, uint _TimeCfDeployment) public {
 
         name = _nftName;
         symbol = _nftSymbol;//may need to check symbol length > 8...
@@ -95,6 +95,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         addrRegistry = _addrRegistry;
         addrTokenController = _addrTokenController;
         addrHelium = _addrHelium;
+        TimeCfDeployment = _TimeCfDeployment;
         supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
         supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
         supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
@@ -104,20 +105,22 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
         bytes32 _pricingCurrency, uint _IRR20yrx100,
         address _addrRegistry, address _addrTokenController,
-        bytes32 _tokenURI, address _addrHelium
+        bytes32 _tokenURI, address _addrHelium, uint _TimeCfDeployment
       ) public view returns(bool[] memory boolArray) {
-        boolArray = new bool[](11);
+        boolArray = new bool[](12);
         boolArray[0] = _nftName[0] != 0;
         boolArray[1] = _nftSymbol[0] != 0;
-        boolArray[5] = _pricingCurrency[0] != 0;
-        boolArray[10] = _tokenURI[0] != 0;
         boolArray[2] = _siteSizeInKW > 0;
         boolArray[3] = _maxTotalSupply > 0;
         boolArray[4] = _initialAssetPricing > 0;
+        boolArray[5] = _pricingCurrency[0] != 0;
+
         boolArray[6] = _IRR20yrx100 > 1;
         boolArray[7] = _addrRegistry.isContract();
         boolArray[8] = _addrTokenController.isContract();
         boolArray[9] = _addrHelium.isContract();
+        boolArray[10] = _tokenURI[0] != 0;
+        boolArray[11] = _TimeCfDeployment > 201905281400;
     }
 
     function getTokenContractDetails() external view returns (
@@ -266,7 +269,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         boolArray[2] = amount > 0;
         boolArray[3] = price > 0;
         boolArray[4] = fundingType > 0;
-        boolArray[5] = serverTime > 201905240900;
+        boolArray[5] = serverTime > TimeCfDeployment;
         boolArray[6] = tokenId.add(amount) <= maxTotalSupply;
         boolArray[7] = HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender);
         
@@ -322,20 +325,21 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     //---------------------------==Transfer
     function checkSafeTransferFromBatch(
         address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray) {
-        boolArray = new bool[](11);
-        boolArray[0] = _to.isContract();
-        boolArray[1] = ERC721TokenReceiverITF(_to).onERC721Received(
+        boolArray = new bool[](12);
+        boolArray[0] = _from.isContract();
+        boolArray[1] = _to.isContract();
+        boolArray[2] = ERC721TokenReceiverITF(_to).onERC721Received(
         msg.sender, _from, 1, "") == MAGIC_ON_ERC721_RECEIVED;
-        boolArray[2] = amount > 0;
-        boolArray[3] = price > 0;
-        boolArray[4] = _from != _to;
-        boolArray[5] = serverTime > 201905240900;
-        boolArray[6] = TokenControllerITF(addrTokenController).isTokenApprovedOperational();
-        boolArray[7] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to);
-        boolArray[8] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from);
-        boolArray[9] = balanceOf(_from) >= amount;
+        boolArray[3] = amount > 0;
+        boolArray[4] = price > 0;
+        boolArray[5] = _from != _to;
+        boolArray[6] = serverTime > TimeCfDeployment;
+        boolArray[7] = TokenControllerITF(addrTokenController).isTokenApprovedOperational();
+        boolArray[8] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to);
+        boolArray[9] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from);
+        boolArray[10] = balanceOf(_from) >= amount;
 
-        boolArray[10] = accounts[_from].allowed[msg.sender] >= amount;
+        boolArray[11] = accounts[_from].allowed[msg.sender] >= amount;
         /*
         uint allowedAmount = accounts[_from].allowed[msg.sender];
         for(uint i = 0; i < amount; i = i.add(1)) {
