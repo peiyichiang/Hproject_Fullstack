@@ -1165,7 +1165,7 @@ router.get('/LaunchedProductList', function (req, res) {
                     WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
                     GROUP BY o_symbol) AS T2
         ON T1.p_SYMBOL = T2.o_symbol
-        LEFT JOIN ( SELECT o_symbol , COUNT(DISTINCT o_userIdentityNumber ) AS purchasedNumberOfPeople
+        LEFT JOIN ( SELECT o_symbol , COUNT(o_userIdentityNumber) AS purchasedNumberOfPeople
                     FROM htoken.order
                     GROUP BY o_symbol) AS T3
         ON T1.p_SYMBOL = T3.o_symbol
