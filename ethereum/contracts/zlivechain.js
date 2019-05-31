@@ -20,11 +20,11 @@ showAssetInfo
 //yarn run livechain -c 1 --f 5 -a 1 -b 190
 mintTokens
 
-//yarn run livechain -c 1 --f 6 -a 1 -b 190 -t 2
-transferTokens
-
 //yarn run livechain -c 1 --f 6
 sequentialMintSuperAPI
+
+//yarn run livechain -c 1 --f 7 -a 1 -b 190 -t 2
+transferTokens
 
 //yarn run livechain -c 1 --f 39
 transferTokensKY
@@ -716,7 +716,9 @@ const transferTokensKY = async () => {
 } 
 
 
-//yarn run livechain -c 1 --f 6 -a 1 -b 150 -t 2
+//yarn run livechain -c 1 --f 3  ... showAssetbook balances
+
+//yarn run livechain -c 1 --f 7 -a 1 -b 190 -t 2
 const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   const amount = parseInt(amountStr);
   console.log(`\n--------==Send tokens\nassetbookNumFrom: ${assetbookNumFrom}, amount: ${amount}, assetbookNumTo: ${assetbookNumTo}`);
@@ -746,15 +748,13 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
 
   _from = assetbookArray[parseInt(assetbookNumFrom) - 1];
   _to   = assetbookArray[parseInt(assetbookNumTo) - 1];
+  //const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
   price = 21000;
   _fromAssetOwner = assetOwnerArray[assetbookNumFrom];
-  _toAssetOwner = assetOwnerArray[assetbookNumTo];
-  const assetOwnerpkRaw = assetOwnerpkRawArray[assetbookNumFrom];
-  console.log('_fromAssetOwner', _fromAssetOwner, 'assetOwnerpkRaw', assetOwnerpkRaw);
-  _privateKey = assetOwnerpkRaw;
-  //_privateKey = Buffer.from(assetOwnerpkRaw.substr(2), 'hex');
-  //AssetOwner1pk = Buffer.from(AssetOwner1pkRaw.substr(2), 'hex');
-  // assetOwnerArray, assetOwnerpkRawArray
+  //_toAssetOwner = assetOwnerArray[assetbookNumTo];
+  const _fromAssetOwnerpkRaw = assetOwnerpkRawArray[assetbookNumFrom];
+  console.log('_fromAssetOwner', _fromAssetOwner, '_fromAssetOwnerpkRaw', _fromAssetOwnerpkRaw);
+  // _fromAssetOwner, _fromAssetOwnerpkRaw
 
   let balanceFrom = await instHCAT721.methods.balanceOf(_from).call();
   let balanceTo = await instHCAT721.methods.balanceOf(_to).call();
@@ -782,72 +782,73 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   console.log('isTokenApprovedOperational is true => ready to send tokens');
 
   serverTime = TimeTokenUnlock+5;
-  console.log('\nsending tokens via transferAssetBatch()...');
 
   const isAmountInt = Number.isInteger(amount);
   const isPriceInt = Number.isInteger(price);
   const isServerTimeInt = Number.isInteger(serverTime);
-  console.log(`via safeTransferFromBatch()... 
-  AssetBook${assetbookNumFrom} sending to AssetBook${assetbookNumTo}
-  ${amount} tokens ${typeof amount} ${isAmountInt}
-  balanceFromInitial: ${balanceFromInitial}, balanceToInitial: ${balanceToInitial}
-  price: ${price} ${typeof price} ${isPriceInt} 
-  serverTime: ${serverTime} ${typeof serverTime} ${isServerTimeInt}
-  ... as TimeTokenUnlock+5
-  _from: ${_from}
-  _to:   ${_to}`);
+
   checkEq(isAmountInt, true);
   checkEq(isPriceInt, true);
   checkEq(isServerTimeInt, true);
 
-  //const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
   result = await instHCAT721.methods.getTokenContractDetails().call({from: AssetOwner1});
   console.log('result', result);
 
-  result = await instHCAT721.methods.checkSafeTransferFromBatch(_from, _to, amount, price, serverTime).call({from: AssetOwner1});
-  console.log('result', result);
-  if(result.every(checkTrue)){
+  //assetIndex, assetAddr, _from, _to, amount, price, serverTime)
+  result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, addrHCAT721, addrZero, _to, amount, price, serverTime).call({from: _fromAssetOwner});
+  console.log('\ncheckSafeTransferFromBatch result', result);
+  //assetAddr_.isContract(), msg.sender == assetOwner
+
+  if(result[0].every(checkTrue)){
     console.log('\n[Success] all checks have passed checkSafeTransferFromBatch()');
   } else {
     console.log('\n[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
   }
   /**
    * [ true, true, true, true, true,    true, true, true, true, true,    true, false ]
-  
-    _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
-    console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(_assetAddr, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    safeTransferFromBatch(address assetAddr, uint assetIndex, address _to, uint amount,  uint price, uint serverTime) 
-   */
-  // yarn run livechain -c 1 --f 6 -a 1 -b 170 -t 3
-  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(addrHCAT721, 0, _to, amount, price, serverTime);
-  //
-  //process.exit(0);
-  //TxResult = await signTx(admin, adminpkRaw, addrHCAT721, encodedData);
-  TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw , addrAssetBook1, encodedData).catch((err) => {
-    console.log('[Error @ signTx()]', err)
-    process.exit(1);
-  });
-  //backendAddr, backendRawPrivateKey
-  //AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
-
-  console.log('TxResult', TxResult);
-  /**
-  let TxResult = await signTx(admin, adminpkRaw, tokenCtrtAddr, encodedData).catch((err) => console.log('[Error @ signTx()]', err));
-
-  console.log('TxResult', TxResult);
-  //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
-
+  const instCtrt = new web3.eth.Contract(jsonCtrt.abi, addrCtrt);
+  const encodedData = instCtrt.methods.updateState(currentTime).encodeABI();
+  const TxResult = await signTx(fromEOA, fromEOA_RawPk, addrCtrt, encodedData);
   */
-  console.log(`safeTransferFromBatch is completed. We have sent amount tokens from:, balanceFromInitial_AB, to account: balanceToInitial, add amount`);
+  // yarn run livechain -c 1 --f 7 -a 1 -b 1 -t 2
+  console.log('\nencodedData...');
+  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, addrZero, _to, amount, price, serverTime).encodeABI();
+  //process.exit(0);
 
-  console.log('\nCheck AssetBookFrom after txn...');
-  showAssetBookBalances();
+  console.log(`safeTransferFromBatch()... 
+  AssetBook${assetbookNumFrom} sending to AssetBook${assetbookNumTo}
+  _from = ${_from}
+  _to = ${_to}
+  ${amount} tokens ${typeof amount} ${isAmountInt}
+  price: ${price} ${typeof price} ${isPriceInt} 
+  serverTime: ${serverTime} ${typeof serverTime} ${isServerTimeInt}
+  serverTime = TimeTokenUnlock+5
+
+  balanceFromInitial: ${balanceFromInitial}, balanceToInitial: ${balanceToInitial}
+  _fromAssetOwner = ${_fromAssetOwner}
+  _fromAssetOwnerpkRaw = ${_fromAssetOwnerpkRaw}
+  addrHCAT721 = ${addrHCAT721}
+  `);
+  console.log('\nsending tokens via transferAssetBatch()...');
+  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, _from, encodedData).catch((err) => {
+    console.log('[Error @ signTx()]', err);
+    process.exit(1);
+  });// _fromAssetOwner, _fromAssetOwnerpkRaw
+  //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
+  console.log('TxResult', TxResult);
+
+  console.log(`\n-------------==safeTransferFromBatch is completed.`);
+  let balanceFromAfter = await instHCAT721.methods.balanceOf(_from).call();
+  let balanceToAfter = await instHCAT721.methods.balanceOf(_to).call();
+  
+  console.log(`balanceFromInitial: ${balanceFromInitial}
+  balanceFromAfter: ${balanceFromAfter}
+
+  balanceToInitial: ${balanceToInitial}
+  balanceToAfter:   ${balanceToAfter}
+  `);
   process.exit(0);
-}
+}//yarn run livechain -c 1 --f 7 -a 1 -b 1 -t 2
 
 
 
