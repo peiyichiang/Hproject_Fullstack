@@ -7,7 +7,6 @@ const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, g
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateTimeOfOrders = 1000;
-const maxMintAmountPerRun = 100;
 
 //-----------------==Copied from routes/Contracts.js
 /*Infura HttpProvider Endpoint*/
@@ -26,7 +25,7 @@ const TokenController = require('../ethereum/contracts/build/TokenController.jso
 const CrowdFunding = require('../ethereum/contracts/build/CrowdFunding.json');
 const IncomeManager = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
 
-const choiceOfHCAT721 = 1;
+const choiceOfHCAT721 = 2;
 let HCAT721;
 if(choiceOfHCAT721===1){
   console.log('use HCAT721_Test!!!');
@@ -118,7 +117,7 @@ const getDetailsCFC = async (crowdFundingAddr) => {
 
 
 //-------------------------==
-const breakdownArrays = (toAddressArray, amountArray) => {
+const breakdownArrays = (toAddressArray, amountArray, maxMintAmountPerRun) => {
   console.log('\n-----------------==\ninside breakdownArrays: amountArray', amountArray, '\ntoAddressArray', toAddressArray);
 
   if(toAddressArray.length !== amountArray.length){
@@ -137,7 +136,7 @@ const breakdownArrays = (toAddressArray, amountArray) => {
       const quotient = Math.floor(amount / maxMintAmountPerRun);
       const remainder = amount - maxMintAmountPerRun * quotient;
       const subAmountArray = Array(quotient).fill(maxMintAmountPerRun);
-      subAmountArray.push(remainder);
+      if(remainder > 0){ subAmountArray.push(remainder); }
       amountArrayOut.push(...subAmountArray);
 
       const subToAddressArray = Array(subAmountArray.length).fill(toAddressArray[idx]);
@@ -266,7 +265,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
 
 
 //to be called from API and zlivechain.js, etc...
-const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price) => {
+const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
@@ -276,7 +275,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
     process.exit(1);
   }
 
-  const [toAddressArrayOut, amountArrayOut] = breakdownArrays(toAddressArray, amountArray);
+  const [toAddressArrayOut, amountArrayOut] = breakdownArrays(toAddressArray, amountArray, maxMintAmountPerRun);
   //console.log(`toAddressArray: ${toAddressArray}, amountArray: ${amountArray}
   //toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
 
@@ -313,7 +312,7 @@ const sequentialMintSuperNoMint = async (toAddressArray, amountArray, tokenCtrtA
     process.exit(1);
   }
 
-  const [toAddressArrayOut, amountArrayOut] = breakdownArrays(toAddressArray, amountArray);
+  const [toAddressArrayOut, amountArrayOut] = breakdownArrays(toAddressArray, amountArray, maxMintAmountPerRun);
   //console.log(`toAddressArray: ${toAddressArray}, amountArray: ${amountArray}
   //toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
 

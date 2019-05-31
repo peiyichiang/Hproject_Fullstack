@@ -840,14 +840,14 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     console.log(fundingType);
     console.log(price);
 
-
+    const maxMintAmountPerRun = 180;
     // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
     // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+    const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
         console.log('[Error @ sequentialMintSuper]', err);
         res.send({
             success: false,
