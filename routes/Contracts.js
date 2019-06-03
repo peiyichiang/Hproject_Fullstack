@@ -743,6 +743,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
     let IRR20yrx100 = req.body.IRR20yrx100;
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
     let tokenURI = req.body.tokenURI;
+    tokenURIBytes32 = web3.utils.fromAscii(tokenURI);
     nftNameBytes32 = web3.utils.fromAscii(nftName);
     nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
     pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
@@ -757,7 +758,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
 
     ERC721SPLC.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI, heliumContractAddr, currentTime]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURIBytes32, heliumContractAddr, currentTime]
     })
         .send({
             from: backendAddr,

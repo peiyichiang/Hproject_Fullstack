@@ -296,7 +296,7 @@ router.post('/AddProductByFMN', function(req, res, next) {
       p_pricing: req.body.p_pricing,
       p_duration: req.body.p_duration,
       p_currency: req.body.p_currency,
-      p_irr: req.body.p_irr,
+      p_irr: Number(req.body.p_irr).toFixed(2),
       p_releasedate: req.body.p_releasedate,
       p_validdate: req.body.p_validdate,
       p_size: req.body.p_size,
@@ -496,7 +496,7 @@ router.post('/EditProductByFMN', function(req, res, next) {
         p_pricing: req.body.p_pricing,
         p_duration: req.body.p_duration,
         p_currency: req.body.p_currency,
-        p_irr: req.body.p_irr,
+        p_irr: Number(req.body.p_irr).toFixed(2),
         p_releasedate: req.body.p_releasedate,
         p_validdate: req.body.p_validdate,
         p_size: req.body.p_size,
@@ -1021,7 +1021,7 @@ router.get('/IncomeArrangement', function(req, res, next){
     var symbol = req.query.symbol;
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_single_Calibration_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol  , function(err, rows) {
+    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol  , function(err, rows) {
         if (err) {
             console.log(err);
         }else{
@@ -1040,7 +1040,7 @@ router.post('/CorrectActualPayment', function(req, res, next) {
     // req.body.CorrectActualPaymentNumber
 
     var sql = {
-        ia_single_Calibration_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
+        ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
         ia_State:"ia_state_underReview"
     };
 
