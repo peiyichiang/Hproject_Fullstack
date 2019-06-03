@@ -1,7 +1,6 @@
-let Web3 = require("web3");
+const {getTime} = require('./utilities');
 
-const timer = require('./api.js');
-const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, addProductRow, addSmartContractRow, isIMScheduleGoodDB, addOrderRow, addUserRow } = require('./mysql.js');
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addInvestorAssetRecord, addInvestorAssetRecordBatch } = require('./mysql.js');
 
 
 const { checkTimeOfOrder, getDetailsCFC,
@@ -13,16 +12,8 @@ const { checkTimeOfOrder, getDetailsCFC,
   let { symbolObject, addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum } = require('../ethereum/contracts/zsetupData');
 
 
-let choice = 2, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
+let choice, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
 
-
-const timeCurrent = 201905170000;
-const CFSD2 = timeCurrent+1;
-const CFED2 = timeCurrent+7;
-const TimeReleaseDate = timeCurrent+10;
-const TimeTokenUnlock = timeCurrent+20; 
-const TimeTokenValid =  timeCurrent+90;
-const fundmanager = 'Company_FundManagerN';
 
 /**
   Set both DB and CrowdFunding contract state to initial
@@ -58,27 +49,23 @@ if (arguLen == 3 && process.argv[2] === '--h') {
     console.log('choice value is out of range. choice: ', choice);
     process.exit(0);
   }
-  if (arguLen < 6) {
-    arg0 = 0;
+  arg0 = parseInt(process.argv[3]);
+  if (arguLen < 8) {
+    arg1 = 0;
   } else {
-    arg0 = parseInt(process.argv[3]);
-    if (arguLen < 8) {
-      arg1 = 0;
+    arg1 = parseInt(process.argv[7]);
+    if (arguLen < 10) {
+      arg2 = 0;
     } else {
-      arg1 = parseInt(process.argv[7]);
-      if (arguLen < 10) {
-        arg2 = 0;
-      } else {
-        arg2 = parseInt(process.argv[9]);
-      }  
+      arg2 = parseInt(process.argv[9]);
     }  
   }  
 }
-
+console.log('choice = ', choice);
 //-----------------==
-// const currentTime = await timer.getTime();
+// const currentTime = await getTime();
 // console.log('currentTime', currentTime);
-timer.getTime().then(function(time) {
+getTime().then(function(time) {
     console.log(`last recorded time via timeserver/api.js: ${time}`)
 });
 
@@ -112,55 +99,31 @@ const makePseudoEthAddr = (length) => {
   return result;
 }
 
-//  yarn run testts -a 2 -c 5
-const addUserRowAPI = async () => {
-  console.log('-------------==inside addUserRowAPI');
-  //makePseudoEthAddr(40);
-  const userIdx = 1;
-  console.log('userArray[userIdx]', userArray[userIdx]);
-
-  const email = userArray[userIdx].email;
-  const password = userArray[userIdx].password;
-  const identityNumber = userArray[userIdx].identityNumber;
-  const eth_add = userArray[userIdx].eth_add;
-  const cellphone = userArray[userIdx].cellphone;
-  const name = userArray[userIdx].name;
-  const addrAssetBook = userArray[userIdx].addrAssetBook;
-  const investorLevel = userArray[userIdx].investorLevel;
-
-  await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel).catch(err => console.error('addUserRow() failed:', err));
-  process.exit(0);
-}  
-
-const addSmartContractRowAPI = async () => {
-  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController)
-  process.exit(0);
-}
-
-const writeAssetbooksIntoCFC = async () => {
-  //deploy smart contracts of symbol, cf
-
-  //make userId -> assetbook
-  process.exit(0);
-}
-
-//  yarn run testts -a 2 -c 4
-const addOrderAPI = async() => {
-  const nationalId = 'R555777992';
-
-  //order info have to match that in zsetupData.js
-  const symbol = 'AAOS1903';
-  let tokenCount = 20;
-  let fundCount = 18000;
-  let orderStatus = "paid";
-  await addOrderRow(nationalId, symbol, tokenCount, fundCount, orderStatus);
-  process.exit(0);
-}
 
 // yarn run testts -a 1 -s 1 -c 8
 const addInvestorAssebooksIntoCFC_API = async () => {
   await addInvestorAssebooksIntoCFC();
+  process.exit(0);
 }
+
+//  yarn run testts -a 2 -c 7
+const addInvestorAssetRecord_API = async () => {
+  const email = '0001@gmail.com';
+  const symbol = 'ABBA1850';
+  const serverTime = await getTime();
+  const mintAmount = 9;
+  await addInvestorAssetRecord(email, symbol, serverTime, mintAmount);
+  process.exit(0);
+}
+//  yarn run testts -a 2 -c 8
+const addInvestorAssetRecordBatch_API = async () => {
+  const emailArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
+  const symbol = 'ABBA1850';
+  const serverTime = await getTime();
+  const mintAmountArray = [9, 11, 13];
+  addInvestorAssetRecordBatch(emailArray, symbol, serverTime, mintAmountArray);
+}
+
 
 const getInvestorsCFC_API = async () => {
   crowdFundingAddr = crowdFundingAddrArray[arg0];
@@ -168,27 +131,34 @@ const getInvestorsCFC_API = async () => {
   console.log('investorArray:', investorArray);
 }
 
+
+//------------------------==
 //yarn run testts -a 2 -c 5
 if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //yarn run testts -a 2 -c 3
 } else if(choice === 3){
-  addSmartContractRowAPI();
+  
 
 //  yarn run testts -a 2 -c 4
 } else if(choice === 4){
-  addOrderAPI();
 
 //  yarn run testts -a 2 -c 5
 } else if(choice === 5){
-  console.log('-------------------==addUserRowAPI()');
-  addUserRowAPI();
+  console.log('choice = 5');
 
-} else if(choice === 6){
-  writeAssetbooksIntoCFC();
+//  yarn run testts -a 2 -c 7
+} else if(choice === 7){
+  console.log('-------------------==addInvestorAssetRecord_API');
+  addInvestorAssetRecord_API();
 
-// yarn run testts -a 1 -s 1 -c 8
+//  yarn run testts -a 2 -c 8
 } else if(choice === 8){
+  console.log('-------------------==addInvestorAssetRecord_API');
+  addInvestorAssetRecordBatch_API();
+
+// yarn run testts -a 1 -c 9
+} else if(choice === 9){
   console.log('-------------------==addInvestorAssebooksIntoCFC_API');
   addInvestorAssebooksIntoCFC_API();
 

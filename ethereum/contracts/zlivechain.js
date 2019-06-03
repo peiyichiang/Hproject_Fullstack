@@ -91,7 +91,7 @@ let txnNum = 2, isShowCompiledCtrt = false;
 console.log('chain = ', chain, ', txnNum =', txnNum);
 
 let addrTestCtrt, assetbook1M, assetbook2M;
-let amount, to, _from, tokenIds, tokenId_now, nodeUrl, authLevelM;
+let amount, to, fromAssetbook, toAssetbook, tokenIds, tokenId_now, nodeUrl, authLevelM;
 let choiceOfHCAT721, isFundingApprovedHCAT721, checkPlatformSupervisor;
 
 const uriBase = "nccu0".trim();
@@ -572,7 +572,7 @@ const mintTokenFn1 = async () => {
 
   //process.exit(0);
 
-  // await timer.getTime().then(function (time) {
+  // await getTime().then(function (time) {
   //     currentTime = time;
   // })
   console.log(`\ncurrent time: ${currentTime}, to ${to}, amount ${amount}, fundingType ${fundingType}, price ${price}`);
@@ -702,15 +702,15 @@ const mintTokens = async (assetbookNum, amount) => {
 const transferTokensKY = async () => {
   console.log('\ntransferTokensKY...');
   const contractAddr = "0xC4b0CC61E12175Ea0Ed87d29fE7670F5462244F8";
-  const _from = "0x997307566Fd444b3195E348E4E16B52814C4e766";
+  const fromAssetbook = "0x997307566Fd444b3195E348E4E16B52814C4e766";
   const to = "0x8aC7c2Fb825e822C2255bf2169A325a4cCa56ceA";
   const amount = 1;
   const price = 21000;
   const serverTime = 201905311435;
 
   const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
-  let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
-  //safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime)
+  let encodedData = inst_HCAT721.methods.safeTransferFromBatch(fromAssetbook, to, amount, price, serverTime).encodeABI();
+  //safeTransferFromBatch(address fromAssetbook, address toAssetbook, uint amount, uint price, uint serverTime)
   let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
   console.log('TxResult', TxResult);
 } 
@@ -746,8 +746,8 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
     console.log('all input values are good');
   }
 
-  _from = assetbookArray[parseInt(assetbookNumFrom) - 1];
-  _to   = assetbookArray[parseInt(assetbookNumTo) - 1];
+  fromAssetbook = assetbookArray[parseInt(assetbookNumFrom) - 1];
+  toAssetbook   = assetbookArray[parseInt(assetbookNumTo) - 1];
   //const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
   price = 21000;
   _fromAssetOwner = assetOwnerArray[assetbookNumFrom];
@@ -756,26 +756,26 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   console.log('_fromAssetOwner', _fromAssetOwner, '_fromAssetOwnerpkRaw', _fromAssetOwnerpkRaw);
   // _fromAssetOwner, _fromAssetOwnerpkRaw
 
-  let balanceFrom = await instHCAT721.methods.balanceOf(_from).call();
-  let balanceTo = await instHCAT721.methods.balanceOf(_to).call();
-  const balanceFromInitial = parseInt(balanceFrom);
-  const balanceToInitial = parseInt(balanceTo);
-  console.log('\n--------==balanceFromInitial:', balanceFromInitial, ', balanceToInitial', balanceToInitial);
+  const balanceFromB4Str = await instHCAT721.methods.balanceOf(fromAssetbook).call();
+  const balanceToB4Str = await instHCAT721.methods.balanceOf(toAssetbook).call();
+  const balanceFromB4 = parseInt(balanceFromB4Str);
+  const balanceToB4 = parseInt(balanceToB4Str);
+  console.log('\n--------==balanceFromB4:', balanceFromB4, ', balanceToB4', balanceToB4);
 
-  instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, _from);
-  instAssetBookTo = new web3.eth.Contract(AssetBook.abi, _to);
+  instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
+  instAssetBookTo = new web3.eth.Contract(AssetBook.abi, toAssetbook);
 
   let assetbookFromM = await instAssetBookFrom.methods.getAsset(0, addrHCAT721).call();//assetIndex_, address assetAddr_, bytes32 symbol, uint balance
-  const balanceFromInitial_AB = parseInt(assetbookFromM[3]);
-  console.log(`\nassetbookFromM: assetIndex_= ${assetbookFromM[0]}, symbol= ${web3.utils.toAscii(assetbookFromM[2])}, balanceFromInitial_AB = ${assetbookFromM[3]}`);
+  const balanceFromB4_AB = parseInt(assetbookFromM[3]);
+  console.log(`\nassetbookFromM: assetIndex_= ${assetbookFromM[0]}, symbol= ${web3.utils.toAscii(assetbookFromM[2])}, balanceFromB4_AB = ${assetbookFromM[3]}`);
 
   let assetbookToM = await instAssetBookTo.methods.getAsset(0, addrHCAT721).call();
-  const balanceToInitial_AB = parseInt(assetbookToM[3]);
-  console.log(`\nassetbookToM: assetIndex_= ${assetbookToM[0]}, symbol= ${web3.utils.toAscii(assetbookToM[2])}, balanceFromInitial_AB = ${assetbookToM[3]}`);
+  const balanceToB4_AB = parseInt(assetbookToM[3]);
+  console.log(`\nassetbookToM: assetIndex_= ${assetbookToM[0]}, symbol= ${web3.utils.toAscii(assetbookToM[2])}, balanceFromB4_AB = ${assetbookToM[3]}`);
   
-  checkEq(balanceFromInitial, balanceFromInitial_AB);
-  checkEq(balanceFromInitial >= amount, true);
-  checkEq(balanceToInitial, balanceToInitial_AB);
+  checkEq(balanceFromB4, balanceFromB4_AB);
+  checkEq(balanceFromB4 >= amount, true);
+  checkEq(balanceToB4, balanceToB4_AB);
 
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
   checkEq(isTokenApprovedOperational, true);
@@ -794,8 +794,8 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   result = await instHCAT721.methods.getTokenContractDetails().call({from: AssetOwner1});
   console.log('result', result);
 
-  //assetIndex, assetAddr, _from, _to, amount, price, serverTime)
-  result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, addrHCAT721, addrZero, _to, amount, price, serverTime).call({from: _fromAssetOwner});
+  //assetIndex, assetAddr, fromAssetbook, toAssetbook, amount, price, serverTime)
+  result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, addrHCAT721, addrZero, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
   console.log('\ncheckSafeTransferFromBatch result', result);
   //assetAddr_.isContract(), msg.sender == assetOwner
 
@@ -812,25 +812,25 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   */
   // yarn run livechain -c 1 --f 7 -a 1 -b 1 -t 2
   console.log('\nencodedData...');
-  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, addrZero, _to, amount, price, serverTime).encodeABI();
+  const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, addrZero, toAssetbook, amount, price, serverTime).encodeABI();
   //process.exit(0);
 
   console.log(`safeTransferFromBatch()... 
   AssetBook${assetbookNumFrom} sending to AssetBook${assetbookNumTo}
-  _from = ${_from}
-  _to = ${_to}
+  fromAssetbook = ${fromAssetbook}
+  toAssetbook = ${toAssetbook}
   ${amount} tokens ${typeof amount} ${isAmountInt}
   price: ${price} ${typeof price} ${isPriceInt} 
   serverTime: ${serverTime} ${typeof serverTime} ${isServerTimeInt}
   serverTime = TimeTokenUnlock+5
 
-  balanceFromInitial: ${balanceFromInitial}, balanceToInitial: ${balanceToInitial}
+  balanceFromB4: ${balanceFromB4}, balanceToB4: ${balanceToB4}
   _fromAssetOwner = ${_fromAssetOwner}
   _fromAssetOwnerpkRaw = ${_fromAssetOwnerpkRaw}
   addrHCAT721 = ${addrHCAT721}
   `);
   console.log('\nsending tokens via transferAssetBatch()...');
-  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, _from, encodedData).catch((err) => {
+  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch((err) => {
     console.log('[Error @ signTx()]', err);
     process.exit(1);
   });// _fromAssetOwner, _fromAssetOwnerpkRaw
@@ -838,13 +838,13 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   console.log('TxResult', TxResult);
 
   console.log(`\n-------------==safeTransferFromBatch is completed.`);
-  let balanceFromAfter = await instHCAT721.methods.balanceOf(_from).call();
-  let balanceToAfter = await instHCAT721.methods.balanceOf(_to).call();
+  const balanceFromAfter = await instHCAT721.methods.balanceOf(fromAssetbook).call();
+  const balanceToAfter = await instHCAT721.methods.balanceOf(toAssetbook).call();
   
-  console.log(`balanceFromInitial: ${balanceFromInitial}
+  console.log(`balanceFromB4: ${balanceFromB4}
   balanceFromAfter: ${balanceFromAfter}
 
-  balanceToInitial: ${balanceToInitial}
+  balanceToB4: ${balanceToB4}
   balanceToAfter:   ${balanceToAfter}
   `);
   process.exit(0);

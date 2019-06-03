@@ -60,7 +60,7 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
   this.fundingType = fundingType;
   this.IRR20yrx100 = IRR20yrx100;
   this.duration = duration;
-  this.nftName = nftSymbol+" site No.n(2019)";
+  this.nftName = nftSymbol+"_2019";
   this.location = nftSymbol.substr(0, nftSymbol.length-4);
   this.addrTokenController = addrTokenController;
   this.addrHCAT721 = addrHCAT721;
@@ -145,11 +145,22 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.addrAssetBook = addrAssetBook;
   this.investorLevel = investorLevel;
 }
-const user0 = new userObject('user0@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5);
-const user1 = new userObject('user1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5);
-const user2 = new userObject('user2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5);
-const user3 = new userObject('user3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5);
+const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5);
+const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5);
+const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5);
+const user0 = new userObject('000a40@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5);
 const userArray = [user0, user1, user2, user3];
+
+userNum = 1;
+const email = userArray[userNum].email;
+const password = userArray[userNum].password;
+const identityNumber = userArray[userNum].identityNumber;
+const eth_add = userArray[userNum].eth_add;
+const cellphone = userArray[userNum].cellphone;
+const name = userArray[userNum].name;
+const addrAssetBook = userArray[userNum].addrAssetBook;
+const investorLevel = userArray[userNum].investorLevel;
+
 
 console.log(`
 const TimeOfDeployment_CF = ${TimeOfDeployment_CF};
@@ -193,7 +204,7 @@ const argsIncomeManagement =[addrHCAT721, addrHelium];
 const addrZero = "0x0000000000000000000000000000000000000000";
 
 const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
-const userIDs = ["A500000001", "A500000002", "A500000003"];
+const userIDs = [, "A500000002", "A500000003"];
 const authLevels = [5, 5, 5];
 
 
@@ -403,9 +414,10 @@ if (ProductManager === undefined){
 
 module.exports = {
   addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
+  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, fundmanager, CFSD2, CFED2, 
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager,
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook,investorLevel
 }
   /**
   From KuanYi:

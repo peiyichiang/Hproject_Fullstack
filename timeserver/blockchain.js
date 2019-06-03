@@ -1,6 +1,6 @@
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
-const timer = require('./api.js');
+const {getTime} = require('./utilities');
 const moment = require('moment');
 
 const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB } = require('./mysql.js');
@@ -248,7 +248,7 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
 
 const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr) => {
   console.log('\n----------------------==sequentialMint()');
-  const currentTime = await timer.getTime();
+  const currentTime = await getTime();
   console.log(`tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}, acquired currentTime: ${currentTime}`);
   const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
   //async function asyncForEachSuper(array1, array2, callback) {}
@@ -461,7 +461,7 @@ const sequentialRun = async (mainInputArray, waitTime, timeCurrent, extraInputAr
 //mintToken(amountToMint, tokenCtrtAddr, to, fundingType, price);
 const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) => {
   console.log('inside mintToken()');
-  await timer.getTime().then(async function (currentTime) {
+  await getTime().then(async function (currentTime) {
     //console.log('blockchain.js: mintToken(), timeCurrent:', currentTime);
     console.log('acquired currentTime', currentTime);
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
@@ -528,7 +528,7 @@ const addInvestorAssebooksIntoCFC = async () => {
               console.error('\n------==[Error] Found multiple crowdsaleaddresses from one symbol! result', result);
 
           } else if(result.length === 0){
-              console.error('\n------==[Error] Found no crowdsaleaddresses from symbol', symbol, ', result', result);
+              console.error('\n------==[Error] no crowdsaleaddresses from symbol', symbol, ', result', result);
 
           } else {
             const crowdFundingAddr = result[0].sc_crowdsaleaddress;
@@ -542,7 +542,7 @@ const addInvestorAssebooksIntoCFC = async () => {
                 console.error('[Error] Got no paid order where symbol', symbol, 'result', result);
 
               } else {
-                console.log(`\n[Good] Found a list of UserID and tokenCount for ${symbol}: ${JSON.stringify(result)}`);
+                console.log(`\n--------------==[Good] Found a list of UserID and tokenCount for ${symbol}: ${JSON.stringify(result)}`);
   
                 await asyncForEachBasic(result, async (orderObj, idx) => {
                   const userId = orderObj.o_userIdentityNumber;
@@ -573,7 +573,7 @@ const addInvestorAssebooksIntoCFC = async () => {
                           console.error('[Error] addrAssetbook is empty. addrAssetbook:', addrAssetbook);
 
                         } else {
-                          const currentTime = 201905230950;//await timer.getTime();
+                          const currentTime = 201905290950;//await getTime();
                           console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
     tokenCount: ${tokenCount}, currentTime: ${currentTime}
     addrAssetbook: ${addrAssetbook}
@@ -582,8 +582,9 @@ const addInvestorAssebooksIntoCFC = async () => {
                           const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
                           const encodedData = instCrowdFunding.methods.invest(addrAssetbook, tokenCount, currentTime).encodeABI();
                           //invest(address _assetbook, uint _quantityToInvest, uint serverTime) external onlyPlatformSupervisor)  OR  investInBatch(address[] calldata _assetbookArr, uint[] calldata _quantityToInvestArr, uint serverTime)
-                          let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
-                          console.log('\nTxResult', TxResult);
+                          
+                          //let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+                          //console.log('\nTxResult', TxResult);
                         
                           //let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
                           //console.log('\nfundingState:', fundingState);

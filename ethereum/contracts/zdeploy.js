@@ -3,12 +3,12 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 */
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName cf
-    cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
+    cName = helium, assetbook, registry, cf, tokc, hcat, addsc, addproduct, addorder, im, pm, db2
 */
 //const timer = require('./api.js');
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const {addProductRow, addSmartContractRow} = require('../../timeserver/mysql.js');
+const {addSmartContractRow, addProductRow, addUserRow, addOrderRow} = require('../../timeserver/mysql.js');
 
 let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
 console.log('process.argv', process.argv);
@@ -22,12 +22,12 @@ if (process.argv.length < 8) {
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
 const { userIDs, authLevels, productObjArray, symbolArray, userArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, 
-  argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
+  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager,
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook,investorLevel
 } = require('./zsetupData');
 
-let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding} = require('./zsetupData');
+let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
@@ -503,24 +503,21 @@ const deploy = async () => {
 
 
   
-  //yarn run deploy -c 1 -n 0 -cName db1
-  } else if (ctrtName === 'db1'){
-    console.log('\nto add product row into DB');
-    console.log(`\nto add smart contract row into DB: nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
+  //yarn run deploy -c 1 -n 0 -cName addsc
+  } else if (ctrtName === 'addsc'){
+    addSmartContractRowAPI();
 
-    mysqlPoolQuery('INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_erc721address, sc_totalsupply, sc_remaining, sc_incomeManagementaddress, sc_erc721Controller) VALUES (?, ?, ?, ?, ?, ?, ?)', [nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, maxTotalSupply, addrIncomeManager, addrTokenController], function (err, result) {
-      if (err) {
-        console.log('\n[Error @ writing data into smart_contracts rows]', err);
-      } else {
-        console.log("\nSmart contract table has been added with one new row. result:", result);
-        console.log(result);
-      }
-    });
-  
-    console.log('\nsymNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-  
-    addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
-    process.exit(0);
+  //yarn run deploy -c 1 -n 0 -cName addproduct
+  } else if (ctrtName === 'addproduct'){
+    addProductRowAPI();
+
+  //yarn run deploy -c 1 -n 0 -cName adduser
+  } else if (ctrtName === 'adduser'){
+    addUserRowAPI();
+
+  //yarn run deploy -c 1 -n 0 -cName addorder
+  } else if (ctrtName === 'addorder'){
+    addOrderRowAPI();
 
 
   } else if (ctrtName === 'im') {
@@ -563,7 +560,6 @@ const deploy = async () => {
     console.log(`\nconst addrProductManager = ${instProductManager.options.address}`);
 
 
-  //yarn run deploy -c 1 -n 0 -cName db1
   } else if (ctrtName === 'db2'){
 
   } else {
@@ -573,4 +569,53 @@ const deploy = async () => {
 
 
 }
+
+
+
+//---------------------------==
+//yarn run deploy -c 1 -n 0 -cName addsc
+const addSmartContractRowAPI = async () => {
+  console.log('\n-------------==inside addSmartContractRowAPI');
+  console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
+
+  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController)
+  process.exit(0);
+}
+
+
+//yarn run deploy -c 1 -n 0 -cName addproduct
+const addProductRowAPI = async () => {
+  console.log('\n-------------==inside addProductRowAPI');
+  const TimeReleaseDate = TimeOfDeployment_HCAT;
+  console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}`);
+
+  await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
+  process.exit(0);
+}
+
+
+//yarn run deploy -c 1 -n 0 -cName adduser
+const addUserRowAPI = async () => {
+  console.log('\n-------------==inside addUserRowAPI');
+  console.log(`symNum: ${symNum}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}`);
+
+  await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel).catch(err => console.error('addUserRow() failed:', err));
+  process.exit(0);
+}  
+
+
+//yarn run deploy -c 1 -n 0 -cName addorder
+const addOrderRowAPI = async () => {
+  console.log('\n-------------------==inside addOrderAPI');
+  const tokenCount = 10;
+  const fundCount = 180000;
+  const paymentStatus = 'paid';
+
+  console.log(`symNum: ${symNum}, identityNumber: ${identityNumber}, nftSymbol: ${nftSymbol}, tokenCount: ${tokenCount}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+
+  await addOrderRow(identityNumber, nftSymbol, tokenCount, fundCount, paymentStatus);
+  process.exit(0);
+}
+
+
 deploy();
