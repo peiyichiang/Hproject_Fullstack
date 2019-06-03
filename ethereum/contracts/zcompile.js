@@ -19,7 +19,7 @@ fs.ensureDirSync(buildPath);//if the build folder does not exist, make it existi
 // });
 
 console.log('check1: Set which Solidity files to compile...');
-const fileList = ['SafeMath', 'Ownable', 'AssetBook', 'Registry', 'HCAT721_AssetToken', 'TokenController', 'CrowdFunding', 'IncomeManagerCtrt', 'ProductManager', 'Helium', 'testing', 'HCAT721_Test'];
+const fileList = ['SafeMath', 'Ownable', 'AssetBook', 'Registry', 'HCAT721_AssetToken', 'TokenController', 'CrowdFunding', 'IncomeManagerCtrt', 'ProductManager', 'Helium', 'testing'];//HCAT721_Test
 /**
  * DO NOT USE IMPORT, USE INTERFACE INSTEAD, TO PREVENT COMPILED CONTRACTS OVERRIDE!!!
  */
