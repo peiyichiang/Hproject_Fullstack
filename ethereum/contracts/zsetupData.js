@@ -144,6 +144,9 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.name = name;
   this.addrAssetBook = addrAssetBook;
   this.investorLevel = investorLevel;
+  this.imagef = Math.random().toString(36).substring(2, 15);
+  this.imageb = Math.random().toString(36).substring(2, 15);
+  this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
 const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5);
 const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5);
@@ -151,7 +154,7 @@ const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOw
 const user0 = new userObject('000a40@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5);
 const userArray = [user0, user1, user2, user3];
 
-userNum = 1;
+userNum = 3;
 const email = userArray[userNum].email;
 const password = userArray[userNum].password;
 const identityNumber = userArray[userNum].identityNumber;
@@ -160,6 +163,9 @@ const cellphone = userArray[userNum].cellphone;
 const name = userArray[userNum].name;
 const addrAssetBook = userArray[userNum].addrAssetBook;
 const investorLevel = userArray[userNum].investorLevel;
+const imagef = userArray[userNum].imagef;
+const imageb = userArray[userNum].imageb;
+const bank_booklet = userArray[userNum].bank_booklet;
 
 
 console.log(`
@@ -417,7 +423,7 @@ module.exports = {
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, fundmanager, CFSD2, CFED2, 
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager,
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook,investorLevel
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb
 }
   /**
   From KuanYi:

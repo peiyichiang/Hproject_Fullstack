@@ -2,11 +2,11 @@ const { incomeFromHoldingDays } = require('./income.js');
 const moment = require('moment');
 const BigNumber = require('bignumber.js');
 
-const { mysqlPoolQuery, addTxnInfoRow, addTxnInfoRowFromObj } = require('./mysql');
-const { sequentialRunSuper, breakdownArrays } = require('./blockchain.js');
+const { addTxnInfoRowFromObj } = require('./mysql');
+const { breakdownArrays } = require('./blockchain.js');
 const { reduceArrays } = require('./utilities');
 
-const {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement } = require('../ethereum/contracts/zsetupData');
+const {  assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zsetupData');
 
 let choice, txnInfoRow, txnInfoObj;
 // yarn run testfn -c C
@@ -50,9 +50,6 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 let calculatedIncome, moment1, moment2, daysPassed;
 let period, periodIncome, prevTokenAmount, soldAmount;
 let txid, tokenSymbol, fromAssetbook, toAddressArray, amountArray, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook;
-
-const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
-const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
 
 
 

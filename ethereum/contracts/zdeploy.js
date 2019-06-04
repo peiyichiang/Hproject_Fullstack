@@ -24,7 +24,7 @@ let chain, ctrtName, result;
 const { userIDs, authLevels, productObjArray, symbolArray, userArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
   TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager,
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook,investorLevel
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet
 } = require('./zsetupData');
 
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
@@ -597,9 +597,9 @@ const addProductRowAPI = async () => {
 //yarn run deploy -c 1 -n 0 -cName adduser
 const addUserRowAPI = async () => {
   console.log('\n-------------==inside addUserRowAPI');
-  console.log(`symNum: ${symNum}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}`);
+  console.log(`symNum: ${symNum}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
 
-  await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel).catch(err => console.error('addUserRow() failed:', err));
+  await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
   process.exit(0);
 }  
 
@@ -607,9 +607,9 @@ const addUserRowAPI = async () => {
 //yarn run deploy -c 1 -n 0 -cName addorder
 const addOrderRowAPI = async () => {
   console.log('\n-------------------==inside addOrderAPI');
-  const tokenCount = 10;
+  const tokenCount = 20;
   const fundCount = 180000;
-  const paymentStatus = 'paid';
+  const paymentStatus = 'waiting';
 
   console.log(`symNum: ${symNum}, identityNumber: ${identityNumber}, nftSymbol: ${nftSymbol}, tokenCount: ${tokenCount}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
 

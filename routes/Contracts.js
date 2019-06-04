@@ -2,10 +2,10 @@ const express = require('express');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const {getTime} = require('../timeserver/utilities');
 const router = express.Router();
+const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper } = require('../timeserver/blockchain.js');
-//const { reduceArrays } = require('../timeserver/utilities');
+const { addInvestorAssetRecordBatch } = require('../timeserver/mysql');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -834,6 +834,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const tokenCtrtAddr = req.body.erc721address;
     const fundingType = req.body.fundingType;//PO: 1, PP: 2
     const price = req.body.price;
+    const nftSymbol = req.params.nftSymbol;
 
     console.log(toAddressArray);
     console.log(amountArray);
@@ -848,14 +849,16 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
-        console.log('[Error @ sequentialMintSuper]', err);
-        res.send({
-            success: false,
-            result: '[Failed @ sequentialRunSuper()], err:' + err,
-        });
-    });
-    console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+    try {
+      const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun);
+    } catch (error) {
+      console.log('[Error @ sequentialMintSuper]', err);
+      res.send({
+          success: false,
+          result: '[Failed @ sequentialRunSuper()], err:' + err,
+      });
+      console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+    }
 
     if (isFailed || isFailed === undefined || isFailed === null) {
         console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
@@ -864,8 +867,13 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
             result: '[Failed] Check isCorrectAmountArray',
             isCorrectAmountArray: isCorrectAmountArray,
         });
+
     } else {
         console.log('\n[Success] All minting actions have been completed successfully');
+
+        const serverTime = await getTime();
+        await addInvestorAssetRecordBatch(emailArray, nftSymbol, serverTime, amountArray);
+
         res.send({
             success: true,
             result: '[Success] All balances are correct',

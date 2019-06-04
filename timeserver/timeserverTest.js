@@ -65,9 +65,10 @@ console.log('choice = ', choice);
 //-----------------==
 // const currentTime = await getTime();
 // console.log('currentTime', currentTime);
-getTime().then(function(time) {
-    console.log(`last recorded time via timeserver/api.js: ${time}`)
-});
+
+// getTime().then(function(time) {
+//     console.log(`last recorded time via timeserver/api.js: ${time}`)
+// });
 
 /**------------------==
 Options according to test flow:
@@ -100,10 +101,11 @@ const makePseudoEthAddr = (length) => {
 }
 
 
-// yarn run testts -a 1 -s 1 -c 8
+// yarn run testts -a 1 -s 1 -c 9
 const addInvestorAssebooksIntoCFC_API = async () => {
+  console.log('addInvestorAssebooksIntoCFC_API');
   await addInvestorAssebooksIntoCFC();
-  process.exit(0);
+  //process.exit(0);
 }
 
 //  yarn run testts -a 2 -c 7
@@ -117,6 +119,7 @@ const addInvestorAssetRecord_API = async () => {
 }
 //  yarn run testts -a 2 -c 8
 const addInvestorAssetRecordBatch_API = async () => {
+  console.log('addInvestorAssetRecordBatch_API');
   const emailArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
   const symbol = 'ABBA1850';
   const serverTime = await getTime();

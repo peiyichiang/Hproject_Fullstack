@@ -3,8 +3,7 @@ var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
 require('dotenv').config()
 
-const {getTime} = require('./utilities');
-
+const mysql2 = require('mysql2');
 var pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -12,6 +11,31 @@ var pool = mysql.createPool({
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
 });
+
+const promise1 = async (userId) => {
+  // get the client
+  const mysql2 = require('mysql2/promise');
+  // create the connection
+  const connection = await mysql2.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+  });
+  // query database
+  const result = await connection.execute('SELECT u_assetbookContractAddress FROM htoken.user WHERE u_identityNumber = ?', [userId]);
+  /**
+  } else if(result.length > 1){
+    console.error('\n----==[Error] Got multiple assetbookContractAddresses from one userId', userId, ', result', result);
+
+  } else if(result.length === 0){
+    console.error('\n----==[Error] Got no assetbookContractAddresses from userId', userId, ', result', result);
+   */
+  const addrAssetBook = result[0][0].u_assetbookContractAddress;
+  //console.log('addrAssetBook', addrAssetBook, '\nresult', result);
+  return addrAssetBook;
+}
 
 const mysqlPoolQuery = async (sql, options, callback) => {
   debugSQL(sql, options, callback);
@@ -36,13 +60,36 @@ const mysqlPoolQuery = async (sql, options, callback) => {
   });
 };
 
+const mysqlPoolQueryPromise = async (sql, options) => {
+  return new Promise((resolve, reject) => {
+    debugSQL(sql, options);
+    if (typeof options === "function") {
+        options = undefined;
+    }
+    pool.getConnection(async function (err, conn) {
+        if (err) {
+          reject('[Error @ writing data into transaction_info row]', err);
+        } else {
+            conn.query(sql, options, async function (err, results, fields) {
+              console.log(`[connection sussessful @ mysql.js] `);
+              resolve(err, results, fields);
+              // http://localhost:${process.env.PORT}/Product/ProductList
+            });
+            // release connection。
+            // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
+            conn.release();
+        }
+    });
+  });
+};
+
+
 async function asyncForEachBasic(arrayBasic, callback) {
   console.log("arrayBasic:"+arrayBasic);
   for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
-    const item = arrayBasic[idxBasic];
     console.log(`\n--------------==next:
-    idxBasic: ${idxBasic}, ${item}`);
-    await callback(item, idxBasic, arrayBasic);
+    idxBasic: ${idxBasic}, ${arrayBasic[idxBasic]}`);
+    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
   }
 }
 
@@ -143,7 +190,7 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
 }
 
 
-const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) => {
+const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet) => {
   return new Promise((resolve, reject) => {
     console.log('------------------------==@user/addUserRow');
     let salt;
@@ -174,6 +221,9 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
           u_name: name,
           u_assetbookContractAddress: addrAssetBook,
           u_investorLevel: investorLevel,
+          u_imagef: imagef,
+          u_imageb: imageb,
+          u_bankBooklet: bank_booklet,
         };
 
         console.log(userNew);
@@ -205,11 +255,12 @@ const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentSta
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
 
+    const addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
     const sql = {
         o_id: orderId,
         o_symbol: symbol,
         o_userIdentityNumber: nationalId,
-        o_fromAddress: Math.random().toString(36).substring(2, 15),
+        o_fromAddress: addrAssetBook1,
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: tokenCount,
         o_fundCount: fundCount,
@@ -277,8 +328,13 @@ const addInvestorAssetRecordBatch = async (emailArray, symbol, serverTime, mintA
       ar_investorEmail: email,
       ar_tokenSYMBOL: symbol,
       ar_Time: serverTime,
+      ar_Holding_Amount_in_the_end_of_Period: mintAmount,
       ar_Accumulated_Income_Paid: 100,
-      ar_Holding_Amount_in_the_end_of_Period: mintAmount
+      ar_User_Asset_Valuation: 13000,
+      ar_User_Holding_Amount_Changed: 0,
+      ar_User_Holding_CostChanged: 0,
+      ar_User_Acquired_Cost: 13000,
+      ar_Moving_Average_of_Holding_Cost: 13000
     };//random() to prevent duplicate NULL entry!
     console.log(sql);
 
@@ -464,7 +520,8 @@ module.exports = {
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
-    addInvestorAssetRecord, addInvestorAssetRecordBatch
+    addInvestorAssetRecord, addInvestorAssetRecordBatch,
+    mysqlPoolQueryPromise, promise1
 }
 /**
     //getCrowdFundingCtrtAddr,
