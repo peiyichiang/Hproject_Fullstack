@@ -836,11 +836,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const price = req.body.price;
     const nftSymbol = req.params.nftSymbol;
 
-    console.log(toAddressArray);
-    console.log(amountArray);
-    console.log(tokenCtrtAddr);
-    console.log(fundingType);
-    console.log(price);
+    console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}
+    toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
 
     const maxMintAmountPerRun = 180;
     // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
@@ -871,8 +868,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else {
         console.log('\n[Success] All minting actions have been completed successfully');
 
-        const serverTime = await getTime();
-        await addInvestorAssetRecordBatch(emailArray, nftSymbol, serverTime, amountArray);
+        const serverTime = 201906050900; //await getTime();
+        await addAssetRecordsIntoDB(toAddressArray, symbol, serverTime, mintAmountArray);
 
         res.send({
             success: true,

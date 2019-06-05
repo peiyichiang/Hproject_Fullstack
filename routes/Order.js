@@ -28,11 +28,12 @@ router.post('/AddOrder', function (req, res, next) {
     const nationalIdLast5 = nationalId.toString().slice(-5);
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
+    const email = req.body.email;
 
     var sql = {
         o_id: orderId,
         o_symbol: symbol,
-        o_userIdentityNumber: nationalId,
+        o_email: email,
         o_fromAddress: Math.random().toString(36).substring(2, 15),
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: req.body.tokenCount,
@@ -122,22 +123,22 @@ router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/Order/OrdersByNationalId
-router.get('/OrdersByNationalId', function (req, res, next) {
-    console.log('------------------------==\n@Order/OrdersByNationalId');
-    let qstr1 = 'SELECT * FROM htoken.order WHERE o_userIdentityNumber = ?';
+//http://localhost:3000/Order/OrdersByEmail
+router.get('/OrdersByEmail', function (req, res, next) {
+    console.log('------------------------==\n@Order/OrdersByEmail');
+    let qstr1 = 'SELECT * FROM htoken.order WHERE o_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
-    let status, nationalId, qstrz;
-    if (req.body.nationalId) {
-        nationalId = req.body.nationalId; status = req.body.status;
+    let status, email, qstrz;
+    if (req.body.email) {
+        email = req.body.email; status = req.body.status;
     } else {
-        nationalId = req.query.nationalId; status = req.query.status;
+        email = req.query.email; status = req.query.status;
         if (status) {
             qstrz = qstr1 + ' AND o_paymentStatus = ?';
         } else { qstrz = qstr1; }
     }
-    var qur = mysqlPoolQuery(qstrz, [nationalId, status], function (err, result) {
+    var qur = mysqlPoolQuery(qstrz, [email, status], function (err, result) {
         if (err) {
             console.log(err);
             res.status(400);
@@ -359,27 +360,27 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
   console.log('------------------------==\n@Order/CheckOrderCompliance');
   var mysqlPoolQuery = req.pool;
   console.log('req.query', req.query, 'req.body', req.body);
-  let symbol, uid, authLevel, fundingType, buyAmount, isComplied, reason = '', errInput;
+  let symbol, email, authLevel, fundingType, buyAmount, isComplied, reason = '', errInput;
   if (req.body.symbol) {
       symbol = req.body.symbol;
-      uid = req.body.userIdentity;
+      email = req.body.email;
       authLevel = req.body.authLevel;
       buyAmount = Number(req.body.buyAmount);
       fundingType = req.body.fundingType;
   } else {
       symbol = req.query.symbol;
-      uid = req.query.userIdentity;
+      email = req.query.email;
       authLevel = req.query.authLevel;
       buyAmount = Number(req.query.buyAmount);
       fundingType = req.query.fundingType;
   }
-  console.log('symbol', symbol, 'uid', uid, 'authLevel', authLevel, 'buyAmount', buyAmount, 'fundingType', fundingType);
+  console.log('symbol', symbol, 'email', email, 'authLevel', authLevel, 'buyAmount', buyAmount, 'fundingType', fundingType);
 
   var fundingTypeArray = ["PublicOffering", "PrivatePlacement", "1", "2"];
   //fundingType= PO: 1, PP: 2
 
   var qur = mysqlPoolQuery(
-      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_userIdentityNumber = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, uid], function (err, orderBalance) {
+      'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, orderBalance) {
           if (err) {
               console.log(err);
               res.status(400);
@@ -495,8 +496,8 @@ const doesPassCompliance = (authLevel, balance, buyAmount, fundingType) => {
 }
 
 //通過User ID獲取paid Order
-router.get('/getPaidOrdersByUserIdentityNumber',function(req, res, next) {
-  console.log('------------------------==\n@Order/getPaidOrdersByUserIdentityNumber');
+router.get('/getPaidOrdersByUserEmail',function(req, res, next) {
+  console.log('------------------------==\n@Order/getPaidOrdersByUserEmail');
   var token=req.query.JWT_Token;
     if (token) {
         // 驗證JWT token
@@ -512,10 +513,10 @@ router.get('/getPaidOrdersByUserIdentityNumber',function(req, res, next) {
             return;
           } else {
             //JWT token驗證成功
-            // console.log("＊JWT Content:" + decoded.u_identityNumber);
+            // console.log("＊JWT Content:" + decoded.u_email);
             //從order中查找完成的訂單，計算該使用者的資產
             var mysqlPoolQuery = req.pool;
-            mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_userIdentityNumber = ? AND o_paymentStatus = ?', [decoded.u_identityNumber , "paid"] , async function(err, rows) {
+            mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_email = ? AND o_paymentStatus = ?', [decoded.u_email , "paid"] , async function(err, rows) {
                 if (err) {
                     console.log(err);
                     res.json({
@@ -527,7 +528,7 @@ router.get('/getPaidOrdersByUserIdentityNumber',function(req, res, next) {
                     sqls=[];
                     symbols=[];
                     for(var i=0;i<rows.length;i++){
-                        sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_userIdentityNumber = "' + decoded.u_identityNumber + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "paid"');
+                        sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_email = "' + decoded.u_email+ '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "paid"');
                         symbols.push(rows[i].o_symbol);
                     }
 

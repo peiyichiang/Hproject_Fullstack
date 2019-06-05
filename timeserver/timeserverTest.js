@@ -1,15 +1,15 @@
 const {getTime} = require('./utilities');
 
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addInvestorAssetRecord, addInvestorAssetRecordBatch } = require('./mysql.js');
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB } = require('./mysql.js');
 
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
-  addInvestorAssebooksIntoCFC, getInvestorsFromCFC,
+  addAssebooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC } = require('./blockchain.js');
 
-  let { symbolObject, addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, timeOfDeployment, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, admin, adminpkRaw, AssetOwner1, AssetOwner1pkRaw, AssetOwner2, AssetOwner2pkRaw, AssetOwner3, AssetOwner3pkRaw, AssetOwner4, AssetOwner4pkRaw, AssetOwner5, AssetOwner5pkRaw, managementTeam, symNum } = require('../ethereum/contracts/zsetupData');
+  let { symbolObject, addrHelium, assetbookArray, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray,  } = require('../ethereum/contracts/zsetupData');
 
 
 let choice, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
@@ -100,31 +100,29 @@ const makePseudoEthAddr = (length) => {
   return result;
 }
 
+const querySQL = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount FROM htoken.user User, htoken.order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = "NCCU1901"';
+
 
 // yarn run testts -a 1 -s 1 -c 9
-const addInvestorAssebooksIntoCFC_API = async () => {
-  console.log('addInvestorAssebooksIntoCFC_API');
-  await addInvestorAssebooksIntoCFC();
+const addAssebooksIntoCFC_API = async () => {
+  console.log('addAssebooksIntoCFC_API');
+  await addAssebooksIntoCFC();
   //process.exit(0);
 }
 
 //  yarn run testts -a 2 -c 7
-const addInvestorAssetRecord_API = async () => {
-  const email = '0001@gmail.com';
-  const symbol = 'ABBA1850';
-  const serverTime = await getTime();
-  const mintAmount = 9;
-  await addInvestorAssetRecord(email, symbol, serverTime, mintAmount);
-  process.exit(0);
+const addxyz = async () => {
+
 }
 //  yarn run testts -a 2 -c 8
-const addInvestorAssetRecordBatch_API = async () => {
-  console.log('addInvestorAssetRecordBatch_API');
-  const emailArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
+const addAssetRecordsIntoDB_API = async () => {
+  console.log('addAssetRecordsIntoDB_API');
+  //const inputArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
+  const inputArray = [...assetbookArray];
   const symbol = 'ABBA1850';
-  const serverTime = await getTime();
+  const serverTime = 201906050900;
   const mintAmountArray = [9, 11, 13];
-  addInvestorAssetRecordBatch(emailArray, symbol, serverTime, mintAmountArray);
+  addAssetRecordsIntoDB(inputArray, symbol, serverTime, mintAmountArray);
 }
 
 
@@ -152,18 +150,18 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //  yarn run testts -a 2 -c 7
 } else if(choice === 7){
-  console.log('-------------------==addInvestorAssetRecord_API');
-  addInvestorAssetRecord_API();
+  console.log('-------------------==addAssetRecordsIntoDB_API');
+  addAssetRecordsIntoDB_API();
 
 //  yarn run testts -a 2 -c 8
 } else if(choice === 8){
-  console.log('-------------------==addInvestorAssetRecord_API');
-  addInvestorAssetRecordBatch_API();
+  console.log('-------------------==addAssetRecordsIntoDB_API');
+  addAssetRecordsIntoDB_API();
 
 // yarn run testts -a 1 -c 9
 } else if(choice === 9){
-  console.log('-------------------==addInvestorAssebooksIntoCFC_API');
-  addInvestorAssebooksIntoCFC_API();
+  console.log('-------------------==addAssebooksIntoCFC_API');
+  addAssebooksIntoCFC_API();
 
 } else if(choice === 1){
   crowdFundingAddr = crowdFundingAddrArray[arg0];

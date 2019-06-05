@@ -2,40 +2,17 @@ var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
 require('dotenv').config()
+const { isEmpty } = require('./utilities');
 
-const mysql2 = require('mysql2');
-var pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-});
+const DatabaseCredential = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+};
 
-const promise1 = async (userId) => {
-  // get the client
-  const mysql2 = require('mysql2/promise');
-  // create the connection
-  const connection = await mysql2.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-  });
-  // query database
-  const result = await connection.execute('SELECT u_assetbookContractAddress FROM htoken.user WHERE u_identityNumber = ?', [userId]);
-  /**
-  } else if(result.length > 1){
-    console.error('\n----==[Error] Got multiple assetbookContractAddresses from one userId', userId, ', result', result);
-
-  } else if(result.length === 0){
-    console.error('\n----==[Error] Got no assetbookContractAddresses from userId', userId, ', result', result);
-   */
-  const addrAssetBook = result[0][0].u_assetbookContractAddress;
-  //console.log('addrAssetBook', addrAssetBook, '\nresult', result);
-  return addrAssetBook;
-}
+var pool = mysql.createPool(DatabaseCredential);
 
 const mysqlPoolQuery = async (sql, options, callback) => {
   debugSQL(sql, options, callback);
@@ -60,36 +37,25 @@ const mysqlPoolQuery = async (sql, options, callback) => {
   });
 };
 
-const mysqlPoolQueryPromise = async (sql, options) => {
-  return new Promise((resolve, reject) => {
-    debugSQL(sql, options);
-    if (typeof options === "function") {
-        options = undefined;
-    }
-    pool.getConnection(async function (err, conn) {
-        if (err) {
-          reject('[Error @ writing data into transaction_info row]', err);
-        } else {
-            conn.query(sql, options, async function (err, results, fields) {
-              console.log(`[connection sussessful @ mysql.js] `);
-              resolve(err, results, fields);
-              // http://localhost:${process.env.PORT}/Product/ProductList
-            });
-            // release connection。
-            // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
-            conn.release();
-        }
-    });
-  });
-};
 
+//https://www.npmjs.com/package/mysql2
+const connExec = async (querySQL, varArray) => {
+  if(typeof querySQL !== "string" || !Array.isArray(varArray)){ 
+    console.log('[Error] querySQL and varArray must be a string and an array');
+    return;
+  }
+  const mysql2 = require('mysql2/promise');
+  const connection = await mysql2.createConnection(DatabaseCredential);
+  const [rows, fields] = await connection.execute(querySQL, varArray);
+  return rows;
+}
 
-async function asyncForEachBasic(arrayBasic, callback) {
-  console.log("arrayBasic:"+arrayBasic);
-  for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
+async function asyncForEach(array, callback) {
+  console.log("array:", array);
+  for (let idx = 0; idx < array.length; idx++) {
     console.log(`\n--------------==next:
-    idxBasic: ${idxBasic}, ${arrayBasic[idxBasic]}`);
-    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
+    idx: ${idx}, ${array[idx]}`);
+    await callback(array[idx], idx, array);
   }
 }
 
@@ -244,7 +210,7 @@ Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
 
-const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentStatus) => {
+const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentStatus, email) => {
   return new Promise((resolve, reject) => {
     console.log('\n-------------==addOrderRow');
     console.log('inside addOrderRow. paymentStatus', paymentStatus, ', symbol', symbol);
@@ -259,7 +225,7 @@ const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentSta
     const sql = {
         o_id: orderId,
         o_symbol: symbol,
-        o_userIdentityNumber: nationalId,
+        o_email: email,
         o_fromAddress: addrAssetBook1,
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: tokenCount,
@@ -283,6 +249,7 @@ const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentSta
   });
 }
 
+
 /**
 第一筆資料應在release_date時寫入
 最少要包含以下資料
@@ -291,36 +258,46 @@ tokenSYMBOL(ar_tokenSYMBOL): mintSymbol
 發放token時間(ar_Time): mintTime
 初次發行時擁有之資產(ar_Holding_Amount_in_the_end_of_Period): mintAmount
 */
-const addInvestorAssetRecord = async (email, symbol, serverTime, mintAmount) => {
-  console.log('\n-------------==addInvestorAssetRecord');
-  return new Promise((resolve, reject) => {
-      console.log(`email: ${email}, symbol: ${symbol}, serverTime: ${serverTime}, mintAmount: ${mintAmount}`);
 
-      const sql = {
-        ar_investorEmail: email,
-        ar_tokenSYMBOL: symbol,
-        ar_Time: serverTime,
-        ar_Accumulated_Income_Paid: 100,
-        ar_Holding_Amount_in_the_end_of_Period: mintAmount
-      };//random() to prevent duplicate NULL entry!
-      console.log(sql);
+const addAssetRecordsIntoDB = async (inputArray, symbol, serverTime, mintAmountArray) => {
+  console.log('\n-------------==addAssetRecordsIntoDB');
+  if(typeof symbol !== "string" || isEmpty(symbol) || !Array.isArray(inputArray) || inputArray.length === 0 || !Array.isArray(mintAmountArray) || mintAmountArray.length === 0 || !Number.isInteger(serverTime) || parseInt(serverTime) < 201905270900){ 
+    console.log('[Error] inputArray and mintAmountArray must be arrays, symbol must be a string, serverTime must be an integer', inputArray, symbol, serverTime, mintAmountArray);
+    return;
+  } else if(inputArray.length === 0 || inputArray.length !== mintAmountArray.length) {
+    console.log('[Error] inputArray is empty or it has different length than that of mintAmountArray');
+    return;
+  }
 
-      mysqlPoolQuery('INSERT INTO htoken.investor_assetRecord SET ?', sql, function (err, result) {
-        if (err) {
-          console.log('[Error @ writing data into product rows]', err);
-          reject('[Error @ writing data into product rows]', err);
-        } else {
-          console.log("\nProduct table has been added with one new row. result:", result);
-          resolve(result);
-        }
-      });
-  });
-}
+  const emailArray = [];
+  if(inputArray[0].includes('@')){
+    inputArray.forEach( (element,idx) => emailArray.push(element) );
 
+  } else {
+    const querySQL4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
+    await asyncForEach(inputArray, async (addrAssetbook, index) => {
+      const results4 = await connExec(querySQL4, [addrAssetbook]).catch((err) => console.log('\n[Error @ connExec(querySQL4)]', err));
+      console.log('\nresults4', results4); // https://www.npmjs.com/package/mysql2
 
-const addInvestorAssetRecordBatch = async (emailArray, symbol, serverTime, mintAmountArray) => {
-  console.log('\n-------------==addInvestorAssetRecordBatch');
-  await asyncForEachBasic(emailArray, async (email, idx) => {
+      if(results4 === null || results4 === undefined){
+        console.log('\n----==[Error] email address is null or undefined for addrAssetbook:', addrAssetbook, ', results4', results4);
+
+      } else if(results4.length > 1){
+        console.error('\n----==[Error] Got multiple email addresses from one addrAssetbook', addrAssetbook, ', results4', results4);
+
+      } else if(results4.length === 0){
+        console.error('\n----==[Error] Got empty email address from one addrAssetbook', addrAssetbook, ', results4', results4);
+      
+      } else {
+        console.error('\n----==[Good] Got one email address from addrAssetbook', addrAssetbook);
+        const email = results4[0].u_email;
+        console.log('addrAssetbook', addrAssetbook, email, mintAmountArray[index]);
+        emailArray.push(email);
+      }
+    });
+  }
+  
+  await asyncForEach(emailArray, async (email, idx) => {
     const mintAmount = mintAmountArray[idx];
     console.log(`email: ${email}, symbol: ${symbol}, serverTime: ${serverTime}, mintAmount: ${mintAmount}`);
 
@@ -337,6 +314,7 @@ const addInvestorAssetRecordBatch = async (emailArray, symbol, serverTime, mintA
       ar_Moving_Average_of_Holding_Cost: 13000
     };//random() to prevent duplicate NULL entry!
     console.log(sql);
+
 
     mysqlPoolQuery('INSERT INTO htoken.investor_assetRecord SET ?', sql, function (err, result) {
       if (err) {
@@ -520,8 +498,8 @@ module.exports = {
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
-    addInvestorAssetRecord, addInvestorAssetRecordBatch,
-    mysqlPoolQueryPromise, promise1
+    addAssetRecordsIntoDB,
+    connExec
 }
 /**
     //getCrowdFundingCtrtAddr,
