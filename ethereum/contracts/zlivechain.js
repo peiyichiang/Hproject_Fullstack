@@ -32,7 +32,9 @@ transferTokensKY
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+
 const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
+const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
 const {  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
@@ -219,14 +221,6 @@ const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
 // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
 checkTrue = (item) => item;
-
-async function asyncForEachBasic(arrayBasic, callback) {
-  console.log("arrayBasic:"+arrayBasic);
-  for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
-    console.log("idxBasic:"+idxBasic, arrayBasic[idxBasic]);
-    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
-  }
-}
 
 
 //yarn run livechain -c 1 --f 0 -a 1 -b 3
@@ -589,7 +583,7 @@ const mintTokenFn1 = async () => {
 
 
 
-//yarn run livechain -c 1 --f 5 -a 1 -b 190
+// yarn run livechain -c 1 --f 5 -a 1 -b 190
 const mintTokens = async (assetbookNum, amount) => {
   console.log('-------------==mintTokens ... Mint Token Batch');
   serverTime = TimeTokenUnlock+1;
@@ -930,20 +924,21 @@ const addAssetBookAPI = async () => {
 }
 
 
-//yarn run livechain -c 1 --f 6
+// yarn run livechain -c 1 --f 6
 const sequentialMintSuperAPI = async () => {
   console.log('\n-----------------------==sequentialMintSuperAPI()');
+  const amountArray = [20, 37, 41];//98
+  //const amountArray = [2000, 3900, 4183];//10083
+  //const amountArray = [1000, 1900, 2183];//5083
 
   const toAddressArray =[addrAssetBook1, addrAssetBook2, addrAssetBook3];
-  const amountArray = [2000, 3900, 4183];//10083
-  //const amountArray = [1000, 1900, 2183];//5083
   const tokenCtrtAddr = addrHCAT721;
   const fundingType = 2;//PO: 1, PP: 2
   const price = 20000;
   const maxMintAmountPerRun = 180;
 
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
@@ -951,8 +946,18 @@ const sequentialMintSuperAPI = async () => {
     console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
   } else {
     console.log('\n[Success] All minting actions have been completed successfully');
+
+    if(emailArrayError === null || emailArrayError.length > 0){
+      console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
+      emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+
+    } else {
+      console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+
+    }
+
   }
-  process.exit(0);
+  //process.exit(0);
 }
 
 //yarn run livechain -c 1 --f 38 -a 1 -b 3

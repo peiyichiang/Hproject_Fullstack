@@ -3,9 +3,9 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
+
 const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper } = require('../timeserver/blockchain.js');
-const { addInvestorAssetRecordBatch } = require('../timeserver/mysql');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -846,36 +846,46 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    try {
-      const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun);
-    } catch (error) {
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
       console.log('[Error @ sequentialMintSuper]', err);
       res.send({
-          success: false,
-          result: '[Failed @ sequentialRunSuper()], err:' + err,
+        success: false,
+        result: '[Failed @ sequentialRunSuper()], err:' + err,
       });
-      console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
-    }
+    });
+    console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
 
     if (isFailed || isFailed === undefined || isFailed === null) {
         console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
         res.send({
             success: false,
             result: '[Failed] Check isCorrectAmountArray',
-            isCorrectAmountArray: isCorrectAmountArray,
+            array1: isCorrectAmountArray,
         });
 
     } else {
         console.log('\n[Success] All minting actions have been completed successfully');
 
-        const serverTime = 201906050900; //await getTime();
-        await addAssetRecordsIntoDB(toAddressArray, symbol, serverTime, mintAmountArray);
+        if(emailArrayError === null || emailArrayError.length > 0){
+          console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
+          emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
-        res.send({
+          res.send({
+              success: false,
+              result: '[Minting Successful but addAssetRecordsIntoDB Failed]',
+              array1: emailArrayError, 
+              array2: amountArrayError
+          });
+  
+        } else {
+          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+
+          res.send({
             success: true,
             result: '[Success] All balances are correct',
-            isCorrectAmountArray: isCorrectAmountArray,
-        });
+          });
+        }
+
     }
 });
 
