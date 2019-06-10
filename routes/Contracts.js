@@ -866,7 +866,15 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else {
         console.log('\n[Success] All minting actions have been completed successfully');
 
-        if(emailArrayError === null || emailArrayError.length > 0){
+        if( emailArrayError.length === 0 && amountArrayError.length === 0){
+          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+
+          res.send({
+            success: true,
+            result: '[Success] All balances are correct',
+          });
+ 
+        } else {
           console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
           emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
@@ -876,14 +884,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
               array1: emailArrayError, 
               array2: amountArrayError
           });
-  
-        } else {
-          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
-          res.send({
-            success: true,
-            result: '[Success] All balances are correct',
-          });
         }
 
     }

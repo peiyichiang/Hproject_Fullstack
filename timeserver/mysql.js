@@ -1,7 +1,9 @@
 var mysql = require("mysql");
+//var util = require('util');
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
 require('dotenv').config()
+
 const { isEmpty, asyncForEach } = require('./utilities');
 
 const serverTimeMin = 201905270900;
@@ -11,8 +13,10 @@ const DatabaseCredential = {
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 };
-
 var pool = mysql.createPool(DatabaseCredential);
 
 //callback could not wait, but good for taking object input to make new rows
@@ -40,18 +44,26 @@ const mysqlPoolQuery = async (sql, options, callback) => {
 };
 
 
-//https://www.npmjs.com/package/mysql2
-// good for async/await, but (cannot) take object as input yet...
-const mysql2Exec = async (querySQL, options) => {
-  // if(typeof querySQL !== "string" || !Array.isArray(options)){ 
-  //   console.log('[Error] querySQL and options must be a string and an array');
-  //   return;
-  // }
-  const mysql2 = require('mysql2/promise');
-  const connection = await mysql2.createConnection(DatabaseCredential);
-  const [rows, fields] = await connection.execute(querySQL, options);
-  return rows;
-}
+const mysqlPoolQueryB = async (sql, options) => {
+  return new Promise( async ( resolve, reject ) => {
+    pool.getConnection(function (err, conn) {
+        if (err) {
+            console.log(err);
+        } else {
+          conn.query(sql, options, function (err, results) {
+            if(err) {
+              return reject(err);
+            } else {
+              conn.release();
+              console.log(`[mysqlPoolQueryB @ mysql.js] `);
+              resolve(results);
+            }  
+          });
+        }
+    });
+  })
+};
+
 
 
 
@@ -274,7 +286,7 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
     console.log('all input values are okay');
     const querySQL4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
     await asyncForEach(inputArray, async (addrAssetbook, index) => {
-      const results4 = await mysql2Exec(querySQL4, [addrAssetbook]).catch((err) => console.log('\n[Error @ mysql2Exec(querySQL4)]', err));
+      const results4 = await mysqlPoolQueryB(querySQL4, [addrAssetbook]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL4)]', err));
       console.log('\nresults4', results4);
       if(results4 === null || results4 === undefined){
         console.log('\n----==[Error] email address is null or undefined for addrAssetbook:', addrAssetbook, ', results4', results4); emailArray.push('email:_null_or_undefined');
@@ -321,8 +333,6 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
       console.log(sql);
 
       const querySQL5 = 'INSERT INTO htoken.investor_assetRecord SET ?';
-      // const results5 = await mysql2Exec(querySQL5, sql).catch((err) => console.log('\n[Error @ mysql2Exec(querySQL5)]', err));
-      // console.log("\nA new row has been added. result:", results5);
       await mysqlPoolQuery(querySQL5, sql, function (err, result) {
         if (err) {
           console.log('[Error @ writing a new row]', err);
@@ -509,7 +519,7 @@ module.exports = {
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
     addAssetRecordsIntoDB,
-    mysql2Exec
+    mysqlPoolQueryB
 }
 /**
     //getCrowdFundingCtrtAddr,

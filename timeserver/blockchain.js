@@ -5,7 +5,7 @@ const moment = require('moment');
 const { getTime, isEmpty, asyncForEach } = require('./utilities');
 const { excludedSymbols } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryPromise, mysql2Exec } = require('./mysql.js');
+const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB } = require('./mysql.js');
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
@@ -455,16 +455,15 @@ const updateCFC = async (timeCurrent) => {
     console.log('[Error] timeCurrent should be an integer');
     return;
   }
-  const pstate1 = "initial";
-  const pstate2 = "funding";
-  const pstate3 = "fundingGoalReached";
   mysqlPoolQuery(
-    'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = ? AND p_CFSD <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+') OR (p_state = ? AND p_CFED <= '+timeCurrent+')', [pstate1, pstate2, pstate3], function (err, symbolArray) {
+    'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = "initial" AND p_CFSD <= '+timeCurrent+') OR (p_state = "funding" AND p_CFED <= '+timeCurrent+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+timeCurrent+')', [], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
     console.log('\nsymbolArray length @ updateCFC:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
+    } else if (symbolArrayLen === 0) {
+      console.log('[updateCFC] no symbol was found for updating its crowdfunding contract');
     } else if (symbolArrayLen > 0) {
       sequentialRun(symbolArray, timeIntervalOfNewBlocks, timeCurrent, ['crowdfunding']);
     }
@@ -474,25 +473,34 @@ const updateCFC = async (timeCurrent) => {
 
 
 // yarn run testts -a 2 -c 1
-const addAssebooksIntoCFC = async () => {
-  console.log('\ninside blockchain.js: addAssebooksIntoCFC()...');
+const addAssetbooksIntoCFC = async () => {
+  console.log('\ninside blockchain.js: addAssetbooksIntoCFC()...');
   const querySQL1 = 'SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
-  const results1 = await mysql2Exec(querySQL1, []).catch((err) => console.log('\n[Error @ mysql2Exec(querySQL1)]', err));
-  console.log('results1', results1);
-  
+  const results1 = await mysqlPoolQueryB(querySQL1, []).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL1)]', err));
+
+ 
+  const foundSymbolArray = [];
   const symbolArray = [];
+
   if(results1.length === 0){
     console.log('No paid order is found');
-  } else if(typeof results1[0] === 'object' && results1[0] !== null){
-    results1.forEach((item)=>{symbolArray.push(item.o_symbol)});
   } else {
-    results1.forEach((item)=>{symbolArray.push(item)});
+    for(let i = 0; i < results1.length; i++) {
+      if(typeof results1[i] === 'object' && results1[i] !== null){
+        foundSymbolArray.push(results1[i].o_symbol);
+        if(!excludedSymbols.includes(results1[i].o_symbol)){
+          symbolArray.push(results1[i].o_symbol)}
+      } else {
+        symbolArray.push(results1[i]);
+      }
+    }
   }
+  console.log('foundSymbolArray', foundSymbolArray);
   console.log('symbolArray', symbolArray);
 
   await asyncForEach(symbolArray, async (symbol, index) => {
     const querySQL2 = 'SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
-    const results2 = await mysql2Exec(querySQL2, [symbol]).catch((err) => console.log('\n[Error @ mysql2Exec(querySQL2)]', err));
+    const results2 = await mysqlPoolQueryB(querySQL2, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL2)]', err));
     console.log('results2', results2);
     if(results2.length > 1){
       console.error('\n------==[Error] Found multiple crowdsaleaddresses from one symbol! result', results2);
@@ -508,7 +516,7 @@ const addAssebooksIntoCFC = async () => {
       // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
       const querySQL3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM htoken.user User, htoken.order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
       //const querySQL3 = 'SELECT o_email, o_tokenCount, o_id FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"';
-      const results3 = await mysql2Exec(querySQL3, [symbol]).catch((err) => console.log('\n[Error @ mysql2Exec(querySQL3)]', err));
+      const results3 = await mysqlPoolQueryB(querySQL3, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL3)]', err));
       console.log('results3', results3);
       if(results3.length === 0){
         console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
@@ -590,7 +598,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         if(orderIdArray.length === txnHashArray.length){
           const querySQL5 = 'UPDATE htoken.order SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
           await asyncForEach(orderIdArray, async (orderId, index) => {
-            const results5 = await mysql2Exec(querySQL5, [txnHashArray[index], orderId]).catch((err) => console.log('\n[Error @ mysql2Exec(querySQL5)]', err));
+            const results5 = await mysqlPoolQueryB(querySQL5, [txnHashArray[index], orderId]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL5)]', err));
             console.log('\nresults5', results5);
           });
         } else {
@@ -659,6 +667,8 @@ const updateTCC = async (timeCurrent) => {
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
+    } else if (symbolArrayLen === 0) {
+      console.log('[updateTCC] no symbol was found for time >= lockuptime or time >= validdate');
     } else if (symbolArrayLen > 0) {
       sequentialRun(symbolArray, timeIntervalOfNewBlocks, timeCurrent, ['tokencontroller']);
     }
@@ -795,6 +805,8 @@ const updateExpiredOrders = async (timeCurrent) => {
   
     if (err) {
       console.log('[Error] @ searching o_id and o_purchaseDate:', err);
+    } else if (resultArrayLen === 0) {
+      console.log('[updateExpiredOrders] no waiting order was found');
     } else if (resultArrayLen > 0) {
       sequentialRun(resultArray, timeIntervalUpdateExpiredOrders, timeCurrent, ['updateExpiredOrders']);
     }
@@ -870,7 +882,7 @@ module.exports = {
   sequentialRun, sequentialMint, sequentialCheckBalancesAfter, sequentialCheckBalances,
   breakdownArrays, sequentialMintSuper,
   getFundingStateCFC, updateFundingStateCFC, updateCFC,
-  addAssebooksIntoCFC, getInvestorsFromCFC,
+  addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC
 }

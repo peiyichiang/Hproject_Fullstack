@@ -8,10 +8,10 @@ const fs = require('fs');
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
 //const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { updateExpiredOrders, updateCFC, updateTokenController, checkIncomeManager, addAssebooksIntoCFC } = require('./blockchain.js');
+const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC } = require('./blockchain.js');
 
 const mode = 1;
-const timeInverval = 20;
+const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
 const atTheNsecond = 1;
 let modeStr;
 if(mode === 1){
@@ -39,10 +39,10 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
     } 
   
     console.log('[timeserverSource.js] timeCurrent: '+timeCurrent);
-    addAssebooksIntoCFC();
+    addAssetbooksIntoCFC();
     //updateExpiredOrders(timeCurrent);//to convert from buffer to string
     //updateCFC(timeCurrent);
-    //updateTokenController(timeCurrent);
+    //updateTCC(timeCurrent);
     //checkIncomeManager(timeCurrent);
 
 
