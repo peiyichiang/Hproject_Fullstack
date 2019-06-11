@@ -1229,7 +1229,7 @@ router.get('/ForcastIncomeBySymbol', function (req, res) {
          AND    ia_single_Forecasted_Annual_Income > 0
         `, symbol, function (err, forcastIncomeArray) {
 
-            const initArray = []
+            let initArray = []
             initArray.push(forcastIncomeArray[0])
 
             forcastIncomeArray.reduce(
@@ -1280,10 +1280,10 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
 
             let imageURLObject = imageURLObjectArray[0]
             let imageURLArray = Object.values(imageURLObject)
-            imageURLArray = imageURLArray.map(imageURL => {
-                imageURLObject = { imageURL: imageURL.replace("public/", "") }
-                return imageURLObject
-            });
+            // imageURLArray = imageURLArray.map(imageURL => {
+            //     imageURLObject = { imageURL: imageURL.replace("public/", "") }
+            //     return imageURLObject
+            // });
 
             if (err) {
                 res.status(400)
