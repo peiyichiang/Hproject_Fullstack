@@ -42,8 +42,8 @@ contract CrowdFunding {
     address public addrRegistry;
 
     // Each incoming fund will be recorded in each investor’s InvestmentRecord
-    mapping(address => uint) public addrToQty;
-    mapping(uint => address) public idxToAddr;
+    mapping(address => uint) public ownerToQty;
+    mapping(uint => address) public idxToOwner;
 
     uint public fundingCindex;//last submitted index and total count of all invested funds
 
@@ -284,11 +284,11 @@ contract CrowdFunding {
         quantitySold = quantitySold.add(_quantityToInvest);
         require(quantitySold <= maxTotalSupply, "quantitySold should be <= maxTotalSupply");
 
-        if(addrToQty[_addrAssetbook] == 0){
+        if(ownerToQty[_addrAssetbook] == 0){
             fundingCindex = fundingCindex.add(1);
-            idxToAddr[fundingCindex] = _addrAssetbook;
+            idxToOwner[fundingCindex] = _addrAssetbook;
         }
-        addrToQty[_addrAssetbook] = addrToQty[_addrAssetbook].add(_quantityToInvest);
+        ownerToQty[_addrAssetbook] = ownerToQty[_addrAssetbook].add(_quantityToInvest);
 
         emit TokenInvested(_addrAssetbook, _quantityToInvest, serverTime);
         updateState(serverTime);
@@ -317,8 +317,8 @@ contract CrowdFunding {
         investedTokenQtyArray = new uint[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)) {
-            assetbookArray[i] = idxToAddr[i.add(indexStart_)];
-            investedTokenQtyArray[i] = addrToQty[assetbookArray[i]];
+            assetbookArray[i] = idxToOwner[i.add(indexStart_)];
+            investedTokenQtyArray[i] = ownerToQty[assetbookArray[i]];
             // assetbookArray[i] = investmentRecords[i.add(indexStart_)].assetbook;
             // investedTokenQtyArray[i] = investmentRecords[i.add(indexStart_)].investedTokenQty;
         }

@@ -50,10 +50,14 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         mapping (address => uint) allowed;
         //each operator has given quota to send certain account's N amount of tokens
     }
-    mapping(uint256 => Asset) public idToAsset;//NFT ID to token assets
+    mapping(uint => Asset) public idToAsset;//NFT ID to token assets
     struct Asset {
         address owner;
     }
+
+    mapping(address => bool) public isOwnerAdded;
+    mapping(uint => address) public idxToOwner;
+    uint public ownerCindex;//to get the total unique owner number/assetbook number
 
     uint public tokenId;//same as tokenCindex, the last submitted index and total count of current Token ID. Its value starts from 1
     uint public siteSizeInKW;//the physical site electrical output in Kw. Typ 300kw
@@ -74,8 +78,8 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))` ... which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
 
     /** Contract code size over limit of 24576 bytes.
-    0x0348538441, 0x0348538441, 300, 900, 17000, 0x0348538441, 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
-    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441, "0x0dcd2f752394c41875e259e00bb44fd505297caf"  */
+    0x0348538441, 0x0348538441, 300, 5000, 19000, 0x0348538441, 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
+    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441, "0x0dcd2f752394c41875e259e00bb44fd505297caf", 201906070000  */
     constructor(
         bytes32 _nftName, bytes32 _nftSymbol,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
@@ -150,22 +154,23 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         require(ownerAddr != address(0), "ownerAddr should not be 0x0");
     }
 
-    //去ERC721合約中撈 持幣user資料
-    function getTokenOwners(uint indexStart, uint amount)
-        external view returns(address[] memory ownerAddrs) {
+
+    //to get all unique owners/assetbooks, indexStart can be 1, 2, ... ownerIndex as its max value; amount is the amount of output array length
+    function getOwnersByOwnerIndex(uint indexStart, uint amount)
+      external view returns (address[] memory ownerAddrs) {
         uint indexStart_;
         uint amount_;
         if(indexStart == 0 && amount == 0) {
             indexStart_ = 1;
-            amount_ = tokenId;
+            amount_ = ownerCindex;
 
         } else {
             require(indexStart > 0, "Token indexStart must be > 0");
             require(amount > 0, "amount must be > 0");
 
-            if(indexStart.add(amount).sub(1) > tokenId) {
+            if(indexStart.add(amount).sub(1) > ownerCindex) {
                 indexStart_ = indexStart;
-                amount_ = tokenId.sub(indexStart).add(1);
+                amount_ = ownerCindex.sub(indexStart).add(1);
             } else {
                 indexStart_ = indexStart;
                 amount_ = amount;
@@ -173,10 +178,36 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }
         ownerAddrs = new address[](amount_);
         for(uint i = 0; i < amount_; i = i.add(1)) {
-            Asset memory asset = idToAsset[i.add(indexStart_)];
-            ownerAddrs[i] = asset.owner;
+            ownerAddrs[i] = idxToOwner[i.add(indexStart_)];
         }
     }
+    //去ERC721合約中撈 持幣user資料 working but this contract has reached its max size limit!!!
+    // function getOwnersByTokenId(uint indexStart, uint amount)
+    //   external view returns(address[] memory ownerAddrs) {
+    //     uint indexStart_;
+    //     uint amount_;
+    //     if(indexStart == 0 && amount == 0) {
+    //         indexStart_ = 1;
+    //         amount_ = tokenId;
+
+    //     } else {
+    //         require(indexStart > 0, "Token indexStart must be > 0");
+    //         require(amount > 0, "amount must be > 0");
+
+    //         if(indexStart.add(amount).sub(1) > tokenId) {
+    //             indexStart_ = indexStart;
+    //             amount_ = tokenId.sub(indexStart).add(1);
+    //         } else {
+    //             indexStart_ = indexStart;
+    //             amount_ = amount;
+    //         }
+    //     }
+    //     ownerAddrs = new address[](amount_);
+    //     for(uint i = 0; i < amount_; i = i.add(1)) {
+    //         Asset memory asset = idToAsset[i.add(indexStart_)];
+    //         ownerAddrs[i] = asset.owner;
+    //     }
+    // }
 
 
     //---------------------------==Account
@@ -197,6 +228,12 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             //balance = 0; arrayOut = [];
         } else {
             balance = idxEnd.sub(idxStart).add(1);
+        }
+    }
+    function balanceOfArray(address[] memory users) public view returns (uint[] memory balanceOut) {
+        balanceOut = new uint[](users.length);
+        for(uint i = 0; i < users.length; i = i.add(1)) {
+            balanceOut[i] = balanceOf(users[i]);
         }
     }
 
@@ -318,6 +355,13 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             accounts[_to].indexToId[i] = tokenId;
         }
         accounts[_to].idxEnd = idxEndReq;
+
+        if(!isOwnerAdded[_to]){
+            ownerCindex = ownerCindex.add(1);
+            idxToOwner[ownerCindex] = _to;
+            isOwnerAdded[_to] = true;
+        }
+
     }
     event MintSerialNFT(address indexed newOwner, uint amountMinted, uint price, uint indexed serverTime, uint fundingType);
 
@@ -467,6 +511,13 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             accounts[_from].idxEnd = 0;
         } else {
             accounts[_from].idxStart = idxX[0].add(amount);
+        }
+
+
+        if(!isOwnerAdded[_to]){
+            ownerCindex = ownerCindex.add(1);
+            idxToOwner[ownerCindex] = _to;
+            isOwnerAdded[_to] = true;
         }
 
         emit SafeTransferFromBatch(_from, _to, amount, price, serverTime);

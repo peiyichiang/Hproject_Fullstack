@@ -48,14 +48,14 @@ const mysqlPoolQueryB = async (sql, options) => {
   return new Promise( async ( resolve, reject ) => {
     pool.getConnection(function (err, conn) {
         if (err) {
-            console.log(err);
+          return reject(err);
         } else {
           conn.query(sql, options, function (err, results) {
             if(err) {
               return reject(err);
             } else {
               conn.release();
-              console.log(`[mysqlPoolQueryB @ mysql.js] `);
+              console.log(`[Success: mysqlPoolQueryB @ mysql.js] `);
               resolve(results);
             }  
           });
@@ -227,12 +227,10 @@ const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentSta
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
 
-    const addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
-    const sql = {
+    const sqlObject = {
         o_id: orderId,
         o_symbol: symbol,
         o_email: email,
-        o_fromAddress: addrAssetBook1,
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: tokenCount,
         o_fundCount: fundCount,
@@ -240,22 +238,40 @@ const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, paymentSta
         o_paymentStatus: paymentStatus
     };//random() to prevent duplicate NULL entry!
 
-    console.log(sql);
+    console.log(sqlObject);
 
-    mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
-      if (err) {
-        console.log("error", err);
-        reject(err);
-      } else {
-        console.log("result", result);
-        resolve(true);
-      }
-    });
+    const querySQL1 = 'INSERT INTO htoken.order SET ?';
+    const results1 = await mysqlPoolQueryB(querySQL1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
+    resolve(results1);
+
+    // mysqlPoolQuery(querySQL1, sql, function (err, result) {
+    //   if (err) {
+    //     console.log("error", err);
+    //     reject(err);
+    //   } else {
+    //     console.log("result", result);
+    //     resolve(true);
+    //   }
+    // });
 
   });
 }
 
 
+const addIncomeArrangementRow = (symbol, time, actualPaymentTime, actualPayment) => {
+  return new Promise((resolve, reject) => {
+    mysqlPoolQuery('INSERT INTO htoken.income_arrangement (ia_SYMBOL, ia_time, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period) VALUES (?, ?, ?, ?)', [symbol, time, actualPaymentTime, actualPayment], function (err, result) {
+      if (err) {
+        reject('[Error @ writing data into transaction_info row]', err);
+      } else {
+        console.log("\ntransaction_info table has been added with one new row. result:", result);
+        resolve(result);
+      }
+    });
+  });
+}
+
+//----------------------------==
 const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime) => {
   console.log('\n-------------------==addAssetRecordsIntoDB');
   if(typeof symbol !== "string" || isEmpty(symbol)){
@@ -346,6 +362,9 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
   return [emailArrayError, amountArrayError];
   //process.exit(0);
 }
+
+
+
 
 //---------------------------==
 function getFundingStateDB(symbol){
@@ -514,6 +533,7 @@ function print(s) {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
+    addIncomeArrangementRow,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 

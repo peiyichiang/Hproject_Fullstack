@@ -10,7 +10,7 @@ const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenIds, assetbookXM, balanceXM, index, assebookId;
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenIds, assetbookXM, balanceXM;
 const options = { gasLimit: 9000000 };
 gasLimitValue = '9000000';
 gasPriceValue = '20000000000';
@@ -293,7 +293,7 @@ let admin, chairman, director, manager, owner, isSenderAllowed;
 let adminM, chairmanM, directorM, managerM, ownerM;
 
 let tokenId, _from, uriStr, uriBytes32, uriStrB;
-let tokenOwnerM, tokenControllerDetail, TimeAtDeploymentM;
+let tokenOwnerM, tokenControllerDetail, TimeAtDeploymentM, ownerCindexM
 let TimeOfDeploymentM, TimeTokenUnlockM, TimeTokenValidM, bool1;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
@@ -698,7 +698,7 @@ describe('Tests on HCAT721', () => {
 
 
     console.log('\n------------==Mint token');
-    console.log('Start minting tokenId=1 via mintSerialNFT() to AssetBook1...');
+    console.log('Start minting tokenId = 1 via mintSerialNFT() to AssetBook1...');
     await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('after minting tokenId =', tokenId);
@@ -723,6 +723,18 @@ describe('Tests on HCAT721', () => {
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
     console.log('HCAT721 tokenIds =', tokenIds, ', balanceXM =', balanceXM);
+
+    ownerCindexM = await instHCAT721.methods.ownerCindex().call();
+    console.log('\nownerCindexM', ownerCindexM);
+    assert.equal(ownerCindexM, '1');
+
+    isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
+    console.log('\nisOwnerAdded', isOwnerAdded);
+    assert.equal(isOwnerAdded, true);
+
+    idxToOwnerM = await instHCAT721.methods.idxToOwner(1).call();
+    console.log('\nidxToOwnerM', idxToOwnerM);
+    assert.equal(idxToOwnerM, _to);
 
 
     //-----------------==Mint Token Batch
@@ -779,6 +791,17 @@ describe('Tests on HCAT721', () => {
     accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('HCAT getAccount():', accountM);
 
+    ownerCindexM = await instHCAT721.methods.ownerCindex().call();
+    console.log('\nownerCindexM', ownerCindexM);
+    assert.equal(ownerCindexM, '1');
+
+    isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
+    console.log('\nisOwnerAdded', isOwnerAdded);
+    assert.equal(isOwnerAdded, true);
+
+    idxToOwnerM = await instHCAT721.methods.idxToOwner(1).call();
+    console.log('\nidxToOwnerM', idxToOwnerM);
+    assert.equal(idxToOwnerM, _to);
 
     //HCAT721: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
     //-----------------==Mint Token Batch
@@ -825,6 +848,24 @@ describe('Tests on HCAT721', () => {
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
     accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('HCAT getAccount():', accountM);
+
+    ownerCindexM = await instHCAT721.methods.ownerCindex().call();
+    console.log('\nownerCindexM', ownerCindexM);
+    assert.equal(ownerCindexM, '2');
+
+    isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
+    console.log('\nisOwnerAdded', isOwnerAdded);
+    assert.equal(isOwnerAdded, true);
+
+    idxToOwnerM = await instHCAT721.methods.idxToOwner(2).call();
+    console.log('\nidxToOwnerM', idxToOwnerM);
+    assert.equal(idxToOwnerM, _to);
+
+    const ownerAddrsM1 = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+    console.log('\nownerAddrsM1', ownerAddrsM1);
+    assert.equal(ownerAddrsM1.length, 2);
+    assert.equal(ownerAddrsM1[0], addrAssetBook1);
+    assert.equal(ownerAddrsM1[1], addrAssetBook2);
 
 
     //-----------------==Check if STO Compliance for balance

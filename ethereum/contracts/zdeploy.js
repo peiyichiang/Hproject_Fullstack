@@ -21,14 +21,14 @@ if (process.argv.length < 8) {
 // chain    symNum   ctrtName
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
-const { userIDs, authLevels, productObjArray, symbolArray, userArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
   TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager,
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager, userArray
 } = require('./zsetupData');
 
-let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
+let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetbookArray} = require('./zsetupData');
 
+const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
   
@@ -477,21 +477,6 @@ const deploy = async () => {
     } else {
       console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
     }
-    /**
-    value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
-    value: web3deploy.utils.toWei('10','ether')
-    */
-    //-------------------==
-    /*
-    console.log('\nto add product row into DB');
-    addProductRow(nftSymbol, nftSymbol, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
-    
-    console.log('\nto add smart contract row into DB');
-    addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
- 
-    console.log('\naddrCrowdFunding:', addrCrowdFunding);
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-    */
     process.exit(0);
 
 
@@ -503,21 +488,56 @@ const deploy = async () => {
 
 
   
-  //yarn run deploy -c 1 -n 0 -cName addsc
-  } else if (ctrtName === 'addsc'){
-    addSmartContractRowAPI();
+  //yarn run deploy -c 1 -n 0 -cName addsctrt
+  } else if (ctrtName === 'addsctrt'){
+    console.log('\n-------------==inside addSmartContractRowAPI');
+    console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
+  
+    await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
+    process.exit(0);
+
 
   //yarn run deploy -c 1 -n 0 -cName addproduct
   } else if (ctrtName === 'addproduct'){
-    addProductRowAPI();
+    console.log('\n-------------==inside addProductRowAPI');
+    const TimeReleaseDate = TimeOfDeployment_HCAT;
+    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}`);
+  
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
+    process.exit(0);
 
-  //yarn run deploy -c 1 -n 0 -cName adduser
-  } else if (ctrtName === 'adduser'){
-    addUserRowAPI();
 
   //yarn run deploy -c 1 -n 0 -cName addorder
   } else if (ctrtName === 'addorder'){
-    addOrderRowAPI();
+    console.log('\n-------------------==inside addOrderAPI');
+    let email, identityNumber, addrAssetBook, investorLevel;
+    const tokenCount = 20;
+    const fundCount = 180000;
+    const paymentStatus = 'waiting';
+
+    userNum = 3;
+    email = userArray[userNum].email;
+    identityNumber = userArray[userNum].identityNumber;
+    addrAssetBook = userArray[userNum].addrAssetBook;
+    investorLevel = userArray[userNum].investorLevel;
+
+    console.log(`symNum: ${symNum}, identityNumber: ${identityNumber}, nftSymbol: ${nftSymbol}, tokenCount: ${tokenCount}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}, email: ${email}`);
+
+    //addrAssetBook1, addrAssetBook2, addrAssetBook3
+    await addOrderRow(identityNumber, nftSymbol, tokenCount, fundCount, paymentStatus, email);
+    //await addOrderRow(nationalId, symbol, tokenCount, fundCount, paymentStatus, email);
+    process.exit(0);
+
+
+
+  //yarn run deploy -c 1 -n 0 -cName adduser
+  } else if (ctrtName === 'adduser'){
+    console.log('\n-------------==inside addUserRowAPI');
+    console.log(`symNum: ${symNum}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
+  
+    await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+    process.exit(0);
+
 
 
   } else if (ctrtName === 'im') {
@@ -570,52 +590,8 @@ const deploy = async () => {
 
 }
 
-
-
 //---------------------------==
-//yarn run deploy -c 1 -n 0 -cName addsc
-const addSmartContractRowAPI = async () => {
-  console.log('\n-------------==inside addSmartContractRowAPI');
-  console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
 
-  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController)
-  process.exit(0);
-}
-
-
-//yarn run deploy -c 1 -n 0 -cName addproduct
-const addProductRowAPI = async () => {
-  console.log('\n-------------==inside addProductRowAPI');
-  const TimeReleaseDate = TimeOfDeployment_HCAT;
-  console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}`);
-
-  await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
-  process.exit(0);
-}
-
-
-//yarn run deploy -c 1 -n 0 -cName adduser
-const addUserRowAPI = async () => {
-  console.log('\n-------------==inside addUserRowAPI');
-  console.log(`symNum: ${symNum}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
-
-  await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
-  process.exit(0);
-}  
-
-
-//yarn run deploy -c 1 -n 0 -cName addorder
-const addOrderRowAPI = async () => {
-  console.log('\n-------------------==inside addOrderAPI');
-  const tokenCount = 20;
-  const fundCount = 180000;
-  const paymentStatus = 'waiting';
-
-  console.log(`symNum: ${symNum}, identityNumber: ${identityNumber}, nftSymbol: ${nftSymbol}, tokenCount: ${tokenCount}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
-
-  await addOrderRow(identityNumber, nftSymbol, tokenCount, fundCount, paymentStatus);
-  process.exit(0);
-}
 
 
 deploy();

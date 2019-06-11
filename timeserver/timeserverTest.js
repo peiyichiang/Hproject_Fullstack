@@ -1,12 +1,12 @@
 const { getTime, asyncForEach } = require('./utilities');
 
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB } = require('./mysql.js');
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB, addIncomeArrangementRow } = require('./mysql.js');
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC } = require('./blockchain.js');
+  isScheduleGoodIMC, addIncomePaymentPerPeriodIntoDB } = require('./blockchain.js');
 
   let { symbolObject, addrHelium, assetbookArray, addrRegistry, symbolObj0, symbolObj1, symbolObj2, symObjArray, symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray,  } = require('../ethereum/contracts/zsetupData');
 
@@ -164,8 +164,25 @@ const addAssetRecordsIntoDB_API = async () => {
 }
 
 
+//yarn run testts -a 2 -c 3
+const addIncomeArrangementRow_API = async () => {
+  console.log('addIncomeArrangementRow_API...');
+  const symbol = 'AOOS2019';
+  const time = 201906070000;
+  const actualPaymentTime = 201901010000;
+  const actualPayment = 299;
+  await addIncomeArrangementRow(symbol, time, actualPaymentTime, actualPayment);
+  process.exit(0);
+}
+//yarn run testts -a 2 -c 4
+const addIncomePaymentPerPeriodIntoDB_API = async () => {
+  console.log('addIncomePaymentPerPeriodIntoDB_API');
+  const serverTime = 201901010000;
+  await addIncomePaymentPerPeriodIntoDB(serverTime);
 
+}
 
+//
 
 const getInvestorsCFC_API = async () => {
   crowdFundingAddr = crowdFundingAddrArray[arg0];
@@ -189,10 +206,11 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //  yarn run testts -a 2 -c 3
 } else if(choice === 3){
-  
+  addIncomeArrangementRow_API();
 
 //  yarn run testts -a 2 -c 4
 } else if(choice === 4){
+  addIncomePaymentPerPeriodIntoDB_API();
 
 
 //  yarn run testts -a 2 -c 5
