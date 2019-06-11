@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const { excludedSymbols } = require('../ethereum/contracts/zsetupData');
+
 
 const getTime = () => {
   return new Promise(function (resolve, reject) {
@@ -18,6 +20,23 @@ Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
 
+
+
+
+async function asyncForEach(array, callback) {
+  console.log('----------------==asyncForEach: array', array);
+  for (let idx = 0; idx < array.length; idx++) {
+    const item = array[idx];
+    console.log(`\n--------------==next in asyncForEach
+    idx: ${idx}, ${item}`);
+    if(excludedSymbols.includes(item.o_symbol)){
+      console.log('Skipping symbol:', item.o_symbol);
+      continue;
+    } else {
+      await callback(item, idx, array);
+    }
+  }
+}
 
 const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
 
@@ -76,5 +95,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, isEmpty, getTime, validateEmail
+  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach
 }

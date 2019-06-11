@@ -8,16 +8,16 @@ const fs = require('fs');
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
 //const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager, addInvestorAssebooksIntoCFC } = require('./blockchain.js');
+const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC } = require('./blockchain.js');
 
 const mode = 1;
-const timeInverval = 10;
-const atEveryNsecond = 59;
+const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
+const atTheNsecond = 1;
 let modeStr;
 if(mode === 1){
   modeStr = '*/'+timeInverval;
-} else {
-  modeStr = ''+atEveryNsecond;
+} else if(mode === 2){
+  modeStr = ''+atTheNsecond;
 }
 // '*/5 * * * * *' ... for every 5 seconds
 // '10 * * * * *'  ... for every 10th seconds
@@ -38,12 +38,12 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       process.exit(0);
     } 
   
-    //console.log('[timeserver/timeserverSource.js] timeCurrent: '+timeCurrent);
-    //await addInvestorAssebooksIntoCFC();
-    //await updateTimeOfOrders(timeCurrent);//to convert from buffer to string
-    //await updateCFC(timeCurrent);
-    //await updateTokenController(timeCurrent);
-    //await checkIncomeManager(timeCurrent);
+    console.log('[timeserverSource.js] timeCurrent: '+timeCurrent);
+    addAssetbooksIntoCFC();
+    //updateExpiredOrders(timeCurrent);//to convert from buffer to string
+    //updateCFC(timeCurrent);
+    //updateTCC(timeCurrent);
+    //checkIncomeManager(timeCurrent);
 
 
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {

@@ -1,11 +1,10 @@
-const {getTime} = require('./utilities');
+const { getTime, asyncForEach } = require('./utilities');
 
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB } = require('./mysql.js');
-
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB } = require('./mysql.js');
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
-  addAssebooksIntoCFC, getInvestorsFromCFC,
+  addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC } = require('./blockchain.js');
 
@@ -100,30 +99,72 @@ const makePseudoEthAddr = (length) => {
   return result;
 }
 
-const querySQL = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount FROM htoken.user User, htoken.order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = "NCCU1901"';
 
-
-// yarn run testts -a 1 -s 1 -c 9
-const addAssebooksIntoCFC_API = async () => {
-  console.log('addAssebooksIntoCFC_API');
-  await addAssebooksIntoCFC();
+// yarn run testts -a 1 -s 1 -c 1
+const addAssetbooksIntoCFC_API = async () => {
+  console.log('addAssetbooksIntoCFC_API');
+  await addAssetbooksIntoCFC();
   //process.exit(0);
 }
 
 //  yarn run testts -a 2 -c 7
-const addxyz = async () => {
+const testmysqlPoolQueryB = async () => {
+  const sql = {
+    ar_investorEmail: 'jackson@gmail.com',
+    ar_tokenSYMBOL: 'SuperBall',
+    ar_Time: 201906131300,
+    ar_Holding_Amount_in_the_end_of_Period: 17,
+    ar_Accumulated_Income_Paid: 100,
+    ar_User_Asset_Valuation: 13000,
+    ar_User_Holding_Amount_Changed: 0,
+    ar_User_Holding_CostChanged: 0,
+    ar_User_Acquired_Cost: 13000,
+    ar_Moving_Average_of_Holding_Cost: 13000
+  };//random() to prevent duplicate NULL entry!
+  console.log(sql);
 
+  const querySQL5 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+  const results5 = await mysqlPoolQueryB(querySQL5, sql).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL5)]', err));
+  console.log("\nA new row has been added. result:", results5);
 }
+
+
+//  yarn run testts -a 2 -c 0
+const reset_addAssetbooksIntoCFC_API = async() => {
+  console.log('\n---------------==inside reset_addAssetbooksIntoCFC_API()...');
+
+  const oidArray = ['AOOS1902_77001_1559547221', 'AOOS1902_77001_1559617147', 'AOOS1902_77001_1559617164'];
+  const txHashArray = ['0x1111', '0x1112', '0x1113'];
+  const paymentStatusArray = ['paid', 'paid', 'paid'];
+
+  const querySQL1 = 'UPDATE htoken.order SET o_txHash = ?, o_paymentStatus = ? WHERE o_id = ?';
+
+  await asyncForEach(oidArray, async (oid, index) => {
+    const results1 = await mysqlPoolQueryB(querySQL1, [txHashArray[index], paymentStatusArray[index], oid]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL4)]', err));
+    console.log('\nresults1', results1);
+  });
+  process.exit(0);
+};
+
+
 //  yarn run testts -a 2 -c 8
 const addAssetRecordsIntoDB_API = async () => {
   console.log('addAssetRecordsIntoDB_API');
   //const inputArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
   const inputArray = [...assetbookArray];
+  //const inputArray = [ '0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc','0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11','0xC80E77bC804a5cDe179C0C191A43b87088C5e183' ];
+
   const symbol = 'ABBA1850';
   const serverTime = 201906050900;
-  const mintAmountArray = [9, 11, 13];
-  addAssetRecordsIntoDB(inputArray, symbol, serverTime, mintAmountArray);
+  const amountArray = [9, 11, 13];
+  console.log(`inputArray: ${inputArray} \namountArray: ${amountArray}
+  \nsymbol: ${symbol}, serverTime: ${serverTime}`);
+  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(inputArray, amountArray, symbol, serverTime);
+  console.log(`emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 }
+
+
+
 
 
 const getInvestorsCFC_API = async () => {
@@ -134,15 +175,25 @@ const getInvestorsCFC_API = async () => {
 
 
 //------------------------==
-//yarn run testts -a 2 -c 5
+//  yarn run testts -a 2 -c 0
 if(choice === 0){// test auto writing paid orders into crowdfunding contract
+  reset_addAssetbooksIntoCFC_API();
 
-//yarn run testts -a 2 -c 3
+//  yarn run testts -a 2 -c 1
+} else if(choice === 1){
+  console.log('-------------------==addAssetbooksIntoCFC_API');
+  addAssetbooksIntoCFC_API();
+
+//  yarn run testts -a 2 -c 2
+} else if(choice === 2){
+
+//  yarn run testts -a 2 -c 3
 } else if(choice === 3){
   
 
 //  yarn run testts -a 2 -c 4
 } else if(choice === 4){
+
 
 //  yarn run testts -a 2 -c 5
 } else if(choice === 5){
@@ -150,8 +201,8 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //  yarn run testts -a 2 -c 7
 } else if(choice === 7){
-  console.log('-------------------==addAssetRecordsIntoDB_API');
-  addAssetRecordsIntoDB_API();
+  console.log('--------------------==testmysqlPoolQueryB');
+  testmysqlPoolQueryB();
 
 //  yarn run testts -a 2 -c 8
 } else if(choice === 8){
@@ -160,8 +211,6 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 // yarn run testts -a 1 -c 9
 } else if(choice === 9){
-  console.log('-------------------==addAssebooksIntoCFC_API');
-  addAssebooksIntoCFC_API();
 
 } else if(choice === 1){
   crowdFundingAddr = crowdFundingAddrArray[arg0];
