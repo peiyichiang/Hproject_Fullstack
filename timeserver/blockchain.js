@@ -295,7 +295,13 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
 
   console.log('\n--------------==About to call addAssetRecordsIntoDB()');
   const serverTime = 201906050900; //await getTime();
-  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, serverTime);
+  const personal_income = 100;
+  const asset_valuation = 13000;
+  const holding_amount_changed = 0;
+  const holding_costChanged = 0;
+  const acquired_cost = 13000;
+  const moving_ave_holding_cost = 13000;
+  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost);
 
   return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError];
   //resolve(isFailed, isCorrectAmountArray);
@@ -515,7 +521,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
       if(results3.length === 0){
         console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
       } else {
-        console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}: ${JSON.stringify(results3)}`);
+        console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
         const assetbookArray = [];
         const assetbookArrayError = [];
         const emailArray = [];
@@ -813,27 +819,32 @@ const updateExpiredOrders = async (serverTime) => {
 const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   console.log('inside addIncomePaymentPerPeriodIntoDB()... serverTime:', serverTime);
   const symbolArray = [];
-  const incomePaymentArray = [];
+  const singleActualIncomePaymentArray = [];
   const addrHCAT_Array = [];
   const assetbookAddrArrayList = [];
   const assetbookBalanceArrayList = [];
 
+  //Inside income_arrangement table
   const querySQL1 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime <= ?';
   const results1 = await mysqlPoolQueryB(querySQL1, [serverTime]).catch((err) =>   console.log('\n[Error @ mysqlPoolQueryB(querySQL1)]', err));
   console.log('results1', results1);
 
   results1.forEach((element,idx) => {
     if(!excludedSymbolsIA.includes(element.o_symbol)){
-      symbolArray.push(element.ia_SYMBOL);
-      incomePaymentArray.push(element.ia_single_Actual_Income_Payment_in_the_Period);
+      const incomePayment = parseInt(element.ia_single_Actual_Income_Payment_in_the_Period);
+      if(incomePayment > 0) {
+        singleActualIncomePaymentArray.push(incomePayment);
+        symbolArray.push(element.ia_SYMBOL);
+      }
     }
   });
-  console.log(`symbolArray: ${symbolArray} \nincomePaymentArray: ${incomePaymentArray}`);
+  console.log(`\n----------------==\nsymbolArray: ${symbolArray} \nsingleActualIncomePaymentArray: ${singleActualIncomePaymentArray}`);
 
   const querySQL2 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
   await asyncForEach(symbolArray, async (symbol, index) => {
     const results2 = await mysqlPoolQueryB(querySQL2, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL2)]', err));
     console.log('results2', results2);
+
     if(results2.length === 0){
       console.log('[Error] erc721 contract address was not found');
       addrHCAT_Array.push('Not on record');
@@ -854,8 +865,11 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
     if(tokenCtrtAddr.length === 42){
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
       const assetbookAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+      
       const assetbookBalanceArray = await instHCAT721.methods.balanceOfArray(assetbookAddrArray).call();
+
       console.log(`\nassetbookAddrArray: ${assetbookAddrArray} \nassetbookBalanceArray: ${assetbookBalanceArray}`);
+
       assetbookAddrArrayList.push(assetbookAddrArray);
       assetbookBalanceArrayList.push(assetbookBalanceArray);
     } else {
@@ -866,6 +880,8 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   console.log(`\nassetbookAddrArrayList: ${assetbookAddrArrayList} \nassetbookBalanceArrayList: ${assetbookBalanceArrayList}`);
 
 
+  //singleActualIncomePaymentArray * assetbookBalanceArray
+  //symbolArray[index]
   
 }
 

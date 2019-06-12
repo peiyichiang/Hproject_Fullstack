@@ -8,7 +8,8 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 //const timer = require('./api.js');
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const {addSmartContractRow, addProductRow, addUserRow, addOrderRow} = require('../../timeserver/mysql.js');
+const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRow} = require('../../timeserver/mysql.js');
+const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
 let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
 console.log('process.argv', process.argv);
@@ -26,9 +27,8 @@ const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialA
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager, userArray
 } = require('./zsetupData');
 
-let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetbookArray} = require('./zsetupData');
+let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
-const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
   
@@ -132,15 +132,6 @@ console.log('\n---------------==Load contract json file compiled from sol file')
 
 //-----------------------------==Functions
 checkTrue = (item) => item;
-
-//  await asyncForEachBasic(mainInputArray, async (item) => {
-async function asyncForEachBasic(arrayBasic, callback) {
-  console.log("arrayBasic:"+arrayBasic);
-  for (let idxBasic = 0; idxBasic < arrayBasic.length; idxBasic++) {
-    console.log("idxBasic:"+idxBasic, arrayBasic[idxBasic]);
-    await callback(arrayBasic[idxBasic], idxBasic, arrayBasic);
-  }
-}
 
 
 //-----------------------------==
@@ -263,7 +254,7 @@ const deploy = async () => {
     const addrAssetBookArray = [];
     console.log('\nDeploying AssetBook contracts...');
     const mainInputArray = [AssetOwner1, AssetOwner2, AssetOwner3];
-    await asyncForEachBasic(mainInputArray, async (item, idx) => {
+    await asyncForEach(mainInputArray, async (item, idx) => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
@@ -487,9 +478,32 @@ const deploy = async () => {
     // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
 
+  //yarn run deploy -c 1 -n 0 -cName adduser
+  } else if (ctrtName === 'adduser'){//adduser
+    console.log('\n-------------==inside addUserRowAPI');
+
+    await asyncForEach(userArray, async (user, idx) => {
+      const email = user.email;
+      const password = user.password;
+      const identityNumber = user.identityNumber;
+      const eth_add = user.eth_add;
+      const cellphone = user.cellphone;
+      const name = user.name;
+      const addrAssetBook = user.addrAssetBook;
+      const investorLevel = user.investorLevel;
+      const imagef = user.imagef;
+      const imageb = user.imageb;
+      const bank_booklet = user.bank_booklet;
+
+      console.log(`email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
+
+      await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+    });
+    process.exit(0);
+  
   
   //yarn run deploy -c 1 -n 0 -cName addsctrt
-  } else if (ctrtName === 'addsctrt'){
+  } else if (ctrtName === 'addsctrt'){//addSmartContractRowAPI
     console.log('\n-------------==inside addSmartContractRowAPI');
     console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
   
@@ -498,7 +512,7 @@ const deploy = async () => {
 
 
   //yarn run deploy -c 1 -n 0 -cName addproduct
-  } else if (ctrtName === 'addproduct'){
+  } else if (ctrtName === 'addproduct'){//addproduct
     console.log('\n-------------==inside addProductRowAPI');
     const TimeReleaseDate = TimeOfDeployment_HCAT;
     console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}`);
@@ -508,35 +522,43 @@ const deploy = async () => {
 
 
   //yarn run deploy -c 1 -n 0 -cName addorder
-  } else if (ctrtName === 'addorder'){
+  } else if (ctrtName === 'addorder'){//addorder
     console.log('\n-------------------==inside addOrderAPI');
-    let email, identityNumber, addrAssetBook, investorLevel;
-    const tokenCount = 20;
     const fundCount = 180000;
     const paymentStatus = 'waiting';
 
-    userNum = 3;
-    email = userArray[userNum].email;
-    identityNumber = userArray[userNum].identityNumber;
-    addrAssetBook = userArray[userNum].addrAssetBook;
-    investorLevel = userArray[userNum].investorLevel;
-
-    console.log(`symNum: ${symNum}, identityNumber: ${identityNumber}, nftSymbol: ${nftSymbol}, tokenCount: ${tokenCount}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}, email: ${email}`);
-
-    //addrAssetBook1, addrAssetBook2, addrAssetBook3
-    await addOrderRow(identityNumber, nftSymbol, tokenCount, fundCount, paymentStatus, email);
-    //await addOrderRow(nationalId, symbol, tokenCount, fundCount, paymentStatus, email);
+    await asyncForEach(userArray, async (user, idx) => {
+      //if(idx !== 0){
+        const identityNumber = user.identityNumber;
+        const email = user.email;
+        const tokenCount = user.tokenOrderAmount;
+        // const addrAssetBook = user.addrAssetBook;
+        // const investorLevel = user.investorLevel;
+        console.log(`userNum: ${idx}, user: ${user}
+    identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
+    nftSymbol: ${nftSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+    
+        await addOrderRow(identityNumber, email, tokenCount, nftSymbol, fundCount, paymentStatus);
+     // }
+    });
     process.exit(0);
 
 
 
-  //yarn run deploy -c 1 -n 0 -cName adduser
-  } else if (ctrtName === 'adduser'){
-    console.log('\n-------------==inside addUserRowAPI');
-    console.log(`symNum: ${symNum}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
-  
-    await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+  //yarn run deploy -c 1 -n 0 -cName addipr
+  } else if (ctrtName === 'addipr'){
+    console.log('-----------------== addIncomeArrangementRow...');
+    const symbol = nftSymbol;
+    const time = 201906070000;
+    const actualPaymentTime = 201901010000;
+    const actualPayment = 299;
+    await addIncomeArrangementRow(symbol, time, actualPaymentTime, actualPayment);
     process.exit(0);
+
+
+  //yarn run deploy -c 1 -n 0 -cName initCtrt
+  } else if (ctrtName === 'initCtrt'){
+    console.log('run zlivechain.js steps...');
 
 
 

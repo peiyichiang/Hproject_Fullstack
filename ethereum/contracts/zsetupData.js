@@ -138,7 +138,7 @@ addrProductManager= '';
 
 tokenURI = nftSymbol+"/uri";
 
-function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) {
+function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, tokenOrderAmount) {
   this.email = email;
   this.password = password;
   this.identityNumber = identityNumber;
@@ -147,14 +147,15 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.name = name;
   this.addrAssetBook = addrAssetBook;
   this.investorLevel = investorLevel;
+  this.tokenOrderAmount = tokenOrderAmount;
   this.imagef = Math.random().toString(36).substring(2, 15);
   this.imageb = Math.random().toString(36).substring(2, 15);
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
-const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5);
-const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5);
-const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5);
-const user0 = new userObject('000a40@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5);
+const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5, 10);
+const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5, 5);
+const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5, 15);
+const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5, 1);
 const userArray = [user0, user1, user2, user3];
 
 userNum = 3;
@@ -212,9 +213,8 @@ addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,TimeOfDeployment
 const argsIncomeManager =[addrHCAT721, addrHelium];
 const addrZero = "0x0000000000000000000000000000000000000000";
 
-const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
-const userIDs = [, "A500000002", "A500000003"];
-const authLevels = [5, 5, 5];
+//const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
 
 
 const TestCtrt = require('./build/TestCtrt.json');
@@ -422,7 +422,7 @@ if (ProductManager === undefined){
 
 
 module.exports = {
-  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, fundmanager, CFSD2, CFED2, 
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager,
