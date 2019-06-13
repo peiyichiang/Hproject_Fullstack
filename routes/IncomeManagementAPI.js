@@ -11,12 +11,6 @@ function returnNumberWithCommas(x) {
 router.get('/AssetHistoryListBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let keys = [req.query.symbol, req.query.userEmailAddress];
-    let queryString = `
-    SELECT ar_Accumulated_Income_Paid AS income, 
-           ar_User_Acquired_Cost AS acquiredCost
-    FROM htoken.investor_assetRecord 
-    WHERE ar_tokenSYMBOL = ? && ar_investorEmail = ?
-    `;
     const query = (queryString, keys) => {
         return new Promise((resolve, reject) => {
             mysqlPoolQuery(
@@ -29,8 +23,33 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
             );
         });
     };
+
+    let queryString = `
+    SELECT  ar_personal_income AS income, 
+			ar_User_Acquired_Cost AS acquiredCost,
+            ia_Payable_Period_End AS payablePeriodEnd 
+    FROM    htoken.investor_assetRecord  AS T1
+    INNER JOIN htoken.income_arrangement AS T2
+          ON T1.ar_Time = T2.ia_time 
+          AND T1.ar_tokenSYMBOL = T2.ia_SYMBOL 
+    WHERE ar_tokenSYMBOL = ? && ar_investorEmail = ?
+    `;
+
     query(queryString, keys)
         .then((incomeHistoryList) => {
+            let initArray = []
+            initArray.push(incomeHistoryList[0])
+
+            incomeHistoryList.reduce(
+                (array, nextElement) => {
+                    const index = array.length - 1
+                    if (index > 0) {
+                        nextElement.income = nextElement.income + array[index].income
+                    } else {
+                        nextElement.income = nextElement.income
+                    }
+                    return array.concat(nextElement);
+                }, initArray)
             res.status(200);
             res.json({
                 "message": "[Success] 資產歷史紀錄取得成功！",
@@ -52,17 +71,29 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
 router.get('/LatestAssetHistory', async function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let userEmailAddress = req.query.userEmailAddress
-    console.log(userEmailAddress)
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
 
-    let queryString = `
+    let queryString1 = `
     SELECT ar_tokenSYMBOL AS symbol,
            ar_Holding_Amount_in_the_end_of_Period AS holdingAmount, 
-           ar_Accumulated_Income_Paid AS incomeTotal, 
            ar_User_Acquired_Cost AS acquiredCostTotal,
            ar_investorEmail AS ar_investorEmail,
+           ar_Time AS time,
            ia_single_Actual_Income_Payment_in_the_Period AS incomeOfLatestPeriod,
            ia_Payable_Period_End AS payablePeriodEnd,
            p_name AS name,
+           p_Image1 AS imageURL,
            payablePeriodTotal
            
     FROM (
@@ -97,38 +128,57 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
 	WHERE ar_investorEmail = ?
     ;`
 
-    const query = (queryString, keys) => {
-        return new Promise((resolve, reject) => {
-            mysqlPoolQuery(
-                queryString,
-                keys,
-                (err, result) => {
-                    if (err) reject(err);
-                    else resolve(result);
-                }
-            );
-        });
-    };
-
-    query(queryString, userEmailAddress)
-        .then((latestAssetHistoryList) => {
-            latestAssetHistoryList.map(
+    let queryString2 = `
+    SELECT  ar_tokenSYMBOL AS symbol,
+			SUM(ar_personal_income) AS income
+    FROM    htoken.investor_assetRecord
+    WHERE   ar_investorEmail = ?
+    GROUP   BY ar_investorEmail , symbol
+    `
+    let latestAssetHistoryArray = []
+    query(queryString1, userEmailAddress)
+        .then((_latestAssetHistoryArray) => {
+            latestAssetHistoryArray = _latestAssetHistoryArray
+            latestAssetHistoryArray.map(
                 latestAssetHistoryByToken => {
-                    latestAssetHistoryByToken.incomeTotal = returnNumberWithCommas(latestAssetHistoryByToken.incomeTotal)
                     latestAssetHistoryByToken.acquiredCostTotal = returnNumberWithCommas(latestAssetHistoryByToken.acquiredCostTotal)
                     latestAssetHistoryByToken.incomeOfLatestPeriod = returnNumberWithCommas(latestAssetHistoryByToken.incomeOfLatestPeriod)
+                    latestAssetHistoryByToken.periodInYear = latestAssetHistoryByToken.time.substr(0, 4)
+                    latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.time.substr(4, 2)
+                    if (latestAssetHistoryByToken.periodInMonth.substr(0, 1) == 0) {
+                        latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.periodInMonth.substr(1, 1)
+                    }
+                    latestAssetHistoryByToken.periodInDate = latestAssetHistoryByToken.time.substr(6, 2)
+                    if (latestAssetHistoryByToken.periodInDate.substr(0, 1) == 0) {
+                        latestAssetHistoryByToken.periodInDate = latestAssetHistoryByToken.periodInDate.substr(1, 1)
+                    }
                 });
-                res.status(200);
-            if (latestAssetHistoryList.length > 0) {
+            /* 算出此帳號各 symbol 的累積收益 */
+            return query(queryString2, userEmailAddress)
+        })
+        .then((incomeArray) => {
+            latestAssetHistoryArray.map(
+                latestAssetHistoryByToken => {
+                    incomeArray.map((incomeObject) => {
+                        if (latestAssetHistoryByToken.symbol == incomeObject.symbol)
+                            latestAssetHistoryByToken.incomeTotal = incomeObject.income
+                    })
+                });
+            res.status(200);
+            if (latestAssetHistoryArray.length > 0) {
                 res.json({
                     "message": "[Success] 我的資產取得成功！",
-                    "result": latestAssetHistoryList
+                    "result": latestAssetHistoryArray
                 });
             } else {
                 res.json({
                     "message": "[Success] 我的資產取得成功: 找不到資產"
                 });
             }
+        })
+        .catch((err) => {
+            console.log(err);
+            return
         })
         .catch((err) => {
             console.log(err);
@@ -148,7 +198,7 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
 
 //     let queryString1 = `
 //     SELECT ar_Holding_Amount_in_the_end_of_Period AS holdingAmount, 
-//            ar_Accumulated_Income_Paid AS incomeTotal, 
+//            ar_personal_income AS incomeTotal, 
 //            ar_User_Acquired_Cost AS acquiredCostTotal,
 //            ar_Time AS time,
 //            ia_Payable_Period_End AS payablePeriodEnd,

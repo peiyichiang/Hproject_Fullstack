@@ -30,7 +30,7 @@ var ContractsRouter = require('./routes/Contracts');
 const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
 // Timeserver
-//require('./timeserver/timeserverSource');
+require('./timeserver/timeserverSource');
 
 
 var app = express();

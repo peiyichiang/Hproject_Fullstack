@@ -8,16 +8,16 @@ const fs = require('fs');
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
 //const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { updateTimeOfOrders, updateCFC, updateTokenController, checkIncomeManager, addInvestorAssebooksIntoCFC } = require('./blockchain.js');
+const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC } = require('./blockchain.js');
 
 const mode = 1;
-const timeInverval = 10;
-const atEveryNsecond = 59;
+const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
+const atTheNsecond = 1;
 let modeStr;
 if(mode === 1){
   modeStr = '*/'+timeInverval;
-} else {
-  modeStr = ''+atEveryNsecond;
+} else if(mode === 2){
+  modeStr = ''+atTheNsecond;
 }
 // '*/5 * * * * *' ... for every 5 seconds
 // '10 * * * * *'  ... for every 10th seconds
@@ -30,20 +30,20 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
     });
 
-    let timeCurrent;
-    try{
-      timeCurrent = parseInt(date.toString());
+    let serverTime;
+    try {
+      serverTime = parseInt(date.toString());
     } catch(err) {
-      console.log('[Error] timeCurrent is not an integer', date.toString());
+      console.log('[Error] serverTime is not an integer', date.toString());
       process.exit(0);
-    } 
+    }
   
-    //console.log('[timeserver/timeserverSource.js] timeCurrent: '+timeCurrent);
-    //await addInvestorAssebooksIntoCFC();
-    //await updateTimeOfOrders(timeCurrent);//to convert from buffer to string
-    //await updateCFC(timeCurrent);
-    //await updateTokenController(timeCurrent);
-    //await checkIncomeManager(timeCurrent);
+    console.log('[timeserverSource.js] serverTime: '+serverTime);
+    addAssetbooksIntoCFC(serverTime);//blockchain.js
+    //updateExpiredOrders(serverTime);//blockchain.js
+    //updateCFC(serverTime);//blockchain.js
+    //updateTCC(serverTime);
+    //checkIncomeManager(serverTime);
 
 
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
@@ -69,7 +69,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
 // }
 
 
-//if (timeCurrent >= oPurchaseDate.add3Day()) {
+//if (serverTime >= oPurchaseDate.add3Day()) {
 // Date.prototype.myFormat = function () {
 //     return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 // };
