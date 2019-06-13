@@ -2,10 +2,10 @@ const express = require('express');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
-const timer = require('../timeserver/api.js')
 const router = express.Router();
+
+const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper } = require('../timeserver/blockchain.js');
-//const { reduceArrays } = require('../timeserver/utilities');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -36,9 +36,9 @@ const productManagerContractAddr = "0xF93e8878d62eaeD5EAb3FDf932a50B89d83B8171";
 const supervisorAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
 
-
+const addrZero = "0x0000000000000000000000000000000000000000";
 /**time server*/
-timer.getTime().then(function (time) {
+getTime().then(function (time) {
     console.log(`[Routes/Contract.js] current time: ${time}`)
 })
 
@@ -235,7 +235,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
     let currentTime;// = 201906010000;
-    await timer.getTime().then(function (time) {
+    await getTime().then(function (time) {
         currentTime = time;
     });
     console.log(`current time: ${currentTime}`);
@@ -288,7 +288,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = 201906010000;
-    // await timer.getTime().then(function (time) {
+    // await getTime().then(function (time) {
     //     currentTime = time;
     // })
     console.log(`current time: ${currentTime}`)
@@ -406,7 +406,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;
-    await timer.getTime().then(function (time) {
+    await getTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`)
@@ -449,7 +449,7 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;// = 201905210000;
-    await timer.getTime().then(function (time) {
+    await getTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`)
@@ -496,7 +496,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;// = 2019052100000;
-    await timer.getTime().then(function (time) {
+    await getTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`)
@@ -582,7 +582,7 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
     let mysqlPoolQuery = req.pool;
     let currentTime = req.body.time;
     /*
-        await timer.getTime().then(function(time) {
+        await getTime().then(function(time) {
             currentTime = time;
         })
     */
@@ -660,7 +660,7 @@ router.post('/tokenControllerContract/:tokenSymbol/updateState', async function 
     let currentTime = req.body.time;
     //let currentTime = 2019052100000;
     /*
-        await timer.getTime().then(function(time) {
+        await getTime().then(function(time) {
             currentTime = time;
         })
     */
@@ -743,11 +743,12 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
     let IRR20yrx100 = req.body.IRR20yrx100;
     let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
     let tokenURI = req.body.tokenURI;
+    tokenURIBytes32 = web3.utils.fromAscii(tokenURI);
     nftNameBytes32 = web3.utils.fromAscii(nftName);
     nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
     pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
     let currentTime;// = 201906010000;
-    await timer.getTime().then(function (time) {
+    await getTime().then(function (time) {
         currentTime = time;
     });
     console.log(`current time: ${currentTime}`);
@@ -757,7 +758,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
 
     ERC721SPLC.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURI, heliumContractAddr, currentTime]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURIBytes32, heliumContractAddr, currentTime]
     })
         .send({
             from: backendAddr,
@@ -833,26 +834,24 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const tokenCtrtAddr = req.body.erc721address;
     const fundingType = req.body.fundingType;//PO: 1, PP: 2
     const price = req.body.price;
+    const nftSymbol = req.params.nftSymbol;
 
-    console.log(toAddressArray);
-    console.log(amountArray);
-    console.log(tokenCtrtAddr);
-    console.log(fundingType);
-    console.log(price);
+    console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}
+    toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
 
-
+    const maxMintAmountPerRun = 180;
     // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
     // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
-        console.log('[Error @ sequentialMintSuper]', err);
-        res.send({
-            success: false,
-            result: '[Failed @ sequentialRunSuper()], err:' + err,
-        });
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
+      console.log('[Error @ sequentialMintSuper]', err);
+      res.send({
+        success: false,
+        result: '[Failed @ sequentialRunSuper()], err:' + err,
+      });
     });
     console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
 
@@ -861,15 +860,33 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
         res.send({
             success: false,
             result: '[Failed] Check isCorrectAmountArray',
-            isCorrectAmountArray: isCorrectAmountArray,
+            array1: isCorrectAmountArray,
         });
+
     } else {
         console.log('\n[Success] All minting actions have been completed successfully');
-        res.send({
+
+        if( emailArrayError.length === 0 && amountArrayError.length === 0){
+          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+
+          res.send({
             success: true,
             result: '[Success] All balances are correct',
-            isCorrectAmountArray: isCorrectAmountArray,
-        });
+          });
+ 
+        } else {
+          console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
+          emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+
+          res.send({
+              success: false,
+              result: '[Minting Successful but addAssetRecordsIntoDB Failed]',
+              array1: emailArrayError, 
+              array2: amountArrayError
+          });
+
+        }
+
     }
 });
 
@@ -928,19 +945,24 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (r
 
 router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function (req, res, next) {
     const contractAddr = req.body.erc721address;
-    const _from = req.body.from;
-    const to = req.body.assetBookAddr;
+    const fromAssetbook = req.body.from;
+    const toAssetbook = req.body.assetBookAddr;
     const amount = req.body.amount;
     const price = req.body.price;
     const serverTime = req.body.serverTime;
 
     const tokenSymbol = req.body.tokenSymbol;
 
-    const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
-    let encodedData = inst_HCAT721.methods.safeTransferFromBatch(_from, to, amount, price, serverTime).encodeABI();
+    //const inst_HCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, contractAddr);
+    const instAssetBookFrom = new web3.eth.Contract(assetBookContract.abi, fromAssetbook);
+
+    const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, contractAddr, addrZero, toAssetbook, amount, price, serverTime).encodeABI();
     //safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime)
+    const _fromAssetOwner = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
+    const _fromAssetOwnerpkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
+
     try {
-        let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+        let TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData);
         res.status(200);
         res.send({
             DBresult: DBresult,
@@ -948,7 +970,7 @@ router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function 
         });
     } catch (error) {
         console.log("error:" + error);
-        let revertReason = await crowdFunding.methods.checkSafeTransferFromBatch(_from, to, amount, price, serverTime).call({ from: backendAddr })
+        const revertReason = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, contractAddr, addrZero, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
         console.log("revertReason:" + revertReason);
         res.status(500);
         res.send({ error: error.toString(), revertReason: revertReason });
@@ -961,9 +983,6 @@ router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function 
     const holdingDays = holdingDays;
     const txTime = txTime;
     const balanceOffromassetbook = balanceOffromassetbook;
-
-    const fromAssetbook = _from;
-    const toAssetbook = to;
 
     let success = true;
     await addTxnInfoRow(txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook).catch((err) => {
@@ -994,7 +1013,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
     let nftSymbol = req.params.nftSymbol;
     let erc721address = req.body.erc721address;
     let currentTime;// = 201906010000;
-    await timer.getTime().then(function (time) {
+    await getTime().then(function (time) {
         currentTime = time;
     });
     console.log(`current time: ${currentTime}`);

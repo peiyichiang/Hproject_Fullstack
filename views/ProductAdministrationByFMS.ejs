@@ -190,7 +190,7 @@
             <th class="nowrap">校正實際收益</th>
         </tr>
         <% for ( var i = 0 ; i < dataPublish.length ; i++){ %>
-            <%if (dataPublish[i].p_state =="funding" ) { %>
+            <%if (dataPublish[i].p_state =="funding" || dataPublish[i].p_state =="FundingClosed" || dataPublish[i].p_state =="ONM" ) { %>
                 <tr>
                     <td>
                         <%= dataPublish[i].p_SYMBOL  %>
@@ -221,7 +221,7 @@
                             <%if (dataPublish[i].p_paidNumber ==null || dataPublish[i].p_paidNumber ==0 ) { %>
                                 <%= 0  %>
                             <% }else{ %>
-                                <%= Math.round(((dataPublish[i].p_paidNumber/dataPublish[i].p_fundingGoal)*100)) + "%"  %>
+                                <%= Math.round(((dataPublish[i].p_paidNumber/dataPublish[i].p_totalrelease)*100)) + "%"  %>
                             <% } %>
                     </td>
                     <td>
@@ -272,11 +272,10 @@
               <table class="table table-striped table-fixed" id="tblGrid">
                 <thead id="tblHead">
                   <tr>
-                    <th class='col-4'>付款時間</th>
-                    <th class='col-2'>校正前實際收益</th>
-                    <th class='col-2'>校正後實際收益</th>
-                    <th class='col-2'>狀態</th>
-                    <th class='col-2'>校正</th>
+                    <th class='col-3'>付款時間</th>
+                    <th class='col-3'>校正後實際收益</th>
+                    <th class='col-3'>狀態</th>
+                    <th class='col-3'>校正</th>
                   </tr>
                 </thead>
                 <tbody id="IAtable">
@@ -350,11 +349,12 @@
         function reqOnload () {
             const data = JSON.parse(this.responseText);
             // console.log(data)
+            document.getElementById("IAtable").innerHTML="";
             for(var i=0;i<data.length;i++){
                 // console.log(data[i].ia_actualPaymentTime);
                 // console.log(data[i].ia_single_Actual_Income_Payment_in_the_Period);
-                if(data[i].ia_single_Calibration_Actual_Income_Payment_in_the_Period==null){
-                    data[i].ia_single_Calibration_Actual_Income_Payment_in_the_Period="尚未校正";
+                if(data[i].ia_single_Actual_Income_Payment_in_the_Period==null){
+                    data[i].ia_single_Actual_Income_Payment_in_the_Period="尚未校正";
                 }
 
                 // 取得Current Timestamp
@@ -365,8 +365,8 @@
                 FormatedTime=data[i].ia_time.substring(0,4) + "-" + data[i].ia_time.substring(4,6)+ "-" + data[i].ia_time.substring(6,8);
                 iaTime_TimeStamp = new Date(FormatedTime).getTime() / 1000;
                 
-                // 所有時間減掉15天
-                // iaTime_TimeStamp=iaTime_TimeStamp-1296000;
+                // 所有時間加上90天
+                // iaTime_TimeStamp=iaTime_TimeStamp+(1296000*6);
 
                 isCorrectBtnDisabled="";
                 // 先假設待校正
@@ -401,11 +401,10 @@
                 // 將撈到的資料放到IAtable
                 document.getElementById("IAtable").innerHTML+=
                 "<tr>"+
-                "<td class='col-4'>" + data[i].ia_time.substring(0, data[i].ia_time.length-4) + "</td>" + 
-                "<td class='col-2'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
-                "<td class='col-2'>" + data[i].ia_single_Calibration_Actual_Income_Payment_in_the_Period + "</td>"+
-                "<td class='col-2'>" + data[i].ia_State + "</td>"+
-                "<td class='col-2'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
+                "<td class='col-3'>" + data[i].ia_time.substring(0, data[i].ia_time.length-4) + "</td>" + 
+                "<td class='col-3'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
+                "<td class='col-3'>" + data[i].ia_State + "</td>"+
+                "<td class='col-3'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
                 "</tr>";
             }
         }

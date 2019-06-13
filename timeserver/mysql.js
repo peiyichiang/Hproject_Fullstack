@@ -1,16 +1,25 @@
 var mysql = require("mysql");
+//var util = require('util');
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
 require('dotenv').config()
 
-var pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-});
+const { isEmpty, asyncForEach } = require('./utilities');
 
+const serverTimeMin = 201905270900;
+const DatabaseCredential = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+};
+var pool = mysql.createPool(DatabaseCredential);
+
+//callback could not wait, but good for taking object input to make new rows
 const mysqlPoolQuery = async (sql, options, callback) => {
   debugSQL(sql, options, callback);
   if (typeof options === "function") {
@@ -32,6 +41,27 @@ const mysqlPoolQuery = async (sql, options, callback) => {
           conn.release();
       }
   });
+};
+
+
+const mysqlPoolQueryB = async (sql, options) => {
+  return new Promise( async ( resolve, reject ) => {
+    pool.getConnection(function (err, conn) {
+        if (err) {
+          return reject(err);
+        } else {
+          conn.query(sql, options, function (err, results) {
+            if(err) {
+              return reject(err);
+            } else {
+              conn.release();
+              console.log(`[Success: mysqlPoolQueryB @ mysql.js] `);
+              resolve(results);
+            }  
+          });
+        }
+    });
+  })
 };
 
 
@@ -65,11 +95,34 @@ const addTxnInfoRowFromObj = (row) => {
 }
 
 
-const addProductRow = (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock) => {
-  console.log('inside addProductRow()...');
+const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock) => {
+  console.log('\nto add product row into DB');
   return new Promise((resolve, reject) => {
-    mysqlPoolQuery('INSERT INTO htoken.product (p_SYMBOL, p_name, p_location, p_pricing,  p_duration, p_currency, p_irr, p_releasedate, p_validdate, p_size, p_totalrelease, p_fundmanager, p_CFSD, p_CFED, p_state, p_fundingGoal, p_lockuptime, p_tokenState ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, "initial", _quantityGoal, TimeTokenUnlock, "lockupperiod"], function (err, result) {
+    const sql = {
+      p_SYMBOL: nftSymbol,
+      p_name: nftName,
+      p_location: location,
+      p_pricing: initialAssetPricing,
+      p_duration: duration,
+      p_currency: pricingCurrency,
+      p_irr: IRR20yrx100,
+      p_releasedate: TimeReleaseDate,
+      p_validdate: TimeTokenValid,
+      p_size: siteSizeInKW,
+      p_totalrelease: maxTotalSupply,
+      p_fundmanager: fundmanager,
+      p_CFSD: _CFSD2,
+      p_CFED: _CFED2,
+      p_state: "initial",
+      p_fundingGoal: _quantityGoal,
+      p_lockuptime: TimeTokenUnlock,
+      p_tokenState: "lockupperiod",
+    };
+    console.log(sql);
+
+    mysqlPoolQuery('INSERT INTO htoken.product SET ?', sql, function (err, result) {
       if (err) {
+        console.log('[Error @ writing data into product rows]', err);
         reject('[Error @ writing data into product rows]', err);
       } else {
         console.log("\nProduct table has been added with one new row. result:", result);
@@ -79,11 +132,10 @@ const addProductRow = (nftSymbol, nftName, location, initialAssetPricing, durati
   });
 }
 
-
 const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
   console.log('inside addSmartContractRow()...');
   return new Promise((resolve, reject) => {
-    var sql = {
+    const sql = {
       sc_symbol: nftSymbol,
       sc_crowdsaleaddress: addrCrowdFunding,
       sc_erc721address: addrHCAT721,
@@ -96,7 +148,7 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
 
     mysqlPoolQuery('INSERT INTO htoken.smart_contracts SET ?', sql, function (err, result) {
       if (err) {
-        console.log('[Error @ writing data into smart_contracts rows]');
+        console.log('[Error @ writing data into smart_contracts rows]', err);
         //reject('\n[Error @ writing data into smart_contracts rows]', err);
         reject(err);
       } else {
@@ -110,7 +162,7 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
 }
 
 
-const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) => {
+const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet) => {
   return new Promise((resolve, reject) => {
     console.log('------------------------==@user/addUserRow');
     let salt;
@@ -141,6 +193,9 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
           u_name: name,
           u_assetbookContractAddress: addrAssetBook,
           u_investorLevel: investorLevel,
+          u_imagef: imagef,
+          u_imageb: imageb,
+          u_bankBooklet: bank_booklet,
         };
 
         console.log(userNew);
@@ -157,44 +212,157 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
   });
 }
 
+Date.prototype.myFormat = function () {
+  return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
+};
 
-const addOrderRow = async (nationalId, symbol, tokenCount, fundCount, orderStatus) => {
-  return new Promise((resolve, reject) => {
-    console.log('------------------------==addOrderRow');
-    console.log('inside addOrderRow. orderStatus', orderStatus, ', symbol', symbol);
-    var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
-    var currentDate = new Date().myFormat();//yyyymmddhhmm
+//used in zdeploy.js
+const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, paymentStatus) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n-----------==addOrderRow');
+    console.log('inside addOrderRow. paymentStatus', paymentStatus, ', symbol', symbol);
+    const timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
+    const currentDate = new Date().myFormat();//yyyymmddhhmm
     console.log('currentDate:', currentDate, ', timeStamp', timeStamp);
     const nationalIdLast5 = nationalId.toString().slice(-5);
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
 
-    var sql = {
+    const sqlObject = {
         o_id: orderId,
         o_symbol: symbol,
-        o_userIdentityNumber: nationalId,
-        o_fromAddress: Math.random().toString(36).substring(2, 15),
+        o_email: email,
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: tokenCount,
         o_fundCount: fundCount,
         o_purchaseDate: currentDate,
-        o_paymentStatus: orderStatus
+        o_paymentStatus: paymentStatus
     };//random() to prevent duplicate NULL entry!
 
-    console.log(sql);
+    console.log(sqlObject);
 
-    mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
-      if (err) {
-        console.log("error", err);
-        reject(err);
-      } else {
-        console.log("result", result);
-        resolve(true);
-      }
-    });
+    const querySQL1 = 'INSERT INTO htoken.order SET ?';
+    const results1 = await mysqlPoolQueryB(querySQL1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
+    resolve(results1);
+
+    // mysqlPoolQuery(querySQL1, sql, function (err, result) {
+    //   if (err) {
+    //     console.log("error", err);
+    //     reject(err);
+    //   } else {
+    //     console.log("result", result);
+    //     resolve(true);
+    //   }
+    // });
 
   });
 }
+
+
+const addIncomeArrangementRow = (symbol, time, actualPaymentTime, actualPayment) => {
+  return new Promise((resolve, reject) => {
+    mysqlPoolQuery('INSERT INTO htoken.income_arrangement (ia_SYMBOL, ia_time, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period) VALUES (?, ?, ?, ?)', [symbol, time, actualPaymentTime, actualPayment], function (err, result) {
+      if (err) {
+        reject('[Error @ writing data into transaction_info row]', err);
+      } else {
+        console.log("\ntransaction_info table has been added with one new row. result:", result);
+        resolve(result);
+      }
+    });
+  });
+}
+
+//----------------------------==
+const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost) => {
+  return new Promise(async(resolve, reject) => {
+
+    console.log('\n-------------------==addAssetRecordsIntoDB');
+    if(typeof symbol !== "string" || isEmpty(symbol)){
+      console.log('[Error] symbol must be a string', symbol);
+      return [null, null];
+    
+    } else if(!Array.isArray(inputArray) || inputArray.length === 0){
+      console.log('[Error] inputArray must be a non empty array', inputArray);
+      return [null, null];
+
+    } else if(!Array.isArray(amountArray) || amountArray.length === 0){
+      console.log('[Error] amountArray must be an non empty array', amountArray);
+      return [null, null];
+    
+    } else if(!Number.isInteger(serverTime) || parseInt(serverTime) < serverTimeMin){ 
+      console.log('[Error] serverTime must be an integer >= '+serverTimeMin);
+      return [null, null];
+    } else if(inputArray.length !== amountArray.length) {
+      console.log('[Error] inputArray and amountArray must have the same length');
+      return [null, null];
+    }
+
+    const emailArray = [];
+    if(inputArray[0].includes('@')){
+      inputArray.forEach( (element,idx) => emailArray.push(element) );
+
+    } else {
+      console.log('all input values are okay');
+      const querySQL4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
+      await asyncForEach(inputArray, async (addrAssetbook, index) => {
+        const results4 = await mysqlPoolQueryB(querySQL4, [addrAssetbook]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL4)]', err));
+        console.log('\nresults4', results4);
+        if(results4 === null || results4 === undefined){
+          console.log('\n----==[Error] email address is null or undefined for addrAssetbook:', addrAssetbook, ', results4', results4); emailArray.push('email:_null_or_undefined');
+
+        } else if(results4.length > 1){
+          console.error('\n----==[Error] Got multiple email addresses from one addrAssetbook', addrAssetbook, ', results4', results4); emailArray.push('email:_multiple_emails_were_found');
+
+        } else if(results4.length === 0){
+          console.error('\n----==[Error] Got empty email address from one addrAssetbook', addrAssetbook, ', results4', results4);
+          emailArray.push('email_not_found');
+
+        } else {
+          console.error('\n----==[Good] Got one email address from addrAssetbook', addrAssetbook);
+          const email = results4[0].u_email;
+          console.log('addrAssetbook', addrAssetbook, email, amountArray[index]);
+          emailArray.push(email);
+        }
+      });
+    }
+    
+    const emailArrayError = [];
+    const amountArrayError = [];
+    console.log('\n----------------==emailArray:', emailArray);
+    await asyncForEach(emailArray, async (email, idx) => {
+      const amount = amountArray[idx];
+      if(!email.includes('@')){
+        emailArrayError.push(email);
+        amountArrayError.push(amount);
+
+      } else {
+        console.log(`email: ${email}, symbol: ${symbol}, serverTime: ${serverTime}, amount: ${amount}`);
+        const sqlObject = {
+          ar_investorEmail: email,
+          ar_tokenSYMBOL: symbol,
+          ar_Time: serverTime,
+          ar_Holding_Amount_in_the_end_of_Period: amount,
+          ar_personal_income: personal_income,
+          ar_User_Asset_Valuation: asset_valuation,
+          ar_User_Holding_Amount_Changed: holding_amount_changed,
+          ar_User_Holding_CostChanged: holding_costChanged,
+          ar_User_Acquired_Cost: acquired_cost,
+          ar_Moving_Average_of_Holding_Cost: moving_ave_holding_cost
+        };//random() to prevent duplicate NULL entry!
+        console.log(sqlObject);
+
+        const querySQL5 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+        const results5 = await mysqlPoolQueryB(querySQL5, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB(querySQL5)]'+ err));
+        console.log('results5', results5);
+      }
+    });
+    console.log(`\n------------------==End of addAssetRecordsIntoDB`);
+    resolve([emailArrayError, amountArrayError]);
+  });
+  //process.exit(0);
+}
+
+
 
 
 //---------------------------==
@@ -308,7 +476,7 @@ function isIMScheduleGoodDB(symbol){
 //------------------------==
 function getCrowdFundingCtrtAddr(symbol, cb) {
   console.log('getCrowdFundingCtrtAddr');
-  var qur = mysqlPoolQuery(
+  const qur = mysqlPoolQuery(
     'SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol =?', [symbol], function (err, result) {
       //console.log('result', result);
       if (err) {
@@ -364,10 +532,13 @@ function print(s) {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
+    addIncomeArrangementRow,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
-    isIMScheduleGoodDB, setIMScheduleDB
+    isIMScheduleGoodDB, setIMScheduleDB,
+    addAssetRecordsIntoDB,
+    mysqlPoolQueryB
 }
 /**
     //getCrowdFundingCtrtAddr,

@@ -1,3 +1,43 @@
+const fs = require('fs');
+const path = require('path');
+
+const { excludedSymbols } = require('../ethereum/contracts/zsetupData');
+
+
+const getTime = () => {
+  return new Promise(function (resolve, reject) {
+      try {
+          let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString()
+          resolve(time)
+      } catch (error) {
+          console.log(`cannot find timeserver time. Use local time instead`);
+          let time = new Date().myFormat()
+          resolve(time)
+      }
+  })
+}
+Date.prototype.myFormat = function () {
+  return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
+};
+
+
+
+
+async function asyncForEach(array, callback) {
+  console.log('----------------==asyncForEach: array', array);
+  for (let idx = 0; idx < array.length; idx++) {
+    const item = array[idx];
+    console.log(`\n--------------==next in asyncForEach
+    idx: ${idx}, ${item}`);
+    if(excludedSymbols.includes(item.o_symbol)){
+      console.log('Skipping symbol:', item.o_symbol);
+      continue;
+    } else {
+      await callback(item, idx, array);
+    }
+  }
+}
+
 const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
 
 const getAllIndexes = (arr, val) => {
@@ -49,6 +89,11 @@ const arraysSortedEqual = (array1, array2) => {
   return true;
 }
 
+const validateEmail =(email) => {
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+
 module.exports = {
-  reduceArrays, isEmpty
+  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach
 }
