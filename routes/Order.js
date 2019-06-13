@@ -16,7 +16,7 @@ var router = express.Router();
 //新增資料：接收資料的post http://localhost:3000/Order/AddOrder
 router.post('/AddOrder', function (req, res, next) {
     console.log('------------------------==\n@Order/POST/AddOrder');
-    let symbol = req.body.symbol;
+    const symbol = req.body.symbol;
     console.log('req.query', req.query, 'req.body', req.body);
 
     var mysqlPoolQuery = req.pool;
@@ -34,7 +34,6 @@ router.post('/AddOrder', function (req, res, next) {
         o_id: orderId,
         o_symbol: symbol,
         o_email: email,
-        o_fromAddress: Math.random().toString(36).substring(2, 15),
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: req.body.tokenCount,
         o_fundCount: req.body.fundCount,
