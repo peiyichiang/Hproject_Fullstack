@@ -29,9 +29,6 @@ var ContractsRouter = require('./routes/Contracts');
 // DataBase
 const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
-// Timeserver
-//require('./timeserver/timeserverSource');
-
 
 var app = express();
 //智豪
@@ -115,6 +112,13 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
+
+if(1===1){// Timeserver
+  console.log('\n------------------==timeserver is on');
+  require('./timeserver/timeserverSource');
+} else {
+  console.log('\n------------------==timeserver is off');
+}
 console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 

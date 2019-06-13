@@ -325,6 +325,12 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         }
       });
     }
+
+    const querySQL5 = 'SELECT ia_actualPaymentTime FROM htoken.income_arrangement WHERE ia_SYMBOL= ?';
+    const results5 = await mysqlPoolQueryB(querySQL5, [symbol]).catch((err) => console.log('[Error @ mysqlPoolQueryB(querySQL5)]'+ err));
+    const actualPaymentTime = results5.ia_actualPaymentTime;
+    console.log('actualPaymentTime', actualPaymentTime);
+
     
     const emailArrayError = [];
     const amountArrayError = [];
@@ -336,11 +342,11 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         amountArrayError.push(amount);
 
       } else {
-        console.log(`email: ${email}, symbol: ${symbol}, serverTime: ${serverTime}, amount: ${amount}`);
+        console.log(`email: ${email}, symbol: ${symbol}, actualPaymentTime: ${actualPaymentTime}, amount: ${amount}`);
         const sqlObject = {
           ar_investorEmail: email,
           ar_tokenSYMBOL: symbol,
-          ar_Time: serverTime,
+          ar_Time: actualPaymentTime,
           ar_Holding_Amount_in_the_end_of_Period: amount,
           ar_personal_income: personal_income,
           ar_User_Asset_Valuation: asset_valuation,
@@ -351,8 +357,8 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         };//random() to prevent duplicate NULL entry!
         console.log(sqlObject);
 
-        const querySQL5 = 'INSERT INTO htoken.investor_assetRecord SET ?';
-        const results5 = await mysqlPoolQueryB(querySQL5, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB(querySQL5)]'+ err));
+        const querySQL6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+        const results5 = await mysqlPoolQueryB(querySQL6, sqlObject).catch((err) => console.log('[Error @ mysqlPoolQueryB(querySQL6)]'+ err));
         console.log('results5', results5);
       }
     });

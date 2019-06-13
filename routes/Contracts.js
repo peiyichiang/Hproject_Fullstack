@@ -234,10 +234,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let fundingGoal = req.body.fundingGoal;
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
-    let currentTime;// = 201906010000;
-    await getTime().then(function (time) {
-        currentTime = time;
-    });
+    let currentTime = await getTime();// = 201906010000;
     console.log(`current time: ${currentTime}`);
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
@@ -287,10 +284,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 201906010000;
-    // await getTime().then(function (time) {
-    //     currentTime = time;
-    // })
+    let currentTime = await getTime();//201906010000;
     console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {

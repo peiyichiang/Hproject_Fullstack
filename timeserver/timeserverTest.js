@@ -177,7 +177,7 @@ const addAssetRecordsIntoDB_API = async () => {
   //const inputArray = [ '0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc','0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11','0xC80E77bC804a5cDe179C0C191A43b87088C5e183' ];
 
   const symbol = 'ABBA1850';
-  const serverTime = 201906050900;
+  const serverTime = await getTime();//201906050900;
   const amountArray = [9, 11, 13];
   const personal_income = 100;
   const asset_valuation = 13000;

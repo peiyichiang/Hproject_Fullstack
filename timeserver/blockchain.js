@@ -294,7 +294,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('\nisFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
 
   console.log('\n--------------==About to call addAssetRecordsIntoDB()');
-  const serverTime = 201906050900; //await getTime();
+  const serverTime = await getTime();//297
   const personal_income = 100;
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
@@ -495,8 +495,8 @@ const addAssetbooksIntoCFC = async (serverTime) => {
       }
     }
   }
-  console.log('foundSymbolArray', foundSymbolArray);
-  console.log('symbolArray', symbolArray);
+  //console.log('foundSymbolArray', foundSymbolArray);
+  console.log('symbolArray of paid orders:', symbolArray);
 
   await asyncForEach(symbolArray, async (symbol, index) => {
     const querySQL2 = 'SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
@@ -563,7 +563,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
           const tokenCount = parseInt(tokenCountArray[index]);
           console.log(`\n----==[Good] For ${addrAssetbook}, found its tokenCount ${tokenCount}`);
 
-          serverTime = 201905281420+1;//await getTime();
+          const serverTime = 201905281420+1;//await getTime();//566
           console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
 tokenCount: ${tokenCount}, serverTime: ${serverTime}
 addrAssetbook: ${addrAssetbook}
@@ -616,7 +616,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
 }
 
 const getInvestorsFromCFC_Check = async() => {
-  const serverTime = 201905281420+1;//await getTime();
+  const serverTime = 201905281420+1;//await getTime(); //619
   const addrAssetbook = '0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc';
   console.log(`\ngetInvestorsFromCFC_Check
 serverTime: ${serverTime}

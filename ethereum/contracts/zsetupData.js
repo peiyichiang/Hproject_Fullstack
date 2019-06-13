@@ -104,7 +104,7 @@ const productObj3 = new productObject("AMOS1902", "nftName", "location", 10379, 
 
 const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0xC2F3676286bF1ed14E805eDa8b85E645C399A453", "0xdcF42de600323C9AEC1DC015FB930d7f6cC6f102", "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b", "");
 
-const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905241737, 2, "", "", "", "");
+const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4];
 const symbolArray = [];
 crowdFundingAddrArray= [];
