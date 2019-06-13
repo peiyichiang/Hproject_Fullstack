@@ -30,20 +30,20 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
     });
 
-    let timeCurrent;
-    try{
-      timeCurrent = parseInt(date.toString());
+    let serverTime;
+    try {
+      serverTime = parseInt(date.toString());
     } catch(err) {
-      console.log('[Error] timeCurrent is not an integer', date.toString());
+      console.log('[Error] serverTime is not an integer', date.toString());
       process.exit(0);
-    } 
+    }
   
-    console.log('[timeserverSource.js] timeCurrent: '+timeCurrent);
-    addAssetbooksIntoCFC();
-    //updateExpiredOrders(timeCurrent);//to convert from buffer to string
-    //updateCFC(timeCurrent);
-    //updateTCC(timeCurrent);
-    //checkIncomeManager(timeCurrent);
+    console.log('[timeserverSource.js] serverTime: '+serverTime);
+    addAssetbooksIntoCFC(serverTime);//blockchain.js
+    //updateExpiredOrders(serverTime);//blockchain.js
+    //updateCFC(serverTime);//blockchain.js
+    //updateTCC(serverTime);
+    //checkIncomeManager(serverTime);
 
 
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
@@ -69,7 +69,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
 // }
 
 
-//if (timeCurrent >= oPurchaseDate.add3Day()) {
+//if (serverTime >= oPurchaseDate.add3Day()) {
 // Date.prototype.myFormat = function () {
 //     return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 // };

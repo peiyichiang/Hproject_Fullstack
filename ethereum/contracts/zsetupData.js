@@ -3,11 +3,12 @@ const nodeUrl = "http://140.119.101.130:8545";//POA
 const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 
 
-//let addrIncomeManagement, addrProductManager;
+//let addrIncomeManager, addrProductManager;
 console.log('--------------------==zsetupData.js');
 let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager;
 
 const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701'];
+const excludedSymbolsIA = [];
 
 const admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 const adminpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
@@ -101,7 +102,7 @@ const productObj2 = new productObject("ALOS1902", "nftName", "location", 5073, 4
 
 const productObj3 = new productObject("AMOS1902", "nftName", "location", 10379, 9837, 2280, 20000, "NTD", 490, 20, 2, "0x91BC75052fFbB98a6baca4DF3B96470853985E35", "0x97218B571B213e6C92A5Fc816563F33ae9237606", "0xcB09F5C6cBeb794b8B1B7b6F9897ae4DF0795389", "");
 
-const productObj4 = new productObject("AOOS1902", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x3D96753D5AF2f626cDf1469629f30d5808036Fab", "0x478743924Ffd373e313a0B4add2b3163fDFc5A3d", "0x92D405737bF1fb1Ef25a83e119b6039542536f22", "");
+const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0xC2F3676286bF1ed14E805eDa8b85E645C399A453", "0xdcF42de600323C9AEC1DC015FB930d7f6cC6f102", "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b", "");
 
 const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 201905241737, 2, "", "", "", "");
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4];
@@ -137,7 +138,7 @@ addrProductManager= '';
 
 tokenURI = nftSymbol+"/uri";
 
-function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel) {
+function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, tokenOrderAmount) {
   this.email = email;
   this.password = password;
   this.identityNumber = identityNumber;
@@ -146,14 +147,15 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.name = name;
   this.addrAssetBook = addrAssetBook;
   this.investorLevel = investorLevel;
+  this.tokenOrderAmount = tokenOrderAmount;
   this.imagef = Math.random().toString(36).substring(2, 15);
   this.imageb = Math.random().toString(36).substring(2, 15);
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
-const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5);
-const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5);
-const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5);
-const user0 = new userObject('000a40@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5);
+const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5, 10);
+const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5, 5);
+const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5, 15);
+const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5, 1);
 const userArray = [user0, user1, user2, user3];
 
 userNum = 3;
@@ -208,12 +210,11 @@ const argsHCAT721 = [
 nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
 initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
 addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,TimeOfDeployment_HCAT];
-const argsIncomeManagement =[addrHCAT721, addrHelium];
+const argsIncomeManager =[addrHCAT721, addrHelium];
 const addrZero = "0x0000000000000000000000000000000000000000";
 
-const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
-const userIDs = [, "A500000002", "A500000003"];
-const authLevels = [5, 5, 5];
+//const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
 
 
 const TestCtrt = require('./build/TestCtrt.json');
@@ -379,24 +380,24 @@ if (CrowdFunding === undefined){
   //console.log(CrowdFunding);
 }
 
-const IncomeManagement = require('./build/IncomeManagerCtrt.json');
-if (IncomeManagement === undefined){
-  console.log('[Error] IncomeManagement is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+const IncomeManager = require('./build/IncomeManagerCtrt.json');
+if (IncomeManager === undefined){
+  console.log('[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] IncomeManagement is defined');
-  if (IncomeManagement.abi === undefined){
-    console.log('[Error] IncomeManagement.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.log('[Good] IncomeManager is defined');
+  if (IncomeManager.abi === undefined){
+    console.log('[Error] IncomeManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] IncomeManagement.abi is defined');
-      //console.log('IncomeManagement.abi:', IncomeManagement.abi);
+    console.log('[Good] IncomeManager.abi is defined');
+      //console.log('IncomeManager.abi:', IncomeManager.abi);
   }
-  if (IncomeManagement.bytecode === undefined || IncomeManagement.bytecode.length < 10){
-    console.log('[Error] IncomeManagement.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  if (IncomeManager.bytecode === undefined || IncomeManager.bytecode.length < 10){
+    console.log('[Error] IncomeManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] IncomeManagement.bytecode is defined');
-      //console.log('IncomeManagement.bytecode:', IncomeManagement.bytecode);
+    console.log('[Good] IncomeManager.bytecode is defined');
+      //console.log('IncomeManager.bytecode:', IncomeManager.bytecode);
   }
-  //console.log(IncomeManagement);
+  //console.log(IncomeManager);
 }
 
 const ProductManager = require('./build/ProductManager.json');
@@ -421,11 +422,11 @@ if (ProductManager === undefined){
 
 
 module.exports = {
-  addrHelium, assetbookArray, userIDs, authLevels, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, fundmanager, CFSD2, CFED2, 
-  argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager,
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols
+  argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager,
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA
 }
   /**
   From KuanYi:
