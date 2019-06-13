@@ -34,7 +34,6 @@ router.post('/AddOrder', function (req, res, next) {
         o_id: orderId,
         o_symbol: symbol,
         o_email: email,
-        o_fromAddress: Math.random().toString(36).substring(2, 15),
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: req.body.tokenCount,
         o_fundCount: req.body.fundCount,
