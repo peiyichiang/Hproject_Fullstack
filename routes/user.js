@@ -120,14 +120,14 @@ router.post('/send_email', function (req, res) {
         port: 465,
         secure: true, // use SSL
         auth: {
-            user: "user3@heliumcryptic.club",
-            pass: "n{#K](MG.Orc"
+            user: "jmh@hcat.io",
+            pass: "350bchub321"
         }
     });
 
     // setup email data with unicode symbols
     let mailOptions = {
-        from: ' <user3@heliumcryptic.club>', // sender address
+        from: ' <jmh@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
         text: '請點以下連結以完成驗證： http://140.119.101.130:3030/user/verify_email?hash=' + passwordHash, // plain text body
@@ -305,10 +305,8 @@ router.post('/AddUser', function (req, res, next) {
                     });
                 }
             });
-
         })
         .catch(err => console.error(err.message));
-
 });
 
 
