@@ -50,6 +50,11 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
                     }
                     return array.concat(nextElement);
                 }, initArray)
+            incomeHistoryList.map(
+                incomeHistory => {
+                    incomeHistory.income = returnNumberWithCommas(incomeHistory.income)
+                    incomeHistory.acquiredCost = returnNumberWithCommas(incomeHistory.acquiredCost)
+                });
             res.status(200);
             res.json({
                 "message": "[Success] 資產歷史紀錄取得成功！",
@@ -161,7 +166,7 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
                 latestAssetHistoryByToken => {
                     incomeArray.map((incomeObject) => {
                         if (latestAssetHistoryByToken.symbol == incomeObject.symbol)
-                            latestAssetHistoryByToken.incomeTotal = incomeObject.income
+                            latestAssetHistoryByToken.incomeTotal = returnNumberWithCommas(incomeObject.income)
                     })
                 });
             res.status(200);
