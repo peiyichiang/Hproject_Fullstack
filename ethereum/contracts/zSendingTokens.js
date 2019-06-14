@@ -26,7 +26,7 @@ if (HCAT721 === undefined){
 const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr, priceStr, _fromAssetOwner, _fromAssetOwnerpkRaw ) => {
 
   let mesg;
-  const serverTimeStr = 201905281400;// should be acquired from backend
+  const serverTimeStr = 201905281400;// only used for emitting events in the blockchain
 
   // const _fromAssetOwner = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
   // const _fromAssetOwnerpkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";

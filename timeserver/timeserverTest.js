@@ -1,14 +1,15 @@
 const { getTime, asyncForEach } = require('./utilities');
 
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB } = require('./mysql.js');
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB, addIncomePaymentPerPeriodIntoDB } = require('./mysql.js');
 
 const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC, addIncomePaymentPerPeriodIntoDB } = require('./blockchain.js');
+  isScheduleGoodIMC, cancelOverCFED2Orders } = require('./blockchain.js');
 
-let { symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftSymbol } = require('../ethereum/contracts/zsetupData');
+let { symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftSymbol, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
+} = require('../ethereum/contracts/zsetupData');
 
 let choice, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
 
@@ -177,7 +178,7 @@ const addAssetRecordsIntoDB_API = async () => {
   //const inputArray = [ '0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc','0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11','0xC80E77bC804a5cDe179C0C191A43b87088C5e183' ];
 
   const symbol = 'ABBA1850';
-  const serverTime = await getTime();//201906050900;
+  const serverTime = await getTime();
   const amountArray = [9, 11, 13];
   const personal_income = 100;
   const asset_valuation = 13000;
@@ -194,14 +195,19 @@ const addAssetRecordsIntoDB_API = async () => {
 
 //yarn run testts -a 2 -c 4
 const addIncomePaymentPerPeriodIntoDB_API = async () => {
-  console.log('------------------== addIncomePaymentPerPeriodIntoDB_API');
+  console.log('------------------== addIncomePaymentPerPeriodIntoDB_API');//@ blockchain.js
   const serverTime = 201901010000;
   //Inside income_arrangement table, make above number >= ia_actualPaymentTime of the target symbol
   await addIncomePaymentPerPeriodIntoDB(serverTime);//in blockchain.js
 
 }
 
-//
+//yarn run testts -a 2 -c 2
+const cancelOverCFED2Orders_API = async () => {
+  const serverTime = CFED2;
+  cancelOverCFED2Orders(serverTime);
+}
+
 
 const getInvestorsCFC_API = async () => {
   crowdFundingAddr = crowdFundingAddrArray[arg0];
@@ -221,6 +227,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //  yarn run testts -a 2 -c 2
 } else if(choice === 2){
+  cancelOverCFED2Orders_API();
 
 //  yarn run testts -a 2 -c 3
 } else if(choice === 3){

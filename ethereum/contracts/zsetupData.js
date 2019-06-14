@@ -105,6 +105,21 @@ const productObj3 = new productObject("AMOS1902", "nftName", "location", 10379, 
 const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0xC2F3676286bF1ed14E805eDa8b85E645C399A453", "0xdcF42de600323C9AEC1DC015FB930d7f6cC6f102", "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b", "");
 
 const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
+
+const whichTimeServerArray = [0, 0, 0, 0, 0, 0];
+/**
+index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
+index 1: cancelOverCFED2Orders(serverTime);//blockchain.js
+index 2: updateExpiredOrders(serverTime);//blockchain.js
+index 3: updateCFC(serverTime);//blockchain.js
+index 4: updateTCC(serverTime);//blockchain.js
+index 5: checkIncomeManager(serverTime);//blockchain.js
+*/
+if(whichTimeServerArray.length !== 6){
+  console.log('whichTimeServerArray should have length ===', 6);
+  process.exit(1);
+}
+
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4];
 const symbolArray = [];
 crowdFundingAddrArray= [];
@@ -423,9 +438,10 @@ if (ProductManager === undefined){
 
 module.exports = {
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, fundmanager, CFSD2, CFED2, 
+  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, 
+  CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager,
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
   email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA
 }
   /**

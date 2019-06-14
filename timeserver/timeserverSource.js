@@ -5,11 +5,12 @@ const path = require('path');
 const fs = require('fs');
 
 const { getTime } = require('./utilities');
+const { whichTimeServerArray } = require('../ethereum/contracts/zsetupData');
 
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
-const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC } = require('./blockchain.js');
+const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC, cancelOverCFED2Orders } = require('./blockchain.js');
 
 const mode = 1;
 const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
@@ -42,12 +43,25 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       process.exit(0);
     }
   
-    console.log('[timeserverSource.js] serverTime: '+serverTime);
-    addAssetbooksIntoCFC(serverTime);//blockchain.js
-    //updateExpiredOrders(serverTime);//blockchain.js
-    //updateCFC(serverTime);//blockchain.js
-    //updateTCC(serverTime);
-    //checkIncomeManager(serverTime);
+    console.log('[timeserverSource.js] serverTime:', serverTime);
+    if(whichTimeServerArray[0] > 0){
+      addAssetbooksIntoCFC(serverTime);//blockchain.js
+
+    } else if(whichTimeServerArray[1] > 0){
+      cancelOverCFED2Orders(serverTime);//blockchain.js
+
+    } else if(whichTimeServerArray[2] > 0){
+      updateExpiredOrders(serverTime);//blockchain.js
+
+    } else if(whichTimeServerArray[3] > 0){
+      updateCFC(serverTime);//blockchain.js
+
+    } else if(whichTimeServerArray[4] > 0){
+      updateTCC(serverTime);//blockchain.js
+
+    } else if(whichTimeServerArray[5] > 0){
+      checkIncomeManager(serverTime);//blockchain.js
+    }
 
 
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
