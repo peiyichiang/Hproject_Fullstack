@@ -4,6 +4,8 @@ var jwt = require('jsonwebtoken');
 var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
+const { getTime, asyncForEach } = require('../timeserver/utilities');
+
 
 //撈取資料(Platform_Supervisor專用，沒在用)
 router.get('/Product', function (req, res, next) {
@@ -285,52 +287,52 @@ router.post('/AddProductByFMN', function (req, res, next) {
     // }
     var mysqlPoolQuery = req.pool;
 
-  //因為是FMN新增的產品資料，所以狀態永遠是creation
-  //新增該產品資料的Fund Manager則是用存在JWT中的帳號資料
-  console.log("@@@"+req.body.p_fundingType);
-  var sql = {
-      p_SYMBOL: req.body.p_SYMBOL,
-      p_name: req.body.p_name,
-      p_location: req.body.p_location,
-      p_pricing: req.body.p_pricing,
-      p_duration: req.body.p_duration,
-      p_currency: req.body.p_currency,
-      p_irr: Number(req.body.p_irr).toFixed(2),
-      p_releasedate: req.body.p_releasedate,
-      p_validdate: req.body.p_validdate,
-      p_size: req.body.p_size,
-      p_totalrelease: req.body.p_totalrelease,
-      p_fundingType:req.body.p_fundingType,
-      p_fundmanager: JWT_decoded.payload.m_id,
-      p_state: "draft",   //草稿
-      p_icon:req.body.p_icon,
-      p_assetdocs:req.body.p_assetdocs,
-      p_csvFIle:req.body.p_csvFIle,
-      p_Image1:req.body.p_Image1,
-      p_Image2:req.body.p_Image2,
-      p_Image3:req.body.p_Image3,
-      p_Image4:req.body.p_Image4,
-      p_Image5:req.body.p_Image5,
-      p_Image6:req.body.p_Image6,
-      p_Image7:req.body.p_Image7,
-      p_Image8:req.body.p_Image8,
-      p_Image9:req.body.p_Image9,
-      p_Image10:req.body.p_Image10,
-      p_FAY:req.body.p_FAY,
-      p_FTRT:req.body.p_FTRT,
-      p_RPT:req.body.p_RPT,
-      p_FRP:req.body.p_FRP,
-      p_Timeline:req.body.p_Timeline,
-      p_PSD:req.body.p_PSD,
-      p_TaiPowerApprovalDate:req.body.p_TaiPowerApprovalDate,
-      p_BOEApprovalDate:req.body.p_BOEApprovalDate,
-      p_PVTrialOperationDate:req.body.p_PVTrialOperationDate,
-      p_PVOnGridDate:req.body.p_PVOnGridDate,
-      p_CFSD:req.body.p_CFSD,
-      p_CFED:req.body.p_CFED,
-      p_fundingGoal:req.body.p_fundingGoal,
-      p_HCAT721uri:req.body.p_HCAT721uri
-  };
+    //因為是FMN新增的產品資料，所以狀態永遠是creation
+    //新增該產品資料的Fund Manager則是用存在JWT中的帳號資料
+    console.log("@@@" + req.body.p_fundingType);
+    var sql = {
+        p_SYMBOL: req.body.p_SYMBOL,
+        p_name: req.body.p_name,
+        p_location: req.body.p_location,
+        p_pricing: req.body.p_pricing,
+        p_duration: req.body.p_duration,
+        p_currency: req.body.p_currency,
+        p_irr: Number(req.body.p_irr).toFixed(2),
+        p_releasedate: req.body.p_releasedate,
+        p_validdate: req.body.p_validdate,
+        p_size: req.body.p_size,
+        p_totalrelease: req.body.p_totalrelease,
+        p_fundingType: req.body.p_fundingType,
+        p_fundmanager: JWT_decoded.payload.m_id,
+        p_state: "draft",   //草稿
+        p_icon: req.body.p_icon,
+        p_assetdocs: req.body.p_assetdocs,
+        p_csvFIle: req.body.p_csvFIle,
+        p_Image1: req.body.p_Image1,
+        p_Image2: req.body.p_Image2,
+        p_Image3: req.body.p_Image3,
+        p_Image4: req.body.p_Image4,
+        p_Image5: req.body.p_Image5,
+        p_Image6: req.body.p_Image6,
+        p_Image7: req.body.p_Image7,
+        p_Image8: req.body.p_Image8,
+        p_Image9: req.body.p_Image9,
+        p_Image10: req.body.p_Image10,
+        p_FAY: req.body.p_FAY,
+        p_FTRT: req.body.p_FTRT,
+        p_RPT: req.body.p_RPT,
+        p_FRP: req.body.p_FRP,
+        p_Timeline: req.body.p_Timeline,
+        p_PSD: req.body.p_PSD,
+        p_TaiPowerApprovalDate: req.body.p_TaiPowerApprovalDate,
+        p_BOEApprovalDate: req.body.p_BOEApprovalDate,
+        p_PVTrialOperationDate: req.body.p_PVTrialOperationDate,
+        p_PVOnGridDate: req.body.p_PVOnGridDate,
+        p_CFSD: req.body.p_CFSD,
+        p_CFED: req.body.p_CFED,
+        p_fundingGoal: req.body.p_fundingGoal,
+        p_HCAT721uri: req.body.p_HCAT721uri
+    };
 
     console.log(sql);
 
@@ -1020,7 +1022,7 @@ router.get('/IncomeArrangement', function (req, res, next) {
     var symbol = req.query.symbol;
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol  , function(err, rows) {
+    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol, function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1040,7 +1042,7 @@ router.post('/CorrectActualPayment', function (req, res, next) {
 
     var sql = {
         ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
-        ia_State:"ia_state_underReview"
+        ia_State: "ia_state_underReview"
     };
 
     var mysqlPoolQuery = req.pool;
@@ -1380,6 +1382,43 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
             });
         }
     });
+});
+
+//回傳該專案是否已經開賣
+router.get('/isProductPublished', async function (req, res) {
+    let symbol = req.query.symbol;
+    let mysqlPoolQuery = req.pool;
+    let isProductPublished;
+    const serverTime = await getTime();
+    mysqlPoolQuery(
+        'SELECT p_CFSD FROM htoken.product WHERE p_Symbol = \'' + symbol + '\'', function (err, result) {
+            if (err) {
+                res.status(400)
+                res.json({
+                    "message": "專案狀態取得失敗:" + err
+                })
+            }
+            else {
+                serverTime >= Number(result[0].p_CFSD) ?
+                    isProductPublished = true :
+                    isProductPublished = false;
+
+                if (isProductPublished) {
+                    res.status(200);
+                    res.json({
+                        "message": "專案已開賣！",
+                        "result": isProductPublished
+                    });
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "專案尚未開賣！",
+                        "result": isProductPublished
+                    });
+                }
+            }
+        });
 });
 
 
