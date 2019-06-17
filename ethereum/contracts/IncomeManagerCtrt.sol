@@ -66,34 +66,47 @@ contract IncomeManagerCtrt {
     event AddSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
     function addSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
         require(forecastedPayableTime > TimeOfDeployment, "forecastedPayableTime has to be in the format of yyyymmddhhmm");
-        if (schCindex > 0) {
-          require(idxToSchedule[schCindex].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime");
-        }
-
         schCindex = schCindex.add(1);
+        if (schCindex > 0) {
+          require(idxToSchedule[schCindex.sub(1)].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime[idx]");
+        }
         idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTime;
         idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmount;
         dateToIdx[forecastedPayableTime] = schCindex;
         emit AddSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
     }
 
-    function AddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external onlyPlatformSupervisor {
-        uint amount_ = forecastedPayableTimes.length;
-        require(amount_ == forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
-        require(amount_ > 0, "input array length must > 0");
+    function checkAddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray) {
+        boolArray = new bool[](3);
+        uint length = forecastedPayableTimes.length;
 
-        require(forecastedPayableTimes[0] > TimeOfDeployment, "forecastedPayableTime[0] has to be in yyyymmddhhmm");
-        for(uint i = 0; i < amount_; i = i.add(1)){
-            
-            if (schCindex > 0) {
-              require(idxToSchedule[schCindex].forecastedPayableTime < forecastedPayableTimes[i], "previous forecastedPayableTime should be < forecastedPayableTime[i]");
-            }
+        boolArray[0] = length == forecastedPayableAmounts.length;
+        boolArray[1] = length > 0;
+        boolArray[2] = forecastedPayableTimes[0] > TimeOfDeployment;
+        // uint schCindexB = schCindex;
+        // for(uint idx = 0; idx < length; idx = idx.add(1)){
+        //     schCindexB = schCindexB.add(1);
+        //     if (schCindexB > 0) {
+        //       (idxToSchedule[schCindexB.sub(1)].forecastedPayableTime < forecastedPayableTimes[idx]);
+        //     }
+        // }
+    }
 
+    function addScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external onlyPlatformSupervisor {
+        uint length = forecastedPayableTimes.length;
+        require(length == forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
+        require(length > 0, "input array length must > 0");
+        require(forecastedPayableTimes[0] > TimeOfDeployment, "forecastedPayableTime[0] has to be > TimeOfDeployment");
+
+        for(uint idx = 0; idx < length; idx = idx.add(1)){
             schCindex = schCindex.add(1);
-            idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTimes[i];
-            idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmounts[i];
-            dateToIdx[forecastedPayableTimes[i]] = schCindex;
-            emit AddSchedule(schCindex, forecastedPayableTimes[i], forecastedPayableAmounts[i]);
+            if (schCindex > 0) {
+              require(idxToSchedule[schCindex.sub(1)].forecastedPayableTime < forecastedPayableTimes[idx], "previous forecastedPayableTime should be < forecastedPayableTime[idx]");
+            }
+            idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTimes[idx];
+            idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmounts[idx];
+            dateToIdx[forecastedPayableTimes[idx]] = schCindex;
+            emit AddSchedule(schCindex, forecastedPayableTimes[idx], forecastedPayableAmounts[idx]);
         }
     }
 

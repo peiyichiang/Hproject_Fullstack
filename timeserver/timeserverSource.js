@@ -46,20 +46,20 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
     console.log('[timeserverSource.js] serverTime:', serverTime);
     if(whichTimeServerArray[0] > 0){
       addAssetbooksIntoCFC(serverTime);//blockchain.js
-
-    } else if(whichTimeServerArray[1] > 0){
+    };
+    if(whichTimeServerArray[1] > 0){
       cancelOverCFED2Orders(serverTime);//blockchain.js
-
-    } else if(whichTimeServerArray[2] > 0){
+    };
+    if(whichTimeServerArray[2] > 0){
       updateExpiredOrders(serverTime);//blockchain.js
-
-    } else if(whichTimeServerArray[3] > 0){
+    };
+    if(whichTimeServerArray[3] > 0){
       updateCFC(serverTime);//blockchain.js
-
-    } else if(whichTimeServerArray[4] > 0){
+    };
+    if(whichTimeServerArray[4] > 0){
       updateTCC(serverTime);//blockchain.js
-
-    } else if(whichTimeServerArray[5] > 0){
+    };
+    if(whichTimeServerArray[5] > 0){
       checkIncomeManager(serverTime);//blockchain.js
     }
 

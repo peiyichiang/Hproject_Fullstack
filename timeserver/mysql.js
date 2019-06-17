@@ -484,16 +484,30 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   console.log('inside addIncomePaymentPerPeriodIntoDB()... serverTime:', serverTime, typeof serverTime);
   const symbolArray = [];
   const acPaymentTimeArray = [];
-  const singleActualIncomePaymentArray = [];
+  const acIncomePaymentArray = [];
   const addrHCAT_Array = [];
-  const assetbookAddrArrayGroup = [];
-  const assetbookBalArrayGroup = [];
-  const incomePaymentPerPeriodArrayGroup = [];
+  const abAddrArrayGroup = [];
+  const abBalArrayGroup = [];
+  const incomePaymentArrayGroup = [];
 
-  const queryStr0 = 'SELECT distinct ia_SYMBOL FROM htoken.income_arrangement';
+  const queryStr0 = 'SELECT distinct ia_SYMBOL FROM htoken.product';
   const symbolObjArray = await mysqlPoolQueryB(queryStr0, []).catch((err) =>   console.log('\n[Error @ mysqlPoolQueryB(queryStr0)]', err));
   //console.log('symbolObjArray', symbolObjArray);
 
+  const queryStr7 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)'
+  await asyncForEach(symbolObjArray, async (symbolObj, index) => {
+    const results1 = await mysqlPoolQueryB(queryStr7, [symbolObj.ia_SYMBOL]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr7)]', err));
+    const symbolM = results1[0].ia_SYMBOL;
+    const acpaymentTime = parseInt(results1[0]['MAX(ia_actualPaymentTime)']);
+    if(serverTime >= acpaymentTime){
+      console.log('found period', symbolM, acpaymentTime);
+      symbolArray.push(symbolM);
+      acPaymentTimeArray.push(acpaymentTime);
+      const incomePayment = parseInt(results1[0].ia_single_Actual_Income_Payment_in_the_Period);
+      acIncomePaymentArray.push(incomePayment);
+    }
+  });
+  /*
   const queryStr1 = 'SELECT ia_SYMBOL, MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?';
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
     const results1 = await mysqlPoolQueryB(queryStr1, [symbolObj.ia_SYMBOL]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
@@ -506,21 +520,23 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
       acPaymentTimeArray.push(acpaymentTime);
     }
   });
-  console.log('\n----------------==\nsymbolArray', symbolArray, '\nacPaymentTimeArray', acPaymentTimeArray)
+  console.log('\n----------------==\nsymbolArray', symbolArray, '\nacPaymentTimeArray', acPaymentTimeArray);
 
   if(symbolArray.length > 0){
     const queryStr2 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_SYMBOL = ?';
     await asyncForEach(symbolArray, async (symbol, index) => {
       const results1 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err));
       const incomePayment = parseInt(results1[0].ia_single_Actual_Income_Payment_in_the_Period);
-      singleActualIncomePaymentArray.push(incomePayment);
+      acIncomePaymentArray.push(incomePayment);
     });
   
   } else {
     console.log('no periodSymbol is found.');
   }
-  console.log('\n----------------==\nsymbolArray', symbolArray, '\nacPaymentTimeArray', acPaymentTimeArray)
-  console.log('singleActualIncomePaymentArray', singleActualIncomePaymentArray);
+  */
+
+  console.log(`\n----------------==\nsymbolArray: ${symbolArray} \nacPaymentTimeArray: ${acPaymentTimeArray}
+  acIncomePaymentArray: ${acIncomePaymentArray}`);
 
 
   const queryStr2 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
@@ -549,38 +565,38 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
     if(tokenCtrtAddr !== null || tokenCtrtAddr !== undefined || tokenCtrtAddr !== 'multiple contract addr' || tokenCtrtAddr !== 'Not on record'){
 
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-      const assetbookAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-      const assetbookBalArray = await instHCAT721.methods.balanceOfArray(assetbookAddrArray).call();
-      console.log(`\nassetbookAddrArray: ${assetbookAddrArray} \nassetbookBalanceArray: ${assetbookBalArray}`);
-      assetbookAddrArrayGroup.push(assetbookAddrArray);
-      assetbookBalArrayGroup.push(assetbookBalArray);
+      const abAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+      const abBalArray = await instHCAT721.methods.balanceOfArray(abAddrArray).call();
+      console.log(`\nabAddrArray: ${abAddrArray} \nassetbookBalanceArray: ${abBalArray}`);
+      abAddrArrayGroup.push(abAddrArray);
+      abBalArrayGroup.push(abBalArray);
 
-      const singleActualIncomePayment = singleActualIncomePaymentArray[index];
-      const incomePaymentPerPeriodArray = assetbookBalArray.map(function(item) {
-        return item * singleActualIncomePayment;
+      const singleActualIncomePayment = acIncomePaymentArray[index];
+      const incomePaymentArray = abBalArray.map(function(balance) {
+        return balance * singleActualIncomePayment;
       });
-      incomePaymentPerPeriodArrayGroup.push(incomePaymentPerPeriodArray);
+      incomePaymentArrayGroup.push(incomePaymentArray);
     }
   });
   console.log(`\n  symbolArray: ${symbolArray}
-  singleActualIncomePaymentArray: ${singleActualIncomePaymentArray}
-  assetbookAddrArrayGroup: ${assetbookAddrArrayGroup} 
-  incomePaymentPerPeriodArrayGroup: ${incomePaymentPerPeriodArrayGroup}`);
+  acIncomePaymentArray: ${acIncomePaymentArray}
+  abAddrArrayGroup: ${abAddrArrayGroup} 
+  incomePaymentArrayGroup: ${incomePaymentArrayGroup}`);
 
   const emailArrayGroup = [];
-  await asyncForEach(assetbookAddrArrayGroup, async (assetbookAddrArray, index) => {
+  await asyncForEach(abAddrArrayGroup, async (abAddrArray, index) => {
     const symbol = symbolArray[index];
     const acPaymentTime = acPaymentTimeArray[index];
     const emailArray = [];
-    await asyncForEach(assetbookAddrArray, async (assetbookAddr, idx) => {
+    await asyncForEach(abAddrArray, async (assetbookAddr, idx) => {
       const queryStr3 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
       const results3 = await mysqlPoolQueryB(queryStr3, [assetbookAddr]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]', err));
       console.log('results3', results3);
       const email = results3[0].u_email;
       emailArray.push(email);
 
-      const personal_income = incomePaymentPerPeriodArrayGroup[index][idx];
-      const holding_Amount = assetbookBalArrayGroup[index][idx];
+      const personal_income = incomePaymentArrayGroup[index][idx];
+      const holding_Amount = abBalArrayGroup[index][idx];
       console.log(`    email: ${email}, symbol: ${symbol}, acPaymentTime: ${acPaymentTime}, holding_Amount: ${holding_Amount}
   personal_income: ${personal_income}`);
       const sqlObject = {

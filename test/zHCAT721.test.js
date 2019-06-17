@@ -1429,7 +1429,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result, 2);
 
 
-    await instIncomeManagerCtrt.methods.AddScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts)
+    await instIncomeManagerCtrt.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     result = await instIncomeManagerCtrt.methods.schCindex().call();

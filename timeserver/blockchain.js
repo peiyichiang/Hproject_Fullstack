@@ -814,6 +814,41 @@ const isScheduleGoodIMC = async (serverTime) => {
 
 
 //-----------------------==
+const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayableAmounts) => {
+  console.log('\n-----------------==inside addScheduleBatch()');
+  if(forecastedPayableTimes.length !== forecastedPayableAmounts.length){
+    console.log('forecastedPayableTimes and forecastedPayableAmounts are of different length');
+    return;
+  } else if(forecastedPayableTimes.length === 0){
+    console.log('forecastedPayableTimes has length zero');
+  }
+
+  //forecastedPayableTimes[0] > TimeOfDeployment
+  //console.log('forecastedPayableTime[0] has to be > TimeOfDeployment');
+
+  //idxToSchedule[schCindex].forecastedPayableTime < forecastedPayableTimes[i], "previous forecastedPayableTime should be < forecastedPayableTime[i]"
+
+
+  const queryStr1 = 'SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
+  const imAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
+  const imAddrResultsLen = imAddrResults.length;
+  console.log('\nArray length @ addScheduleBatch:', imAddrResultsLen, ', imAddrResults:', imAddrResults);
+  if(imAddrResultsLen == 0){
+    console.log('no incomeManagerAddr is found');
+  } else if(imAddrResultsLen > 1){
+    console.log('multiple incomeManager addresses were found');
+  } else {
+    const incomeManagerAddr = imAddrResults[0].sc_incomeManagementaddress;
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeManagerAddr);
+    let encodedData = instIncomeManager.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).encodeABI();
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+    console.log('TxResult', TxResult);
+  }
+
+}
+
+
+//-----------------------==
 const updateExpiredOrders = async (serverTime) => {
   console.log('\ninside updateExpiredOrders(), serverTime:', serverTime, 'typeof', typeof serverTime);
   if(!Number.isInteger(serverTime)){

@@ -172,6 +172,7 @@ const reset_addAssetbooksIntoCFC_API = async() => {
 
 //  yarn run testts -a 2 -c 8
 const addAssetRecordsIntoDB_API = async () => {
+  // after minting tokens
   console.log('-----------------==addAssetRecordsIntoDB_API');
   //const inputArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
   const inputArray = [...assetbookArray];
