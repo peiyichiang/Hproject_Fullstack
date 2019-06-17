@@ -312,96 +312,92 @@ router.post('/AddUser', function (req, res, next) {
 
 //http://localhost:3000/user/UserLogin
 router.get('/UserLogin', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserLogin');
+    console.log('------------------------==\n@User/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
-    let email, password;
-    if (req.body.email) {
-        email = req.body.email; password = req.body.password;
-    } else { email = req.query.email; password = req.query.password; }
+    // console.log('req.query', req.query, 'req.body', req.body);
+    // let email, password;
+    // if (req.body.email) {
+    //     email = req.body.email;
+    //     password = req.body.password;
+    // } else {
+    //     email = req.query.email;
+    //     password = req.query.password;
+    // }
+    const email = req.query.email;
+    const password = req.query.password;
 
-    var qur = mysqlPoolQuery(qstr1, email, function (err, result) {
+    mysqlPoolQuery(qstr1, email, function (err, result) {
         if (err) {
-            console.log(err);
             res.status(400);
             res.json({
                 "message": "[Error] db to/from DB :\n" + err,
-                "success": false
             });
+            console.log(err);
         } else {
-            res.status(200);
             if (result.length === 0) {
-                console.log("[Not Valid] No email is found", result);
+                res.status(400);
                 res.json({
-                    "message": "[Error] No email is found",
-                    "result": result,
-                    "success": false
+                    "message": "No email is found",
                 });
+                console.error('No email is found:', email)
             } else if (result.length === 1) {
-                console.log("[Good] 1 Email is found", result);
-                const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
-                const timeExpiry = timeLogin + 60 * 60;
-                console.log('timeLogin', timeLogin, 'timeExpiry', timeExpiry);
+                if (result[0].u_verify_status === 0) {
+                    res.status(400);
+                    res.json({
+                        "message": "Email is not verified",
+                    });
+                    console.error('Email is not verified:', email)
+                }
+                else {
+                    const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
+                    const timeExpiry = timeLogin + 60 * 60;
 
-                bcrypt
-                    .compare(password, result[0].u_password_hash)
-                    .then(compareResult => {
-                        console.log(compareResult);
-                        if (compareResult) {
-                            const user = result[0];
+                    bcrypt
+                        .compare(password, result[0].u_password_hash)
+                        .then(compareResult => {
+                            if (compareResult) {
+                                var data = {
+                                    u_email: result[0].u_email,
+                                    u_identityNumber: result[0].u_identityNumber,
+                                    u_assetbookContractAddress: result[0].u_assetbookContractAddress,
+                                    u_investorLevel: result[0].u_investorLevel,
+                                    u_verify_status: result[0].u_verify_status,
+                                };
+                                time = { expiresIn: '24h' };
+                                token = jwt.sign(data, 'privatekey', time);
 
-                            var data = {
-                                u_email: result[0].u_email,
-                                u_identityNumber: result[0].u_identityNumber,
-                                u_assetbookContractAddress: result[0].u_assetbookContractAddress,
-                                u_investorLevel: result[0].u_investorLevel,
-                                u_verify_status: result[0].u_verify_status,
-                            };
-                            time = {
-                                expiresIn: '24h'
-                            };
-                            token = jwt.sign(data, 'privatekey', time);
-
-                            // token = jwt.sign({ user, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'privatekey');
-                            // console.log("＊＊JWT token:" + token);
-                            // var decoded = jwt.verify(token, 'privatekey');
-                            // console.log("＊@Decoded：" + JSON.stringify(decoded));
-                            console.log("[Success] Passwords are matched");
-                            res.json({
-                                "message": "[Success] password is correct",
-                                "result": result,
-                                "success": true,
-                                "expiry": timeExpiry,
-                                "jwt": token
-                            });
-
-                        } else {
-                            console.log("[Not Valid] password is not correct");
-                            res.json({
-                                "message": "[Not Valid] password is not correct",
-                                "result": result,
-                                "success": false
-                            });
-                        }
-                    }).catch(err => console.error('Error at compare password & pwHash', err.message));
-
+                                res.status(200);
+                                res.json({
+                                    "message": "password is correct",
+                                    "result": result[0],
+                                    "expiry": timeExpiry,
+                                    "jwt": token
+                                });
+                            } else {
+                                res.status(400);
+                                res.json({
+                                    "message": "password is not correct",
+                                });
+                                console.error("password is not correct");
+                            }
+                        })
+                        .catch(err => console.error('Error at compare password & pwHash', err.message));
+                }
             } else {
-                console.log("[Duplicated] Duplicate entries are found");
+                res.status(400);
                 res.json({
-                    "message": "[Duplicated] Duplicate entries are found",
-                    "result": result,
-                    "success": false
+                    "message": "Duplicate entries are found in DB",
                 });
+                console.error('Duplicate entries are found in DB:', email)
             }
-
         }
     });
 });
 
 //http://localhost:3000/user/UserByEmail
 router.get('/UserByEmail', function (req, res, next) {
-    console.log('------------------------==\n@Order/User');
+    console.log('------------------------==\n@User/User');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -454,7 +450,7 @@ router.get('/UserByEmail', function (req, res, next) {
 
 //http://localhost:3000/user/UserByCellphone
 router.get('/UserByCellphone', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserByCellphone');
+    console.log('------------------------==\n@User/UserByCellphone');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_cellphone = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -505,7 +501,7 @@ router.get('/UserByCellphone', function (req, res, next) {
 
 //http://localhost:3000/user/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserByUserId');
+    console.log('------------------------==\n@User/UserByUserId');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_identityNumber = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -727,30 +723,7 @@ router.post('/EditEndorser', function (req, res, next) {
 
 });
 
-//回傳該使用者信箱是否已經驗證
-router.get('/isUserEmailVerified', function (req, res) {
-    let userEmailAddress = req.query.userEmailAddress;
-    let mysqlPoolQuery = req.pool;
-    console.log(userEmailAddress)
-    mysqlPoolQuery(
-        'SELECT u_verify_status FROM htoken.user WHERE u_email = \'' + userEmailAddress + '\'', function (err, result) {
-            if (err) {
-                res.status(400)
-                res.json({
-                    "message": "信箱驗證狀態取得失敗:" + err
-                })
-            }
-            else {
-                let userVerifiedStatus
-                result[0].u_verify_status == 0 ? userVerifiedStatus = false : userVerifiedStatus = true
-                res.status(200);
-                res.json({
-                    "message": "信箱驗證狀態取得成功！",
-                    "result": userVerifiedStatus
-                });
-            }
-        });
-});
+
 
 
 module.exports = router;

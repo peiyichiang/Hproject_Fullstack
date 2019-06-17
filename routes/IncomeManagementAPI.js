@@ -30,7 +30,7 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
             ia_Payable_Period_End AS payablePeriodEnd 
     FROM    htoken.investor_assetRecord  AS T1
     INNER JOIN htoken.income_arrangement AS T2
-          ON T1.ar_Time = T2.ia_time 
+          ON T1.ar_Time = T2.ia_actualPaymentTime
           AND T1.ar_tokenSYMBOL = T2.ia_SYMBOL 
     WHERE ar_tokenSYMBOL = ? && ar_investorEmail = ?
     `;
@@ -117,7 +117,7 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
 
     INNER JOIN htoken.income_arrangement AS T3
     ON T1.symbol = T3.ia_SYMBOL AND
-       T1.time = T3.ia_time
+       T1.time = T3.ia_actualPaymentTime
 
     INNER JOIN htoken.product AS T4
     ON T1.symbol = T3.ia_SYMBOL AND
