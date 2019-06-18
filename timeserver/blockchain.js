@@ -3,7 +3,7 @@ const Tx = require('ethereumjs-tx');
 const moment = require('moment');
 
 const { getTime, isEmpty, asyncForEach } = require('./utilities');
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, nftSymbol, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid,  } = require('../ethereum/contracts/zsetupData');
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB } = require('./mysql.js');
 
@@ -84,12 +84,12 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime) => {
   return tokenState;
 }
 
-const checkIMC_isSchGoodForRelease = async (incomemanagerAddr, serverTime) => {
-  console.log('\n[checkIMC_isSchGoodForRelease] incomemanagerAddr', incomemanagerAddr, 'serverTime', serverTime);
-  const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeManagerAddr);
+const checkIMC_isSchGoodForRelease = async (incomeMgrAddr, serverTime) => {
+  console.log('\n[checkIMC_isSchGoodForRelease] incomeMgrAddr', incomeMgrAddr, 'serverTime', serverTime);
+  const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
   let isScheduleGoodForRelease = await instIncomeManager.methods.isScheduleGoodForRelease(serverTime).call({ from: backendAddr });
   console.log('\nisScheduleGoodForRelease:', isScheduleGoodForRelease);
-  console.log('incomemanagerAddr', incomemanagerAddr);
+  console.log('incomeMgrAddr', incomeMgrAddr);
   return isScheduleGoodForRelease;
 }
 
@@ -236,9 +236,8 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
 }
 
 
-const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr) => {
+const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr, serverTime) => {
   console.log('\n----------------------==sequentialMint()');
-  const serverTime = await getTime();
   console.log(`tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}, acquired serverTime: ${serverTime}`);
   const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
@@ -260,7 +259,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
 
 
 //to be called from API and zlivechain.js, etc...
-const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun) => {
+const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
@@ -279,7 +278,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('balanceArrayBefore', balanceArrayBefore);
 
   console.log('\n--------------==Minting tokens via sequentialMint()...');
-  await sequentialMint(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr).catch((err) => {
+  await sequentialMint(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr, serverTime).catch((err) => {
     console.log('[Error @ sequentialMint]', err);
     return;
   });
@@ -295,7 +294,6 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('\nisFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
 
   console.log('\n--------------==About to call addAssetRecordsIntoDB()');
-  const serverTime = await getTime();//297
   const personal_income = 100;
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
@@ -500,8 +498,11 @@ const cancelOverCFED2Orders = async (serverTime) => {
   //process.exit(0);
 }
 
+
 // yarn run testts -a 2 -c 1
+// after order status change: waiting -> paid
 const addAssetbooksIntoCFC = async (serverTime) => {
+  // check if serverTime > CFSD2 for each symbol...
   console.log('\ninside blockchain.js: addAssetbooksIntoCFC()... serverTime:',serverTime);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
   const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
@@ -590,7 +591,6 @@ const addAssetbooksIntoCFC = async (serverTime) => {
           const tokenCount = parseInt(tokenCountArray[index]);
           console.log(`\n----==[Good] For ${addrAssetbook}, found its tokenCount ${tokenCount}`);
 
-          const serverTime = CFSD2+1;//await getTime();//566
           console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
 tokenCount: ${tokenCount}, serverTime: ${serverTime}
 addrAssetbook: ${addrAssetbook}
@@ -642,8 +642,8 @@ crowdFundingAddr: ${crowdFundingAddr}`);
   //process.exit(0);
 }
 
-const getInvestorsFromCFC_Check = async() => {
-  const serverTime = CFSD2+1;//await getTime(); //619
+const getInvestorsFromCFC_Check = async(serverTime) => {
+  //check if serverTime > CFSD2
   const addrAssetbook = '0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc';
   console.log(`\ngetInvestorsFromCFC_Check
 serverTime: ${serverTime}
@@ -661,7 +661,9 @@ crowdFundingAddr: ${crowdFundingAddr}`);
   const investorList = await instCrowdFunding.methods.getInvestors(0, 0).call();
   console.log('\ninvestList', investorList);
   console.log(`\nassetbookArrayBf: ${investorList[0]}, \ninvestedTokenQtyArrayBf: ${investorList[1]}`);
+  return investorList;
 }
+
 
 //to get all the list: set inputs to both zeros
 const getInvestorsFromCFC = async (indexStart, tokenCountStr) => {
@@ -789,7 +791,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
   console.log('end of writeToBlockchainAndDatabase() for', symbol, 'actionType:', actionType);
 }
 
-//-------------------==Income Manager
+//---------------------------==Income Manager
 const isScheduleGoodIMC = async (serverTime) => {
   console.log('\ninside isScheduleGoodIMC(), serverTime:', serverTime, 'typeof', typeof serverTime);
   if(!Number.isInteger(serverTime)){
@@ -813,36 +815,134 @@ const isScheduleGoodIMC = async (serverTime) => {
 }
 
 
-//-----------------------==
-const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayableAmounts) => {
-  console.log('\n-----------------==inside addScheduleBatch()');
-  if(forecastedPayableTimes.length !== forecastedPayableAmounts.length){
+const checkScheduleIMC = async(symbol, schIndex) => {
+  console.log('\n-------------==inside checkScheduleIMC()');
+  const queryStr1 = 'SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
+  const imAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
+  const imAddrResultsLen = imAddrResults.length;
+  console.log('\nArray length @ checkScheduleIMC:', imAddrResultsLen, ', imAddrResults:', imAddrResults);
+  if(imAddrResultsLen == 0){
+    console.log('no incomeMgrAddr is found');
+  } else if(imAddrResultsLen > 1){
+    console.log('multiple incomeManager addresses were found');
+  } else {
+    const incomeMgrAddr = imAddrResults[0].sc_incomeManagementaddress;
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
+
+    const result1 = await instIncomeManager.methods.schCindex().call();
+    console.log('\nschCindex:', result1);//assert.equal(result1, 0);
+  
+    const result2 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log(`getIncomeSchedule(${schIndex}):
+  ${result2[0]}
+  ${result2[1]}`);// all should be false after adding a new schedule
+
+    const indexStart = 0; const amount = 0;
+    let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('\nscheduleList', scheduleList);
+
+  }
+}
+
+// yarn run livechain -c 1 --f 14
+const checkAddScheduleBatchIMC = async (symbol, forecastedPayableTimes, forecastedPayableAmounts) => {
+  console.log('\n-----------------==inside checkAddScheduleBatch()');
+  console.log('symbol', symbol, forecastedPayableTimes, forecastedPayableAmounts);
+  const length = forecastedPayableTimes.length;
+  if(length !== forecastedPayableAmounts.length){
     console.log('forecastedPayableTimes and forecastedPayableAmounts are of different length');
     return;
-  } else if(forecastedPayableTimes.length === 0){
+  } else if(length === 0){
     console.log('forecastedPayableTimes has length zero');
+    return;
   }
 
-  //forecastedPayableTimes[0] > TimeOfDeployment
-  //console.log('forecastedPayableTime[0] has to be > TimeOfDeployment');
-
-  //idxToSchedule[schCindex].forecastedPayableTime < forecastedPayableTimes[i], "previous forecastedPayableTime should be < forecastedPayableTime[i]"
-
+  for(let idx = 1; idx < length; idx++) {
+    if(forecastedPayableTimes[idx] <= forecastedPayableTimes[idx - 1]){
+      console.log(`[Error] idx = ${idx}, forecastedPayableTimes[idx] ${forecastedPayableTimes[idx]} <= forecastedPayableTimes[idx - 1] ${forecastedPayableTimes[idx - 1]}
+      forecastedPayableTime[idx-1] should be < forecastedPayableTime[idx]`);
+      return;
+    }
+  }
 
   const queryStr1 = 'SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
   const imAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
   const imAddrResultsLen = imAddrResults.length;
-  console.log('\nArray length @ addScheduleBatch:', imAddrResultsLen, ', imAddrResults:', imAddrResults);
+  console.log('\nArray length @ addScheduleBatchIMC:', imAddrResultsLen, ', imAddrResults:', imAddrResults);
   if(imAddrResultsLen == 0){
-    console.log('no incomeManagerAddr is found');
+    console.log('no incomeMgrAddr is found');
   } else if(imAddrResultsLen > 1){
     console.log('multiple incomeManager addresses were found');
   } else {
-    const incomeManagerAddr = imAddrResults[0].sc_incomeManagementaddress;
-    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeManagerAddr);
-    let encodedData = instIncomeManager.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
-    console.log('TxResult', TxResult);
+    console.log('got incomeManager contract address...');
+    const incomeMgrAddr = imAddrResults[0].sc_incomeManagementaddress;
+    console.log('check9');
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
+
+    const isPS = await instIncomeManager.methods.checkPlatformSupervisor().call({ from: backendAddr });
+    console.log('isPS', isPS);
+
+    const result = await instIncomeManager.methods.checkScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
+    console.log('result', result);
+
+
+    const [arr1, arr2] = await instIncomeManager.methods.checkAddScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
+    console.log('arr1', arr1, 'arr2', arr2);
+  }
+}
+
+
+const addScheduleBatchIMC = async (symbol, forecastedPayableTimes, forecastedPayableAmounts) => {
+  console.log('\n-----------------==inside addScheduleBatchIMC()');
+  console.log('symbol', symbol, forecastedPayableTimes, forecastedPayableAmounts);
+
+  const length = forecastedPayableTimes.length;
+  if(length !== forecastedPayableAmounts.length){
+    console.log('forecastedPayableTimes and forecastedPayableAmounts are of different length');
+    return;
+  } else if(length === 0){
+    console.log('forecastedPayableTimes has length zero');
+    return;
+  }
+
+  for(let idx = 1; idx < length; idx++) {
+    if(forecastedPayableTimes[idx] <= forecastedPayableTimes[idx - 1]){
+      console.log(`[Error] idx = ${idx}, forecastedPayableTimes[idx] ${forecastedPayableTimes[idx]} <= forecastedPayableTimes[idx - 1] ${forecastedPayableTimes[idx - 1]}
+      forecastedPayableTime[idx-1] should be < forecastedPayableTime[idx]`);
+      return;
+    }
+  }
+
+  const queryStr1 = 'SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
+  const imAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
+  const imAddrResultsLen = imAddrResults.length;
+  console.log('\nArray length @ addScheduleBatchIMC:', imAddrResultsLen, ', imAddrResults:', imAddrResults);
+  if(imAddrResultsLen == 0){
+    console.log('no incomeMgrAddr is found');
+  } else if(imAddrResultsLen > 1){
+    console.log('multiple incomeManager addresses were found');
+  } else {
+    console.log('got incomeManager contract address...');
+    const incomeMgrAddr = imAddrResults[0].sc_incomeManagementaddress;
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
+    console.log('check7');
+
+    const checkAddScheduleBatchArray = await instIncomeManager.methods.checkAddScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
+    console.log('checkAddScheduleBatchArray', checkAddScheduleBatchArray);
+
+    checkItem = (item) => item;
+    if(checkAddScheduleBatchArray.every(checkItem)){
+      let encodedData = instIncomeManager.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).encodeABI();
+      let TxResult = await signTx(backendAddr, backendRawPrivateKey, incomeMgrAddr, encodedData);
+      console.log('TxResult', TxResult);
+
+      const indexStart = 0; const amount = 0;
+      let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
+      console.log('\nscheduleList', scheduleList);
+    } else {
+      console.log('[Error] checkAddScheduleBatchArray', checkAddScheduleBatchArray);
+
+    }
   }
 
 }
@@ -950,6 +1050,7 @@ module.exports = {
   getFundingStateCFC, updateFundingStateCFC, updateCFC,
   addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC, 
-  cancelOverCFED2Orders
+  isScheduleGoodIMC, cancelOverCFED2Orders,
+  getInvestorsFromCFC_Check,
+  checkAddScheduleBatchIMC, addScheduleBatchIMC, checkScheduleIMC, checkAddScheduleBatch1, checkAddScheduleBatch2
 }

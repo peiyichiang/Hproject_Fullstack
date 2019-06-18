@@ -116,9 +116,12 @@ app.use(function (err, req, res, next) {
     res.render('error');
 });
 
-const checkOverZero =(item) => item === 0;
-if(isTestingMode && whichTimeServerArray.every(checkOverZero)){
-  console.log('\n------------------==timeserver is OFF');
+
+// const checkOverZero =(item) => item === 0;
+// if(whichTimeServerArray.every(checkOverZero)){
+if(isTestingMode){
+  console.log('\n------------------==timeserver turned OFF');
+  
 } else {
   console.log('\n------------------==timeserver is ON');
   require('./timeserver/timeserverSource');

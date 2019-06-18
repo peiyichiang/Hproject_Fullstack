@@ -30,7 +30,7 @@ contract IncomeManagerCtrt {
         bool isErrorResolved;//default = true
     }
 
-    // 201902191700, "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
+    // "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
     constructor(address _tokenCtrt, address _addrHelium, uint _TimeOfDeployment) public {
         tokenCtrt = _tokenCtrt;
         addrHelium = _addrHelium;
@@ -67,41 +67,65 @@ contract IncomeManagerCtrt {
     function addSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
         require(forecastedPayableTime > TimeOfDeployment, "forecastedPayableTime has to be in the format of yyyymmddhhmm");
         schCindex = schCindex.add(1);
-        if (schCindex > 0) {
-          require(idxToSchedule[schCindex.sub(1)].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime[idx]");
-        }
+        require(idxToSchedule[schCindex.sub(1)].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime[idx]");
+
         idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTime;
         idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmount;
         dateToIdx[forecastedPayableTime] = schCindex;
         emit AddSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
     }
 
-    function checkAddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray) {
-        boolArray = new bool[](3);
+    function checkAddScheduleBatch1(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool isLength, bool gtzero, bool isPS) {
         uint length = forecastedPayableTimes.length;
+        isLength = length == forecastedPayableAmounts.length;
+        gtzero = length > 0;
+        isPS = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
+    }
+    function checkAddScheduleBatch2(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray2) {
+        uint length = forecastedPayableTimes.length;
+        boolArray2 = new bool[](length);
+
+        for(uint idx = 0; idx < length; idx = idx.add(1)){
+            if (idx == 0) {
+                boolArray2[idx] = forecastedPayableTimes[0] > TimeOfDeployment;
+
+            } else if (idx > 0) {
+                boolArray2[idx] = forecastedPayableTimes[idx] > forecastedPayableTimes[idx.sub(1)];
+            }
+        }
+    }
+    function checkAddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray, bool[] memory boolArray2) {
+      //
+        uint length = forecastedPayableTimes.length;
+        boolArray = new bool[](3);
+        boolArray2 = new bool[](length);
 
         boolArray[0] = length == forecastedPayableAmounts.length;
         boolArray[1] = length > 0;
-        boolArray[2] = forecastedPayableTimes[0] > TimeOfDeployment;
-        // uint schCindexB = schCindex;
-        // for(uint idx = 0; idx < length; idx = idx.add(1)){
-        //     schCindexB = schCindexB.add(1);
-        //     if (schCindexB > 0) {
-        //       (idxToSchedule[schCindexB.sub(1)].forecastedPayableTime < forecastedPayableTimes[idx]);
-        //     }
-        // }
+        boolArray[2] = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
+
+        for(uint idx = 0; idx < length; idx = idx.add(1)){
+            if (idx == 0) {
+                boolArray2[idx] = forecastedPayableTimes[0] > TimeOfDeployment;
+
+            } else if (idx > 0) {
+                boolArray2[idx] = forecastedPayableTimes[idx] > forecastedPayableTimes[idx.sub(1)];
+            }
+        }
     }
 
     function addScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external onlyPlatformSupervisor {
         uint length = forecastedPayableTimes.length;
         require(length == forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
         require(length > 0, "input array length must > 0");
-        require(forecastedPayableTimes[0] > TimeOfDeployment, "forecastedPayableTime[0] has to be > TimeOfDeployment");
 
         for(uint idx = 0; idx < length; idx = idx.add(1)){
             schCindex = schCindex.add(1);
-            if (schCindex > 0) {
-              require(idxToSchedule[schCindex.sub(1)].forecastedPayableTime < forecastedPayableTimes[idx], "previous forecastedPayableTime should be < forecastedPayableTime[idx]");
+            if (idx == 0) {
+              require(forecastedPayableTimes[0] > TimeOfDeployment, "forecastedPayableTime[0] has to be > TimeOfDeployment");
+
+            } else if (idx > 0) {
+              require(forecastedPayableTimes[idx] > forecastedPayableTimes[idx.sub(1)], "forecastedPayableTime[idx] should be > forecastedPayableTime[idx.sub(1)]");
             }
             idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTimes[idx];
             idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmounts[idx];

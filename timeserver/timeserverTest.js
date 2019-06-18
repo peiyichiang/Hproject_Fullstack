@@ -6,7 +6,7 @@ const { checkTimeOfOrder, getDetailsCFC,
   getFundingStateCFC, updateFundingStateCFC, updateCFC, 
   addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC, cancelOverCFED2Orders } = require('./blockchain.js');
+  isScheduleGoodIMC, cancelOverCFED2Orders, getInvestorsFromCFC_Check } = require('./blockchain.js');
 
 let { symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftSymbol, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
 } = require('../ethereum/contracts/zsetupData');
@@ -112,7 +112,8 @@ const makePseudoEthAddr = (length) => {
 // yarn run testts -a 1 -s 1 -c 1
 const addAssetbooksIntoCFC_API = async () => {
   console.log('addAssetbooksIntoCFC_API');
-  await addAssetbooksIntoCFC();
+  const serverTime = CFSD2+1;//await getTime();//566
+  await addAssetbooksIntoCFC(serverTime);
   //process.exit(0);
 }
 
@@ -215,6 +216,12 @@ const getInvestorsCFC_API = async () => {
   const investorArray = await getInvestorsCFC(0,0);
   console.log('investorArray:', investorArray);
 }
+
+const getInvestorsFromCFC_Check_API = async () => {
+  const serverTime = CFSD2+1;//await getTime(); //619
+  const investorList = await getInvestorsFromCFC_Check(serverTime);
+}
+
 
 
 //------------------------==

@@ -42,28 +42,31 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       console.log('[Error] serverTime is not an integer', date.toString());
       process.exit(0);
     }
-  
     console.log('[timeserverSource.js] serverTime:', serverTime);
-    if(whichTimeServerArray[0] > 0){
-      addAssetbooksIntoCFC(serverTime);//blockchain.js
-    };
-    if(whichTimeServerArray[1] > 0){
-      cancelOverCFED2Orders(serverTime);//blockchain.js
-    };
-    if(whichTimeServerArray[2] > 0){
-      updateExpiredOrders(serverTime);//blockchain.js
-    };
-    if(whichTimeServerArray[3] > 0){
-      updateCFC(serverTime);//blockchain.js
-    };
-    if(whichTimeServerArray[4] > 0){
-      updateTCC(serverTime);//blockchain.js
-    };
-    if(whichTimeServerArray[5] > 0){
-      checkIncomeManager(serverTime);//blockchain.js
+  
+    if(whichTimeServerArray.length < 6){
+      console.log('\n[Error] whichTimeServerArray length is < 6 ... bypassing services...');
+    } else {
+      if(whichTimeServerArray[0] > 0){
+        addAssetbooksIntoCFC(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[1] > 0){
+        cancelOverCFED2Orders(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[2] > 0){
+        updateExpiredOrders(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[3] > 0){
+        updateCFC(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[4] > 0){
+        updateTCC(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[5] > 0){
+        checkIncomeManager(serverTime);//blockchain.js
+      }
+  
     }
-
-
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
     //     if (err) console.error(`[Error @ timeserverSource] failed at reading date.txt`);
     //     else {

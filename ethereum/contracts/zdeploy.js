@@ -3,7 +3,7 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 */
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName cf
-    cName = helium, assetbook, registry, cf, tokc, hcat, addsc, addproduct, addorder, im, pm, db2
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
 */
 //const timer = require('./api.js');
 const Web3 = require('web3');
@@ -23,8 +23,8 @@ if (process.argv.length < 8) {
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
 const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
-  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager, userArray
+  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
 } = require('./zsetupData');
 
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
@@ -471,10 +471,40 @@ const deploy = async () => {
     process.exit(0);
 
 
+
+    //yarn run deploy -c 1 -s 1 -cName im
+  } else if (ctrtName === 'im') {
+    instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
+    .deploy({ data: IncomeManager.bytecode, arguments: argsIncomeManager })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('IncomeManager.sol has been deployed');
+    if (instIncomeManager === undefined) {
+      console.log('[Error] instIncomeManager is NOT defined');
+      } else {console.log('[Good] instIncomeManager is defined');}
+    instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    console.log(`const addrIncomeManager = ${instIncomeManager.options.address}`);
+
+    result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
+    console.log('checkDeploymentConditions():', result);
+    if(result.every(checkTrue)){
+      console.log('[Success] all checks have passed');
+    } else {
+      console.log('[Failed] Some/one check(s) have/has failed');
+    }
+    process.exit(0);
+
+
   } else if (ctrtName === 'check1'){
     const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
     const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-    // const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
+    // const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManager);
     // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
 
@@ -562,24 +592,7 @@ const deploy = async () => {
 
 
 
-  } else if (ctrtName === 'im') {
-    instIncomeManager = await new web3deploy.eth.Contract(IncomeManagement.abi)
-    .deploy({ data: IncomeManagement.bytecode, arguments: argsIncomeManagement })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
-
-    console.log('IncomeManagement.sol has been deployed');
-    if (instIncomeManager === undefined) {
-      console.log('[Error] instIncomeManager is NOT defined');
-      } else {console.log('[Good] instIncomeManager is defined');}
-    instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    console.log(`const addrIncomeManagement = ${instIncomeManager.options.address}`);
-
+ 
 
   } else if (ctrtName === 'pm') {
     const argsProductManager =[addrHCAT721, addrHeliumCtrt];

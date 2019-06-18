@@ -31,9 +31,9 @@ transferTokensKY
 */
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
-const PrivateKeyProvider = require("truffle-privatekey-provider");
+//const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
+const { sequentialMintSuper, addScheduleBatchIMC, checkAddScheduleBatchIMC, checkScheduleIMC } = require('../../timeserver/blockchain');
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
 const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
@@ -227,7 +227,7 @@ if(choiceOfHCAT721===1){
   instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
 }*/
 const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
-// const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
+// const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManager);
 // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
 checkTrueBoolArray = (item) => item;
@@ -612,8 +612,9 @@ const sequentialMintSuperAPI = async () => {
   const price = 20000;
   const maxMintAmountPerRun = 180;
 
+  const serverTime = await getTime();//297
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
@@ -1017,6 +1018,101 @@ const sendAssetBeforeAllowed = async () => {
 
 
 
+//yarn run livechain -c 1 --f 13
+const checkScheduleIMC_API = async() => {
+  console.log('\n-------------------==checkScheduleIMC_API');
+  const symbol = nftSymbol;
+  const schIndex = 1;
+  await checkScheduleIMC(symbol, schIndex);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 14
+const checkAddScheduleBatch1_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatch1_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+  const [arr1, arr2] = await checkAddScheduleBatch1(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+  console.log('arr1', arr1, 'arr2', arr2);
+}
+//yarn run livechain -c 1 --f 15
+const checkAddScheduleBatch2_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatch2_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+  const [arr1, arr2] = await checkAddScheduleBatch2(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+  console.log('arr1', arr1, 'arr2', arr2);
+}
+//yarn run livechain -c 1 --f 16
+const checkAddScheduleBatchIMC_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatchIMC_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+  const [arr1, arr2] = await checkAddScheduleBatchIMC(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+  console.log('arr1', arr1, 'arr2', arr2);
+}
+
+//yarn run livechain -c 1 --f 17
+const addScheduleBatchIMC_API = async() => {
+  console.log('\n---------------------==addScheduleBatchIMC_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+  await addScheduleBatchIMC(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+}
+
+const addScheduleIMC_API = async() => {
+  console.log('\n---------------==addSchedule_API');
+  let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode;
+
+  _index = 1;
+  forecastedPayableTime = TimeOfDeployment_IM+1;
+  forecastedPayableAmount = 3000;
+  
+  forecastedPayableTimes = [forecastedPayableTime];
+  forecastedPayableAmounts = [forecastedPayableAmount];
+
+  console.log('\n--------==Initial conditions');
+  result = await instIncomeManagerCtrt.methods.schCindex().call();
+  console.log('schCindex:', result);
+  //assert.equal(result, 0);
+
+  result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
+  console.log('getIncomeSchedule():', result);// all should be false after adding a new schedule
+
+  bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
+  console.log('isScheduleGoodForRelease:', bool1);// should be false
+
+  console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
+  await instIncomeManagerCtrt.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts);
+
+  console.log('\nafter adding a new schedule...');
+  result = await instIncomeManagerCtrt.methods.schCindex().call();
+  console.log('new schCindex:', result);
+  //assert.equal(result, 1);
+
+  result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
+  console.log('getSchIndex:', result);
+  //assert.equal(result, 1);
+
+  result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
+  console.log('new getIncomeSchedule():', result);
+  // assert.equal(result[0], forecastedPayableTime);
+  // assert.equal(result[1], forecastedPayableAmount);
+  // assert.equal(result[2], 0);
+  // assert.equal(result[3], 0);
+  // assert.equal(result[4], false);
+  // assert.equal(result[5], 0);
+  // assert.equal(result[6], false);
+
+  bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
+  console.log('isScheduleGoodForRelease:', bool1);
+  //assert.equal(bool1, false);
+}
+
 
 const testCtrt = async () => {
   console.log('\n---------------==inside testCtrt');
@@ -1099,9 +1195,30 @@ if (func === 0) {
 } else if (func === 8) {
   setServerTime(arg1);
 
-//yarn run livechain -c 1 --f 15
+//yarn run livechain -c 1 --f 9
 } else if (func === 9) {
   mintTokenFn1();
+
+//yarn run livechain -c 1 --f 13
+} else if (func === 13) {
+  checkScheduleIMC_API();
+
+//yarn run livechain -c 1 --f 14
+} else if (func === 14) {
+  checkAddScheduleBatch1_API();
+
+//yarn run livechain -c 1 --f 15
+} else if (func === 15) {
+  checkAddScheduleBatch2_API();
+
+//yarn run livechain -c 1 --f 16
+} else if (func === 16) {
+  checkAddScheduleBatchIMC_API();
+
+//yarn run livechain -c 1 --f 17
+} else if (func === 17) {
+  addScheduleBatchIMC_API();
+
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {

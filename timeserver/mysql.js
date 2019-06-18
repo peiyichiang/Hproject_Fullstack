@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 require('dotenv').config()
 
 const { isEmpty, asyncForEach } = require('./utilities');
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, nftSymbol, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid,  } = require('../ethereum/contracts/zsetupData');
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
 const serverTimeMin = 201905270900;
 const DatabaseCredential = {
   host: process.env.DB_HOST,
