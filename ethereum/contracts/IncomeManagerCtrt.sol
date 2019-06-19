@@ -95,7 +95,6 @@ contract IncomeManagerCtrt {
         }
     }
     function checkAddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray, bool[] memory boolArray2) {
-      //
         uint length = forecastedPayableTimes.length;
         boolArray = new bool[](3);
         boolArray2 = new bool[](length);
@@ -132,6 +131,19 @@ contract IncomeManagerCtrt {
             dateToIdx[forecastedPayableTimes[idx]] = schCindex;
             emit AddSchedule(schCindex, forecastedPayableTimes[idx], forecastedPayableAmounts[idx]);
         }
+    }
+
+    function checkEditIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external view returns(bool[] memory boolArray) {
+        boolArray = new bool[](3);
+        uint schIndex;
+        if(_schIndex > TimeOfDeployment){
+            schIndex = getSchIndex(_schIndex);
+        } else {
+            schIndex = _schIndex;
+        }
+        boolArray[0] = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
+        boolArray[1] = idxToSchedule[schIndex].actualPaymentTime == 0;
+        boolArray[2] = idxToSchedule[schIndex].actualPaymentAmount == 0;
     }
 
     event EditIncomeSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
@@ -175,7 +187,7 @@ contract IncomeManagerCtrt {
         isErrorResolved = icSch.isErrorResolved;
     }
 
-    function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, bool[] memory isApproveda, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
+    function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, bool[] memory isApprovedArray, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
 
         uint schIndex;
         if(_schIndex > TimeOfDeployment){
@@ -204,7 +216,7 @@ contract IncomeManagerCtrt {
         actualPaymentTimes = new uint[](amount_);
         actualPaymentAmounts = new uint[](amount_);
 
-        isApproveda = new bool[](amount_);
+        isApprovedArray = new bool[](amount_);
         errorCodes = new uint8[](amount_);
         isErrorResolveda = new bool[](amount_);
 
@@ -215,7 +227,7 @@ contract IncomeManagerCtrt {
             actualPaymentTimes[i] = icSch.actualPaymentTime;
             actualPaymentAmounts[i] = icSch.actualPaymentAmount;
 
-            isApproveda[i] = icSch.isApproved;
+            isApprovedArray[i] = icSch.isApproved;
             errorCodes[i] = icSch.errorCode;
             isErrorResolveda[i] = icSch.isErrorResolved;
         }
@@ -251,7 +263,6 @@ contract IncomeManagerCtrt {
         } else {
             schIndex = _schIndex;
         }
-
         idxToSchedule[schIndex].isApproved = boolValue;
     }
 
@@ -298,7 +309,7 @@ library AddressUtils {
         return size > 0;
     }
 }
-    // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] actualPaymentTimes, uint[] actualPaymentAmounts, bool[] isApproveda, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolveda) {
+    // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] actualPaymentTimes, uint[] actualPaymentAmounts, bool[] isApprovedArray, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolveda) {
 
     //     Schedule[] memory schedule;
     //     for(uint i = 0; i < indices.length; i = i.add(1)) {

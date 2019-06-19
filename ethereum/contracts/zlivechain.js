@@ -33,8 +33,9 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { sequentialMintSuper, addScheduleBatchIMC, checkAddScheduleBatchIMC, checkScheduleIMC } = require('../../timeserver/blockchain');
+const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults } = require('../../timeserver/blockchain');
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
+const { findCtrtAddr } = require('../../timeserver/mysql');
 
 const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
@@ -1018,23 +1019,33 @@ const sendAssetBeforeAllowed = async () => {
 
 
 
-//yarn run livechain -c 1 --f 13
-const checkScheduleIMC_API = async() => {
-  console.log('\n-------------------==checkScheduleIMC_API');
+//---------------------------------==IncomeManagerCtrt
+// yarn run livechain -c 1 --f 12
+const getIncomeSchedule_API = async() => {
+  console.log('\n-------------------==getIncomeSchedule_API');
   const symbol = nftSymbol;
   const schIndex = 1;
-  await checkScheduleIMC(symbol, schIndex);
+  await getIncomeSchedule(symbol, schIndex);
   process.exit(0);
 }
 
-//yarn run livechain -c 1 --f 14
+// yarn run livechain -c 1 --f 13
+const getIncomeScheduleList_API = async() => {
+  console.log('\n-------------------==getIncomeScheduleList_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTime = TimeOfDeployment_IM+1;
+  await getIncomeScheduleList(symbol, forecastedPayableTime);
+  process.exit(0);
+}
+
+// yarn run livechain -c 1 --f 14
 const checkAddScheduleBatch1_API = async() => {
   console.log('\n---------------------==checkAddScheduleBatch1_API');
   const symbol = nftSymbol;
+  console.log('symbol', symbol);
   const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
   const forecastedPayableAmounts = [3700, 3800, 3900];
-  const [arr1, arr2] = await checkAddScheduleBatch1(symbol, forecastedPayableTimes, forecastedPayableAmounts);
-  console.log('arr1', arr1, 'arr2', arr2);
+  await checkAddScheduleBatch1(symbol, forecastedPayableTimes, forecastedPayableAmounts);
 }
 //yarn run livechain -c 1 --f 15
 const checkAddScheduleBatch2_API = async() => {
@@ -1042,78 +1053,86 @@ const checkAddScheduleBatch2_API = async() => {
   const symbol = nftSymbol;
   const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
   const forecastedPayableAmounts = [3700, 3800, 3900];
-  const [arr1, arr2] = await checkAddScheduleBatch2(symbol, forecastedPayableTimes, forecastedPayableAmounts);
-  console.log('arr1', arr1, 'arr2', arr2);
+  checkAddScheduleBatch2(symbol, forecastedPayableTimes, forecastedPayableAmounts);
 }
 //yarn run livechain -c 1 --f 16
-const checkAddScheduleBatchIMC_API = async() => {
-  console.log('\n---------------------==checkAddScheduleBatchIMC_API');
+const checkAddScheduleBatch_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatch_API');
   const symbol = nftSymbol;
   const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
   const forecastedPayableAmounts = [3700, 3800, 3900];
-  const [arr1, arr2] = await checkAddScheduleBatchIMC(symbol, forecastedPayableTimes, forecastedPayableAmounts);
-  console.log('arr1', arr1, 'arr2', arr2);
+
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => reject('[Error @findCtrtAddr]:', err));
+  const isCheckAddScheduleBatch = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => console.log('[Error @checkAddScheduleBatch]:', err));
+  console.log('isCheckAddScheduleBatch', isCheckAddScheduleBatch);
+  process.exit(0);
 }
 
 //yarn run livechain -c 1 --f 17
-const addScheduleBatchIMC_API = async() => {
-  console.log('\n---------------------==addScheduleBatchIMC_API');
+const addScheduleBatch_API = async() => {
+  console.log('\n---------------------==addScheduleBatch_API');
   const symbol = nftSymbol;
-  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
-  const forecastedPayableAmounts = [3700, 3800, 3900];
-  await addScheduleBatchIMC(symbol, forecastedPayableTimes, forecastedPayableAmounts);
-}
+  //const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  //const forecastedPayableTimes = [202005230000, 202008270000, 202011290000];
+  const forecastedPayableTimes = [202103010000];
 
-const addScheduleIMC_API = async() => {
-  console.log('\n---------------==addSchedule_API');
-  let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode;
-
-  _index = 1;
-  forecastedPayableTime = TimeOfDeployment_IM+1;
-  forecastedPayableAmount = 3000;
-  
-  forecastedPayableTimes = [forecastedPayableTime];
-  forecastedPayableAmounts = [forecastedPayableAmount];
-
-  console.log('\n--------==Initial conditions');
-  result = await instIncomeManagerCtrt.methods.schCindex().call();
-  console.log('schCindex:', result);
-  //assert.equal(result, 0);
-
-  result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
-  console.log('getIncomeSchedule():', result);// all should be false after adding a new schedule
-
-  bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-  console.log('isScheduleGoodForRelease:', bool1);// should be false
-
-  console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
-  await instIncomeManagerCtrt.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts);
-
-  console.log('\nafter adding a new schedule...');
-  result = await instIncomeManagerCtrt.methods.schCindex().call();
-  console.log('new schCindex:', result);
-  //assert.equal(result, 1);
-
-  result = await instIncomeManagerCtrt.methods.getSchIndex(forecastedPayableTime).call();
-  console.log('getSchIndex:', result);
-  //assert.equal(result, 1);
-
-  result = await instIncomeManagerCtrt.methods.getIncomeSchedule(_index).call(); 
-  console.log('new getIncomeSchedule():', result);
-  // assert.equal(result[0], forecastedPayableTime);
-  // assert.equal(result[1], forecastedPayableAmount);
-  // assert.equal(result[2], 0);
-  // assert.equal(result[3], 0);
-  // assert.equal(result[4], false);
-  // assert.equal(result[5], 0);
-  // assert.equal(result[6], false);
-
-  bool1 = await instIncomeManagerCtrt.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-  console.log('isScheduleGoodForRelease:', bool1);
-  //assert.equal(bool1, false);
+  //const forecastedPayableTimes = [201908170000, 201908170000, 202002230000];//Good
+  //const forecastedPayableAmounts = [3700, 3800, 3900];
+  const forecastedPayableAmounts = [4100];
+  const result = await addScheduleBatch(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+  console.log('result', result, typeof result);
+  process.exit(0);
 }
 
 
+//yarn run livechain -c 1 --f 18
+const removeIncomeSchedule_API = async() => {
+  console.log('\n---------------==removeIncomeSchedule_API');
+  const symbol = nftSymbol;
+  const schIndex = 6;
+  const result = await removeIncomeSchedule(symbol, schIndex);
+  console.log('result', result, typeof result);
+  process.exit(0);
+}
+
+//editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor
+
+
+//yarn run livechain -c 1 --f 19
+const imApprove_API = async() => {
+  console.log('\n---------------==imApprove_API');
+  const symbol = nftSymbol;
+  const schIndex = 1;
+  const boolValue = true;
+  const result = await imApprove(symbol, schIndex, boolValue);
+  //imApprove(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
+  console.log('result', result, typeof result);
+  process.exit(0);
+}
+
+
+//yarn run livechain -c 1 --f 20
+const setPaymentReleaseResults_API = async() => {
+  console.log('\n---------------==setPaymentReleaseResults_API');
+  const symbol = nftSymbol;
+  const schIndex = 1;
+  const actualPaymentTime = 201908210000;
+  const actualPaymentAmount = 3811;
+  const errorCode = 1;
+  const result = await setPaymentReleaseResults(symbol, schIndex, actualPaymentTime, actualPaymentAmount, errorCode);
+  //setPaymentReleaseResults(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlyPlatformSupervisor
+  console.log('result', result, typeof result);
+  process.exit(0);
+
+}
+
+//yarn run livechain -c 1 --f 21
+//setErrResolution(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
+
+
+
+
+//------------------------------==
 const testCtrt = async () => {
   console.log('\n---------------==inside testCtrt');
   let newNum;
@@ -1199,9 +1218,13 @@ if (func === 0) {
 } else if (func === 9) {
   mintTokenFn1();
 
+//yarn run livechain -c 1 --f 12
+} else if (func === 12) {
+  getIncomeSchedule_API();
+
 //yarn run livechain -c 1 --f 13
 } else if (func === 13) {
-  checkScheduleIMC_API();
+  getIncomeScheduleList_API();
 
 //yarn run livechain -c 1 --f 14
 } else if (func === 14) {
@@ -1213,12 +1236,23 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 16
 } else if (func === 16) {
-  checkAddScheduleBatchIMC_API();
+  checkAddScheduleBatch_API();
 
 //yarn run livechain -c 1 --f 17
 } else if (func === 17) {
-  addScheduleBatchIMC_API();
+  addScheduleBatch_API();
 
+//yarn run livechain -c 1 --f 18
+} else if (func === 18) {
+  removeIncomeSchedule_API();
+
+//yarn run livechain -c 1 --f 19
+} else if (func === 19) {
+  imApprove_API();
+
+//yarn run livechain -c 1 --f 20
+} else if (func === 20) {
+  setPaymentReleaseResults_API();
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {

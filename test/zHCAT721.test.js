@@ -1302,7 +1302,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result, 0);
 
     result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('getIncomeSchedule():', result);
+    console.log('getIncomeSchedule('+_index+'):', result);
     assert.equal(result[0], false);
     assert.equal(result[1], false);
     assert.equal(result[2], false);
@@ -1312,7 +1312,7 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[6], false);
 
     bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease:', bool1);
+    console.log('isScheduleGoodForRelease'+forecastedPayableTime+':', bool1);
     assert.equal(bool1, false);
 
     console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');

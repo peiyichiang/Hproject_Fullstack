@@ -442,6 +442,43 @@ function getTokenStateDB(symbol){
   });
 }
 
+
+
+// findCtrtAddr(symbol, 'incomemanager')
+const findCtrtAddr = async(symbol, ctrtType) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n---------==inside findCtrtAddr');
+    let scColumnName, mesg;
+    if(ctrtType === 'incomemanager'){
+      scColumnName = 'sc_incomeManagementaddress';
+    } else if(ctrtType === 'crowdfunding'){
+      scColumnName = 'sc_crowdsaleaddress';
+    } else if(ctrtType === 'hcat721'){
+      scColumnName = 'sc_erc721address';
+    } else if(ctrtType === 'tokencontroller'){
+      scColumnName = 'sc_erc721Controller';
+    }
+    const queryStr1 = 'SELECT '+scColumnName+' FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    const ctrtAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
+      (err) => {
+        mesg = '[Error @ mysqlPoolQueryB(queryStr1)]:'+ err;
+        //console.log('\n'+mesg);
+        reject(mesg);
+      });
+    const ctrtAddrResultsLen = ctrtAddrResults.length;
+    console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
+    if(ctrtAddrResultsLen == 0){
+      mesg = 'no '+ctrtType+' is found';
+      reject(mesg); //console.log();
+    } else if(ctrtAddrResultsLen > 1){
+      mesg = 'multiple '+ctrtType+' addresses were found';
+      reject(mesg); //console.log();
+    } else {
+      const ctrtAddr = ctrtAddrResults[0][scColumnName];//.sc_incomeManagementaddress;
+      resolve(ctrtAddr);
+    }
+  });
+}
 //------------------------==
 function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
   console.log('\ninside setTokenStateDB()... change p_tokenState');
@@ -631,5 +668,5 @@ module.exports = {
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
     addAssetRecordsIntoDB, addIncomePaymentPerPeriodIntoDB,
-    mysqlPoolQueryB
+    mysqlPoolQueryB, findCtrtAddr
 }
