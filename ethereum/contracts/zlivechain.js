@@ -830,7 +830,7 @@ const mintTokenFn1 = async () => {
 //yarn run livechain -c 1 --f 3  ... showAssetbook balances
 
 
-
+//yarn run livechain -c 1 --f 7 -a 1 -b 3 -t 2
 //yarn run livechain -c 1 --f 7 -a 1 -b 190 -t 2
 const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   const amount = parseInt(amountStr);
