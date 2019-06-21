@@ -33,9 +33,9 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults } = require('../../timeserver/blockchain');
+const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../../timeserver/blockchain');
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
-const { findCtrtAddr } = require('../../timeserver/mysql');
+const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
 const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
@@ -1055,14 +1055,15 @@ const checkAddScheduleBatch2_API = async() => {
   const forecastedPayableAmounts = [3700, 3800, 3900];
   checkAddScheduleBatch2(symbol, forecastedPayableTimes, forecastedPayableAmounts);
 }
+
 //yarn run livechain -c 1 --f 16
 const checkAddScheduleBatch_API = async() => {
   console.log('\n---------------------==checkAddScheduleBatch_API');
   const symbol = nftSymbol;
-  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableTimes = [202202230000, 202205230000, 202208230000];
   const forecastedPayableAmounts = [3700, 3800, 3900];
 
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => reject('[Error @findCtrtAddr]:', err));
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
   const isCheckAddScheduleBatch = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => console.log('[Error @checkAddScheduleBatch]:', err));
   console.log('isCheckAddScheduleBatch', isCheckAddScheduleBatch);
   process.exit(0);
@@ -1072,20 +1073,38 @@ const checkAddScheduleBatch_API = async() => {
 const addScheduleBatch_API = async() => {
   console.log('\n---------------------==addScheduleBatch_API');
   const symbol = nftSymbol;
+  const forecastedPayableTimes = [202105230000, 202108230000, 202111230000];
   //const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
   //const forecastedPayableTimes = [202005230000, 202008270000, 202011290000];
-  const forecastedPayableTimes = [202103010000];
+  //const forecastedPayableTimes = [202103010000];
 
   //const forecastedPayableTimes = [201908170000, 201908170000, 202002230000];//Good
-  //const forecastedPayableAmounts = [3700, 3800, 3900];
-  const forecastedPayableAmounts = [4100];
-  const result = await addScheduleBatch(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+  const forecastedPayableAmounts = [3701, 3801, 3901];
+  //const forecastedPayableAmounts = [4100];
+
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+
+  const result = await addScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts);
   console.log('result', result, typeof result);
   process.exit(0);
 }
 
 
 //yarn run livechain -c 1 --f 18
+const addScheduleBatchFromDB_API = async () => {
+  const symbol = 'AOOT1902';
+  const forecastedPayableTimes = [202202230000, 202205230000, 202208230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+
+
+  // const result = await addScheduleBatchFromDB(symbol).catch((err) => {
+  //   console.log('[Error @addScheduleBatchFromDB]:', err);
+  // });
+  //console.log('result', result);
+}
+
+
+//yarn run livechain -c 1 --f 19
 const removeIncomeSchedule_API = async() => {
   console.log('\n---------------==removeIncomeSchedule_API');
   const symbol = nftSymbol;
@@ -1098,7 +1117,7 @@ const removeIncomeSchedule_API = async() => {
 //editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor
 
 
-//yarn run livechain -c 1 --f 19
+//yarn run livechain -c 1 --f 20
 const imApprove_API = async() => {
   console.log('\n---------------==imApprove_API');
   const symbol = nftSymbol;
@@ -1130,6 +1149,26 @@ const setPaymentReleaseResults_API = async() => {
 //setErrResolution(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
 
 
+
+//yarn run livechain -c 1 --f 23
+const getForecastedSchedulesFromDB_API = async () => {
+  const symbol = 'HToken123';
+  const results1 = await getForecastedSchedulesFromDB(symbol);
+  //console.log('results1', results1);
+  const forecastedPayableTimes = [];
+  const forecastedPayableAmounts = [];
+  for(let i = 0; i < results1.length; i++) {
+    if(typeof results1[i] === 'object' && results1[i] !== null && results1[i] !== undefined){
+      forecastedPayableTimes.push(results1[i].ia_time);
+      forecastedPayableAmounts.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+    }
+  }
+
+  console.log(`forecastedPayableTimes: ${forecastedPayableTimes} 
+forecastedPayableAmounts: ${forecastedPayableAmounts}`);
+  process.exit(0);
+
+}
 
 
 //------------------------------==
@@ -1244,15 +1283,24 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 18
 } else if (func === 18) {
-  removeIncomeSchedule_API();
+  addScheduleBatchFromDB_API();
 
 //yarn run livechain -c 1 --f 19
 } else if (func === 19) {
-  imApprove_API();
+  removeIncomeSchedule_API();
 
 //yarn run livechain -c 1 --f 20
 } else if (func === 20) {
+  imApprove_API();
+
+//yarn run livechain -c 1 --f 21
+} else if (func === 21) {
   setPaymentReleaseResults_API();
+
+//yarn run livechain -c 1 --f 22
+} else if (func === 22) {
+  getForecastedSchedulesFromDB_API();
+
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {

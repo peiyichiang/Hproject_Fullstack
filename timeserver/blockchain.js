@@ -5,7 +5,7 @@ const moment = require('moment');
 const { getTime, isEmpty, asyncForEach } = require('./utilities');
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB, findCtrtAddr } = require('./mysql.js');
+const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
@@ -250,7 +250,9 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
     console.log(`\n-----------==next: mint to ${toAddress} ${amount} tokens`);
 
     const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, serverTime).encodeABI();
-    const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch((err) => console.log('\n[Error @ signTx()]', err));
+    const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch((err) => {
+      console.log('\n[Error @ signTx()]', err);
+    });
     console.log('TxResult', TxResult);
   });
   console.log('\n--------------==Done sequentialMint()');
@@ -302,6 +304,32 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   const moving_ave_holding_cost = 13000;
   const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost);
 
+  //----------------------==
+  // var symbol = req.body.tokenSymbol;
+  // var State = req.body.tokenState;
+
+  // var currentTime = new Date().toLocaleString().toString();
+  // if (State == "creation") {
+  //     //假如是被退回，就將審核時間清空
+  //     currentTime = "";
+  // }
+
+  // var sql = {
+  //     p_state: State,
+  //     p_PAdate: currentTime
+  // };
+
+  // var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
+  //     if (err) {
+  //         console.log(err);
+  //         res.send(err);
+  //     } else {
+  //         res.send({ status: "true" });
+  //     }
+
+  // });
+
+
   return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError];
   //resolve(isFailed, isCorrectAmountArray);
 }
@@ -314,6 +342,7 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
   
   if(!Number.isInteger(serverTime)){
     console.log('[Error] serverTime is not an integer. serverTime:', serverTime);
+    return;
   }
   const actionType = extraInputArray[0];
   if(extraInputArray.length < 1){
@@ -478,7 +507,9 @@ const cancelOverCFED2Orders = async (serverTime) => {
   }
 
   const queryStr1 = 'SELECT p_SYMBOL FROM htoken.product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
-  const symbolArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
+  const symbolArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
+    console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+  });
   const symbolArrayLen = symbolArray.length;
   console.log('\nArray length @ cancelOverCFED2Orders:', symbolArrayLen, ', symbols:', symbolArray);
 
@@ -487,12 +518,45 @@ const cancelOverCFED2Orders = async (serverTime) => {
 
   } else if (symbolArrayLen > 0) {
     console.log('[cancelOverCFED2Orders] symbol(s) found');
-    const queryStr2 = 'UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
 
+    const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
+    const queryStr3 = 'UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
     await asyncForEach(symbolArray, async (symbol, index) => {
-      const results5 = await mysqlPoolQueryB(queryStr2, [symbol.p_SYMBOL]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err));
+      /*
+      //------------== auto determines the crowdfunding results -> write it into DB
+      const crowdFundingAddr = await findCtrtAddr(symbol.p_SYMBOL,'crowdfunding').catch((err) => {
+        console.error('[Error @findCtrtAddr]:', err);
+        continue;
+      });
+      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+  
+      const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
+      let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+      console.log('\nTxResult', TxResult);
+    
+      let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
+      console.log('\nfundingState:', fundingState);
+
+      let p_state;
+      if(fundingState === '4'){
+        p_state = 'fundingClosed';
+      } else if(fundingState === '5'){
+        p_state = 'fundingNotClosed';
+      } else if(fundingState === '6'){
+        p_state = 'terminated';
+      }
+      const results2 = await mysqlPoolQueryB(queryStr2, [p_state, symbol.p_SYMBOL]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err);
+      });
+      console.log('\nUpdated product of', symbol.p_SYMBOL, results2);
+      */
+
+      //------------== 
+      const results3 = await mysqlPoolQueryB(queryStr3, [symbol.p_SYMBOL]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]', err);
+      });
       console.log('-------==[Success] updated orders to expired for symbol', symbol.p_SYMBOL);
-      console.log('\nresults5', results5);
+      console.log('\nUpdating orders:', results3);
     });
   }
   //process.exit(0);
@@ -505,7 +569,9 @@ const addAssetbooksIntoCFC = async (serverTime) => {
   // check if serverTime > CFSD2 for each symbol...
   console.log('\ninside blockchain.js: addAssetbooksIntoCFC()... serverTime:',serverTime);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
-  const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err));
+  const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
+    console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+  });
 
   const foundSymbolArray = [];
   const symbolArray = [];
@@ -528,7 +594,9 @@ const addAssetbooksIntoCFC = async (serverTime) => {
 
   await asyncForEach(symbolArray, async (symbol, index) => {
     const queryStr2 = 'SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?';
-    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err));
+    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err);
+    });
     console.log('results2', results2);
     if(results2.length > 1){
       console.error('\n------==[Error] Found multiple crowdsaleaddresses from one symbol! result', results2);
@@ -544,7 +612,9 @@ const addAssetbooksIntoCFC = async (serverTime) => {
       // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
       const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM htoken.user User, htoken.order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
       //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"';
-      const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]', err));
+      const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]', err);
+      });
       console.log('results3', results3);
       if(results3.length === 0){
         console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
@@ -625,7 +695,9 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         if(orderIdArray.length === txnHashArray.length){
           const queryStr5 = 'UPDATE htoken.order SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
           await asyncForEach(orderIdArray, async (orderId, index) => {
-            const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]', err));
+            const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
+              console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]', err);
+            });
             console.log('\nresults5', results5);
           });
         } else {
@@ -795,34 +867,59 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 
 //---------------------------==Income Manager
 //---------------------------==
-//yarn run livechain -c 1 --f 12
-const getIncomeSchedule = async(symbol, schIndex) => {
-  console.log('\n-------------==inside getIncomeSchedule()');
-    const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+const schCindex = async(symbol, schIndex) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside getIncomeSchedule()');
+    const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @findCtrtAddr]:', err);
+      return false;
+    });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
 
     const result1 = await instIncomeManager.methods.schCindex().call();
     console.log('\nschCindex:', result1);//assert.equal(result1, 0);
+    resolve(result1);
+  });
+}
+
+//yarn run livechain -c 1 --f 12
+const getIncomeSchedule = async(symbol, schIndex) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside getIncomeSchedule()');
+    const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @findCtrtAddr]:', err);
+      return false;
+    });
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
+    //const result1 = await instIncomeManager.methods.schCindex().call();
+    //console.log('\nschCindex:', result1);//assert.equal(result1, 0);
   
     const result2 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
+    resolve(result2);
+  });
 }
 
 //yarn run livechain -c 1 --f 13
 const getIncomeScheduleList = async(symbol, forecastedPayableTime) => {
-  console.log('\n-------------==inside getIncomeScheduleList()');
-    const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside getIncomeScheduleList()');
+    const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @findCtrtAddr]:', err);
+      return false;
+    });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
+    // const result1 = await instIncomeManager.methods.schCindex().call();
+    // console.log('\nschCindex:', result1);//assert.equal(result1, 0);
 
-    const result1 = await instIncomeManager.methods.schCindex().call();
-    console.log('\nschCindex:', result1);//assert.equal(result1, 0);
-  
+    // const bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
+    // console.log('\nisScheduleGoodForRelease('+forecastedPayableTime+'):', bool1);
+
     const indexStart = 0; const amount = 0;
-    let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    const scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
     console.log('\nscheduleList', scheduleList);
-
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('\nisScheduleGoodForRelease('+forecastedPayableTime+'):', bool1);
+    resolve(scheduleList)
+  });
 }
 
 
@@ -838,7 +935,9 @@ const checkAddScheduleBatch1 = async(symbol, forecastedPayableTimes, forecastedP
     return;
   }
 
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+  });
   const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
   
   const result1 = await instIncomeManager.methods.checkAddScheduleBatch1(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
@@ -858,13 +957,16 @@ const checkAddScheduleBatch2 = async(symbol, forecastedPayableTimes, forecastedP
     return;
   }
 
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+  });
   const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
   
   const result1 = await instIncomeManager.methods.checkAddScheduleBatch2(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
   console.log('\nschCindex:', result1);//assert.equal(result1, 0);
   process.exit(0);
 }
+
 
 // yarn run livechain -c 1 --f 16
 const checkAddScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts) => {
@@ -903,7 +1005,7 @@ const checkAddScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, fore
     console.log('schCindex:', schCindexM);//assert.equal(result1, 0);
   
     const result2 = await instIncomeManager.methods.getIncomeSchedule(schCindexM).call(); 
-    console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
+    console.log(`\n-------------==getIncomeSchedule(${schCindexM}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
 
     const first_forecastedPayableTime = parseInt(forecastedPayableTimes[0]);
     const last_forecastedPayableTime = parseInt(result2[0]);
@@ -914,30 +1016,50 @@ const checkAddScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, fore
     const results = await instIncomeManager.methods.checkAddScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
     console.log('results', results);
 
-    checkBool = (item) => item;
-    if(results[0].every(checkBool) && results[1].every(checkBool)){
-      console.log('[checkAddScheduleBatch] All is good');
-      resolve(true);
-    } else {
-      reject('Some/One error have/has been found...');
-      return false;
-    }
+    resolve(results);
   });
 }
 
 
+
+const addScheduleBatchFromDB = async (symbol) => {
+  return new Promise(async (resolve, reject) => {
+
+    const results1 = await getForecastedSchedulesFromDB(symbol);
+    //console.log('results1', results1);
+    const forecastedPayableTimes = [];
+    const forecastedPayableAmounts = [];
+    for(let i = 0; i < results1.length; i++) {
+      if(typeof results1[i] === 'object' && results1[i] !== null && results1[i] !== undefined){
+        forecastedPayableTimes.push(results1[i].ia_time);
+        forecastedPayableAmounts.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+      }
+    }
+    console.log(`forecastedPayableTimes: ${forecastedPayableTimes} 
+  forecastedPayableAmounts: ${forecastedPayableAmounts}`);
+
+    const results2 = await addScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts);
+    if(results2){
+      resolve(true);
+    } else {
+      reject(false);
+    }
+  });
+}
+
 //yarn run livechain -c 1 --f 17
-const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayableAmounts) => {
+const addScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-----------------==inside addScheduleBatch()');
-    console.log('symbol', symbol, forecastedPayableTimes, forecastedPayableAmounts);
+    console.log('incomeMgrAddr', incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts);
 
-    const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]:', err);
-      return false;
-    });
-    console.log('-------==Check1');
-
+    const length1 = forecastedPayableTimes.length;
+    if(length1 !== forecastedPayableAmounts.length){
+      const mesg = '[Error] forecastedPayableTimes and forecastedPayableAmounts from DB should have the same length';
+      console.log(mesg);
+      return;
+    }
+  
     const isCheckAddScheduleBatch = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
       reject('[Error @checkAddScheduleBatch]:', err);
       return false;
@@ -946,7 +1068,7 @@ const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayabl
 
     if(isCheckAddScheduleBatch){
       const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
-      //console.log(`getIncomeSchedule(${schIndex}):\n${result2[0]}\n${result2[1]}\n${result2[2]}\n${result2[3]}\n${result2[4]}\n${result2[5]}\n${result2[6]}`);// all should be 0 and false before adding a new schedule
+      //console.log(`getIncomeSchedule(${schCindexM}):\n${result2[0]}\n${result2[1]}\n${result2[2]}\n${result2[3]}\n${result2[4]}\n${result2[5]}\n${result2[6]}`);// all should be 0 and false before adding a new schedule
       let encodedData = instIncomeManager.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).encodeABI();
       console.log('about to execute signTx()...');
       let TxResult = await signTx(backendAddr, backendRawPrivateKey, incomeMgrAddr, encodedData);
@@ -1191,5 +1313,5 @@ module.exports = {
   getTokenStateTCC, updateTokenStateTCC, updateTCC, 
   isScheduleGoodIMC, cancelOverCFED2Orders,
   getInvestorsFromCFC_Check,
-  addScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, checkAddScheduleBatch, removeIncomeSchedule, imApprove, setPaymentReleaseResults
+  schCindex, addScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, checkAddScheduleBatch, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB
 }
