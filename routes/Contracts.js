@@ -31,9 +31,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/ProductManager.json');
 
 
-const heliumContractAddr = "0x69f43bcBC4B354DeFB353C37bb92296AA4C530B6";
-const registryContractAddr = "0x50fa16Bee2aCd46D41f1F448F8E3BC8b2418F803";
-const productManagerContractAddr = "0xF93e8878d62eaeD5EAb3FDf932a50B89d83B8171";
+const heliumContractAddr = "0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf";
+const registryContractAddr = "0x6E2548A83283921136FE322E0333B03551F7f0C8";
+const productManagerContractAddr = "0x2a8dc29BF3C44Cb2Be3C62D1a968894B2635E7b9";
 const supervisorAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
 
@@ -235,7 +235,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let fundingGoal = req.body.fundingGoal;
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
-    let currentTime = await getTime();// = 201906010000;
+    let currentTime = 201906010000;
     console.log(`current time: ${currentTime}`);
 
     const crowdFunding = new web3deploy.eth.Contract(crowdFundingContract.abi);
@@ -285,7 +285,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
 router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = await getTime();//201906010000;
+    let currentTime = 201906120000;
     console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -400,10 +400,11 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
 router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime;
-    await getTime().then(function (time) {
-        currentTime = time;
-    })
+    let currentTime = 201906120000;
+    
+    // await getTime().then(function (time) {
+    //     currentTime = time;
+    // })
     console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -443,10 +444,10 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
 router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime;// = 201905210000;
-    await getTime().then(function (time) {
-        currentTime = time;
-    })
+    let currentTime = 201906120000;
+    // await getTime().then(function (time) {
+    //     currentTime = time;
+    // })
     console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -490,10 +491,10 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
 router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime;// = 2019052100000;
-    await getTime().then(function (time) {
-        currentTime = time;
-    })
+    let currentTime = 2019061200000;
+    // await getTime().then(function (time) {
+    //     currentTime = time;
+    // })
     console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -564,7 +565,8 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
                 maxTotalSupply: maxTotalSupply,
                 quantitySold: quantitySold,
                 CFSD2: CFSD2,
-                CFED2: CFED2
+                CFED2: CFED2,
+                crowdFundingAddr: crowdFundingAddr
             });
         }
 
@@ -615,6 +617,148 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
     });
 
 });
+
+/**close funding*/
+router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (req, res, next) {
+    /**POA */
+    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    /**ganache */
+    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    const web3deploy = new Web3(provider);
+
+    let tokenControllerAddr;
+    let HCAT721Addr;
+    let incomeManagerAddr;
+    //combine 4 contracts PARAM
+    let crowdFundingCtrtAddr = req.body.crowdFundingCtrtAddr;
+    //tokenController PARAM
+    let TimeOfDeployment = req.body.TimeOfDeployment;
+    let TimeTokenUnlock = req.body.TimeTokenUnlock;
+    let TimeTokenValid = req.body.TimeTokenValid;
+    //HCAT721 PARAM
+    let nftName = req.body.nftName;
+    let nftSymbol = req.params.tokenSymbol;
+    let siteSizeInKW = req.body.siteSizeInKW;
+    let maxTotalSupply = req.body.maxTotalSupply;
+    let initialAssetPricing = req.body.initialAssetPricing;
+    let pricingCurrency = req.body.pricingCurrency;
+    let IRR20yrx100 = req.body.IRR20yrx100;
+    let addrERC721SPLC_ControllerITF = req.body.addrERC721SPLC_ControllerITF;
+    let tokenURI = req.body.tokenURI;
+    tokenURIBytes32 = web3.utils.fromAscii(tokenURI);
+    nftNameBytes32 = web3.utils.fromAscii(nftName);
+    nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
+    pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
+    let currentTime = 201906200000;
+    // await getTime().then(function (time) {
+    //     currentTime = time;
+    // });
+    console.log(`current time: ${currentTime}`);
+    console.log(nftSymbol);
+
+    const tokenController = new web3deploy.eth.Contract(tokenControllerContract.abi);
+    const HCAT721 = new web3deploy.eth.Contract(HCAT721_AssetTokenContract.abi);
+    const incomeManager = new web3deploy.eth.Contract(incomeManagerContract.abi);
+    const productManager = new web3.eth.Contract(productManagerContract.abi, productManagerContractAddr);
+
+
+    await tokenController.deploy({
+        data: tokenControllerContract.bytecode,
+        arguments: [TimeOfDeployment, TimeTokenUnlock, TimeTokenValid, heliumContractAddr]
+    })
+        .send({
+            from: backendAddr,
+            gas: 6500000,
+            gasPrice: '0'
+        })
+        .on('receipt', function (receipt) {
+            tokenControllerAddr = receipt.contractAddress;
+        })
+        .on('error', function (error) {
+            res.send(error.toString());
+        })
+
+    await HCAT721.deploy({
+        data: HCAT721_AssetTokenContract.bytecode,
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, tokenControllerAddr, tokenURIBytes32, heliumContractAddr, currentTime]
+    })
+        .send({
+            from: backendAddr,
+            gas: 9000000,
+            gasPrice: '0'
+        })
+        .on('receipt', function (receipt) {
+            HCAT721Addr = receipt.contractAddress;
+        })
+        .on('error', function (error) {
+            res.send(error.toString());
+        })
+
+    await incomeManager.deploy({
+        data: incomeManagerContract.bytecode,
+        arguments: [HCAT721Addr, heliumContractAddr, currentTime]
+    })
+        .send({
+            from: backendAddr,
+            gas: 6500000,
+            gasPrice: '0'
+        })
+        .on('receipt', function (receipt) {
+            incomeManagerAddr = receipt.contractAddress;
+        })
+        .on('error', function (error) {
+            res.send(error.toString());
+        })
+
+    let encodedData = productManager.methods.addNewCtrtGroup(nftSymbolBytes32, crowdFundingCtrtAddr, tokenControllerAddr, HCAT721Addr, incomeManagerAddr).encodeABI();
+    try {
+        let combineContractResult = await signTx(backendAddr, backendRawPrivateKey, productManagerContractAddr, encodedData);
+        let mysqlPoolQuery = req.pool;
+        let updateContractsAddrsql = {
+            sc_erc721address: HCAT721Addr,
+            sc_erc721Controller: tokenControllerAddr,
+            sc_incomeManagementaddress: incomeManagerAddr
+        };
+        console.log(nftSymbol)
+        mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [updateContractsAddrsql, nftSymbol], function (err, rows) {
+            if (err) {
+                console.log(err);
+                res.send({
+                    deployResult: err,
+                    status: false
+                });
+            }
+            else {
+                var updateCrowdFubdingStatesql = {
+                    p_state: "FundingClosed",
+                    p_PAdate: new Date().toLocaleString().toString()
+                };
+                mysqlPoolQuery('UPDATE htoken.product SET ? WHERE p_SYMBOL = ?', [updateCrowdFubdingStatesql, nftSymbol], function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                        res.send(err);
+                    } else {
+                        res.status(200);
+                        res.send({
+                            "tokenControllerAddr": tokenControllerAddr,
+                            "HCAT721Addr": HCAT721Addr,
+                            "incomeManagerAddr": incomeManagerAddr,
+                            "combine4Contracts": combineContractResult.status,
+                            "updateDB": rows
+                        });
+                    }
+
+                });
+            }
+        });
+
+    } catch (error) {
+        console.log("error:" + error);
+        res.status(500);
+        res.send(error.toString());
+    }
+
+})
 
 /**@dev TokenController ------------------------------------------------------------------------------------- */
 /*deploy tokenController contract*/
@@ -742,10 +886,10 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
     nftNameBytes32 = web3.utils.fromAscii(nftName);
     nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
     pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
-    let currentTime;// = 201906010000;
-    await getTime().then(function (time) {
-        currentTime = time;
-    });
+    let currentTime = 201906120000;
+    // await getTime().then(function (time) {
+    //     currentTime = time;
+    // });
     console.log(`current time: ${currentTime}`);
 
 
@@ -843,11 +987,11 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     // to mint tokens in different batches of numbers, to each assetbook
     const serverTime = await getTime();//297
     const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
-      console.log('[Error @ sequentialMintSuper]', err);
-      res.send({
-        success: false,
-        result: '[Failed @ sequentialRunSuper()], err:' + err,
-      });
+        console.log('[Error @ sequentialMintSuper]', err);
+        res.send({
+            success: false,
+            result: '[Failed @ sequentialRunSuper()], err:' + err,
+        });
     });
     console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
 
@@ -862,24 +1006,27 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else {
         console.log('\n[Success] All minting actions have been completed successfully');
 
-        if( emailArrayError.length === 0 && amountArrayError.length === 0){
-          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+        if (emailArrayError.length === 0 && amountArrayError.length === 0) {
+            console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
-          res.send({
-            success: true,
-            result: '[Success] All balances are correct',
-          });
- 
+            /**@todo 更改資料庫狀態 */
+
+            res.send({
+                success: true,
+                result: '[Success] All balances are correct',
+            });
+
         } else {
-          console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
+            console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
           emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
-          res.send({
-              success: false,
-              result: '[Minting Successful but addAssetRecordsIntoDB Failed]',
-              array1: emailArrayError, 
-              array2: amountArrayError
-          });
+
+            res.send({
+                success: false,
+                result: '[Minting Successful but addAssetRecordsIntoDB Failed]',
+                array1: emailArrayError,
+                array2: amountArrayError
+            });
 
         }
 
@@ -966,7 +1113,7 @@ router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function 
         });
     } catch (error) {
         console.log("error:" + error);
-        const revertReason = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, contractAddr, addrZero, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
+        const revertReason = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, contractAddr, addrZero, toAssetbook, amount, price, serverTime).call({ from: _fromAssetOwner });
         console.log("revertReason:" + revertReason);
         res.status(500);
         res.send({ error: error.toString(), revertReason: revertReason });
@@ -1008,10 +1155,10 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 
     let nftSymbol = req.params.nftSymbol;
     let erc721address = req.body.erc721address;
-    let currentTime;// = 201906010000;
-    await getTime().then(function (time) {
-        currentTime = time;
-    });
+    let currentTime = 201906120000;
+    // await getTime().then(function (time) {
+    //     currentTime = time;
+    // });
     console.log(`current time: ${currentTime}`);
 
 
@@ -1215,12 +1362,11 @@ router.get('/incomeManagerContract/:tokenSymbol/removeIncomeSchedule', async fun
       err: err,
       status: false
     });
-  });
-  if(result) {
-    res.send({status: true});
-  } else {
-    res.send({status: false});
-  }
+    if (result) {
+        res.send({ status: true });
+    } else {
+        res.send({ status: false });
+    }
 });
 
 
@@ -1236,12 +1382,11 @@ router.get('/incomeManagerContract/:tokenSymbol/imApprove', async function (req,
       err: err,
       status: false
     });
-  });
-  if(result) {
-    res.send({status: true});
-  } else {
-    res.send({status: false});
-  }
+    if (result) {
+        res.send({ status: true });
+    } else {
+        res.send({ status: false });
+    }
 });
 
 
@@ -1259,12 +1404,11 @@ router.get('/incomeManagerContract/:tokenSymbol/setPaymentReleaseResults', async
       err: err,
       status: false
     });
-  });
-  if(result) {
-    res.send({status: true});
-  } else {
-    res.send({status: false});
-  }
+    if (result) {
+        res.send({ status: true });
+    } else {
+        res.send({ status: false });
+    }
 });
 
 
@@ -1369,6 +1513,7 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
         result: result
     })
 });
+
 
 
 
