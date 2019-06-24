@@ -6,7 +6,7 @@ const router = express.Router();
 
 const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
-const { findCtrtAddr, mysqlPoolQueryB } = require('../timeserver/mysql.js');
+const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB } = require('../timeserver/mysql.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -1010,11 +1010,26 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
             console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
             /**@todo 更改資料庫狀態 */
+            const result = await setFundingStateDB(nftSymbol, 'fundingComplete', 'na', 'na').catch((err) => {
+              console('[Error @ setFundingStateDB()', err);
+              res.send({
+                success: false,
+                result: '[Error] failed at setFundingStateDB()',
+              });
+            });
+            console.log('result:', result);
 
-            res.send({
+            if(result3){
+              res.send({
                 success: true,
                 result: '[Success] All balances are correct',
-            });
+              });
+            } else {
+              res.send({
+                success: false,
+                result: '[Error] failed at setFundingStateDB()',
+              });
+            }
 
         } else {
             console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]

@@ -377,74 +377,82 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
 
 
 
-//---------------------------==
-function getFundingStateDB(symbol){
-  console.log('inside getFundingStateDB()... get p_state');
-  mysqlPoolQuery(
-    'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
-    if (err) {
-      console.log(err);
+//---------------------------== FundingState and TokenState
+const getFundingStateDB = (symbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('inside getFundingStateDB()... get p_state');
+    const queryStr2 = 'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?';
+    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+      return false;
+    });
+    console.log('symbol', symbol, 'pstate', results2[0], 'CFSD', results2[1], 'CFED', results2[2]);
+    resolve(true);
+  });
+}
+
+//-------------------------==Not to be confused with setTokenStateDB
+const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\ninside setFundingStateDB()... change p_state');
+    const queryStr1 = 'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?';
+    const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
+
+    if(Number.isInteger(CFSD) && Number.isInteger(CFED)){
+      const results1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED, 'results1', results1);
+      resolve(true);
     } else {
-      console.log('symbol', symbol, 'pstate', result[0], 'CFSD', result[1], 'CFED', result[2]);
+      const results2 = await mysqlPoolQueryB(queryStr2, [pstate, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'pstate', pstate, 'results2', results2);
+      resolve(true);
     }
   });
 }
-function setFundingStateDB(symbol, pstate, CFSD, CFED){
-  console.log('\ninside setFundingStateDB()... change p_state');
-  if(CFSD !== undefined && CFED !== undefined && Number.isInteger(CFSD) && Number.isInteger(CFED)){
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?', [pstate, CFSD, CFED, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED,'result', result);
-      }
-    });
-  } else {
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [pstate, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'pstate', pstate, 'result', result);
-      }
-    });
-  }
-}
 
-//------------------------==
-function setTokenStateDB(symbol, tokenState, lockuptime, validdate){
-  console.log('\ninside setTokenStateDB()... change p_tokenState');
-  if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?', [tokenState, lockuptime, validdate, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate,'result', result);
-      }
-    });
-  } else {
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?', [tokenState, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'result', result);
-      }
-    });
-  }
-}
 
-function getTokenStateDB(symbol){
-  console.log('inside getTokenStateDB()... get p_tokenState');
-  mysqlPoolQuery(
-    'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
-    if (err) {
-      console.log(err);
+//-------------------------==Not to be confused with setFundingStateDB
+const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\ninside setTokenStateDB()... change p_tokenState');
+
+    const queryStr1 = 'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
+    const queryStr2 = 'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?';
+
+    if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
+      const results1 = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr1)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate,'result', results1);
+      resolve(true);
     } else {
-      console.log('symbol', symbol, 'tokenState', result[0], 'lockuptime', result[1], 'validdate', result[2]);
+      const results2 = await mysqlPoolQueryB(queryStr2, [tokenState, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'results2', results2);
+      resolve(true);
     }
+  });
+}
+
+const getTokenStateDB = (symbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('inside getTokenStateDB()... get p_tokenState');
+    const queryStr2 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?';
+    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+      return false;
+    });
+    console.log('symbol', symbol, 'tokenState', results2[0], 'lockuptime', results2[1], 'validdate', results2[2]);
+    resolve(true);
   });
 }
 
@@ -487,7 +495,7 @@ const findCtrtAddr = async(symbol, ctrtType) => {
 }
 //------------------------==
 function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
-  console.log('\ninside setTokenStateDB()... change p_tokenState');
+  console.log('\ninside setIMScheduleDB()... change p_tokenState');
   if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
     mysqlPoolQuery(
       'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?', [tokenState, lockuptime, validdate, symbol], function (err, result) {
