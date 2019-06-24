@@ -331,7 +331,8 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_CFSD: req.body.p_CFSD,
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
-        p_HCAT721uri: req.body.p_HCAT721uri
+        p_HCAT721uri: req.body.p_HCAT721uri,
+        p_EPCname:req.body.p_EPCname
     };
 
     console.log(sql);
@@ -529,7 +530,8 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CFSD: req.body.p_CFSD,
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
-        p_HCAT721uri: req.body.p_HCAT721uri
+        p_HCAT721uri: req.body.p_HCAT721uri,
+        p_EPCname:req.body.p_EPCname
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };

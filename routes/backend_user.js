@@ -139,14 +139,14 @@ router.post('/ForgetPassword', function (req, res, next) {
                 port: 465,
                 secure: true, // use SSL
                 auth: {
-                    user: "user3@heliumcryptic.club",
-                    pass: "n{#K](MG.Orc"
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
                 }
             });
         
             // setup email data with unicode symbols
             let mailOptions = {
-                from: ' <user3@heliumcryptic.club>', // sender address
+                from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '重新設置密碼', // Subject line
                 text: '請點以下連結重新設置密碼： http://127.0.0.1:3030/BackendUser/ResetPassword?hash=' + passwordHash, // plain text body

@@ -374,11 +374,12 @@
                     data[i].ia_State="待校正";
                 }
                 // 將過期的狀態 改為：已過期
-                if(iaTime_TimeStamp-86400<currentTimestamp){
+                if(iaTime_TimeStamp<currentTimestamp){
                     data[i].ia_State="已過期";
                     isCorrectBtnDisabled="disabled";
 
-                }else if (iaTime_TimeStamp-(86400*30)>currentTimestamp){
+                }
+                if (iaTime_TimeStamp-(86400*30)>currentTimestamp){
                 // 時間還沒到的將狀態改為：尚未開放校正
                     data[i].ia_State="尚未開放校正";
                     isCorrectBtnDisabled="disabled";
