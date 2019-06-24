@@ -401,7 +401,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime = 201906120000;
-    
+
     // await getTime().then(function (time) {
     //     currentTime = time;
     // })
@@ -985,7 +985,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const serverTime = await getTime();//297
+    const serverTime = 201906130000;// await getTime();//297
     const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
         console.log('[Error @ sequentialMintSuper]', err);
         res.send({
@@ -1210,207 +1210,208 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
 //---------------------------==Income Manager
 //---------------------------==
 router.get('/incomeManagerContract/:tokenSymbol/schCindex', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const schIndex = req.params.schIndex;
-  const result = await schCindex(symbol, schIndex).catch((err) => {
-    console.log('[Error @schCindex]:', err);
-    res.send({
-      err: err,
-      status: false
+    const symbol = req.params.tokenSymbol;
+    const schIndex = req.params.schIndex;
+    const result = await schCindex(symbol, schIndex).catch((err) => {
+        console.log('[Error @schCindex]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
     });
-  });
-  if(result) {
-    res.send({
-      status: true,
-      result: result
-    });
-  } else {
-    res.send({status: false});
-  }
+    if (result) {
+        res.send({
+            status: true,
+            result: result
+        });
+    } else {
+        res.send({ status: false });
+    }
 });
 
 router.get('/incomeManagerContract/:tokenSymbol/getIncomeSchedule', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const schIndex = req.params.schIndex;
-  const result = await getIncomeSchedule(symbol, schIndex).catch((err) => {
-    console.log('[Error @getIncomeSchedule]:', err);
-    res.send({
-      err: err,
-      status: false
+    const symbol = req.params.tokenSymbol;
+    const schIndex = req.params.schIndex;
+    const result = await getIncomeSchedule(symbol, schIndex).catch((err) => {
+        console.log('[Error @getIncomeSchedule]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
     });
-  });
-  if(result) {
-    res.send({
-      status: true,
-      nforecastedPayableTime: result[0],
-      forecastedPayableAmount: result[1],
-      actualPaymentTime: result[2],
-      actualPaymentAmount: result[3],
-      isApproved: result[4],
-      errorCode: result[5],
-      isErrorResolved: result[6]
-    });
-  } else {
-    res.send({status: false});
-  }
+    if (result) {
+        res.send({
+            status: true,
+            nforecastedPayableTime: result[0],
+            forecastedPayableAmount: result[1],
+            actualPaymentTime: result[2],
+            actualPaymentAmount: result[3],
+            isApproved: result[4],
+            errorCode: result[5],
+            isErrorResolved: result[6]
+        });
+    } else {
+        res.send({ status: false });
+    }
 });
 
 router.get('/incomeManagerContract/:tokenSymbol/getIncomeScheduleList', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const forecastedPayableTime = req.params.forecastedPayableTime;
-  const scheduleList = await getIncomeScheduleList(symbol, forecastedPayableTime).catch((err) => {
-    console.log('[Error @getIncomeScheduleList]:', err);
-    res.send({
-      err: err,
-      status: false
+    const symbol = req.params.tokenSymbol;
+    const forecastedPayableTime = req.params.forecastedPayableTime;
+    const scheduleList = await getIncomeScheduleList(symbol, forecastedPayableTime).catch((err) => {
+        console.log('[Error @getIncomeScheduleList]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
     });
-  });
-  if(scheduleList) {
-    res.send({
-      status: true,
-      scheduleList: scheduleList
-    });
-  } else {
-    res.send({status: false});
-  }
+    if (scheduleList) {
+        res.send({
+            status: true,
+            scheduleList: scheduleList
+        });
+    } else {
+        res.send({ status: false });
+    }
 });
 
 
 router.get('/incomeManagerContract/:tokenSymbol/checkAddScheduleBatch', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const forecastedPayableTimes = req.params.forecastedPayableTimes;
-  const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
+    const symbol = req.params.tokenSymbol;
+    const forecastedPayableTimes = req.params.forecastedPayableTimes;
+    const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
 
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
-    res.send({
-      err: err,
-      status: false
+    const incomeMgrAddr = await findCtrtAddr(symbol, 'incomemanager').catch((err) => {
+        console.log('[Error @findCtrtAddr]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
     });
-  });
 
-  const [array1, array2] = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
-    console.log('[Error @checkAddScheduleBatch]:', err);
-    res.send({
-      err: err,
-      status: false
+    const [array1, array2] = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
+        console.log('[Error @checkAddScheduleBatch]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
     });
-  });
-  if(array1.length > 0 && array2.length > 0) {
-    res.send({
-      err: err,
-      status: false,
-      array1: array1,
-      array2: array2
-    });
-  } else {
-    res.send({
-      err: result,
-      status: false});
-  }
+    if (array1.length > 0 && array2.length > 0) {
+        res.send({
+            err: err,
+            status: false,
+            array1: array1,
+            array2: array2
+        });
+    } else {
+        res.send({
+            err: result,
+            status: false
+        });
+    }
 });
 
 
 
 router.post('/incomeManagerContract/:tokenSymbol/addScheduleBatchFromDB', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  // const forecastedPayableTimes = req.params.forecastedPayableTimes;
-  // const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
-    res.send({
-      err: err,
-      status: false,
+    const symbol = req.params.tokenSymbol;
+    // const forecastedPayableTimes = req.params.forecastedPayableTimes;
+    // const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
+    const incomeMgrAddr = await findCtrtAddr(symbol, 'incomemanager').catch((err) => {
+        console.log('[Error @findCtrtAddr]:', err);
+        res.send({
+            err: err,
+            status: false,
+        });
+        return;
     });
-    return;
-  });
 
-  const result = await addScheduleBatchFromDB(symbol).catch((err) => {
-    console.log('[Error @addScheduleBatchFromDB]:', err);
-    res.send({
-      err: err,
-      status: false,
+    const result = await addScheduleBatchFromDB(symbol).catch((err) => {
+        console.log('[Error @addScheduleBatchFromDB]:', err);
+        res.send({
+            err: err,
+            status: false,
+        });
+        return;
     });
-    return;
-  });
 
-  if(result) {
-    res.send({status: true});
+    if (result) {
+        res.send({ status: true });
 
-  } else {
-    const results = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
-      console.log('[Error @checkAddScheduleBatch]:', err);
-      res.send({
-        err: err,
-        status: false
-      });
-    });
-    console.log(results);
-    res.send({status: false});
-  }
+    } else {
+        const results = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
+            console.log('[Error @checkAddScheduleBatch]:', err);
+            res.send({
+                err: err,
+                status: false
+            });
+        });
+        console.log(results);
+        res.send({ status: false });
+    }
 });
 
 
 //-------------------==
 router.get('/incomeManagerContract/:tokenSymbol/removeIncomeSchedule', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const schIndex = req.params.schIndex;
+    const symbol = req.params.tokenSymbol;
+    const schIndex = req.params.schIndex;
 
-  const result = await removeIncomeSchedule(symbol, schIndex).catch((err) => {
-    console.log('[Error @removeIncomeSchedule]:', err);
-    res.send({
-      err: err,
-      status: false
+    const result = await removeIncomeSchedule(symbol, schIndex).catch((err) => {
+        console.log('[Error @removeIncomeSchedule]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
+        if (result) {
+            res.send({ status: true });
+        } else {
+            res.send({ status: false });
+        }
     });
-    if (result) {
-        res.send({ status: true });
-    } else {
-        res.send({ status: false });
-    }
 });
-
 
 //-------------------==
 router.get('/incomeManagerContract/:tokenSymbol/imApprove', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const schIndex = req.params.schIndex;
-  const boolValue = req.params.boolValue;
+    const symbol = req.params.tokenSymbol;
+    const schIndex = req.params.schIndex;
+    const boolValue = req.params.boolValue;
 
-  const result = await imApprove(symbol, schIndex, boolValue).catch((err) => {
-    console.log('[Error @imApprove]:', err);
-    res.send({
-      err: err,
-      status: false
+    const result = await imApprove(symbol, schIndex, boolValue).catch((err) => {
+        console.log('[Error @imApprove]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
+        if (result) {
+            res.send({ status: true });
+        } else {
+            res.send({ status: false });
+        }
     });
-    if (result) {
-        res.send({ status: true });
-    } else {
-        res.send({ status: false });
-    }
 });
-
 
 //-------------------==
 router.get('/incomeManagerContract/:tokenSymbol/setPaymentReleaseResults', async function (req, res, next) {
-  const symbol = req.params.tokenSymbol;
-  const schIndex = req.params.schIndex;
-  const actualPaymentTime = req.params.actualPaymentTime;
-  const actualPaymentAmount = req.params.actualPaymentAmount;
-  const errorCode = req.params.errorCode;
+    const symbol = req.params.tokenSymbol;
+    const schIndex = req.params.schIndex;
+    const actualPaymentTime = req.params.actualPaymentTime;
+    const actualPaymentAmount = req.params.actualPaymentAmount;
+    const errorCode = req.params.errorCode;
 
-  const result = await setPaymentReleaseResults(symbol, schIndex, actualPaymentTime, actualPaymentAmount, errorCode).catch((err) => {
-    console.log('[Error @setPaymentReleaseResults]:', err);
-    res.send({
-      err: err,
-      status: false
+    const result = await setPaymentReleaseResults(symbol, schIndex, actualPaymentTime, actualPaymentAmount, errorCode).catch((err) => {
+        console.log('[Error @setPaymentReleaseResults]:', err);
+        res.send({
+            err: err,
+            status: false
+        });
+        if (result) {
+            res.send({ status: true });
+        } else {
+            res.send({ status: false });
+        }
     });
-    if (result) {
-        res.send({ status: true });
-    } else {
-        res.send({ status: false });
-    }
 });
-
 
 /**get isScheduleGoodForRelease（timeserver用） */
 router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async function (req, res, next) {
@@ -1562,7 +1563,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
             })
 
     })
-}
+};
 
 
 module.exports = router;
