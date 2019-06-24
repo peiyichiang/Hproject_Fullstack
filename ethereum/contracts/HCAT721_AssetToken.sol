@@ -296,10 +296,13 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     //Legal Compliance, also block address(0)
     //fundingType: 1 Public Offering, 2 Private Placement
     function checkMintSerialNFT(
-        address _to, uint amount, uint price, uint fundingType, uint serverTime) external view returns(bool[] memory boolArray, uint[] memory uintArray) {
+        address _to, uint amount, uint price, uint fundingType, uint serverTime) external view returns(
+            bool[] memory boolArray, uint[] memory uintArray, bytes32[] memory bytes32Array) {
         //uint[] memory uintArray  , uint authLevel, uint maxBuyAmount, uint maxBalance
         boolArray = new bool[](10);
         uintArray = new uint[](3);
+        bytes32Array = new bytes32[](13);
+
         boolArray[0] = _to.isContract();
         boolArray[1] = ERC721TokenReceiverITF(_to).onERC721Received(
         msg.sender, address(this), 1, "") == MAGIC_ON_ERC721_RECEIVED;
@@ -312,6 +315,20 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         
         (boolArray[8], boolArray[9], uintArray[0], uintArray[1],
         uintArray[2]) = RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+
+        bytes32Array[0] = "_to has no contract";
+        bytes32Array[1] = "toAddress has onERC721Received()";
+        bytes32Array[2] = "amount > 0";
+        bytes32Array[3] = "price > 0";
+        bytes32Array[4] = "fundingType > 0";
+        bytes32Array[5] = "serverTime > TimeOfDeployment";
+        bytes32Array[6] = "not enough remainingQty";//tokenId + amount <= maxTotalSupply
+        bytes32Array[7] = "checkPlatformSupervisor()";
+        bytes32Array[8] = "Registry.isFundingApproved(...)";
+        bytes32Array[9] = "Registry.isFundingApproved(...)";
+        bytes32Array[10] = "Registry.isFundingApproved(...)";
+        bytes32Array[11] = "Registry.isFundingApproved(...)";
+        bytes32Array[12] = "Registry.isFundingApproved(...)";
         //bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount
         //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance)
     }

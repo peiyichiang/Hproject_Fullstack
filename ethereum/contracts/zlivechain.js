@@ -964,6 +964,348 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
 }//yarn run livechain -c 1 --f 7 -a 1 -b 1 -t 2
 
 
+/*
+scenario: 0, check initial values
+yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
+
+scenario: 1, serverTime = CFSD2+1. set state to funding start
+yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
+
+scenario: 2, serverTime = CFED2+1. set state to funding end
+yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
+
+scenario: 3
+yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 10
+
+scenario: 4
+scenario: 5
+scenario: 6
+scenario: 7
+*/
+const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
+  console.log('\n------------==Check CrowdFunding parameters');
+  console.log('addrCrowdFunding', addrCrowdFunding);
+  const scenario = parseInt(scenarioStr);
+  const toAssetbookNum = parseInt(toAssetbookNumStr);
+  const amountToInvest = parseInt(amountToInvestStr);
+  let tokenSymbolM, initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSD2M, CFED2M, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM, encodedData, TxResult;
+
+  if(toAssetbookNumStr < 1){
+    console.log('[Error] toAssetbookNumStr must be >= 1');
+    process.exit(1);
+  }
+  const addrAssetbookX = assetbookArray[toAssetbookNumStr-1];
+  console.log("CFSD2:", CFSD2, ", CFED2:", CFED2, "\nscenarioStr", scenarioStr, ", toAssetbookNumStr", toAssetbookNumStr, ", amountToInvestStr", amountToInvestStr, ", addrAssetbookX:", addrAssetbookX);
+
+  if(scenario === 0){
+    console.log('\n--------==scenario:', scenario);
+    console.log('tokenSymbol', nftSymbol);
+    tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    console.log('tokenSymbolM', tokenSymbolM);
+  
+    console.log('initialAssetPricing', initialAssetPricing);
+    initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
+    console.log('initialAssetPricingM', initialAssetPricingM);
+  
+    console.log('maxTotalSupply', maxTotalSupply);
+    maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
+    console.log('maxTotalSupplyM', maxTotalSupplyM);
+  
+    console.log('quantityGoal', quantityGoal);
+    quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
+    console.log('quantityGoalM', quantityGoalM);
+  
+    CFSD2M = await instCrowdFunding.methods.CFSD2().call();
+    console.log('CFSD2M', CFSD2M);
+  
+    CFED2M = await instCrowdFunding.methods.CFED2().call();
+    console.log('CFED2M', CFED2M);
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('\nstateDescriptionM:', stateDescriptionM);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM:', fundingStateM);
+
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM);
+
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM);
+
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+    process.exit(0);
+
+    
+  //serverTime = CFSD2+1;
+  //yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
+  } else if(scenario === 1){
+    console.log('--------==scenario:', scenario);
+    console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
+    serverTime = CFSD2+1;
+    console.log('set servertime = CFSD2-1', serverTime);//201905281400;
+    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
+    console.log('TxResult', TxResult);
+
+    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('\nstateDescriptionM', stateDescriptionM);
+
+    let fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    process.exit(0);
+
+  
+  //serverTime = CFED2;
+  //yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
+  } else if(scenario === 2){
+    console.log('--------==scenario:', scenario);
+    serverTime = CFED2;
+    console.log('\nset serverTime = CFSD2', CFSD2);
+    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
+    console.log('TxResult', TxResult);
+      
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    process.exit(0);
+
+
+  // to invest...  yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 10
+  } else if(scenario === 3){
+    console.log('--------==scenario:', scenario);
+    serverTime = CFSD2+1;
+    encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvestStr, serverTime).encodeABI();
+    TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
+    console.log('TxResult', TxResult);
+
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM);
+
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM);
+
+    console.log('after investing the target goal amount');
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    process.exit(0);
+
+  } else if(scenario === 4){
+    console.log('--------==scenario:', scenario);
+
+
+  } else {
+    console.log('--------==scenario:', scenario);
+
+  }
+  //const encodedData = instCtrt.methods.updateState(currentTime).encodeABI();
+  //const TxResult = await signTx(fromEOA, fromEOA_RawPk, addrCtrt, encodedData);
+  
+/**
+    if (1==2){
+      serverTime = CFED2;
+      console.log('\nset serverTime = CFED2', CFED2);
+      await instCrowdFunding.methods.updateState(serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+  
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "fundingNotClosed: ended with goal not reached");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 5);
+      //process.exit(1);
+    }
+
+    serverTime = CFSD2+1;
+    console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
+    // await instCrowdFunding.methods.makeFundingActive(serverTime)
+    // .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+
+    let modResult = quantityGoal % maxTokenQtyForEachInvestmentFund;
+    let quotient = (quantityGoal - modResult)/maxTokenQtyForEachInvestmentFund;
+    console.log('quantityGoal:', quantityGoal, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
+    assert.equal(Number.isInteger(quotient), true);
+    console.log('quotient is integer');
+
+    // let modResult = maxTotalSupply % maxTokenQtyForEachInvestmentFund;
+    // let quotient = (maxTotalSupply - modResult)/maxTokenQtyForEachInvestmentFund;
+    // console.log('maxTotalSupply:', maxTotalSupply, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
+    // assert.equal(Number.isInteger(quotient), true);
+    // console.log('quotient is integer');
+
+    for(i = 0; i < quotient; i++) {
+      await instCrowdFunding.methods.invest(addrAssetbookX, maxTokenQtyForEachInvestmentFund, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      console.log('invest()... take ', i);
+    }
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM, ' V.s. modResult:', modResult, '... maxTotalSupply', maxTotalSupply, ', quantityGoal', quantityGoal, 'quantitySoldM', quantitySoldM);
+    assert.equal(remainingTokenQtyM, modResult+maxTotalSupply-quantityGoal);
+
+    await instCrowdFunding.methods.invest(addrAssetbookX, modResult, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('invest(modResult=', modResult, ')');
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM, 'V.s. quantityGoal:', quantityGoal);
+
+    console.log('after investing the target goal amount');
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 3);
+
+
+    //------------------==Set time to initial
+    console.log('\nset serverTime = CFSD2-1');
+    serverTime = CFSD2-1;
+    await instCrowdFunding.methods.updateState(serverTime)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "initial: goal reached already");
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 0);
+
+    //------------------==Back to CFSD2
+    serverTime = CFSD2;
+    console.log('\nset serverTime = CFSD2');
+    await instCrowdFunding.methods.updateState(serverTime)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 3);
+
+
+    //------------------==Overbuying
+    let quantityAvailable = maxTotalSupply - quantityGoal;//24
+
+    let error = false;
+    try {
+      console.log('\nTrying to invest quantityAvailable+1');
+      await instCrowdFunding.methods.invest(addrAssetbookX, quantityAvailable+1, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable, 'err:', err.toString().substr(0, 100));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    if(1==1){
+      //-------------------==Pause the crowdfunding
+      serverTime = CFSD2+3;
+      console.log('\nPause funding');
+      await instCrowdFunding.methods.pauseFunding(serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "funding paused");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 2);
+
+      //-------------------==resumeFunding the crowdfunding
+      serverTime = CFSD2+3;
+      console.log('\nResume funding');
+      await instCrowdFunding.methods.resumeFunding(CFED2, maxTotalSupply, serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      //assert.equal(stateDescriptionM, "funding paused");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      //assert.equal(fundingStateM, 2);
+      console.log('check stateDescriptionM and fundingStateM!!!');
+
+      if(1==2) {
+        reason = 'a good reason...';
+        console.log('\nTerminate');
+        await instCrowdFunding.methods.abort(reason, serverTime)
+        .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+  
+        stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+        console.log('stateDescriptionM', stateDescriptionM);
+        assert.equal(stateDescriptionM, "terminated:"+reason);
+  
+        fundingStateM = await instCrowdFunding.methods.fundingState().call();
+        console.log('fundingStateM', fundingStateM);
+        assert.equal(fundingStateM, 6);
+        console.log('check stateDescriptionM and fundingStateM!!!');
+
+      } else {
+        //-------------------==Buying the available quantity
+        console.log('\nTrying to invest quantityAvailable');
+        await instCrowdFunding.methods.invest(addrAssetBook2, quantityAvailable, serverTime)
+        .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+        stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+        console.log('stateDescriptionM', stateDescriptionM);
+        assert.equal(stateDescriptionM, "fundingClosed: sold out");
+
+        result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+        console.log('assetbookArray', result[0]);
+        console.log('investedTokenQtyArray', result[1]);
+
+        fundingStateM = await instCrowdFunding.methods.fundingState().call();
+        console.log('fundingStateM', fundingStateM);
+        assert.equal(fundingStateM, 4);
+      }
+      
+    } else {
+      //-------------------==CFED2 has been reached
+      console.log('\nCFED2 has been reached');
+      serverTime = CFED2;
+      await instCrowdFunding.methods.updateState(serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "fundingClosed: goal reached but not sold out");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 4);
+    }
+ */
+}
+
+
+
+
+
+//-------------------------==
+//-------------------------==
 
 //yarn run livechain -c 1 --f 39
 const transferTokensKY = async () => {
@@ -1244,6 +1586,10 @@ if (func === 0) {
 } else if (func === 7) {
   transferTokens(arg1, arg2, arg3);
 
+//yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
+} else if (func === 8) {
+  invest(arg1, arg2, arg3);
+
 
 //yarn run livechain -c 1 --f 11
 } else if (func === 11) {
@@ -1251,7 +1597,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 8 -a 1
 } else if (func === 8) {
-  setServerTime(arg1);
+  //setServerTime(arg1);
 
 //yarn run livechain -c 1 --f 9
 } else if (func === 9) {

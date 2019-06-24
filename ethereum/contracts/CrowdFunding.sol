@@ -239,8 +239,10 @@ contract CrowdFunding {
     }
 
     function checkInvestFunction(address _addrAssetbook, uint _quantityToInvest, uint serverTime) external view returns(
-      bool[] memory boolArray) {
-        boolArray = new bool[](7);
+      bool[] memory boolArray, bytes32[] memory bytes32Array) {
+        boolArray = new bool[](8);
+        bytes32Array = new bytes32[](8);
+
         boolArray[0] = serverTime >= CFSD2;
         boolArray[1] = serverTime < CFED2;
         boolArray[2] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
@@ -250,6 +252,18 @@ contract CrowdFunding {
 
         boolArray[5] = _quantityToInvest > 0;
         boolArray[6] = quantitySold.add(_quantityToInvest) <= maxTotalSupply;
+        boolArray[7] = serverTime > TimeOfDeployment;
+
+        //bytes32 constant _bytes = "yourString";
+        bytes32Array[0] = "serverTime >= CFSD2";
+        bytes32Array[1] = "serverTime < CFED2";
+        bytes32Array[2] = "checkPlatformSupervisor()";
+        bytes32Array[3] = "_addrAssetbook.isContract()";
+        bytes32Array[4] = "addrAssetbook onERC721Received()";
+        bytes32Array[5] = "quantityToInvest > 0";
+        bytes32Array[6] = "not enough remainingQty";
+        bytes32Array[7] = "serverTime > TimeOfDeployment";
+
         //uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
         //return RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
     }
