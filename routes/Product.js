@@ -1179,23 +1179,15 @@ router.get('/LaunchedProductList', function (req, res) {
                     /* TODO: 這些資料的斜線要去掉 */
                     productArray.map(
                         product => {
-                            product.imageURL1 = "imageURL1"
-                            product.imageURL2 = "imageURL2"
-                            product.imageURL3 = "imageURL3"
-                            product.imageURL4 = "imageURL4"
-                            product.imageURL5 = "imageURL5"
-                            product.imageURL6 = "imageURL6"
-                            product.imageURL7 = "imageURL7"
-                            product.imageURL8 = "imageURL8"
-                            product.imageURL9 = "imageURL9"
-                            product.imageURL10 = "imageURL10"
-                            if (product.taiPowerApprovalDate === null)
+                            if (!product.imageURL)
+                                product.imageURL = "imageURL"
+                            if (!product.taiPowerApprovalDate)
                                 product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                            if (product.BOEApprovalDate === null)
+                            if (!product.BOEApprovalDate)
                                 product.BOEApprovalDate = "BOEApprovalDate"
-                            if (product.PVTrialOperationDate === null)
+                            if (!product.PVTrialOperationDate)
                                 product.PVTrialOperationDate = "PVTrialOperationDate"
-                            if (product.PVOnGridDate === null)
+                            if (!product.PVOnGridDate)
                                 product.PVOnGridDate = "PVOnGridDate"
                             if (product.fundingType === "PO") {
                                 product.fundingType = "PublicOffering"
@@ -1205,12 +1197,12 @@ router.get('/LaunchedProductList', function (req, res) {
                         });
                     res.status(200);
                     res.json({
-                        "message": "產品列表取得成功！",
+                        "message": "產品列表取得成功",
                         "result": productArray
                     });
                 } else {
                     res.json({
-                        "message": "產品列表取得成功: 找不到資產"
+                        "message": "產品列表取得成功: 找不到已上架產品"
                     });
                 }
             }
@@ -1386,14 +1378,20 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
     });
 });
 
-//回傳該專案是否已經開賣
-router.get('/isProductPublished', async function (req, res) {
-    let symbol = req.query.symbol;
+//回傳該使用者是否可購買token
+router.get('/canBuyToken', async function (req, res) {
+    let keys = [req.query.symbol, req.query.email]
     let mysqlPoolQuery = req.pool;
-    let isProductPublished;
+    let isServerTimeLargerThanCFSD;
+    let isAssetbookContractAddressExist;
+    let canBuyToken;
     const serverTime = await getTime();
     mysqlPoolQuery(
-        'SELECT p_CFSD FROM htoken.product WHERE p_Symbol = \'' + symbol + '\'', function (err, result) {
+        `SELECT p_CFSD AS CFSD, 
+                u_assetbookContractAddress AS assetbookContractAddress
+         FROM htoken.product , htoken.user
+         WHERE p_Symbol = ? AND u_email = ?
+         `, keys, function (err, result) {
             if (err) {
                 res.status(400)
                 res.json({
@@ -1401,23 +1399,39 @@ router.get('/isProductPublished', async function (req, res) {
                 })
             }
             else {
-                serverTime >= Number(result[0].p_CFSD) ?
-                    isProductPublished = true :
-                    isProductPublished = false;
+                serverTime >= Number(result[0].CFSD) ?
+                    isServerTimeLargerThanCFSD = true :
+                    isServerTimeLargerThanCFSD = false;
 
-                if (isProductPublished) {
+                result[0].assetbookContractAddress ?
+                    isAssetbookContractAddressExist = true :
+                    isAssetbookContractAddressExist = false;
+
+                isServerTimeLargerThanCFSD && isAssetbookContractAddressExist ?
+                    canBuyToken = true :
+                    canBuyToken = false;
+
+                if (!!canBuyToken) {
                     res.status(200);
                     res.json({
-                        "message": "專案已開賣！",
-                        "result": isProductPublished
+                        "message": "可購買token",
+                        "result": canBuyToken
                     });
                 }
                 else {
-                    res.status(200);
-                    res.json({
-                        "message": "專案尚未開賣！",
-                        "result": isProductPublished
-                    });
+                    if (!!isServerTimeLargerThanCFSD) {
+                        res.status(200);
+                        res.json({
+                            "message": "使用者尚未通過身份驗證",
+                            "result": canBuyToken
+                        });
+                    } else {
+                        res.status(200);
+                        res.json({
+                            "message": "專案尚未開賣",
+                            "result": canBuyToken
+                        });
+                    }
                 }
             }
         });

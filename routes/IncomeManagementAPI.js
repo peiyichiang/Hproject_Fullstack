@@ -183,10 +183,6 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
         })
         .catch((err) => {
             console.log(err);
-            return
-        })
-        .catch((err) => {
-            console.log(err);
             res.status(400);
             res.json({
                 "message": "[Error] 我的資產取得失敗: " + err

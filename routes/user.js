@@ -120,8 +120,8 @@ router.post('/send_email', function (req, res) {
         port: 465,
         secure: true, // use SSL
         auth: {
-            user: "jmh@hcat.io",
-            pass: "350bchub321"
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
         }
     });
 
@@ -720,11 +720,111 @@ router.post('/EditEndorser', function (req, res, next) {
                 "success": false,
             });
         });
-
 });
 
 
+router.post('/ForgetPassword', function (req, res, next) {
+    //   var db = req.con;
+    var mysqlPoolQuery = req.pool;
+    var emailAddress = req.body.emailAddress;
+    mysqlPoolQuery('SELECT * FROM htoken.user WHERE u_email = ?', emailAddress, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        // console.log(rows.length);
 
+        //查無此帳號
+        if (rows.length == 0) {
+            res.render('error', { message: '查無此帳號', error: '' });
+        } else {
+            //將重新設置連結寄送到信箱
+            console.log(rows[0].u_email);
+            email = rows[0].u_email;
+            passwordHash = rows[0].u_password_hash;
+
+            var transporter = nodemailer.createTransport({
+                /* Helium */
+                host: 'server239.web-hosting.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: ' <noreply@hcat.io>', // sender address
+                to: email, // list of receivers
+                subject: '重新設置密碼', // Subject line
+                text: '請點以下連結重新設置密碼： http://140.119.101.130:3030/user/ResetPassword?hash=' + passwordHash, // plain text body
+                // html: '<b>Hello world?</b>' // html body
+            };
+
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "重新設置密碼連結 寄送失敗：" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "重新設置密碼連結 寄送成功"
+                    })
+                }
+                // console.log('Message sent: %s', info.messageId);
+                // Preview only available when sending through an Ethereal account
+                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+            });
+        }
+        // res.render('EditBackendUser', { title: 'Edit Product', data: data });
+    });
+});
+
+//重設密碼
+router.post('/ResetPassword', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    var newPassword = req.body.password1;
+    var ResetPasswordHash= req.body.resetPasswordHash;
+    var sql = {}
+    console.log(newPassword);
+    console.log(ResetPasswordHash);
+
+    const saltRounds = 10;
+    bcrypt
+    .genSalt(saltRounds)
+    .then(salt => {
+        console.log(`Salt: ${salt}`);
+        sql.u_salt = salt
+        return bcrypt.hash(newPassword, salt);
+    })
+    .then(hash  => {
+        console.log(`Hash: ${hash}`);
+        sql.u_password_hash = hash
+        console.log("###" + JSON.stringify(sql));
+
+        mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
+            if (err) {
+                console.log(err);
+                res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+            } else {
+                // res.setHeader('Content-Type', 'application/json');
+                // res.redirect('/BackendUser/backend_user');
+                res.render('error', { message: '更改密碼成功', error: '' });
+            }
+        });
+
+    })
+    .catch(err => console.error(err.message));
+});
+
+router.get('/ResetPassword', function (req, res, next) {
+    res.render('FrontendResetPassword', { title: 'FrontendResetPassword' });
+});
 
 module.exports = router;
 /**
