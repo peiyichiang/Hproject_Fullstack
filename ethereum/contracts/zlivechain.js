@@ -34,7 +34,7 @@ const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../../timeserver/blockchain');
-const { getTime, asyncForEach } = require('../../timeserver/utilities');
+const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/utilities');
 const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
 const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
@@ -231,8 +231,6 @@ const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
 // const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManager);
 // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
-checkTrueBoolArray = (item) => item;
-
 const checkEq = (value1, value2) => {
   if (value1 === value2) {
     console.log('checked ok');
@@ -246,7 +244,7 @@ const checkEq = (value1, value2) => {
 const checkDeployedContracts = async () => {
   result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
   console.log('\nTokenController checkDeploymentConditions():', result);
-  if(result.every(checkTrueBoolArray)){
+  if(result.every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {
     console.log('[Failed] Some/one check(s) have/has failed');
@@ -257,7 +255,7 @@ const checkDeployedContracts = async () => {
 
   result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
   console.log('\nHCAT721 checkDeploymentConditions():', result);
-  if(result.every(checkTrueBoolArray)){
+  if(result.every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {
     console.log('[Failed] Some/one check(s) have/has failed');
@@ -265,7 +263,7 @@ const checkDeployedContracts = async () => {
 
   result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
   console.log('\nCrowdFunding checkDeploymentConditions():', result);
-  if(result.every(checkTrueBoolArray)){
+  if(result.every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {
     console.log('[Failed] Some/one check(s) have/has failed');
@@ -719,10 +717,10 @@ const mintTokens = async (assetbookNum, amount) => {
 
   result = await instHCAT721.methods.checkMintSerialNFT(to, amount, initialAssetPricing, fundingType, serverTime).call({from: admin});
   console.log('\nresult', result);
-  if(result[0].every(checkTrueBoolArray)){
+  if(result[0].every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {console.log('[Failed] Some/one check(s) have/has failed');}
-  checkEq(result[0].every(checkTrueBoolArray), true);
+  checkEq(result[0].every(checkBoolTrueArray), true);
 
   // const arrayNew = array1.map(x => x * 2);
   // const reducer = (accumulator, currentValue) => accumulator + currentValue;
@@ -912,7 +910,7 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   console.log('\ncheckSafeTransferFromBatch result', result);
   //assetAddr_.isContract(), msg.sender == assetOwner
 
-  if(result[0].every(checkTrueBoolArray)){
+  if(result[0].every(checkBoolTrueArray)){
     console.log('\n[Success] all checks have passed checkSafeTransferFromBatch()');
   } else {
     console.log('\n[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');

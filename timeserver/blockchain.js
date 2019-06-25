@@ -2,7 +2,7 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const moment = require('moment');
 
-const { getTime, isEmpty, asyncForEach } = require('./utilities');
+const { getTime, isEmpty, asyncForEach, checkInt, checkIntFromOne } = require('./utilities');
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
@@ -194,7 +194,6 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
   //return new Promise(async (resolve, reject) => {
     console.log('\n---------------==inside sequentialCheckBalancesAfter()');
     //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-    const checkInt =(item) => Number.isInteger(item);
     if(!amountArray.every(checkInt)){
       console.log('[error @ sequentialCheckBalancesAfter()] amountArray has non integer item');
       return;
@@ -235,6 +234,49 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
   //});
 }
 
+const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime) => {
+  return new Promise( async ( resolve, reject ) => {
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    const result = await instHCAT721.methods.checkMintSerialNFT(toAddress, amount, price, fundingType, serverTime).call({from: backendAddr});
+    console.log('\nresult', result);
+    const boolArray = result[0];
+    let mesg;
+    if(amountArray.every(checkBoolTrueArray)){
+      mesg = '[Success] all checks have passed';
+      console.log(mesg);
+      resolve(mesg);
+
+    } else {
+      if(!boolArray[0]){
+        mesg += ', toAddress has no contract';
+      } else if(!boolArray[1]){
+        mesg += ', toAddress has no onERC721Received()';
+      } else if(!boolArray[2]){
+        mesg += ', amount <= 0';
+      } else if(!boolArray[3]){
+        mesg += ', price <= 0';
+      } else if(!boolArray[4]){
+        mesg += ', fundingType <= 0';
+      } else if(!boolArray[5]){
+        mesg += ', serverTime <= TimeOfDeployment';
+      } else if(!boolArray[6]){
+        mesg += ', tokenId + amount > maxTotalSupply';
+      } else if(!boolArray[7]){
+        mesg += ', Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
+      } else if(!boolArray[8]){
+        mesg += ', Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
+      } else if(!boolArray[9]){
+        mesg += ', Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
+      }
+      if(mesg.substring(0,2) === ', '){
+        mesg = mesg.substring(2);
+      }
+      console.log(mesg);
+      resolve(mesg);
+    }
+  });
+}
+
 
 const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr, serverTime) => {
   console.log('\n----------------------==sequentialMint()');
@@ -250,8 +292,9 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
     console.log(`\n-----------==next: mint to ${toAddress} ${amount} tokens`);
 
     const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, serverTime).encodeABI();
-    const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch((err) => {
+    const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch(async(err) => {
       console.log('\n[Error @ signTx()]', err);
+      const mesg = await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime)
     });
     console.log('TxResult', TxResult);
   });
@@ -265,7 +308,6 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-  checkIntFromOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
   if(!amountArray.every(checkIntFromOne)){
     console.log('amountArray has non integer or zero element');
     process.exit(1);
@@ -982,7 +1024,6 @@ const checkAddScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, fore
       return false;
     }
 
-    const checkInt =(item) => Number.isInteger(item);
     if(!forecastedPayableTimes.every(checkInt) || !forecastedPayableAmounts.every(checkInt)){
       console.log('None number has been detected. \nforecastedPayableTimes:', forecastedPayableTimes, '\nforecastedPayableAmounts:', forecastedPayableAmounts);
       reject('None number has been detected');
