@@ -17,7 +17,7 @@ var multer = require('multer');
 const IDStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         // if (req.body.picture == "IDfront" || "IDback") {
-        cb(null, './images/ID/')
+        cb(null, './public/images/ID')
         // }
         // else{
         // cb(null, './images/bank_booklet/')
@@ -30,7 +30,7 @@ const IDStorage = multer.diskStorage({
 const uploadIDImages = multer({ storage: IDStorage })
 const BookletStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './images/bank_booklet/')
+        cb(null, './public/images/bank_booklet')
 
     },
     filename: function (req, file, cb) {
@@ -225,8 +225,8 @@ router.post('/post_IDImage', uploadIDImages.single('image'), function (req, res)
 
 router.post('/post_BookletImage', uploadBookletImage.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
-    var email = req.body.email
-    var imageLocation = req.body.imageLocation
+    var email = req.body.email;
+    var imageLocation = req.body.imageLocation;
     mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
         if (err) {
             res.status(400)
