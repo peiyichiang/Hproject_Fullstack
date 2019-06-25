@@ -63,7 +63,8 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         updateTCC(serverTime);//blockchain.js
       };
       if(whichTimeServerArray[5] > 0){
-        checkIncomeManager(serverTime);//blockchain.js
+        console.log('timeserver does for incomeManager ... unknown function');
+        //checkIncomeManager(serverTime);//blockchain.js
       }
   
     }
