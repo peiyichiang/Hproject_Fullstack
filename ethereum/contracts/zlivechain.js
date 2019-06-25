@@ -31,10 +31,11 @@ transferTokensKY
 */
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
-const PrivateKeyProvider = require("truffle-privatekey-provider");
+//const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { sequentialMintSuper, sequentialMintSuperNoMint} = require('../../timeserver/blockchain');
-const { getTime, asyncForEach } = require('../../timeserver/utilities');
+const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../../timeserver/blockchain');
+const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/utilities');
+const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
 const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
@@ -227,10 +228,8 @@ if(choiceOfHCAT721===1){
   instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
 }*/
 const instTestCtrt = new web3.eth.Contract(TestCtrt.abi, addrTestCtrt);
-// const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManagement);
+// const instIncomeManagement = new web3.eth.Contract(IncomeManagement.abi, addrIncomeManager);
 // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
-
-checkTrueBoolArray = (item) => item;
 
 const checkEq = (value1, value2) => {
   if (value1 === value2) {
@@ -245,7 +244,7 @@ const checkEq = (value1, value2) => {
 const checkDeployedContracts = async () => {
   result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
   console.log('\nTokenController checkDeploymentConditions():', result);
-  if(result.every(checkTrueBoolArray)){
+  if(result.every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {
     console.log('[Failed] Some/one check(s) have/has failed');
@@ -256,7 +255,7 @@ const checkDeployedContracts = async () => {
 
   result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
   console.log('\nHCAT721 checkDeploymentConditions():', result);
-  if(result.every(checkTrueBoolArray)){
+  if(result.every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {
     console.log('[Failed] Some/one check(s) have/has failed');
@@ -264,7 +263,7 @@ const checkDeployedContracts = async () => {
 
   result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
   console.log('\nCrowdFunding checkDeploymentConditions():', result);
-  if(result.every(checkTrueBoolArray)){
+  if(result.every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {
     console.log('[Failed] Some/one check(s) have/has failed');
@@ -612,8 +611,9 @@ const sequentialMintSuperAPI = async () => {
   const price = 20000;
   const maxMintAmountPerRun = 180;
 
+  const serverTime = await getTime();//297
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun).catch((err) => {
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
@@ -717,10 +717,10 @@ const mintTokens = async (assetbookNum, amount) => {
 
   result = await instHCAT721.methods.checkMintSerialNFT(to, amount, initialAssetPricing, fundingType, serverTime).call({from: admin});
   console.log('\nresult', result);
-  if(result[0].every(checkTrueBoolArray)){
+  if(result[0].every(checkBoolTrueArray)){
     console.log('[Success] all checks have passed');
   } else {console.log('[Failed] Some/one check(s) have/has failed');}
-  checkEq(result[0].every(checkTrueBoolArray), true);
+  checkEq(result[0].every(checkBoolTrueArray), true);
 
   // const arrayNew = array1.map(x => x * 2);
   // const reducer = (accumulator, currentValue) => accumulator + currentValue;
@@ -828,7 +828,7 @@ const mintTokenFn1 = async () => {
 //yarn run livechain -c 1 --f 3  ... showAssetbook balances
 
 
-
+//yarn run livechain -c 1 --f 7 -a 1 -b 3 -t 2
 //yarn run livechain -c 1 --f 7 -a 1 -b 190 -t 2
 const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   const amount = parseInt(amountStr);
@@ -910,7 +910,7 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   console.log('\ncheckSafeTransferFromBatch result', result);
   //assetAddr_.isContract(), msg.sender == assetOwner
 
-  if(result[0].every(checkTrueBoolArray)){
+  if(result[0].every(checkBoolTrueArray)){
     console.log('\n[Success] all checks have passed checkSafeTransferFromBatch()');
   } else {
     console.log('\n[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
@@ -962,6 +962,348 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
 }//yarn run livechain -c 1 --f 7 -a 1 -b 1 -t 2
 
 
+/*
+scenario: 0, check initial values
+yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
+
+scenario: 1, serverTime = CFSD2+1. set state to funding start
+yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
+
+scenario: 2, serverTime = CFED2+1. set state to funding end
+yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
+
+scenario: 3
+yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 10
+
+scenario: 4
+scenario: 5
+scenario: 6
+scenario: 7
+*/
+const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
+  console.log('\n------------==Check CrowdFunding parameters');
+  console.log('addrCrowdFunding', addrCrowdFunding);
+  const scenario = parseInt(scenarioStr);
+  const toAssetbookNum = parseInt(toAssetbookNumStr);
+  const amountToInvest = parseInt(amountToInvestStr);
+  let tokenSymbolM, initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSD2M, CFED2M, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM, encodedData, TxResult;
+
+  if(toAssetbookNumStr < 1){
+    console.log('[Error] toAssetbookNumStr must be >= 1');
+    process.exit(1);
+  }
+  const addrAssetbookX = assetbookArray[toAssetbookNumStr-1];
+  console.log("CFSD2:", CFSD2, ", CFED2:", CFED2, "\nscenarioStr", scenarioStr, ", toAssetbookNumStr", toAssetbookNumStr, ", amountToInvestStr", amountToInvestStr, ", addrAssetbookX:", addrAssetbookX);
+
+  if(scenario === 0){
+    console.log('\n--------==scenario:', scenario);
+    console.log('tokenSymbol', nftSymbol);
+    tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    console.log('tokenSymbolM', tokenSymbolM);
+  
+    console.log('initialAssetPricing', initialAssetPricing);
+    initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
+    console.log('initialAssetPricingM', initialAssetPricingM);
+  
+    console.log('maxTotalSupply', maxTotalSupply);
+    maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
+    console.log('maxTotalSupplyM', maxTotalSupplyM);
+  
+    console.log('quantityGoal', quantityGoal);
+    quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
+    console.log('quantityGoalM', quantityGoalM);
+  
+    CFSD2M = await instCrowdFunding.methods.CFSD2().call();
+    console.log('CFSD2M', CFSD2M);
+  
+    CFED2M = await instCrowdFunding.methods.CFED2().call();
+    console.log('CFED2M', CFED2M);
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('\nstateDescriptionM:', stateDescriptionM);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM:', fundingStateM);
+
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM);
+
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM);
+
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+    process.exit(0);
+
+    
+  //serverTime = CFSD2+1;
+  //yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
+  } else if(scenario === 1){
+    console.log('--------==scenario:', scenario);
+    console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
+    serverTime = CFSD2+1;
+    console.log('set servertime = CFSD2-1', serverTime);//201905281400;
+    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
+    console.log('TxResult', TxResult);
+
+    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('\nstateDescriptionM', stateDescriptionM);
+
+    let fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    process.exit(0);
+
+  
+  //serverTime = CFED2;
+  //yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
+  } else if(scenario === 2){
+    console.log('--------==scenario:', scenario);
+    serverTime = CFED2;
+    console.log('\nset serverTime = CFSD2', CFSD2);
+    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
+    console.log('TxResult', TxResult);
+      
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    process.exit(0);
+
+
+  // to invest...  yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 10
+  } else if(scenario === 3){
+    console.log('--------==scenario:', scenario);
+    serverTime = CFSD2+1;
+    encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvestStr, serverTime).encodeABI();
+    TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
+    console.log('TxResult', TxResult);
+
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM);
+
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM);
+
+    console.log('after investing the target goal amount');
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    process.exit(0);
+
+  } else if(scenario === 4){
+    console.log('--------==scenario:', scenario);
+
+
+  } else {
+    console.log('--------==scenario:', scenario);
+
+  }
+  //const encodedData = instCtrt.methods.updateState(currentTime).encodeABI();
+  //const TxResult = await signTx(fromEOA, fromEOA_RawPk, addrCtrt, encodedData);
+  
+/**
+    if (1==2){
+      serverTime = CFED2;
+      console.log('\nset serverTime = CFED2', CFED2);
+      await instCrowdFunding.methods.updateState(serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+  
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "fundingNotClosed: ended with goal not reached");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 5);
+      //process.exit(1);
+    }
+
+    serverTime = CFSD2+1;
+    console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
+    // await instCrowdFunding.methods.makeFundingActive(serverTime)
+    // .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+
+    let modResult = quantityGoal % maxTokenQtyForEachInvestmentFund;
+    let quotient = (quantityGoal - modResult)/maxTokenQtyForEachInvestmentFund;
+    console.log('quantityGoal:', quantityGoal, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
+    assert.equal(Number.isInteger(quotient), true);
+    console.log('quotient is integer');
+
+    // let modResult = maxTotalSupply % maxTokenQtyForEachInvestmentFund;
+    // let quotient = (maxTotalSupply - modResult)/maxTokenQtyForEachInvestmentFund;
+    // console.log('maxTotalSupply:', maxTotalSupply, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
+    // assert.equal(Number.isInteger(quotient), true);
+    // console.log('quotient is integer');
+
+    for(i = 0; i < quotient; i++) {
+      await instCrowdFunding.methods.invest(addrAssetbookX, maxTokenQtyForEachInvestmentFund, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      console.log('invest()... take ', i);
+    }
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM, ' V.s. modResult:', modResult, '... maxTotalSupply', maxTotalSupply, ', quantityGoal', quantityGoal, 'quantitySoldM', quantitySoldM);
+    assert.equal(remainingTokenQtyM, modResult+maxTotalSupply-quantityGoal);
+
+    await instCrowdFunding.methods.invest(addrAssetbookX, modResult, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('invest(modResult=', modResult, ')');
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM, 'V.s. quantityGoal:', quantityGoal);
+
+    console.log('after investing the target goal amount');
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 3);
+
+
+    //------------------==Set time to initial
+    console.log('\nset serverTime = CFSD2-1');
+    serverTime = CFSD2-1;
+    await instCrowdFunding.methods.updateState(serverTime)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "initial: goal reached already");
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 0);
+
+    //------------------==Back to CFSD2
+    serverTime = CFSD2;
+    console.log('\nset serverTime = CFSD2');
+    await instCrowdFunding.methods.updateState(serverTime)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM', stateDescriptionM);
+    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM', fundingStateM);
+    assert.equal(fundingStateM, 3);
+
+
+    //------------------==Overbuying
+    let quantityAvailable = maxTotalSupply - quantityGoal;//24
+
+    let error = false;
+    try {
+      console.log('\nTrying to invest quantityAvailable+1');
+      await instCrowdFunding.methods.invest(addrAssetbookX, quantityAvailable+1, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] over-buying failed because of not enough quantity for sales. quantityAvailable:', quantityAvailable, 'err:', err.toString().substr(0, 100));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    if(1==1){
+      //-------------------==Pause the crowdfunding
+      serverTime = CFSD2+3;
+      console.log('\nPause funding');
+      await instCrowdFunding.methods.pauseFunding(serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "funding paused");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 2);
+
+      //-------------------==resumeFunding the crowdfunding
+      serverTime = CFSD2+3;
+      console.log('\nResume funding');
+      await instCrowdFunding.methods.resumeFunding(CFED2, maxTotalSupply, serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      //assert.equal(stateDescriptionM, "funding paused");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      //assert.equal(fundingStateM, 2);
+      console.log('check stateDescriptionM and fundingStateM!!!');
+
+      if(1==2) {
+        reason = 'a good reason...';
+        console.log('\nTerminate');
+        await instCrowdFunding.methods.abort(reason, serverTime)
+        .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+  
+        stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+        console.log('stateDescriptionM', stateDescriptionM);
+        assert.equal(stateDescriptionM, "terminated:"+reason);
+  
+        fundingStateM = await instCrowdFunding.methods.fundingState().call();
+        console.log('fundingStateM', fundingStateM);
+        assert.equal(fundingStateM, 6);
+        console.log('check stateDescriptionM and fundingStateM!!!');
+
+      } else {
+        //-------------------==Buying the available quantity
+        console.log('\nTrying to invest quantityAvailable');
+        await instCrowdFunding.methods.invest(addrAssetBook2, quantityAvailable, serverTime)
+        .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+        stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+        console.log('stateDescriptionM', stateDescriptionM);
+        assert.equal(stateDescriptionM, "fundingClosed: sold out");
+
+        result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+        console.log('assetbookArray', result[0]);
+        console.log('investedTokenQtyArray', result[1]);
+
+        fundingStateM = await instCrowdFunding.methods.fundingState().call();
+        console.log('fundingStateM', fundingStateM);
+        assert.equal(fundingStateM, 4);
+      }
+      
+    } else {
+      //-------------------==CFED2 has been reached
+      console.log('\nCFED2 has been reached');
+      serverTime = CFED2;
+      await instCrowdFunding.methods.updateState(serverTime)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+      stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+      console.log('stateDescriptionM', stateDescriptionM);
+      assert.equal(stateDescriptionM, "fundingClosed: goal reached but not sold out");
+
+      fundingStateM = await instCrowdFunding.methods.fundingState().call();
+      console.log('fundingStateM', fundingStateM);
+      assert.equal(fundingStateM, 4);
+    }
+ */
+}
+
+
+
+
+
+//-------------------------==
+//-------------------------==
 
 //yarn run livechain -c 1 --f 39
 const transferTokensKY = async () => {
@@ -1017,7 +1359,159 @@ const sendAssetBeforeAllowed = async () => {
 
 
 
+//---------------------------------==IncomeManagerCtrt
+// yarn run livechain -c 1 --f 12
+const getIncomeSchedule_API = async() => {
+  console.log('\n-------------------==getIncomeSchedule_API');
+  const symbol = nftSymbol;
+  const schIndex = 1;
+  await getIncomeSchedule(symbol, schIndex);
+  process.exit(0);
+}
 
+// yarn run livechain -c 1 --f 13
+const getIncomeScheduleList_API = async() => {
+  console.log('\n-------------------==getIncomeScheduleList_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTime = TimeOfDeployment_IM+1;
+  await getIncomeScheduleList(symbol, forecastedPayableTime);
+  process.exit(0);
+}
+
+// yarn run livechain -c 1 --f 14
+const checkAddScheduleBatch1_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatch1_API');
+  const symbol = nftSymbol;
+  console.log('symbol', symbol);
+  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+  await checkAddScheduleBatch1(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+}
+//yarn run livechain -c 1 --f 15
+const checkAddScheduleBatch2_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatch2_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+  checkAddScheduleBatch2(symbol, forecastedPayableTimes, forecastedPayableAmounts);
+}
+
+//yarn run livechain -c 1 --f 16
+const checkAddScheduleBatch_API = async() => {
+  console.log('\n---------------------==checkAddScheduleBatch_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [202202230000, 202205230000, 202208230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+  const isCheckAddScheduleBatch = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => console.log('[Error @checkAddScheduleBatch]:', err));
+  console.log('isCheckAddScheduleBatch', isCheckAddScheduleBatch);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 17
+const addScheduleBatch_API = async() => {
+  console.log('\n---------------------==addScheduleBatch_API');
+  const symbol = nftSymbol;
+  const forecastedPayableTimes = [202105230000, 202108230000, 202111230000];
+  //const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
+  //const forecastedPayableTimes = [202005230000, 202008270000, 202011290000];
+  //const forecastedPayableTimes = [202103010000];
+
+  //const forecastedPayableTimes = [201908170000, 201908170000, 202002230000];//Good
+  const forecastedPayableAmounts = [3701, 3801, 3901];
+  //const forecastedPayableAmounts = [4100];
+
+  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+
+  const result = await addScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts);
+  console.log('result', result, typeof result);
+  process.exit(0);
+}
+
+
+//yarn run livechain -c 1 --f 18
+const addScheduleBatchFromDB_API = async () => {
+  const symbol = 'AOOT1902';
+  const forecastedPayableTimes = [202202230000, 202205230000, 202208230000];
+  const forecastedPayableAmounts = [3700, 3800, 3900];
+
+
+  // const result = await addScheduleBatchFromDB(symbol).catch((err) => {
+  //   console.log('[Error @addScheduleBatchFromDB]:', err);
+  // });
+  //console.log('result', result);
+}
+
+
+//yarn run livechain -c 1 --f 19
+const removeIncomeSchedule_API = async() => {
+  console.log('\n---------------==removeIncomeSchedule_API');
+  const symbol = nftSymbol;
+  const schIndex = 6;
+  const result = await removeIncomeSchedule(symbol, schIndex);
+  console.log('result', result, typeof result);
+  process.exit(0);
+}
+
+//editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor
+
+
+//yarn run livechain -c 1 --f 20
+const imApprove_API = async() => {
+  console.log('\n---------------==imApprove_API');
+  const symbol = nftSymbol;
+  const schIndex = 1;
+  const boolValue = true;
+  const result = await imApprove(symbol, schIndex, boolValue);
+  //imApprove(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
+  console.log('result', result, typeof result);
+  process.exit(0);
+}
+
+
+//yarn run livechain -c 1 --f 20
+const setPaymentReleaseResults_API = async() => {
+  console.log('\n---------------==setPaymentReleaseResults_API');
+  const symbol = nftSymbol;
+  const schIndex = 1;
+  const actualPaymentTime = 201908210000;
+  const actualPaymentAmount = 3811;
+  const errorCode = 1;
+  const result = await setPaymentReleaseResults(symbol, schIndex, actualPaymentTime, actualPaymentAmount, errorCode);
+  //setPaymentReleaseResults(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlyPlatformSupervisor
+  console.log('result', result, typeof result);
+  process.exit(0);
+
+}
+
+//yarn run livechain -c 1 --f 21
+//setErrResolution(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
+
+
+
+//yarn run livechain -c 1 --f 23
+const getForecastedSchedulesFromDB_API = async () => {
+  const symbol = 'HToken123';
+  const results1 = await getForecastedSchedulesFromDB(symbol);
+  //console.log('results1', results1);
+  const forecastedPayableTimes = [];
+  const forecastedPayableAmounts = [];
+  for(let i = 0; i < results1.length; i++) {
+    if(typeof results1[i] === 'object' && results1[i] !== null && results1[i] !== undefined){
+      forecastedPayableTimes.push(results1[i].ia_time);
+      forecastedPayableAmounts.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+    }
+  }
+
+  console.log(`forecastedPayableTimes: ${forecastedPayableTimes} 
+forecastedPayableAmounts: ${forecastedPayableAmounts}`);
+  process.exit(0);
+
+}
+
+
+//------------------------------==
 const testCtrt = async () => {
   console.log('\n---------------==inside testCtrt');
   let newNum;
@@ -1090,6 +1584,10 @@ if (func === 0) {
 } else if (func === 7) {
   transferTokens(arg1, arg2, arg3);
 
+//yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
+} else if (func === 8) {
+  invest(arg1, arg2, arg3);
+
 
 //yarn run livechain -c 1 --f 11
 } else if (func === 11) {
@@ -1097,11 +1595,56 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 8 -a 1
 } else if (func === 8) {
-  setServerTime(arg1);
+  //setServerTime(arg1);
 
-//yarn run livechain -c 1 --f 15
+//yarn run livechain -c 1 --f 9
 } else if (func === 9) {
   mintTokenFn1();
+
+//yarn run livechain -c 1 --f 12
+} else if (func === 12) {
+  getIncomeSchedule_API();
+
+//yarn run livechain -c 1 --f 13
+} else if (func === 13) {
+  getIncomeScheduleList_API();
+
+//yarn run livechain -c 1 --f 14
+} else if (func === 14) {
+  checkAddScheduleBatch1_API();
+
+//yarn run livechain -c 1 --f 15
+} else if (func === 15) {
+  checkAddScheduleBatch2_API();
+
+//yarn run livechain -c 1 --f 16
+} else if (func === 16) {
+  checkAddScheduleBatch_API();
+
+//yarn run livechain -c 1 --f 17
+} else if (func === 17) {
+  addScheduleBatch_API();
+
+//yarn run livechain -c 1 --f 18
+} else if (func === 18) {
+  addScheduleBatchFromDB_API();
+
+//yarn run livechain -c 1 --f 19
+} else if (func === 19) {
+  removeIncomeSchedule_API();
+
+//yarn run livechain -c 1 --f 20
+} else if (func === 20) {
+  imApprove_API();
+
+//yarn run livechain -c 1 --f 21
+} else if (func === 21) {
+  setPaymentReleaseResults_API();
+
+//yarn run livechain -c 1 --f 22
+} else if (func === 22) {
+  getForecastedSchedulesFromDB_API();
+
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {

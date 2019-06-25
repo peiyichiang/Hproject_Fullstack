@@ -79,7 +79,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
     /** Contract code size over limit of 24576 bytes.
     0x0348538441, 0x0348538441, 300, 5000, 19000, 0x0348538441, 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
-    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441, "0x0dcd2f752394c41875e259e00bb44fd505297caf", 201906070000  */
+    "0xbbf289d846208c16edc8474705c748aff07732db", 0x0348538441, "0x0dcd2f752394c41875e259e00bb44fd505297caf", 201906220000  */
     constructor(
         bytes32 _nftName, bytes32 _nftSymbol,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
@@ -300,6 +300,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         //uint[] memory uintArray  , uint authLevel, uint maxBuyAmount, uint maxBalance
         boolArray = new bool[](10);
         uintArray = new uint[](3);
+
         boolArray[0] = _to.isContract();
         boolArray[1] = ERC721TokenReceiverITF(_to).onERC721Received(
         msg.sender, address(this), 1, "") == MAGIC_ON_ERC721_RECEIVED;
@@ -312,6 +313,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         
         (boolArray[8], boolArray[9], uintArray[0], uintArray[1],
         uintArray[2]) = RegistryITF_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
+
         //bool isApprovedBuyAmount, bool isApprovedBalancePlusBuyAmount
         //function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance)
     }
@@ -370,6 +372,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     function checkSafeTransferFromBatch(
         address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray) {
         boolArray = new bool[](12);
+
         boolArray[0] = _from.isContract();
         boolArray[1] = _to.isContract();
         boolArray[2] = ERC721TokenReceiverITF(_to).onERC721Received(
@@ -382,8 +385,8 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         boolArray[8] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_to);
         boolArray[9] = RegistryITF_HCAT(addrRegistry).isAssetbookApproved(_from);
         boolArray[10] = balanceOf(_from) >= amount;
-
         boolArray[11] = accounts[_from].allowed[msg.sender] >= amount;
+
         /*
         uint allowedAmount = accounts[_from].allowed[msg.sender];
         for(uint i = 0; i < amount; i = i.add(1)) {

@@ -4,11 +4,13 @@ const schedule = require('node-schedule');
 const path = require('path');
 const fs = require('fs');
 
+const { getTime } = require('./utilities');
+const { whichTimeServerArray } = require('../ethereum/contracts/zsetupData');
+
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
  */
-//const { mysqlPoolQuery } = require('./lib/mysql.js');
-const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC } = require('./blockchain.js');
+const { updateExpiredOrders, updateCFC, updateTCC, checkIncomeManager, addAssetbooksIntoCFC, cancelOverCFED2Orders } = require('./blockchain.js');
 
 const mode = 1;
 const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
@@ -23,7 +25,10 @@ if(mode === 1){
 // '10 * * * * *'  ... for every 10th seconds
 // '59 * * * * *'  ... for every 59th seconds
 schedule.scheduleJob(modeStr+' * * * * *', async function () {
-    let date = new Date().myFormat()
+    getTime().then(function (time) {
+      console.log(`----------------==[timeserverSource.js] current time: ${time}`);
+    });
+    let date = new Date().myFormat();
     //console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
 
     fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), date, function (err) {
@@ -37,15 +42,32 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       console.log('[Error] serverTime is not an integer', date.toString());
       process.exit(0);
     }
+    console.log('[timeserverSource.js] serverTime:', serverTime);
   
-    console.log('[timeserverSource.js] serverTime: '+serverTime);
-    addAssetbooksIntoCFC(serverTime);//blockchain.js
-    //updateExpiredOrders(serverTime);//blockchain.js
-    //updateCFC(serverTime);//blockchain.js
-    //updateTCC(serverTime);
-    //checkIncomeManager(serverTime);
-
-
+    if(whichTimeServerArray.length < 6){
+      console.log('\n[Error] whichTimeServerArray length is < 6 ... bypassing services...');
+    } else {
+      if(whichTimeServerArray[0] > 0){
+        addAssetbooksIntoCFC(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[1] > 0){
+        cancelOverCFED2Orders(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[2] > 0){
+        updateExpiredOrders(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[3] > 0){
+        updateCFC(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[4] > 0){
+        updateTCC(serverTime);//blockchain.js
+      };
+      if(whichTimeServerArray[5] > 0){
+        console.log('timeserver does for incomeManager ... unknown function');
+        //checkIncomeManager(serverTime);//blockchain.js
+      }
+  
+    }
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
     //     if (err) console.error(`[Error @ timeserverSource] failed at reading date.txt`);
     //     else {
