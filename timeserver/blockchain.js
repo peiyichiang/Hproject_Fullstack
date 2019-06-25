@@ -248,25 +248,25 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
 
     } else {
       if(!boolArray[0]){
-        mesg += ', toAddress has no contract';
+        mesg += ', [0] toAddress has no contract';
       } else if(!boolArray[1]){
-        mesg += ', toAddress has no onERC721Received()';
+        mesg += ', [1] toAddress has no onERC721Received()';
       } else if(!boolArray[2]){
-        mesg += ', amount <= 0';
+        mesg += ', [2] amount <= 0';
       } else if(!boolArray[3]){
-        mesg += ', price <= 0';
+        mesg += ', [3] price <= 0';
       } else if(!boolArray[4]){
-        mesg += ', fundingType <= 0';
+        mesg += ', [4] fundingType <= 0';
       } else if(!boolArray[5]){
-        mesg += ', serverTime <= TimeOfDeployment';
+        mesg += ', [5] serverTime <= TimeOfDeployment';
       } else if(!boolArray[6]){
-        mesg += ', tokenId + amount > maxTotalSupply';
+        mesg += ', [6] tokenId + amount > maxTotalSupply';
       } else if(!boolArray[7]){
-        mesg += ', Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
+        mesg += ', [7] Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
       } else if(!boolArray[8]){
-        mesg += ', Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
+        mesg += ', [8] Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
       } else if(!boolArray[9]){
-        mesg += ', Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
+        mesg += ', [9] Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
       }
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
@@ -751,10 +751,48 @@ crowdFundingAddr: ${crowdFundingAddr}`);
       }
     }
   });
-
-
   //process.exit(0);
 }
+
+const checkInvest = async(crowdFundingAddr, addrAssetbook, tokenCount, serverTime) => {
+  return new Promise( async ( resolve, reject ) => {
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    const result = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, tokenCount, serverTime).call({ from: backendAddr });
+    console.log('\nresult', result);
+    const boolArray = result[0];
+    let mesg;
+    if(amountArray.every(checkBoolTrueArray)){
+      mesg = '[Success] all checks have passed';
+      console.log(mesg);
+      resolve(mesg);
+
+    } else {
+      if(!boolArray[0]){
+        mesg += ', [0] serverTime >= CFSD2';
+      } else if(!boolArray[1]){
+        mesg += ', [1] serverTime < CFED2';
+      } else if(!boolArray[2]){
+        mesg += ', [2] checkPlatformSupervisor()';
+      } else if(!boolArray[3]){
+        mesg += ', [3] addrAssetbook.isContract()';
+      } else if(!boolArray[4]){
+        mesg += ', [4] addrAssetbook onERC721Received()';
+      } else if(!boolArray[5]){
+        mesg += ', [5] quantityToInvest > 0';
+      } else if(!boolArray[6]){
+        mesg += ', [6] not enough remainingQty';
+      } else if(!boolArray[7]){
+        mesg += ', [7] serverTime > TimeOfDeployment';
+      }
+      if(mesg.substring(0,2) === ', '){
+        mesg = mesg.substring(2);
+      }
+      console.log(mesg);
+      resolve(mesg);
+    }
+  });
+}
+
 
 const getInvestorsFromCFC_Check = async(serverTime) => {
   //check if serverTime > CFSD2

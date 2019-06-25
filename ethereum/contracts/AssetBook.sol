@@ -295,8 +295,8 @@ contract AssetBook is MultiSig {
         HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr_)));
         return (hcat721.checkSafeTransferFromBatch(from_, _to, amount, price, serverTime), assetAddr_.isContract(), msg.sender == assetOwner);
     }
-    function safeTransferFromBatch(uint assetIndex, address assetAddr, address _from, address _to, uint amount,  uint price, uint serverTime) 
-        public ckAssetOwner {
+
+    function safeTransferFromBatch(uint assetIndex, address assetAddr, address _from, address _to, uint amount,  uint price, uint serverTime) public ckAssetOwner {
         address assetAddr_; address from_;
         if(assetIndex > 0) {
             assetAddr_ = assetIndexToAddr[assetIndex];
@@ -312,6 +312,7 @@ contract AssetBook is MultiSig {
         HCAT721ITF_assetbook hcat721 = HCAT721ITF_assetbook(address(uint160(assetAddr_)));
         hcat721.safeTransferFromBatch(from_, _to, amount, price, serverTime);
     }
+
     function assetbookApprove(uint assetIndex, address assetAddr, address operator, uint amount) external ckAssetOwner {
         address assetAddr_;
         if(assetIndex > 0) {
