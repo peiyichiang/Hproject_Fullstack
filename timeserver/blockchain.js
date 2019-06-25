@@ -433,7 +433,7 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
     }
 
     console.log('\n--------------==next symbol:', symbol);
-    if (symbol === undefined || symbol === null || symbol.length < 18){
+    if (symbol === undefined || symbol === null || symbol.length < 8){
       console.log(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
 
     } else {
@@ -480,7 +480,7 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
               console.log(`[Error] @ getting ${actionType} addr from symbol:`,err);
   
             } else if(DBresult.length == 0){
-            console.log('found symbol(s) is/are not found in the smart contract table');
+            console.log('found symbol(s) that is/are not found in the smart contract table');
   
           } else {
             console.log('targetAddr is going to be defined next... DBresult:', DBresult);
@@ -488,9 +488,12 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
             //let targetAddr = DBresult[0].sc_crowdsaleaddress;
             console.log(`\n${actionType} addr is found for`, symbol, targetAddr);
             //return;
-  
-            writeToBlockchainAndDatabase(targetAddr, serverTime, symbol, actionType);
-            console.log('[Success] writingToBlockchainAndDatabase() is completed');
+            if(targetAddr === undefined || targetAddr === null){
+              console.log('[Error] targetAddr is not valid: sqlColumn', sqlColumn, targetAddr);
+            } else {
+              writeToBlockchainAndDatabase(targetAddr, serverTime, symbol, actionType);
+              console.log('[Success] writingToBlockchainAndDatabase() is completed');
+            }
           }
         });
       }

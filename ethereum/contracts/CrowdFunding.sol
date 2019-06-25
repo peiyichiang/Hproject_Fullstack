@@ -241,7 +241,6 @@ contract CrowdFunding {
     function checkInvestFunction(address _addrAssetbook, uint _quantityToInvest, uint serverTime) external view returns(
       bool[] memory boolArray) {
         boolArray = new bool[](8);
-        bytes32Array = new bytes32[](8);
 
         boolArray[0] = serverTime >= CFSD2;
         boolArray[1] = serverTime < CFED2;

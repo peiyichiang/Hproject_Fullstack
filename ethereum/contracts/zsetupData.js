@@ -106,7 +106,8 @@ const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000
 
 const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
 
-const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
+//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFED2Orders(serverTime);//blockchain.js
