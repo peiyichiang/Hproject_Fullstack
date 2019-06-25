@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 require('dotenv').config()
 
 const { isEmpty, asyncForEach } = require('./utilities');
-
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
 const serverTimeMin = 201905270900;
 const DatabaseCredential = {
   host: process.env.DB_HOST,
@@ -33,7 +33,7 @@ const mysqlPoolQuery = async (sql, options, callback) => {
           conn.query(sql, options, async function (err, results, fields) {
               // callback
               callback(err, results, fields);
-              console.log(`[connection sussessful @ mysql.js] `);
+              //console.log(`[connection sussessful @ mysql.js] `);
               // http://localhost:${process.env.PORT}/Product/ProductList
           });
           // release connection。
@@ -55,7 +55,7 @@ const mysqlPoolQueryB = async (sql, options) => {
               return reject(err);
             } else {
               conn.release();
-              console.log(`[Success: mysqlPoolQueryB @ mysql.js] `);
+              //console.log(`[Success: mysqlPoolQueryB @ mysql.js] `);
               resolve(results);
             }  
           });
@@ -241,11 +241,11 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 
     console.log(sqlObject);
 
-    const querySQL1 = 'INSERT INTO htoken.order SET ?';
-    const results1 = await mysqlPoolQueryB(querySQL1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
+    const queryStr1 = 'INSERT INTO htoken.order SET ?';
+    const results1 = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
     resolve(results1);
 
-    // mysqlPoolQuery(querySQL1, sql, function (err, result) {
+    // mysqlPoolQuery(queryStr1, sql, function (err, result) {
     //   if (err) {
     //     console.log("error", err);
     //     reject(err);
@@ -303,9 +303,11 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
 
     } else {
       console.log('all input values are okay');
-      const querySQL4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
+      const queryStr4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
       await asyncForEach(inputArray, async (addrAssetbook, index) => {
-        const results4 = await mysqlPoolQueryB(querySQL4, [addrAssetbook]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL4)]', err));
+        const results4 = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {
+          console.log('\n[Error @ mysqlPoolQueryB(queryStr4)]', err);
+        });
         console.log('\nresults4', results4);
         if(results4 === null || results4 === undefined){
           console.log('\n----==[Error] email address is null or undefined for addrAssetbook:', addrAssetbook, ', results4', results4); emailArray.push('email:_null_or_undefined');
@@ -325,6 +327,14 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         }
       });
     }
+
+    const queryStr5 = 'SELECT ia_actualPaymentTime FROM htoken.income_arrangement WHERE ia_SYMBOL= ?';
+    const results5 = await mysqlPoolQueryB(queryStr5, [symbol]).catch((err) => {
+      console.log('[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
+    });
+    const actualPaymentTime = results5.ia_actualPaymentTime;
+    console.log('actualPaymentTime', actualPaymentTime);
+
     
     const emailArrayError = [];
     const amountArrayError = [];
@@ -336,11 +346,11 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         amountArrayError.push(amount);
 
       } else {
-        console.log(`email: ${email}, symbol: ${symbol}, serverTime: ${serverTime}, amount: ${amount}`);
+        console.log(`email: ${email}, symbol: ${symbol}, actualPaymentTime: ${actualPaymentTime}, amount: ${amount}`);
         const sqlObject = {
           ar_investorEmail: email,
           ar_tokenSYMBOL: symbol,
-          ar_Time: serverTime,
+          ar_Time: actualPaymentTime,
           ar_Holding_Amount_in_the_end_of_Period: amount,
           ar_personal_income: personal_income,
           ar_User_Asset_Valuation: asset_valuation,
@@ -351,8 +361,10 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         };//random() to prevent duplicate NULL entry!
         console.log(sqlObject);
 
-        const querySQL5 = 'INSERT INTO htoken.investor_assetRecord SET ?';
-        const results5 = await mysqlPoolQueryB(querySQL5, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB(querySQL5)]'+ err));
+        const queryStr6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+        const results5 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
+          console.log('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
+        });
         console.log('results5', results5);
       }
     });
@@ -365,80 +377,125 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
 
 
 
-//---------------------------==
-function getFundingStateDB(symbol){
-  console.log('inside getFundingStateDB()... get p_state');
-  mysqlPoolQuery(
-    'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('symbol', symbol, 'pstate', result[0], 'CFSD', result[1], 'CFED', result[2]);
-    }
+//---------------------------== FundingState and TokenState
+const getFundingStateDB = (symbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('inside getFundingStateDB()... get p_state');
+    const queryStr2 = 'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?';
+    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+      return false;
+    });
+    console.log('symbol', symbol, 'pstate', results2[0], 'CFSD', results2[1], 'CFED', results2[2]);
+    resolve(true);
   });
 }
-function setFundingStateDB(symbol, pstate, CFSD, CFED){
-  console.log('\ninside setFundingStateDB()... change p_state');
-  if(CFSD !== undefined && CFED !== undefined && Number.isInteger(CFSD) && Number.isInteger(CFED)){
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?', [pstate, CFSD, CFED, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED,'result', result);
-      }
-    });
-  } else {
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', [pstate, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'pstate', pstate, 'result', result);
-      }
-    });
-  }
-}
 
-//------------------------==
-function setTokenStateDB(symbol, tokenState, lockuptime, validdate){
-  console.log('\ninside setTokenStateDB()... change p_tokenState');
-  if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?', [tokenState, lockuptime, validdate, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate,'result', result);
-      }
-    });
-  } else {
-    mysqlPoolQuery(
-      'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?', [tokenState, symbol], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'result', result);
-      }
-    });
-  }
-}
+//-------------------------==Not to be confused with setTokenStateDB
+const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\ninside setFundingStateDB()... change p_state');
+    const queryStr1 = 'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?';
+    const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
 
-function getTokenStateDB(symbol){
-  console.log('inside getTokenStateDB()... get p_tokenState');
-  mysqlPoolQuery(
-    'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?', [symbol], function (err, result) {
-    if (err) {
-      console.log(err);
+    if(Number.isInteger(CFSD) && Number.isInteger(CFED)){
+      const results1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'pstate', pstate, 'CFSD', CFSD, 'CFED', CFED, 'results1', results1);
+      resolve(true);
     } else {
-      console.log('symbol', symbol, 'tokenState', result[0], 'lockuptime', result[1], 'validdate', result[2]);
+      const results2 = await mysqlPoolQueryB(queryStr2, [pstate, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'pstate', pstate, 'results2', results2);
+      resolve(true);
     }
   });
 }
 
+
+//-------------------------==Not to be confused with setFundingStateDB
+const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\ninside setTokenStateDB()... change p_tokenState');
+
+    const queryStr1 = 'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
+    const queryStr2 = 'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?';
+
+    if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
+      const results1 = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr1)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate,'result', results1);
+      resolve(true);
+    } else {
+      const results2 = await mysqlPoolQueryB(queryStr2, [tokenState, symbol]).catch((err) => {
+        reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+        return false;
+      });
+      console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'results2', results2);
+      resolve(true);
+    }
+  });
+}
+
+const getTokenStateDB = (symbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('inside getTokenStateDB()... get p_tokenState');
+    const queryStr2 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?';
+    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:', err);
+      return false;
+    });
+    console.log('symbol', symbol, 'tokenState', results2[0], 'lockuptime', results2[1], 'validdate', results2[2]);
+    resolve(true);
+  });
+}
+
+
+
+// findCtrtAddr(symbol, 'incomemanager')
+const findCtrtAddr = async(symbol, ctrtType) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n---------==inside findCtrtAddr');
+    let scColumnName, mesg;
+    if(ctrtType === 'incomemanager'){
+      scColumnName = 'sc_incomeManagementaddress';
+    } else if(ctrtType === 'crowdfunding'){
+      scColumnName = 'sc_crowdsaleaddress';
+    } else if(ctrtType === 'hcat721'){
+      scColumnName = 'sc_erc721address';
+    } else if(ctrtType === 'tokencontroller'){
+      scColumnName = 'sc_erc721Controller';
+    }
+    const queryStr1 = 'SELECT '+scColumnName+' FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    const ctrtAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
+      (err) => {
+        mesg = '[Error @ mysqlPoolQueryB(queryStr1)]:'+ err;
+        //console.log('\n'+mesg);
+        reject(mesg);
+      });
+    const ctrtAddrResultsLen = ctrtAddrResults.length;
+    console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
+    if(ctrtAddrResultsLen == 0){
+      mesg = 'no '+ctrtType+' is found';
+      reject(mesg); //console.log();
+    } else if(ctrtAddrResultsLen > 1){
+      mesg = 'multiple '+ctrtType+' addresses were found';
+      reject(mesg); //console.log();
+    } else {
+      const ctrtAddr = ctrtAddrResults[0][scColumnName];//.sc_incomeManagementaddress;
+      resolve(ctrtAddr);
+    }
+  });
+}
 //------------------------==
 function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
-  console.log('\ninside setTokenStateDB()... change p_tokenState');
+  console.log('\ninside setIMScheduleDB()... change p_tokenState');
   if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
     mysqlPoolQuery(
       'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?', [tokenState, lockuptime, validdate, symbol], function (err, result) {
@@ -472,62 +529,179 @@ function isIMScheduleGoodDB(symbol){
   });
 }
 
-/*
-//------------------------==
-function getCrowdFundingCtrtAddr(symbol, cb) {
-  console.log('getCrowdFundingCtrtAddr');
-  const qur = mysqlPoolQuery(
-    'SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol =?', [symbol], function (err, result) {
-      //console.log('result', result);
-      if (err) {
-        console.log(err);
-      }
-      cb(result);
+
+//yarn run testts -a 2 -c 4
+const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
+  console.log('inside addIncomePaymentPerPeriodIntoDB()... serverTime:', serverTime, typeof serverTime);
+  const symbolArray = [];
+  const acPaymentTimeArray = [];
+  const acIncomePaymentArray = [];
+  const addrHCAT_Array = [];
+  const abAddrArrayGroup = [];
+  const abBalArrayGroup = [];
+  const incomePaymentArrayGroup = [];
+
+  const queryStr0 = 'SELECT distinct ia_SYMBOL FROM htoken.product';
+  const symbolObjArray = await mysqlPoolQueryB(queryStr0, []).catch((err) =>   console.log('\n[Error @ mysqlPoolQueryB(queryStr0)]', err));
+  //console.log('symbolObjArray', symbolObjArray);
+
+  const queryStr7 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)'
+  await asyncForEach(symbolObjArray, async (symbolObj, index) => {
+    const results1 = await mysqlPoolQueryB(queryStr7, [symbolObj.ia_SYMBOL]).catch((err) => {
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr7)]', err);
+    });
+    const symbolM = results1[0].ia_SYMBOL;
+    const acpaymentTime = parseInt(results1[0]['MAX(ia_actualPaymentTime)']);
+    if(serverTime >= acpaymentTime){
+      console.log('found period', symbolM, acpaymentTime);
+      symbolArray.push(symbolM);
+      acPaymentTimeArray.push(acpaymentTime);
+      const incomePayment = parseInt(results1[0].ia_single_Actual_Income_Payment_in_the_Period);
+      acIncomePaymentArray.push(incomePayment);
     }
-  );
+  });
+  /*
+  const queryStr1 = 'SELECT ia_SYMBOL, MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?';
+  await asyncForEach(symbolObjArray, async (symbolObj, index) => {
+    const results1 = await mysqlPoolQueryB(queryStr1, [symbolObj.ia_SYMBOL]).catch((err) => {
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+    });
+    //console.log('results1', results1, results1[0].ia_SYMBOL, results1[0]['MAX(ia_actualPaymentTime)']);
+    const symbolM = results1[0].ia_SYMBOL;
+    const acpaymentTime = parseInt(results1[0]['MAX(ia_actualPaymentTime)']);
+    if(serverTime >= acpaymentTime){
+      console.log('found period', symbolM, acpaymentTime);
+      symbolArray.push(symbolM);
+      acPaymentTimeArray.push(acpaymentTime);
+    }
+  });
+  console.log('\n----------------==\nsymbolArray', symbolArray, '\nacPaymentTimeArray', acPaymentTimeArray);
+
+  if(symbolArray.length > 0){
+    const queryStr2 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_SYMBOL = ?';
+    await asyncForEach(symbolArray, async (symbol, index) => {
+      const results1 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err);
+      });
+      const incomePayment = parseInt(results1[0].ia_single_Actual_Income_Payment_in_the_Period);
+      acIncomePaymentArray.push(incomePayment);
+    });
+  
+  } else {
+    console.log('no periodSymbol is found.');
+  }
+  */
+
+  console.log(`\n----------------==\nsymbolArray: ${symbolArray} \nacPaymentTimeArray: ${acPaymentTimeArray}
+  acIncomePaymentArray: ${acIncomePaymentArray}`);
+
+
+  const queryStr2 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
+  await asyncForEach(symbolArray, async (symbol, index) => {
+    const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]', err);
+    });
+    console.log('results2', results2);
+
+    if(results2.length === 0){
+      console.log('[Error] erc721 contract address was not found');
+      addrHCAT_Array.push('Not on record');
+    } else if(results2.length > 1){
+      console.log('[Error] multiple erc721 contract addresses were found');
+      addrHCAT_Array.push('multiple contract addr');
+    } else if(results2[0].sc_erc721address === null || results2[0].sc_erc721address === undefined){
+      console.log('[Error] erc21 contract addresses is null or undefined');
+      addrHCAT_Array.push(results2[0].sc_erc721address);
+    } else {
+      console.log('[Good] erc721 contract address:', results2[0].sc_erc721address);
+      addrHCAT_Array.push(results2[0].sc_erc721address);
+    }
+  });
+  console.log('addrHCAT_Array', addrHCAT_Array);
+
+
+  await asyncForEach(addrHCAT_Array, async (tokenCtrtAddr, index) => {
+    if(tokenCtrtAddr !== null || tokenCtrtAddr !== undefined || tokenCtrtAddr !== 'multiple contract addr' || tokenCtrtAddr !== 'Not on record'){
+
+      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+      const abAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+      const abBalArray = await instHCAT721.methods.balanceOfArray(abAddrArray).call();
+      console.log(`\nabAddrArray: ${abAddrArray} \nassetbookBalanceArray: ${abBalArray}`);
+      abAddrArrayGroup.push(abAddrArray);
+      abBalArrayGroup.push(abBalArray);
+
+      const singleActualIncomePayment = acIncomePaymentArray[index];
+      const incomePaymentArray = abBalArray.map(function(balance) {
+        return balance * singleActualIncomePayment;
+      });
+      incomePaymentArrayGroup.push(incomePaymentArray);
+    }
+  });
+  console.log(`\n  symbolArray: ${symbolArray}
+  acIncomePaymentArray: ${acIncomePaymentArray}
+  abAddrArrayGroup: ${abAddrArrayGroup} 
+  incomePaymentArrayGroup: ${incomePaymentArrayGroup}`);
+
+  const emailArrayGroup = [];
+  await asyncForEach(abAddrArrayGroup, async (abAddrArray, index) => {
+    const symbol = symbolArray[index];
+    const acPaymentTime = acPaymentTimeArray[index];
+    const emailArray = [];
+    await asyncForEach(abAddrArray, async (assetbookAddr, idx) => {
+      const queryStr3 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
+      const results3 = await mysqlPoolQueryB(queryStr3, [assetbookAddr]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]', err);
+      });
+      console.log('results3', results3);
+      const email = results3[0].u_email;
+      emailArray.push(email);
+
+      const personal_income = incomePaymentArrayGroup[index][idx];
+      const holding_Amount = abBalArrayGroup[index][idx];
+      console.log(`    email: ${email}, symbol: ${symbol}, acPaymentTime: ${acPaymentTime}, holding_Amount: ${holding_Amount}
+  personal_income: ${personal_income}`);
+      const sqlObject = {
+        ar_investorEmail: email,
+        ar_tokenSYMBOL: symbol,
+        ar_Time: acPaymentTime,
+        ar_Holding_Amount_in_the_end_of_Period: holding_Amount,
+        ar_personal_income: personal_income,
+      };
+      console.log(sqlObject);
+
+      const queryStr6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+      const results5 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
+        console.log('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
+      });
+      console.log('results5', results5);
+    });
+    console.log(`emailArray: ${emailArray}`);
+    emailArrayGroup.push(emailArray);
+  });
+  console.log(`\nemailArrayGroup: ${emailArrayGroup}`);
+
+
 }
 
 
-function getIncomeManagerCtrtAddr(cb) {
-    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM smart_contracts', function (err, rows) {
-        if (err) {
-            print(err);
-        }
-        cb(rows);
-    })
+const getForecastedSchedulesFromDB = async (symbol) => {
+  return new Promise(async (resolve, reject) => {
+    const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From htoken.income_arrangement where ia_SYMBOL = ?';
+    const results1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
+      reject('[Error @ addScheduleBatch: mysqlPoolQueryB(queryStr1)]:', err);
+      return false;
+    });
+    const results1Len = results1.length;
+    console.log('symbolArray length @ addScheduleBatch', results1Len);
+    if (results1Len === 0) {
+      reject('ia_time, ia_single_Forecasted_Payable_Income_in_the_Period not found');
+      return false;
+    }
+    //console.log('results1', results1);
+    resolve(results1);
+  });
 }
 
-function getOrderDate(cb) {
-    mysqlPoolQuery('SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"', function (err, rows) {
-        if (err) {
-            print(err);
-        }
-        cb(rows);
-    })
-}
-
-function getHCAT721ControllerCtrtAddr(cb) {
-    mysqlPoolQuery('SELECT sc_erc721Controller FROM smart_contracts', function (err, rows) {
-        if (err) {
-            print(err);
-        }
-        cb(rows);
-    })
-}
-
-function setOrderExpired(o_id, cb) {
-    mysqlPoolQuery('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [[[o_id]]], function (err, result) {
-        if (err) {
-            print(err);
-        }
-        cb(result)
-    })
-}
-*/
-
-function print(s) {
-    console.log('[timeserver@mysql] ' + s)
-}
 
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
@@ -537,13 +711,6 @@ module.exports = {
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
-    addAssetRecordsIntoDB,
-    mysqlPoolQueryB
+    addAssetRecordsIntoDB, addIncomePaymentPerPeriodIntoDB,
+    mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB
 }
-/**
-    //getCrowdFundingCtrtAddr,
-    //getIncomeManagerCtrtAddr,
-    //getHCAT721ControllerCtrtAddr,
-    //getOrderDate,
-    //setOrderExpired,
- */

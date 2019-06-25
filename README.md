@@ -48,7 +48,10 @@ yarn run testcf
 yarn run testim
 ```
 
-### 6. Deploy smart contracts
+### 6. Setup P.O.A. Blockchain
+```pm2 -n ganache start "ganache-cli -p 8540 -h 0.0.0.0```
+
+### 7. Deploy smart contracts
 Deploy contracts
 ```
 yarn run deploy --c 1 --ctrtName contractName
@@ -58,7 +61,7 @@ where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW I
 and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
 
 
-### 7. Test deployed smart contracts
+### 8. Test deployed smart contracts
 ```
 yarn run testlive1 --chain C --func F
 ```
@@ -105,7 +108,7 @@ yarn run livechain --c 1 --f 9 -a serverTime
 yarn run livechain --c 1 --f 10 -a 2 -b 1
 ```
 
-### 8. Setup Timeserver sending part
+### 9. Setup Timeserver sending part
 ```
 '*/5 * * * * *'
 '*/10 * * * * *'  ... for every 10 seconds
@@ -114,7 +117,7 @@ yarn run livechain --c 1 --f 10 -a 2 -b 1
 yarn run tsself ... to start timseserver self version not sending to others
 ```
 
-### 9. Test Timeserver Automation
+### 10. Test Timeserver Automation
 ```
 $ yarn run testts --c C
 ```
@@ -130,7 +133,7 @@ yarn run testic
 to run the income.js tests
 
 ### 17. Run the app
-
+inside app.js: set isTestingMode to true to enable testing mode, or false to run in normal mode.
 ```
 yarn run start
 ```

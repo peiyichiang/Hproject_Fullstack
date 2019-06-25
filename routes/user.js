@@ -17,7 +17,7 @@ var multer = require('multer');
 const IDStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         // if (req.body.picture == "IDfront" || "IDback") {
-        cb(null, './images/ID/')
+        cb(null, './public/images/ID')
         // }
         // else{
         // cb(null, './images/bank_booklet/')
@@ -30,7 +30,7 @@ const IDStorage = multer.diskStorage({
 const uploadIDImages = multer({ storage: IDStorage })
 const BookletStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './images/bank_booklet/')
+        cb(null, './public/images/bank_booklet')
 
     },
     filename: function (req, file, cb) {
@@ -120,14 +120,14 @@ router.post('/send_email', function (req, res) {
         port: 465,
         secure: true, // use SSL
         auth: {
-            user: "user3@heliumcryptic.club",
-            pass: "n{#K](MG.Orc"
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
         }
     });
 
     // setup email data with unicode symbols
     let mailOptions = {
-        from: ' <user3@heliumcryptic.club>', // sender address
+        from: ' <jmh@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
         text: '請點以下連結以完成驗證： http://140.119.101.130:3030/user/verify_email?hash=' + passwordHash, // plain text body
@@ -225,8 +225,8 @@ router.post('/post_IDImage', uploadIDImages.single('image'), function (req, res)
 
 router.post('/post_BookletImage', uploadBookletImage.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
-    var email = req.body.email
-    var imageLocation = req.body.imageLocation
+    var email = req.body.email;
+    var imageLocation = req.body.imageLocation;
     mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
         if (err) {
             res.status(400)
@@ -305,105 +305,99 @@ router.post('/AddUser', function (req, res, next) {
                     });
                 }
             });
-
         })
         .catch(err => console.error(err.message));
-
 });
 
 
 //http://localhost:3000/user/UserLogin
 router.get('/UserLogin', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserLogin');
+    console.log('------------------------==\n@User/UserLogin');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
-    let email, password;
-    if (req.body.email) {
-        email = req.body.email; password = req.body.password;
-    } else { email = req.query.email; password = req.query.password; }
+    // console.log('req.query', req.query, 'req.body', req.body);
+    // let email, password;
+    // if (req.body.email) {
+    //     email = req.body.email;
+    //     password = req.body.password;
+    // } else {
+    //     email = req.query.email;
+    //     password = req.query.password;
+    // }
+    const email = req.query.email;
+    const password = req.query.password;
 
-    var qur = mysqlPoolQuery(qstr1, email, function (err, result) {
+    mysqlPoolQuery(qstr1, email, function (err, result) {
         if (err) {
-            console.log(err);
             res.status(400);
             res.json({
                 "message": "[Error] db to/from DB :\n" + err,
-                "success": false
             });
+            console.log(err);
         } else {
-            res.status(200);
             if (result.length === 0) {
-                console.log("[Not Valid] No email is found", result);
+                res.status(400);
                 res.json({
-                    "message": "[Error] No email is found",
-                    "result": result,
-                    "success": false
+                    "message": "No email is found",
                 });
+                console.error('No email is found:', email)
             } else if (result.length === 1) {
-                console.log("[Good] 1 Email is found", result);
-                const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
-                const timeExpiry = timeLogin + 60 * 60;
-                console.log('timeLogin', timeLogin, 'timeExpiry', timeExpiry);
+                if (result[0].u_verify_status === 0) {
+                    res.status(400);
+                    res.json({
+                        "message": "Email is not verified",
+                    });
+                    console.error('Email is not verified:', email)
+                }
+                else {
+                    const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
+                    const timeExpiry = timeLogin + 60 * 60;
 
-                bcrypt
-                    .compare(password, result[0].u_password_hash)
-                    .then(compareResult => {
-                        console.log(compareResult);
-                        if (compareResult) {
-                            const user = result[0];
+                    bcrypt
+                        .compare(password, result[0].u_password_hash)
+                        .then(compareResult => {
+                            if (compareResult) {
+                                var data = {
+                                    u_email: result[0].u_email,
+                                    u_identityNumber: result[0].u_identityNumber,
+                                    u_assetbookContractAddress: result[0].u_assetbookContractAddress,
+                                    u_investorLevel: result[0].u_investorLevel,
+                                    u_verify_status: result[0].u_verify_status,
+                                };
+                                time = { expiresIn: '24h' };
+                                token = jwt.sign(data, 'privatekey', time);
 
-                            var data = {
-                                u_email: result[0].u_email,
-                                u_identityNumber: result[0].u_identityNumber,
-                                u_assetbookContractAddress: result[0].u_assetbookContractAddress,
-                                u_investorLevel: result[0].u_investorLevel,
-                                u_verify_status: result[0].u_verify_status,
-                            };
-                            time = {
-                                expiresIn: '24h'
-                            };
-                            token = jwt.sign(data, 'privatekey', time);
-
-                            // token = jwt.sign({ user, exp: Math.floor(Date.now() / 1000) + (60 * 15) }, 'privatekey');
-                            // console.log("＊＊JWT token:" + token);
-                            // var decoded = jwt.verify(token, 'privatekey');
-                            // console.log("＊@Decoded：" + JSON.stringify(decoded));
-                            console.log("[Success] Passwords are matched");
-                            res.json({
-                                "message": "[Success] password is correct",
-                                "result": result,
-                                "success": true,
-                                "expiry": timeExpiry,
-                                "jwt": token
-                            });
-
-                        } else {
-                            console.log("[Not Valid] password is not correct");
-                            res.json({
-                                "message": "[Not Valid] password is not correct",
-                                "result": result,
-                                "success": false
-                            });
-                        }
-                    }).catch(err => console.error('Error at compare password & pwHash', err.message));
-
+                                res.status(200);
+                                res.json({
+                                    "message": "password is correct",
+                                    "result": result[0],
+                                    "expiry": timeExpiry,
+                                    "jwt": token
+                                });
+                            } else {
+                                res.status(400);
+                                res.json({
+                                    "message": "password is not correct",
+                                });
+                                console.error("password is not correct");
+                            }
+                        })
+                        .catch(err => console.error('Error at compare password & pwHash', err.message));
+                }
             } else {
-                console.log("[Duplicated] Duplicate entries are found");
+                res.status(400);
                 res.json({
-                    "message": "[Duplicated] Duplicate entries are found",
-                    "result": result,
-                    "success": false
+                    "message": "Duplicate entries are found in DB",
                 });
+                console.error('Duplicate entries are found in DB:', email)
             }
-
         }
     });
 });
 
 //http://localhost:3000/user/UserByEmail
 router.get('/UserByEmail', function (req, res, next) {
-    console.log('------------------------==\n@Order/User');
+    console.log('------------------------==\n@User/User');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -456,7 +450,7 @@ router.get('/UserByEmail', function (req, res, next) {
 
 //http://localhost:3000/user/UserByCellphone
 router.get('/UserByCellphone', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserByCellphone');
+    console.log('------------------------==\n@User/UserByCellphone');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_cellphone = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -507,7 +501,7 @@ router.get('/UserByCellphone', function (req, res, next) {
 
 //http://localhost:3000/user/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
-    console.log('------------------------==\n@Order/UserByUserId');
+    console.log('------------------------==\n@User/UserByUserId');
     let qstr1 = 'SELECT * FROM htoken.user WHERE u_identityNumber = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -726,34 +720,111 @@ router.post('/EditEndorser', function (req, res, next) {
                 "success": false,
             });
         });
-
 });
 
-//回傳該使用者信箱是否已經驗證
-router.get('/isUserEmailVerified', function (req, res) {
-    let userEmailAddress = req.query.userEmailAddress;
-    let mysqlPoolQuery = req.pool;
-    console.log(userEmailAddress)
-    mysqlPoolQuery(
-        'SELECT u_verify_status FROM htoken.user WHERE u_email = \'' + userEmailAddress + '\'', function (err, result) {
+
+router.post('/ForgetPassword', function (req, res, next) {
+    //   var db = req.con;
+    var mysqlPoolQuery = req.pool;
+    var emailAddress = req.body.emailAddress;
+    mysqlPoolQuery('SELECT * FROM htoken.user WHERE u_email = ?', emailAddress, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        // console.log(rows.length);
+
+        //查無此帳號
+        if (rows.length == 0) {
+            res.render('error', { message: '查無此帳號', error: '' });
+        } else {
+            //將重新設置連結寄送到信箱
+            console.log(rows[0].u_email);
+            email = rows[0].u_email;
+            passwordHash = rows[0].u_password_hash;
+
+            var transporter = nodemailer.createTransport({
+                /* Helium */
+                host: 'server239.web-hosting.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: ' <noreply@hcat.io>', // sender address
+                to: email, // list of receivers
+                subject: '重新設置密碼', // Subject line
+                text: '請點以下連結重新設置密碼： http://140.119.101.130:3030/user/ResetPassword?hash=' + passwordHash, // plain text body
+                // html: '<b>Hello world?</b>' // html body
+            };
+
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "重新設置密碼連結 寄送失敗：" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "重新設置密碼連結 寄送成功"
+                    })
+                }
+                // console.log('Message sent: %s', info.messageId);
+                // Preview only available when sending through an Ethereal account
+                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+            });
+        }
+        // res.render('EditBackendUser', { title: 'Edit Product', data: data });
+    });
+});
+
+//重設密碼
+router.post('/ResetPassword', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    var newPassword = req.body.password1;
+    var ResetPasswordHash= req.body.resetPasswordHash;
+    var sql = {}
+    console.log(newPassword);
+    console.log(ResetPasswordHash);
+
+    const saltRounds = 10;
+    bcrypt
+    .genSalt(saltRounds)
+    .then(salt => {
+        console.log(`Salt: ${salt}`);
+        sql.u_salt = salt
+        return bcrypt.hash(newPassword, salt);
+    })
+    .then(hash  => {
+        console.log(`Hash: ${hash}`);
+        sql.u_password_hash = hash
+        console.log("###" + JSON.stringify(sql));
+
+        mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
             if (err) {
-                res.status(400)
-                res.json({
-                    "message": "信箱驗證狀態取得失敗:" + err
-                })
-            }
-            else {
-                let userVerifiedStatus
-                result[0].u_verify_status == 0 ? userVerifiedStatus = false : userVerifiedStatus = true
-                res.status(200);
-                res.json({
-                    "message": "信箱驗證狀態取得成功！",
-                    "result": userVerifiedStatus
-                });
+                console.log(err);
+                res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+            } else {
+                // res.setHeader('Content-Type', 'application/json');
+                // res.redirect('/BackendUser/backend_user');
+                res.render('error', { message: '更改密碼成功', error: '' });
             }
         });
+
+    })
+    .catch(err => console.error(err.message));
 });
 
+router.get('/ResetPassword', function (req, res, next) {
+    res.render('FrontendResetPassword', { title: 'FrontendResetPassword' });
+});
 
 module.exports = router;
 /**

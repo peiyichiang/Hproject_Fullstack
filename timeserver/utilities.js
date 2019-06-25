@@ -21,6 +21,9 @@ Date.prototype.myFormat = function () {
 };
 
 
+const checkInt =(item) => Number.isInteger(item);
+const checkIntFromOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
+const checkBoolTrueArray = (item) => item;
 
 
 async function asyncForEach(array, callback) {
@@ -95,5 +98,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach
+  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach, checkInt, checkIntFromOne, checkBoolTrueArray
 }

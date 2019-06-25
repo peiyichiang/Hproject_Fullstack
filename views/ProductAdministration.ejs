@@ -34,50 +34,56 @@
 
     <!-- 租金發放審核區：假如ia_State==ia_state_underReview >0，才顯示 -->
     <% if (iaData.length>0 ) { %>
-        <div class="tableTitle bg-warning Region"
-            style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
-            <i class="fas fa-plus" style="display: none;"></i>
-            <i class="fas fa-minus"></i>
-            <span style="margin-left:15px;">上租金發放審核區</span>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover table-striped">
-                <tr class="bg-warning" style="color:white;">
-                    <th class="nowrap">Token代號</th>
-                    <th class="nowrap">預計發放時間</th>
-                    <th class="nowrap">校正前發放金額</th>
-                    <th class="nowrap">校正後發放金額</th>
-                    <th class="nowrap">審核</th>
-                </tr>
-                    <% for ( var i = 0 ; i < iaData.length ; i++){ %>
-                        <tr>                    
-                            <td>            
-                                <form hidden name="correctActualPaymentForm" id="correctActualPaymentForm" action="/Product/CorrectActualPaymentResult" method="post" accept-charset="utf-8">
-                                    <div class="modal-body">
-                                        Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol" name="CorrectActualPaymentTokenSymbol">
-                                        付款時間：<input type="text" readonly="readonly" id="CorrectActualPaymentTime" name="CorrectActualPaymentTime">
-                                        校正結果：<input type="text" id="CorrectActualPaymentResult" name="CorrectActualPaymentResult">
-                                    </div>
-                                </form>
-                                
-                                <%= iaData[0].ia_SYMBOL  %>
-                            </td>
-                            <td>
-                                <%= iaData[0].ia_time  %>
-                            </td>
-                            <td>
-                                <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
-                            </td>
-                            <td>
-                                <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-success" onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_approved')">通過</button>&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-danger" onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_unapproved')">退回</button>
-                            </td>
-                        </tr>
-                    <% } %>
-            </table>
-        </div>
+    <div class="tableTitle bg-warning Region"
+        style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
+        <i class="fas fa-plus" style="display: none;"></i>
+        <i class="fas fa-minus"></i>
+        <span style="margin-left:15px;">上租金發放審核區</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <tr class="bg-warning" style="color:white;">
+                <th class="nowrap">Token代號</th>
+                <th class="nowrap">預計發放時間</th>
+                <th class="nowrap">校正前發放金額</th>
+                <th class="nowrap">校正後發放金額</th>
+                <th class="nowrap">審核</th>
+            </tr>
+            <% for ( var i = 0 ; i < iaData.length ; i++){ %>
+            <tr>
+                <td>
+                    <form hidden name="correctActualPaymentForm" id="correctActualPaymentForm"
+                        action="/Product/CorrectActualPaymentResult" method="post" accept-charset="utf-8">
+                        <div class="modal-body">
+                            Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol"
+                                name="CorrectActualPaymentTokenSymbol">
+                            付款時間：<input type="text" readonly="readonly" id="CorrectActualPaymentTime"
+                                name="CorrectActualPaymentTime">
+                            校正結果：<input type="text" id="CorrectActualPaymentResult" name="CorrectActualPaymentResult">
+                        </div>
+                    </form>
+
+                    <%= iaData[0].ia_SYMBOL  %>
+                </td>
+                <td>
+                    <%= iaData[0].ia_time  %>
+                </td>
+                <td>
+                    <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
+                </td>
+                <td>
+                    <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success"
+                        onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_approved')">通過</button>&nbsp;&nbsp;&nbsp;&nbsp;<button
+                        type="button" class="btn btn-danger"
+                        onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_unapproved')">退回</button>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
     <% } %>
 
 
@@ -1324,11 +1330,11 @@
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>
     <script>
-        function correctActualPayment(iaSymbol,iaTime,isState){
+        function correctActualPayment(iaSymbol, iaTime, isState) {
             // alert(iaSymbol + "," + iaTime + "," + isState);
-            document.getElementById("CorrectActualPaymentTokenSymbol").value=iaSymbol;
-            document.getElementById("CorrectActualPaymentTime").value=iaTime;
-            document.getElementById("CorrectActualPaymentResult").value=isState;
+            document.getElementById("CorrectActualPaymentTokenSymbol").value = iaSymbol;
+            document.getElementById("CorrectActualPaymentTime").value = iaTime;
+            document.getElementById("CorrectActualPaymentResult").value = isState;
             document.getElementById('correctActualPaymentForm').submit();
         }
 
@@ -1547,52 +1553,24 @@
                     document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
                     document.getElementById(buttonID).disabled = true;
 
-                    /*部署TokenControllerContract*/
-                    console.log("TokenControllerContract deploying...");
-                    $.post("http://localhost:3030/Contracts/tokenControllerContract", {
-                        TimeOfDeployment: TimeOfDeployment,
-                        TimeTokenUnlock: lockupperiod,
-                        TimeTokenValid: TimeTokenValid
+                    $.post("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/closeFunding", {
+                        "TimeOfDeployment": TimeOfDeployment,
+                        "TimeTokenUnlock": lockupperiod,
+                        "TimeTokenValid": TimeTokenValid,
+                        "nftName": nftName,
+                        "siteSizeInKW": siteSizeInKW,
+                        "maxTotalSupply": maxTotalSupply,
+                        "initialAssetPricing": initialAssetPricing,
+                        "pricingCurrency": pricingCurrency,
+                        "IRR20yrx100": parseInt(irr * 100),
+                        "tokenURI": HCAT721uri,
+                        "crowdFundingCtrtAddr": result.crowdFundingAddr
                     }, function (result) {
-                        //var result = JSON.parse(resultJSON);
                         console.log(result);
-                        console.log(result.contractAddress);
-                        console.log(nftSymbol);
-                        console.log(HCAT721uri);
-                        let IRR20yrx100 = parseInt(irr*100);
-                        console.log(IRR20yrx100);
-
-
-
-                        let tokencontrollerContract = result.contractAddress;
-
-                        if (result.status == true) {
-                            $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol, {
-                                nftName: nftName,
-                                siteSizeInKW: siteSizeInKW,
-                                maxTotalSupply: maxTotalSupply,
-                                initialAssetPricing: initialAssetPricing,
-                                pricingCurrency: pricingCurrency,
-                                IRR20yrx100: IRR20yrx100,
-                                addrERC721SPLC_ControllerITF: tokencontrollerContract,
-                                tokenURI: HCAT721uri
-                            }, function (result) {
-                                //var result = JSON.parse(resultJSON);
-                                console.log(result);
-                                //console.log(result.deployResult.contractAddress);
-                                if (result.status == true) {
-                                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                                        tokenState: "FundingClosed",
-                                        tokenSymbol: nftSymbol
-                                    }, function (result) {
-                                        console.log(result);
-                                        // 設置好後重新整理
-                                        location.reload();
-                                    })
-                                }
-                            });
-                        }
+                        location.reload();
                     });
+
+
                 } else if (result.fundingState == 5) {
                     document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
                     document.getElementById(buttonID).disabled = true;
@@ -1650,38 +1628,8 @@
                         fundingType: fundingType
                     }, async function (result) {
                         console.log(result);
-                        if (result.success == true) {
-                            $.post("http://localhost:3030/Contracts/incomeManagerContract/" + nftSymbol, {
-                                erc721address: erc721address
-                            }, function (result) {
-
-                                console.log("income:" + result);
-                                console.log("income:" + result.deployResult);
-                                if (result.status == true) {
-                                    $.post("http://localhost:3030/Contracts/productManagerContract/" + nftSymbol, {
-                                        erc721address: erc721address,
-                                        crowdFundingCtrtAddr: crowdFundingCtrtAddr,
-                                        tokenControllerCtrtAddr: tokenControllerCtrtAddr,
-                                        incomeManagementCtrtAddr: result.deployResult.contractAddress
-                                    }, function (result) {
-
-                                        console.log(result);
-                                        if (result.result.status == true) {
-                                            // 將產品狀態設置為FundingComplete
-                                            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                                                tokenState: State,
-                                                tokenSymbol: nftSymbol
-                                            }, function (result) {
-                                                console.log(result);
-                                                // 設置好後重新整理
-                                                location.reload();
-                                            })
-                                        }
-                                    });
-                                }
-                            });
-                        }
-
+                        // 設置好後重新整理
+                        location.reload();
                     })
 
                 });

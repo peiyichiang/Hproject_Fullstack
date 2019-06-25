@@ -4,6 +4,8 @@ var jwt = require('jsonwebtoken');
 var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
+const { getTime, asyncForEach } = require('../timeserver/utilities');
+
 
 //撈取資料(Platform_Supervisor專用，沒在用)
 router.get('/Product', function (req, res, next) {
@@ -285,52 +287,53 @@ router.post('/AddProductByFMN', function (req, res, next) {
     // }
     var mysqlPoolQuery = req.pool;
 
-  //因為是FMN新增的產品資料，所以狀態永遠是creation
-  //新增該產品資料的Fund Manager則是用存在JWT中的帳號資料
-  console.log("@@@"+req.body.p_fundingType);
-  var sql = {
-      p_SYMBOL: req.body.p_SYMBOL,
-      p_name: req.body.p_name,
-      p_location: req.body.p_location,
-      p_pricing: req.body.p_pricing,
-      p_duration: req.body.p_duration,
-      p_currency: req.body.p_currency,
-      p_irr: Number(req.body.p_irr).toFixed(2),
-      p_releasedate: req.body.p_releasedate,
-      p_validdate: req.body.p_validdate,
-      p_size: req.body.p_size,
-      p_totalrelease: req.body.p_totalrelease,
-      p_fundingType:req.body.p_fundingType,
-      p_fundmanager: JWT_decoded.payload.m_id,
-      p_state: "draft",   //草稿
-      p_icon:req.body.p_icon,
-      p_assetdocs:req.body.p_assetdocs,
-      p_csvFIle:req.body.p_csvFIle,
-      p_Image1:req.body.p_Image1,
-      p_Image2:req.body.p_Image2,
-      p_Image3:req.body.p_Image3,
-      p_Image4:req.body.p_Image4,
-      p_Image5:req.body.p_Image5,
-      p_Image6:req.body.p_Image6,
-      p_Image7:req.body.p_Image7,
-      p_Image8:req.body.p_Image8,
-      p_Image9:req.body.p_Image9,
-      p_Image10:req.body.p_Image10,
-      p_FAY:req.body.p_FAY,
-      p_FTRT:req.body.p_FTRT,
-      p_RPT:req.body.p_RPT,
-      p_FRP:req.body.p_FRP,
-      p_Timeline:req.body.p_Timeline,
-      p_PSD:req.body.p_PSD,
-      p_TaiPowerApprovalDate:req.body.p_TaiPowerApprovalDate,
-      p_BOEApprovalDate:req.body.p_BOEApprovalDate,
-      p_PVTrialOperationDate:req.body.p_PVTrialOperationDate,
-      p_PVOnGridDate:req.body.p_PVOnGridDate,
-      p_CFSD:req.body.p_CFSD,
-      p_CFED:req.body.p_CFED,
-      p_fundingGoal:req.body.p_fundingGoal,
-      p_HCAT721uri:req.body.p_HCAT721uri
-  };
+    //因為是FMN新增的產品資料，所以狀態永遠是creation
+    //新增該產品資料的Fund Manager則是用存在JWT中的帳號資料
+    console.log("@@@" + req.body.p_fundingType);
+    var sql = {
+        p_SYMBOL: req.body.p_SYMBOL,
+        p_name: req.body.p_name,
+        p_location: req.body.p_location,
+        p_pricing: req.body.p_pricing,
+        p_duration: req.body.p_duration,
+        p_currency: req.body.p_currency,
+        p_irr: Number(req.body.p_irr).toFixed(2),
+        p_releasedate: req.body.p_releasedate,
+        p_validdate: req.body.p_validdate,
+        p_size: req.body.p_size,
+        p_totalrelease: req.body.p_totalrelease,
+        p_fundingType: req.body.p_fundingType,
+        p_fundmanager: JWT_decoded.payload.m_id,
+        p_state: "draft",   //草稿
+        p_icon: req.body.p_icon,
+        p_assetdocs: req.body.p_assetdocs,
+        p_csvFIle: req.body.p_csvFIle,
+        p_Image1: req.body.p_Image1,
+        p_Image2: req.body.p_Image2,
+        p_Image3: req.body.p_Image3,
+        p_Image4: req.body.p_Image4,
+        p_Image5: req.body.p_Image5,
+        p_Image6: req.body.p_Image6,
+        p_Image7: req.body.p_Image7,
+        p_Image8: req.body.p_Image8,
+        p_Image9: req.body.p_Image9,
+        p_Image10: req.body.p_Image10,
+        p_FAY: req.body.p_FAY,
+        p_FTRT: req.body.p_FTRT,
+        p_RPT: req.body.p_RPT,
+        p_FRP: req.body.p_FRP,
+        p_Timeline: req.body.p_Timeline,
+        p_PSD: req.body.p_PSD,
+        p_TaiPowerApprovalDate: req.body.p_TaiPowerApprovalDate,
+        p_BOEApprovalDate: req.body.p_BOEApprovalDate,
+        p_PVTrialOperationDate: req.body.p_PVTrialOperationDate,
+        p_PVOnGridDate: req.body.p_PVOnGridDate,
+        p_CFSD: req.body.p_CFSD,
+        p_CFED: req.body.p_CFED,
+        p_fundingGoal: req.body.p_fundingGoal,
+        p_HCAT721uri: req.body.p_HCAT721uri,
+        p_EPCname:req.body.p_EPCname
+    };
 
     console.log(sql);
 
@@ -527,7 +530,8 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CFSD: req.body.p_CFSD,
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
-        p_HCAT721uri: req.body.p_HCAT721uri
+        p_HCAT721uri: req.body.p_HCAT721uri,
+        p_EPCname:req.body.p_EPCname
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
@@ -1020,7 +1024,7 @@ router.get('/IncomeArrangement', function (req, res, next) {
     var symbol = req.query.symbol;
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol  , function(err, rows) {
+    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol, function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1040,7 +1044,7 @@ router.post('/CorrectActualPayment', function (req, res, next) {
 
     var sql = {
         ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
-        ia_State:"ia_state_underReview"
+        ia_State: "ia_state_underReview"
     };
 
     var mysqlPoolQuery = req.pool;
@@ -1175,23 +1179,15 @@ router.get('/LaunchedProductList', function (req, res) {
                     /* TODO: 這些資料的斜線要去掉 */
                     productArray.map(
                         product => {
-                            product.imageURL1 = "imageURL1"
-                            product.imageURL2 = "imageURL2"
-                            product.imageURL3 = "imageURL3"
-                            product.imageURL4 = "imageURL4"
-                            product.imageURL5 = "imageURL5"
-                            product.imageURL6 = "imageURL6"
-                            product.imageURL7 = "imageURL7"
-                            product.imageURL8 = "imageURL8"
-                            product.imageURL9 = "imageURL9"
-                            product.imageURL10 = "imageURL10"
-                            if (product.taiPowerApprovalDate === null)
+                            if (!product.imageURL)
+                                product.imageURL = "imageURL"
+                            if (!product.taiPowerApprovalDate)
                                 product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                            if (product.BOEApprovalDate === null)
+                            if (!product.BOEApprovalDate)
                                 product.BOEApprovalDate = "BOEApprovalDate"
-                            if (product.PVTrialOperationDate === null)
+                            if (!product.PVTrialOperationDate)
                                 product.PVTrialOperationDate = "PVTrialOperationDate"
-                            if (product.PVOnGridDate === null)
+                            if (!product.PVOnGridDate)
                                 product.PVOnGridDate = "PVOnGridDate"
                             if (product.fundingType === "PO") {
                                 product.fundingType = "PublicOffering"
@@ -1201,12 +1197,12 @@ router.get('/LaunchedProductList', function (req, res) {
                         });
                     res.status(200);
                     res.json({
-                        "message": "產品列表取得成功！",
+                        "message": "產品列表取得成功",
                         "result": productArray
                     });
                 } else {
                     res.json({
-                        "message": "產品列表取得成功: 找不到資產"
+                        "message": "產品列表取得成功: 找不到已上架產品"
                     });
                 }
             }
@@ -1380,6 +1376,65 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
             });
         }
     });
+});
+
+//回傳該使用者是否可購買token
+router.get('/canBuyToken', async function (req, res) {
+    let keys = [req.query.symbol, req.query.email]
+    let mysqlPoolQuery = req.pool;
+    let isServerTimeLargerThanCFSD;
+    let isAssetbookContractAddressExist;
+    let canBuyToken;
+    const serverTime = await getTime();
+    mysqlPoolQuery(
+        `SELECT p_CFSD AS CFSD, 
+                u_assetbookContractAddress AS assetbookContractAddress
+         FROM htoken.product , htoken.user
+         WHERE p_Symbol = ? AND u_email = ?
+         `, keys, function (err, result) {
+            if (err) {
+                res.status(400)
+                res.json({
+                    "message": "專案狀態取得失敗:" + err
+                })
+            }
+            else {
+                serverTime >= Number(result[0].CFSD) ?
+                    isServerTimeLargerThanCFSD = true :
+                    isServerTimeLargerThanCFSD = false;
+
+                result[0].assetbookContractAddress ?
+                    isAssetbookContractAddressExist = true :
+                    isAssetbookContractAddressExist = false;
+
+                isServerTimeLargerThanCFSD && isAssetbookContractAddressExist ?
+                    canBuyToken = true :
+                    canBuyToken = false;
+
+                if (!!canBuyToken) {
+                    res.status(200);
+                    res.json({
+                        "message": "可購買token",
+                        "result": canBuyToken
+                    });
+                }
+                else {
+                    if (!!isServerTimeLargerThanCFSD) {
+                        res.status(200);
+                        res.json({
+                            "message": "使用者尚未通過身份驗證",
+                            "result": canBuyToken
+                        });
+                    } else {
+                        res.status(200);
+                        res.json({
+                            "message": "專案尚未開賣",
+                            "result": canBuyToken
+                        });
+                    }
+                }
+            }
+        });
 });
 
 
