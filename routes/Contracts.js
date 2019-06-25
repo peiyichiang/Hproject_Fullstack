@@ -668,14 +668,16 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
     })
         .send({
             from: backendAddr,
-            gas: 6500000,
+            gas: 9000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
             tokenControllerAddr = receipt.contractAddress;
         })
         .on('error', function (error) {
-            res.send(error.toString());
+            console.log("tokenController deploy failed");
+            res.status(500);
+            res.send({ Title: "tokenController deploy failed", Reason: error.toString() });
         })
 
     await HCAT721.deploy({
@@ -684,14 +686,16 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
     })
         .send({
             from: backendAddr,
-            gas: 9000000,
+            gas: 10000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
             HCAT721Addr = receipt.contractAddress;
         })
         .on('error', function (error) {
-            res.send(error.toString());
+            console.log("HCAT721 deploy failed");
+            res.status(500);
+            res.send({ Title: "HCAT721 deploy failed", Reason: error.toString() });
         })
 
     await incomeManager.deploy({
@@ -700,14 +704,16 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
     })
         .send({
             from: backendAddr,
-            gas: 6500000,
+            gas: 9000000,
             gasPrice: '0'
         })
         .on('receipt', function (receipt) {
             incomeManagerAddr = receipt.contractAddress;
         })
         .on('error', function (error) {
-            res.send(error.toString());
+            console.log("incomeManager deploy failed");
+            res.status(500);
+            res.send({ Title: "incomeManager deploy failed", Reason: error.toString() });
         })
 
     let encodedData = productManager.methods.addNewCtrtGroup(nftSymbolBytes32, crowdFundingCtrtAddr, tokenControllerAddr, HCAT721Addr, incomeManagerAddr).encodeABI();
@@ -1010,25 +1016,25 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
             console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
             /**@todo 更改資料庫狀態 */
-            const result = await setFundingStateDB(nftSymbol, 'fundingComplete', 'na', 'na').catch((err) => {
-              console('[Error @ setFundingStateDB()', err);
-              res.send({
-                success: false,
-                result: '[Error] failed at setFundingStateDB()',
-              });
+            const result = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+                console('[Error @ setFundingStateDB()', err);
+                res.send({
+                    success: false,
+                    result: '[Error] failed at setFundingStateDB()',
+                });
             });
             console.log('result:', result);
 
-            if(result3){
-              res.send({
-                success: true,
-                result: '[Success] All balances are correct',
-              });
+            if (result) {
+                res.send({
+                    success: true,
+                    result: '[Success] All balances are correct',
+                });
             } else {
-              res.send({
-                success: false,
-                result: '[Error] failed at setFundingStateDB()',
-              });
+                res.send({
+                    success: false,
+                    result: '[Error] failed at setFundingStateDB()',
+                });
             }
 
         } else {
