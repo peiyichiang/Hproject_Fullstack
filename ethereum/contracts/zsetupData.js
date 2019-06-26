@@ -39,17 +39,27 @@ const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, As
 //AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
 
 const managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4];
-
+let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
     cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
  */
-const addrHelium =     "0xF2F6e8296B75dbb51968139ED4eF33E6dA2f107a";
-const addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
-const addrAssetBook2 = "0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11";
-const addrAssetBook3 = "0xC80E77bC804a5cDe179C0C191A43b87088C5e183";
-const addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
-
+const chain = 2;
+if (chain === 1){
+  addrHelium =     "0xF2F6e8296B75dbb51968139ED4eF33E6dA2f107a";
+  addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
+  addrAssetBook2 = "0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11";
+  addrAssetBook3 = "0xC80E77bC804a5cDe179C0C191A43b87088C5e183";
+  addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
+  
+} else if (chain === 2){
+  //ganache chain
+  addrHelium = "0x391DAce017a97273e1231c7072F6cd9dCD05e798";
+  addrAssetBook1 ="";
+  addrAssetBook2 = "";
+  addrAssetBook3 = "";
+  addrRegistry =   "";
+}
 
 //fundingType= 1 PO, 2 PP
 //Math.round(maxTotalSupply*quantityGoalPercentage);

@@ -1,6 +1,6 @@
 pragma solidity ^0.5.4;
 
-import "./SafeMath.sol";//not used i++ is assumed not to be too big
+import "./SafeMath.sol";//not used i++
 
 interface HCAT721ITF_assetbook {
     function balanceOf(address _owner) external view returns (uint256);
@@ -26,15 +26,14 @@ contract MultiSig {
     using SafeMath for uint256;
     using AddressUtils for address;
 
-    address public assetOwner; /** @dev 用戶 EOA */
-    address public addrHeliumContract; /** @dev 平台方 */
-    address[] public endorserCtrts; /** @dev 背書者的 (一到三個人) */
+    address public assetOwner; /** @dev user EOA */
+    address public addrHeliumContract; /** @dev platform address */
+    address[] public endorserCtrts; /** @dev endorser assetbooks: 1 to 3 */
     // we require addrHeliumContract and endorserCtrt because EOA may change ...
     uint public assetOwner_flag;
     uint public HeliumContract_flag;
     uint public endorserCtrts_flag;
 
-    /** @dev multiSig相關event */
     event ChangeAssetOwnerEvent(address indexed oldAssetOwner, address indexed newAssetOwner, uint256 timestamp);
     event ChangeEndorserCtrtEvent(address indexed oldEndorserCtrt, address indexed newEndorserCtrt, uint256 timestamp);
     event AddEndorserEvent(address indexed endorserCtrts, uint256 timestamp);
@@ -42,48 +41,49 @@ contract MultiSig {
     event HeliumCtrtVoteEvent(address indexed addrHeliumContract, uint256 timestamp);
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
 
-    /** @dev 檢查是否為合約擁有者 */
+
     modifier ckAssetOwner(){
         require(msg.sender == assetOwner, "sender must be assetOwner");
         _;
     }
-    modifier ckIsContract(address assetAddr) {
-        require(assetAddr.isContract(), "assetAddr has to contain a contract");
+    function checkAssetOwner() public view returns (bool){
+        return (msg.sender == assetOwner);
+    }
+
+    function checkIsContract(address assetAddr) public view returns (bool){
         //require(assetAddr != address(0), "assetAddr should not be zero");
+        return (assetAddr.isContract());
+    }
+
+    modifier ckCustomerService(){
+        require(HeliumITF(addrHeliumContract).checkCustomerService(msg.sender), "only a customer service rep is allowed");
         _;
-    }
-
-    // for assetOwner to vote
-    function assetOwnerVote(uint256 _timeCurrent) external ckAssetOwner {
-        assetOwner_flag = 1;
-        emit AssetOwnerVoteEvent(msg.sender, _timeCurrent);
-    }
-
-    function setHeliumAddr(address _addrHeliumContract) external {
-        require(checkCustomerService(), "only a customer service rep can call this function");
-        addrHeliumContract = _addrHeliumContract;
     }
     function checkCustomerService() public view returns (bool){
         return (HeliumITF(addrHeliumContract).checkCustomerService(msg.sender));
     }
-    // for addrHeliumContract to vote
-    function HeliumContractVote(uint256 _timeCurrent) external {
-        require(checkCustomerService(), "only a customer service rep can call this function");
-        HeliumContract_flag = 1;
-        emit HeliumCtrtVoteEvent(msg.sender, _timeCurrent);
+
+    // for assetOwner to vote
+    function assetOwnerVote(uint256 serverTime) external ckAssetOwner {
+        assetOwner_flag = 1;
+        emit AssetOwnerVoteEvent(msg.sender, serverTime);
     }
 
-    // for endorserCtrt to vote on other multiSig contracts
-    function endorserCtrtsVoteOutbound(address _multisigCtrt, uint256 _timeCurrent) public ckIsContract(_multisigCtrt){
-        MultiSig multiSig = MultiSig(address(uint160(_multisigCtrt)));
-        multiSig.endorserCtrtsVoteInbound(_timeCurrent);
+    function setHeliumAddr(address _addrHeliumContract) external ckCustomerService {
+        addrHeliumContract = _addrHeliumContract;
     }
+    // for addrHeliumContract to vote
+    function HeliumContractVote(uint256 serverTime) external ckCustomerService {
+        HeliumContract_flag = 1;
+        emit HeliumCtrtVoteEvent(msg.sender, serverTime);
+    }
+
 
     // for this endorser contract to receive votes from other multiSig contracts
-    function endorserCtrtsVoteInbound(uint256 _timeCurrent) external {
+    function endorserCtrtsVoteInbound(uint256 serverTime) external {
         require(endorserCtrts[0] == msg.sender || endorserCtrts[1] == msg.sender || endorserCtrts[2] == msg.sender, "sender must be one of the endorserCtrts");
         endorserCtrts_flag = 1;
-        emit EndorserVoteEvent(msg.sender, _timeCurrent);
+        emit EndorserVoteEvent(msg.sender, serverTime);
     }
 
 
@@ -92,36 +92,32 @@ contract MultiSig {
         return (assetOwner_flag + HeliumContract_flag + endorserCtrts_flag);
     }
 
-    /** @dev 重置簽章狀態 */
-    function resetVoteStatus() internal {
+    function resetVoteStatus() public ckCustomerService {
         assetOwner_flag = 0;
         HeliumContract_flag = 0;
         endorserCtrts_flag = 0;
     }
 
-    /** @dev 更換assetOwner */
     /** @dev When changing assetOwner EOA，two out of three parties must vote on pass */
-    function changeAssetOwner(address _assetOwnerNew, uint256 _timeCurrent) external {
+    function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external ckCustomerService{
         require(calculateVotes() >= 2, "vote count must be >= 2");
         address _oldAssetOwner = assetOwner;
         assetOwner = _assetOwnerNew;
         resetVoteStatus();
-        emit ChangeAssetOwnerEvent(_oldAssetOwner, _assetOwnerNew, _timeCurrent);
+        emit ChangeAssetOwnerEvent(_oldAssetOwner, _assetOwnerNew, serverTime);
     }
 
-    /** @dev 新增endorser */
-    function addEndorser(address _newEndorser, uint256 _timeCurrent) public ckAssetOwner{
+    function addEndorser(address _newEndorser, uint256 serverTime) public ckAssetOwner{
         require(endorserCtrts.length <= 3, "endorser count must be <= 3");
         endorserCtrts.push(_newEndorser);
-        emit AddEndorserEvent(_newEndorser, _timeCurrent);
+        emit AddEndorserEvent(_newEndorser, serverTime);
     }
 
-    /** @dev 更換endorser */
-    function changeEndorser(address _oldEndorser, address _newEndorser, uint256 _timeCurrent) public ckAssetOwner{
+    function changeEndorser(address _oldEndorser, address _newEndorser, uint256 serverTime) public ckAssetOwner{
         for(uint i = 0;  i < endorserCtrts.length; i = i.add(1)){
             if(endorserCtrts[i] == _oldEndorser){
                 endorserCtrts[i] = _newEndorser;
-                emit ChangeEndorserCtrtEvent(_oldEndorser, _newEndorser, _timeCurrent);
+                emit ChangeEndorserCtrtEvent(_oldEndorser, _newEndorser, serverTime);
             }
         }
     }
@@ -137,10 +133,9 @@ contract AssetBook is MultiSig {
     using SafeMath for uint256;
     using AddressUtils for address;
 
-    /** @dev asset資料結構 */
     struct Asset{
         bytes32 symbol;
-        uint balance; //Token數量
+        uint balance;
         bool isInitialized;
     }
     mapping (address => Asset) assets;//assets[assetAddr]
@@ -148,7 +143,7 @@ contract AssetBook is MultiSig {
     mapping (uint => address) assetIndexToAddr;//starts from 1, 2... assetCindex. each assset address has an unique index in this asset contract
     mapping (address => uint) addrToAssetIndex;
 
-    /** @dev asset相關event */
+
     event TransferAssetEvent(address to, bytes32 symbol, uint _assetId, uint tokenBalance, uint timestamp);
     event TransferAssetBatchEvent(address to, bytes32 symbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 

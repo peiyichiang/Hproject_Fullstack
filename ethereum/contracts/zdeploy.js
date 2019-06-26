@@ -8,6 +8,7 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 //const timer = require('./api.js');
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+
 const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRow} = require('../../timeserver/mysql.js');
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
@@ -71,12 +72,8 @@ console.log('chain = ', chain, ', ctrtName =', ctrtName);
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
-  // addrProductManager = "";  
-
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
-  console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
-
   const nodeUrl = "http://140.119.101.130:8545";//POA
 
   adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
@@ -87,14 +84,28 @@ if (chain === 1) {//POA private chain
   prefix = '0x';
 
 } else if (chain === 2) {//2: POW private chain
-  const options = { gasLimit: 9000000 };
-  gasLimitValue = '5000000';// for POW private chain
+  gasLimitValue = '7000000';// for POW private chain
   gasPriceValue = '20000000000';//100000000000000000
-  provider = ganache.provider(options);
   const nodeUrl = "http://140.119.101.130:8540";
-  provider = new PrivateKeyProvider(adminpk, nodeUrl);//ganache
+
+  adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
+  //provider = new PrivateKeyProvider(adminpk, nodeUrl);
+
+  //web3.setProvider(ganache.provider());
+
+  //Exceeds block gas limit
+  //https://github.com/trufflesuite/ganache-cli
+  const ganache = require("ganache-cli");
+  //9140000000000000000 => 7ED7CD92FF120000
+  const options = { gasLimit: 8000000, accounts: [{balance: 9140000000000000000, secretKey: adminpk}] };
+  //const server = ganache.server(options);
+  provider = ganache.provider(options);
+
   web3deploy = new Web3(provider);
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+  
+
+
 
 } else if (chain === 3) {
   const options = { gasLimit: 7000000 };
@@ -109,6 +120,8 @@ if (chain === 1) {//POA private chain
   console.log('chain is out of range. chain =', chain);
   process.exit(1);
 }
+console.log(`-------------------==connecting to chain: ${chain}
+gasLimit: ${gasLimitValue}, gasPrice: ${gasPriceValue}`);
 
 
 //Mocha starts > BeforeEach: Deploy a new contract

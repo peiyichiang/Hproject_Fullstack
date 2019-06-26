@@ -9,8 +9,8 @@ echo "app.js: custom ip => localhost"
 sed -i 's/const isTestingMode = true;/const isTestingMode = false;/g' app.js
 sed -i 's/const whichTimeServerArray = [0, 0, 0, 0, 0, 0];/const whichTimeServerArray = [1, 1, 1, 1, 1, 1];/g' ethereum/contracts/zsetupData.js
 
-sed -i 's+console.log(+//console.log(+g' timeserver/blockchain.js
-sed -i 's+console.log(+//console.log(+g' timeserver/mysql.js
+#sed -i 's+console.log(+//console.log(+g' timeserver/blockchain.js
+#sed -i 's+console.log(+//console.log(+g' timeserver/mysql.js
 
 sed -i 's/localhost/140.119.101.130/g' routes/user.js
 sed -i 's/localhost/140.119.101.130/g' routes/verify_fail.html

@@ -2,11 +2,11 @@ const { getTime, asyncForEach } = require('./utilities');
 
 const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB, addIncomePaymentPerPeriodIntoDB } = require('./mysql.js');
 
-const { checkTimeOfOrder, getDetailsCFC,
-  getFundingStateCFC, updateFundingStateCFC, updateCFC, 
+const { updateExpiredOrders, checkTimeOfOrder, getDetailsCFC,
+  getFundingStateCFC, updateFundingStateFromDB, updateFundingStateCFC, 
   addAssetbooksIntoCFC, getInvestorsFromCFC,
-  getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC, cancelOverCFED2Orders, getInvestorsFromCFC_Check } = require('./blockchain.js');
+  getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, 
+  isScheduleGoodIMC, makeOrdersExpiredCFED2, getInvestorsFromCFC_Check } = require('./blockchain.js');
 
 let { symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftSymbol, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
 } = require('../ethereum/contracts/zsetupData');
@@ -32,17 +32,12 @@ userArray.forEach((user, idx) => {
   yarn run testts -a 2 -z 23
   enum FundingState{0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 4 fundingClosed, 5 fundingNotClosed, 6 terminated}
   */
-// 0: getFundingStateCFC(ctrtAddr), 1: choice 0 x all ctrtAddrs, 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: reset funding states in DB, 11: updateCFC(time = CFSD2), 12: updateCFC(time = CFED2);
+// 0: getFundingStateCFC(ctrtAddr), 1: choice 0 x all ctrtAddrs, 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: reset funding states in DB, 11: updateFundingStateFromDB(time = CFSD2), 12: updateFundingStateFromDB(time = CFED2);
 
 const arguLen = process.argv.length;
 console.log('arguLen', arguLen, 'process.argv', process.argv);
 if (arguLen == 3 && process.argv[2] === '--h') {
   console.log("\x1b[32m", '$ yarn run testts --c C');
-  console.log("\x1b[32m", '0: getFundingStateCFC(ctrtAddr), 1: choice 0 x all ctrtAddrs,');
-  console.log("\x1b[32m", '2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs');
-  console.log("\x1b[32m", '10: reset CFC funding states in DB');
-  console.log("\x1b[32m", '11: updateCFC(time = CFSD2)');
-  console.log("\x1b[32m", '12: updateCFC(time = CFED2)');
   process.exit(0);
   // process.on('exit', function(code) {  
   //   return console.log(`About to exit with code ${code}`);
@@ -83,15 +78,15 @@ Options according to test flow:
 
 0: choice 0 x all ctrtAddrs, 
 10: reset DB CFC funding states, 
-21: updateCFC(time == CFSD2);
-22: updateCFC(time == CFED2);
+21: updateFundingStateFromDB(time == CFSD2);
+22: updateFundingStateFromDB(time == CFED2);
 
 2: reset CFC to initial: updateFundingStateCFC(ctrt_ndex), 
 //3: reset CFC all to initial... choice 2 x all ctrtAddrs, 
 11: reset DB to CFSD2, 
 
 1: getFundingStateCFC(ctrtAddr), 
-12: updateCFC(time = CFED2);
+12: updateFundingStateFromDB(time = CFED2);
 
 const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
 */
@@ -205,10 +200,17 @@ const addIncomePaymentPerPeriodIntoDB_API = async () => {
 }
 
 //yarn run testts -a 2 -c 2
-const cancelOverCFED2Orders_API = async () => {
+const makeOrdersExpiredCFED2_API = async () => {
   const serverTime = CFED2;
-  cancelOverCFED2Orders(serverTime);
+  makeOrdersExpiredCFED2(serverTime);
 }
+
+//yarn run testts -a 2 -c 19
+const updateExpiredOrders_API = async () => {
+  const serverTime = 20190630;//orderDate+3
+  updateExpiredOrders(serverTime);
+}
+
 
 
 const getInvestorsCFC_API = async () => {
@@ -311,7 +313,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //  yarn run testts -a 2 -c 2
 } else if(choice === 2){
-  cancelOverCFED2Orders_API();
+  makeOrdersExpiredCFED2_API();
 
 //  yarn run testts -a 2 -c 3
 } else if(choice === 3){
@@ -343,7 +345,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 
 //------------------------==Crowdfunding
-//yarn run testts -a 2 -c 20
+//yarn run testts -a 2 -c 10
 } else if(choice === 10) {
   console.log('choice == 10. check crowdfunding fundingStates...');
   crowdFundingAddrArray.forEach( cfAddr => {
@@ -359,11 +361,11 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 } else if(choice === 12){
   console.log('choice === 12. time= CFSD2', CFSD2);
-  updateCFC(CFSD2);
+  updateFundingStateFromDB(CFSD2);
 
 } else if(choice === 13){
   console.log('choice === 13. time= CFED2', CFED2);
-  updateCFC(CFED2);
+  updateFundingStateFromDB(CFED2);
 
 
 } else if(choice === 14){
@@ -391,7 +393,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
   setFundingStateArrayDB_API();
 
 } else if(choice === 19){
-
+  updateExpiredOrders_API();
 
 
 //--------------------==TokenController: tokenState
@@ -412,12 +414,12 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 } else if(choice === 22){
   console.log('choice === 22. time= TimeTokenUnlock', TimeTokenUnlock);
-  updateTCC(TimeTokenUnlock);
+  updateTokenStateFromDB(TimeTokenUnlock);
 
 // yarn run testts -a 2 -c 23
 } else if(choice === 23){
   console.log('choice === 23. time= TimeTokenValid', TimeTokenValid);
-  updateTCC(TimeTokenValid);
+  updateTokenStateFromDB(TimeTokenValid);
 
 } else if(choice === 24){
   tokencontrollerAddr = tokenControllerAddrArray[arg0];
@@ -502,4 +504,4 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //console.log('\nenum FundingState{0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 4 fundingClosed, 5 fundingNotClosed, 6 terminated}');
 
-//console.log('\n0: choice 0 x all ctrtAddrs, 1: getFundingStateCFC(ctrtAddr), 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: get funding states in DB, 11: set funding states in DB, 21: updateCFC(time = CFSD2), 22: updateCFC(time = CFED2);');
+//console.log('\n0: choice 0 x all ctrtAddrs, 1: getFundingStateCFC(ctrtAddr), 2: updateFundingStateFromDB(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: get funding states in DB, 11: set funding states in DB, 21: updateFundingStateFromDB(time = CFSD2), 22: updateFundingStateFromDB(time = CFED2);');
