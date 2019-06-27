@@ -6,12 +6,11 @@ const fs = require('fs');
 
 const { getTime } = require('./utilities');
 const { whichTimeServerArray } = require('../ethereum/contracts/zsetupData');
-
+const { calculatePeriodicProfit } = require('../timeserver/mysql');
+const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED2 } = require('./blockchain.js');
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
- */
-const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED2 } = require('./blockchain.js');
-
+*/
 const mode = 1;
 const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
 const atTheNsecond = 1;
@@ -61,15 +60,14 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[3] > 0){
         updateFundingStateFromDB(serverTime);//blockchain.js
-        //From DB check if product:fundingState needs to be updated
+        //From DB check if product:fundingState needs to be updated, except fundingClosed/notClosed
       };
       if(whichTimeServerArray[4] > 0){
         updateTokenStateFromDB(serverTime);//blockchain.js
         //From DB check if product:tokenState needs to be updated
       };
       if(whichTimeServerArray[5] > 0){
-        console.log('timeserver for incomeManager ... not written. objective unknown');
-        //checkIncomeManager(serverTime);//blockchain.js
+        calculatePeriodicProfit(serverTime);//blockchain.js
       }
   
     }

@@ -10,8 +10,7 @@ var debugSQL = require('debug')('dev:mysql');
 
 require("dotenv").config();
 
-const isTestingMode = false;
-const { whichTimeServerArray } = require('./ethereum/contracts/zsetupData');
+const { isTestingMode } = require('./ethereum/contracts/zsetupData');
 
 console.log('loading /app.js modules');
 //智豪

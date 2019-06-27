@@ -6,7 +6,9 @@ require('dotenv').config()
 
 const { isEmpty, asyncForEach } = require('./utilities');
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
+
 const serverTimeMin = 201905270900;
+
 const DatabaseCredential = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -272,8 +274,55 @@ const addIncomeArrangementRow = (symbol, time, actualPaymentTime, actualPayment)
   });
 }
 
-//----------------------------==
-const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost) => {
+
+//----------------------------==AssetRecord in DB
+//For timeserver to trigger ... calculate periodic profit
+const calculatePeriodicProfit = async(serverTime) => {
+  console.log('\n--------------==inside calculatePeriodicProfit()');
+
+  const asset_valuation = 13000;
+  const holding_amount_changed = 0;
+  const holding_costChanged = 0;
+  const acquired_cost = 13000;
+  const moving_ave_holding_cost = 13000;
+
+  const queryStr1 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ? )';
+  const results = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
+    console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+  });
+  const resultsLen = results.length;
+  console.log('\nArray length @ lastPeriodProfit:', resultsLen, ', symbols:', results);
+
+  if (resultsLen === 0) {
+    console.log('[lastPeriodProfit] no symbol was found');
+
+  } else if (resultsLen > 0) {
+    console.log('[lastPeriodProfit] symbol(s) found');
+    await asyncForEach(results, async (entry, index) => {
+      const symbol = entry.ia_SYMBOL;
+      const actualPaymentTime = entry.ia_actualPaymentTime;
+      const singleActualIncomePayment = entry.ia_single_Actual_Income_Payment_in_the_Period;
+      console.log(`symbol: ${symbol} \nactualPaymentTime: ${actualPaymentTime} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
+
+      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+      const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+      console.log(`\ntoAddressArray: ${toAddressArray}`);
+      const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
+      console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
+
+      const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, actualPaymentTime, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
+        console.log('[Error @ addAssetRecordsIntoDB]', err);
+        return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
+      });;
+    
+    });
+  }
+
+
+
+}
+
+const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost) => {
   return new Promise(async(resolve, reject) => {
 
     console.log('\n-------------------==addAssetRecordsIntoDB');
@@ -289,8 +338,8 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
       console.log('[Error] amountArray must be an non empty array', amountArray);
       return [null, null];
     
-    } else if(!Number.isInteger(serverTime) || parseInt(serverTime) < serverTimeMin){ 
-      console.log('[Error] serverTime must be an integer >= '+serverTimeMin);
+    } else if(!Number.isInteger(ar_time) || parseInt(ar_time) < serverTimeMin){ 
+      console.log('[Error] ar_time must be an integer >= '+serverTimeMin);
       return [null, null];
     } else if(inputArray.length !== amountArray.length) {
       console.log('[Error] inputArray and amountArray must have the same length');
@@ -299,7 +348,7 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
 
     const emailArray = [];
     if(inputArray[0].includes('@')){
-      inputArray.forEach( (element,idx) => emailArray.push(element) );
+      inputArray.forEach( (element, idx) => emailArray.push(element) );
 
     } else {
       console.log('all input values are okay');
@@ -310,14 +359,16 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
         });
         console.log('\nresults4', results4);
         if(results4 === null || results4 === undefined){
-          console.log('\n----==[Error] email address is null or undefined for addrAssetbook:', addrAssetbook, ', results4', results4); emailArray.push('email:_null_or_undefined');
+          console.log('\n----==[Warning] email address is null or undefined for addrAssetbook:', addrAssetbook, ', results4', results4);
+          emailArray.push('email:_null_or_undefined');
 
         } else if(results4.length > 1){
-          console.error('\n----==[Error] Got multiple email addresses from one addrAssetbook', addrAssetbook, ', results4', results4); emailArray.push('email:_multiple_emails_were_found');
+          console.error('\n----==[Error] Got multiple email addresses from one addrAssetbook', addrAssetbook, ', results4', results4); 
+          emailArray.push('email:_multiple_emails_were_found');
 
         } else if(results4.length === 0){
-          console.error('\n----==[Error] Got empty email address from one addrAssetbook', addrAssetbook, ', results4', results4);
-          emailArray.push('email_not_found');
+          console.error('\n----==[Warning] Got empty email address from one addrAssetbook', addrAssetbook, ', results4', results4);
+          emailArray.push('email:not_found');
 
         } else {
           console.error('\n----==[Good] Got one email address from addrAssetbook', addrAssetbook);
@@ -328,31 +379,24 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, serverTime
       });
     }
 
-    const queryStr5 = 'SELECT ia_actualPaymentTime FROM htoken.income_arrangement WHERE ia_SYMBOL= ?';
-    const results5 = await mysqlPoolQueryB(queryStr5, [symbol]).catch((err) => {
-      console.log('[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
-    });
-    const actualPaymentTime = results5.ia_actualPaymentTime;
-    console.log('actualPaymentTime', actualPaymentTime);
-
-    
     const emailArrayError = [];
     const amountArrayError = [];
     console.log('\n----------------==emailArray:', emailArray);
     await asyncForEach(emailArray, async (email, idx) => {
       const amount = amountArray[idx];
+
       if(!email.includes('@')){
         emailArrayError.push(email);
         amountArrayError.push(amount);
 
       } else {
-        console.log(`email: ${email}, symbol: ${symbol}, actualPaymentTime: ${actualPaymentTime}, amount: ${amount}`);
+        console.log(`email: ${email}, symbol: ${symbol}, ar_time: ${ar_time}, amount: ${amount}`);
         const sqlObject = {
           ar_investorEmail: email,
           ar_tokenSYMBOL: symbol,
-          ar_Time: actualPaymentTime,
+          ar_Time: ar_time,
           ar_Holding_Amount_in_the_end_of_Period: amount,
-          ar_personal_income: personal_income,
+          ar_personal_income: singleActualIncomePayment * amount,
           ar_User_Asset_Valuation: asset_valuation,
           ar_User_Holding_Amount_Changed: holding_amount_changed,
           ar_User_Holding_CostChanged: holding_costChanged,
@@ -712,5 +756,6 @@ module.exports = {
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
     addAssetRecordsIntoDB, addIncomePaymentPerPeriodIntoDB,
-    mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB
+    mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
+    calculatePeriodicProfit
 }

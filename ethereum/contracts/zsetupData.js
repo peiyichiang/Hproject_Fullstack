@@ -44,13 +44,13 @@ let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
     yarn run deploy -c 1 -s 1 -cName db
     cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
  */
-const chain = 2;
+const chain = 1;
 if (chain === 1){
-  addrHelium =     "0xF2F6e8296B75dbb51968139ED4eF33E6dA2f107a";
-  addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
-  addrAssetBook2 = "0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11";
-  addrAssetBook3 = "0xC80E77bC804a5cDe179C0C191A43b87088C5e183";
-  addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
+  addrHelium =     "0x668AA61942126373216b50A592b98ca623b9E9da";
+  addrAssetBook1 = "";
+  addrAssetBook2 = "";
+  addrAssetBook3 = "";
+  addrRegistry =   "";
   
 } else if (chain === 2){
   //ganache chain
@@ -116,6 +116,7 @@ const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000
 
 const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
 
+const isTestingMode = true;
 const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
 //const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
@@ -449,7 +450,7 @@ if (ProductManager === undefined){
 
 module.exports = {
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, 
+  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
   CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 

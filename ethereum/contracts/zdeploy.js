@@ -10,7 +10,13 @@ const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRow} = require('../../timeserver/mysql.js');
+
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
+
+const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
+  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
+} = require('./zsetupData');
 
 let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
 console.log('process.argv', process.argv);
@@ -23,10 +29,7 @@ if (process.argv.length < 8) {
 // chain    symNum   ctrtName
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
-const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
-  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
-} = require('./zsetupData');
+
 
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
@@ -37,7 +40,7 @@ const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOw
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
 if (arguLen == 3 && process.argv[2] === '--h') {
-  console.log("\x1b[32m", '$ yarn run livechain -c C --f F -a A -b b');
+  console.log("\x1b[32m", '$ yarn run deploy -c C --f F -a A -b b');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
   console.log("\x1b[32m", '...');
   console.log("\x1b[32m", 'a, b, ... are arguments used in above functions ...');
@@ -169,6 +172,7 @@ const deploy = async () => {
     console.log('\nDeploying contracts...');
     //JSON.parse() is not needed because the abi and bytecode are already objects
 
+    //yarn run deploy -c 1 -s 1 -cName helium
     if (ctrtName === 'helium') {
       //Deploying Helium contract...
       const argsHelium = [managementTeam];
@@ -192,7 +196,7 @@ const deploy = async () => {
       process.exit(0);
 
 
-      //yarn run deploy -c 1 -s 1 -cName db
+      //yarn run deploy -c 1 -s 1 -cName testctrt
     } else if (ctrtName === 'testctrt') {
       console.log('\nDeploying testCtrt contracts...');
       const HCAT721SerialNumber = 2020;

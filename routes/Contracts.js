@@ -4,6 +4,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 
+const { isTestingMode } = require('../ethereum/contracts/zsetupData');
 const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB } = require('../timeserver/mysql.js');
@@ -985,71 +986,89 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
 
     const maxMintAmountPerRun = 180;
+    let mesg, serverTime;
     // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
     // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
 
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    const serverTime = 201906130000;// await getTime();//297
-    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
-        console.log('[Error @ sequentialMintSuper]', err);
+    if(isTestingMode){ 
+      serverTime = 201906130000;
+    } else { 
+      serverTime = await getTime();}
+
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, successAddAssetRecordsIntoDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
+      mesg = '[Error @ sequentialMintSuper]';  
+      console.log(mesg, err);
         res.send({
             success: false,
-            result: '[Failed @ sequentialRunSuper()], err:' + err,
+            result: mesg+', err: ' + err,
         });
     });
     console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
 
     if (isFailed || isFailed === undefined || isFailed === null) {
-        console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
+        mesg = '[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!';
+        console.log('\n'+mesg);
         res.send({
             success: false,
-            result: '[Failed] Check isCorrectAmountArray',
-            array1: isCorrectAmountArray,
+            result: mesg,
+            isCorrectAmountArray: isCorrectAmountArray,
         });
 
     } else {
-        console.log('\n[Success] All minting actions have been completed successfully');
+        mesg = '[Success] All minting actions have been completed successfully';
+        console.log('\n'+mesg);
 
         if (emailArrayError.length === 0 && amountArrayError.length === 0) {
-            console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
-            /**@todo 更改資料庫狀態 */
-            const result = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
-                console('[Error @ setFundingStateDB()', err);
-                res.send({
-                    success: false,
-                    result: '[Error] failed at setFundingStateDB()',
-                });
-            });
-            console.log('result:', result);
+          /**@todo 更改資料庫狀態 */
+          const result = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+              console('[Error @ setFundingStateDB()', err);
+              res.send({
+                  success: false,
+                  result: '[Error] failed at setFundingStateDB()',
+              });
+          });
+          console.log('result:', result);
 
-            if (result) {
-                res.send({
-                    success: true,
-                    result: '[Success] All balances are correct',
-                });
-            } else {
-                res.send({
-                    success: false,
-                    result: '[Error] failed at setFundingStateDB()',
-                });
-            }
+          if (result) {
+              res.send({
+                  success: true,
+                  result: '[Success] All balances are correct',
+              });
+          } else {
+              res.send({
+                  success: false,
+                  result: '[Error] failed at setFundingStateDB()',
+              });
+          }
+        } else if(!successAddAssetRecordsIntoDB) {
+          mesg = '[Minting Successful but addAssetRecordsIntoDB Running Failed]';
+          console.log('\n'+mesg);
+          res.send({
+            success: false,
+            result: mesg,
+            emailArrayError: emailArrayError,
+            amountArrayError: amountArrayError,
+            successAddAssetRecordsIntoDB: successAddAssetRecordsIntoDB
+          });
 
         } else {
-            console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
-          emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+          mesg = '[Minting Successful but addAssetRecordsIntoDB was partially successful]'    
+          console.log(`\n${mesg}
+        emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+          res.send({
+            success: false,
+            result: mesg, 
+            emailArrayError: emailArrayError,
+            amountArrayError: amountArrayError,
+            successAddAssetRecordsIntoDB: successAddAssetRecordsIntoDB
+          });
 
-
-            res.send({
-                success: false,
-                result: '[Minting Successful but addAssetRecordsIntoDB Failed]',
-                array1: emailArrayError,
-                array2: amountArrayError
-            });
-
-        }
+      }
 
     }
 });

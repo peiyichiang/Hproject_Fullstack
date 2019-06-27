@@ -339,15 +339,19 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('\nisFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
 
   console.log('\n--------------==About to call addAssetRecordsIntoDB()');
-  const personal_income = 100;
+  const singleActualIncomePayment = 0;
+  const ar_time = serverTime;
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
   const holding_costChanged = 0;
   const acquired_cost = 13000;
   const moving_ave_holding_cost = 13000;
-  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost);
+  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordsIntoDB]', err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
+  });;
 
-  return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError];
+  return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false];
   //resolve(isFailed, isCorrectAmountArray);
 }
 
@@ -486,7 +490,6 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
 const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) => {
   console.log('inside mintToken()');
   await getTime().then(async function (serverTime) {
-    //console.log('blockchain.js: mintToken(), serverTime:', serverTime);
     console.log('acquired serverTime', serverTime);
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     let encodedData = instHCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, serverTime).encodeABI();
@@ -862,10 +865,10 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
         setFundingStateDB(symbol, 'fundingGoalReached', undefined, undefined);
         break;
       case 4:
-        setFundingStateDB(symbol, 'fundingClosed', undefined, undefined);
+        //setFundingStateDB(symbol, 'fundingClosed', undefined, undefined);
         break;
       case 5:
-        setFundingStateDB(symbol, 'fundingNotClosed', undefined, undefined);
+        //setFundingStateDB(symbol, 'fundingNotClosed', undefined, undefined);
         break;
       case 6:
         setFundingStateDB(symbol, 'terminated', undefined, undefined);

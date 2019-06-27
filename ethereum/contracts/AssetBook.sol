@@ -148,7 +148,7 @@ contract AssetBook is MultiSig {
     event TransferAssetBatchEvent(address to, bytes32 symbol, uint[] _assetId, uint tokenBalance, uint timestamp);
 
 
-    //"0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201903061045
+    //"0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201903061045
     constructor (address _assetOwner, address _addrHeliumContract) public {
         assetOwner = _assetOwner;
         addrHeliumContract = _addrHeliumContract;

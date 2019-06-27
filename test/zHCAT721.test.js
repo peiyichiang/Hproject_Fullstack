@@ -302,7 +302,7 @@ let result1, boolArray, uintArray;
 
 beforeEach( async function() {
     this.timeout(9500);
-    console.log('\n--------==New beforeEach cycle');
+    console.log('\n-------------==New beforeEach cycle');
     accounts = await web3.eth.getAccounts();
     admin = accounts[0];
     AssetOwner1 = accounts[1];
@@ -486,8 +486,9 @@ beforeEach( async function() {
     console.log('--------==BeforeEach is finished');
 });
 
+
 console.log('\n----------------==');
-describe('Tests on HCAT721', () => {
+describe('Tests on HCAT721Ctrt', () => {
   //this.timeout(2500);
   /*it('check HCAT721 deployment test', async () => {
     //!!!!!!!!! New contract instance for EVERY it() => Different contract addresses!!!
@@ -1266,8 +1267,40 @@ describe('Tests on HCAT721', () => {
 });
 
 
+//--------------------------------==
+describe('Tests on AssetBookCtrt', () => {
+  it('AssetBook functions test', async function()  {
+    this.timeout(9500);
+    console.log('\n------------==getAssetbookDetails()');
+    const result = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    result[0] = await instAssetBook1.methods.assetOwner().call();
+    result[1] = await instAssetBook1.methods.addrHeliumContract().call();
+    result[2] = await instAssetBook1.methods.assetOwner_flag().call();
+    result[3] = await instAssetBook1.methods.HeliumContract_flag().call();
+    result[4] = await instAssetBook1.methods.endorserCtrts_flag().call();
+    result[5] = await instAssetBook1.methods.calculateVotes().call();
+    console.log('\nresult:', result);
 
-//-----------------------------------------==
+    //if array requires index input, but if that index maps to an undefined value, it fails
+    // const endorserCtrtsN = await instAssetBook1.methods.endorserCtrts(0).call();
+    // console.log('\nendorserCtrts[n]:', endorserCtrtsN);
+    // result[6] = endorserCtrts[0];
+    // result[7] = endorserCtrts[1];
+    // result[8] = endorserCtrts[2];
+  });
+});
+
+
+//--------------------------------==
+// Make a script entry at package.json:
+//    "testxyz": "mocha --grep xyzCtrt",
+// describe('Tests on xyzCtrt', () => {
+//   it('... functions test', async function()  {
+//     this.timeout(9500);
+//     console.log('\n------------==Check DDD parameters');
+//   });
+// });
+//--------------------------------==
 describe('Tests on ArrayTesting', () => {
 
   it('ArrayTesting functions test', async function() {
@@ -1549,17 +1582,12 @@ describe('Tests on IncomeManagerCtrt', () => {
   });
 });
 
-// describe('Tests on DDD', () => {
 
-//   it('DDD functions test', async function()  {
-//     console.log('\n------------==Check DDD parameters');
-//   });
-// });
 
 //-----------------------------------------==Product Manager
-describe('Tests on ProductManager', () => {
+describe('Tests on ProductManagerCtrt', () => {
 
-  it('ProductManager functions test', async function() {
+  it('ProductManagerCtrt functions test', async function() {
     console.log('\ninside productManager test...');
     const argsProductManager = [addrHeliumCtrt];
 
@@ -1601,7 +1629,7 @@ describe('Tests on ProductManager', () => {
 });
 
 //-----------------------------------------==
-describe('Tests on CrowdFunding', () => {
+describe('Tests on CrowdFundingCtrt', () => {
 
   it('CrowdFunding functions test', async function() {
     this.timeout(9500);
