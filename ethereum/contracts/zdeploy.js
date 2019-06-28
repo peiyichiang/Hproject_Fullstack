@@ -8,8 +8,15 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 //const timer = require('./api.js');
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
+
 const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRow} = require('../../timeserver/mysql.js');
+
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
+
+const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
+  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
+} = require('./zsetupData');
 
 let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
 console.log('process.argv', process.argv);
@@ -22,10 +29,7 @@ if (process.argv.length < 8) {
 // chain    symNum   ctrtName
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result;
-const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
-  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
-} = require('./zsetupData');
+
 
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
@@ -36,7 +40,7 @@ const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOw
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
 if (arguLen == 3 && process.argv[2] === '--h') {
-  console.log("\x1b[32m", '$ yarn run livechain -c C --f F -a A -b b');
+  console.log("\x1b[32m", '$ yarn run deploy -c C --f F -a A -b b');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
   console.log("\x1b[32m", '...');
   console.log("\x1b[32m", 'a, b, ... are arguments used in above functions ...');
@@ -71,12 +75,8 @@ console.log('chain = ', chain, ', ctrtName =', ctrtName);
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
-  // addrProductManager = "";  
-
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
-  console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
-
   const nodeUrl = "http://140.119.101.130:8545";//POA
 
   adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
@@ -87,14 +87,28 @@ if (chain === 1) {//POA private chain
   prefix = '0x';
 
 } else if (chain === 2) {//2: POW private chain
-  const options = { gasLimit: 9000000 };
-  gasLimitValue = '5000000';// for POW private chain
+  gasLimitValue = '7000000';// for POW private chain
   gasPriceValue = '20000000000';//100000000000000000
-  provider = ganache.provider(options);
   const nodeUrl = "http://140.119.101.130:8540";
-  provider = new PrivateKeyProvider(adminpk, nodeUrl);//ganache
+
+  adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
+  //provider = new PrivateKeyProvider(adminpk, nodeUrl);
+
+  //web3.setProvider(ganache.provider());
+
+  //Exceeds block gas limit
+  //https://github.com/trufflesuite/ganache-cli
+  const ganache = require("ganache-cli");
+  //9140000000000000000 => 7ED7CD92FF120000
+  const options = { gasLimit: 8000000, accounts: [{balance: 9140000000000000000, secretKey: adminpk}] };
+  //const server = ganache.server(options);
+  provider = ganache.provider(options);
+
   web3deploy = new Web3(provider);
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+  
+
+
 
 } else if (chain === 3) {
   const options = { gasLimit: 7000000 };
@@ -109,6 +123,8 @@ if (chain === 1) {//POA private chain
   console.log('chain is out of range. chain =', chain);
   process.exit(1);
 }
+console.log(`-------------------==connecting to chain: ${chain}
+gasLimit: ${gasLimitValue}, gasPrice: ${gasPriceValue}`);
 
 
 //Mocha starts > BeforeEach: Deploy a new contract
@@ -156,6 +172,7 @@ const deploy = async () => {
     console.log('\nDeploying contracts...');
     //JSON.parse() is not needed because the abi and bytecode are already objects
 
+    //yarn run deploy -c 1 -s 1 -cName helium
     if (ctrtName === 'helium') {
       //Deploying Helium contract...
       const argsHelium = [managementTeam];
@@ -179,7 +196,7 @@ const deploy = async () => {
       process.exit(0);
 
 
-      //yarn run deploy -c 1 -s 1 -cName db
+      //yarn run deploy -c 1 -s 1 -cName testctrt
     } else if (ctrtName === 'testctrt') {
       console.log('\nDeploying testCtrt contracts...');
       const HCAT721SerialNumber = 2020;

@@ -33,12 +33,11 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../../timeserver/blockchain');
+const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr } = require('../../timeserver/blockchain');
 const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/utilities');
 const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
-const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
+const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
 } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10]= assetOwnerArray;
@@ -611,7 +610,7 @@ const sequentialMintSuperAPI = async () => {
   const price = 20000;
   const maxMintAmountPerRun = 180;
 
-  const serverTime = await getTime();//297
+  const serverTime = 201906271000;//297
   //from blockchain.js
   const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
@@ -623,11 +622,11 @@ const sequentialMintSuperAPI = async () => {
     console.log('\n[Success] All minting actions have been completed successfully');
 
     if(emailArrayError === null || emailArrayError.length > 0){
-      console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
+      console.log(`\n[Minting Successful but addAssetRecordRowArray Failed]
       emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
     } else {
-      console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+      console.log(`\n[Success] Both token minting and addAssetRecordRowArray are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
     }
 
@@ -1507,8 +1506,60 @@ const getForecastedSchedulesFromDB_API = async () => {
   console.log(`forecastedPayableTimes: ${forecastedPayableTimes} 
 forecastedPayableAmounts: ${forecastedPayableAmounts}`);
   process.exit(0);
-
 }
+
+
+//------------------------------==Assetbook
+//yarn run livechain -c 1 --f 30
+const getAssetbookDetails_API = async () => {
+  const addrAssetBook = addrAssetBook1;
+  const results1 = await getAssetbookDetails(addrAssetBook);
+  console.log('results1', results1);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 31
+const setHeliumAddr_API = async () => {
+  const addrAssetBook = addrAssetBook1;
+  const _assetOwnerNew = ''
+  const serverTime = 20190626;
+  const results1 = await setHeliumAddr(addrAssetBook, _addrHeliumContract);
+  console.log('results1', results1);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 32
+const HeliumContractVote_API = async () => {
+  const addrAssetBook = addrAssetBook1;
+  const _assetOwnerNew = ''
+  const serverTime = 20190626;
+  const results1 = await HeliumContractVote(addrAssetBook, serverTime);
+  console.log('results1', results1);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 33
+const resetVoteStatus_API = async () => {
+  const addrAssetBook = addrAssetBook1;
+  const _assetOwnerNew = ''
+  const serverTime = 20190626;
+  const results1 = await resetVoteStatus(addrAssetBook);
+  console.log('results1', results1);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 34
+const changeAssetOwner_API = async () => {
+  const addrAssetBook = addrAssetBook1;
+  const _assetOwnerNew = ''
+  const serverTime = 20190626;
+  const results1 = await changeAssetOwner(addrAssetBook, _assetOwnerNew, serverTime);
+  console.log('results1', results1);
+  process.exit(0);
+}
+
+
+
 
 
 //------------------------------==
@@ -1538,9 +1589,6 @@ const testCtrt = async () => {
   */
 }
 
-
-
-
 const showMenu = () => {
   console.log('\n');
   console.log("\x1b[32m", '$ yarn run testlive1 --chain C --func F --arg1 arg1 --arg2 arg2');
@@ -1548,6 +1596,7 @@ const showMenu = () => {
   console.log("\x1b[32m", 'F = 0: setupTest,  1: getTokenController, 2: showAssetBookBalances, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'arg1, arg2, ... are arguments used in above functions ...');
 }
+
 
 
 //-------------------------------==
@@ -1645,21 +1694,41 @@ if (func === 0) {
 } else if (func === 22) {
   getForecastedSchedulesFromDB_API();
 
+//------------------==Assetbook from Backend
+//resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
+//yarn run livechain -c 1 --f 30
+} else if (func === 30) {
+  getAssetbookDetails_API();
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {
+  setHeliumAddr_API();
+
+//yarn run livechain -c 1 --f 32
+} else if (func === 32) {
+  HeliumContractVote_API();
+
+//yarn run livechain -c 1 --f 33
+} else if (func === 33) {
+  resetVoteStatus_API();
+
+//yarn run livechain -c 1 --f 34
+} else if (func === 34) {
+  changeAssetOwner_API();
+
+
+
+//------------------==
+//yarn run livechain -c 1 --f 91
+} else if (func === 91) {
   testCtrt();
 
-//yarn run livechain -c 1 --f 36
-} else if (func === 36) {
-  addAssetBookAPI();
-
-//yarn run livechain -c 1 --f 38
-} else if (func === 38) {
+//yarn run livechain -c 1 --f 92
+} else if (func === 92) {
   sequentialMintSuperNoMintAPI();
 
-//yarn run livechain -c 1 --f 39
-} else if (func === 39) {
+//yarn run livechain -c 1 --f 93
+} else if (func === 93) {
   transferTokensKY();
 }
 //showMenu();
