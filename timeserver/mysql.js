@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 require('dotenv').config()
 
 const { isEmpty, asyncForEach } = require('./utilities');
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, incomeArrangementArray} = require('../ethereum/contracts/zsetupData');
 
 const serverTimeMin = 201905270900;
 
@@ -261,88 +261,159 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 }
 
 
-const addIncomeArrangementRow = (symbol, time, actualPaymentTime, actualPayment) => {
-  return new Promise((resolve, reject) => {
-    mysqlPoolQuery('INSERT INTO htoken.income_arrangement (ia_SYMBOL, ia_time, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period) VALUES (?, ?, ?, ?)', [symbol, time, actualPaymentTime, actualPayment], function (err, result) {
-      if (err) {
-        reject('[Error @ writing data into transaction_info row]', err);
-      } else {
-        console.log("\ntransaction_info table has been added with one new row. result:", result);
-        resolve(result);
-      }
+
+const addIncomeArrangementRowDev = (incomeArrangementNum) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside addIncomeArrangementRowDev(), incomeArrangementNum:', incomeArrangementNum);
+    incomeArrangement = incomeArrangementArray[incomeArrangementNum];
+    const sqlObject = {
+      ia_SYMBOL: incomeArrangement.symbol,
+      ia_time:  incomeArrangement.ia_time,
+      ia_actualPaymentTime:  incomeArrangement.actualPaymentTime,
+      ia_Payable_Period_End:  incomeArrangement.payablePeriodEnd,
+      ia_Annual_End:  incomeArrangement.annualEnd,
+      ia_wholecase_Principal_Called_back : incomeArrangement.wholecasePrincipalCalledBack,
+      ia_wholecase_Book_Value : incomeArrangement.wholecaseBookValue,
+      ia_wholecase_Forecasted_Annual_Income : incomeArrangement.wholecaseForecastedAnnualIncome,
+      ia_wholecase_Forecasted_Payable_Income_in_the_Period : incomeArrangement.wholecaseForecastedPayableIncome,
+      ia_wholecase_Accumulated_Income : incomeArrangement.wholecaseAccumulatedIncome,
+      ia_wholecase_Income_Recievable : incomeArrangement.wholecaseIncomeReceivable,
+      ia_wholecase_Theory_Value : incomeArrangement.wholecaseTheoryValue,
+      ia_single_Principal_Called_back : incomeArrangement.singlePrincipalCalledBack,
+      ia_single_Forecasted_Annual_Income : incomeArrangement.singleForecastedAnnualIncome,
+      ia_single_Forecasted_Payable_Income_in_the_Period : incomeArrangement.singleForecastedPayableIncome,
+      ia_single_Actual_Income_Payment_in_the_Period : incomeArrangement.singleActualIncomePayment,
+      ia_single_Accumulated_Income_Paid : incomeArrangement.singleAccumulatedIncomePaid,
+      ia_single_Token_Market_Price : incomeArrangement.singleTokenMarketPrice,
+      ia_State : incomeArrangement.ia_state,
+      ia_single_Calibration_Actual_Income_Payment_in_the_Period : incomeArrangement.singleCalibrationActualIncome,
+    };//random() to prevent duplicate NULL entry!
+    console.log(sqlObject);
+
+    const queryStr = 'INSERT INTO htoken.income_arrangement SET ?';
+    const results = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB(queryStr)]'+ err);
     });
+    console.log("\ntransaction_info table has been added with one new row. result:");
+    resolve(results);
   });
 }
-
 
 //----------------------------==AssetRecord in DB
 //For timeserver to trigger ... calculate periodic profit
-const calculatePeriodicProfit = async(serverTime) => {
-  console.log('\n--------------==inside calculatePeriodicProfit()');
+const calculateLastPeriodProfit = async(_symbol) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside calculateLastPeriodProfit()');
+    const asset_valuation = 13000;
+    const holding_amount_changed = 0;
+    const holding_costChanged = 0;
+    const acquired_cost = 13000;
+    const moving_ave_holding_cost = 13000;
 
-  const asset_valuation = 13000;
-  const holding_amount_changed = 0;
-  const holding_costChanged = 0;
-  const acquired_cost = 13000;
-  const moving_ave_holding_cost = 13000;
-
-  const queryStr1 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ? )';
-  const results = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
-    console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
-  });
-  const resultsLen = results.length;
-  console.log('\nArray length @ lastPeriodProfit:', resultsLen, ', symbols:', results);
-
-  if (resultsLen === 0) {
-    console.log('[lastPeriodProfit] no symbol was found');
-
-  } else if (resultsLen > 0) {
-    console.log('[lastPeriodProfit] symbol(s) found');
-    await asyncForEach(results, async (entry, index) => {
-      const symbol = entry.ia_SYMBOL;
-      const actualPaymentTime = entry.ia_actualPaymentTime;
-      const singleActualIncomePayment = entry.ia_single_Actual_Income_Payment_in_the_Period;
-      console.log(`symbol: ${symbol} \nactualPaymentTime: ${actualPaymentTime} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
-
-      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
-      const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-      console.log(`\ntoAddressArray: ${toAddressArray}`);
-      const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
-      console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
-
-      const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, actualPaymentTime, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
-        console.log('[Error @ addAssetRecordsIntoDB]', err);
-        return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
-      });;
-    
+    const addrHCAT721 = await findCtrtAddr(_symbol,'hcat721').catch((err) => {
+      reject('[Error @findCtrtAddr]:', err);
+      return false;
     });
-  }
 
+    const queryStr1 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)';
+    const results = await mysqlPoolQueryB(queryStr1, [_symbol]).catch((err) => {
+      reject('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+      return;
+    });
+    const resultsLen = results.length;
+    console.log('\nArray length @ lastPeriodProfit:', resultsLen, ', symbols:', results);
 
+    if (resultsLen === 0) {
+      console.log('[lastPeriodProfit] no symbol was found');
 
+    } else if (resultsLen > 0) {
+      console.log('[lastPeriodProfit] symbol(s) found');
+      await asyncForEach(results, async (entry, index) => {
+        const symbol = entry.ia_SYMBOL;
+        const ar_time = entry.ia_actualPaymentTime;
+        const singleActualIncomePayment = entry.ia_single_Actual_Income_Payment_in_the_Period;
+        console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
+
+        const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+        const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+        console.log(`\ntoAddressArray: ${toAddressArray}`);
+
+        const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
+        console.log(`\namountArray: ${amountArray}`);
+
+        const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
+          reject('[Error @ addAssetRecordRowArray]', err);
+          return;
+        });
+        resolve([emailArrayError, amountArrayError]);
+      });
+    }
+  });
 }
 
-const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost) => {
-  return new Promise(async(resolve, reject) => {
 
-    console.log('\n-------------------==addAssetRecordsIntoDB');
+const addAssetRecordRow = async (investorEmail, symbol, ar_time, holdingAmount, AccumulatedIncomePaid, UserAssetValuation, HoldingAmountChanged, HoldingCostChanged, AcquiredCost, MovingAverageofHoldingCost) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('-------==addAssetRecordRow');
+    const sql = {
+      ar_investorEmail: investorEmail,
+      ar_tokenSYMBOL: symbol,
+      ar_Time: ar_time,
+      ar_Holding_Amount_in_the_end_of_Period: holdingAmount,
+      ar_Accumulated_Income_Paid: AccumulatedIncomePaid,
+      ar_User_Asset_Valuation: UserAssetValuation,
+      ar_User_Holding_Amount_Changed: HoldingAmountChanged,
+      ar_User_Holding_CostChanged: HoldingCostChanged,
+      ar_User_Acquired_Cost: AcquiredCost,
+      ar_Moving_Average_of_Holding_Cost: MovingAverageofHoldingCost
+    };//random() to prevent duplicate NULL entry!
+    //console.log(sql);
+
+    const querySql1 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+    const results5 = await mysqlPoolQueryB(querySql1, sql).catch((err) => {
+      reject('[Error @ adding asset row(querySql1)]. err: '+ err);
+      return(false);
+    });
+    console.log("\nA new row has been added. result:", results5);
+    resolve(true);
+  });
+}
+
+const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n----------------------==addAssetRecordRowArray');
+    let mesg;
     if(typeof symbol !== "string" || isEmpty(symbol)){
-      console.log('[Error] symbol must be a string', symbol);
+      mesg = '[Error] symbol must be a string. symbol: ' + symbol;
+      reject(mesg);
       return [null, null];
     
     } else if(!Array.isArray(inputArray) || inputArray.length === 0){
-      console.log('[Error] inputArray must be a non empty array', inputArray);
+      mesg = '[Error] inputArray must be a non empty array';
+      console.log(mesg, inputArray);
+      reject(mesg);
       return [null, null];
 
     } else if(!Array.isArray(amountArray) || amountArray.length === 0){
-      console.log('[Error] amountArray must be an non empty array', amountArray);
+      mesg = '[Error] amountArray must be an non empty array';
+      console.log(mesg, amountArray);
+      reject(mesg);
       return [null, null];
     
-    } else if(!Number.isInteger(ar_time) || parseInt(ar_time) < serverTimeMin){ 
-      console.log('[Error] ar_time must be an integer >= '+serverTimeMin);
+    } else if(!Number.isInteger(parseInt(ar_time))){
+      console.log('ar_time:', typeof ar_time, Number.isInteger(ar_time));
+      mesg = '[Error] ar_time '+ar_time+' must be an integer';
+      reject(mesg);
       return [null, null];
+
+    } else if(parseInt(ar_time) < serverTimeMin){ 
+      mesg = '[Error] ar_time '+ar_time+' must be >= '+serverTimeMin;
+      reject(mesg);
+      return [null, null];
+
     } else if(inputArray.length !== amountArray.length) {
-      console.log('[Error] inputArray and amountArray must have the same length');
+      mesg = '[Error] inputArray and amountArray must have the same length';
+      reject(mesg);
       return [null, null];
     }
 
@@ -355,7 +426,7 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, ar_time, s
       const queryStr4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
       await asyncForEach(inputArray, async (addrAssetbook, index) => {
         const results4 = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {
-          console.log('\n[Error @ mysqlPoolQueryB(queryStr4)]', err);
+          reject('\n[Error @ mysqlPoolQueryB(queryStr4)]', err);
         });
         console.log('\nresults4', results4);
         if(results4 === null || results4 === undefined){
@@ -381,13 +452,14 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, ar_time, s
 
     const emailArrayError = [];
     const amountArrayError = [];
-    console.log('\n----------------==emailArray:', emailArray);
+    console.log('\n------------------==emailArray:\n', emailArray);
     await asyncForEach(emailArray, async (email, idx) => {
       const amount = amountArray[idx];
 
       if(!email.includes('@')){
         emailArrayError.push(email);
         amountArrayError.push(amount);
+        console.log(`[Error @ email] email: ${email}, amount: ${amount} ... added to emailArrayError and amountArrayError`);
 
       } else {
         console.log(`email: ${email}, symbol: ${symbol}, ar_time: ${ar_time}, amount: ${amount}`);
@@ -406,13 +478,13 @@ const addAssetRecordsIntoDB = async (inputArray, amountArray, symbol, ar_time, s
         console.log(sqlObject);
 
         const queryStr6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
-        const results5 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
-          console.log('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
+        const results6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
+          reject('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
         });
-        console.log('results5', results5);
+        console.log('results6', results6);
       }
     });
-    console.log(`\n------------------==End of addAssetRecordsIntoDB`);
+    console.log(`\n------------------==End of addAssetRecordRowArray`);
     resolve([emailArrayError, amountArrayError]);
   });
   //process.exit(0);
@@ -714,10 +786,10 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
       console.log(sqlObject);
 
       const queryStr6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
-      const results5 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
+      const results6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
         console.log('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
       });
-      console.log('results5', results5);
+      console.log('results6', results6);
     });
     console.log(`emailArray: ${emailArray}`);
     emailArrayGroup.push(emailArray);
@@ -750,12 +822,12 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
-    addIncomeArrangementRow,
+    addIncomeArrangementRowDev,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
     isIMScheduleGoodDB, setIMScheduleDB,
-    addAssetRecordsIntoDB, addIncomePaymentPerPeriodIntoDB,
+    addAssetRecordRow, addAssetRecordRowArray, addIncomePaymentPerPeriodIntoDB,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
-    calculatePeriodicProfit
+    calculateLastPeriodProfit
 }

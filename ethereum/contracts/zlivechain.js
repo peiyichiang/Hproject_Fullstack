@@ -622,11 +622,11 @@ const sequentialMintSuperAPI = async () => {
     console.log('\n[Success] All minting actions have been completed successfully');
 
     if(emailArrayError === null || emailArrayError.length > 0){
-      console.log(`\n[Minting Successful but addAssetRecordsIntoDB Failed]
+      console.log(`\n[Minting Successful but addAssetRecordRowArray Failed]
       emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
     } else {
-      console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+      console.log(`\n[Success] Both token minting and addAssetRecordRowArray are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
 
     }
 

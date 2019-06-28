@@ -5,7 +5,7 @@ const moment = require('moment');
 const { getTime, isEmpty, asyncForEach, checkInt, checkIntFromOne } = require('./utilities');
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
+const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
@@ -338,16 +338,17 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   const isFailed = isCorrectAmountArray.includes(false);
   console.log('\nisFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
 
-  console.log('\n--------------==About to call addAssetRecordsIntoDB()');
-  const singleActualIncomePayment = 0;
+  console.log('\n--------------==About to call addAssetRecordRowArray()');
   const ar_time = serverTime;
+  const singleActualIncomePayment = 0;// after minting tokens
+
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
   const holding_costChanged = 0;
   const acquired_cost = 13000;
   const moving_ave_holding_cost = 13000;
-  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
-    console.log('[Error @ addAssetRecordsIntoDB]', err);
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]', err);
     return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
   });;
 
@@ -548,7 +549,7 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
   } else if (symbolArrayLen > 0) {
     console.log('[makeOrdersExpiredCFED2] symbol(s) found');
 
-    const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
+    //const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
     const queryStr3 = 'UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
     await asyncForEach(symbolArray, async (symbol, index) => {
       /*
@@ -865,9 +866,11 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
         setFundingStateDB(symbol, 'fundingGoalReached', undefined, undefined);
         break;
       case 4:
+        //diasabled for manual setting on funding state
         //setFundingStateDB(symbol, 'fundingClosed', undefined, undefined);
         break;
       case 5:
+        //diasabled for manual setting on funding state
         //setFundingStateDB(symbol, 'fundingNotClosed', undefined, undefined);
         break;
       case 6:

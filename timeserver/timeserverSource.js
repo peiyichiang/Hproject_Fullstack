@@ -52,7 +52,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[1] > 0){
         makeOrdersExpiredCFED2(serverTime);//blockchain.js
-        // after order status change: waiting -> paid -> write into crowdfunding contract
+        // after orders pass CFED2, we make such orders expired
       };
       if(whichTimeServerArray[2] > 0){
         updateExpiredOrders(serverTime);//blockchain.js

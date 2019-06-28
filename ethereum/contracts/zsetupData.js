@@ -47,10 +47,10 @@ let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
 const chain = 1;
 if (chain === 1){
   addrHelium =     "0x668AA61942126373216b50A592b98ca623b9E9da";
-  addrAssetBook1 = "";
-  addrAssetBook2 = "";
-  addrAssetBook3 = "";
-  addrRegistry =   "";
+  addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
+  addrAssetBook2 = "0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11";
+  addrAssetBook3 = "0xC80E77bC804a5cDe179C0C191A43b87088C5e183";
+  addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
   
 } else if (chain === 2){
   //ganache chain
@@ -145,21 +145,22 @@ productObjArray.forEach( (obj) => {
 console.log('\nconst symbolArray =', symbolArray, ';\nconst crowdFundingAddrArray =', crowdFundingAddrArray, ';\nconst tokenControllerAddrArray =', tokenControllerAddrArray,';');
 
 console.log('symNum', symNum);
-nftName = productObjArray[symNum].nftName;
-nftSymbol = productObjArray[symNum].nftSymbol;
-maxTotalSupply = productObjArray[symNum].maxTotalSupply;
-quantityGoal = productObjArray[symNum].quantityGoal;
-siteSizeInKW = productObjArray[symNum].siteSizeInKW;
-initialAssetPricing = productObjArray[symNum].initialAssetPricing;
-pricingCurrency = productObjArray[symNum].pricingCurrency;
-IRR20yrx100 = productObjArray[symNum].IRR20yrx100;
-duration = productObjArray[symNum].duration;
-location = productObjArray[symNum].location;
-fundingType = productObjArray[symNum].fundingType;
-addrTokenController = productObjArray[symNum].addrTokenController;
-addrHCAT721 = productObjArray[symNum].addrHCAT721;
-addrCrowdFunding = productObjArray[symNum].addrCrowdFunding;
-addrIncomeManager = productObjArray[symNum].addrIncomeManager;
+const productObjN = productObjArray[symNum];
+nftName = productObjN.nftName;
+nftSymbol = productObjN.nftSymbol;
+maxTotalSupply = productObjN.maxTotalSupply;
+quantityGoal = productObjN.quantityGoal;
+siteSizeInKW = productObjN.siteSizeInKW;
+initialAssetPricing = productObjN.initialAssetPricing;
+pricingCurrency = productObjN.pricingCurrency;
+IRR20yrx100 = productObjN.IRR20yrx100;
+duration = productObjN.duration;
+location = productObjN.location;
+fundingType = productObjN.fundingType;
+addrTokenController = productObjN.addrTokenController;
+addrHCAT721 = productObjN.addrHCAT721;
+addrCrowdFunding = productObjN.addrCrowdFunding;
+addrIncomeManager = productObjN.addrIncomeManager;
 
 addrProductManager= '';
 
@@ -186,17 +187,70 @@ const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOw
 const userArray = [user0, user1, user2, user3];
 
 userNum = 3;
-const email = userArray[userNum].email;
-const password = userArray[userNum].password;
-const identityNumber = userArray[userNum].identityNumber;
-const eth_add = userArray[userNum].eth_add;
-const cellphone = userArray[userNum].cellphone;
-const name = userArray[userNum].name;
-const addrAssetBook = userArray[userNum].addrAssetBook;
-const investorLevel = userArray[userNum].investorLevel;
-const imagef = userArray[userNum].imagef;
-const imageb = userArray[userNum].imageb;
-const bank_booklet = userArray[userNum].bank_booklet;
+const userObjN = userArray[userNum];
+const email = userObjN.email;
+const password = userObjN.password;
+const identityNumber = userObjN.identityNumber;
+const eth_add = userObjN.eth_add;
+const cellphone = userObjN.cellphone;
+const name = userObjN.name;
+const addrAssetBook = userObjN.addrAssetBook;
+const investorLevel = userObjN.investorLevel;
+const imagef = userObjN.imagef;
+const imageb = userObjN.imageb;
+const bank_booklet = userObjN.bank_booklet;
+
+
+//-----------------------== Asset Record
+function assetRecordObject(investorEmail, symbol, ar_time, holdingAmount, AccumulatedIncomePaid, UserAssetValuation, HoldingAmountChanged, HoldingCostChanged, AcquiredCost, MovingAverageofHoldingCost) {
+  this.investorEmail = investorEmail;
+  this.symbol = symbol;
+  this.ar_time = ar_time;
+  this.holdingAmount = holdingAmount;
+  this.AccumulatedIncomePaid = AccumulatedIncomePaid;
+  this.UserAssetValuation = UserAssetValuation;
+  this.HoldingAmountChanged = HoldingAmountChanged;
+  this.HoldingCostChanged = HoldingCostChanged;
+  this.AcquiredCost = AcquiredCost;
+  this.MovingAverageofHoldingCost = MovingAverageofHoldingCost;
+}
+const assetRecord1 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291500, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord2 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291510, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord3 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291520, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecordArray = [assetRecord1, assetRecord2, assetRecord3];
+
+
+//-----------------------== Income Arrangement
+function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, ia_state, singleCalibrationActualIncome) {
+  this.symbol = symbol;
+  this.ia_time = ia_time;
+  this.actualPaymentTime = actualPaymentTime;
+  this.payablePeriodEnd = payablePeriodEnd;
+  this.annualEnd = annualEnd;
+  this.wholecasePrincipalCalledBack = wholecasePrincipalCalledBack;
+  this.wholecaseBookValue = wholecaseBookValue;
+  this.wholecaseForecastedAnnualIncome = wholecaseForecastedAnnualIncome;
+  this.wholecaseForecastedPayableIncome = wholecaseForecastedPayableIncome;
+  this.wholecaseAccumulatedIncome = wholecaseAccumulatedIncome;
+  this.wholecaseIncomeReceivable = wholecaseIncomeReceivable;
+  this.wholecaseTheoryValue = wholecaseTheoryValue;
+  this.singlePrincipalCalledBack = singlePrincipalCalledBack;
+  this.singleForecastedAnnualIncome = singleForecastedAnnualIncome;
+  this.singleForecastedPayableIncome = singleForecastedPayableIncome;
+  this.singleActualIncomePayment = singleActualIncomePayment;
+  this.singleAccumulatedIncomePaid = singleAccumulatedIncomePaid;
+  this.singleTokenMarketPrice = singleTokenMarketPrice;
+  this.ia_state = ia_state;
+  this.singleCalibrationActualIncome = singleCalibrationActualIncome;
+}
+const incomeArrangement1 = new incomeArrangementObject(nftSymbol, 201906281300, 201906281305, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
+const incomeArrangement2 = new incomeArrangementObject(nftSymbol, 201906281310, 201906281315, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
+const incomeArrangement3 = new incomeArrangementObject(nftSymbol, 201906281320, 201906281325, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
+const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3];
+
+
+
+
 
 
 console.log(`
@@ -449,7 +503,7 @@ if (ProductManager === undefined){
 
 
 module.exports = {
-  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
   CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
