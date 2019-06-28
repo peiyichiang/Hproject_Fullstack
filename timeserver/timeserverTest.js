@@ -1,14 +1,14 @@
 const { getTime, asyncForEach } = require('./utilities');
 
-const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordsIntoDB, mysqlPoolQueryB, addIncomePaymentPerPeriodIntoDB } = require('./mysql.js');
+const { setFundingStateDB, getFundingStateDB, getTokenStateDB, setTokenStateDB, isIMScheduleGoodDB, addAssetRecordRowArray, calculateLastPeriodProfit, addIncomeArrangementRowDev, mysqlPoolQueryB } = require('./mysql.js');
 
-const { checkTimeOfOrder, getDetailsCFC,
-  getFundingStateCFC, updateFundingStateCFC, updateCFC, 
+const { updateExpiredOrders, checkTimeOfOrder, getDetailsCFC,
+  getFundingStateCFC, updateFundingStateFromDB, updateFundingStateCFC, 
   addAssetbooksIntoCFC, getInvestorsFromCFC,
-  getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC, cancelOverCFED2Orders, getInvestorsFromCFC_Check } = require('./blockchain.js');
+  getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, 
+  isScheduleGoodIMC, makeOrdersExpiredCFED2, getInvestorsFromCFC_Check } = require('./blockchain.js');
 
-let { symArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftSymbol, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
+let { nftSymbol, symArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
 } = require('../ethereum/contracts/zsetupData');
 
 let choice, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;
@@ -32,17 +32,12 @@ userArray.forEach((user, idx) => {
   yarn run testts -a 2 -z 23
   enum FundingState{0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 4 fundingClosed, 5 fundingNotClosed, 6 terminated}
   */
-// 0: getFundingStateCFC(ctrtAddr), 1: choice 0 x all ctrtAddrs, 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: reset funding states in DB, 11: updateCFC(time = CFSD2), 12: updateCFC(time = CFED2);
+// 0: getFundingStateCFC(ctrtAddr), 1: choice 0 x all ctrtAddrs, 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: reset funding states in DB, 11: updateFundingStateFromDB(time = CFSD2), 12: updateFundingStateFromDB(time = CFED2);
 
 const arguLen = process.argv.length;
 console.log('arguLen', arguLen, 'process.argv', process.argv);
 if (arguLen == 3 && process.argv[2] === '--h') {
   console.log("\x1b[32m", '$ yarn run testts --c C');
-  console.log("\x1b[32m", '0: getFundingStateCFC(ctrtAddr), 1: choice 0 x all ctrtAddrs,');
-  console.log("\x1b[32m", '2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs');
-  console.log("\x1b[32m", '10: reset CFC funding states in DB');
-  console.log("\x1b[32m", '11: updateCFC(time = CFSD2)');
-  console.log("\x1b[32m", '12: updateCFC(time = CFED2)');
   process.exit(0);
   // process.on('exit', function(code) {  
   //   return console.log(`About to exit with code ${code}`);
@@ -83,15 +78,15 @@ Options according to test flow:
 
 0: choice 0 x all ctrtAddrs, 
 10: reset DB CFC funding states, 
-21: updateCFC(time == CFSD2);
-22: updateCFC(time == CFED2);
+21: updateFundingStateFromDB(time == CFSD2);
+22: updateFundingStateFromDB(time == CFED2);
 
 2: reset CFC to initial: updateFundingStateCFC(ctrt_ndex), 
 //3: reset CFC all to initial... choice 2 x all ctrtAddrs, 
 11: reset DB to CFSD2, 
 
 1: getFundingStateCFC(ctrtAddr), 
-12: updateCFC(time = CFED2);
+12: updateFundingStateFromDB(time = CFED2);
 
 const crowdFundingAddrArray= ['0x777684806c132bb919fA3612B80e04aDf71aF8b6', '0x68FDC10CFAE1f27CFf55eE04D37A0abA92De006A', '0x50268032D63986E89C3Ea462F2859983C7A69b48'];
 */
@@ -106,36 +101,6 @@ const makePseudoEthAddr = (length) => {
      result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
-}
-
-
-// yarn run testts -a 1 -s 1 -c 1
-const addAssetbooksIntoCFC_API = async () => {
-  console.log('addAssetbooksIntoCFC_API');
-  const serverTime = CFSD2+1;//await getTime();//566
-  await addAssetbooksIntoCFC(serverTime);
-  //process.exit(0);
-}
-
-//  yarn run testts -a 2 -c 7
-const testmysqlPoolQueryB = async () => {
-  const sql = {
-    ar_investorEmail: 'jackson@gmail.com',
-    ar_tokenSYMBOL: 'SuperBall',
-    ar_Time: 201906131300,
-    ar_Holding_Amount_in_the_end_of_Period: 17,
-    ar_Accumulated_Income_Paid: 100,
-    ar_User_Asset_Valuation: 13000,
-    ar_User_Holding_Amount_Changed: 0,
-    ar_User_Holding_CostChanged: 0,
-    ar_User_Acquired_Cost: 13000,
-    ar_Moving_Average_of_Holding_Cost: 13000
-  };//random() to prevent duplicate NULL entry!
-  console.log(sql);
-
-  const querySQL5 = 'INSERT INTO htoken.investor_assetRecord SET ?';
-  const results5 = await mysqlPoolQueryB(querySQL5, sql).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL5)]', err));
-  console.log("\nA new row has been added. result:", results5);
 }
 
 
@@ -170,45 +135,101 @@ const reset_addAssetbooksIntoCFC_API = async() => {
   process.exit(0);
 };
 
+// yarn run testts -a 1 -s 1 -c 1
+const addAssetbooksIntoCFC_API = async () => {
+  console.log('addAssetbooksIntoCFC_API');
+  const serverTime = CFSD2+1;//await getTime();//566
+  await addAssetbooksIntoCFC(serverTime);
+  //process.exit(0);
+}
 
-//  yarn run testts -a 2 -c 8
-const addAssetRecordsIntoDB_API = async () => {
-  // after minting tokens
-  console.log('-----------------==addAssetRecordsIntoDB_API');
+//  yarn run testts -a 2 -c 5
+const addAssetRecordRowDev_API = async () => {
+  console.log('--------------------==addAssetRecordRow');
+  await asyncForEach(assetRecordArray, async (aRecord, index) => {
+    const results = await addAssetRecordRow(aRecord.investorEmail, aRecord.symbol, aRecord.ar_time, aRecord.holdingAmount, aRecord.AccumulatedIncomePaid, aRecord.UserAssetValuation, aRecord.HoldingAmountChanged, aRecord.HoldingCostChanged, aRecord.AcquiredCost, aRecord.MovingAverageofHoldingCost).catch((err) => {
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+    });
+    console.log('results of addAssetRecordRow():', results);
+  });
+}
+
+
+//  yarn run testts -a 2 -c 6
+const addAssetRecordRowArray_API = async () => {
+  console.log('-----------------==addAssetRecordRowArray_API');
   //const inputArray = ['0001@gmail.com', '0002@gmail.com', '0003@gmail.com'];
   const inputArray = [...assetbookArray];
-  //const inputArray = [ '0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc','0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11','0xC80E77bC804a5cDe179C0C191A43b87088C5e183' ];
+  const amountArray = ['15', '17', '19'];
+  //const amountArray = [11, 13, 14];
 
-  const symbol = 'ABBA1850';
-  const serverTime = await getTime();
-  const amountArray = [9, 11, 13];
-  const personal_income = 100;
+  const symbol = nftSymbol;
+  const ar_time = await getTime();
+  const singleActualIncomePayment = 0;// after minting tokens
+
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
   const holding_costChanged = 0;
   const acquired_cost = 13000;
   const moving_ave_holding_cost = 13000;
   console.log(`inputArray: ${inputArray} \namountArray: ${amountArray}
-  \nsymbol: ${symbol}, serverTime: ${serverTime}`);
-  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(inputArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost);
+  \nsymbol: ${symbol}`);
+
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(inputArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]', err);
+  });
+
   console.log(`emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+  process.exit(0);
+}
+
+// yarn run testts -a 2 -c 7
+const calculateLastPeriodProfit_API = async () => {
+  console.log('-----------------==calculateLastPeriodProfit_API');
+  const symbol = 'ACHM6666';
+  const [emailArrayError, amountArrayError] = await calculateLastPeriodProfit(symbol).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]', err);
+  });
+  console.log(`emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+  process.exit(0);
+}
+
+// yarn run testts -a 2 -c 8
+const addIncomeArrangementRowDev_API = async () => {
+  console.log('-----------------==addIncomeArrangementRowDev_API');
+  await asyncForEach(incomeArrangementArray, async (entry, index) => {
+    const result = await addIncomeArrangementRowDev(index).catch((err) => {
+      console.log('[Error @ addIncomeArrangementRowDev] index: '+index, err);
+    });
+    console.log('result', result);
+  });
+  process.exit(0);
 }
 
 
+
+
 //yarn run testts -a 2 -c 4
-const addIncomePaymentPerPeriodIntoDB_API = async () => {
-  console.log('------------------== addIncomePaymentPerPeriodIntoDB_API');//@ blockchain.js
+const xyz_API = async () => {
+  console.log('------------------== xyz_API');//@ blockchain.js
   const serverTime = 201901010000;
   //Inside income_arrangement table, make above number >= ia_actualPaymentTime of the target symbol
-  await addIncomePaymentPerPeriodIntoDB(serverTime);//in blockchain.js
+  await xyz(serverTime);//in blockchain.js
 
 }
 
 //yarn run testts -a 2 -c 2
-const cancelOverCFED2Orders_API = async () => {
+const makeOrdersExpiredCFED2_API = async () => {
   const serverTime = CFED2;
-  cancelOverCFED2Orders(serverTime);
+  makeOrdersExpiredCFED2(serverTime);
 }
+
+//yarn run testts -a 2 -c 19
+const updateExpiredOrders_API = async () => {
+  const serverTime = 20190630;//orderDate+3
+  updateExpiredOrders(serverTime);
+}
+
 
 
 const getInvestorsCFC_API = async () => {
@@ -301,41 +322,43 @@ const setTokenStateArrayDB_API = async () => {
 
 
 //------------------------==
-//  yarn run testts -a 2 -c 0
+// yarn run testts -a 2 -c 0
 if(choice === 0){// test auto writing paid orders into crowdfunding contract
   reset_addAssetbooksIntoCFC_API();
 
-//  yarn run testts -a 2 -c 1
+// yarn run testts -a 2 -c 1
 } else if(choice === 1){
   addAssetbooksIntoCFC_API();
 
-//  yarn run testts -a 2 -c 2
+// yarn run testts -a 2 -c 2
 } else if(choice === 2){
-  cancelOverCFED2Orders_API();
+  makeOrdersExpiredCFED2_API();
 
-//  yarn run testts -a 2 -c 3
+// yarn run testts -a 2 -c 3
 } else if(choice === 3){
   crowdFundingAddr = crowdFundingAddrArray[arg0];
   getDetailsCFC(crowdFundingAddr);
 
-//  yarn run testts -a 2 -c 4
+// yarn run testts -a 2 -c 4
 } else if(choice === 4){
-  addIncomePaymentPerPeriodIntoDB_API();
+  xyz_API();
 
 
-//  yarn run testts -a 2 -c 5
+// yarn run testts -a 2 -c 5
 } else if(choice === 5){
-  console.log('choice = 5');
+  addAssetRecordRowDev_API();
 
-//  yarn run testts -a 2 -c 7
+// yarn run testts -a 2 -c 6
+} else if(choice === 6){
+  addAssetRecordRowArray_API();
+
+// yarn run testts -a 2 -c 7
 } else if(choice === 7){
-  console.log('--------------------==testmysqlPoolQueryB');
-  testmysqlPoolQueryB();
+  calculateLastPeriodProfit_API();
 
-//  yarn run testts -a 2 -c 8
+// yarn run testts -a 2 -c 8
 } else if(choice === 8){
-  console.log('-------------------==addAssetRecordsIntoDB_API');
-  addAssetRecordsIntoDB_API();
+  addIncomeArrangementRowDev_API();
 
 // yarn run testts -a 1 -c 9
 } else if(choice === 9){
@@ -343,7 +366,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 
 //------------------------==Crowdfunding
-//yarn run testts -a 2 -c 20
+//yarn run testts -a 2 -c 10
 } else if(choice === 10) {
   console.log('choice == 10. check crowdfunding fundingStates...');
   crowdFundingAddrArray.forEach( cfAddr => {
@@ -359,11 +382,11 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 } else if(choice === 12){
   console.log('choice === 12. time= CFSD2', CFSD2);
-  updateCFC(CFSD2);
+  updateFundingStateFromDB(CFSD2);
 
 } else if(choice === 13){
   console.log('choice === 13. time= CFED2', CFED2);
-  updateCFC(CFED2);
+  updateFundingStateFromDB(CFED2);
 
 
 } else if(choice === 14){
@@ -391,7 +414,7 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
   setFundingStateArrayDB_API();
 
 } else if(choice === 19){
-
+  updateExpiredOrders_API();
 
 
 //--------------------==TokenController: tokenState
@@ -412,12 +435,12 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 } else if(choice === 22){
   console.log('choice === 22. time= TimeTokenUnlock', TimeTokenUnlock);
-  updateTCC(TimeTokenUnlock);
+  updateTokenStateFromDB(TimeTokenUnlock);
 
 // yarn run testts -a 2 -c 23
 } else if(choice === 23){
   console.log('choice === 23. time= TimeTokenValid', TimeTokenValid);
-  updateTCC(TimeTokenValid);
+  updateTokenStateFromDB(TimeTokenValid);
 
 } else if(choice === 24){
   tokencontrollerAddr = tokenControllerAddrArray[arg0];
@@ -502,4 +525,4 @@ if(choice === 0){// test auto writing paid orders into crowdfunding contract
 
 //console.log('\nenum FundingState{0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 4 fundingClosed, 5 fundingNotClosed, 6 terminated}');
 
-//console.log('\n0: choice 0 x all ctrtAddrs, 1: getFundingStateCFC(ctrtAddr), 2: updateFundingStateCFC(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: get funding states in DB, 11: set funding states in DB, 21: updateCFC(time = CFSD2), 22: updateCFC(time = CFED2);');
+//console.log('\n0: choice 0 x all ctrtAddrs, 1: getFundingStateCFC(ctrtAddr), 2: updateFundingStateFromDB(crowdFundingAddr, time), 3: choice 2 x all ctrtAddrs, 10: get funding states in DB, 11: set funding states in DB, 21: updateFundingStateFromDB(time = CFSD2), 22: updateFundingStateFromDB(time = CFED2);');

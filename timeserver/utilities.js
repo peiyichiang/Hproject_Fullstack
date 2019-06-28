@@ -27,7 +27,7 @@ const checkBoolTrueArray = (item) => item;
 
 
 async function asyncForEach(array, callback) {
-  console.log('----------------==asyncForEach: array', array);
+  console.log('\n------------------==asyncForEach: array');
   for (let idx = 0; idx < array.length; idx++) {
     const item = array[idx];
     console.log(`\n--------------==next in asyncForEach

@@ -3,14 +3,15 @@ const Tx = require('ethereumjs-tx');
 const moment = require('moment');
 
 const { getTime, isEmpty, asyncForEach, checkInt, checkIntFromOne } = require('./utilities');
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordsIntoDB, mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
+const { mysqlPoolQuery, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
-const timeIntervalCancelOverCFED2Orders = 1000;
 
+const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
+const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 //-----------------==Copied from routes/Contracts.js
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -21,8 +22,8 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 
 /**後台公私鑰*/
 console.log('loading blockchain.js smart contract json files');
-const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
-const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+const backendAddr = admin;
+const backendRawPrivateKey = adminpkRaw;
 
 // const choiceOfHCAT721 = 2;
 // if(choiceOfHCAT721===1){
@@ -337,42 +338,21 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   const isFailed = isCorrectAmountArray.includes(false);
   console.log('\nisFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
 
-  console.log('\n--------------==About to call addAssetRecordsIntoDB()');
-  const personal_income = 100;
+  console.log('\n--------------==About to call addAssetRecordRowArray()');
+  const ar_time = serverTime;
+  const singleActualIncomePayment = 0;// after minting tokens
+
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
   const holding_costChanged = 0;
   const acquired_cost = 13000;
   const moving_ave_holding_cost = 13000;
-  const [emailArrayError, amountArrayError] = await addAssetRecordsIntoDB(toAddressArray, amountArray, symbol, serverTime, personal_income, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost);
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]', err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
+  });;
 
-  //----------------------==
-  // var symbol = req.body.tokenSymbol;
-  // var State = req.body.tokenState;
-
-  // var currentTime = new Date().toLocaleString().toString();
-  // if (State == "creation") {
-  //     //假如是被退回，就將審核時間清空
-  //     currentTime = "";
-  // }
-
-  // var sql = {
-  //     p_state: State,
-  //     p_PAdate: currentTime
-  // };
-
-  // var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
-  //     if (err) {
-  //         console.log(err);
-  //         res.send(err);
-  //     } else {
-  //         res.send({ status: "true" });
-  //     }
-
-  // });
-
-
-  return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError];
+  return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false];
   //resolve(isFailed, isCorrectAmountArray);
 }
 
@@ -386,12 +366,14 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
     console.log('[Error] serverTime is not an integer. serverTime:', serverTime);
     return;
   }
-  const actionType = extraInputArray[0];
   if(extraInputArray.length < 1){
     console.log('[Error] extraInputArray should not be empty');
     return;
   }
-  if(waitTime < 5000 && actionType !== 'updateExpiredOrders'){
+
+  const actionType = extraInputArray[0];
+  if(waitTime < 7000 && actionType !== 'updateExpiredOrders'){
+    //give DB a list of todos, no async/await ... make orders expired
     console.log('[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time');
     return;
   }
@@ -460,7 +442,7 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
           const serverTimeM = moment(serverTime, ['YYYYMMDD']);
           //console.log('serverTimeM', serverTimeM.format('YYYYMMDD'), ' Vs. 3+ oPurchaseDateM', oPurchaseDateM.format('YYYYMMDD'));
           if (serverTimeM >= oPurchaseDateM.add(3, 'days')) {
-            console.log('serverTime is found >= oPurchaseDate');
+            console.log(`oid ${oid} is found serverTime >= oPurchaseDate ... write to DB`);
             mysqlPoolQuery('UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?', [oid], function (err, result) {
               if (err) {
                 console.log(`\n[Error] Failed at setting order table o_paymentStatus to expired at orderId = ${oid}, err: ${err}`);
@@ -509,7 +491,6 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
 const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) => {
   console.log('inside mintToken()');
   await getTime().then(async function (serverTime) {
-    //console.log('blockchain.js: mintToken(), serverTime:', serverTime);
     console.log('acquired serverTime', serverTime);
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     let encodedData = instHCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, serverTime).encodeABI();
@@ -523,8 +504,9 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
 // HHtoekn12222  Htoken001  Htoken0030
 //-------------------------------==DB + BC
 //-------------------==Crowdfunding
-const updateCFC = async (serverTime) => {
-  console.log('\ninside updateCFC(), serverTime:', serverTime, 'typeof', typeof serverTime);
+//From DB check if product:fundingState needs to be updated
+const updateFundingStateFromDB = async (serverTime) => {
+  console.log('\ninside updateFundingStateFromDB(), serverTime:', serverTime, 'typeof', typeof serverTime);
   if(!Number.isInteger(serverTime)){
     console.log('[Error] serverTime should be an integer');
     return;
@@ -532,20 +514,23 @@ const updateCFC = async (serverTime) => {
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')', [], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateCFC:', symbolArrayLen, ', symbolArray:', symbolArray);
+    console.log('\nsymbolArray length @ updateFundingStateFromDB:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
     } else if (symbolArrayLen === 0) {
-      console.log('[updateCFC] no symbol was found for updating its crowdfunding contract');
+      console.log('[updateFundingStateFromDB] no symbol was found for updating its crowdfunding contract');
     } else if (symbolArrayLen > 0) {
       sequentialRun(symbolArray, timeIntervalOfNewBlocks, serverTime, ['crowdfunding']);
     }
   });
 }
 
-const cancelOverCFED2Orders = async (serverTime) => {
-  console.log('\ninside cancelOverCFED2Orders(), serverTime:', serverTime, 'typeof', typeof serverTime);
+
+//yarn run testts -a 2 -c 2
+//find still funding symbols that have passed CDED2 -> expire all orders of that symbol
+const makeOrdersExpiredCFED2 = async (serverTime) => {
+  console.log('\ninside makeOrdersExpiredCFED2(), serverTime:', serverTime, 'typeof', typeof serverTime);
   if(!Number.isInteger(serverTime)){
     console.log('[Error] serverTime should be an integer');
     return;
@@ -556,15 +541,15 @@ const cancelOverCFED2Orders = async (serverTime) => {
     console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
   });
   const symbolArrayLen = symbolArray.length;
-  console.log('\nArray length @ cancelOverCFED2Orders:', symbolArrayLen, ', symbols:', symbolArray);
+  console.log('\nArray length @ makeOrdersExpiredCFED2:', symbolArrayLen, ', symbols:', symbolArray);
 
   if (symbolArrayLen === 0) {
-    console.log('[cancelOverCFED2Orders] no symbol was found');
+    console.log('[makeOrdersExpiredCFED2] no symbol was found');
 
   } else if (symbolArrayLen > 0) {
-    console.log('[cancelOverCFED2Orders] symbol(s) found');
+    console.log('[makeOrdersExpiredCFED2] symbol(s) found');
 
-    const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
+    //const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
     const queryStr3 = 'UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
     await asyncForEach(symbolArray, async (symbol, index) => {
       /*
@@ -609,7 +594,7 @@ const cancelOverCFED2Orders = async (serverTime) => {
 
 
 // yarn run testts -a 2 -c 1
-// after order status change: waiting -> paid
+// after order status change: waiting -> paid -> write into crowdfunding contract
 const addAssetbooksIntoCFC = async (serverTime) => {
   // check if serverTime > CFSD2 for each symbol...
   console.log('\ninside blockchain.js: addAssetbooksIntoCFC()... serverTime:',serverTime);
@@ -837,8 +822,9 @@ const getInvestorsFromCFC = async (indexStart, tokenCountStr) => {
 
 
 //-------------------==Token Controller
-const updateTCC = async (serverTime) => {
-  console.log('\ninside updateTCC(), serverTime:', serverTime, 'typeof', typeof serverTime);
+//From DB check if product:tokenState needs to be updated
+const updateTokenStateFromDB = async (serverTime) => {
+  console.log('\ninside updateTokenStateFromDB(), serverTime:', serverTime, 'typeof', typeof serverTime);
   if(!Number.isInteger(serverTime)){
     console.log('[Error] serverTime should be an integer');
     return;
@@ -847,12 +833,12 @@ const updateTCC = async (serverTime) => {
   mysqlPoolQuery(
     'SELECT p_SYMBOL FROM htoken.product WHERE p_lockuptime <= ? OR p_validdate <= ?', [serverTime, serverTime], function (err, symbolArray) {
     const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateTCC:', symbolArrayLen, ', symbolArray:', symbolArray);
+    console.log('\nsymbolArray length @ updateTokenStateFromDB:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (err) {
       console.log('[Error] @ searching symbols:', err);
     } else if (symbolArrayLen === 0) {
-      console.log('[updateTCC] no symbol was found for time >= lockuptime or time >= validdate');
+      console.log('[updateTokenStateFromDB] no symbol was found for time >= lockuptime or time >= validdate');
     } else if (symbolArrayLen > 0) {
       sequentialRun(symbolArray, timeIntervalOfNewBlocks, serverTime, ['tokencontroller']);
     }
@@ -880,10 +866,12 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
         setFundingStateDB(symbol, 'fundingGoalReached', undefined, undefined);
         break;
       case 4:
-        setFundingStateDB(symbol, 'fundingClosed', undefined, undefined);
+        //diasabled for manual setting on funding state
+        //setFundingStateDB(symbol, 'fundingClosed', undefined, undefined);
         break;
       case 5:
-        setFundingStateDB(symbol, 'fundingNotClosed', undefined, undefined);
+        //diasabled for manual setting on funding state
+        //setFundingStateDB(symbol, 'fundingNotClosed', undefined, undefined);
         break;
       case 6:
         setFundingStateDB(symbol, 'terminated', undefined, undefined);
@@ -947,6 +935,117 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 }
 
 
+//---------------------------==Assetbook
+//---------------------------==
+const getAssetbookDetails = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==getAssetbookDetails()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const result = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    result[0] = await instAssetBook.methods.assetOwner().call();
+    result[1] = await instAssetBook.methods.addrHeliumContract().call();
+    result[2] = await instAssetBook.methods.assetOwner_flag().call();
+    result[3] = await instAssetBook.methods.HeliumContract_flag().call();
+    result[4] = await instAssetBook.methods.endorserCtrts_flag().call();
+    result[5] = await instAssetBook.methods.calculateVotes().call();
+
+    const endorserCtrts = await instAssetBook.methods.endorserCtrts().call();
+    result[6] = endorserCtrts[0];
+    result[7] = endorserCtrts[1];
+    result[8] = endorserCtrts[2];
+    console.log('\nresult:', result);
+    resolve(result);
+  });
+}
+
+const setHeliumAddr = async(addrAssetBook, _addrHeliumContract) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==setHeliumAddr()');
+    console.log(`serverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.setHeliumAddr(_addrHeliumContract).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+
+    const addrHeliumContract = await instAssetBook.methods.addrHeliumContract().call();
+    console.log('\naddrHeliumContract:', addrHeliumContract);
+    if(addrHeliumContract === _addrHeliumContract){
+      resolve(true);
+    } else {
+      reject('not successful');
+      return false;
+    }
+  });
+}
+
+const HeliumContractVote = async(addrAssetBook, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==HeliumContractVote()');
+    console.log(`serverTime: ${serverTime}`);
+
+    //const HeliumContract_flag_Before = await instAssetBook.methods.HeliumContract_flag().call();
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.HeliumContractVote(serverTime).encodeABI();
+    let TxResult = await signTx(admin, adminpkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+
+    const HeliumContract_flag_After = await instAssetBook.methods.HeliumContract_flag().call();
+    console.log('\nHeliumContract_flag_after:', HeliumContract_flag_After);
+
+    if(HeliumContract_flag_After === '1'){
+      resolve(true);
+    } else {
+      reject('not successful');
+      return false;
+    }
+  });
+}
+
+
+const resetVoteStatus = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==resetVoteStatus()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.resetVoteStatus().encodeABI();
+    let TxResult = await signTx(admin, adminpkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+
+    const assetOwner_flag = await instAssetBook.methods.assetOwner_flag().call();
+    const HeliumContract_flag = await instAssetBook.methods.HeliumContract_flag().call();
+    const endorserCtrts_flag = await instAssetBook.methods.endorserCtrts_flag().call();
+    console.log('\assetOwner:', result);
+    if(assetOwner_flag === '0' && HeliumContract_flag === '0' && endorserCtrts_flag === '0'){
+      resolve(true);
+    } else {
+      reject('not successful');
+      return false;
+    }
+  });
+}
+
+const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==changeAssetOwner()');
+    console.log(`serverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.changeAssetOwner(_assetOwnerNew, serverTime).encodeABI();
+    let TxResult = await signTx(admin, adminpkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+
+    const result = await instAssetBook.methods.assetOwner().call();
+    console.log('\assetOwner:', result);
+    if(result === _assetOwnerNew){
+      resolve(true);
+    } else {
+      reject('not successful');
+      return false;
+    }
+  });
+}
+// const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+// const encodedData = instAssetBook.methods.HeliumContractVote(serverTime).encodeABI();
+// let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrAssetBook, encodedData);
+// console.log('\nTxResult', TxResult);
 
 //---------------------------==Income Manager
 //---------------------------==
@@ -959,9 +1058,9 @@ const schCindex = async(symbol, schIndex) => {
     });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
 
-    const result1 = await instIncomeManager.methods.schCindex().call();
-    console.log('\nschCindex:', result1);//assert.equal(result1, 0);
-    resolve(result1);
+    const result = await instIncomeManager.methods.schCindex().call();
+    console.log('\nschCindex:', result);//assert.equal(result, 0);
+    resolve(result);
   });
 }
 
@@ -974,8 +1073,8 @@ const getIncomeSchedule = async(symbol, schIndex) => {
       return false;
     });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
-    //const result1 = await instIncomeManager.methods.schCindex().call();
-    //console.log('\nschCindex:', result1);//assert.equal(result1, 0);
+    //const result = await instIncomeManager.methods.schCindex().call();
+    //console.log('\nschCindex:', result);//assert.equal(result, 0);
   
     const result2 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
@@ -992,8 +1091,8 @@ const getIncomeScheduleList = async(symbol, forecastedPayableTime) => {
       return false;
     });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
-    // const result1 = await instIncomeManager.methods.schCindex().call();
-    // console.log('\nschCindex:', result1);//assert.equal(result1, 0);
+    // const result = await instIncomeManager.methods.schCindex().call();
+    // console.log('\nschCindex:', result);//assert.equal(result, 0);
 
     // const bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
     // console.log('\nisScheduleGoodForRelease('+forecastedPayableTime+'):', bool1);
@@ -1023,8 +1122,8 @@ const checkAddScheduleBatch1 = async(symbol, forecastedPayableTimes, forecastedP
   });
   const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
   
-  const result1 = await instIncomeManager.methods.checkAddScheduleBatch1(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
-  console.log('\nschCindex:', result1);//assert.equal(result1, 0);
+  const result = await instIncomeManager.methods.checkAddScheduleBatch1(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
+  console.log('\nschCindex:', result);//assert.equal(result, 0);
   process.exit(0);
 }
 
@@ -1045,8 +1144,8 @@ const checkAddScheduleBatch2 = async(symbol, forecastedPayableTimes, forecastedP
   });
   const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, incomeMgrAddr);
   
-  const result1 = await instIncomeManager.methods.checkAddScheduleBatch2(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
-  console.log('\nschCindex:', result1);//assert.equal(result1, 0);
+  const result = await instIncomeManager.methods.checkAddScheduleBatch2(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
+  console.log('\nschCindex:', result);//assert.equal(result, 0);
   process.exit(0);
 }
 
@@ -1084,7 +1183,7 @@ const checkAddScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, fore
     const isPS = await instIncomeManager.methods.checkPlatformSupervisor().call({ from: backendAddr }); console.log('\nisPS', isPS);
 
     const schCindexM = await instIncomeManager.methods.schCindex().call();
-    console.log('schCindex:', schCindexM);//assert.equal(result1, 0);
+    console.log('schCindex:', schCindexM);//assert.equal(result, 0);
   
     const result2 = await instIncomeManager.methods.getIncomeSchedule(schCindexM).call(); 
     console.log(`\n-------------==getIncomeSchedule(${schCindexM}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
@@ -1160,7 +1259,7 @@ const addScheduleBatch = async (incomeMgrAddr, forecastedPayableTimes, forecaste
       let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
       console.log('\nscheduleList', scheduleList);
       const schCindexM = await instIncomeManager.methods.schCindex().call();
-      console.log('schCindex:', schCindexM);//assert.equal(result1, 0);
+      console.log('schCindex:', schCindexM);//assert.equal(result, 0);
       resolve(true);
 
     } else {
@@ -1193,7 +1292,7 @@ const removeIncomeSchedule = async (symbol, schIndex) => {
     let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
     console.log('\nscheduleList', scheduleList);
     const schCindexM = await instIncomeManager.methods.schCindex().call();
-    console.log('schCindex:', schCindexM);//assert.equal(result1, 0);
+    console.log('schCindex:', schCindexM);//assert.equal(result, 0);
     resolve(true);
   });
 }
@@ -1292,6 +1391,8 @@ const isScheduleGoodIMC = async (serverTime) => {
 
 
 //-----------------------==
+// orderDate+3 => expired orders
+// yarn run testts -a 2 -c 19
 const updateExpiredOrders = async (serverTime) => {
   console.log('\ninside updateExpiredOrders(), serverTime:', serverTime, 'typeof', typeof serverTime);
   if(!Number.isInteger(serverTime)){
@@ -1390,10 +1491,11 @@ module.exports = {
   updateExpiredOrders, getDetailsCFC, 
   sequentialRun, sequentialMint, sequentialCheckBalancesAfter, sequentialCheckBalances,
   breakdownArrays, sequentialMintSuper,
-  getFundingStateCFC, updateFundingStateCFC, updateCFC,
+  getFundingStateCFC, updateFundingStateFromDB, updateFundingStateCFC,
   addAssetbooksIntoCFC, getInvestorsFromCFC,
-  getTokenStateTCC, updateTokenStateTCC, updateTCC, 
-  isScheduleGoodIMC, cancelOverCFED2Orders,
+  getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, 
+  isScheduleGoodIMC, makeOrdersExpiredCFED2,
   getInvestorsFromCFC_Check,
-  schCindex, addScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, checkAddScheduleBatch, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB
+  schCindex, addScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, checkAddScheduleBatch, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB,
+  resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
 }
