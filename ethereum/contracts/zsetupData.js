@@ -116,7 +116,8 @@ const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000
 
 const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
 
-const isTestingMode = true;
+//const isTestingMode = true;
+const isTestingMode = false;
 const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
 //const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**

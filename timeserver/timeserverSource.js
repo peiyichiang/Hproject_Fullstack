@@ -67,7 +67,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         //From DB check if product:tokenState needs to be updated
       };
       if(whichTimeServerArray[5] > 0){
-        calculatePeriodicProfit(serverTime);//blockchain.js
+        //calculatePeriodicProfit(serverTime);//blockchain.js
       }
   
     }
