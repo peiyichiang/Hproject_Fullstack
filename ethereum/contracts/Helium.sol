@@ -29,6 +29,7 @@ contract Helium {
     }
     
     mapping(address => PermissionTable) public PermissionList;
+    mapping(address => bool) public managementList;
     
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
@@ -37,6 +38,21 @@ contract Helium {
         Helium_Director = management[2];
         Helium_Manager = management[3];
         Helium_Owner = management[4];
+
+        /*
+        managementList[Helium_Admin] = true;
+        require(managementList[Helium_Chairman] == false, "Helium_Chairman is already part of the management");
+        managementList[Helium_Chairman] = true;
+
+        require(managementList[Helium_Director] == false, "Helium_Director is already part of the management");
+        managementList[Helium_Director] = true;
+
+        require(managementList[Helium_Manager] == false, "Helium_Manager is already part of the management");
+        managementList[Helium_Manager] = true;
+
+        require(managementList[Helium_Owner] == false, "Helium_Owner is already part of the management");
+        managementList[Helium_Owner] = true;
+        */
     }
     //"only Admin or Customer Service can call this function"
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService){
