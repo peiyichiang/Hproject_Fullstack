@@ -12,9 +12,15 @@ router.get('/Product', function (req, res, next) {
     console.log('------------------------==\n@Product/Product:\nreq.query', req.query, 'req.body', req.body);
     //   console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -75,9 +81,15 @@ router.get('/ProductByFMN', function (req, res, next) {
     //   console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -131,9 +143,15 @@ router.get('/ProductByFMS', function (req, res, next) {
     //   console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -216,9 +234,15 @@ router.get('/AddProductByFMN', function (req, res, next) {
     console.log('------------------------==\n@Product/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     // console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -254,9 +278,15 @@ router.post('/AddProductByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -352,9 +382,15 @@ router.get('/DeleteProduct', function (req, res, next) {
     console.log('------------------------==\n@Product/DeleteProduct:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -409,9 +445,15 @@ router.get('/DeleteProduct', function (req, res, next) {
 router.get('/EditProductByFMN', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -457,9 +499,15 @@ router.get('/EditProductByFMN', function (req, res, next) {
 router.post('/EditProductByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -554,9 +602,15 @@ router.post('/EditProductByFMN', function (req, res, next) {
 router.get('/SetProductCreationByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -604,9 +658,15 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
 router.get('/EditProductByFMS', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -663,9 +723,15 @@ router.get('/EditProductByFMS', function (req, res, next) {
 router.get('/SetProductDraftByFMS', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -717,9 +783,15 @@ router.get('/SetProductDraftByFMS', function (req, res, next) {
 router.get('/EditProductByPlatformSupervisor', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByPlatformSupervisor:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -812,9 +884,15 @@ router.post('/SetProductStateByPlatformSupervisor', function (req, res, next) {
 //設置產品的p_FMSNote並將產品狀態設為draft(FMS專用)
 router.get('/SetFMSNoteAndReturnByFMS', function (req, res, next) {
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -860,9 +938,15 @@ router.get('/SetFMSNoteAndReturnByFMS', function (req, res, next) {
 //設置產品的p_PANote並將產品狀態設為creation(Platform Supervisor專用)
 router.get('/SetPANoteAndReturnByPA', function (req, res, next) {
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -1000,9 +1084,15 @@ router.post('/IncomeCSV', function (req, res, next) {
 router.get('/IncomeArrangement', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });

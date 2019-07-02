@@ -6,7 +6,7 @@
     <title></title>
     <link rel="stylesheet" href="/css/HeaderFooter.css">
 	<link rel="stylesheet" href="/css/SignUp.css">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
 </head>
 
 <body>
@@ -20,52 +20,20 @@
                     </div>
     
                     <div class="down">
-                        <div class="signUpWindow">
+                        <div class="signUpWindow" style="height: 240px;">
                             <div class="windowUp">
                                 <div class="title">
-                                    會員註冊
+                                    註冊失敗：帳號重複
                                 </div>
                             </div>
                             <div class="windowDown">
                                 <div class="right">
-                                    <div class="login">
-                                        <form name="addform" id="addform" action="/BackendUser/AddBackendUser" method="post" accept-charset="utf-8" >
-                                            <div class="inputTitle">Email*<span id="errorMessage" style="color:red;font-size:12px; "></span></div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_id" id="m_id" onchange="isEmail(this.value)">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div>
-                                            <!-- <br> -->
-                                            <div class="inputTitle">密碼*</div>
-                                            <div class="inputContainer">
-                                                <input type="password" class="password" name="m_password_1" id="m_password_1">
-                                                <i class="fas fa-lock"></i>
-                                            </div>
-                                            <!-- <br> -->
-                                            <div class="inputTitle">確認密碼*</div>
-                                            <div class="inputContainer">
-                                                <input type="password" class="password" name="m_password_2" id="m_password_2">
-                                                <i class="fas fa-lock"></i>
-                                            </div>
-                                            <div>
-                                                <input type="hidden" name="m_salt" placeholder="m_salt" id="m_salt">
-                                            </div>
-                                            <div>
-                                                <input type="hidden" name="m_passwordhash" placeholder="m_passwordhash" id="m_passwordhash">
-                                            </div>
-                                            <div class="inputTitle">公司*</div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_company">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div>
-                                            <!-- <div class="inputTitle">Email*</div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_email">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div> -->
-                                            <div class="haveAccount responseState"></div>
-                                            <input type='button' value="註冊" id="register" class="register">
-                                        </form>
+                                    <div class="login" style="text-align: center;">
+                                        <br>
+                                        <span id="CountTime"></span>
+                                        <span>秒後跳轉到註冊頁面</span>
+                                        <br><br>
+                                        <i class="far fa-times-circle" style="font-size: 100px;color:#ff5c59;"></i>
                                         <div class="clear"></div>
                                     </div>
                                 </div>
@@ -80,16 +48,26 @@
             </div>
     
             <div class="clear"></div>
-    
-            <!-- <div class="footer">
-                <div class="Info">
-                    <div class="title">@NCCU Blockchain Hub</div>
-    
-                </div>
-            </div> -->
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/is_js/0.9.0/is.js"></script>
-    <script src="/js/BackendUserRegister.js"></script>
 </body>
-
+<script type="text/javascript">  
+    //设定倒数秒数 
+    var count = 5;
+    //写一个方法，显示倒数秒数  数到0后跳转页面  
+    function countDown(){
+        //将count显示在div中
+        document.getElementById("CountTime").textContent= count;
+        //没执行一次，count减1
+        count -= 1;
+        //count=0时，跳转页面
+        if(count==0){
+            location.href="http://127.0.0.1:3030/BackendUser/AddBackendUser";
+                        //window.location.href="index.html";
+        }
+        //每秒执行一次,showTime()
+        setTimeout("countDown()",1000);
+    }
+    //执行countDown方法
+    countDown();
+</script> 
 </html>
