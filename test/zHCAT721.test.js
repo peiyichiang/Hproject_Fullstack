@@ -1701,8 +1701,8 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     console.log('\n--------==setPaymentReleaseResults');
-    _paymentDate = forecastedPayableTime;
-    _paymentAmount = forecastedPayableAmount;
+    _paymentDate = forecastedPayableTime+1;
+    _paymentAmount = forecastedPayableAmount+1;
     _errorCode = 21;
     await instIncomeManager.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
