@@ -574,9 +574,9 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     const ctrtAddrResultsLen = ctrtAddrResults.length;
     console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
     if(ctrtAddrResultsLen == 0){
-      reject('no contract address for '+ctrtType+' is found');
+      reject('no '+ctrtType+' contract address for '+symbol+' is found');
     } else if(ctrtAddrResultsLen > 1){
-      reject('multiple '+ctrtType+' addresses were found');
+      reject('multiple '+ctrtType+' addresses were found for '+symbol);
     } else {
       const targetAddr = ctrtAddrResults[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
