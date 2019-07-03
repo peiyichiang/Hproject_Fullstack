@@ -33,6 +33,7 @@ contract MultiSig {
     uint public assetOwner_flag;
     uint public HeliumContract_flag;
     uint public endorserArray_flag;
+    uint public lastLoginTime;
 
     event ChangeAssetOwnerEvent(address indexed oldAssetOwner, address indexed newAssetOwner, uint256 timestamp);
     event ChangeEndorserCtrtEvent(address indexed oldEndorserCtrt, address indexed newEndorserCtrt, uint256 timestamp);
@@ -40,6 +41,7 @@ contract MultiSig {
     event AssetOwnerVoteEvent(address indexed assetOwner, uint256 timestamp);
     event HeliumCtrtVoteEvent(address indexed addrHeliumContract, uint256 timestamp);
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
+    event AddLoginTime(uint indexed lastLoginTime);
 
 
     modifier ckAssetOwner(){
@@ -61,6 +63,11 @@ contract MultiSig {
     }
     function checkCustomerService() public view returns (bool){
         return (HeliumITF(addrHeliumContract).checkCustomerService(msg.sender));
+    }
+
+    function addLoginTime() external ckAssetOwner {
+        lastLoginTime = now;
+        emit AddLoginTime(lastLoginTime);
     }
 
     // for assetOwner to vote
@@ -86,9 +93,22 @@ contract MultiSig {
         emit EndorserVoteEvent(msg.sender, serverTime);
     }
 
+    function checkNowTime() public view returns (uint) {
+        return now;
+    }
 
+    function checkLockUpStatus(uint amountOfDays, uint amountOfSec) public view returns (bool) {
+        if(now >= lastLoginTime + amountOfDays * 1 days + amountOfSec * 1 seconds){
+            return true;
+        } else {
+            return false;
+        }
+    }
     // to calculate the sum of all vote flags
-    function calculateVotes() public view returns (uint) {
+    function calculateVotes() public returns (uint) {
+        if(now >= lastLoginTime + 183 * 1 days){
+          endorserArray_flag = 1;
+        }
         return (assetOwner_flag + HeliumContract_flag + endorserArray_flag);
     }
 

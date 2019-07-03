@@ -1275,7 +1275,7 @@ describe('Tests on AssetBookCtrt', () => {
   it('AssetBook functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==getAssetbookDetails()');
-    let assetOwnerM, addrHeliumContractM, assetOwner_flagM, HeliumContract_flagM, endorserArray_flagM, votesM, arraylength, endorserArrayN;
+    let assetOwnerM, addrHeliumContractM, assetOwner_flagM, HeliumContract_flagM, endorserArray_flagM, votesM, arraylength, endorserArrayN, checkNowTimeM, lastLoginTime, bool1;
     serverTime = 201906281600;
 
     assetOwnerM = await instAssetBook1.methods.assetOwner().call();
@@ -1297,6 +1297,31 @@ describe('Tests on AssetBookCtrt', () => {
     endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
     console.log('endorserArray_flagM:', endorserArray_flagM);
     assert.equal(endorserArray_flagM, '0');
+
+    votesM = await instAssetBook1.methods.calculateVotes().call();
+    console.log('votesM:', votesM);
+    assert.equal(votesM, '1');
+    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
+    console.log('endorserArray_flagM after calculateVotes():', endorserArray_flagM);
+    assert.equal(endorserArray_flagM, '1');
+
+
+    checkNowTimeM = await instAssetBook1.methods.checkNowTime().call();
+    console.log('checkNowTimeM:', checkNowTimeM);
+
+    await instAssetBook1.methods.addLoginTime()
+    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
+    console.log('lastLoginTimeM:', lastLoginTimeM);
+
+
+    let amountOfDays = 183;
+    let amountOfSec  = 0;
+    bool1 = await instAssetBook1.methods.checkLockUpStatus(amountOfDays, amountOfSec)
+    .call();
+    console.log('bool1', bool1)
+    assert.equal(bool1, false);
+
 
     votesM = await instAssetBook1.methods.calculateVotes().call();
     console.log('votesM:', votesM);
@@ -1417,6 +1442,31 @@ describe('Tests on AssetBookCtrt', () => {
     endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
     console.log('endorserArray_flagM:', endorserArray_flagM);
     assert.equal(endorserArray_flagM, '1');
+
+
+    await instAssetBook1.methods.resetVoteStatus()
+    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
+    console.log('endorserArray_flagM:', endorserArray_flagM);
+    assert.equal(endorserArray_flagM, '0');
+
+    lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
+    console.log('lastLoginTimeM:', lastLoginTimeM);
+
+    const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
+    await waitFor(2000);
+
+    amountOfDays = 0;
+    amountOfSec  = 1;
+    bool1 = await instAssetBook1.methods.checkLockUpStatus(amountOfDays, amountOfSec)
+    .call();
+    assert.equal(bool1, true);
+    console.log('checkLockUpStatus');
+
+
+    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
+    console.log('endorserArray_flagM:', endorserArray_flagM);
+    assert.equal(endorserArray_flagM, '0');
 
 
     await instAssetBook1.methods.HeliumContractVote(serverTime)
