@@ -1501,6 +1501,10 @@ router.get('/canBuyToken', async function (req, res) {
                     canBuyToken = true :
                     canBuyToken = false;
 
+                    // console.log(isServerTimeLargerThanCFSD)
+                    // console.log(isAssetbookContractAddressExist)
+                    // console.log(canBuyToken)
+
                 if (!!canBuyToken) {
                     res.status(200);
                     res.json({

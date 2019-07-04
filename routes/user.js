@@ -789,42 +789,71 @@ router.post('/ForgetPassword', function (req, res, next) {
 router.post('/ResetPassword', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     var newPassword = req.body.password1;
-    var ResetPasswordHash= req.body.resetPasswordHash;
+    var ResetPasswordHash = req.body.resetPasswordHash;
     var sql = {}
-    console.log(newPassword);
-    console.log(ResetPasswordHash);
 
     const saltRounds = 10;
     bcrypt
-    .genSalt(saltRounds)
-    .then(salt => {
-        console.log(`Salt: ${salt}`);
-        sql.u_salt = salt
-        return bcrypt.hash(newPassword, salt);
-    })
-    .then(hash  => {
-        console.log(`Hash: ${hash}`);
-        sql.u_password_hash = hash
-        console.log("###" + JSON.stringify(sql));
+        .genSalt(saltRounds)
+        .then(salt => {
+            console.log(`Salt: ${salt}`);
+            sql.u_salt = salt
+            return bcrypt.hash(newPassword, salt);
+        })
+        .then(hash => {
+            // console.log(`Hash: ${hash}`);
+            sql.u_password_hash = hash
+            // console.log("###" + JSON.stringify(sql));
 
-        mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
-            if (err) {
-                console.log(err);
-                res.render('error', { message: '更改密碼失敗：' + err, error: '' });
-            } else {
-                // res.setHeader('Content-Type', 'application/json');
-                // res.redirect('/BackendUser/backend_user');
-                res.render('error', { message: '更改密碼成功', error: '' });
-            }
-        });
+            mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
+                if (err) {
+                    console.log(err);
+                    res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+                } else {
+                    // res.setHeader('Content-Type', 'application/json');
+                    // res.redirect('/BackendUser/backend_user');
+                    res.render('error', { message: '更改密碼成功', error: '' });
+                }
+            });
 
-    })
-    .catch(err => console.error(err.message));
+        })
+        .catch(err => console.error(err.message));
 });
 
 router.get('/ResetPassword', function (req, res, next) {
     res.render('FrontendResetPassword', { title: 'FrontendResetPassword' });
 });
+
+//更新使用者資料
+router.post('/UpdateUserInformation', function (req, res, next) {
+    const mysqlPoolQuery = req.pool;
+    const email = req.body.email;
+    const name = req.body.name;
+    const gender = req.body.gender;
+    const cellphone = req.body.cellphone;
+    const sql = {
+        u_name: name,
+        u_gender: gender,
+        u_cellphone: cellphone
+    };
+
+    mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, email], function (err, rows) {
+        if (err) {
+            res.status(400)
+            res.json({
+                "message": "更新使用者資料失敗：" + err
+            })
+        }
+        else {
+            res.status(200);
+            res.json({
+                "message": "更新使用者資料成功"
+            })
+        }
+    });
+});
+
+
 
 module.exports = router;
 /**
