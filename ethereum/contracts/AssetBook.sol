@@ -44,6 +44,7 @@ contract MultiSig {
     event HeliumCtrtVoteEvent(address indexed addrHeliumContract, uint256 timestamp);
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
     event AddLoginTime(uint indexed lastLoginTime);
+    event SetAntiSystemOverrideDays(uint antiSystemOverrideDays);
 
 
     modifier ckAssetOwner(){
@@ -97,6 +98,12 @@ contract MultiSig {
 
     function checkNowTime() public view returns (uint) {
         return now;
+    }
+
+    function setAntiSystemOverrideDays(uint _antiSystemOverrideDays) public ckAssetOwner {
+        require(_antiSystemOverrideDays >= 183, "minimum _antiSystemOverrideDays is 183 days");
+        antiSystemOverrideDays = _antiSystemOverrideDays;
+        emit SetAntiSystemOverrideDays(_antiSystemOverrideDays);
     }
 
     function isAbleSystemOverride() public view returns (bool) {
