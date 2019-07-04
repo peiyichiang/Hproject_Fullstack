@@ -1275,7 +1275,7 @@ describe('Tests on AssetBookCtrt', () => {
   it('AssetBook functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==getAssetbookDetails()');
-    let assetOwnerM, addrHeliumContractM, assetOwner_flagM, HeliumContract_flagM, endorserArray_flagM, votesM, arraylength, endorserArrayN, checkNowTimeM, lastLoginTime, bool1;
+    let assetOwnerM, addrHeliumContractM, assetOwner_flagM, HeliumContract_flagM, endorserArray_flagM, calculateVotesM, arraylength, endorserArrayN, checkNowTimeM, lastLoginTime, bool1, result;
     serverTime = 201906281600;
 
     assetOwnerM = await instAssetBook1.methods.assetOwner().call();
@@ -1298,35 +1298,35 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('endorserArray_flagM:', endorserArray_flagM);
     assert.equal(endorserArray_flagM, '0');
 
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM:', votesM);
-    assert.equal(votesM, '1');
-    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
-    console.log('endorserArray_flagM after calculateVotes():', endorserArray_flagM);
-    assert.equal(endorserArray_flagM, '1');
-
-
+    console.log('\n----------------==initial condition is the same as if the user has not logged in for a long time ... check if the system can override');
     checkNowTimeM = await instAssetBook1.methods.checkNowTime().call();
     console.log('checkNowTimeM:', checkNowTimeM);
 
-    await instAssetBook1.methods.addLoginTime()
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
     lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
     console.log('lastLoginTimeM:', lastLoginTimeM);
 
+    bool1 = await instAssetBook1.methods.isAbleSystemOverride().call();
+    console.log('isAbleSystemOverride:', bool1);
+    assert.equal(bool1, true);
 
-    let amountOfDays = 183;
-    let amountOfSec  = 0;
-    bool1 = await instAssetBook1.methods.checkLockUpStatus(amountOfDays, amountOfSec)
-    .call();
-    console.log('bool1', bool1)
-    assert.equal(bool1, false);
+    calculateVotesM = await instAssetBook1.methods.calculateVotes().call();
+    console.log('calculateVotesM:', calculateVotesM);
+    assert.equal(calculateVotesM, '1');
+
+    assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
+    console.log('assetOwner_flagM after calculateVotes():', assetOwner_flagM);
+    assert.equal(assetOwner_flagM, '0');
+
+    HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
+    console.log('HeliumContract_flagM after calculateVotes():',HeliumContract_flagM);
+    assert.equal(HeliumContract_flagM, '0');
+    
+    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
+    console.log('endorserArray_flagM after calculateVotes():', endorserArray_flagM);
+    assert.equal(endorserArray_flagM, '0');
 
 
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM:', votesM);
-    assert.equal(votesM, '0');
-
+    console.log('\n----------------==check adding customerService role...');
     bool1 = await instAssetBook1.methods.checkCustomerService().call({from: admin});
     console.log('checkCustomerService(admin):', bool1);
     assert.equal(bool1, true);
@@ -1341,23 +1341,88 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('checkCustomerService(AssetOwner2):', bool1);
     assert.equal(bool1, true);
 
-    arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
-    console.log('\nshowEndorserArrayLength():', arraylength);
-    assert.equal(arraylength, 0);
+
+    console.log('\n----------------==Change asset owner at system override is allowed...');
+    await instAssetBook1.methods.HeliumContractVote(serverTime)
+    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+    HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
+    console.log('HeliumContract_flagM:', HeliumContract_flagM);
+    assert.equal(HeliumContract_flagM, '1');
+
+    calculateVotesM = await instAssetBook1.methods.calculateVotes().call();
+    console.log('calculateVotesM:', calculateVotesM);
+    assert.equal(calculateVotesM, '2');
+
+    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner1});
+    console.log('is AssetOwner1 the asset owner?', bool1);
+    assert.equal(bool1, true);
+
+    await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
+    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    assetOwnerM = await instAssetBook1.methods.assetOwner().call();
+    console.log('assetOwnerM:', assetOwnerM);
+    assert.equal(assetOwnerM, AssetOwner5);
+
+    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner5});
+    console.log('is AssetOwner5 the new asset owner?', bool1);
+    assert.equal(bool1, true);
+
+    calculateVotesM = await instAssetBook1.methods.calculateVotes().call();
+    console.log('calculateVotesM after changeAssetOwner:', calculateVotesM);
+    assert.equal(calculateVotesM, '1');
+
+
+    console.log('\n----------------==after addLoginTime()');
+    checkNowTimeM = await instAssetBook1.methods.checkNowTime().call();
+    console.log('checkNowTimeM:', checkNowTimeM);
+
+    console.log('addLoginTime()...');
+    await instAssetBook1.methods.addLoginTime().send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+    lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
+    console.log('lastLoginTimeM:', lastLoginTimeM);
+
+    bool1 = await instAssetBook1.methods.isAbleSystemOverride().call();
+    console.log('isAbleSystemOverride:', bool1)
+    assert.equal(bool1, false);
+
+    calculateVotesM = await instAssetBook1.methods.calculateVotes().call();
+    console.log('calculateVotesM:', calculateVotesM);
+    assert.equal(calculateVotesM, '0');
 
     error = false;
     try {
-      await instAssetBook1.methods.addEndorser(AssetOwner1, serverTime)
-      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+      .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('\n[Success] new endorser cannot be the asset owner, err:', err.toString().substr(0, 150));
+      console.log('\n[Success] The system now cannot change assetowner after recent login, err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
 
+
+
+
+    console.log('\n----------------==check adding endorser roles...');
+    arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
+    console.log('showEndorserArrayLength():', arraylength);
+    assert.equal(arraylength, 0);
+
+    error = false;
+    try {
+      await instAssetBook1.methods.addEndorser(AssetOwner5, serverTime)
+      .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] new endorser cannot be the asset owner himself, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    console.log('\nadding AssetOwner3 as an endorser ...');
     await instAssetBook1.methods.addEndorser(AssetOwner3, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
     console.log('showEndorserArrayLength():', arraylength);
@@ -1368,11 +1433,13 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('endorserArrayN:', endorserArrayN);
     assert.equal(endorserArrayN, AssetOwner3);
 
+    console.log('\nadding AssetOwner4 as an endorser ...');
     await instAssetBook1.methods.addEndorser(AssetOwner4, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instAssetBook1.methods.addEndorser(AssetOwner5, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('\nadding AssetOwner1 as an endorser ...');
+    await instAssetBook1.methods.addEndorser(AssetOwner1, serverTime)
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
     console.log('showEndorserArrayLength() after adding 2 endorsers:', arraylength);
@@ -1381,55 +1448,65 @@ describe('Tests on AssetBookCtrt', () => {
     error = false;
     try {
       await instAssetBook1.methods.addEndorser(AssetOwner2, serverTime)
-      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('\n[Success] endorser count must be <= 3, err:', err.toString().substr(0, 150));
+      console.log('\n[Success] endorser total number cannot be > 3, err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
 
 
-    await instAssetBook1.methods.changeEndorser(AssetOwner3, AssetOwner2, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    await instAssetBook1.methods.changeEndorser(AssetOwner1, AssetOwner2, serverTime)
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    endorserArrayN = await instAssetBook1.methods.endorserArray(0).call();
-    console.log('endorserArrayN after changing 1 endorser:', endorserArrayN);
+    endorserArrayN = await instAssetBook1.methods.endorserArray(2).call();
+    console.log('\n[Success]: AssetOwner2 has replaced AssetOwner1 as the new endorser', endorserArrayN);
     assert.equal(endorserArrayN, AssetOwner2);
 
 
 
-
-    await instAssetBook1.methods.assetOwnerVote(serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('\ncheck if the asset owner can vote');
+    await instAssetBook1.methods.assetOwnerVote(serverTime).send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM:', assetOwner_flagM);
     assert.equal(assetOwner_flagM, '1');
 
     error = false;
     try {
-      await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
       .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('\n[Success] changeAssetOwner before getting 2 votes, err:', err.toString().substr(0, 150));
+      console.log('\n[Success] endorser cannot change asset owner, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    error = false;
+    try {
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+      .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] admin cannot change asset owner, err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
 
 
-
+    console.log('\nReset the vote result');
     await instAssetBook1.methods.resetVoteStatus()
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM after reset:', assetOwner_flagM);
     assert.equal(assetOwner_flagM, '0');
 
-
+    console.log('\n------------==check1');
     error = false;
     try {
       await instAssetBook1.methods.endorserVote(serverTime)
-      .send({value: '0', from: AssetOwner3, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
         error = true;
     } catch (err) {
       console.log('\n[Success] non endorsers cannot vote, err:', err.toString().substr(0, 150));
@@ -1437,31 +1514,30 @@ describe('Tests on AssetBookCtrt', () => {
     }
     if (error) {assert(false);}
 
+    console.log('\ncheck if AssetOwner4 can vote');
     await instAssetBook1.methods.endorserVote(serverTime)
     .send({value: '0', from: AssetOwner4, gas: gasLimitValue, gasPrice: gasPriceValue });
     endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
-    console.log('endorserArray_flagM:', endorserArray_flagM);
+    console.log('endorserArray_flagM from AssetOwner4:', endorserArray_flagM);
     assert.equal(endorserArray_flagM, '1');
 
-
+    console.log('\nClear vote result');
     await instAssetBook1.methods.resetVoteStatus()
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
     console.log('endorserArray_flagM:', endorserArray_flagM);
     assert.equal(endorserArray_flagM, '0');
 
+    console.log('------------------==')
     lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
     console.log('lastLoginTimeM:', lastLoginTimeM);
 
-    const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
-    await waitFor(2000);
+    // const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
+    // await waitFor(2000);
 
-    amountOfDays = 0;
-    amountOfSec  = 1;
-    bool1 = await instAssetBook1.methods.checkLockUpStatus(amountOfDays, amountOfSec)
-    .call();
-    assert.equal(bool1, true);
-    console.log('checkLockUpStatus');
+    bool1 = await instAssetBook1.methods.isAbleSystemOverride().call();
+    console.log('isAbleSystemOverride:', bool1);
+    assert.equal(bool1, false);
 
 
     endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
@@ -1469,40 +1545,44 @@ describe('Tests on AssetBookCtrt', () => {
     assert.equal(endorserArray_flagM, '0');
 
 
-    await instAssetBook1.methods.HeliumContractVote(serverTime)
-    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
-    HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
-    console.log('HeliumContract_flagM:', HeliumContract_flagM);
-    assert.equal(HeliumContract_flagM, '1');
+    console.log('------------------==');
+    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner5});
+    console.log('is AssetOwner5 the asset owner?', bool1);
+    assert.equal(bool1, true);
 
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM:', votesM);
-    assert.equal(votesM, '2');
-
-    await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
-    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM after changeAssetOwner:', votesM);
-    assert.equal(votesM, '0');
+    await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     assetOwnerM = await instAssetBook1.methods.assetOwner().call();
     console.log('assetOwnerM:', assetOwnerM);
-    assert.equal(assetOwnerM, AssetOwner5);
-
-    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner5});
-    console.log('is the new asset owner?', bool1);
-    assert.equal(bool1, true);
+    assert.equal(assetOwnerM, AssetOwner1);
+    console.log('[Success] assetowner can change owner address by himself');
 
 
     //but after changing to an invalid Helium contract address, we cannot call functions...
     //so put this test at the very last!
+    console.log('\n-----------------==');
+    error = false;
+    try {
+      await instAssetBook1.methods.setHeliumAddr(AssetOwner2)
+      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+      addrHeliumContractM = await instAssetBook1.methods.addrHeliumContract().call();
+      console.log('addrHeliumContractM after changing it:', addrHeliumContractM);
+      assert.equal(addrHeliumContractM, AssetOwner2);
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] only a customer service rep can change Helium address, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
     await instAssetBook1.methods.setHeliumAddr(AssetOwner2)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     addrHeliumContractM = await instAssetBook1.methods.addrHeliumContract().call();
     console.log('addrHeliumContractM after changing it:', addrHeliumContractM);
     assert.equal(addrHeliumContractM, AssetOwner2);
-
+    console.log('[Success] Helium address has been changed by a customer service rep');
 
 
   });
