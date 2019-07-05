@@ -128,7 +128,7 @@ contract MultiSig {
 
     /** @dev When changing assetOwner EOA，two out of three parties must vote on pass */
     function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external {
-        if(msg.sender != assetOwner){
+        if(msg.sender != address(0)){//assetOwner
             require(checkCustomerService(),"only a customer service rep is allowed");
             require(calculateVotes() >= 2,"vote count must be >= 2");
         }
