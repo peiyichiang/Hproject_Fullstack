@@ -96,10 +96,6 @@ contract MultiSig {
         emit EndorserVoteEvent(msg.sender, serverTime);
     }
 
-    function checkNowTime() public view returns (uint) {
-        return now;
-    }
-
     function setAntiSystemOverrideDays(uint _antiSystemOverrideDays) public ckAssetOwner {
         require(_antiSystemOverrideDays >= 183, "minimum _antiSystemOverrideDays is 183 days");
         antiSystemOverrideDays = _antiSystemOverrideDays;
@@ -112,11 +108,7 @@ contract MultiSig {
 
     // to calculate the sum of all vote flags
     function calculateVotes() public returns (uint) {
-        uint endorserArray_flagCopy = endorserArray_flag;
-        if(isAbleSystemOverride()){
-          endorserArray_flagCopy = 1;
-        }
-        return (assetOwner_flag + HeliumContract_flag + endorserArray_flagCopy);
+        return (assetOwner_flag + HeliumContract_flag + endorserArray_flag);
     }
 
     function resetVoteStatus() public {
@@ -130,7 +122,7 @@ contract MultiSig {
     function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external {
         if(msg.sender != address(0)){//assetOwner
             require(checkCustomerService(),"only a customer service rep is allowed");
-            require(calculateVotes() >= 2,"vote count must be >= 2");
+            require(calculateVotes() >= 2 || isAbleSystemOverride(),"vote count must be >= 2");
         }
         address _oldAssetOwner = assetOwner;
         assetOwner = _assetOwnerNew;
