@@ -906,7 +906,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 }
 
 
-//---------------------------==Assetbook
+//---------------------------==Assetbook Contract
 //---------------------------==
 const getAssetbookDetails = async(addrAssetBook) => {
   return new Promise(async (resolve, reject) => {
