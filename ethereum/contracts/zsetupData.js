@@ -47,14 +47,14 @@ let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
 const chain = 1;
 if (chain === 1){
   addrHelium =     "0x668AA61942126373216b50A592b98ca623b9E9da";
-  addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
-  addrAssetBook2 = "0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11";
-  addrAssetBook3 = "0xC80E77bC804a5cDe179C0C191A43b87088C5e183";
+  addrAssetBook1 = "0x856F20FF35503CFFe780bB3a100Bdd3DB359C168";
+  addrAssetBook2 = "0xD4b42a79eae2b282A7a7384eE9c77e63162DeFF9";
+  addrAssetBook3 = "0xdCFDc937C6E960BBEdE98465Ef6202a49CF0f462";
   addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
   
 } else if (chain === 2){
   //ganache chain
-  addrHelium = "0x391DAce017a97273e1231c7072F6cd9dCD05e798";
+  addrHelium = "";
   addrAssetBook1 ="";
   addrAssetBook2 = "";
   addrAssetBook3 = "";

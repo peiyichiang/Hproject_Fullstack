@@ -24,8 +24,9 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 
 /**後台公私鑰*/
 console.log('loading blockchain.js smart contract json files');
-const backendAddr = admin;
-const backendRawPrivateKey = adminpkRaw;
+const backendAddr = AssetOwner5;
+const backendAddrpkRaw = AssetOwner5pkRaw;
+//const backend = AssetOwner5, backendpkRaw = AssetOwner5pkRaw;
 
 // const choiceOfHCAT721 = 2;
 // if(choiceOfHCAT721===1){
@@ -54,7 +55,7 @@ const updateFundingStateCFC = async (crowdFundingAddr, serverTime) => {
   console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'serverTime', serverTime);
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
   const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
-  let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+  let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
   console.log('\nTxResult', TxResult);
 
   let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
@@ -79,7 +80,7 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime) => {
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
       
     const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenControllerAddr, encodedData);
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData);
     console.log('\nTxResult', TxResult);
 
     let tokenState = await instTokenController.methods.tokenState().call({ from: backendAddr });
@@ -296,7 +297,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
     console.log(`\n-----------==next: mint to ${toAddress} ${amount} tokens`);
 
     const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, serverTime).encodeABI();
-    const TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData).catch(async(err) => {
+    const TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch(async(err) => {
       console.log('\n[Error @ signTx()]', err);
       const mesg = await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime)
     });
@@ -461,7 +462,7 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
     console.log('acquired serverTime', serverTime);
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     let encodedData = instHCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, tokenCtrtAddr, encodedData);
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData);
     //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
     console.log('TxResult', TxResult);
   });
@@ -535,7 +536,7 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
         const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     
         const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
-        let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+        let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
         console.log('\nTxResult', TxResult);
       
         let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
@@ -679,7 +680,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         //OR...  investInBatch( _assetbookArr, _quantityToInvestArr, serverTime)
         
         ///*
-        let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+        let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
         const txnHash = TxResult.transactionHash;
         txnHashArray.push(txnHash);
         console.log(`\nTxResult: ${TxResult} \ntxnHash: ${txnHash}`);
@@ -892,7 +893,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 
       //write bank's confirmation into IncomeManager.sol
       let encodedData = instIncomeManager.methods.setPaymentReleaseResults(serverTime, actualPaymentTime, actualPaymentAmount, errorCode).encodeABI();
-      let TxResult = await signTx(backendAddr, backendRawPrivateKey, targetAddr, encodedData);
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, targetAddr, encodedData);
       console.log('TxResult', TxResult);
 
       //const scheduleDetails = await instIncomeManager.methods.getIncomeSchedule(schIndex).call({ from: backendAddr });
@@ -957,7 +958,7 @@ const HeliumContractVote = async(addrAssetBook, serverTime) => {
     //const HeliumContract_flag_Before = await instAssetBook.methods.HeliumContract_flag().call();
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.HeliumContractVote(serverTime).encodeABI();
-    let TxResult = await signTx(admin, adminpkRaw, addrAssetBook, encodedData);
+    let TxResult = await signTx(backendAddr, adminpkRaw, addrAssetBook, encodedData);
     console.log('\nTxResult', TxResult);
 
     const HeliumContract_flag_After = await instAssetBook.methods.HeliumContract_flag().call();
@@ -978,7 +979,7 @@ const resetVoteStatus = async(addrAssetBook) => {
     console.log('\n-------==resetVoteStatus()');
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.resetVoteStatus().encodeABI();
-    let TxResult = await signTx(admin, adminpkRaw, addrAssetBook, encodedData);
+    let TxResult = await signTx(backendAddr, adminpkRaw, addrAssetBook, encodedData);
     console.log('\nTxResult', TxResult);
 
     const assetOwner_flag = await instAssetBook.methods.assetOwner_flag().call();
@@ -1000,7 +1001,7 @@ const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
     console.log(`serverTime: ${serverTime}`);
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.changeAssetOwner(_assetOwnerNew, serverTime).encodeABI();
-    let TxResult = await signTx(admin, adminpkRaw, addrAssetBook, encodedData);
+    let TxResult = await signTx(backendAddr, adminpkRaw, addrAssetBook, encodedData);
     console.log('\nTxResult', TxResult);
 
     const result = await instAssetBook.methods.assetOwner().call();
@@ -1015,7 +1016,7 @@ const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
 }
 // const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
 // const encodedData = instAssetBook.methods.HeliumContractVote(serverTime).encodeABI();
-// let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrAssetBook, encodedData);
+// let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData);
 // console.log('\nTxResult', TxResult);
 
 //---------------------------==Income Manager
@@ -1231,7 +1232,7 @@ const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayabl
       //console.log(`getIncomeSchedule(${schCindexM}):\n${result2[0]}\n${result2[1]}\n${result2[2]}\n${result2[3]}\n${result2[4]}\n${result2[5]}\n${result2[6]}`);// all should be 0 and false before adding a new schedule
       let encodedData = instIncomeManager.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).encodeABI();
       console.log('about to execute signTx()...');
-      let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrIncomeManager, encodedData);
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
       console.log('TxResult', TxResult);
 
       const indexStart = 0; const amount = 0;
@@ -1264,7 +1265,7 @@ const removeIncomeSchedule = async (symbol, schIndex) => {
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
     let encodedData = instIncomeManager.methods.removeIncomeSchedule(schIndex).encodeABI();
     console.log('about to execute signTx()...');
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrIncomeManager, encodedData);
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
     console.log('TxResult', TxResult);
 
     const indexStart = 0; const amount = 0;
@@ -1301,7 +1302,7 @@ const imApprove = async (symbol, schIndex, boolValue) => {
     } else {
       let encodedData = instIncomeManager.methods.imApprove(schIndex, true).encodeABI();
       console.log('about to execute signTx()...');
-      let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrIncomeManager, encodedData);
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
       console.log('TxResult', TxResult);
   
       const result3 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
@@ -1330,7 +1331,7 @@ const setPaymentReleaseResults = async (symbol, schIndex, actualPaymentTime, act
 
     let encodedData = instIncomeManager.methods.setPaymentReleaseResults(schIndex, actualPaymentTime, actualPaymentAmount,  errorCode).encodeABI();
     console.log('about to execute signTx()...');
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrIncomeManager, encodedData);
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
     console.log('TxResult', TxResult);
 
     const result3 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
@@ -1406,8 +1407,311 @@ const updateExpiredOrders = async (serverTime) => {
 }
 
 
+//--------------------------==
+//----------==assetOwner to call his Assetbook contract. Not HCAT721 contract directly!!!
+const checkSafeTransferFromBatch = async(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime) => {
+  return new Promise( async ( resolve, reject ) => {
+
+    const instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
+
+    const result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
+    console.log('\ncheckSafeTransferFromBatch result', result);
+
+    const boolArray = result[0];
+    let mesg;
+    if(amountArray.every(checkBoolTrueArray)){
+      mesg = '[Success] all checks have passed';
+      console.log(mesg);
+      resolve(mesg);
+
+    } else {
+      if(!boolArray[0]){
+        mesg += ', fromAddr has no contract';
+      } else if(!boolArray[1]){
+        mesg += ', toAddr has no contract';
+      } else if(!boolArray[2]){
+        mesg += ', toAddr has no onERC721Received()';
+      } else if(!boolArray[3]){
+        mesg += ', amount =< 0';
+      } else if(!boolArray[4]){
+        mesg += ', price =< 0';
+      } else if(!boolArray[5]){
+        mesg += ', fromAddr is the same as toAddr';
+      } else if(!boolArray[6]){
+        mesg += ', serverTime <= TimeOfDeployment';
+      } else if(!boolArray[7]){
+        mesg += ', TokenController not approved/not operational';
+      } else if(!boolArray[8]){
+        mesg += ', Registry approved toAddr';
+      } else if(!boolArray[9]){
+        mesg += ', Registry approved fromAddr';
+      } else if(!boolArray[10]){
+        mesg += ', balance of fromAddr < amount';
+      } else if(!boolArray[11]){
+        mesg += ', allowed amount from _from to caller';
+      } else if(!result[1]){
+        mesg += ', assetAddr does not have contract';
+      } else if(!result[2]){
+        mesg += ', caller is not the assetOwner';
+      }
+      if(mesg.substring(0,2) === ', '){
+        mesg = mesg.substring(2);
+      }
+      console.log(mesg);
+      resolve(mesg);
+    }
+  });
+}
 
 
+/**
+ * Frontend makes API calls at '/HCAT721_AssetTokenContract/:nftSymbol' to get symbol XYZ's contract addresses
+ * 
+ * @param {*} addrHCAT721  the address of the HCAT721 smart contract
+ * @param {*} fromAssetbook  the assetbook contract address from which the transfer deduct amount
+ * @param {*} toAssetbook  the assetbook contract address to which the transfer will add amount
+ * @param {*} amountStr  amount of this transfer
+ * @param {*} priceStr  price associated with this transfer
+ * @param {*} _fromAssetOwner  EOA that controls the assetbook
+ * @param {*} _fromAssetOwnerpkRaw  EOA private key of the above EOA
+ */
+const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr, priceStr, _fromAssetOwner, _fromAssetOwnerpkRaw ) => {
+  return new Promise( async ( resolve, reject ) => {
+    console.log('entering transferTokens()');
+
+    let mesg;
+    const serverTimeStr = 201905281400;// only used for emitting events in the blockchain
+    const addrZero = "0x0000000000000000000000000000000000000000";
+
+    const _fromAssetOwner = '0xA90F92B1';// keychainstore
+    const _fromAssetOwnerpkRaw = '0xA90F92B3';// keychainstore
+    // const _fromAssetOwner = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
+    // const _fromAssetOwnerpkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
+
+
+    if (!Number.isInteger(amountStr) || !Number.isInteger(priceStr) || !Number.isInteger(serverTimeStr)){
+      mesg = 'input values should be integers';
+      console.log(`mesg, amount: ${amountStr}, price: ${priceStr}, serverTime: ${serverTimeStr}`);
+      reject(mesg);
+      return;
+    }
+
+    const amount = parseInt(amountStr);
+    const price = parseInt(priceStr);
+    const serverTime = parseInt(serverTimeStr);
+    if(amountStr < 1 || price < 1 || serverTime < 201905281000){
+      mesg = 'input values should be > 0 or 201905281000';
+      console.log(`mesg, amount: ${amount}, price: ${price}, serverTime: ${serverTime}`);
+      reject(mesg);
+      return;
+    }
+    console.log('after checking amount and price values');
+
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+    const instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
+    console.log('after contract instances');
+
+
+    console.log('fromAssetbook', fromAssetbook);
+    const balanceFromB4Str = await instHCAT721.methods.balanceOf(fromAssetbook).call();
+    const balanceToB4Str = await instHCAT721.methods.balanceOf(toAssetbook).call();
+    const balanceFromB4 = parseInt(balanceFromB4Str);
+    const balanceToB4 = parseInt(balanceToB4Str);
+    console.log('balanceFromB4', balanceFromB4, 'balanceToB4', balanceToB4);
+
+    //----------==assetOwner to call his Assetbook contract. Not HCAT721 contract directly!!!
+    try {
+      const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime).encodeABI();
+
+      let TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData);
+      console.log('TxResult', TxResult);
+
+    } catch (error) {
+      console.log("error:" + error);
+      const result = checkSafeTransferFromBatch(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
+      reject(result);
+      return;
+    }
+
+    const balanceFromAfter = await instHCAT721.methods.balanceOf(fromAssetbook).call();
+    const balanceToAfter = await instHCAT721.methods.balanceOf(toAssetbook).call();
+    console.log(`balanceFromB4: ${balanceFromB4}
+    balanceFromAfter: ${balanceFromAfter}
+
+    balanceToB4: ${balanceToB4}
+    balanceToAfter:   ${balanceToAfter}
+    `);
+
+    resolve(true);
+    //call /HCAT721_AssetTokenContract/safeTransferFromBatch API to record txn info
+  });
+}
+
+
+//----------------------------==Assetbook contract
+const checkIsContract = async(addrAssetBook, assetAddr) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==checkIsContract()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const result = await instAssetBook.methods.checkIsContract(assetAddr).call();
+    resolve(result);
+  });
+}
+
+const addLoginTime = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==addLoginTime()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.addLoginTime().encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+
+const assetOwnerVote = async(addrAssetBook, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==assetOwnerVote()');
+    console.log(`serverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.assetOwnerVote(serverTime).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+const endorserVote = async(addrAssetBook, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==endorserVote()');
+    console.log(`addrAssetBook: ${addrAssetBook}, serverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.endorserVote(serverTime).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+const setAntiSystemOverrideDays = async(addrAssetBook, _antiSystemOverrideDays) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==setAntiSystemOverrideDays()');
+    console.log(`addrAssetBook: ${addrAssetBook}, _antiSystemOverrideDays: ${_antiSystemOverrideDays}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.setAntiSystemOverrideDays(_antiSystemOverrideDays).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+const resetVoteStatus = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==resetVoteStatus()');
+    console.log(`addrAssetBook: ${addrAssetBook}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.resetVoteStatus().encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+const addEndorser = async(addrAssetBook, newEndorser, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==addEndorser()');
+    console.log(`newEndorser: ${newEndorser}, serverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.addEndorser( newEndorser, serverTime).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+const changeEndorser = async(addrAssetBook, oldEndorser, newEndorser, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==changeEndorser()');
+    console.log(`oldEndorser: ${oldEndorser} \nnewEndorser: ${newEndorser} \nserverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.changeEndorser(oldEndorser, newEndorser, serverTime).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+const changeAssetOwner = async(addrAssetBook,  _assetOwnerNew, serverTime) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==changeAssetOwner()');
+    console.log(`serverTime: ${serverTime}`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const encodedData = instAssetBook.methods.changeAssetOwner( _assetOwnerNew, serverTime).encodeABI();
+    let TxResult = await signTx(AssetOwner1, AssetOwner1pkRaw, addrAssetBook, encodedData);
+    console.log('\nTxResult', TxResult);
+    resolve(true);
+  });
+}
+
+
+const getAssetbookDetails = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==getAssetbookDetails()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const result = [0, 0, 0, 0, 0];
+    result[0] = await instAssetBook.methods.assetOwner().call();
+    result[1] = await instAssetBook.methods.addrHeliumContract().call();
+    result[2] = await instAssetBook.methods.checkAssetOwner().call();
+    result[3] = await instAssetBook.methods.checkCustomerService().call();
+    result[4] = await instAssetBook.methods.showEndorserArrayLength().call();
+    console.log('\nresult:', result);
+    resolve(result);
+  });
+}
+
+const getEndorserAddresses = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==getAssetbookDetails()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const result = [0, 0, 0];
+    const endorserArray = await instAssetBook.methods.endorserArray().call();
+    if(endorserArray.length === 0){
+
+    } else if(endorserArray.length === 1){
+      result[0] = endorserArray[0];
+
+    } else if(endorserArray.length === 2){
+      result[0] = endorserArray[0];
+      result[1] = endorserArray[1];
+
+    } else if(endorserArray.length === 3){
+      result[0] = endorserArray[0];
+      result[1] = endorserArray[1];
+      result[2] = endorserArray[2];
+    }
+    console.log('\nresult:', result);
+    resolve(result);
+  });
+}
+
+
+const getVotingDetails = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==getVotingDetails()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const result = [0, 0, 0, 0, 0, 0, 0, 0];
+    result[0] = await instAssetBook.methods.assetOwner_flag().call();
+    result[1] = await instAssetBook.methods.HeliumContract_flag().call();
+    result[2] = await instAssetBook.methods.endorserArray_flag().call();
+    result[3] = await instAssetBook.methods.calculateVotes().call();
+    result[4] = await instAssetBook.methods.lastLoginTime().call();
+    result[5] = await instAssetBook.methods.antiSystemOverrideDays().call();
+    result[6] = await instAssetBook.methods.checkNowTime().call();
+    result[7] = await instAssetBook.methods.isAbleSystemOverride().call();
+    resolve(result);
+  });
+}
 
 //--------------------------==
 /*sign rawtx*/
@@ -1459,11 +1763,11 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 //------------------------==
 async function sendTimeCFctrt(addr, time) {
-    /*use admin EOA to sign transaction*/
+    /*use backendAddr EOA to sign transaction*/
     let CrowdFunding = new web3.eth.Contract(CrowdFunding.abi, addr);
     let encodedData = CrowdFunding.methods.setServerTime(time).encodeABI();
 
-    let result = await signTx(backendAddr, backendRawPrivateKey, addr, encodedData);
+    let result = await signTx(backendAddr, backendAddrpkRaw, addr, encodedData);
 
     return result;
 }
