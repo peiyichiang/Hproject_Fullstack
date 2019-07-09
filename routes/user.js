@@ -351,7 +351,7 @@ router.get('/UserLogin', function (req, res, next) {
                 }
                 else {
                     const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
-                    const timeExpiry = timeLogin + 60 * 60;
+                    const timeExpiry = timeLogin + 60 * 30;
 
                     bcrypt
                         .compare(password, result[0].u_password_hash)
