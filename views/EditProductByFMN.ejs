@@ -103,19 +103,31 @@
                  </div>
         </div>
         <div class="form-row">
-                <!-- <div class="form-group col-md-4">
-                <label for="p_FAY">預估平均年收益</th></label>
-                <input type="text" class="form-control" name="p_FAY" id="p_FAY" placeholder="ex:4.8" value="<%=data[0].p_FAY %>">
+                <div class="form-group col-md-4">
+                  <label for="p_isNewCase">舊案/新案</label>
+                    <br>
+                    <%if (data[0].p_isNewCase =="1") { %>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1" checked>舊案
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2">新案
+                      </label>
+                    <% } %>
+                    <%if (data[0].p_isNewCase =="2") { %>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1">舊案
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2" checked>新案
+                      </label>
+                    <% } %>
                 </div>
                 <div class="form-group col-md-4">
-                    <label for="p_FTRT">預估回收金額</label>
-                    <input type="text" class="form-control" name="p_FTRT" id="p_FTRT" placeholder="ex:15,327" value="<%=data[0].p_FTRT %>">
-                </div> -->
-                <div class="form-group col-md-6">
                     <label for="p_RPT">收益總期數</label>
                     <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:80" value="<%=data[0].p_RPT %>">
                 </div>
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-4">
                   <label for="p_FRP">預估回收年限(年數/月數)</label>
                   <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:20/10" value="<%=data[0].p_FRP %>">
                   </div>
@@ -177,6 +189,28 @@
                       <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
                       <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_PVOnGridDate %>">
                  </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+              <label for="p_ContractOut">工程發包日期</label>
+              <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_ContractOut %>">
+          </div>
+          <div class="form-group col-md-4">
+            <label for="p_CaseConstruction">案場建置完成日期</label>
+            <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_CaseConstruction %>">
+          </div>
+          <div class="form-group col-md-4">
+                <label for="p_ElectricityBilling">電費計費開始日期</label>
+                <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_ElectricityBilling %>">
+           </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-12">
+            <label for="p_Copywriting">產品文案</label>
+            <br>
+            <!-- <input type="text" class="form-control" name="p_Copywriting" id="p_Copywriting"> -->
+            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;" maxlength="50"><%=data[0].p_Copywriting %></textarea>
+          </div>
         </div>
         <div class="form-row" hidden>
                 <div class="form-group col-md-4">

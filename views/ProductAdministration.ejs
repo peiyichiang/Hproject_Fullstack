@@ -1502,38 +1502,42 @@
             console.log("deploying...");
             console.log(fundingGoal);
 
-            /*部署CrowdFundingContract*/
-            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol, {
-                tokenPrice: tokenPrice,
-                currency: currency,
-                quantityMax: quantityMax,
-                CFSD2: CFSD2,
-                CFED2: CFED2,
-                fundingGoal: fundingGoal
+            // 將IncomeCSV文件寫入資料庫
+            $.post("http://localhost:3030/Product/IncomeCSV", {
+                IncomeCSVFilePath: IncomeCSVFilePath
             }, function (result) {
-                //var result = JSON.parse(resultJSON);
                 console.log(result);
-
-                if (result.status == true) {
-                    // 將IncomeCSV文件寫入資料庫
-                    console.log("#:" + IncomeCSVFilePath);
-                    $.post("http://localhost:3030/Product/IncomeCSV", {
-                        IncomeCSVFilePath: IncomeCSVFilePath
+                if(result.isSuccess){
+                    /*部署CrowdFundingContract*/
+                    $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol, {
+                        tokenPrice: tokenPrice,
+                        currency: currency,
+                        quantityMax: quantityMax,
+                        CFSD2: CFSD2,
+                        CFED2: CFED2,
+                        fundingGoal: fundingGoal
                     }, function (result) {
-                        console.log(result);
-                        // 設置產品狀態
-                        $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
-                            tokenState: State,
-                            tokenSymbol: tokenSymbol
-                        }, function (result) {
-                            console.log(result);
-                            // 設置好後重新整理
-                            location.reload();
-                        })
-                    })
-
+                        //var result = JSON.parse(resultJSON);
+                        // console.log(result);
+                        if (result.status == true) {
+                            // 設置產品狀態
+                            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                                tokenState: State,
+                                tokenSymbol: tokenSymbol
+                            }, function (result) {
+                                console.log(result);
+                                // 設置好後重新整理
+                                location.reload();
+                            })
+                        }
+                    });
+                }else{
+                    alert(result.messageForUser);
+                    location.reload();
                 }
-            });
+            })
+
+
 
         }
 
