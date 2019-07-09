@@ -54,7 +54,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[1] > 0){
         const result = await makeOrdersExpiredCFED2(serverTime).catch((err) => {
-          reject('[Failed @ timeserver]: '+ err);
+          reject('[Failed @ timeserver: makeOrdersExpiredCFED2]: '+ err);
         });;//blockchain.js
         if(result){
           log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED2();'));
@@ -66,7 +66,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[2] > 0){
         const result = await updateExpiredOrders(serverTime).catch((err) => {
-          reject('[Failed @ timeserver]: '+ err);
+          reject('[Failed @ timeserver: updateExpiredOrders]: '+ err);
         });
         if(result){
           log(chalk.green('>> [Success@ timeserver] updateExpiredOrders();'));
@@ -77,7 +77,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[3] > 0){
         const result = await updateFundingStateFromDB(serverTime).catch((err) => {
-          reject('[Failed @ timeserver]: '+ err);
+          reject('[Failed @ timeserver: updateFundingStateFromDB]: '+ err);
         });
         if(result){
           log(chalk.green('>> [Success@ timeserver] updateFundingStateFromDB();'));
@@ -88,7 +88,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[4] > 0){
         const result = await updateTokenStateFromDB(serverTime).catch((err) => {
-          reject('[Failed @ timeserver]: '+ err);
+          reject('[Failed @ timeserver: updateTokenStateFromDB]: '+ err);
         });
         if(result){
           log(chalk.green('>> [Success@ timeserver] updateTokenStateFromDB();'));

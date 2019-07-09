@@ -33,13 +33,11 @@ contract MultiSig {
     mapping(uint => address) public endorsers;
     // we require addrHeliumContract and endorserCtrt because EOA may change ...
 
+    uint public lastLoginTime;
+    uint public antiPlatformOverrideDays = 183;
     uint public assetOwner_flag;
     uint public HeliumContract_flag;
     uint public endorsers_flag;
-    uint public lastLoginTime;
-    uint public antiSystemOverrideDays = 183;
-
-
 
     event ChangeAssetOwnerEvent(address indexed oldAssetOwner, address indexed newAssetOwner, uint256 timestamp);
     event ChangeEndorserCtrtEvent(address indexed oldEndorserCtrt, address indexed newEndorserCtrt, uint256 timestamp);
@@ -48,7 +46,7 @@ contract MultiSig {
     event HeliumCtrtVoteEvent(address indexed addrHeliumContract, uint256 timestamp);
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
     event AddLoginTime(uint indexed lastLoginTime);
-    event SetAntiSystemOverrideDays(uint antiSystemOverrideDays);
+    event SetAntiPlatformOverrideDays(uint antiPlatformOverrideDays);
 
 
     modifier ckAssetOwner(){
@@ -100,14 +98,14 @@ contract MultiSig {
         emit EndorserVoteEvent(msg.sender, serverTime);
     }
 
-    function setAntiSystemOverrideDays(uint _antiSystemOverrideDays) public ckAssetOwner {
-        require(_antiSystemOverrideDays >= 183, "minimum _antiSystemOverrideDays is 183 days");
-        antiSystemOverrideDays = _antiSystemOverrideDays;
-        emit SetAntiSystemOverrideDays(_antiSystemOverrideDays);
+    function setAntiPlatformOverrideDays(uint _antiPlatformOverrideDays) public ckAssetOwner {
+        require(_antiPlatformOverrideDays >= 183, "minimum _antiPlatformOverrideDays is 183 days");
+        antiPlatformOverrideDays = _antiPlatformOverrideDays;
+        emit SetAntiPlatformOverrideDays(_antiPlatformOverrideDays);
     }
 
-    function isAbleSystemOverride() public view returns (bool) {
-        return(now >= lastLoginTime + antiSystemOverrideDays * 1 days);
+    function isAblePlatformOverride() public view returns (bool) {
+        return(now >= lastLoginTime + antiPlatformOverrideDays * 1 days);
     }
 
     // to calculate the sum of all vote flags
@@ -126,7 +124,7 @@ contract MultiSig {
     function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external {
         if(msg.sender != address(0)){//assetOwner
             require(checkCustomerService(),"only a customer service rep is allowed");
-            require(calculateVotes() >= 2 || isAbleSystemOverride(),"vote count must be >= 2");
+            require(calculateVotes() >= 2 || isAblePlatformOverride(),"vote count must be >= 2");
         }
         address _oldAssetOwner = assetOwner;
         assetOwner = _assetOwnerNew;
