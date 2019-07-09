@@ -26,7 +26,10 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
 
     let queryString = `
     SELECT  ar_personal_income AS income, 
-			ar_User_Acquired_Cost AS acquiredCost,
+            ar_User_Acquired_Cost AS acquiredCost,
+            SUBSTRING(ar_Time, 1, 4) AS periodYear,
+            SUBSTRING(ar_Time, 5, 2) AS periodMonth,
+            SUBSTRING(ar_Time, 7, 2) AS periodDate,
             ia_Payable_Period_End AS payablePeriodEnd 
     FROM    htoken.investor_assetRecord  AS T1
     INNER JOIN htoken.income_arrangement AS T2
@@ -40,21 +43,24 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
             let initArray = []
             initArray.push(incomeHistoryList[0])
 
-            incomeHistoryList.reduce(
-                (array, nextElement) => {
-                    const index = array.length - 1
-                    if (index > 0) {
-                        nextElement.income = nextElement.income + array[index].income
-                    } else {
-                        nextElement.income = nextElement.income
-                    }
-                    return array.concat(nextElement);
-                }, initArray)
+            /* 計算各期累積收益 */
+            // incomeHistoryList.reduce(
+            //     (array, nextElement) => {
+            //         const index = array.length - 1
+            //         if (index > 0) {
+            //             nextElement.income = nextElement.income + array[index].income
+            //         } else {
+            //             nextElement.income = nextElement.income
+            //         }
+            //         return array.concat(nextElement);
+            //     }, initArray)
+
             incomeHistoryList.map(
                 incomeHistory => {
                     incomeHistory.income = returnNumberWithCommas(incomeHistory.income)
                     incomeHistory.acquiredCost = returnNumberWithCommas(incomeHistory.acquiredCost)
                 });
+
             res.status(200);
             res.json({
                 "message": "[Success] 資產歷史紀錄取得成功！",
@@ -95,10 +101,11 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
            ar_User_Acquired_Cost AS acquiredCostTotal,
            ar_investorEmail AS ar_investorEmail,
            ar_Time AS time,
-           ia_single_Actual_Income_Payment_in_the_Period AS incomeOfLatestPeriod,
+           ar_personal_income AS personalIncome,
            ia_Payable_Period_End AS payablePeriodEnd,
            p_name AS name,
            p_Image1 AS imageURL,
+           p_icon AS iconURL,
            payablePeriodTotal
            
     FROM (
@@ -147,7 +154,7 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
             latestAssetHistoryArray.map(
                 latestAssetHistoryByToken => {
                     latestAssetHistoryByToken.acquiredCostTotal = returnNumberWithCommas(latestAssetHistoryByToken.acquiredCostTotal)
-                    latestAssetHistoryByToken.incomeOfLatestPeriod = returnNumberWithCommas(latestAssetHistoryByToken.incomeOfLatestPeriod)
+                    latestAssetHistoryByToken.personalIncome = returnNumberWithCommas(latestAssetHistoryByToken.personalIncome)
                     latestAssetHistoryByToken.periodInYear = latestAssetHistoryByToken.time.substr(0, 4)
                     latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.time.substr(4, 2)
                     if (latestAssetHistoryByToken.periodInMonth.substr(0, 1) == 0) {
@@ -190,6 +197,8 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
         })
 });
 
+
+
 /* 取得此帳號單一token的最新一期結算資料 */
 /* TODO: 資料不完全需重寫 */
 // router.get('/LatestAssetHistoryBySymbol', function (req, res, next) {
@@ -203,7 +212,7 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
 //            ar_User_Acquired_Cost AS acquiredCostTotal,
 //            ar_Time AS time,
 //            ia_Payable_Period_End AS payablePeriodEnd,
-//            ia_single_Actual_Income_Payment_in_the_Period AS incomeOfLatestPeriod
+//            ar_personal_income AS personalIncome
 //     FROM htoken.investor_assetRecord AS AR
 //     INNER JOIN htoken.income_arrangement AS IA ON AR.ar_Time = IA.ia_time
 //     WHERE ar_tokenSYMBOL = ? &&

@@ -1170,53 +1170,12 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
 });
 
 //有容
-router.get('/ProductList', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
-    let mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT * FROM product', function (err, result) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "產品列表取得失敗:\n" + err
-            })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "產品列表取得成功！",
-                "result": result
-            });
-        }
-        /* code = 304? */
-    });
-});
-
-router.get('/ProductList', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
-    let mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT * FROM product', function (err, result) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "產品列表取得失敗:\n" + err
-            })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "產品列表取得成功！",
-                "result": result
-            });
-        }
-        /* code = 304? */
-    });
-});
-
 router.get('/LaunchedProductList', function (req, res) {
     console.log('------------------------==\n@Product/ProductList');
     let mysqlPoolQuery = req.pool;
     mysqlPoolQuery(
-        `SELECT p_irr AS IRR,
+        `SELECT 
+        p_irr AS IRR,
         p_name AS name,
         p_location AS location,
         p_SYMBOL AS symbol,
@@ -1227,22 +1186,39 @@ router.get('/LaunchedProductList', function (req, res) {
         SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
         SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
         SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
+        SUBSTRING(p_releasedate, 9, 2) AS releaseDateHour,
+        SUBSTRING(p_releasedate, 11, 2) AS releaseDateMinute,
         p_size AS size,
         p_duration AS durationInYear,
         SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
         SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
         SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
+        SUBSTRING(p_validdate, 9, 2) AS deadlineHour,
+        SUBSTRING(p_validdate, 11, 2) AS deadlineMinute,
         p_Image1 AS imageURL,
-        p_TaiPowerApprovalDate AS taiPowerApprovalDate,
-        p_CFSD AS CFSD,
-        p_BOEApprovalDate AS BOEApprovalDate,
-        p_CFED AS CFED,
-        p_PVTrialOperationDate AS PVTrialOperationDate,
-        p_PVOnGridDate AS PVOnGridDate,
+        SUBSTRING(p_TaiPowerApprovalDate, 1, 4) AS taiPowerApprovalDateYear,
+        SUBSTRING(p_TaiPowerApprovalDate, 5, 2) AS taiPowerApprovalDateMonth,
+        SUBSTRING(p_TaiPowerApprovalDate, 7, 2) AS taiPowerApprovalDateDate,
+        SUBSTRING(p_CFSD, 1, 4) AS CFSDYear,
+        SUBSTRING(p_CFSD, 5, 2) AS CFSDMonth,
+        SUBSTRING(p_CFSD, 7, 2) AS CFSDDate,
+        SUBSTRING(p_BOEApprovalDate, 1, 4) AS BOEApprovalDateYear,
+        SUBSTRING(p_BOEApprovalDate, 5, 2) AS BOEApprovalDateMonth,
+        SUBSTRING(p_BOEApprovalDate, 7, 2) AS BOEApprovalDateDate,
+        SUBSTRING(p_CFED, 1, 4) AS CFEDYear,
+        SUBSTRING(p_CFED, 5, 2) AS CFEDMonth,
+        SUBSTRING(p_CFED, 7, 2) AS CFEDDate,
+        SUBSTRING(p_PVTrialOperationDate, 1, 4) AS PVTrialOperationDateYear,
+        SUBSTRING(p_PVTrialOperationDate, 5, 2) AS PVTrialOperationDateMonth,
+        SUBSTRING(p_PVTrialOperationDate, 7, 2) AS PVTrialOperationDateDate,
+        SUBSTRING(p_PVOnGridDate, 1, 4) AS PVOnGridDateYear,
+        SUBSTRING(p_PVOnGridDate, 5, 2) AS PVOnGridDateMonth,
+        SUBSTRING(p_PVOnGridDate, 7, 2) AS PVOnGridDateDate,
         p_fundingType AS fundingType,
         p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
         IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
-        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
+        p_Copywriting AS copyWritingText
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
                     FROM htoken.order
@@ -1267,24 +1243,25 @@ router.get('/LaunchedProductList', function (req, res) {
             else {
                 if (productArray.length > 0) {
                     /* TODO: 這些資料的斜線要去掉 */
-                    productArray.map(
-                        product => {
-                            if (!product.imageURL)
-                                product.imageURL = "imageURL"
-                            if (!product.taiPowerApprovalDate)
-                                product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                            if (!product.BOEApprovalDate)
-                                product.BOEApprovalDate = "BOEApprovalDate"
-                            if (!product.PVTrialOperationDate)
-                                product.PVTrialOperationDate = "PVTrialOperationDate"
-                            if (!product.PVOnGridDate)
-                                product.PVOnGridDate = "PVOnGridDate"
-                            if (product.fundingType === "PO") {
-                                product.fundingType = "PublicOffering"
-                            } else if (product.fundingType === "PP") {
-                                product.fundingType = "PrivatePlacement"
-                            }
-                        });
+                    // productArray.map(
+                    //     product => {
+                    //         if (!product.imageURL)
+                    //             product.imageURL = "imageURL"
+                    //         if (!product.taiPowerApprovalDate)
+                    //             product.taiPowerApprovalDate = "taiPowerApprovalDate"
+                    //         if (!product.BOEApprovalDate)
+                    //             product.BOEApprovalDate = "BOEApprovalDate"
+                    //         if (!product.PVTrialOperationDate)
+                    //             product.PVTrialOperationDate = "PVTrialOperationDate"
+                    //         if (!product.PVOnGridDate)
+                    //             product.PVOnGridDate = "PVOnGridDate"
+                    //         if (product.fundingType === "PO") {
+                    //             product.fundingType = "PublicOffering"
+                    //         } else if (product.fundingType === "PP") {
+                    //             product.fundingType = "PrivatePlacement"
+                    //         }
+                    //     });
+                    
                     res.status(200);
                     res.json({
                         "message": "產品列表取得成功",
@@ -1301,7 +1278,7 @@ router.get('/LaunchedProductList', function (req, res) {
 });
 
 router.get('/ForcastIncomeBySymbol', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
+    console.log('------------------------==\n@Product/ForcastIncomeBySymbol');
     function returnNumberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -1347,7 +1324,7 @@ router.get('/ForcastIncomeBySymbol', function (req, res) {
 });
 
 router.get('/CaseImageURLByCaseSymbol', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
+    console.log('------------------------==\n@Product/CaseImageURLByCaseSymbol');
     const mysqlPoolQuery = req.pool;
     const symbol = req.query.symbol;
     mysqlPoolQuery(
@@ -1529,6 +1506,47 @@ router.get('/canBuyToken', async function (req, res) {
                 }
             }
         });
+});
+
+/* getIncomeHistoryBySymbol */
+router.get('/AssetImageURLAndIconURL', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    const symbol = req.query.symbol
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+
+    let queryString = `
+    SELECT  p_Image1 AS imageURL,
+            p_icon AS iconURL
+    FROM    htoken.product
+    WHERE   p_SYMBOL = ?
+    `;
+
+    query(queryString, symbol)
+        .then((URL) => {
+            res.status(200);
+            res.json({
+                "message": "[Success] image & icon 取得成功",
+                "result": URL
+            });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] image & icon 取得失敗:\n" + err
+            });
+        })
 });
 
 

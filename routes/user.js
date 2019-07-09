@@ -825,32 +825,60 @@ router.get('/ResetPassword', function (req, res, next) {
 });
 
 //更新使用者資料
-router.post('/UpdateUserInformation', function (req, res, next) {
+router.get('/UpdateUserInformation', function (req, res, next) {
     const mysqlPoolQuery = req.pool;
-    const email = req.body.email;
-    const name = req.body.name;
-    const gender = req.body.gender;
-    const cellphone = req.body.cellphone;
+    const email = req.query.email;
+    const name = req.query.name;
+    const gender = req.query.gender;
+    const cellphone = req.query.cellphone;
     const sql = {
         u_name: name,
         u_gender: gender,
         u_cellphone: cellphone
     };
+    console.log(email)
 
-    mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, email], function (err, rows) {
-        if (err) {
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+
+    query('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, email])
+        .then(() => {
+            return query(`
+                SELECT  u_name,
+                        u_gender,
+                        u_birthday,
+                        u_job,
+                        u_education,
+                        u_physicalAddress,
+                        u_cellphone,
+                        u_telephone
+                FROM    htoken.user
+                WHERE   u_email = ?
+            `, email)
+        })
+        .then((result) => {
+            res.status(200);
+            res.json({
+                "message": "更新使用者資料成功",
+                "result": result
+            })
+        })
+        .catch((err) => {
             res.status(400)
             res.json({
                 "message": "更新使用者資料失敗：" + err
             })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "更新使用者資料成功"
-            })
-        }
-    });
+        })
 });
 
 
