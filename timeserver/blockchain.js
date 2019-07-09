@@ -1019,6 +1019,8 @@ const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
 // let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData);
 // console.log('\nTxResult', TxResult);
 
+
+
 //---------------------------==Income Manager
 //---------------------------==
 const schCindex = async(symbol) => {
@@ -1035,6 +1037,7 @@ const schCindex = async(symbol) => {
     resolve(result);
   });
 }
+
 
 //yarn run livechain -c 1 --f 12
 const getIncomeSchedule = async(symbol, schIndex) => {
@@ -1216,9 +1219,9 @@ const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayabl
 
     const length1 = forecastedPayableTimes.length;
     if(length1 !== forecastedPayableAmounts.length){
-      const mesg = '[Error] forecastedPayableTimes and forecastedPayableAmounts from DB should have the same length';
-      console.log(mesg);
-      return;
+      reject('[Error] forecastedPayableTimes and forecastedPayableAmounts from DB should have the same length');
+      //console.log(mesg);
+      return false;
     }
   
     const isCheckAddScheduleBatch = await checkAddScheduleBatch(addrIncomeManager, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
@@ -1250,124 +1253,45 @@ const addScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayabl
 }
 
 
+
 //yarn run livechain -c 1 --f 18
-const removeIncomeSchedule = async (symbol, schIndex) => {
+const editActualSchedule = async (symbol, schIndex, actualPaymentTime, actualPaymentAmount) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n-----------------==inside removeIncomeSchedule()');
+    console.log('\n-----------------==inside editActualSchedule()');
     console.log('symbol', symbol, 'schIndex', schIndex);
 
     const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
       reject('[Error @findCtrtAddr]:'+ err);
       return false;
     });
-    console.log('check9');
+    console.log('check001');
 
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
-    let encodedData = instIncomeManager.methods.removeIncomeSchedule(schIndex).encodeABI();
+    let encodedData = instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount).encodeABI();
     console.log('about to execute signTx()...');
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
     console.log('TxResult', TxResult);
-
-    const indexStart = 0; const amount = 0;
-    let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
-    console.log('\nscheduleList', scheduleList);
-    const schCindexM = await instIncomeManager.methods.schCindex().call();
-    console.log('schCindex:', schCindexM);//assert.equal(result, 0);
     resolve(true);
   });
 }
 
-
-//yarn run livechain -c 1 --f 19
-const imApprove = async (symbol, schIndex, boolValue) => {
+const paymentCount = async(symbol) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n-----------------==inside imApprove()');
-    console.log('schIndex', schIndex, 'boolValue', boolValue);
-
+    console.log('\n-------------==inside paymentCount()');
     const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
       reject('[Error @findCtrtAddr]: '+ err);
       return false;
     });
-    console.log('check9');
-
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
 
-    const result2 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
-    console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
-
-    if(result2[4] === boolValue){
-      console.log('the desired status has already been set so');
-      resolve(true);
-
-    } else {
-      let encodedData = instIncomeManager.methods.imApprove(schIndex, true).encodeABI();
-      console.log('about to execute signTx()...');
-      let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
-      console.log('TxResult', TxResult);
-  
-      const result3 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
-      console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result3[4]} \nforecastedPayableTime: ${result3[0]}\nforecastedPayableAmount: ${result3[1]}\nactualPaymentTime: ${result3[2]} \nactualPaymentAmount: ${result3[3]}\nisApproved: ${result3[4]}\nerrorCode: ${result3[5]}\nisErrorResolved: ${result3[6]}`);
-      resolve(true);
-    }
-  });
-}
-
-//yarn run livechain -c 1 --f 20
-const setPaymentReleaseResults = async (symbol, schIndex, actualPaymentTime, actualPaymentAmount,  errorCode) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\n-----------------==inside setPaymentReleaseResults()');
-    console.log('schIndex', schIndex, 'actualPaymentTime', actualPaymentTime, 'actualPaymentAmount', actualPaymentAmount, 'errorCode', errorCode);
-
-    const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
-      return false;
-    });
-    //console.log('check9');
-
-    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
-
-    const result2 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
-    console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result2[4]} \nforecastedPayableTime: ${result2[0]}\nforecastedPayableAmount: ${result2[1]}\nactualPaymentTime: ${result2[2]} \nactualPaymentAmount: ${result2[3]}\nisApproved: ${result2[4]}\nerrorCode: ${result2[5]}\nisErrorResolved: ${result2[6]}`);
-
-    let encodedData = instIncomeManager.methods.setPaymentReleaseResults(schIndex, actualPaymentTime, actualPaymentAmount,  errorCode).encodeABI();
-    console.log('about to execute signTx()...');
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData);
-    console.log('TxResult', TxResult);
-
-    const result3 = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
-    console.log(`\n-------------==getIncomeSchedule(${schIndex}):\nThis schedule status: ${result3[4]} \nforecastedPayableTime: ${result3[0]}\nforecastedPayableAmount: ${result3[1]}\nactualPaymentTime: ${result3[2]} \nactualPaymentAmount: ${result3[3]}\nisApproved: ${result3[4]}\nerrorCode: ${result3[5]}\nisErrorResolved: ${result3[6]}`);
-
-    resolve(true);
+    const result = await instIncomeManager.methods.paymentCount().call();
+    console.log('\npaymentCount:', result);//assert.equal(result, 0);
+    resolve(result);
   });
 }
 
 
 
-
-const isScheduleGoodIMC = async (serverTime) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\ninside isScheduleGoodIMC(), serverTime:', serverTime, 'typeof', typeof serverTime);
-    if(!Number.isInteger(serverTime)){
-      console.log('[Error] serverTime should be an integer');
-      return false;
-    }
-    //let payableTime = ia_time; 
-    //let payableAmount = ia_Payable_Period_End;
-    //'SELECT htoken.income_arrangement.ia_SYMBOL,htoken.income_arrangement.ia_time , htoken.income_arrangement.ia_Payable_Period_End From htoken.income_arrangement where income_arrangement.ia_time = ?'
-
-    const queryStr1 = 'SELECT htoken.income_arrangement.ia_SYMBOL From htoken.income_arrangement where income_arrangement.ia_time <= ?';
-    const symbolArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
-      reject('[Error @ isScheduleGoodIMC: mysqlPoolQueryB(queryStr1)]: '+ err);
-      return false;
-    });
-    const resultsLen = symbolArray.length;
-    console.log('symbolArray length @ isScheduleGoodIMC', resultsLen);
-    if (resultsLen > 0) {
-      await sequentialRun(resultsLen, timeIntervalOfNewBlocks, serverTime, ['incomemanager']);
-    }
-    resolve(true);
-  });
-}
 
 
 
@@ -1785,6 +1709,6 @@ module.exports = {
   getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, 
   isScheduleGoodIMC, makeOrdersExpiredCFED2,
   getInvestorsFromCFC_Check,
-  schCindex, addScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, checkAddScheduleBatch, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB,
+  schCindex, paymentCount, addScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, checkAddScheduleBatch, editActualSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB,
   resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
 }
