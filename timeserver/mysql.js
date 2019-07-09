@@ -122,7 +122,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
     await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
-    resolve(result);
+    resolve(true);
   });
 }
 
@@ -226,7 +226,8 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 
     const queryStr1 = 'INSERT INTO htoken.order SET ?';
     const results1 = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
-    resolve(results1);
+    console.log(results1)
+    resolve(true);
 
   });
 }
@@ -265,8 +266,9 @@ const addIncomeArrangementRowDev = (incomeArrangementNum) => {
     const results = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr)]'+ err);
     });
+    console.log('results', results);
     console.log("\ntransaction_info table has been added with one new row. result:");
-    resolve(results);
+    resolve(true);
   });
 }
 

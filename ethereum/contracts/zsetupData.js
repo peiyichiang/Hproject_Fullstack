@@ -42,15 +42,15 @@ const managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner
 let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
-    cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
  */
 const chain = 1;
 if (chain === 1){
-  addrHelium =     "0x668AA61942126373216b50A592b98ca623b9E9da";
-  addrAssetBook1 = "0x856F20FF35503CFFe780bB3a100Bdd3DB359C168";
-  addrAssetBook2 = "0xD4b42a79eae2b282A7a7384eE9c77e63162DeFF9";
-  addrAssetBook3 = "0xdCFDc937C6E960BBEdE98465Ef6202a49CF0f462";
-  addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
+  addrHelium =     "0xaF2C0D3B0f7FD828933425080BaD9649D3d5Db4A";
+  addrAssetBook1 = "0xf840C19EaD2AE954B479A9b96FA15987a3c3963D";
+  addrAssetBook2 = "0x7E04E1B910750BB0FC3AE8376273722414Eb5724";
+  addrAssetBook3 = "0x56b57a7448fCE729430F302b52ef4a6E8D7F1153";
+  addrRegistry =   "0x0cC84cf986Bd934999e194C05dc4D46701710F39";
   
 } else if (chain === 2){
   //ganache chain
@@ -100,21 +100,22 @@ fundmanager = 'FundManagerN';
 /** deployed contracts
     yarn run deploy -c 1 -n 0 -cName tokc
     -c chain    -n symNum   
-    cName = helium, assetbook, registry, cf, tokc, hcat, im, db
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
    addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
 */
 //fundingType: PO: 1, PP: 2
 symNum = 4;
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
+
 const productObj1 = new productObject("AKOS1903", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, 2, "0x695128dC5B84E0Cc242B43575df7Eb5aBC9070e6", "0x2BdA4a3553A084220e1A6c637F8c9f6b44AC01Ec", "0x7c1C2D8E2b215Fc4E94c523A4a34860C7B442bc0", "");
 
 const productObj2 = new productObject("ALOS1902", "nftName", "location", 5073, 4935, 950, 19000, "NTD", 480, 20, 2, "", "", "", "");
 
 const productObj3 = new productObject("AMOS1902", "nftName", "location", 10379, 9837, 2280, 20000, "NTD", 490, 20, 2, "0x91BC75052fFbB98a6baca4DF3B96470853985E35", "0x97218B571B213e6C92A5Fc816563F33ae9237606", "0xcB09F5C6cBeb794b8B1B7b6F9897ae4DF0795389", "");
 
-const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0xC2F3676286bF1ed14E805eDa8b85E645C399A453", "0xdcF42de600323C9AEC1DC015FB930d7f6cC6f102", "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b", "0x452014113D932C5ed9d919Dc9d1D098096244113");
+const productObj4 = new productObject("AOOT1904", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x69331f40022D6A36DD8660c6574e0442E5B6F0e5", "0xeA96f8145651B7D5c3fbB81E15dAf3Ad39c6D333", "0x33e2fD793B43773b02A4037B3ff7F868F61DDED7", "0x77705e7Fd5bC1f7f99801a5355Ef5CA5BF3a03B9");
 
-const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
 
 //const isTestingMode = true;
 const isTestingMode = false;

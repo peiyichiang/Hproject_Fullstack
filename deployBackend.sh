@@ -12,6 +12,8 @@ sed -i 's/const whichTimeServerArray = [0, 0, 0, 0, 0, 0];/const whichTimeServer
 sed -i 's/const backendAddr = AssetOwner5/const backendAddr = admin/g' timeserver/blockchain.js
 sed -i 's/const backendAddrpkRaw = AssetOwner5pkRaw/const backendAddrpkRaw = adminpkRaw/g' timeserver/blockchain.js
 
+sed -i 's/const timeInverval = 20/const timeInverval = 60/g' timeserver/timeserverSource.js
+
 #sed -i 's+console.log(+//console.log(+g' timeserver/mysql.js
 
 sed -i 's/localhost/140.119.101.130/g' routes/user.js

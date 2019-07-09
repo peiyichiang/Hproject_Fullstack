@@ -36,8 +36,11 @@ let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFundin
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
 
-const backendAddr = AssetOwner5;
-const backendAddrpkRaw = AssetOwner5pkRaw;
+//MUST USE ADMIN ACCOUNT TO DEPLOY AS THE BACKEND IS USING IT!!!
+const backendAddr = admin;
+const backendAddrpkRaw = adminpkRaw;
+// const backendAddr = AssetOwner1;
+// const backendAddrpkRaw = AssetOwner1pkRaw;
 
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
@@ -157,10 +160,10 @@ const deploy = async () => {
     console.log('\n--------==To deploy');
 
     console.log('admin', admin);
-    console.log('AssetOwner1', AssetOwner1);
-    console.log('AssetOwner2', AssetOwner2);
-    console.log('AssetOwner3', AssetOwner3);
-    console.log('AssetOwner4', AssetOwner4);
+    // console.log('AssetOwner1', AssetOwner1);
+    // console.log('AssetOwner2', AssetOwner2);
+    // console.log('AssetOwner3', AssetOwner3);
+    // console.log('AssetOwner4', AssetOwner4);
 
     if (2===1) {
         balance0 = await web3deploy.eth.getBalance(admin);//returns strings!
