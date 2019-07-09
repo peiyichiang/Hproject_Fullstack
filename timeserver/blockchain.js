@@ -839,7 +839,7 @@ const updateTokenStateFromDB = async (serverTime) => {
       return false;
     }
 
-    const str = 'SELECT p_SYMBOL FROM htoken.product WHERE p_lockuptime <= ? OR p_validdate <= ?';
+    const str = 'SELECT p_SYMBOL FROM htoken.product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
     const symbolArray = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(str)] '+ err);
       return false;
@@ -848,7 +848,7 @@ const updateTokenStateFromDB = async (serverTime) => {
     console.log('\nsymbolArray length @ updateTokenStateFromDB:', symbolArrayLen, ', symbolArray:', symbolArray);
 
     if (symbolArrayLen === 0) {
-      console.log('[updateTokenStateFromDB] no symbol was found for time >= lockuptime or time >= validdate');
+      console.log('[updateTokenStateFromDB] no symbol was found');
     } else if (symbolArrayLen > 0) {
       await sequentialRun(symbolArray, timeIntervalOfNewBlocks, serverTime, ['tokencontroller']);
     }
