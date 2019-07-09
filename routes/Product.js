@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
 const { getTime, asyncForEach } = require('../timeserver/utilities');
-
+const { addScheduleBatch } = require('../timeserver/blockchain.js');
 
 //撈取資料(Platform_Supervisor專用，沒在用)
 router.get('/Product', function (req, res, next) {
@@ -362,7 +362,12 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname:req.body.p_EPCname
+        p_EPCname:req.body.p_EPCname,
+        p_Copywriting:req.body.p_Copywriting,
+        p_ContractOut:req.body.p_ContractOut,
+        p_CaseConstruction:req.body.p_CaseConstruction,
+        p_ElectricityBilling:req.body.p_ElectricityBilling,
+        p_isNewCase:req.body.p_isNewCase
     };
 
     console.log(sql);
@@ -579,7 +584,12 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname:req.body.p_EPCname
+        p_EPCname:req.body.p_EPCname,
+        p_Copywriting:req.body.p_Copywriting,
+        p_ContractOut:req.body.p_ContractOut,
+        p_CaseConstruction:req.body.p_CaseConstruction,
+        p_ElectricityBilling:req.body.p_ElectricityBilling,
+        p_isNewCase:req.body.p_isNewCase
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
@@ -1044,37 +1054,66 @@ router.post('/SetAbortedReasonByPA', function (req, res, next) {
 //將IncomeCSV轉存到Database
 router.post('/IncomeCSV', function (req, res, next) {
     var IncomeCSVFilePath = "./" + req.body.IncomeCSVFilePath;
-    console.log(IncomeCSVFilePath);
+    // console.log("＊＊＊:" + IncomeCSVFilePath);
+    // console.log(IncomeCSVFilePath);
     if (IncomeCSVFilePath.indexOf(".csv") != -1) {
-        // 將csv轉換成sql語句
-        csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
-            .on('data', function (sql) {
-                //console.log(sql);
-                var mysqlPoolQuery = req.pool;
-                var qur = mysqlPoolQuery(sql, function (err, rows) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        res.status(200);
-                        res.send({
-                            "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
-                            "messageForUser": ""
-                        });
-                    }
+        console.log("0");
+        console.log(fs.existsSync(IncomeCSVFilePath));
+        //判斷文件路徑是否存在
+        try {
+            if (fs.existsSync(IncomeCSVFilePath)) {
+              console.log("1");
+              //file exists
+              // 將csv轉換成sql語句
+              csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
+              .on('data', function (sql) {
+                  //console.log(sql);
+                  var mysqlPoolQuery = req.pool;
+                  var qur = mysqlPoolQuery(sql, function (err, rows) {
+                      if (err) {
+                          console.log(err);
+                      } else {
+                          res.status(200);
+                          res.send({
+                              "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
+                              "messageForUser": "",
+                              "isSuccess":true
+                          });
+                      }
+                  });
+  
+              })
+              .on('end', function (rows) {
+                  // console.log(rows); // 5 - Num of rows handled, including header
+              })
+              .on('error', function (error) {
+                  console.error(error); //Handle error
+              })
+            }else{
+                res.status(200);
+                res.send({
+                    "messageForDeveloper": "沒有Income CSV文件",
+                    "messageForUser": "Income CSV文件遺失，請重新上傳",
+                    "isSuccess":false
                 });
-
-            })
-            .on('end', function (rows) {
-                // console.log(rows); // 5 - Num of rows handled, including header
-            })
-            .on('error', function (error) {
-                console.error(error); //Handle error
-            })
+            }
+          } catch(err) {
+            console.log("2");
+            console.error(err)
+            res.status(200);
+            res.send({
+                "messageForDeveloper": "沒有Income CSV文件",
+                "messageForUser": "Income CSV文件遺失，請重新上傳",
+                "isSuccess":false
+            });
+          }
     } else {
+        console.log("3");
         res.status(200);
         res.send({
-            "messageForDeveloper": "沒有CSV文件",
-            "messageForUser": ""
+            "messageForDeveloper": "沒有Income CSV文件",
+            "messageForUser": "請上傳Income CSV文件",
+            "isSuccess":false
         });
     }
 
@@ -1158,15 +1197,26 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
         ia_State: req.body.CorrectActualPaymentResult
     };
 
+    // 將校正結果寫入資料庫
     var mysqlPoolQuery = req.pool;
     var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.CorrectActualPaymentTime], function (err, rows) {
         if (err) {
             console.log(err);
         } else {
+            // if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
+            // }
             res.setHeader('Content-Type', 'application/json');
             res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
         }
     });
+});
+
+router.get('/testRayAPI',function (req, res, next){
+    if(addScheduleBatch("ACHM6666",[201907081516,201907081517],[3,4])){
+        console.log("###Success");
+    }else{
+        console.log("###Fail");
+    }
 });
 
 //有容
