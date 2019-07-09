@@ -351,7 +351,7 @@ router.get('/UserLogin', function (req, res, next) {
                 }
                 else {
                     const timeLogin = Date.now() / 1000 | 0;//new Date().getTime();
-                    const timeExpiry = timeLogin + 60 * 60;
+                    const timeExpiry = timeLogin + 60 * 30;
 
                     bcrypt
                         .compare(password, result[0].u_password_hash)
@@ -789,42 +789,99 @@ router.post('/ForgetPassword', function (req, res, next) {
 router.post('/ResetPassword', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     var newPassword = req.body.password1;
-    var ResetPasswordHash= req.body.resetPasswordHash;
+    var ResetPasswordHash = req.body.resetPasswordHash;
     var sql = {}
-    console.log(newPassword);
-    console.log(ResetPasswordHash);
 
     const saltRounds = 10;
     bcrypt
-    .genSalt(saltRounds)
-    .then(salt => {
-        console.log(`Salt: ${salt}`);
-        sql.u_salt = salt
-        return bcrypt.hash(newPassword, salt);
-    })
-    .then(hash  => {
-        console.log(`Hash: ${hash}`);
-        sql.u_password_hash = hash
-        console.log("###" + JSON.stringify(sql));
+        .genSalt(saltRounds)
+        .then(salt => {
+            console.log(`Salt: ${salt}`);
+            sql.u_salt = salt
+            return bcrypt.hash(newPassword, salt);
+        })
+        .then(hash => {
+            // console.log(`Hash: ${hash}`);
+            sql.u_password_hash = hash
+            // console.log("###" + JSON.stringify(sql));
 
-        mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
-            if (err) {
-                console.log(err);
-                res.render('error', { message: '更改密碼失敗：' + err, error: '' });
-            } else {
-                // res.setHeader('Content-Type', 'application/json');
-                // res.redirect('/BackendUser/backend_user');
-                res.render('error', { message: '更改密碼成功', error: '' });
-            }
-        });
+            mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
+                if (err) {
+                    console.log(err);
+                    res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+                } else {
+                    // res.setHeader('Content-Type', 'application/json');
+                    // res.redirect('/BackendUser/backend_user');
+                    res.render('error', { message: '更改密碼成功', error: '' });
+                }
+            });
 
-    })
-    .catch(err => console.error(err.message));
+        })
+        .catch(err => console.error(err.message));
 });
 
 router.get('/ResetPassword', function (req, res, next) {
     res.render('FrontendResetPassword', { title: 'FrontendResetPassword' });
 });
+
+//更新使用者資料
+router.get('/UpdateUserInformation', function (req, res, next) {
+    const mysqlPoolQuery = req.pool;
+    const email = req.query.email;
+    const name = req.query.name;
+    const gender = req.query.gender;
+    const cellphone = req.query.cellphone;
+    const sql = {
+        u_name: name,
+        u_gender: gender,
+        u_cellphone: cellphone
+    };
+    console.log(email)
+
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+
+    query('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, email])
+        .then(() => {
+            return query(`
+                SELECT  u_name,
+                        u_gender,
+                        u_birthday,
+                        u_job,
+                        u_education,
+                        u_physicalAddress,
+                        u_cellphone,
+                        u_telephone
+                FROM    htoken.user
+                WHERE   u_email = ?
+            `, email)
+        })
+        .then((result) => {
+            res.status(200);
+            res.json({
+                "message": "更新使用者資料成功",
+                "result": result
+            })
+        })
+        .catch((err) => {
+            res.status(400)
+            res.json({
+                "message": "更新使用者資料失敗：" + err
+            })
+        })
+});
+
+
 
 module.exports = router;
 /**
