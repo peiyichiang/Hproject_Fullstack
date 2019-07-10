@@ -105,9 +105,9 @@ const isScheduleGoodIMC = async (serverTime) => {
     }
     //let payableTime = ia_time; 
     //let payableAmount = ia_Payable_Period_End;
-    //'SELECT htoken.income_arrangement.ia_SYMBOL,htoken.income_arrangement.ia_time , htoken.income_arrangement.ia_Payable_Period_End From htoken.income_arrangement where income_arrangement.ia_time = ?'
+    //'SELECT  income_arrangement.ia_SYMBOL, income_arrangement.ia_time ,  income_arrangement.ia_Payable_Period_End From  income_arrangement where income_arrangement.ia_time = ?'
 
-    const queryStr1 = 'SELECT htoken.income_arrangement.ia_SYMBOL From htoken.income_arrangement where income_arrangement.ia_time <= ?';
+    const queryStr1 = 'SELECT  income_arrangement.ia_SYMBOL From  income_arrangement where income_arrangement.ia_time <= ?';
     const symbolArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
       reject('[Error @ isScheduleGoodIMC: mysqlPoolQueryB(queryStr1)]: '+ err);
       return false;

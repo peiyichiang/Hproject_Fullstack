@@ -119,7 +119,7 @@ const reset_addAssetbooksIntoCFC_API = async() => {
     console.log('txHashArray, paymentStatus, tokenQtyArray, emailArray length should be of the same length'); process.exit(1);
   }
 
-  const querySQL1 = 'SELECT * From htoken.order WHERE o_symbol = ? AND o_email != ?';
+  const querySQL1 = 'SELECT * FROM order_list WHERE o_symbol = ? AND o_email != ?';
   const results1 = await mysqlPoolQueryB(querySQL1, [symbolTarget, userArray[0].email]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL1)]', err));
   console.log('\nresults1', results1);
 
@@ -127,7 +127,7 @@ const reset_addAssetbooksIntoCFC_API = async() => {
     console.log('results1 and paymentStatus arrays should be of the same length'); process.exit(1);
   }
 
-  const querySQL2 = 'UPDATE htoken.order SET o_txHash = ?, o_paymentStatus = ?, o_tokenCount = ?, o_email = ? WHERE o_id = ?';
+  const querySQL2 = 'UPDATE order_list SET o_txHash = ?, o_paymentStatus = ?, o_tokenCount = ?, o_email = ? WHERE o_id = ?';
   await asyncForEach(results1, async (row, idx) => {
     const results2 = await mysqlPoolQueryB(querySQL2, [txHashArray[idx], paymentStatusArray[idx], tokenQtyArray[idx], emailArray[idx], row.o_id]).catch((err) => console.log('\n[Error @ mysqlPoolQueryB(querySQL1)]', err));
     console.log('\nresults2', results2);

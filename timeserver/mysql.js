@@ -38,7 +38,7 @@ const mysqlPoolQuery = async (sql, options, callback) => {
               // callback
               callback(err, results, fields);
               //console.log(`[connection sussessful @ mysql.js] `);
-              // http://localhost:${process.env.PORT}/Product/ProductList
+              // http://localhost:3000/Product/ProductList
           });
           // release connection。
           // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
@@ -73,7 +73,7 @@ const mysqlPoolQueryB = async (sql, options) => {
 
 const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook) => {
   return new Promise(async(resolve, reject) => {
-    const queryStr1 = 'INSERT INTO htoken.transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const queryStr1 = 'INSERT INTO  transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     await mysqlPoolQueryB(queryStr1, [txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB]'+ err);
     });
@@ -84,7 +84,7 @@ const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, t
 const addTxnInfoRowFromObj = (row) => {
   //txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook
   return new Promise(async(resolve, reject) => {
-    const queryStr1 = 'INSERT INTO htoken.transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    const queryStr1 = 'INSERT INTO  transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     await mysqlPoolQueryB(queryStr1, [row.txid, row.tokenSymbol, row.fromAssetbook, row.toAssetbook, row.tokenId, row.txCount, row.holdingDays, row.txTime, row.balanceOffromassetbook]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB]'+ err);
     });
@@ -118,7 +118,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
     };
     console.log(sql);
 
-    const queryStr1 = 'INSERT INTO htoken.product SET ?';
+    const queryStr1 = 'INSERT INTO  product SET ?';
     await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
@@ -140,7 +140,7 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
     };
     console.log(sql);
 
-    const queryStr1 = 'INSERT INTO htoken.smart_contracts SET ?';
+    const queryStr1 = 'INSERT INTO  smart_contracts SET ?';
     await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
@@ -186,7 +186,7 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
         };
 
         console.log(userNew);
-        const queryStr2 = 'INSERT INTO htoken.user SET ?';
+        const queryStr2 = 'INSERT INTO  user SET ?';
         await mysqlPoolQueryB(queryStr2, userNew).catch((err) => {
           reject('[Error @ mysqlPoolQueryB(queryStr2)]. err: '+ err);
         });
@@ -224,7 +224,7 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 
     console.log(sqlObject);
 
-    const queryStr1 = 'INSERT INTO htoken.order SET ?';
+    const queryStr1 = 'INSERT INTO order_list SET ?';
     const results1 = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
     resolve(results1);
 
@@ -261,7 +261,7 @@ const addIncomeArrangementRowDev = (incomeArrangementNum) => {
     };//random() to prevent duplicate NULL entry!
     console.log(sqlObject);
 
-    const queryStr = 'INSERT INTO htoken.income_arrangement SET ?';
+    const queryStr = 'INSERT INTO  income_arrangement SET ?';
     const results = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr)]'+ err);
     });
@@ -286,7 +286,7 @@ const calculateLastPeriodProfit = async(_symbol) => {
       return false;
     });
 
-    const queryStr1 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)';
+    const queryStr1 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM  income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM  income_arrangement WHERE ia_SYMBOL = ?)';
     const results = await mysqlPoolQueryB(queryStr1, [_symbol]).catch((err) => {
       reject('\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
       return;
@@ -340,7 +340,7 @@ const addAssetRecordRow = async (investorEmail, symbol, ar_time, holdingAmount, 
     };//random() to prevent duplicate NULL entry!
     //console.log(sql);
 
-    const querySql1 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+    const querySql1 = 'INSERT INTO  investor_assetRecord SET ?';
     const results5 = await mysqlPoolQueryB(querySql1, sql).catch((err) => {
       reject('[Error @ adding asset row(querySql1)]. err: '+ err);
       return(false);
@@ -394,7 +394,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
 
     } else {
       console.log('all input values are okay');
-      const queryStr4 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
+      const queryStr4 = 'SELECT u_email FROM  user WHERE u_assetbookContractAddress = ?';
       await asyncForEach(inputArray, async (addrAssetbook, index) => {
         const results4 = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {
           reject('\n[Error @ mysqlPoolQueryB(queryStr4)]'+ err);
@@ -448,7 +448,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
         };//random() to prevent duplicate NULL entry!
         console.log(sqlObject);
 
-        const queryStr6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+        const queryStr6 = 'INSERT INTO  investor_assetRecord SET ?';
         const results6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
           reject('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
         });
@@ -468,7 +468,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
 const getFundingStateDB = (symbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('inside getFundingStateDB()... get p_state');
-    const queryStr2 = 'SELECT p_state, p_CFSD, p_CFED FROM htoken.product WHERE p_SYMBOL = ?';
+    const queryStr2 = 'SELECT p_state, p_CFSD, p_CFED FROM  product WHERE p_SYMBOL = ?';
     const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:'+ err);
       return false;
@@ -482,8 +482,8 @@ const getFundingStateDB = (symbol) => {
 const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
   return new Promise(async (resolve, reject) => {
     console.log('\ninside setFundingStateDB()... change p_state');
-    const queryStr1 = 'UPDATE htoken.product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?';
-    const queryStr2 = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
+    const queryStr1 = 'UPDATE  product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?';
+    const queryStr2 = 'UPDATE  product SET p_state = ? WHERE p_SYMBOL = ?';
 
     if(Number.isInteger(CFSD) && Number.isInteger(CFED)){
       const results1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
@@ -511,8 +511,8 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
   return new Promise(async (resolve, reject) => {
     console.log('\ninside setTokenStateDB()... change p_tokenState');
 
-    const queryStr1 = 'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
-    const queryStr2 = 'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?';
+    const queryStr1 = 'UPDATE  product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
+    const queryStr2 = 'UPDATE  product SET p_tokenState = ? WHERE p_SYMBOL = ?';
 
     if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
       const results1 = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
@@ -537,7 +537,7 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
 const getTokenStateDB = (symbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('inside getTokenStateDB()... get p_tokenState');
-    const queryStr2 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?';
+    const queryStr2 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM  product WHERE p_SYMBOL = ?';
     const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       reject('[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]:'+ err);
       return false;
@@ -566,7 +566,7 @@ const findCtrtAddr = async(symbol, ctrtType) => {
       reject(ctrtType+' is undefined for symbol '+ symbol);
       return undefined;
     }
-    const queryStr1 = 'SELECT '+scColumnName+' FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    const queryStr1 = 'SELECT '+scColumnName+' FROM  smart_contracts WHERE sc_symbol = ?';
     const ctrtAddrResults = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]:'+ err);
@@ -592,14 +592,14 @@ function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
   return new Promise(async(resolve, reject) => {
     console.log('\ninside setIMScheduleDB()... change p_tokenState');
     if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
-      const queryStr1 = 'UPDATE htoken.product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
+      const queryStr1 = 'UPDATE  product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
       const result = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
       });
       console.log('[DB] symbol', symbol, 'tokenState', tokenState, 'lockuptime', lockuptime, 'validdate', validdate, 'result', result);
       resolve(true);
     } else {
-      const queryStr1 = 'UPDATE htoken.product SET p_tokenState = ? WHERE p_SYMBOL = ?';
+      const queryStr1 = 'UPDATE  product SET p_tokenState = ? WHERE p_SYMBOL = ?';
       const result = await mysqlPoolQueryB(queryStr1, [tokenState, symbol]).catch((err) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
       });
@@ -612,7 +612,7 @@ function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
 function isIMScheduleGoodDB(symbol){
   return new Promise(async(resolve, reject) => {
     console.log('inside isIMScheduleGoodDB()');
-    const queryStr1 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM htoken.product WHERE p_SYMBOL = ?';
+    const queryStr1 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM  product WHERE p_SYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
     });
@@ -633,13 +633,13 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   const abBalArrayGroup = [];
   const incomePaymentArrayGroup = [];
 
-  const queryStr0 = 'SELECT distinct ia_SYMBOL FROM htoken.product';
+  const queryStr0 = 'SELECT distinct ia_SYMBOL FROM  product';
   const symbolObjArray = await mysqlPoolQueryB(queryStr0, []).catch((err) => {
     console.log('\n[Error @ mysqlPoolQueryB(queryStr0)]'+ err);
   });
   //console.log('symbolObjArray', symbolObjArray);
 
-  const queryStr7 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)'
+  const queryStr7 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM  income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM  income_arrangement WHERE ia_SYMBOL = ?)'
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
     const results1 = await mysqlPoolQueryB(queryStr7, [symbolObj.ia_SYMBOL]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr7)]'+ err);
@@ -655,7 +655,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
     }
   });
   /*
-  const queryStr1 = 'SELECT ia_SYMBOL, MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?';
+  const queryStr1 = 'SELECT ia_SYMBOL, MAX(ia_actualPaymentTime) FROM  income_arrangement WHERE ia_SYMBOL = ?';
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
     const results1 = await mysqlPoolQueryB(queryStr1, [symbolObj.ia_SYMBOL]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
@@ -672,7 +672,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   console.log('\n----------------==\nsymbolArray', symbolArray, '\nacPaymentTimeArray', acPaymentTimeArray);
 
   if(symbolArray.length > 0){
-    const queryStr2 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_SYMBOL = ?';
+    const queryStr2 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM  income_arrangement WHERE ia_SYMBOL = ?';
     await asyncForEach(symbolArray, async (symbol, index) => {
       const results1 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
         console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]'+ err);
@@ -691,7 +691,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 
   
   //const crowdFundingAddr = await findCtrtAddr(symbol, 'hcat721');
-  const queryStr2 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
+  const queryStr2 = 'SELECT sc_erc721address FROM  smart_contracts WHERE sc_symbol = ?';
   await asyncForEach(symbolArray, async (symbol, index) => {
     const results2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr2)]'+ err);
@@ -743,7 +743,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
     const acPaymentTime = acPaymentTimeArray[index];
     const emailArray = [];
     await asyncForEach(abAddrArray, async (assetbookAddr, idx) => {
-      const queryStr3 = 'SELECT u_email FROM htoken.user WHERE u_assetbookContractAddress = ?';
+      const queryStr3 = 'SELECT u_email FROM  user WHERE u_assetbookContractAddress = ?';
       const results3 = await mysqlPoolQueryB(queryStr3, [assetbookAddr]).catch((err) => {
         console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
       });
@@ -764,7 +764,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
       };
       console.log(sqlObject);
 
-      const queryStr6 = 'INSERT INTO htoken.investor_assetRecord SET ?';
+      const queryStr6 = 'INSERT INTO  investor_assetRecord SET ?';
       const results6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
         console.log('[Error @ mysqlPoolQueryB(queryStr6)]'+ err);
       });
@@ -781,7 +781,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 
 const getForecastedSchedulesFromDB = async (symbol) => {
   return new Promise(async (resolve, reject) => {
-    const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From htoken.income_arrangement where ia_SYMBOL = ?';
+    const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From  income_arrangement where ia_SYMBOL = ?';
     const results1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       reject('[Error @ addScheduleBatch: mysqlPoolQueryB(queryStr1)]:'+ err);
       return false;

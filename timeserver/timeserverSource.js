@@ -14,7 +14,7 @@ const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, a
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
 */
 const mode = 1;
-const timeInverval = 20;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
+const timeInverval = 60;//a minimum limit of about 20 seconds for every 3 new orders that have just been paid. Any value smaller than that will overwhelm the blockchain ..
 const atTheNsecond = 1;
 let modeStr;
 if(mode === 1){

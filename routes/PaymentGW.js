@@ -29,7 +29,7 @@ router.post('/updateOrder', function (req, res, next) {
 
     order.o_IDs.forEach(element => {
         //console.log(element)
-        mysqlPoolQuery('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
+        mysqlPoolQuery('UPDATE order_list SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -151,7 +151,7 @@ router.post('/bindOrder', function (req, res, next) {
 
     order.o_IDs.forEach(element => {
         //console.log(element)
-        mysqlPoolQuery('UPDATE htoken.order SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
+        mysqlPoolQuery('UPDATE order_list SET ? WHERE o_id = ?', [sql, element], function (err, rows) {
             if (err) {
                 console.log(err);
                 res.status(400);

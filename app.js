@@ -125,7 +125,7 @@ if(isTestingMode){
   console.log('\n------------------==timeserver is ON');
   require('./timeserver/timeserverSource');
 }
-console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
+console.log(`[end of @ app.js] http://localhost:3000/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 
 

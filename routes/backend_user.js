@@ -52,7 +52,7 @@ router.get('/backend_user', function (req, res, next) {
             }
             //data=後端使用者資料
             var data = rows;
-            mysqlPoolQuery('SELECT * FROM htoken.user', function (err, rows) {
+            mysqlPoolQuery('SELECT * FROM  user', function (err, rows) {
                 if (err) {
                     console.log(err);
                 }
@@ -136,7 +136,7 @@ router.post('/ForgetPassword', function (req, res, next) {
     //   var db = req.con;
     var mysqlPoolQuery = req.pool;
     var ID = req.body.m_id;
-    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM  backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -168,7 +168,7 @@ router.post('/ForgetPassword', function (req, res, next) {
                 from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '重新設置密碼', // Subject line
-                text: '請點以下連結重新設置密碼： http://127.0.0.1:3030/BackendUser/ResetPassword?hash=' + passwordHash, // plain text body
+                text: '請點以下連結重新設置密碼： http://140.119.101.130:3000/BackendUser/ResetPassword?hash=' + passwordHash, // plain text body
                 // html: '<b>Hello world?</b>' // html body
             };
         
@@ -406,7 +406,7 @@ router.post('/BackendUserLogin', function (req, res, next) {
     var ID = req.body.m_id;
     var Password = req.body.m_password;
 
-    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM  backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }

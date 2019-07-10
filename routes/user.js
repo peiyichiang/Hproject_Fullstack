@@ -130,7 +130,7 @@ router.post('/send_email', function (req, res) {
         from: ' <jmh@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: '請點以下連結以完成驗證： http://140.119.101.130:3030/user/verify_email?hash=' + passwordHash, // plain text body
+        text: '請點以下連結以完成驗證： http://140.119.101.130:3000/user/verify_email?hash=' + passwordHash, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
@@ -244,10 +244,10 @@ router.post('/post_BookletImage', uploadBookletImage.single('image'), function (
 })
 
 //-----------------------==
-//http://localhost:3000/user/AddUser
+//http://140.119.101.130:3000/user/AddUser
 router.post('/AddUser', function (req, res, next) {
     console.log('------------------------==\n@user/AddUser');
-    const qstr1 = 'INSERT INTO htoken.user SET ?';
+    const qstr1 = 'INSERT INTO  user SET ?';
     var mysqlPoolQuery = req.pool;
 
     console.log('req.query', req.query, 'req.body', req.body);
@@ -310,10 +310,10 @@ router.post('/AddUser', function (req, res, next) {
 });
 
 
-//http://localhost:3000/user/UserLogin
+//http://140.119.101.130:3000/user/UserLogin
 router.get('/UserLogin', function (req, res, next) {
     console.log('------------------------==\n@User/UserLogin');
-    let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
+    let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
     // console.log('req.query', req.query, 'req.body', req.body);
     // let email, password;
@@ -395,10 +395,10 @@ router.get('/UserLogin', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/user/UserByEmail
+//http://140.119.101.130:3000/user/UserByEmail
 router.get('/UserByEmail', function (req, res, next) {
     console.log('------------------------==\n@User/User');
-    let qstr1 = 'SELECT * FROM htoken.user WHERE u_email = ?';
+    let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let email, password;
@@ -448,10 +448,10 @@ router.get('/UserByEmail', function (req, res, next) {
     });
 });
 
-//http://localhost:3000/user/UserByCellphone
+//http://140.119.101.130:3000/user/UserByCellphone
 router.get('/UserByCellphone', function (req, res, next) {
     console.log('------------------------==\n@User/UserByCellphone');
-    let qstr1 = 'SELECT * FROM htoken.user WHERE u_cellphone = ?';
+    let qstr1 = 'SELECT * FROM  user WHERE u_cellphone = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let cellphone, password;
@@ -499,10 +499,10 @@ router.get('/UserByCellphone', function (req, res, next) {
 });
 
 
-//http://localhost:3000/user/UserByUserId
+//http://140.119.101.130:3000/user/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
     console.log('------------------------==\n@User/UserByUserId');
-    let qstr1 = 'SELECT * FROM htoken.user WHERE u_identityNumber = ?';
+    let qstr1 = 'SELECT * FROM  user WHERE u_identityNumber = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let status, userId, qstrz;
@@ -571,7 +571,7 @@ router.get('/GetEndorser', function (req, res, next) {
                 console.log("＊JWT Content:" + decoded.u_email);
                 //查詢Endorser Email  
                 let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('SELECT u_endorser1,u_endorser2,u_endorser3 FROM htoken.user WHERE u_email = ?', decoded.u_email, function (err, result) {
+                let query = mysqlPoolQuery('SELECT u_endorser1,u_endorser2,u_endorser3 FROM  user WHERE u_email = ?', decoded.u_email, function (err, result) {
                     if (err) {
                         console.log("查詢endorser失敗:" + err);
                         console.log(err);
@@ -624,7 +624,7 @@ router.post('/EditEndorser', function (req, res, next) {
             // 如果使用者有填寫Endorser Email
             if (email != "" && email != null) {
                 mysqlPoolQuery(
-                    'SELECT * FROM htoken.user WHERE u_email = ? ;',
+                    'SELECT * FROM  user WHERE u_email = ? ;',
                     email,
                     (err, rows, fields) => {
                         //   console.log(rows);
@@ -653,7 +653,7 @@ router.post('/EditEndorser', function (req, res, next) {
                 //寫入該使用者的EndorserEmail
                 //假如使用者沒填寫，就清空該endorser email
                 let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser1 = ? WHERE u_email = ?', [EndorserEmail1, userEmail], function (err) {
+                let query = mysqlPoolQuery('UPDATE  user SET u_endorser1 = ? WHERE u_email = ?', [EndorserEmail1, userEmail], function (err) {
                     if (err) {
                         console.log("寫入EndorserEmail1失敗:" + err);
                     }
@@ -674,7 +674,7 @@ router.post('/EditEndorser', function (req, res, next) {
                 //寫入該使用者的EndorserEmail
                 //假如使用者沒填寫，就清空該endorser email
                 let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser2 = ? WHERE u_email = ?', [EndorserEmail2, userEmail], function (err) {
+                let query = mysqlPoolQuery('UPDATE  user SET u_endorser2 = ? WHERE u_email = ?', [EndorserEmail2, userEmail], function (err) {
                     if (err) {
                         console.log("寫入EndorserEmail2失敗:" + err);
                     }
@@ -695,7 +695,7 @@ router.post('/EditEndorser', function (req, res, next) {
                 //寫入該使用者的EndorserEmail
                 //假如使用者沒填寫，就清空該endorser email
                 let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('UPDATE htoken.user SET u_endorser3 = ? WHERE u_email = ?', [EndorserEmail3, userEmail], function (err) {
+                let query = mysqlPoolQuery('UPDATE  user SET u_endorser3 = ? WHERE u_email = ?', [EndorserEmail3, userEmail], function (err) {
                     if (err) {
                         console.log("寫入EndorserEmail3失敗:" + err);
                     }
@@ -727,7 +727,7 @@ router.post('/ForgetPassword', function (req, res, next) {
     //   var db = req.con;
     var mysqlPoolQuery = req.pool;
     var emailAddress = req.body.emailAddress;
-    mysqlPoolQuery('SELECT * FROM htoken.user WHERE u_email = ?', emailAddress, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM  user WHERE u_email = ?', emailAddress, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -758,7 +758,7 @@ router.post('/ForgetPassword', function (req, res, next) {
                 from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '重新設置密碼', // Subject line
-                text: '請點以下連結重新設置密碼： http://140.119.101.130:3030/user/ResetPassword?hash=' + passwordHash, // plain text body
+                text: '請點以下連結重新設置密碼： http://140.119.101.130:3000/user/ResetPassword?hash=' + passwordHash, // plain text body
                 // html: '<b>Hello world?</b>' // html body
             };
 
@@ -805,7 +805,7 @@ router.post('/ResetPassword', function (req, res, next) {
             sql.u_password_hash = hash
             // console.log("###" + JSON.stringify(sql));
 
-            mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
+            mysqlPoolQuery('UPDATE  user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.render('error', { message: '更改密碼失敗：' + err, error: '' });
@@ -851,7 +851,7 @@ router.get('/UpdateUserInformation', function (req, res, next) {
         });
     };
 
-    query('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, email])
+    query('UPDATE  user SET ? WHERE u_email = ?', [sql, email])
         .then(() => {
             return query(`
                 SELECT  u_name,
@@ -862,7 +862,7 @@ router.get('/UpdateUserInformation', function (req, res, next) {
                         u_physicalAddress,
                         u_cellphone,
                         u_telephone
-                FROM    htoken.user
+                FROM     user
                 WHERE   u_email = ?
             `, email)
         })
