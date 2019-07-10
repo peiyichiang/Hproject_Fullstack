@@ -96,3 +96,5 @@ typings/
 #DynamoDB Local files 
 .dynamodb/ 
 
+
+public/uploadImgs/
