@@ -65,7 +65,7 @@ const mysqlPoolQueryB = async (sql, options) => {
           });
         }
     });
-  })
+  });
 };
 
 
@@ -554,7 +554,7 @@ const getTokenStateDB = (symbol) => {
 // findCtrtAddr(symbol, 'incomemanager')
 const findCtrtAddr = async(symbol, ctrtType) => {
   return new Promise(async(resolve, reject) => {
-    console.log('\n---------==inside findCtrtAddr');
+    //console.log('\n---------==inside findCtrtAddr');
     let scColumnName, mesg;
     if(ctrtType === 'incomemanager'){
       scColumnName = 'sc_incomeManagementaddress';
@@ -564,6 +564,8 @@ const findCtrtAddr = async(symbol, ctrtType) => {
       scColumnName = 'sc_erc721address';
     } else if(ctrtType === 'tokencontroller'){
       scColumnName = 'sc_erc721Controller';
+    // } else if(ctrtType === 'helium'){
+    //   scColumnName = 'sc_helium';
     } else {
       reject(ctrtType+' is undefined for symbol '+ symbol);
       return undefined;
@@ -574,7 +576,7 @@ const findCtrtAddr = async(symbol, ctrtType) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]:'+ err);
       });
     const ctrtAddrResultsLen = ctrtAddrResults.length;
-    console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
+    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
     if(ctrtAddrResultsLen == 0){
       reject('no '+ctrtType+' contract address for '+symbol+' is found');
     } else if(ctrtAddrResultsLen > 1){
@@ -781,6 +783,10 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 }
 
 
+const addForecastedSchedulesIntoDB = async () => {
+  // already done when uploading csv into DB
+}
+
 const getForecastedSchedulesFromDB = async (symbol) => {
   return new Promise(async (resolve, reject) => {
     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From htoken.income_arrangement where ia_SYMBOL = ?';
@@ -793,9 +799,24 @@ const getForecastedSchedulesFromDB = async (symbol) => {
     if (results1Len === 0) {
       reject('ia_time, ia_single_Forecasted_Payable_Income_in_the_Period not found');
       return false;
+
+    } else {
+      const forecastedPayableTimes = [];
+      const forecastedPayableAmounts = [];
+      const forecastedPayableTimesError = [];
+      const forecastedPayableAmountsError = [];
+
+      for(let i = 0; i < results1.length; i++) {
+        if(typeof results1[i] === 'object' && results1[i] !== null && results1[i] !== undefined){
+          forecastedPayableTimes.push(results1[i].ia_time);
+          forecastedPayableAmounts.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+        } else {
+          forecastedPayableTimesError.push(results1[i].ia_time);
+          forecastedPayableAmountsError.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+        }
+      }
+      resolve([forecastedPayableTimes, forecastedPayableAmounts, forecastedPayableTimesError, forecastedPayableAmountsError]);
     }
-    //console.log('results1', results1);
-    resolve(results1);
   });
 }
 

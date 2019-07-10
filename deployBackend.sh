@@ -9,8 +9,8 @@ echo "app.js: custom ip => localhost"
 sed -i 's/const isTestingMode = true;/const isTestingMode = false;/g' ethereum/contracts/zsetupData.js
 sed -i 's/const whichTimeServerArray = [0, 0, 0, 0, 0, 0];/const whichTimeServerArray = [1, 1, 1, 1, 1, 1];/g' ethereum/contracts/zsetupData.js
 
-sed -i 's/const backendAddr = AssetOwner5/const backendAddr = admin/g' timeserver/blockchain.js
-sed -i 's/const backendAddrpkRaw = AssetOwner5pkRaw/const backendAddrpkRaw = adminpkRaw/g' timeserver/blockchain.js
+sed -i 's/const backendAddr = AssetOwner5/const backendAddr = AssetOwner10/g' timeserver/blockchain.js
+sed -i 's/const backendAddrpkRaw = AssetOwner5pkRaw/const backendAddrpkRaw = AssetOwner10pkRaw/g' timeserver/blockchain.js
 
 sed -i 's/const timeInverval = 20/const timeInverval = 60/g' timeserver/timeserverSource.js
 
@@ -32,5 +32,5 @@ sed -i 's/127.0.0.1/140.119.101.130/g' public/js/SignOut.js
 #sed -i 's/\/POST//g' views/*.ejs
 
 echo "routes/user.js, verify_fail and verify_success: localhost => custom ip"
-
 echo "script finished"
+echo "MAKE SURE TO SET THE ACCOUNT IN BLOCKCHAIN.JS AS A PLATFORM SUPERVISOR ACCOUNT IN THE HELIUM CONTRACT!!!"

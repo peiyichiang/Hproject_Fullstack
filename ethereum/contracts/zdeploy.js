@@ -2,8 +2,8 @@
 chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
 */
 /** deployed contracts
-    yarn run deploy -c 1 -s 1 -cName cf
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
+yarn run deploy -c 1 -s 1 -cName cf
+cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm
 */
 //const timer = require('./api.js');
 const Web3 = require('web3');
@@ -23,7 +23,7 @@ console.log('process.argv', process.argv);
 if (process.argv.length < 8) {
   console.log('not enough arguments. Make it like: yarn run deploy -n 1 --chain 1 --cName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, db');
+  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, addPS, pm');
   process.exit(1);
 }
 // chain    symNum   ctrtName
@@ -612,11 +612,10 @@ const deploy = async () => {
   } else if (ctrtName === 'initCtrt'){
     console.log('run zlivechain.js steps...');
 
-
-
  
 
   } else if (ctrtName === 'pm') {
+    console.log('-----------------== pm');
     const argsProductManager =[addrHCAT721, addrHeliumCtrt];
 
     instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
@@ -648,7 +647,52 @@ const deploy = async () => {
 }
 
 //---------------------------==
+//---------------------------==
+/*sign rawtx*/
+function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
+  return new Promise((resolve, reject) => {
 
+      web3.eth.getTransactionCount(userEthAddr, 'pending')
+          .then(nonce => {
+
+              let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
+              let txParams = {
+                  nonce: web3.utils.toHex(nonce),
+                  gas: 9000000,
+                  gasPrice: 0,
+                  //gasPrice: web3js.utils.toHex(20 * 1e9),
+                  //gasLimit: web3.utils.toHex(3400000),
+                  to: contractAddr,
+                  value: 0,
+                  data: encodedData
+              }
+
+              let tx = new Tx(txParams);
+              tx.sign(userPrivateKey);
+              const serializedTx = tx.serialize();
+              const rawTx = '0x' + serializedTx.toString('hex');
+
+              //console.log('☆ RAW TX ☆\n', rawTx);
+
+              web3.eth.sendSignedTransaction(rawTx)
+                  .on('transactionHash', hash => {
+                      //console.log(hash);
+                  })
+                  .on('confirmation', (confirmationNumber, receipt) => {
+                      // //console.log('confirmation', confirmationNumber);
+                  })
+                  .on('receipt', function (receipt) {
+                      //console.log(receipt);
+                      resolve(receipt)
+                  })
+                  .on('error', function (err) {
+                      //console.log(err);
+                      reject(err);
+                  });
+          });
+
+  });
+}
 
 
 deploy();
