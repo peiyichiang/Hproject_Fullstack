@@ -130,7 +130,7 @@ router.post('/send_email', function (req, res) {
         from: ' <jmh@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: '請點以下連結以完成驗證： http://140.119.101.130:3030/user/verify_email?hash=' + passwordHash, // plain text body
+        text: '請點以下連結以完成驗證： http://140.119.101.130:3000/user/verify_email?hash=' + passwordHash, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
@@ -758,7 +758,7 @@ router.post('/ForgetPassword', function (req, res, next) {
                 from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '重新設置密碼', // Subject line
-                text: '請點以下連結重新設置密碼： http://140.119.101.130:3030/user/ResetPassword?hash=' + passwordHash, // plain text body
+                text: '請點以下連結重新設置密碼： http://140.119.101.130:3000/user/ResetPassword?hash=' + passwordHash, // plain text body
                 // html: '<b>Hello world?</b>' // html body
             };
 
