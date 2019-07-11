@@ -598,7 +598,7 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
         var data = "";
 
         var iaData;
-        mysqlPoolQuery("SELECT ia_SYMBOL,ia_time,ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State =?", "ia_state_underReview"  , function(err, rows) {
+        mysqlPoolQuery("SELECT ia_SYMBOL,ia_time,ia_actualPaymentTime,ia_single_Forecasted_Payable_Income_in_the_Period,ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State =?", "ia_state_underReview"  , function(err, rows) {
             if (err) {
                 console.log(err);
             }

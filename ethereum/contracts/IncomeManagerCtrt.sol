@@ -28,7 +28,7 @@ contract IncomeManagerCtrt {
         uint actualPaymentAmount;
         uint8 errorCode;//0 to 255
         bool isErrorResolved;//default = true
-        bool isPaid;
+        //bool isPaid;
     }
     uint public paymentCount;
 
@@ -58,6 +58,15 @@ contract IncomeManagerCtrt {
         _;
     }
 
+    function getSchIndex(uint schDateTime) public view returns (uint rsIndex) {
+        require(schDateTime != 0, "schDateTime cannot be 0");
+        rsIndex = dateToIdx[schDateTime];
+    }
+    function setNextSchedulePaid() external onlyPlatformSupervisor {
+        paymentCount = paymentCount.add(1);
+        //idxToSchedule[paymentCount].isPaid = true;
+    }
+
 
     event AddForecastedSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
     function addForecastedSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
@@ -71,12 +80,13 @@ contract IncomeManagerCtrt {
         emit AddForecastedSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
     }
 
-    function checkAddForecastedScheduleBatch1(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool isLength, bool gtzero, bool isPS) {
+    function checkAddForecastedScheduleBatch1(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool isSameLength, bool isLengthGreaterThanZero, bool isPlatformSupervisor) {
         uint length = forecastedPayableTimes.length;
-        isLength = length == forecastedPayableAmounts.length;
-        gtzero = length > 0;
-        isPS = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
+        isSameLength = length == forecastedPayableAmounts.length;
+        isLengthGreaterThanZero = length > 0;
+        isPlatformSupervisor = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
     }
+
     function checkAddForecastedScheduleBatch2(uint[] calldata forecastedPayableTimes) external view returns(bool[] memory boolArray2) {
         uint length = forecastedPayableTimes.length;
         boolArray2 = new bool[](length);
@@ -171,6 +181,7 @@ contract IncomeManagerCtrt {
         actualPaymentAmount = icSch.actualPaymentAmount;
         errorCode = icSch.errorCode;
         isErrorResolved = icSch.isErrorResolved;
+        //isPaid = icSch.isPaid;
     }
 
     function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, uint8[] memory errorCodes, bool[] memory isErrorResolvedList) {
@@ -215,14 +226,16 @@ contract IncomeManagerCtrt {
             errorCodes[i] = icSch.errorCode;
             isErrorResolvedList[i] = icSch.isErrorResolved;
         }
-
     }
-
-    function getSchIndex(uint schTime) public view returns (uint rsIndex) {
-        require(schTime != 0, "schTime cannot be 0");
-        rsIndex = dateToIdx[schTime];
-    }
-
+    /**
+        uint forecastedPayableTime;//used as mapping key
+        uint forecastedPayableAmount;
+        uint actualPaymentTime;
+        uint actualPaymentAmount;
+        uint8 errorCode;//0 to 255
+        bool isErrorResolved;//default = true
+        //bool isPaid;
+    */
 
     function setErrResolution(uint _schIndex, bool isErrorResolved, uint8 errorCode) external onlyPlatformSupervisor {
         uint schIndex;
@@ -234,17 +247,6 @@ contract IncomeManagerCtrt {
         idxToSchedule[schIndex].isErrorResolved = isErrorResolved;
         idxToSchedule[schIndex].errorCode = errorCode;
     }
-
-
-    function setNextSchedulePaid() external onlyPlatformSupervisor {
-        paymentCount = paymentCount.add(1);
-        idxToSchedule[paymentCount].isPaid = true;
-    }
-
-    
-
-
-
     //function() external payable { revert("should not send any ether directly"); }
 
 }

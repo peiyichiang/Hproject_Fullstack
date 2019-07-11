@@ -65,7 +65,7 @@ const mysqlPoolQueryB = async (sql, options) => {
           });
         }
     });
-  })
+  });
 };
 
 
@@ -103,7 +103,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
       p_pricing: initialAssetPricing,
       p_duration: duration,
       p_currency: pricingCurrency,
-      p_irr: IRR20yrx100,
+      p_irr: IRR20yrx100/100,
       p_releasedate: TimeReleaseDate,
       p_validdate: TimeTokenValid,
       p_size: siteSizeInKW,
@@ -122,7 +122,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
     await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
-    resolve(result);
+    resolve(true);
   });
 }
 
@@ -226,7 +226,8 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 
     const queryStr1 = 'INSERT INTO order_list SET ?';
     const results1 = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
-    resolve(results1);
+    console.log(results1)
+    resolve(true);
 
   });
 }
@@ -265,8 +266,9 @@ const addIncomeArrangementRowDev = (incomeArrangementNum) => {
     const results = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr)]'+ err);
     });
+    console.log('results', results);
     console.log("\ntransaction_info table has been added with one new row. result:");
-    resolve(results);
+    resolve(true);
   });
 }
 
@@ -552,7 +554,7 @@ const getTokenStateDB = (symbol) => {
 // findCtrtAddr(symbol, 'incomemanager')
 const findCtrtAddr = async(symbol, ctrtType) => {
   return new Promise(async(resolve, reject) => {
-    console.log('\n---------==inside findCtrtAddr');
+    //console.log('\n---------==inside findCtrtAddr');
     let scColumnName, mesg;
     if(ctrtType === 'incomemanager'){
       scColumnName = 'sc_incomeManagementaddress';
@@ -562,6 +564,8 @@ const findCtrtAddr = async(symbol, ctrtType) => {
       scColumnName = 'sc_erc721address';
     } else if(ctrtType === 'tokencontroller'){
       scColumnName = 'sc_erc721Controller';
+    // } else if(ctrtType === 'helium'){
+    //   scColumnName = 'sc_helium';
     } else {
       reject(ctrtType+' is undefined for symbol '+ symbol);
       return undefined;
@@ -572,7 +576,7 @@ const findCtrtAddr = async(symbol, ctrtType) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]:'+ err);
       });
     const ctrtAddrResultsLen = ctrtAddrResults.length;
-    console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
+    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultsLen, ', ctrtAddrResults:', ctrtAddrResults);
     if(ctrtAddrResultsLen == 0){
       reject('no '+ctrtType+' contract address for '+symbol+' is found');
     } else if(ctrtAddrResultsLen > 1){
@@ -779,6 +783,10 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 }
 
 
+const addForecastedSchedulesIntoDB = async () => {
+  // already done when uploading csv into DB
+}
+
 const getForecastedSchedulesFromDB = async (symbol) => {
   return new Promise(async (resolve, reject) => {
     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From  income_arrangement where ia_SYMBOL = ?';
@@ -791,9 +799,24 @@ const getForecastedSchedulesFromDB = async (symbol) => {
     if (results1Len === 0) {
       reject('ia_time, ia_single_Forecasted_Payable_Income_in_the_Period not found');
       return false;
+
+    } else {
+      const forecastedPayableTimes = [];
+      const forecastedPayableAmounts = [];
+      const forecastedPayableTimesError = [];
+      const forecastedPayableAmountsError = [];
+
+      for(let i = 0; i < results1.length; i++) {
+        if(typeof results1[i] === 'object' && results1[i] !== null && results1[i] !== undefined){
+          forecastedPayableTimes.push(results1[i].ia_time);
+          forecastedPayableAmounts.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+        } else {
+          forecastedPayableTimesError.push(results1[i].ia_time);
+          forecastedPayableAmountsError.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+        }
+      }
+      resolve([forecastedPayableTimes, forecastedPayableAmounts, forecastedPayableTimesError, forecastedPayableAmountsError]);
     }
-    //console.log('results1', results1);
-    resolve(results1);
   });
 }
 

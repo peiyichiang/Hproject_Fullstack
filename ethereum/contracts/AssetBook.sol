@@ -120,26 +120,11 @@ contract MultiSig {
         endorsers_flag = 0;
     }
 
-    /** @dev When changing assetOwner EOA，two out of three parties must vote on pass */
-    function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external {
-        if(msg.sender != address(0)){//assetOwner
-            require(checkCustomerService(),"only a customer service rep is allowed");
-            require(calculateVotes() >= 2 || isAblePlatformOverride(),"vote count must be >= 2");
-        }
-        address _oldAssetOwner = assetOwner;
-        assetOwner = _assetOwnerNew;
-        assetOwner_flag = 0;
-        HeliumContract_flag = 0;
-        endorsers_flag = 0;
-        emit ChangeAssetOwnerEvent(_oldAssetOwner, _assetOwnerNew, serverTime);
-    }
-
-
     function addEndorser(address _newEndorser, uint256 serverTime) public ckAssetOwner{
         require(_newEndorser != assetOwner, "new endorser cannot be the assetOwner");
         endorserCount = endorserCount.add(1);
-        require(endorserCount <= 3, "endorser count must be <= 3");
         require(endorsers[1] != _newEndorser && endorsers[2] != _newEndorser && endorsers[3] != _newEndorser, "new endorser cannot be duplicated");
+        require(endorserCount <= 3, "endorser count must be <= 3");
         endorsers[endorserCount] = _newEndorser;
         emit AddEndorserEvent(_newEndorser, serverTime);
     }
@@ -153,6 +138,19 @@ contract MultiSig {
         }
     }
 
+    /** @dev When changing assetOwner EOA，two out of three parties must vote on pass */
+    function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external {
+        if(msg.sender != address(0)){//assetOwner
+            require(checkCustomerService(),"only a customer service rep is allowed");
+            require(calculateVotes() >= 2 || isAblePlatformOverride(),"vote count must be >= 2");
+        }
+        address _oldAssetOwner = assetOwner;
+        assetOwner = _assetOwnerNew;
+        assetOwner_flag = 0;
+        HeliumContract_flag = 0;
+        endorsers_flag = 0;
+        emit ChangeAssetOwnerEvent(_oldAssetOwner, _assetOwnerNew, serverTime);
+    }
 
     function() external payable { revert("should not send any ether directly"); }
 }
