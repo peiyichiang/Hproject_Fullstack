@@ -1549,19 +1549,19 @@ describe('Tests on IncomeManagerCtrt', () => {
   it('IncomeManagerCtrt functions test', async function() {
     this.timeout(9500);
     console.log('\n------------==Check IncomeManagerCtrt parameters');
-    let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode, _isErrorResolved;
+    let forecastedPayableTime, forecastedPayableAmount, schCindex, schIndex, result, _errorCode, _isErrorResolved, paymentCount;
 
-    _index = 1;
-    forecastedPayableTime = TimeOfDeployment_IM+1;
-    forecastedPayableAmount = 3000;
+    const forecastedPayableTimes = [TimeOfDeployment_IM+1, 201906110000, 201908170000, 201911210000, 202002230000];
+    const forecastedPayableAmounts = [3000, 3300, 3700, 3800, 3900];
 
     console.log('\n--------==Initial conditions');
+    schIndex = 0;
     result = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', result);
-    assert.equal(result, 0);
+    assert.equal(result, schIndex);
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('getIncomeSchedule('+_index+'):', result);
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('getIncomeSchedule('+schIndex+'):', result);
     assert.equal(result[0], '0');
     assert.equal(result[1], '0');
     assert.equal(result[2], '0');
@@ -1570,19 +1570,23 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[5], '0');
 
     console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
+    schIndex = 1;
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+
     await instIncomeManager.methods.addForecastedSchedule(forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nafter adding a new schedule...');
     result = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', result);
-    assert.equal(result, 1);
+    assert.equal(result, schIndex);
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
-    assert.equal(result, 1);
+    assert.equal(result, schIndex);
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('new getIncomeSchedule():', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
@@ -1593,7 +1597,9 @@ describe('Tests on IncomeManagerCtrt', () => {
 
 
     //-----------------------==add 1 more pair
-    _index = 2; forecastedPayableTime = 201906110000; forecastedPayableAmount = 3300;
+    schIndex += 1;
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
 
     await instIncomeManager.methods.addForecastedSchedule(forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1601,13 +1607,13 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('\n--------==after adding a new schedule...');
     result = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', result);
-    assert.equal(result, _index);
+    assert.equal(result, schIndex);
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex(forecastedPayableTime):', result);
-    assert.equal(result, _index);
+    assert.equal(result, schIndex);
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('new getIncomeSchedule():', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
@@ -1616,51 +1622,64 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[4], false);
     assert.equal(result[5], 0);
 
-
-    //-----------------------==add 3 more pairs
-    console.log('\n--------==Add 3 more pairs of forecastedPayableTime, forecastedPayableAmount');
-    //forecastedPayableTime = 201906110000;
-    forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
-    forecastedPayableAmounts = [3700, 3800, 3900];
-
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
-    assert.equal(result, _index);
+    assert.equal(result, schIndex);
 
     result = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', result);
-    assert.equal(result, 2);
+    assert.equal(result, schIndex);
 
+    //-----------------------==add 3 more pairs
+    console.log('\n--------==Add 3 more pairs of forecastedPayableTime, forecastedPayableAmount');
 
-    await instIncomeManager.methods.addForecastedScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts)
+    await instIncomeManager.methods.addForecastedScheduleBatch(forecastedPayableTimes.slice(2), forecastedPayableAmounts.slice(2))
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManager.methods.schCindex().call();
-    console.log('new schCindex:', result);
-    assert.equal(result, 5);
+    schCindex = await instIncomeManager.methods.schCindex().call();
+    console.log('new schCindex:', schCindex, typeof schCindex);
+    assert.equal(schCindex, '5');
 
-    for(i = 0; i < forecastedPayableTimes.length; i++) {
-      _index = i+3;
-      result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-      console.log('\ngetIncomeSchedule(index='+_index+'):', result);
-      forecastedPayableTime = forecastedPayableTimes[i];
-      forecastedPayableAmount = forecastedPayableAmounts[i];
-      assert.equal(result[0], forecastedPayableTime);
-      assert.equal(result[1], forecastedPayableAmounts[i]);
+    console.log('forecastedPayableTimes', forecastedPayableTimes,'\nforecastedPayableAmounts', forecastedPayableAmounts);
+    for(let i = 3; i <= forecastedPayableTimes.length; i++) {
+      result = await instIncomeManager.methods.getIncomeSchedule(i).call(); 
+      console.log('\ngetIncomeSchedule(index='+i+'):', result);
+      assert.equal(result[0], forecastedPayableTimes[i-1].toString());
+      assert.equal(result[1], forecastedPayableAmounts[i-1].toString());
       assert.equal(result[2], 0);
       assert.equal(result[3], 0);
       assert.equal(result[4], false);
       assert.equal(result[5], 0);
     }
 
+    console.log('\n-----------------==Test addPayment() and editActualSchedule()');
+    paymentCount = await instIncomeManager.methods.paymentCount().call();
+    console.log('paymentCount:', paymentCount, typeof paymentCount);
+    assert.equal(paymentCount, '0');
 
-    console.log('\n--------==editActualSchedule');
-    actualPaymentTime = forecastedPayableTime+1;
-    actualPaymentAmount = forecastedPayableAmount+1;
-    await instIncomeManager.methods.editActualSchedule(_index, actualPaymentTime, actualPaymentAmount)
+    error = false;
+    try {
+      await instIncomeManager.methods.addPaymentCount()
+      .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] only can add payment count when 1st actual payment time and amount exist, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+    //require(schIndex > paymentCount
+    schIndex = 1;
+    console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+    actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+    actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+    await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
@@ -1669,13 +1688,106 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[4], '0');
     assert.equal(result[5], false);
 
+    console.log('\n--------==addPaymentCount()');
+    await instIncomeManager.methods.addPaymentCount()
+    .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    paymentCount = await instIncomeManager.methods.paymentCount().call();
+    console.log('paymentCount:', paymentCount, typeof paymentCount);
+    assert.equal(paymentCount, '1');
+    console.log('Successfully added paymentCount after entering 1st actual payment time & amount');
+
+
+    console.log('\n-----------------==');
+    error = false;
+    try {
+      await instIncomeManager.methods.addPaymentCount()
+      .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] only can add payment count when actual payment time exists, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+    schIndex = 2;
+    console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+    actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+    actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+    await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('', result);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
+    assert.equal(result[2], actualPaymentTime);
+    assert.equal(result[3], actualPaymentAmount);
+    assert.equal(result[4], '0');
+    assert.equal(result[5], false);
+
+    console.log('\n--------==addPaymentCount()');
+    await instIncomeManager.methods.addPaymentCount()
+    .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    paymentCount = await instIncomeManager.methods.paymentCount().call();
+    console.log('paymentCount:', paymentCount, typeof paymentCount);
+    assert.equal(paymentCount, '2');
+    console.log('Successfully added paymentCount after entering 2nd actual payment time & amount');
+
+
+    error = false;
+    try {
+      schIndex = 2;
+      console.log('\n--------==Try to editActualSchedule after addPaymentCount()');
+      console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+      forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+      forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+      actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+      actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+      await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] only can editActualPayment() when schIndex > paymentCount, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+
+    schIndex = 5;
+    console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+    actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+    actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+    await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('', result);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
+    assert.equal(result[2], actualPaymentTime);
+    assert.equal(result[3], actualPaymentAmount);
+    assert.equal(result[4], '0');
+    assert.equal(result[5], false);
+    console.log('\nSuccess: can editActualSchedule('+schIndex+') way ahead');
+
+    console.log('\n--------==getIncomeScheduleList(indexStart = 0; amount = 0;)');
+    indexStart = 0; amount = 0;
+    let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
+    console.log('scheduleList', scheduleList);
+
 
     _errorCode = 21;
     _isErrorResolved = true;
-    await instIncomeManager.methods.setErrResolution(_index, _isErrorResolved, _errorCode)
+    await instIncomeManager.methods.setErrResolution(schIndex, _isErrorResolved, _errorCode)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('\n--------==setErrResolution()', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
@@ -1685,10 +1797,6 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[5], _isErrorResolved);
 
 
-    console.log('\n--------==getIncomeScheduleList(indexStart = 0; amount = 0;)');
-    indexStart = 0; amount = 0;
-    let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
-    console.log('scheduleList', scheduleList);
 
 
     console.log('\n--------==getIncomeScheduleList(indexStart = 1; amount = 0;)');

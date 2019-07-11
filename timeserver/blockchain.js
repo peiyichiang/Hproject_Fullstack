@@ -25,9 +25,30 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
 
 /**後台公私鑰*/
 console.log('loading blockchain.js smart contract json files');
-const backendAddr = AssetOwner5;
-const backendAddrpkRaw = AssetOwner5pkRaw;
-//const backend = AssetOwner5, backendpkRaw = AssetOwner5pkRaw;
+
+const accountChoice = 1;
+let backendAddr, backendAddrpkRaw;
+if(accountChoice === 0){//reserved to API developer
+  backendAddr = admin;
+  backendAddrpkRaw = adminpkRaw;
+
+} else if(accountChoice === 1){//reserved to Blockchain developer
+  backendAddr = AssetOwner1;
+  backendAddrpkRaw = AssetOwner1pkRaw;
+
+} else if(accountChoice === 2){//reserved to Backend developer
+  backendAddr = AssetOwner2;
+  backendAddrpkRaw = AssetOwner2pkRaw;
+
+} else if(accountChoice === 3){//
+  backendAddr = AssetOwner3;
+  backendAddrpkRaw = AssetOwner3pkRaw;
+
+} else if(accountChoice === 4){//reserved tp the timeserver
+  backendAddr = AssetOwner4;
+  backendAddrpkRaw = AssetOwner4pkRaw;
+
+}
 
 // const choiceOfHCAT721 = 2;
 // if(choiceOfHCAT721===1){
@@ -53,10 +74,10 @@ const addPlatformSupervisor = async(platformSupervisor) => {
     // });
     const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
     const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisor).encodeABI();
-    let TxResult = await signTx(admin, adminpkRaw, addrHelium, encodedData).catch((err) => {
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHelium, encodedData).catch((err) => {
       reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
       return false;
-    });//admin here is defined in the Helium contract
+    });
     console.log('\nTxResult', TxResult);
 
     let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisor).call();
@@ -64,6 +85,25 @@ const addPlatformSupervisor = async(platformSupervisor) => {
     resolve(result);
   });
 }
+
+const setRestrictions = async(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) => {
+  return new Promise(async (resolve, reject) => {
+    //console.log('--------------==setRestrictions()');
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
+    const encodedData= instHelium.methods.setRestrictions(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHelium, encodedData).catch((err) => {
+      reject('[Error @ signTx() setRestrictions()]'+ err);
+      return false;
+    });
+    console.log('\nTxResult', TxResult);
+
+    let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisor).call();
+    //console.log('\nresult', result);
+    resolve(result);
+  });
+}
+
+
 
 //-------------------==Crowdfunding
 const getFundingStateCFC = async (crowdFundingAddr) => {
@@ -79,16 +119,20 @@ const updateFundingStateCFC = async (crowdFundingAddr, serverTime) => {
     console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'serverTime', serverTime);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
 
+    const tokenSymbol = await instCrowdFunding.methods.tokenSymbol().call();
+    const TimeOfDeployment = await instCrowdFunding.methods.TimeOfDeployment().call();
     let fundingState = await instCrowdFunding.methods.fundingState().call();
-    let stateDescription = await instCrowdFunding.methods.stateDescription().call()
-    console.log('\nfundingState:', fundingState, typeof fundingState, ', stateDescription:', stateDescription);
+    let stateDescription = await instCrowdFunding.methods.stateDescription().call();
+    const checkPlatformSupervisor = await instCrowdFunding.methods.checkPlatformSupervisor.call({from: backendAddr});
+    console.log(`\ntokenSymbol: ${tokenSymbol}, fundingState: ${fundingState}, ${typeof fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}, checkPlatformSupervisor: ${checkPlatformSupervisor}`);
 
     if(parseInt(fundingState) < 4){
-      console.log('the CF contract is ready to be updated...');
+      console.log(`the CF contract of ${tokenSymbol} is ready to be updated...`);
       const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
       console.log('about to execute updateState() in the CFC...');
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch((err) => {
-        reject('[Error @ signTx() updateState(serverTime)]', err);
+        const checkupdateState = serverTime > TimeOfDeployment;
+        reject('[Error @ signTx() updateState(serverTime)], checkupdateState:'+checkupdateState + '\n err:'+err);
         return -1;
       });
       console.log('\nTxResult', TxResult);
@@ -128,7 +172,7 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
       console.log('the CF contract is ready to be updated...');
       const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData).catch((err) => {
-        reject('[Error @ signTx() updateState(serverTime) in TCC]', err);
+        reject('[Error @ signTx() updateState(serverTime) in TCC]'+ err);
         return -1;
       });
       console.log('\nTxResult', TxResult);
@@ -351,7 +395,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
 
     const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, serverTime).encodeABI();
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch(async(err) => {
-      console.log('\n[Error @ signTx() mintSerialNFT()]', err);
+      console.log('\n[Error @ signTx() mintSerialNFT()]'+ err);
       const mesg = await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime)
     });
     console.log('TxResult', TxResult);
@@ -381,13 +425,13 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
 
   console.log('\n--------------==Minting tokens via sequentialMint()...');
   await sequentialMint(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr, serverTime).catch((err) => {
-    console.log('[Error @ sequentialMint]', err);
+    console.log('[Error @ sequentialMint]'+ err);
     return false;
   });
 
   console.log('\n--------------==after minting tokens, check balances now...');
   const [isCorrectAmountArray, balanceArrayAfter, symbol] = await sequentialCheckBalancesAfter(toAddressArray, amountArray, tokenCtrtAddr, balanceArrayBefore).catch((err) => {
-    console.log('[Error @ sequentialCheckBalancesAfter]', err);
+    console.log('[Error @ sequentialCheckBalancesAfter]'+ err);
   });
   console.log('\n--------------==Done sequentialCheckBalancesAfter()');
   console.log('\nbalanceArrayBefore', balanceArrayBefore, '\nbalanceArrayAfter after', balanceArrayAfter);
@@ -405,7 +449,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   const acquired_cost = 13000;
   const moving_ave_holding_cost = 13000;
   const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
-    console.log('[Error @ addAssetRecordRowArray]', err);
+    console.log('[Error @ addAssetRecordRowArray]'+ err);
     return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
   });;
 
@@ -490,7 +534,7 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
       } else {
         //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
         const targetAddr = await findCtrtAddr(symbol, actionType).catch((err) => {
-          console.log('[Error @findCtrtAddr]:', err);
+          console.log('[Error @findCtrtAddr]:'+ err);
         });
         if(isEmpty(targetAddr)){
           console.log(`\ncontract address is not found: ${actionType}, ${symbol}, ${targetAddr}`);
@@ -516,7 +560,7 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
       let encodedData = instHCAT721.methods.mintSerialNFT(to, amountToMint, price, fundingType, serverTime).encodeABI();
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch((err) => {
-        reject('[Error @ signTx() mintSerialNFT(serverTime)]', err);
+        reject('[Error @ signTx() mintSerialNFT(serverTime)]'+ err);
         return false;
       });
       //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
@@ -588,7 +632,7 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
         /*
         //------------== auto determines the crowdfunding results -> write it into DB
         const crowdFundingAddr = await findCtrtAddr(symbol.p_SYMBOL,'crowdfunding').catch((err) => {
-          console.error('[Error @findCtrtAddr]:', err);
+          console.error('[Error @findCtrtAddr]:'+ err);
           continue;
         });
         const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
@@ -609,7 +653,7 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
           p_state = 'terminated';
         }
         const results2 = await mysqlPoolQueryB(queryStr, [p_state, symbol.p_SYMBOL]).catch((err) => {
-          console.log('\n[Error @ mysqlPoolQueryB(queryStr)]', err);
+          console.log('\n[Error @ mysqlPoolQueryB(queryStr)]'+ err);
         });
         console.log('\nUpdated product of', symbol.p_SYMBOL, results2);
         */
@@ -635,7 +679,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
   console.log('\ninside addAssetbooksIntoCFC()... serverTime:',serverTime);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
   const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
-    console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]', err);
+    console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
   });
 
   const foundSymbolArray = [];
@@ -671,7 +715,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
     const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM htoken.user User, htoken.order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"';
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
-      console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]', err);
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
     });
     console.log('results3', results3);
     if(results3.length === 0){
@@ -740,7 +784,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         
         ///*
         let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch((err) => {
-          console.log('\n[Error @ signTx() invest()]', err);
+          console.log('\n[Error @ signTx() invest()]'+ err);
           return -1;
         });
         const txnHash = TxResult.transactionHash;
@@ -757,7 +801,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         const queryStr5 = 'UPDATE htoken.order SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
         await asyncForEach(orderIdArray, async (orderId, index) => {
           const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
-            console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]', err);
+            console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
           });
           //console.log('\nresults5', results5);
         });
@@ -949,7 +993,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
       //write bank's confirmation into IncomeManager.sol
       let encodedData = instIncomeManager.methods.setPaymentReleaseResults(serverTime, actualPaymentTime, actualPaymentAmount, errorCode).encodeABI();
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, targetAddr, encodedData).catch((err) => {
-        console.log('\n[Error @ signTx() updateState(serverTime)]', err);
+        console.log('\n[Error @ signTx() updateState(serverTime)]'+ err);
         return -1;
       });
       console.log('TxResult', TxResult);
@@ -1080,12 +1124,12 @@ const checkAddForecastedScheduleBatch1 = async(symbol, forecastedPayableTimes, f
     }
 
     const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      console.log('[Error @findCtrtAddr]:', err);
+      console.log('[Error @findCtrtAddr]:'+ err);
     });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
     
-    const result = await instIncomeManager.methods.checkAddForecastedScheduleBatch1(forecastedPayableTimes, forecastedPayableAmounts).call({ from: admin });
-    //assuming that admin account is set to PlatformSupervisor in Helium contract 
+    const result = await instIncomeManager.methods.checkAddForecastedScheduleBatch1(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
+    //assuming that backendAddr account is set to PlatformSupervisor in Helium contract 
     resolve(result);
   });
 }
@@ -1104,11 +1148,11 @@ const checkAddForecastedScheduleBatch2 = async(symbol, forecastedPayableTimes, f
     }
 
     const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      console.log('[Error @findCtrtAddr]:', err);
+      console.log('[Error @findCtrtAddr]:'+ err);
     });
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
     
-    const result = await instIncomeManager.methods.checkAddForecastedScheduleBatch2(forecastedPayableTimes).call({ from: admin });
+    const result = await instIncomeManager.methods.checkAddForecastedScheduleBatch2(forecastedPayableTimes).call({ from: backendAddr });
     resolve(result);//assert.equal(result, 0);
   });
 }
@@ -1142,11 +1186,11 @@ const checkAddForecastedScheduleBatch = async (symbol, forecastedPayableTimes, f
       }
     }
 
-    const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
+    const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:'+ err));
 
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
 
-    const isPS = await instIncomeManager.methods.checkPlatformSupervisor().call({ from: admin }); console.log('\nisPS:', isPS);
+    const isPS = await instIncomeManager.methods.checkPlatformSupervisor().call({ from: backendAddr }); console.log('\nisPS:', isPS);
 
     const schCindexM = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', schCindexM);//assert.equal(result, 0);
@@ -1160,7 +1204,7 @@ const checkAddForecastedScheduleBatch = async (symbol, forecastedPayableTimes, f
       reject(`last_forecastedPayableTime ${last_forecastedPayableTime} should be < first_forecastedPayableTime ${first_forecastedPayableTime}`);
       return false;
     }
-    const results = await instIncomeManager.methods.checkAddForecastedScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).call({ from: admin });
+    const results = await instIncomeManager.methods.checkAddForecastedScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts).call({ from: backendAddr });
     console.log('results', results);
 
     resolve(results);
@@ -1249,7 +1293,7 @@ const editActualSchedule = async (symbol, schIndex, actualPaymentTime, actualPay
     let encodedData = instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount).encodeABI();
     console.log('about to execute editActualSchedule()...');
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData).catch((err) => {
-      reject('[Error @ signTx() editActualSchedule()]', err);
+      reject('[Error @ signTx() editActualSchedule()]'+ err);
       return false;
     });
     console.log('TxResult', TxResult);
@@ -1257,7 +1301,33 @@ const editActualSchedule = async (symbol, schIndex, actualPaymentTime, actualPay
   });
 }
 
-//yarn run testmt -f ??
+//yarn run testmt -f 20
+const addPaymentCount = async (symbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-----------------==inside addPaymentCount()');
+    console.log('symbol', symbol);
+
+    const addrIncomeManager = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @findCtrtAddr]:'+ err);
+      return false;
+    });
+    console.log('check001');
+
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
+    let encodedData = instIncomeManager.methods.addPaymentCount().encodeABI();
+    console.log('about to execute addPaymentCount()...');
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData).catch((err) => {
+      reject('[Error @ signTx() addPaymentCount()]'+ err);
+      return false;
+    });
+    console.log('TxResult', TxResult);
+    resolve(true);
+  });
+}
+
+
+
+//yarn run testmt -f 21
 const setErrResolution = async (symbol, schIndex, isErrorResolved, errorCode) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-----------------==inside setErrResolution()');
@@ -1281,7 +1351,7 @@ const setErrResolution = async (symbol, schIndex, isErrorResolved, errorCode) =>
     let encodedData = instIncomeManager.methods.setErrResolution(schIndex, isErrorResolved, errorCode).encodeABI();
     console.log('about to execute setErrResolution()...');
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrIncomeManager, encodedData).catch((err) => {
-      reject('[Error @ signTx() setErrResolution()]', err);
+      reject('[Error @ signTx() setErrResolution()]'+ err);
       return false;
     });
     console.log('TxResult', TxResult);
@@ -1407,7 +1477,7 @@ const setHeliumAddr = async(addrAssetBook, _addrHeliumContract) => {
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.setHeliumAddr(_addrHeliumContract).encodeABI();
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData).catch((err) => {
-      reject('[Error @ signTx() setHeliumAddr()]', err);
+      reject('[Error @ signTx() setHeliumAddr()]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
@@ -1432,7 +1502,7 @@ const HeliumContractVote = async(addrAssetBook, serverTime) => {
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.HeliumContractVote(serverTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData).catch((err) => {
-      reject('[Error @ signTx() HeliumContractVote(serverTime)]', err);
+      reject('[Error @ signTx() HeliumContractVote(serverTime)]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
@@ -1456,7 +1526,7 @@ const resetVoteStatus = async(addrAssetBook) => {
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.resetVoteStatus().encodeABI();
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData).catch((err) => {
-      reject('[Error @ signTx() resetVoteStatus()]', err);
+      reject('[Error @ signTx() resetVoteStatus()]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
@@ -1482,7 +1552,7 @@ const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
     const encodedData = instAssetBook.methods.changeAssetOwner(_assetOwnerNew, serverTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData).catch((err) => {
-      reject('[Error @ signTx() changeAssetOwner()]', err);
+      reject('[Error @ signTx() changeAssetOwner()]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
@@ -1500,7 +1570,7 @@ const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
 /* const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
  const encodedData = instAssetBook.methods.HeliumContractVote(serverTime).encodeABI();
  let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrAssetBook, encodedData).catch((err) => {
-      reject('[Error @ signTx() updateState(serverTime)]', err);
+      reject('[Error @ signTx() updateState(serverTime)]'+ err);
       return -1;
     });
 console.log('\nTxResult', TxResult);
@@ -1620,7 +1690,7 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime).encodeABI();
 
       let TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch((err) => {
-        reject('[Error @ signTx() safeTransferFromBatch()]', err);
+        reject('[Error @ signTx() safeTransferFromBatch()]'+ err);
         return false;
       });
       console.log('TxResult', TxResult);
@@ -1699,12 +1769,12 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, updateExpiredOrders, getDetailsCFC, 
+  addPlatformSupervisor, setRestrictions, updateExpiredOrders, getDetailsCFC, 
   sequentialRun, sequentialMint, sequentialCheckBalancesAfter, sequentialCheckBalances,
   breakdownArrays, sequentialMintSuper,
   getFundingStateCFC, updateFundingStateFromDB, updateFundingStateCFC,
   addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED2,
   getInvestorsFromCFC_Check,
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers
 }

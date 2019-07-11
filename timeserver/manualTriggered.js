@@ -3,14 +3,11 @@ const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, exclud
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
-const { addPlatformSupervisor, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, setErrResolution } = require('./blockchain.js');
+const { addPlatformSupervisor, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
 //const {  } = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
-
-const backendAddr = AssetOwner5;
-const backendAddrpkRaw = AssetOwner5pkRaw;
 
 let func, arg1, arg2, arg3;
 
@@ -220,6 +217,16 @@ const editActualSchedule_API = async() => {
 
 
 //yarn run testmt -f 20
+const addPaymentCount_API = async() => {
+  console.log('\n---------------==addPaymentCount_API');
+  const symbol = nftSymbol;
+  const result = await addPaymentCount(symbol);
+  console.log('result', result);
+  process.exit(0);
+}
+
+
+//yarn run testmt -f 20
 const setErrResolution_API = async() => {
   console.log('\n---------------==setErrResolution_API');
   const symbol = nftSymbol;
@@ -334,7 +341,7 @@ if(func === 0){
 
 //yarn run testmt -f 20
 } else if (func === 20) {
-  imApprove_API();
+  addPaymentCount_API();
 
 //yarn run testmt -f 21
 } else if (func === 21) {
@@ -344,7 +351,7 @@ if(func === 0){
 } else if (func === 22) {
   getForecastedSchedulesFromDB_API();
 
-//------------------==Assetbook from Backend
+//------------------==Assetbook
 //resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
 //yarn run testmt -f 30
 } else if (func === 30) {

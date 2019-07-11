@@ -56,7 +56,7 @@ contract Registry {
         setRestrictions(2, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(3, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(4, uintMax, uintMax, uintMax, uintMax);
-        setRestrictions(5, 100000, 100000, uintMax, uintMax);
+        setRestrictions(5, 300000, 300000, uintMax, uintMax);
         isAfterDeployment = true;
     }
     function checkDeploymentConditions(
@@ -196,8 +196,8 @@ authLevel & STO investor classification on purchase amount and holding balance r
             isOkBalanceNew = maxBalance >= balanceNew;
 
         } else {
-            maxBuyAmount =        1000;
-            maxBalance   =  1000000000;
+            maxBuyAmount =        90000;
+            maxBalance   = 900000000000;
             isOkBuyAmount = maxBuyAmount >= buyAmount;
             isOkBalanceNew = maxBalance >= balanceNew;
         }

@@ -62,9 +62,18 @@ contract IncomeManagerCtrt {
         require(schDateTime != 0, "schDateTime cannot be 0");
         rsIndex = dateToIdx[schDateTime];
     }
-    function setNextSchedulePaid() external onlyPlatformSupervisor {
+
+    function addPaymentCount() external onlyPlatformSupervisor {
         paymentCount = paymentCount.add(1);
-        //idxToSchedule[paymentCount].isPaid = true;
+        if(paymentCount == 1){
+            require(idxToSchedule[paymentCount].actualPaymentTime > 0, "1st schedule actual payment time should exist");
+            require(idxToSchedule[paymentCount].actualPaymentAmount > 0, "1st schedule actual payment amount should exist");
+
+        } else {
+            require(idxToSchedule[paymentCount].actualPaymentTime > 0, "this schedule actual payment time should exist");
+            require(idxToSchedule[paymentCount].actualPaymentTime > idxToSchedule[paymentCount-1].actualPaymentTime, "this schedule actual payment time should be greater than last schedule actual payment time");
+        }
+        require(idxToSchedule[paymentCount].actualPaymentAmount > 0, "this schedule actual payment amount should exist");
     }
 
 
@@ -158,6 +167,10 @@ contract IncomeManagerCtrt {
         } else {
             schIndex = _schIndex;
         }
+        require(schIndex > 0, "schIndex should be > 0");
+        require(actualPaymentTime > 0, "actualPaymentTime should be > 0");
+        require(actualPaymentAmount > 0, "actualPaymentAmount should be > 0");
+        require(schIndex > paymentCount, "schIndex should be greater than paymentCount");
 
         idxToSchedule[schIndex].actualPaymentTime = actualPaymentTime;
         idxToSchedule[schIndex].actualPaymentAmount = actualPaymentAmount;
