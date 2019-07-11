@@ -453,7 +453,7 @@ function PersonClassified(maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPriv
     this.maxBalancePrivate = maxBalancePrivate;
 }
 //maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate
-let NaturalPerson = new PersonClassified(0, 0, Infinity, Infinity);
+let NaturalPerson = new PersonClassified(300000, 300000, Infinity, Infinity);
 let ProfInstitutionalInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
 let HighNetworthInvestmentLegalPerson = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
 let LegalPersonOrFundOfProfInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
