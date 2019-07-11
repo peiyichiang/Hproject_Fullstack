@@ -273,7 +273,8 @@
                 <thead id="tblHead">
                   <tr>
                     <th class='col-3'>付款時間</th>
-                    <th class='col-3'>校正後實際收益</th>
+                    <th class='col-3'>第幾期</th>
+                    <!-- <th class='col-2'>校正後實際收益</th> -->
                     <th class='col-3'>狀態</th>
                     <th class='col-3'>校正</th>
                   </tr>
@@ -310,7 +311,10 @@
             <form name="correctActualPaymentForm" id="correctActualPaymentForm" action="/Product/CorrectActualPayment" method="post" accept-charset="utf-8">
                 <div class="modal-body">
                     Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol" name="CorrectActualPaymentTokenSymbol"> <br><br>
-                    付款時間：<input type="text" readonly="readonly" id="CorrectActualPaymentTime" name="CorrectActualPaymentTime"> <br><br>
+                    第幾期：<input type="text" readonly="readonly" id="Period" name="Period"> <br><br>
+                    校正前時間：<input type="text" readonly="readonly" id="OriginalPaymentTime" name="OriginalPaymentTime"> <br><br>
+                    校正時間：<input type="text" id="CorrectActualPaymentTime" name="CorrectActualPaymentTime"> <br><br>
+                    校正前金額：<input type="text" readonly="readonly" id="OriginalPaymentNumber" name="OriginalPaymentNumber"> <br><br>
                     校正金額：<input type="text" id="CorrectActualPaymentNumber" name="CorrectActualPaymentNumber">
                 </div>
             </form>
@@ -402,20 +406,23 @@
                 // 將撈到的資料放到IAtable
                 document.getElementById("IAtable").innerHTML+=
                 "<tr>"+
-                "<td class='col-3'>" + data[i].ia_time.substring(0, data[i].ia_time.length-4) + "</td>" + 
-                "<td class='col-3'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
+                "<td class='col-3'>" + data[i].ia_time + "</td>" +
+                "<td class='col-3'>" + (parseInt(data[i].ia_Payable_Period_End)+1) + "</td>" +  
+                // "<td class='col-3'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
                 "<td class='col-3'>" + data[i].ia_State + "</td>"+
-                "<td class='col-3'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
+                "<td class='col-3'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + "," + (parseInt(data[i].ia_Payable_Period_End)+1) + "," + data[i].ia_single_Forecasted_Payable_Income_in_the_Period + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
                 "</tr>";
             }
         }
         function reqError (err) {
             console.log('錯誤', err)
         }
-        function SetCorrectActualPayment(iaTime){
+        function SetCorrectActualPayment(iaTime,period,originalPayment){
             // alert(CurrentCorrectTokenSymbol + "," + iaTime);
             document.getElementById("CorrectActualPaymentTokenSymbol").value=CurrentCorrectTokenSymbol;
-            document.getElementById("CorrectActualPaymentTime").value=iaTime;
+            document.getElementById("OriginalPaymentTime").value=iaTime;
+            document.getElementById("OriginalPaymentNumber").value=originalPayment;
+            document.getElementById("Period").value=period;
 
         }
 
