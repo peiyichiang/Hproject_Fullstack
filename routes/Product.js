@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
 const { getTime, asyncForEach } = require('../timeserver/utilities');
-const { addScheduleBatch } = require('../timeserver/blockchain.js');
+const { addScheduleBatch,editActualSchedule,getIncomeScheduleList,addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 
 //撈取資料(Platform_Supervisor專用，沒在用)
 router.get('/Product', function (req, res, next) {
@@ -1153,7 +1153,7 @@ router.get('/IncomeArrangement', function (req, res, next) {
     var symbol = req.query.symbol;
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol, function (err, rows) {
+    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_single_Forecasted_Payable_Income_in_the_Period,ia_Payable_Period_End,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol, function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1166,18 +1166,23 @@ router.get('/IncomeArrangement', function (req, res, next) {
 // 接收FMS Actual Payment的校正資料
 router.post('/CorrectActualPayment', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
-    // console.log("***:" + JSON.stringify(req.body));
-    // req.body.CorrectActualPaymentTokenSymbol
-    // req.body.CorrectActualPaymentTime
-    // req.body.CorrectActualPaymentNumber
+    console.log("#Symobl:" + req.body.CorrectActualPaymentTokenSymbol);
+    console.log("#第幾期:" + req.body.Period);
+    console.log("#校正前時間:" + req.body.OriginalPaymentTime);
+    console.log("#校正後時間:" + req.body.CorrectActualPaymentTime);
+    console.log("#校正前金額:" + req.body.OriginalPaymentNumber);
+    console.log("#校正後金額:" + req.body.CorrectActualPaymentNumber);
 
     var sql = {
+        //校正後金額
         ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
+        //校正後時間
+        ia_actualPaymentTime:req.body.CorrectActualPaymentTime,
         ia_State: "ia_state_underReview"
     };
 
     var mysqlPoolQuery = req.pool;
-    var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.CorrectActualPaymentTime], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1189,26 +1194,81 @@ router.post('/CorrectActualPayment', function (req, res, next) {
 
 // 接收 平台方審核Actual Payment的結果
 router.post('/CorrectActualPaymentResult', function (req, res, next) {
-    // console.log("#:" + req.body.CorrectActualPaymentTokenSymbol);
-    // console.log("#:" + req.body.CorrectActualPaymentTime);
-    // console.log("#:" + req.body.CorrectActualPaymentResult);
+    // console.log("#Symobl:" + req.body.CorrectActualPaymentTokenSymbol);
+    // console.log("#校正前時間:" + req.body.OriginalPaymentTime);
+    // console.log("#校正結果：" + req.body.CorrectActualPaymentResult);
 
     var sql = {
         ia_State: req.body.CorrectActualPaymentResult
     };
 
-    // 將校正結果寫入資料庫
     var mysqlPoolQuery = req.pool;
-    var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.CorrectActualPaymentTime], function (err, rows) {
+    //根據傳來的symbol、校正前時間 查詢期數、實際發放金額、實際發放時間
+    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
         if (err) {
             console.log(err);
         } else {
-            // if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
-            // }
-            res.setHeader('Content-Type', 'application/json');
-            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+            var data = rows;
+            // 期數
+            var period=rows[0].ia_Payable_Period_End;
+            console.log("第幾期：" + period);
+            // 實際發放金額
+            var actualPaymentAmount_=rows[0].ia_single_Actual_Income_Payment_in_the_Period;
+            console.log("實際發放金額：" + actualPaymentAmount_);
+            // console.log(rows[0].ia_single_Actual_Income_Payment_in_the_Period);
+            // 實際發放時間
+            var actualPaymentTime_=rows[0].ia_actualPaymentTime;
+            console.log("實際發放時間：" + actualPaymentTime_);
+            // console.log(rows[0].ia_actualPaymentTime);                    
+            
+            // 如果通過審核就寫入到智能合約
+            if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
+                const symbol = req.body.CorrectActualPaymentTokenSymbol;
+                const schIndex = period;
+                const actualPaymentTime =actualPaymentTime_;
+                const actualPaymentAmount = actualPaymentAmount_;
+                const result = await editActualSchedule(symbol, schIndex, actualPaymentTime, actualPaymentAmount);
+                console.log('result', result);
+
+                // 如果成功寫入智能合約，就設置審核狀態
+                if(result==true){
+                    //設置審核狀態 
+                    var sql = {
+                        ia_State: req.body.CorrectActualPaymentResult
+                    };
+                    var qur1 = mysqlPoolQuery('UPDATE htoken.income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            res.setHeader('Content-Type', 'application/json');
+                            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+                        }
+                    });
+                }
+
+            }
         }
     });
+
+
+    // 將校正結果寫入資料庫
+    // var mysqlPoolQuery = req.pool;
+    // var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+    //         if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
+    //             const symbol = req.body.CorrectActualPaymentTokenSymbol;
+    //             const schIndex = req.body.Period;
+    //             const actualPaymentTime =req.body.CorrectActualPaymentTime;
+    //             const actualPaymentAmount = req.body.CorrectActualPaymentNumber;
+    //             const result = await editActualSchedule(symbol, schIndex, actualPaymentTime, actualPaymentAmount);
+    //             console.log('result', result);
+    //         }
+    //         res.setHeader('Content-Type', 'application/json');
+    //         res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+    //     }
+    // });
 });
 
 router.get('/testRayAPI',function (req, res, next){
