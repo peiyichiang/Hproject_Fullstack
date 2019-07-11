@@ -64,7 +64,7 @@ contract IncomeManagerCtrt {
     }
     function setNextSchedulePaid() external onlyPlatformSupervisor {
         paymentCount = paymentCount.add(1);
-        idxToSchedule[paymentCount].isPaid = true;
+        //idxToSchedule[paymentCount].isPaid = true;
     }
 
 
