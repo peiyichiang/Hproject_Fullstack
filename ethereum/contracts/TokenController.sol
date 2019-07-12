@@ -53,7 +53,7 @@ contract TokenController {
     function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
-    function checkPlatformSupervisor() external view returns (bool){
+    function checkPlatformSupervisorFromTCC() external view returns (bool){
         return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading

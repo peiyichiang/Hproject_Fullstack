@@ -32,7 +32,7 @@ contract ProductManager {
         require(HeliumITF(addrHelium).checkAdmin(msg.sender), "only  Helium_Admin is allowed to call this function");
         _;
     }
-    function checkAdmin() external view returns (bool){
+    function checkAdminFromPMC() external view returns (bool){
         return (HeliumITF(addrHelium).checkAdmin(msg.sender));
     }
 

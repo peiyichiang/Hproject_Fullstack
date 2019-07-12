@@ -300,7 +300,7 @@ const addrZero = "0x0000000000000000000000000000000000000000";
 //const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
 
 
-
+console.log('loading blockchain.js smart contract json files');
 const TestCtrt = require('./build/TestCtrt.json');
 if (TestCtrt === undefined){
   console.log('[Error] TestCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');

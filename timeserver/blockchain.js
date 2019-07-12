@@ -3,52 +3,53 @@ const Tx = require('ethereumjs-tx');
 const moment = require('moment');
 const chalk = require('chalk');
 const log = console.log;
+console.log('loading blockchain.js...');
 
 const { getTime, isEmpty, asyncForEach, checkInt, checkIntFromOne } = require('./utilities');
 const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
+const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
+const blockchainChoice = 1;//1 POA, 2 ganache, 3 Infura
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
+
+
+let backendAddr, backendAddrpkRaw, blockchain_ip;
+if(blockchainChoice === 1){//POA
+  blockchain_ip = "http://140.119.101.130:8545";
+} else if(blockchainChoice === 2){/*ganache*/
+  blockchain_ip = "http://140.119.101.130:8540";
+} else if(blockchainChoice === 3){/*Infura HttpProvider Endpoint*/
+  blockchain_ip = "https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d";
+} 
+web3 = new Web3(new Web3.providers.HttpProvider(blockchain_ip));
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-//-----------------==Copied from routes/Contracts.js
-/*Infura HttpProvider Endpoint*/
-//web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
-/*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
-/*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
-
-/**後台公私鑰*/
-console.log('loading blockchain.js smart contract json files');
-
-const accountChoice = 1;
-let backendAddr, backendAddrpkRaw;
-if(accountChoice === 0){//reserved to API developer
+if(ethAddrChoice === 0){//reserved to API developer
   backendAddr = admin;
   backendAddrpkRaw = adminpkRaw;
 
-} else if(accountChoice === 1){//reserved to Blockchain developer
+} else if(ethAddrChoice === 1){//reserved to Blockchain developer
   backendAddr = AssetOwner1;
   backendAddrpkRaw = AssetOwner1pkRaw;
 
-} else if(accountChoice === 2){//reserved to Backend developer
+} else if(ethAddrChoice === 2){//reserved to Backend developer
   backendAddr = AssetOwner2;
   backendAddrpkRaw = AssetOwner2pkRaw;
 
-} else if(accountChoice === 3){//
+} else if(ethAddrChoice === 3){//
   backendAddr = AssetOwner3;
   backendAddrpkRaw = AssetOwner3pkRaw;
 
-} else if(accountChoice === 4){//reserved tp the timeserver
+} else if(ethAddrChoice === 4){//reserved tp the timeserver
   backendAddr = AssetOwner4;
   backendAddrpkRaw = AssetOwner4pkRaw;
-
 }
+console.log(`using backendAddr: ${backendAddr}`);
 
 // const choiceOfHCAT721 = 2;
 // if(choiceOfHCAT721===1){
@@ -65,40 +66,67 @@ if(accountChoice === 0){//reserved to API developer
 
 
 //-------------------==Helium Contract
-const addPlatformSupervisor = async(platformSupervisor) => {
+const addPlatformSupervisor = async(platformSupervisorNew, addrHeliumX) => {
   return new Promise(async (resolve, reject) => {
     //console.log('--------------==adding additional PlatformSupervisor...');
     // const addrHeliumContract = await findCtrtAddr(symbol,'helium').catch((err) => {
     //   reject('[Error @findCtrtAddr]:'+ err);
     //   return false;
     // });
-    const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
-    const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisor).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHelium, encodedData).catch((err) => {
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumX, encodedData).catch((err) => {
       reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
-
-    let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisor).call();
-    //console.log('\nresult', result);
+    let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
     resolve(result);
   });
 }
 
+const addCustomerService = async(platformSupervisorNew, addrHeliumX) => {
+  return new Promise(async (resolve, reject) => {
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const encodedData= instHelium.methods.addCustomerService(platformSupervisorNew).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumX, encodedData).catch((err) => {
+      reject('[Error @ signTx() addCustomerService()]'+ err);
+      return false;
+    });
+    console.log('\nTxResult', TxResult);
+    let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
+    resolve(result);
+  });
+}
+
+const checkPlatformSupervisor = async(eoa, addrHeliumX) => {
+  return new Promise(async (resolve, reject) => {
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const result= await instHelium.methods.checkPlatformSupervisor(eoa).call();
+    resolve(result);
+  });
+}
+
+const checkCustomerService = async(eoa, addrHeliumX) => {
+  return new Promise(async (resolve, reject) => {
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const result= await instHelium.methods.checkCustomerService(eoa).call();
+    resolve(result);
+  });
+}
+
+
+//Registry contract
 const setRestrictions = async(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) => {
   return new Promise(async (resolve, reject) => {
     //console.log('--------------==setRestrictions()');
-    const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
+    const instHelium = new web3.eth.Contract(Helium.abi, addrRegistry);
     const encodedData= instHelium.methods.setRestrictions(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHelium, encodedData).catch((err) => {
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData).catch((err) => {
       reject('[Error @ signTx() setRestrictions()]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
-
-    let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisor).call();
-    //console.log('\nresult', result);
     resolve(result);
   });
 }
@@ -107,43 +135,72 @@ const setRestrictions = async(authLevel, maxBuyAmountPublic, maxBalancePublic, m
 
 //-------------------==Crowdfunding
 const getFundingStateCFC = async (crowdFundingAddr) => {
-  console.log('[getFundingStateCFC] crowdFundingAddr', crowdFundingAddr);
+  console.log('[getFundingStateCFC] crowdFundingAddr...');
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
   let fundingState = await instCrowdFunding.methods.fundingState().call();
-  console.log('fundingState', fundingState, 'crowdFundingAddr', crowdFundingAddr);
+  console.log('fundingState', fundingState, ', crowdFundingAddr:', crowdFundingAddr);
   //console.log('typeof fundingState', typeof fundingState);
 }
+const getHeliumAddrCFC = async (crowdFundingAddr) => {
+  console.log('[getHeliumAddrCFC] crowdFundingAddr...');
+  const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+  let addrHelium = await instCrowdFunding.methods.addrHelium().call();
+  console.log('addrHelium', addrHelium, ', crowdFundingAddr:', crowdFundingAddr);
+}
 
-const updateFundingStateCFC = async (crowdFundingAddr, serverTime) => {
+const updateFundingStateCFC = async (crowdFundingAddr, serverTime, symbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'serverTime', serverTime);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
 
-    const tokenSymbol = await instCrowdFunding.methods.tokenSymbol().call();
-    const TimeOfDeployment = await instCrowdFunding.methods.TimeOfDeployment().call();
+    const stateDescription = await instCrowdFunding.methods.stateDescription().call();
+    //const symbol = await instCrowdFunding.methods.tokenSymbol().call();
     let fundingState = await instCrowdFunding.methods.fundingState().call();
-    let stateDescription = await instCrowdFunding.methods.stateDescription().call();
-    const checkPlatformSupervisor = await instCrowdFunding.methods.checkPlatformSupervisor.call({from: backendAddr});
-    console.log(`\ntokenSymbol: ${tokenSymbol}, fundingState: ${fundingState}, ${typeof fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}, checkPlatformSupervisor: ${checkPlatformSupervisor}`);
+    console.log(`\nsymbol: ${symbol}, fundingState: ${fundingState}`);
 
     if(parseInt(fundingState) < 4){
-      console.log(`the CF contract of ${tokenSymbol} is ready to be updated...`);
+      console.log(`the CF contract of ${symbol} is ready to be updated...`);
       const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
       console.log('about to execute updateState() in the CFC...');
-      let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch((err) => {
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => {
+        const TimeOfDeployment = await instCrowdFunding.methods.TimeOfDeployment().call();
         const checkupdateState = serverTime > TimeOfDeployment;
-        reject('[Error @ signTx() updateState(serverTime)], checkupdateState:'+checkupdateState + '\n err:'+err);
+        stateDescription = await instCrowdFunding.methods.stateDescription().call();
+        const checkPlatformSupervisorFromCFC_M = await instCrowdFunding.methods.checkPlatformSupervisor().call({from: backendAddr});
+        let addrHelium = await instCrowdFunding.methods.addrHelium().call();
+
+        console.log('\n[Error @ signTx() updateState(serverTime)], checkupdateState:'+checkupdateState)
+        console.log(`symbol: ${symbol}, fundingState: ${fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}, checkPlatformSupervisorFromCFC_M: ${checkPlatformSupervisorFromCFC_M}, addrHelium: ${addrHelium}`);
+        reject('err:'+err);
         return -1;
       });
       console.log('\nTxResult', TxResult);
   
       fundingState = await instCrowdFunding.methods.fundingState().call();
-      stateDescription = await instCrowdFunding.methods.stateDescription().call()
-      console.log('\nfundingState:', fundingState, ', stateDescription:', stateDescription);
-      console.log('crowdFundingAddr', crowdFundingAddr);
+      console.log('\nnew fundingState:', fundingState, ', stateDescription:', stateDescription, '\ncrowdFundingAddr', crowdFundingAddr);
       resolve(fundingState);
+
     } else {
-      console.warn('[Warning] the CF contract should not be updated... DB p_state should be updated with fundingState=', fundingState, ', stateDescription:', stateDescription);
+      //    enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
+      let fundingStateAlphabets;
+      if(fundingState === '0'){
+        fundingStateAlphabets = 'initial';
+      } else if(fundingState === '1'){
+        fundingStateAlphabets = 'funding';
+      } else if(fundingState === '2'){
+        fundingStateAlphabets = 'fundingPaused';
+      } else if(fundingState === '3'){
+        fundingStateAlphabets = 'fundingGoalReached';
+      } else if(fundingState === '4'){
+        fundingStateAlphabets = 'fundingClosed';
+      } else if(fundingState === '5'){
+        fundingStateAlphabets = 'fundingNotClosed';
+      } else if(fundingState === '6'){
+        fundingStateAlphabets = 'terminated';
+      } else {
+        fundingStateAlphabets = 'out of range';
+      }
+      console.warn('[Warning] the CF contract should not be updated... DB p_state should be updated with ', fundingStateAlphabets, ', fundingState=', fundingState, ', stateDescription:', stateDescription);
       resolve(fundingState);
     }
   });
@@ -158,6 +215,12 @@ const getTokenStateTCC = async (tokenControllerAddr) => {
   console.log('tokenState', tokenState, 'tokenControllerAddr', tokenControllerAddr);
   //console.log('typeof tokenState', typeof tokenState);
 }
+const getHeliumAddrTCC = async (tokenControllerAddr) => {
+  console.log('[getHeliumAddrTCC] tokenControllerAddr...');
+  const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
+  let addrHelium = await instTokenController.methods.addrHelium().call();
+  console.log('addrHelium', addrHelium, ', tokenControllerAddr:', tokenControllerAddr);
+}
 
 const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
   return new Promise(async (resolve, reject) => {
@@ -165,23 +228,38 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
 
     let tokenState = await instTokenController.methods.tokenState().call();
-    console.log('\ntokenState:', tokenState);
-    console.log('tokenControllerAddr', tokenControllerAddr);
+    console.log(`\nsymbol: ${symbol}, tokenState: ${tokenState}`);
 
     if(parseInt(tokenState) < 2){
-      console.log('the CF contract is ready to be updated...');
+      console.log(`the CF contract of ${symbol} is ready to be updated...`);
       const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
-      let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData).catch((err) => {
-        reject('[Error @ signTx() updateState(serverTime) in TCC]'+ err);
+      console.log('about to execute updateState() in the TCC...');
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData).catch(async(err) => {
+        const checkPlatformSupervisorFromTCC_M = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr});
+        let addrHelium = await instTokenController.methods.addrHelium().call();
+
+        console.log(`[Error @ signTx() updateState(serverTime) in TCC] \nsymbol: ${symbol}, tokenState: ${tokenState}, serverTime: ${serverTime}, checkPlatformSupervisorFromTCC_M: ${checkPlatformSupervisorFromTCC_M}, addrHelium: ${addrHelium}`);
+        reject('err:'+ err);
         return -1;
       });
       console.log('\nTxResult', TxResult);
       tokenState = await instTokenController.methods.tokenState().call();
-      console.log('\nnew tokenState:', tokenState);
+      console.log('\nnew tokenState:', tokenState, '\ntokenControllerAddr', tokenControllerAddr);
       resolve(tokenState);
 
     } else {
-      console.warn('[Warning] the TC contract should not be updated... DB p_tokenState should be updated with tokenState=', tokenState);
+      //enum TokenState{lockup, normal, expired}
+      let fundingStateAlphabets;
+      if(fundingState === '0'){
+        fundingStateAlphabets = 'lockup';
+      } else if(fundingState === '1'){
+        fundingStateAlphabets = 'normal';
+      } else if(fundingState === '2'){
+        fundingStateAlphabets = 'expired';
+      } else {
+        fundingStateAlphabets = 'out of range';
+      }
+      console.warn('[Warning] the TC contract should not be updated... DB p_tokenState should be updated with', fundingStateAlphabets, ' tokenState=', tokenState);
       resolve(tokenState);
     }
   });
@@ -925,7 +1003,7 @@ const updateTokenStateFromDB = async (serverTime) => {
 
 const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, actionType) => {
   if(actionType === 'crowdfunding'){
-    const fundingStateStr = await updateFundingStateCFC(targetAddr, serverTime);
+    const fundingStateStr = await updateFundingStateCFC(targetAddr, serverTime, symbol);
     console.log('fundingState', fundingStateStr, 'typeof', typeof fundingStateStr);
     const fundingState = parseInt(fundingStateStr);
     /* 0 initial, 1 funding, 2 fundingPaused, 3 fundingGoalReached, 
@@ -1769,12 +1847,11 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, setRestrictions, updateExpiredOrders, getDetailsCFC, 
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, updateExpiredOrders, getDetailsCFC, 
   sequentialRun, sequentialMint, sequentialCheckBalancesAfter, sequentialCheckBalances,
   breakdownArrays, sequentialMintSuper,
-  getFundingStateCFC, updateFundingStateFromDB, updateFundingStateCFC,
+  getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC,
   addAssetbooksIntoCFC, getInvestorsFromCFC,
-  getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED2,
-  getInvestorsFromCFC_Check,
+  getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED2, getInvestorsFromCFC_Check,
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers
 }

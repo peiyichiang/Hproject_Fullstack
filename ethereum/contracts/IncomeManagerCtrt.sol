@@ -47,7 +47,7 @@ contract IncomeManagerCtrt {
         boolArray[2] = _TimeOfDeployment > 201905281400;
     }
 
-    function checkPlatformSupervisor() external view returns (bool){
+    function checkPlatformSupervisorFromIMC() external view returns (bool){
         return (HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor {

@@ -133,14 +133,14 @@ contract CrowdFunding {
         CFED2_ = CFED2;
     }
 
-    function checkPlatformSupervisor() public view returns (bool){
+    function checkPlatformSupervisorFromCFC() public view returns (bool){
         return (HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     function setHeliumAddr(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
+        require(HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         _;
     }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */

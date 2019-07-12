@@ -78,7 +78,7 @@ contract Helium {
     }
 
     //Helium
-    function addCustomerService (address _eoa) public {
+    function addCustomerService(address _eoa) public {
         if(isAfterDeployment){
           require(msg.sender == Helium_Admin, "only admin can call this function");
         }
@@ -87,7 +87,7 @@ contract Helium {
         PermissionList[_eoa].permissionStatus = true;
     }
     
-    function addPlatformSupervisor (address _eoa) public {
+    function addPlatformSupervisor(address _eoa) public {
         if(isAfterDeployment){
           require(msg.sender == Helium_Admin, "only admin can call this function");
         }

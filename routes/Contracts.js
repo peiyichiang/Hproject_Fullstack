@@ -7,7 +7,7 @@ const router = express.Router();
 const { isTestingMode } = require('../ethereum/contracts/zsetupData');
 const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
-const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB } = require('../timeserver/mysql.js');
+const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -1072,6 +1072,41 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
 
     }
 });
+
+/**  */
+router.post('/HCAT721_AssetTokenContract/:tokenSymbol', async function (req, res, next) {
+  let tokenSymbol = req.params.tokenSymbol;
+  const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {
+    console.log('[Error @ calculateLastPeriodProfit]', err);
+    res.send({
+      err: err,
+      status: false
+    });
+  });
+  console.log(`result: ${result}`);
+  if(result){
+    if(result[0] === null || result[1] === null){
+      res.send({
+        status: false
+      });
+    } else if(Array.isArray(result[0])){
+    res.send({
+      status: true,
+      emailArrayError: result[0],
+      amountArrayError: result[1]
+    });
+    } else {
+      res.send({
+        status: false
+      });
+    }
+  } else {
+    res.send({
+      status: false
+    });
+  }
+});
+
 
 /**get tokenId  */
 router.get('/HCAT721_AssetTokenContract/:tokenSymbol/:assetBookAddr', async function (req, res, next) {
