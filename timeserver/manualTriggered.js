@@ -1,7 +1,7 @@
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
 //const {  } = require('./utilities');
@@ -92,8 +92,14 @@ const checkCustomerService_API = async () => {
   process.exit(0);
 }
 
+//yarn run testmt -f 4
+const getProfitSymbolAddresses_API = async () => {
+  const resultsAPI = await getProfitSymbolAddresses();
+  console.log('resultsAPI', resultsAPI);
+  process.exit(0);
+}
 
-// yarn run testmt -f 4
+// yarn run testmt -f 5
 const calculateLastPeriodProfit_API = async () => {
   console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
   const symbol = 'NCCU1704';
@@ -301,8 +307,8 @@ const setErrResolution_API = async() => {
 //yarn run testmt -f 30
 const getAssetbookDetails_API = async () => {
   const addrAssetBook = addrAssetBook1;
-  const results1 = await getAssetbookDetails(addrAssetBook);
-  console.log('results1', results1);
+  const resultsAPI = await getAssetbookDetails(addrAssetBook);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -311,8 +317,8 @@ const setHeliumAddr_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await setHeliumAddr(addrAssetBook, _addrHeliumContract);
-  console.log('results1', results1);
+  const resultsAPI = await setHeliumAddr(addrAssetBook, _addrHeliumContract);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -321,8 +327,8 @@ const HeliumContractVote_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await HeliumContractVote(addrAssetBook, serverTime);
-  console.log('results1', results1);
+  const resultsAPI = await HeliumContractVote(addrAssetBook, serverTime);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -331,8 +337,8 @@ const resetVoteStatus_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await resetVoteStatus(addrAssetBook);
-  console.log('results1', results1);
+  const resultsAPI = await resetVoteStatus(addrAssetBook);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -341,8 +347,8 @@ const changeAssetOwner_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await changeAssetOwner(addrAssetBook, _assetOwnerNew, serverTime);
-  console.log('results1', results1);
+  const resultsAPI = await changeAssetOwner(addrAssetBook, _assetOwnerNew, serverTime);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -366,6 +372,10 @@ if(func === 0){
 
 //yarn run testmt -f 4
 } else if (func === 4) {
+  getProfitSymbolAddresses_API();
+
+//yarn run testmt -f 5
+} else if (func === 5) {
   calculateLastPeriodProfit_API();
 
 //yarn run testmt -f 11

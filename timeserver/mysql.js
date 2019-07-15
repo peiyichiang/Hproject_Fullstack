@@ -272,9 +272,67 @@ const addIncomeArrangementRowDev = (incomeArrangementNum) => {
   });
 }
 
+//yarn run testmt -f 4
+const getProfitSymbolAddresses = async() => {
+  return new Promise(async(resolve, reject) => {
+    /*
+    const queryStr1 = 'SELECT p_SYMBOL from htoken.product where p_state = "ONM"'
+    const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
+      console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr1)]');
+      reject(err);
+      return false;
+    });
+    const results1Len = results1.length;
+    console.log('\nArray length @ getProfitSymbolAddresses:', results1Len);
+    const foundSymbols = [];
+    for(let i = 0; i < results1.length; i++) {
+      if(typeof results1[i] === 'object' && results1[i] !== null){
+        foundSymbols.push(results1[i].p_SYMBOL);
+      }
+    }
+    console.log('foundSymbols', foundSymbols);
+    */
+
+    const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM htoken.product WHERE p_state = "ONM")'
+    const results2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
+      console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr2)]');
+      reject(err);
+      return false;
+    });
+    const results2Len = results2.length;
+    console.log('\nArray length @ getProfitSymbolAddresses:', results2Len);
+    // console.log('results2:', results2);
+
+    const foundSymbols = [];
+    const foundHCAT721Addrs = [];
+    for(let i = 0; i < results2.length; i++) {
+      if(typeof results2[i] === 'object' && results2[i] !== null){
+        foundSymbols.push(results2[i].sc_symbol);
+        foundHCAT721Addrs.push(results2[i].sc_erc721address);
+      }
+    }
+    //console.log('foundHCAT721Addrs', foundHCAT721Addrs);
+    const queryStr3 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)';
+
+    const result3Array = [];
+    await asyncForEach(foundSymbols, async (symbol, index) => {
+      const result3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]');
+        reject(err);
+        return false;
+      });
+      result3Array.push(result3);
+    });
+    // const result3ArrayLen = result3Array.length;
+    // console.log('\nArray length @ lastPeriodProfit:', result3ArrayLen)
+    console.log('result3Array:', result3Array);//[ [], [], [] ]
+    resolve([foundSymbols, foundHCAT721Addrs, result3Array]);
+  });
+}
+
 //----------------------------==AssetRecord in DB
 //For timeserver to trigger ... calculate periodic profit
-const calculateLastPeriodProfit = async(_symbol) => {
+const calculateLastPeriodProfit = async() => {
   return new Promise(async(resolve, reject) => {
     console.log('\n--------------==inside calculateLastPeriodProfit()');
     const asset_valuation = 13000;
@@ -283,27 +341,21 @@ const calculateLastPeriodProfit = async(_symbol) => {
     const acquired_cost = 13000;
     const moving_ave_holding_cost = 13000;
 
-    const addrHCAT721 = await findCtrtAddr(_symbol,'hcat721').catch((err) => {
-      console.log('\n[Error @findCtrtAddr]');
-      reject(err);
-      return false;
-    });
+    const [foundSymbols, foundHCAT721Addrs] = await getProfitSymbolAddresses();
+    console.log('foundSymbols:', foundSymbols, ', foundHCAT721Addrs:', foundHCAT721Addrs);
 
-    const queryStr1 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM htoken.income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM htoken.income_arrangement WHERE ia_SYMBOL = ?)';
-    const results = await mysqlPoolQueryB(queryStr1, [_symbol]).catch((err) => {
-      console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]');
-      reject(err);
-      return false;
-    });
-    const resultsLen = results.length;
-    console.log('\nArray length @ lastPeriodProfit:', resultsLen, ', symbols:', results);
+    // const addrHCAT721 = await findCtrtAddr(_symbol,'hcat721').catch((err) => {
+    //   console.log('\n[Error @findCtrtAddr]');
+    //   reject(err);
+    //   return false;
+    // });
 
-    if (resultsLen === 0) {
+    if (results2Len === 0) {
       console.log('[lastPeriodProfit] no symbol was found');
 
-    } else if (resultsLen > 0) {
+    } else if (results2Len > 0) {
       console.log('[lastPeriodProfit] symbol(s) found');
-      await asyncForEach(results, async (entry, index) => {
+      await asyncForEach(results2, async (entry, index) => {
         const symbol = entry.ia_SYMBOL;
         const ar_time = entry.ia_actualPaymentTime;
         const singleActualIncomePayment = entry.ia_single_Actual_Income_Payment_in_the_Period;
@@ -843,5 +895,5 @@ module.exports = {
     isIMScheduleGoodDB, setIMScheduleDB,
     addAssetRecordRow, addAssetRecordRowArray, addIncomePaymentPerPeriodIntoDB,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
-    calculateLastPeriodProfit
+    calculateLastPeriodProfit, getProfitSymbolAddresses
 }

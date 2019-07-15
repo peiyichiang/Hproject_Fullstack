@@ -386,8 +386,6 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
     const isCorrectAmountArray = [];
     const balanceArrayAfter = [];
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-    const symbol_bytes32 = await instHCAT721.methods.symbol().call();
-    const symbol = web3.utils.toAscii(symbol_bytes32);
     
     if(toAddressArray.length !== amountArray.length){
       console.log(`toAddressArray and amountArray must be of the same length`);
@@ -409,7 +407,7 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
 
     console.log('\n--------------==Done sequentialCheckBalancesAfter()');
     console.log('[Completed] All of the investor list has been cycled through');
-    return [isCorrectAmountArray, balanceArrayAfter, symbol];
+    return [isCorrectAmountArray, balanceArrayAfter];
     //resolve(isCorrectAmountArray);
   //});
 }
@@ -484,7 +482,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
 
 
 //to be called from API and zlivechain.js, etc...
-const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime) => {
+const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, symbol) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
@@ -508,7 +506,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   });
 
   console.log('\n--------------==after minting tokens, check balances now...');
-  const [isCorrectAmountArray, balanceArrayAfter, symbol] = await sequentialCheckBalancesAfter(toAddressArray, amountArray, tokenCtrtAddr, balanceArrayBefore).catch((err) => {
+  const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(toAddressArray, amountArray, tokenCtrtAddr, balanceArrayBefore).catch((err) => {
     console.log('[Error @ sequentialCheckBalancesAfter]'+ err);
   });
   console.log('\n--------------==Done sequentialCheckBalancesAfter()');
