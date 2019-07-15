@@ -124,7 +124,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
 
     const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
 
-    let encodedData = registry.methods.addUser(userID, assetBookAddr, 1).encodeABI();
+    let encodedData = registry.methods.addUser(userID, assetBookAddr, 5).encodeABI();
 
     try {
         let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
