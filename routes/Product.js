@@ -1073,7 +1073,6 @@ router.post('/IncomeCSV', function (req, res, next) {
                       if (err) {
                           console.log(err);
                       } else {
-                          res.status(200);
                           res.send({
                               "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
                               "messageForUser": "",
@@ -1090,7 +1089,6 @@ router.post('/IncomeCSV', function (req, res, next) {
                   console.error(error); //Handle error
               })
             }else{
-                res.status(200);
                 res.send({
                     "messageForDeveloper": "沒有Income CSV文件",
                     "messageForUser": "Income CSV文件遺失，請重新上傳",
@@ -1098,9 +1096,7 @@ router.post('/IncomeCSV', function (req, res, next) {
                 });
             }
           } catch(err) {
-            console.log("2");
             console.error(err)
-            res.status(200);
             res.send({
                 "messageForDeveloper": "沒有Income CSV文件",
                 "messageForUser": "Income CSV文件遺失，請重新上傳",
@@ -1108,8 +1104,6 @@ router.post('/IncomeCSV', function (req, res, next) {
             });
           }
     } else {
-        console.log("3");
-        res.status(200);
         res.send({
             "messageForDeveloper": "沒有Income CSV文件",
             "messageForUser": "請上傳Income CSV文件",
