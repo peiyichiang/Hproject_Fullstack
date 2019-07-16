@@ -138,7 +138,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
         };
 
         //console.log(element)
-        mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, u_email], async function (err, rows) {
+        mysqlPoolQuery('UPDATE user SET ? WHERE u_email = ?', [sql, u_email], async function (err, rows) {
             if (err) {
                 console.log(err);
                 let databaseResult = err;
@@ -255,7 +255,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
             var mysqlPoolQuery = req.pool;
             let contractAddress = receipt.contractAddress;
 
-            mysqlPoolQuery("INSERT INTO htoken.smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_totalsupply, sc_remaining) VALUES (?,?,?,?)", [tokenSymbol, contractAddress, quantityMax, quantityMax], function (err, rows) {
+            mysqlPoolQuery("INSERT INTO smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_totalsupply, sc_remaining) VALUES (?,?,?,?)", [tokenSymbol, contractAddress, quantityMax, quantityMax], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.send({
@@ -289,7 +289,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
     let currentTime = 201906120000;
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -331,7 +331,7 @@ router.post('/crowdFundingContract/:tokenSymbol/remaining', async function (req,
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBGetResult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBGetResult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -378,7 +378,7 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -408,7 +408,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     // })
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -451,7 +451,7 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
     // })
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -498,7 +498,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
     // })
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -537,7 +537,7 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -586,7 +586,7 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
     */
     console.log(`entered time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -727,7 +727,7 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
             sc_incomeManagementaddress: incomeManagerAddr
         };
         console.log(nftSymbol)
-        mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [updateContractsAddrsql, nftSymbol], function (err, rows) {
+        mysqlPoolQuery('UPDATE smart_contracts SET ? WHERE sc_symbol = ?', [updateContractsAddrsql, nftSymbol], function (err, rows) {
             if (err) {
                 console.log(err);
                 res.send({
@@ -740,7 +740,7 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
                     p_state: "FundingClosed",
                     p_PAdate: new Date().toLocaleString().toString()
                 };
-                mysqlPoolQuery('UPDATE htoken.product SET ? WHERE p_SYMBOL = ?', [updateCrowdFubdingStatesql, nftSymbol], function (err, rows) {
+                mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [updateCrowdFubdingStatesql, nftSymbol], function (err, rows) {
                     if (err) {
                         console.log(err);
                         res.send(err);
@@ -812,7 +812,7 @@ router.post('/tokenControllerContract/:tokenSymbol/updateState', async function 
     */
     console.log(`entered time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -850,7 +850,7 @@ router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, 
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -921,7 +921,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
 
 
             console.log(nftSymbol)
-            mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+            mysqlPoolQuery('UPDATE smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.send({
@@ -950,7 +950,7 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log(nftSymbol);
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM htoken.smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
         //console.log(result);
         if (err) {
             //console.log(err);
@@ -1114,7 +1114,7 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/:assetBookAddr', async func
     let assetBookAddr = req.params.assetBookAddr;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -1140,7 +1140,7 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (r
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -1256,7 +1256,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
             };
 
             console.log(nftSymbol)
-            mysqlPoolQuery('UPDATE htoken.smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+            mysqlPoolQuery('UPDATE smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.send({
@@ -1495,7 +1495,7 @@ router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async
     let currentTime = req.body.time;
     console.log(`entered time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM htoken.smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({

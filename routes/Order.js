@@ -62,7 +62,7 @@ router.post('/AddOrder', function (req, res, next) {
     });
 });
 
-//SELECT SUM(o_tokenCount) AS total FROM  `order` WHERE o_symbol = 'MYRR1701';
+//SELECT SUM(o_tokenCount) AS total FROM `order` WHERE o_symbol = 'MYRR1701';
 //http://localhost:3000/Order/SumAllOrdersBySymbol
 router.get('/SumAllOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumAllOrdersBySymbol');

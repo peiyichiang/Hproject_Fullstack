@@ -355,64 +355,67 @@
             // console.log(data)
             document.getElementById("IAtable").innerHTML="";
             for(var i=0;i<data.length;i++){
-                // console.log(data[i].ia_actualPaymentTime);
-                // console.log(data[i].ia_single_Actual_Income_Payment_in_the_Period);
-                if(data[i].ia_single_Actual_Income_Payment_in_the_Period==null){
-                    data[i].ia_single_Actual_Income_Payment_in_the_Period="尚未校正";
-                }
+               // console.log(data[i].ia_actualPaymentTime);
+               // console.log(data[i].ia_single_Actual_Income_Payment_in_the_Period);
+               if(data[i].ia_single_Actual_Income_Payment_in_the_Period==null){
+                   data[i].ia_single_Actual_Income_Payment_in_the_Period="尚未校正";
+               }
 
-                // 取得Current Timestamp
-                const dateTime = Date.now();
-                const currentTimestamp = Math.floor(dateTime / 1000);
+               // 取得Current Timestamp
+               const dateTime = Date.now();
+               const currentTimestamp = Math.floor(dateTime / 1000);
 
-                // 計算IA Unix Timestamp
-                FormatedTime=data[i].ia_time.substring(0,4) + "-" + data[i].ia_time.substring(4,6)+ "-" + data[i].ia_time.substring(6,8);
-                iaTime_TimeStamp = new Date(FormatedTime).getTime() / 1000;
-                
-                // 所有時間加上90天
-                // iaTime_TimeStamp=iaTime_TimeStamp+(1296000*6);
+               // 計算IA Unix Timestamp
+               FormatedTime=data[i].ia_time.substring(0,4) + "-" + data[i].ia_time.substring(4,6)+ "-" + data[i].ia_time.substring(6,8)+ " " + data[i].ia_time.substring(8,10)+ ":" + data[i].ia_time.substring(10,12) + ":30:000";
+               iaTime_TimeStamp = new Date(FormatedTime).getTime() / 1000;
+               // console.log(FormatedTime);
 
-                isCorrectBtnDisabled="";
-                // 先假設待校正
-                if(data[i].ia_State==null){
-                    data[i].ia_State="待校正";
-                }
-                // 將過期的狀態 改為：已過期
-                if(iaTime_TimeStamp<currentTimestamp){
-                    data[i].ia_State="已過期";
-                    isCorrectBtnDisabled="disabled";
+               // 所有時間加上90天
+               // iaTime_TimeStamp=iaTime_TimeStamp+(1296000*6);
 
-                }
-                if (iaTime_TimeStamp-(86400*30)>currentTimestamp){
-                // 時間還沒到的將狀態改為：尚未開放校正
-                    data[i].ia_State="尚未開放校正";
-                    isCorrectBtnDisabled="disabled";
-                }
+               isCorrectBtnDisabled="";
+               // 先假設待校正
+               if(data[i].ia_State==null){
+                   data[i].ia_State="待校正";
+               }
+               // console.log("iaTime_TimeStamp:" + iaTime_TimeStamp);
+               // console.log("currentTimestamp:" + currentTimestamp);
+               // 將過期的狀態 改為：已過期
+               if(iaTime_TimeStamp<currentTimestamp){
+                   data[i].ia_State="已過期";
+                   isCorrectBtnDisabled="disabled";
 
-                // 根據ia_state設置 按鈕狀態
-                if(data[i].ia_State=="ia_state_underReview"){
-                    isCorrectBtnDisabled="disabled";
-                    data[i].ia_State="審核中";
-                }else if(data[i].ia_State=="ia_state_approved"){
-                    isCorrectBtnDisabled="disabled";
-                    data[i].ia_State="審核通過";
-                }else if(data[i].ia_State=="ia_state_unapproved"){
-                    isCorrectBtnDisabled="";
-                    data[i].ia_State="審核失敗";
-                }
+               }
+               if (iaTime_TimeStamp-(86400*30)>currentTimestamp){
+               // 時間還沒到的將狀態改為：尚未開放校正
+                   data[i].ia_State="尚未開放校正";
+                   isCorrectBtnDisabled="disabled";
+               }
+
+               // 根據ia_state設置 按鈕狀態
+               if(data[i].ia_State=="ia_state_underReview"){
+                   isCorrectBtnDisabled="disabled";
+                   data[i].ia_State="審核中";
+               }else if(data[i].ia_State=="ia_state_approved"){
+                   isCorrectBtnDisabled="disabled";
+                   data[i].ia_State="審核通過";
+               }else if(data[i].ia_State=="ia_state_unapproved"){
+                   isCorrectBtnDisabled="";
+                   data[i].ia_State="審核失敗";
+               }
 
 
 
-                // 將撈到的資料放到IAtable
-                document.getElementById("IAtable").innerHTML+=
-                "<tr>"+
-                "<td class='col-3'>" + data[i].ia_time + "</td>" +
-                "<td class='col-3'>" + (parseInt(data[i].ia_Payable_Period_End)+1) + "</td>" +  
-                // "<td class='col-3'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
-                "<td class='col-3'>" + data[i].ia_State + "</td>"+
-                "<td class='col-3'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + "," + (parseInt(data[i].ia_Payable_Period_End)+1) + "," + data[i].ia_single_Forecasted_Payable_Income_in_the_Period + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
-                "</tr>";
-            }
+               // 將撈到的資料放到IAtable
+               document.getElementById("IAtable").innerHTML+=
+               "<tr>"+
+               "<td class='col-3'>" + data[i].ia_time + "</td>" +
+               "<td class='col-3'>" + (parseInt(data[i].ia_Payable_Period_End)+1) + "</td>" +
+               // "<td class='col-3'>" + data[i].ia_single_Actual_Income_Payment_in_the_Period + "</td>" +
+               "<td class='col-3'>" + data[i].ia_State + "</td>"+
+               "<td class='col-3'>" + "<button type='button' class='btn btn-success' onclick='SetCorrectActualPayment(" + data[i].ia_time + "," + (parseInt(data[i].ia_Payable_Period_End)+1) + "," + data[i].ia_single_Forecasted_Payable_Income_in_the_Period + ")' data-dismiss='modal' data-toggle='modal' data-target='#correctActualPaymentModal'"+ ' ' + isCorrectBtnDisabled +">校正</button>" + "</td>"+
+               "</tr>";
+           }
         }
         function reqError (err) {
             console.log('錯誤', err)

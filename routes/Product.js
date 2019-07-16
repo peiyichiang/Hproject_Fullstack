@@ -191,7 +191,7 @@ router.get('/ProductByFMS', function (req, res, next) {
 
 
         //撈取已付款的數量
-        mysqlPoolQuery("SELECT o_symbol , SUM(o_tokenCount) AS paidTokenCount FROM htoken.order WHERE o_paymentStatus = ? GROUP BY o_symbol", "paid", function (err, rows) {
+        mysqlPoolQuery("SELECT o_symbol , SUM(o_tokenCount) AS paidTokenCount FROM order_list WHERE o_paymentStatus = ? GROUP BY o_symbol", "paid", function (err, rows) {
             if (err) {
                 console.log(err);
             }
@@ -597,7 +597,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
     console.log("@@@：" + JSON.stringify(req.body));
     // console.log("@@@:" + JSON.stringify(sql));
 
-    var qur = mysqlPoolQuery('UPDATE htoken.product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
@@ -653,7 +653,7 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
     var symbol = req.query.symbol;
     // console.log("@@@:" + symbol);
 
-    var qur = mysqlPoolQuery('UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
@@ -1198,7 +1198,7 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     //根據傳來的symbol、校正前時間 查詢期數、實際發放金額、實際發放時間
-    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
+    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1230,7 +1230,7 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
                     var sql = {
                         ia_State: req.body.CorrectActualPaymentResult
                     };
-                    var qur1 = mysqlPoolQuery('UPDATE htoken.income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+                    var qur1 = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -1315,16 +1315,16 @@ router.get('/LaunchedProductList', function (req, res) {
         p_Copywriting AS copyWritingText
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
-                    FROM htoken.order_list
+                    FROM order_list
                     WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
                     GROUP BY o_symbol) AS T2
         ON T1.p_SYMBOL = T2.o_symbol
         LEFT JOIN ( SELECT o_symbol , COUNT(o_email) AS purchasedNumberOfPeople
-                    FROM htoken.order_list
+                    FROM order_list
                     GROUP BY o_symbol) AS T3
         ON T1.p_SYMBOL = T3.o_symbol
         LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
-                    FROM htoken.income_arrangement 
+                    FROM income_arrangement 
                     GROUP BY ia_SYMBOL) AS T4
         ON T1.p_SYMBOL = T4.ia_SYMBOL
         WHERE p_state = \'funding\';`, function (err, productArray) {
@@ -1381,7 +1381,7 @@ router.get('/ForcastIncomeBySymbol', function (req, res) {
     mysqlPoolQuery(
         `SELECT ia_Annual_End AS year, 
                 ia_single_Forecasted_Annual_Income AS incomeOfThePeriod
-         FROM   htoken.income_arrangement
+         FROM   income_arrangement
          WHERE  ia_SYMBOL = ? 
          AND    ia_single_Forecasted_Annual_Income > 0
         `, symbol, function (err, forcastIncomeArray) {
@@ -1432,7 +1432,7 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
                 p_Image8 AS ImageURL8,
                 p_Image9 AS ImageURL9,
                 p_Image10 AS ImageURL10
-         FROM   htoken.product
+         FROM   product
          WHERE  p_SYMBOL = ? `, symbol, function (err, imageURLObjectArray) {
 
             let imageURLObject = imageURLObjectArray[0]
@@ -1458,7 +1458,7 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
         });
 });
 
-//Ray ... htoken.  omitted
+//Ray ...   omitted
 router.get('/ProductBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log('------------------------==\n@Product/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
@@ -1468,7 +1468,7 @@ router.get('/ProductBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
     //console.log('symbol', symbol);
 
-    let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    let qstr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1496,7 +1496,7 @@ router.get('/LaunchedProductBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
     //console.log('symbol', symbol);
 
-    let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    let qstr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1520,7 +1520,7 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let symbol = req.query.tokenSymbol;
 
-    let qstr1 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    let qstr1 = 'SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1550,7 +1550,7 @@ router.get('/canBuyToken', async function (req, res) {
     mysqlPoolQuery(
         `SELECT p_CFSD AS CFSD, 
                 u_assetbookContractAddress AS assetbookContractAddress
-         FROM htoken.product , htoken.user
+         FROM product , user
          WHERE p_Symbol = ? AND u_email = ?
          `, keys, function (err, result) {
             if (err) {
@@ -1622,7 +1622,7 @@ router.get('/AssetImageURLAndIconURL', function (req, res, next) {
     let queryString = `
     SELECT  p_Image1 AS imageURL,
             p_icon AS iconURL
-    FROM    htoken.product
+    FROM    product
     WHERE   p_SYMBOL = ?
     `;
 
