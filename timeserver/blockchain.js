@@ -600,7 +600,7 @@ const sequentialRun = async (mainInputArray, waitTime, serverTime, extraInputArr
         //console.log('serverTimeM', serverTimeM.format('YYYYMMDD'), ' Vs. 3+ oPurchaseDateM', oPurchaseDateM.format('YYYYMMDD'));
         if (serverTimeM >= oPurchaseDateM.add(3, 'days')) {
           console.log(`oid ${oid} is found serverTime >= oPurchaseDate ... write to DB`);
-          const queryStr1 = 'UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_id = ?';
+          const queryStr1 = 'UPDATE order SET o_paymentStatus = "expired" WHERE o_id = ?';
           const results = await mysqlPoolQueryB(queryStr1, [oid]).catch((err) => {
             console.log('[Error @ mysqlPoolQueryB(queryStr1)]: setting o_paymentStatus to expired; oid: '+oid+ ', err: '+ err);
           });
@@ -658,7 +658,7 @@ const updateFundingStateFromDB = async (serverTime) => {
       console.log('[Error] serverTime should be an integer');
       return false;
     }
-    const queryStr2 = 'SELECT p_SYMBOL FROM htoken.product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
+    const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
     const symbolArray = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       reject('[Error @ updateFundingStateFromDB: mysqlPoolQueryB(queryStr2)]: '+ err);
       return false;
@@ -687,7 +687,7 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
       return false;
     }
 
-    const queryStr1 = 'SELECT p_SYMBOL FROM htoken.product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
+    const queryStr1 = 'SELECT p_SYMBOL FROM product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
     const symbolArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)] '+ err);
       return false;
@@ -702,8 +702,8 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
     } else if (symbolArrayLen > 0) {
       console.log('[makeOrdersExpiredCFED2] symbol(s) found');
 
-      //const queryStr = 'UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?';
-      const queryStr3 = 'UPDATE htoken.order SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
+      //const queryStr = 'UPDATE product SET p_state = ? WHERE p_SYMBOL = ?';
+      const queryStr3 = 'UPDATE order SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
       await asyncForEach(symbolArray, async (symbol, index) => {
         /*
         //------------== auto determines the crowdfunding results -> write it into DB
@@ -753,7 +753,7 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
 const addAssetbooksIntoCFC = async (serverTime) => {
   // check if serverTime > CFSD2 for each symbol...
   console.log('\ninside addAssetbooksIntoCFC()... serverTime:',serverTime);
-  const queryStr1 = 'SELECT DISTINCT o_symbol FROM htoken.order WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
+  const queryStr1 = 'SELECT DISTINCT o_symbol FROM order WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
   const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
     console.log('\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
   });
@@ -788,8 +788,8 @@ const addAssetbooksIntoCFC = async (serverTime) => {
     console.error(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
 
     // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
-    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM htoken.user User, htoken.order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
-    //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = "paid"';
+    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
+    //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order WHERE o_symbol = ? AND o_paymentStatus = "paid"';
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
     });
@@ -874,7 +874,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
 
       console.log(`\ntxnHashArray: ${txnHashArray}`)
       if(orderIdArray.length === txnHashArray.length){
-        const queryStr5 = 'UPDATE htoken.order SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
+        const queryStr5 = 'UPDATE order SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
         await asyncForEach(orderIdArray, async (orderId, index) => {
           const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
             console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
@@ -982,7 +982,7 @@ const updateTokenStateFromDB = async (serverTime) => {
       return false;
     }
 
-    const str = 'SELECT p_SYMBOL FROM htoken.product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
+    const str = 'SELECT p_SYMBOL FROM product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
     const symbolArray = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(str)] '+ err);
       return false;
@@ -1452,7 +1452,7 @@ const updateExpiredOrders = async (serverTime) => {
       return false;
     }
 
-    const queryStr ='SELECT o_id, o_purchaseDate FROM htoken.order WHERE o_paymentStatus = "waiting"';
+    const queryStr ='SELECT o_id, o_purchaseDate FROM order WHERE o_paymentStatus = "waiting"';
     const results = await mysqlPoolQueryB(queryStr, []).catch((err) => {
       reject('[Error @ updateExpiredOrders: mysqlPoolQueryB(queryStr)]: '+ err);
       return false;

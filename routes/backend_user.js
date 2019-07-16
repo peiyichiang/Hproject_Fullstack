@@ -52,7 +52,7 @@ router.get('/backend_user', function (req, res, next) {
             }
             //data=後端使用者資料
             var data = rows;
-            mysqlPoolQuery('SELECT * FROM htoken.user', function (err, rows) {
+            mysqlPoolQuery('SELECT * FROM user', function (err, rows) {
                 if (err) {
                     console.log(err);
                 }
@@ -136,7 +136,7 @@ router.post('/ForgetPassword', function (req, res, next) {
     //   var db = req.con;
     var mysqlPoolQuery = req.pool;
     var ID = req.body.m_id;
-    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -406,7 +406,7 @@ router.post('/BackendUserLogin', function (req, res, next) {
     var ID = req.body.m_id;
     var Password = req.body.m_password;
 
-    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }
