@@ -43,7 +43,7 @@ router.post('/AddOrder', function (req, res, next) {
 
     console.log(sql);
 
-    var qur = mysqlPoolQuery('INSERT INTO htoken.order SET ?', sql, function (err, result) {
+    var qur = mysqlPoolQuery('INSERT INTO order_list SET ?', sql, function (err, result) {
         if (err) {
             console.log(err);
             res.status(400);
@@ -60,7 +60,7 @@ router.post('/AddOrder', function (req, res, next) {
     });
 });
 
-//SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';
+//SELECT SUM(o_tokenCount) AS total FROM `order` WHERE o_symbol = 'MYRR1701';
 //http://localhost:3000/Order/SumAllOrdersBySymbol
 router.get('/SumAllOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumAllOrdersBySymbol');
@@ -72,7 +72,7 @@ router.get('/SumAllOrdersBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
 
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ?', symbol, function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ?', symbol, function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -92,7 +92,7 @@ router.get('/SumAllOrdersBySymbol', function (req, res, next) {
 //http://localhost:3000/Order/SumWaitingOrdersBySymbol
 router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumWaitingOrdersBySymbol');
-    let qstr1 = 'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?';
+    let qstr1 = 'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND o_paymentStatus = ?';
     var mysqlPoolQuery = req.pool;
     const status = 'waiting';
     console.log('req.query', req.query, 'req.body', req.body);
@@ -125,7 +125,7 @@ router.get('/SumWaitingOrdersBySymbol', function (req, res, next) {
 //http://localhost:3000/Order/OrdersByEmail
 router.get('/OrdersByEmail', function (req, res, next) {
     console.log('------------------------==\n@Order/OrdersByEmail');
-    let qstr1 = 'SELECT * FROM htoken.order WHERE o_email = ?';
+    let qstr1 = 'SELECT * FROM order_list WHERE o_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let status, email, qstrz;
@@ -162,7 +162,7 @@ router.get('/OrdersByEmail', function (req, res, next) {
 //http://localhost:3000/Order/OrdersByFromAddr
 router.get('/OrdersByFromAddr', function (req, res, next) {
     console.log('------------------------==\n@Order/OrdersByFromAddr');
-    let qstr1 = 'SELECT * FROM htoken.order WHERE o_fromAddress = ?';
+    let qstr1 = 'SELECT * FROM order_list WHERE o_fromAddress = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
     let status, userId, qstrz;
@@ -202,7 +202,7 @@ router.get('/SumCancelledOrdersBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
 
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -230,7 +230,7 @@ router.get('/SumExpiredOrdersBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
 
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -257,7 +257,7 @@ router.get('/SumPendingOrdersBySymbol', function (req, res, next) {
         symbol = req.body.symbol;
     } else { symbol = req.query.symbol; }
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -285,7 +285,7 @@ router.get('/SumPaidOrdersBySymbol', function (req, res, next) {
         symbol = req.body.symbol;
     } else { symbol = req.query.symbol; }
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -313,7 +313,7 @@ router.get('/SumTxnFinishedOrdersBySymbol', function (req, res, next) {
         symbol = req.body.symbol;
     } else { symbol = req.query.symbol; }
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND o_paymentStatus = ?', [symbol, status], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -341,7 +341,7 @@ router.get('/SumReservedOrdersBySymbol', function (req, res, next) {
         symbol = req.body.symbol;
     } else { symbol = req.query.symbol; }
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol], function (err, result) {
+        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -384,7 +384,7 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
     //fundingType= PO: 1, PP: 2
 
     var qur = mysqlPoolQuery(
-        'SELECT SUM(o_fundCount) AS total FROM htoken.order WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, orderBalance) {
+        'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, orderBalance) {
             if (err) {
                 console.log(err);
                 res.status(400);
@@ -520,7 +520,7 @@ router.get('/getPaidOrdersByUserEmail', function (req, res, next) {
                 // console.log("＊JWT Content:" + decoded.u_email);
                 //從order中查找完成的訂單，計算該使用者的資產
                 var mysqlPoolQuery = req.pool;
-                mysqlPoolQuery('SELECT DISTINCT o_symbol FROM htoken.order WHERE o_email = ? AND o_paymentStatus = ?', [decoded.u_email, "paid"], async function (err, rows) {
+                mysqlPoolQuery('SELECT DISTINCT o_symbol FROM order_list WHERE o_email = ? AND o_paymentStatus = ?', [decoded.u_email, "paid"], async function (err, rows) {
                     if (err) {
                         console.log(err);
                         res.json({
@@ -532,7 +532,7 @@ router.get('/getPaidOrdersByUserEmail', function (req, res, next) {
                         sqls = [];
                         symbols = [];
                         for (var i = 0; i < rows.length; i++) {
-                            sqls.push('SELECT SUM(o_tokenCount) AS total FROM htoken.order WHERE o_email = "' + decoded.u_email + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "paid"');
+                            sqls.push('SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_email = "' + decoded.u_email + '" AND o_symbol = "' + rows[i].o_symbol + '" AND o_paymentStatus = "paid"');
                             symbols.push(rows[i].o_symbol);
                         }
 

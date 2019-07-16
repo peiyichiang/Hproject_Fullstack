@@ -245,7 +245,7 @@ forecastedPayableAmountsError: ${forecastedPayableAmountsError}`);
 
 //yarn run testmt -f 18
 const addForecastedScheduleBatchFromDB_API = async () => {
-  //     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From htoken.income_arrangement where ia_SYMBOL = ?';
+  //     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From income_arrangement where ia_SYMBOL = ?';
 
   const symbol = nftSymbol;
   const result = await addForecastedScheduleBatchFromDB(symbol).catch((err) => {
