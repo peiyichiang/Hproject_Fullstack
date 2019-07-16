@@ -98,7 +98,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         //From DB check if product:tokenState needs to be updated
       };
       if(whichTimeServerArray[5] > 0){
-        calculateLastPeriodProfit();//mysql.js
+        //calculateLastPeriodProfit();//mysql.js
       }
   
     }

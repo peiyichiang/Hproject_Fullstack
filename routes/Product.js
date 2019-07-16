@@ -1315,12 +1315,12 @@ router.get('/LaunchedProductList', function (req, res) {
         p_Copywriting AS copyWritingText
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
-                    FROM htoken.order
+                    FROM htoken.order_list
                     WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
                     GROUP BY o_symbol) AS T2
         ON T1.p_SYMBOL = T2.o_symbol
         LEFT JOIN ( SELECT o_symbol , COUNT(o_email) AS purchasedNumberOfPeople
-                    FROM htoken.order
+                    FROM htoken.order_list
                     GROUP BY o_symbol) AS T3
         ON T1.p_SYMBOL = T3.o_symbol
         LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal

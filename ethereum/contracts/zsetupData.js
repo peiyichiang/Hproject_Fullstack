@@ -120,8 +120,8 @@ const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 10
 
 //const isTestingMode = true;
 const isTestingMode = false;
-const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
-//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+//const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
+const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFED2Orders(serverTime);//blockchain.js
@@ -505,13 +505,101 @@ if (ProductManager === undefined){
 }
 
 
+//---------------------------==
+/*
+authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
+1 Natural person: 0, 0; UnLTD, UnLTD;
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
+*/
+function PersonClassified(maxOrderPaymentPublic, maxBalancePublic, maxOrderPaymentPrivate, maxBalancePrivate) {
+  this.maxOrderPaymentPublic = maxOrderPaymentPublic;
+  this.maxBalancePublic = maxBalancePublic;
+  this.maxOrderPaymentPrivate = maxOrderPaymentPrivate;
+  this.maxBalancePrivate = maxBalancePrivate;
+}
+//maxOrderPaymentPublic, maxBalancePublic, maxOrderPaymentPrivate, maxBalancePrivate
+let NaturalPerson = new PersonClassified(0, 0, Infinity, Infinity);
+let ProfInstitutionalInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let HighNetworthInvestmentLegalPerson = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let LegalPersonOrFundOfProfInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let NaturalPersonOfProfInvestor = new PersonClassified(300000, 300000, Infinity, Infinity);
+
+const COMPLIANCE_LEVELS = {
+  "currencyType": "NTD",
+  "1": NaturalPerson,
+  "2": ProfInstitutionalInvestor,
+  "3": HighNetworthInvestmentLegalPerson,
+  "4": LegalPersonOrFundOfProfInvestor,
+  "5": NaturalPersonOfProfInvestor
+};
+
+
+const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
+  console.log('\n[checkCompliance] authLevel', authLevel, typeof authLevel, 'balance', balance, typeof balance, 'orderPayment', orderPayment, typeof orderPayment, 'fundingType', fundingType, typeof fundingType);
+
+  if(typeof authLevel !== 'string'){
+    console.log('\n[checkCompliance] authLevel should be of type string:', authLevel);
+    return false;
+  } else if (typeof fundingType !== 'string') {
+    console.log('\n[checkCompliance] fundingType should be of type string:', fundingType);
+    return false;
+  } else if (typeof balance !== 'number' || isNaN(balance)) {
+    console.log('\n[checkCompliance] balance should be of type number and not NaN:', balance);
+    return false;
+  } else if (typeof orderPayment !== 'number' || isNaN(balance)) {
+    console.log('\n[checkCompliance] orderPayment should be of type number and not NaN:', orderPayment);
+    return false;
+
+  } else if (fundingType === "PublicOffering" || fundingType === '1') {
+      console.log("inside fundingType == PublicOffering\n", COMPLIANCE_LEVELS[authLevel]);
+      if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic) {
+          console.log(`orderPayment ${orderPayment} should be <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          return false;
+
+      } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePublic) {
+          console.log(`balance + orderPayment ${balance + orderPayment} should be <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          return false;
+
+        } else {
+          console.log("passing both orderPayment and new balance regulation for Public Offering");
+          console.log(`orderPayment ${orderPayment} <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          console.log(`balance + orderPayment ${balance + orderPayment} <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          return true;
+      }
+
+  } else if (fundingType === "PrivatePlacement" || fundingType === '2') {
+      console.log("inside fundingType == PrivatePlacement\n", COMPLIANCE_LEVELS[authLevel]);
+      if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate) {
+          console.log(`orderPayment ${orderPayment} should be <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          return false;
+
+      } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePrivate) {
+          console.log(`balance + orderPayment ${balance+orderPayment} should be <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
+          return false;
+
+        } else {
+          console.log("passing both orderPayment and new balance regulation for Private Placement");
+          console.log(`orderPayment ${orderPayment} <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          console.log(`balance + orderPayment ${balance+orderPayment} <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
+          return true;
+      }
+  } else {
+      console.log('fundingType is not valid', fundingType);
+      return false;
+  }
+
+}
+
 module.exports = {
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
   CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance
 }
   /**
   From KuanYi:
