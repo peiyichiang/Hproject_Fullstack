@@ -7,6 +7,7 @@ console.log('loading blockchain.js...');
 
 const { getTime, isEmpty, asyncForEach, checkInt, checkIntFromOne } = require('./utilities');
 const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium } = require('../ethereum/contracts/zsetupData');
+const { addActualPaymentTime } = require('./mysql');
 
 const { mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
@@ -526,10 +527,24 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   const moving_ave_holding_cost = 13000;
   const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
     console.log('[Error @ addAssetRecordRowArray]'+ err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true];
-  });;
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false, false, false];
+    //is_addAssetRecordRowArray = false;
+  });
 
-  return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false];
+  const actualPaymentTime = ar_time;
+  const payablePeriodEnd = 0;
+  const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
+    console.log('[Error @ addActualPaymentTime]'+ err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+    //is_addActualPaymentTime = false;
+  });
+
+  const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+    console('[Error @ setFundingStateDB()', err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+  });
+
+return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];
   //resolve(isFailed, isCorrectAmountArray);
 }
 
