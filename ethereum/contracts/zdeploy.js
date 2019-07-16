@@ -2,8 +2,8 @@
 chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
 */
 /** deployed contracts
-    yarn run deploy -c 1 -s 1 -cName cf
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
+yarn run deploy -c 1 -s 1 -cName cf
+cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm
 */
 //const timer = require('./api.js');
 const Web3 = require('web3');
@@ -13,7 +13,7 @@ const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArr
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
-const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
+const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, 
   TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
 } = require('./zsetupData');
@@ -23,7 +23,7 @@ console.log('process.argv', process.argv);
 if (process.argv.length < 8) {
   console.log('not enough arguments. Make it like: yarn run deploy -n 1 --chain 1 --cName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, db');
+  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, addPS, pm');
   process.exit(1);
 }
 // chain    symNum   ctrtName
@@ -33,9 +33,13 @@ let chain, ctrtName, result;
 
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
-const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
-const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
-  
+const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
+const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
+
+const backendAddr = AssetOwner1;
+const backendAddrpkRaw = AssetOwner1pkRaw;
+const assetbookOwners = [AssetOwner7, AssetOwner8, AssetOwner9];
+
 
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
@@ -79,8 +83,8 @@ if (chain === 1) {//POA private chain
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
   const nodeUrl = "http://140.119.101.130:8545";//POA
 
-  adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
-  provider = new PrivateKeyProvider(adminpk, nodeUrl);
+  backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+  provider = new PrivateKeyProvider(backendAddrpkBuffer, nodeUrl);
   web3deploy = new Web3(provider);
   web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
   console.log('web3.version', web3deploy.version);
@@ -91,8 +95,8 @@ if (chain === 1) {//POA private chain
   gasPriceValue = '20000000000';//100000000000000000
   const nodeUrl = "http://140.119.101.130:8540";
 
-  adminpk = Buffer.from(adminpkRaw.substr(2), 'hex');
-  //provider = new PrivateKeyProvider(adminpk, nodeUrl);
+  backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+  //provider = new PrivateKeyProvider(backendAddrpkBuffer, nodeUrl);
 
   //web3.setProvider(ganache.provider());
 
@@ -100,7 +104,7 @@ if (chain === 1) {//POA private chain
   //https://github.com/trufflesuite/ganache-cli
   const ganache = require("ganache-cli");
   //9140000000000000000 => 7ED7CD92FF120000
-  const options = { gasLimit: 8000000, accounts: [{balance: 9140000000000000000, secretKey: adminpk}] };
+  const options = { gasLimit: 8000000, accounts: [{balance: 9140000000000000000, secretKey: pkey}] };
   //const server = ganache.server(options);
   provider = ganache.provider(options);
 
@@ -155,10 +159,10 @@ const deploy = async () => {
     console.log('\n--------==To deploy');
 
     console.log('admin', admin);
-    console.log('AssetOwner1', AssetOwner1);
-    console.log('AssetOwner2', AssetOwner2);
-    console.log('AssetOwner3', AssetOwner3);
-    console.log('AssetOwner4', AssetOwner4);
+    // console.log('AssetOwner1', AssetOwner1);
+    // console.log('AssetOwner2', AssetOwner2);
+    // console.log('AssetOwner3', AssetOwner3);
+    // console.log('AssetOwner4', AssetOwner4);
 
     if (2===1) {
         balance0 = await web3deploy.eth.getBalance(admin);//returns strings!
@@ -179,7 +183,7 @@ const deploy = async () => {
       console.log('\nDeploying Helium contract...');
       instHelium =  await new web3deploy.eth.Contract(Helium.abi)
       .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
-      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -203,7 +207,7 @@ const deploy = async () => {
       const argsTestCtrt = [HCAT721SerialNumber, addrHelium];
       instTestCtrt =  await new web3deploy.eth.Contract(TestCtrt.abi)
       .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
-      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -227,7 +231,7 @@ const deploy = async () => {
       console.log('\nDeploying multiSig contracts...');
       instMultiSig1 =  await new web3deploy.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -246,7 +250,7 @@ const deploy = async () => {
 
       instMultiSig2 =  await new web3deploy.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -270,12 +274,11 @@ const deploy = async () => {
   } else if (ctrtName === 'assetbook') {
     const addrAssetBookArray = [];
     console.log('\nDeploying AssetBook contracts...');
-    const mainInputArray = [AssetOwner1, AssetOwner2, AssetOwner3];
-    await asyncForEach(mainInputArray, async (item, idx) => {
+    await asyncForEach(assetbookOwners, async (item, idx) => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
-      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -292,9 +295,9 @@ const deploy = async () => {
       console.log(`Finished deploying AssetBook${idx+1}...`);
     });
     console.log(`\nFinished deploying assetbook 1, 2, 3:
-    const addrAssetBook1 = "${addrAssetBookArray[0]}";
-    const addrAssetBook2 = "${addrAssetBookArray[1]}";
-    const addrAssetBook3 = "${addrAssetBookArray[2]}";`);
+  addrAssetBook1 = "${addrAssetBookArray[0]}";
+  addrAssetBook2 = "${addrAssetBookArray[1]}";
+  addrAssetBook3 = "${addrAssetBookArray[2]}";`);
     process.exit(0);
 
 
@@ -310,7 +313,7 @@ const deploy = async () => {
     const argsAssetBookx = [assetowner, addrHelium];
     instAssetBookx =  await new web3deploy.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookx })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -332,7 +335,7 @@ const deploy = async () => {
     const argsRegistry = [addrHelium];
     instRegistry =  await new web3deploy.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -356,7 +359,7 @@ const deploy = async () => {
 
   instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
    .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-   .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+   .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
    .on('receipt', function (receipt) {
      console.log('receipt:', receipt);
    })
@@ -390,7 +393,7 @@ const deploy = async () => {
     console.log('\nDeploying TokenController contract...');
     instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
     .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -437,7 +440,7 @@ const deploy = async () => {
       console.log('check1 hcat');
       instHCAT721 = await new web3deploy.eth.Contract(HCAT721.abi)
       .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
-      .send({ from: admin, gas: 9000000, gasPrice: '0' })
+      .send({ from: backendAddr, gas: 9000000, gasPrice: '0' })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       }).on('error', function (error) {
@@ -450,7 +453,7 @@ const deploy = async () => {
 
       instHCAT721 = await new web3deploy.eth.Contract(HCAT721_Test.abi)
       .deploy({ data: prefix+HCAT721_Test.bytecode, arguments: argsHCAT721 })
-      .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -461,7 +464,7 @@ const deploy = async () => {
     }
     // instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
     // .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    // .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    // .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     // .on('receipt', function (receipt) {
     //   console.log('receipt:', receipt);
     // })
@@ -493,7 +496,7 @@ const deploy = async () => {
   } else if (ctrtName === 'im') {
     instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
     .deploy({ data: IncomeManager.bytecode, arguments: argsIncomeManager })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -607,16 +610,15 @@ const deploy = async () => {
   } else if (ctrtName === 'initCtrt'){
     console.log('run zlivechain.js steps...');
 
-
-
  
 
   } else if (ctrtName === 'pm') {
+    console.log('-----------------== pm');
     const argsProductManager =[addrHCAT721, addrHeliumCtrt];
 
     instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -643,7 +645,52 @@ const deploy = async () => {
 }
 
 //---------------------------==
+//---------------------------==
+/*sign rawtx*/
+function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
+  return new Promise((resolve, reject) => {
 
+      web3.eth.getTransactionCount(userEthAddr, 'pending')
+          .then(nonce => {
+
+              let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
+              let txParams = {
+                  nonce: web3.utils.toHex(nonce),
+                  gas: 9000000,
+                  gasPrice: 0,
+                  //gasPrice: web3js.utils.toHex(20 * 1e9),
+                  //gasLimit: web3.utils.toHex(3400000),
+                  to: contractAddr,
+                  value: 0,
+                  data: encodedData
+              }
+
+              let tx = new Tx(txParams);
+              tx.sign(userPrivateKey);
+              const serializedTx = tx.serialize();
+              const rawTx = '0x' + serializedTx.toString('hex');
+
+              //console.log('☆ RAW TX ☆\n', rawTx);
+
+              web3.eth.sendSignedTransaction(rawTx)
+                  .on('transactionHash', hash => {
+                      //console.log(hash);
+                  })
+                  .on('confirmation', (confirmationNumber, receipt) => {
+                      // //console.log('confirmation', confirmationNumber);
+                  })
+                  .on('receipt', function (receipt) {
+                      //console.log(receipt);
+                      resolve(receipt)
+                  })
+                  .on('error', function (err) {
+                      //console.log(err);
+                      reject(err);
+                  });
+          });
+
+  });
+}
 
 
 deploy();

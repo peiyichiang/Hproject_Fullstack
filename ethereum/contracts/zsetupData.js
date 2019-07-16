@@ -38,23 +38,22 @@ const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwne
 const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw];
 //AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
 
-const managementTeam = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4];
 let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
-    cName = helium, assetbook, registry, cf, tokc, hcat, db1, im, pm, db2
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
  */
 const chain = 1;
 if (chain === 1){
-  addrHelium =     "0x668AA61942126373216b50A592b98ca623b9E9da";
-  addrAssetBook1 = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";
-  addrAssetBook2 = "0xDDFd2a061429D8c48Bc39E01bB815d4C4CA7Ab11";
-  addrAssetBook3 = "0xC80E77bC804a5cDe179C0C191A43b87088C5e183";
-  addrRegistry =   "0x01F87073B576C329B798b9C46fcFecBea0886A1f";
+  addrHelium =     "0xaF2C0D3B0f7FD828933425080BaD9649D3d5Db4A";
+  addrAssetBook1 = "0xf840C19EaD2AE954B479A9b96FA15987a3c3963D";
+  addrAssetBook2 = "0x7E04E1B910750BB0FC3AE8376273722414Eb5724";
+  addrAssetBook3 = "0x56b57a7448fCE729430F302b52ef4a6E8D7F1153";
+  addrRegistry =   "0x0cC84cf986Bd934999e194C05dc4D46701710F39";
   
 } else if (chain === 2){
   //ganache chain
-  addrHelium = "0x391DAce017a97273e1231c7072F6cd9dCD05e798";
+  addrHelium = "";
   addrAssetBook1 ="";
   addrAssetBook2 = "";
   addrAssetBook3 = "";
@@ -100,26 +99,29 @@ fundmanager = 'FundManagerN';
 /** deployed contracts
     yarn run deploy -c 1 -n 0 -cName tokc
     -c chain    -n symNum   
-    cName = helium, assetbook, registry, cf, tokc, hcat, im, db
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
    addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
 */
 //fundingType: PO: 1, PP: 2
-symNum = 4;
+symNum = 5;
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
-const productObj1 = new productObject("AKOS1903", "nftName", "location", 1486, 1372, 500, 18000, "NTD", 470, 20, 2, "0x695128dC5B84E0Cc242B43575df7Eb5aBC9070e6", "0x2BdA4a3553A084220e1A6c637F8c9f6b44AC01Ec", "0x7c1C2D8E2b215Fc4E94c523A4a34860C7B442bc0", "");
+const productObj0 = new productObject("ACOS1901", "tokenNameZZZ", "MARS0001", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
 
-const productObj2 = new productObject("ALOS1902", "nftName", "location", 5073, 4935, 950, 19000, "NTD", 480, 20, 2, "", "", "", "");
+const productObj1 = new productObject("AKOS1903", "tokenNameZZZ", "MARS0001", 1486, 1372, 500, 18000, "NTD", 470, 20, 2, "0x695128dC5B84E0Cc242B43575df7Eb5aBC9070e6", "0x2BdA4a3553A084220e1A6c637F8c9f6b44AC01Ec", "0x7c1C2D8E2b215Fc4E94c523A4a34860C7B442bc0", "");
 
-const productObj3 = new productObject("AMOS1902", "nftName", "location", 10379, 9837, 2280, 20000, "NTD", 490, 20, 2, "0x91BC75052fFbB98a6baca4DF3B96470853985E35", "0x97218B571B213e6C92A5Fc816563F33ae9237606", "0xcB09F5C6cBeb794b8B1B7b6F9897ae4DF0795389", "");
+const productObj2 = new productObject("ALOS1902", "tokenNameZZZ", "MARS0001", 5073, 4935, 950, 19000, "NTD", 480, 20, 2, "", "", "", "");
 
-const productObj4 = new productObject("AOOT1903", "nftName", "location", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0xC2F3676286bF1ed14E805eDa8b85E645C399A453", "0xdcF42de600323C9AEC1DC015FB930d7f6cC6f102", "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b", "0x452014113D932C5ed9d919Dc9d1D098096244113");
+const productObj3 = new productObject("AMOS1902", "tokenNameZZZ", "MARS0001", 10379, 9837, 2280, 20000, "NTD", 490, 20, 2, "0x91BC75052fFbB98a6baca4DF3B96470853985E35", "0x97218B571B213e6C92A5Fc816563F33ae9237606", "0xcB09F5C6cBeb794b8B1B7b6F9897ae4DF0795389", "");
 
-const productObj0 = new productObject("ACOS1901", "nftName", "location", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
+const productObj4 = new productObject("AOOT1904", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
+
+const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
+
 
 //const isTestingMode = true;
 const isTestingMode = false;
-const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
-//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+//const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
+const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFED2Orders(serverTime);//blockchain.js
@@ -133,7 +135,7 @@ if(whichTimeServerArray.length !== 6){
   process.exit(1);
 }
 
-const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4];
+const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5];
 const symbolArray = [];
 crowdFundingAddrArray= [];
 tokenControllerAddrArray= [];
@@ -181,11 +183,11 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.imageb = Math.random().toString(36).substring(2, 15);
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
-const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5, 10);
-const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5, 5);
-const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5, 15);
-const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner1, '093755500', 'Romeo0', addrAssetBook1, 5, 1);
-const userArray = [user0, user1, user2, user3];
+const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777001', AssetOwner7, '093755501', 'Romeo1', addrAssetBook1, 5, 10);
+const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777002', AssetOwner8, '093755502', 'Romeo2', addrAssetBook2, 5, 5);
+const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777003', AssetOwner9, '093755503', 'Romeo3', addrAssetBook3, 5, 15);
+const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner7, '093755500', 'Romeo0', addrAssetBook1, 5, 1);
+const userArray = [user0, user7, user8, user9];
 
 userNum = 3;
 const userObjN = userArray[userNum];
@@ -298,7 +300,7 @@ const addrZero = "0x0000000000000000000000000000000000000000";
 //const assetbookArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
 
 
-
+console.log('loading blockchain.js smart contract json files');
 const TestCtrt = require('./build/TestCtrt.json');
 if (TestCtrt === undefined){
   console.log('[Error] TestCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
@@ -503,13 +505,101 @@ if (ProductManager === undefined){
 }
 
 
+//---------------------------==
+/*
+authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
+1 Natural person: 0, 0; UnLTD, UnLTD;
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
+*/
+function PersonClassified(maxOrderPaymentPublic, maxBalancePublic, maxOrderPaymentPrivate, maxBalancePrivate) {
+  this.maxOrderPaymentPublic = maxOrderPaymentPublic;
+  this.maxBalancePublic = maxBalancePublic;
+  this.maxOrderPaymentPrivate = maxOrderPaymentPrivate;
+  this.maxBalancePrivate = maxBalancePrivate;
+}
+//maxOrderPaymentPublic, maxBalancePublic, maxOrderPaymentPrivate, maxBalancePrivate
+let NaturalPerson = new PersonClassified(0, 0, Infinity, Infinity);
+let ProfInstitutionalInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let HighNetworthInvestmentLegalPerson = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let LegalPersonOrFundOfProfInvestor = new PersonClassified(Infinity, Infinity, Infinity, Infinity);
+let NaturalPersonOfProfInvestor = new PersonClassified(300000, 300000, Infinity, Infinity);
+
+const COMPLIANCE_LEVELS = {
+  "currencyType": "NTD",
+  "1": NaturalPerson,
+  "2": ProfInstitutionalInvestor,
+  "3": HighNetworthInvestmentLegalPerson,
+  "4": LegalPersonOrFundOfProfInvestor,
+  "5": NaturalPersonOfProfInvestor
+};
+
+
+const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
+  console.log('\n[checkCompliance] authLevel', authLevel, typeof authLevel, 'balance', balance, typeof balance, 'orderPayment', orderPayment, typeof orderPayment, 'fundingType', fundingType, typeof fundingType);
+
+  if(typeof authLevel !== 'string'){
+    console.log('\n[checkCompliance] authLevel should be of type string:', authLevel);
+    return false;
+  } else if (typeof fundingType !== 'string') {
+    console.log('\n[checkCompliance] fundingType should be of type string:', fundingType);
+    return false;
+  } else if (typeof balance !== 'number' || isNaN(balance)) {
+    console.log('\n[checkCompliance] balance should be of type number and not NaN:', balance);
+    return false;
+  } else if (typeof orderPayment !== 'number' || isNaN(balance)) {
+    console.log('\n[checkCompliance] orderPayment should be of type number and not NaN:', orderPayment);
+    return false;
+
+  } else if (fundingType === "PublicOffering" || fundingType === '1') {
+      console.log("inside fundingType == PublicOffering\n", COMPLIANCE_LEVELS[authLevel]);
+      if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic) {
+          console.log(`orderPayment ${orderPayment} should be <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          return false;
+
+      } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePublic) {
+          console.log(`balance + orderPayment ${balance + orderPayment} should be <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          return false;
+
+        } else {
+          console.log("passing both orderPayment and new balance regulation for Public Offering");
+          console.log(`orderPayment ${orderPayment} <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          console.log(`balance + orderPayment ${balance + orderPayment} <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          return true;
+      }
+
+  } else if (fundingType === "PrivatePlacement" || fundingType === '2') {
+      console.log("inside fundingType == PrivatePlacement\n", COMPLIANCE_LEVELS[authLevel]);
+      if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate) {
+          console.log(`orderPayment ${orderPayment} should be <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          return false;
+
+      } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePrivate) {
+          console.log(`balance + orderPayment ${balance+orderPayment} should be <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
+          return false;
+
+        } else {
+          console.log("passing both orderPayment and new balance regulation for Private Placement");
+          console.log(`orderPayment ${orderPayment} <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          console.log(`balance + orderPayment ${balance+orderPayment} <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
+          return true;
+      }
+  } else {
+      console.log('fundingType is not valid', fundingType);
+      return false;
+  }
+
+}
+
 module.exports = {
-  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
+  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
   CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance
 }
   /**
   From KuanYi:

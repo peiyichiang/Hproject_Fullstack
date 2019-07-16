@@ -32,11 +32,19 @@ async function asyncForEach(array, callback) {
     const item = array[idx];
     console.log(`\n--------------==next in asyncForEach
     idx: ${idx}, ${item}`);
-    if(excludedSymbols.includes(item.o_symbol)){
-      console.log('Skipping symbol:', item.o_symbol);
-      continue;
+    if(typeof item === 'object' && item !== null){
+      if(excludedSymbols.includes(item.o_symbol)){
+        console.log('Skipping symbol:', item.o_symbol);
+        continue;
+      } else {
+        await callback(item, idx).catch((err) => {
+          console.log('\n[Error]', err);
+        });
+      }
     } else {
-      await callback(item, idx, array);
+      await callback(item, idx).catch((err) => {
+        console.log('\n[Error]', err);
+      });
     }
   }
 }

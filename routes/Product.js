@@ -5,16 +5,22 @@ var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
 const { getTime, asyncForEach } = require('../timeserver/utilities');
-
+const { addScheduleBatch,editActualSchedule,getIncomeScheduleList,addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 
 //撈取資料(Platform_Supervisor專用，沒在用)
 router.get('/Product', function (req, res, next) {
     console.log('------------------------==\n@Product/Product:\nreq.query', req.query, 'req.body', req.body);
     //   console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -75,9 +81,15 @@ router.get('/ProductByFMN', function (req, res, next) {
     //   console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -131,9 +143,15 @@ router.get('/ProductByFMS', function (req, res, next) {
     //   console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -173,7 +191,7 @@ router.get('/ProductByFMS', function (req, res, next) {
 
 
         //撈取已付款的數量
-        mysqlPoolQuery("SELECT o_symbol , SUM(o_tokenCount) AS paidTokenCount FROM htoken.order WHERE o_paymentStatus = ? GROUP BY o_symbol", "paid", function (err, rows) {
+        mysqlPoolQuery("SELECT o_symbol , SUM(o_tokenCount) AS paidTokenCount FROM order_list WHERE o_paymentStatus = ? GROUP BY o_symbol", "paid", function (err, rows) {
             if (err) {
                 console.log(err);
             }
@@ -216,9 +234,15 @@ router.get('/AddProductByFMN', function (req, res, next) {
     console.log('------------------------==\n@Product/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     // console.log("＊：" + JSON.stringify(req.session));
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -254,9 +278,15 @@ router.post('/AddProductByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -332,7 +362,12 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname:req.body.p_EPCname
+        p_EPCname:req.body.p_EPCname,
+        p_Copywriting:req.body.p_Copywriting,
+        p_ContractOut:req.body.p_ContractOut,
+        p_CaseConstruction:req.body.p_CaseConstruction,
+        p_ElectricityBilling:req.body.p_ElectricityBilling,
+        p_isNewCase:req.body.p_isNewCase
     };
 
     console.log(sql);
@@ -352,9 +387,15 @@ router.get('/DeleteProduct', function (req, res, next) {
     console.log('------------------------==\n@Product/DeleteProduct:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -409,9 +450,15 @@ router.get('/DeleteProduct', function (req, res, next) {
 router.get('/EditProductByFMN', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByFMN:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -457,9 +504,15 @@ router.get('/EditProductByFMN', function (req, res, next) {
 router.post('/EditProductByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -531,7 +584,12 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname:req.body.p_EPCname
+        p_EPCname:req.body.p_EPCname,
+        p_Copywriting:req.body.p_Copywriting,
+        p_ContractOut:req.body.p_ContractOut,
+        p_CaseConstruction:req.body.p_CaseConstruction,
+        p_ElectricityBilling:req.body.p_ElectricityBilling,
+        p_isNewCase:req.body.p_isNewCase
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
@@ -539,7 +597,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
     console.log("@@@：" + JSON.stringify(req.body));
     // console.log("@@@:" + JSON.stringify(sql));
 
-    var qur = mysqlPoolQuery('UPDATE htoken.product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
@@ -554,9 +612,15 @@ router.post('/EditProductByFMN', function (req, res, next) {
 router.get('/SetProductCreationByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -589,7 +653,7 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
     var symbol = req.query.symbol;
     // console.log("@@@:" + symbol);
 
-    var qur = mysqlPoolQuery('UPDATE htoken.product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
@@ -604,9 +668,15 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
 router.get('/EditProductByFMS', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -663,9 +733,15 @@ router.get('/EditProductByFMS', function (req, res, next) {
 router.get('/SetProductDraftByFMS', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -717,9 +793,15 @@ router.get('/SetProductDraftByFMS', function (req, res, next) {
 router.get('/EditProductByPlatformSupervisor', function (req, res, next) {
     console.log('------------------------==\n@Product/EditProductByPlatformSupervisor:\nreq.query', req.query, 'req.body', req.body);
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -812,9 +894,15 @@ router.post('/SetProductStateByPlatformSupervisor', function (req, res, next) {
 //設置產品的p_FMSNote並將產品狀態設為draft(FMS專用)
 router.get('/SetFMSNoteAndReturnByFMS', function (req, res, next) {
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -860,9 +948,15 @@ router.get('/SetFMSNoteAndReturnByFMS', function (req, res, next) {
 //設置產品的p_PANote並將產品狀態設為creation(Platform Supervisor專用)
 router.get('/SetPANoteAndReturnByPA', function (req, res, next) {
     var token = req.cookies.access_token;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -960,37 +1054,60 @@ router.post('/SetAbortedReasonByPA', function (req, res, next) {
 //將IncomeCSV轉存到Database
 router.post('/IncomeCSV', function (req, res, next) {
     var IncomeCSVFilePath = "./" + req.body.IncomeCSVFilePath;
-    console.log(IncomeCSVFilePath);
+    // console.log("＊＊＊:" + IncomeCSVFilePath);
+    // console.log(IncomeCSVFilePath);
     if (IncomeCSVFilePath.indexOf(".csv") != -1) {
-        // 將csv轉換成sql語句
-        csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
-            .on('data', function (sql) {
-                //console.log(sql);
-                var mysqlPoolQuery = req.pool;
-                var qur = mysqlPoolQuery(sql, function (err, rows) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        res.status(200);
-                        res.send({
-                            "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
-                            "messageForUser": ""
-                        });
-                    }
+        console.log("0");
+        console.log(fs.existsSync(IncomeCSVFilePath));
+        //判斷文件路徑是否存在
+        try {
+            if (fs.existsSync(IncomeCSVFilePath)) {
+              console.log("1");
+              //file exists
+              // 將csv轉換成sql語句
+              csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
+              .on('data', function (sql) {
+                  //console.log(sql);
+                  var mysqlPoolQuery = req.pool;
+                  var qur = mysqlPoolQuery(sql, function (err, rows) {
+                      if (err) {
+                          console.log(err);
+                      } else {
+                          res.send({
+                              "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
+                              "messageForUser": "",
+                              "isSuccess":true
+                          });
+                      }
+                  });
+  
+              })
+              .on('end', function (rows) {
+                  // console.log(rows); // 5 - Num of rows handled, including header
+              })
+              .on('error', function (error) {
+                  console.error(error); //Handle error
+              })
+            }else{
+                res.send({
+                    "messageForDeveloper": "沒有Income CSV文件",
+                    "messageForUser": "Income CSV文件遺失，請重新上傳",
+                    "isSuccess":false
                 });
-
-            })
-            .on('end', function (rows) {
-                // console.log(rows); // 5 - Num of rows handled, including header
-            })
-            .on('error', function (error) {
-                console.error(error); //Handle error
-            })
+            }
+          } catch(err) {
+            console.error(err)
+            res.send({
+                "messageForDeveloper": "沒有Income CSV文件",
+                "messageForUser": "Income CSV文件遺失，請重新上傳",
+                "isSuccess":false
+            });
+          }
     } else {
-        res.status(200);
         res.send({
-            "messageForDeveloper": "沒有CSV文件",
-            "messageForUser": ""
+            "messageForDeveloper": "沒有Income CSV文件",
+            "messageForUser": "請上傳Income CSV文件",
+            "isSuccess":false
         });
     }
 
@@ -1000,9 +1117,15 @@ router.post('/IncomeCSV', function (req, res, next) {
 router.get('/IncomeArrangement', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
+    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: '帳號密碼錯誤', error: '' });
@@ -1024,7 +1147,7 @@ router.get('/IncomeArrangement', function (req, res, next) {
     var symbol = req.query.symbol;
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol, function (err, rows) {
+    mysqlPoolQuery("SELECT ia_time,ia_single_Actual_Income_Payment_in_the_Period,ia_single_Forecasted_Payable_Income_in_the_Period,ia_Payable_Period_End,ia_State FROM income_arrangement WHERE ia_SYMBOL =?", symbol, function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1037,18 +1160,23 @@ router.get('/IncomeArrangement', function (req, res, next) {
 // 接收FMS Actual Payment的校正資料
 router.post('/CorrectActualPayment', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
-    // console.log("***:" + JSON.stringify(req.body));
-    // req.body.CorrectActualPaymentTokenSymbol
-    // req.body.CorrectActualPaymentTime
-    // req.body.CorrectActualPaymentNumber
+    console.log("#Symobl:" + req.body.CorrectActualPaymentTokenSymbol);
+    console.log("#第幾期:" + req.body.Period);
+    console.log("#校正前時間:" + req.body.OriginalPaymentTime);
+    console.log("#校正後時間:" + req.body.CorrectActualPaymentTime);
+    console.log("#校正前金額:" + req.body.OriginalPaymentNumber);
+    console.log("#校正後金額:" + req.body.CorrectActualPaymentNumber);
 
     var sql = {
+        //校正後金額
         ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
+        //校正後時間
+        ia_actualPaymentTime:req.body.CorrectActualPaymentTime,
         ia_State: "ia_state_underReview"
     };
 
     var mysqlPoolQuery = req.pool;
-    var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.CorrectActualPaymentTime], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1060,73 +1188,98 @@ router.post('/CorrectActualPayment', function (req, res, next) {
 
 // 接收 平台方審核Actual Payment的結果
 router.post('/CorrectActualPaymentResult', function (req, res, next) {
-    // console.log("#:" + req.body.CorrectActualPaymentTokenSymbol);
-    // console.log("#:" + req.body.CorrectActualPaymentTime);
-    // console.log("#:" + req.body.CorrectActualPaymentResult);
+    // console.log("#Symobl:" + req.body.CorrectActualPaymentTokenSymbol);
+    // console.log("#校正前時間:" + req.body.OriginalPaymentTime);
+    // console.log("#校正結果：" + req.body.CorrectActualPaymentResult);
 
     var sql = {
         ia_State: req.body.CorrectActualPaymentResult
     };
 
     var mysqlPoolQuery = req.pool;
-    var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.CorrectActualPaymentTime], function (err, rows) {
+    //根據傳來的symbol、校正前時間 查詢期數、實際發放金額、實際發放時間
+    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
         if (err) {
             console.log(err);
         } else {
-            res.setHeader('Content-Type', 'application/json');
-            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+            var data = rows;
+            // 期數
+            var period=rows[0].ia_Payable_Period_End;
+            console.log("第幾期：" + period);
+            // 實際發放金額
+            var actualPaymentAmount_=rows[0].ia_single_Actual_Income_Payment_in_the_Period;
+            console.log("實際發放金額：" + actualPaymentAmount_);
+            // console.log(rows[0].ia_single_Actual_Income_Payment_in_the_Period);
+            // 實際發放時間
+            var actualPaymentTime_=rows[0].ia_actualPaymentTime;
+            console.log("實際發放時間：" + actualPaymentTime_);
+            // console.log(rows[0].ia_actualPaymentTime);                    
+            
+            // 如果通過審核就寫入到智能合約
+            if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
+                const symbol = req.body.CorrectActualPaymentTokenSymbol;
+                const schIndex = period;
+                const actualPaymentTime =actualPaymentTime_;
+                const actualPaymentAmount = actualPaymentAmount_;
+                const result = await editActualSchedule(symbol, schIndex, actualPaymentTime, actualPaymentAmount);
+                console.log('result', result);
+
+                // 如果成功寫入智能合約，就設置審核狀態
+                if(result==true){
+                    //設置審核狀態 
+                    var sql = {
+                        ia_State: req.body.CorrectActualPaymentResult
+                    };
+                    var qur1 = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            res.setHeader('Content-Type', 'application/json');
+                            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+                        }
+                    });
+                }
+
+            }
         }
     });
+
+
+    // 將校正結果寫入資料庫
+    // var mysqlPoolQuery = req.pool;
+    // var qur = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+    //         if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
+    //             const symbol = req.body.CorrectActualPaymentTokenSymbol;
+    //             const schIndex = req.body.Period;
+    //             const actualPaymentTime =req.body.CorrectActualPaymentTime;
+    //             const actualPaymentAmount = req.body.CorrectActualPaymentNumber;
+    //             const result = await editActualSchedule(symbol, schIndex, actualPaymentTime, actualPaymentAmount);
+    //             console.log('result', result);
+    //         }
+    //         res.setHeader('Content-Type', 'application/json');
+    //         res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+    //     }
+    // });
+});
+
+router.get('/testRayAPI',function (req, res, next){
+    if(addScheduleBatch("ACHM6666",[201907081516,201907081517],[3,4])){
+        console.log("###Success");
+    }else{
+        console.log("###Fail");
+    }
 });
 
 //有容
-router.get('/ProductList', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
-    let mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT * FROM product', function (err, result) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "產品列表取得失敗:\n" + err
-            })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "產品列表取得成功！",
-                "result": result
-            });
-        }
-        /* code = 304? */
-    });
-});
-
-router.get('/ProductList', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
-    let mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT * FROM product', function (err, result) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "產品列表取得失敗:\n" + err
-            })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "產品列表取得成功！",
-                "result": result
-            });
-        }
-        /* code = 304? */
-    });
-});
-
 router.get('/LaunchedProductList', function (req, res) {
     console.log('------------------------==\n@Product/ProductList');
     let mysqlPoolQuery = req.pool;
     mysqlPoolQuery(
-        `SELECT p_irr AS IRR,
+        `SELECT 
+        p_irr AS IRR,
         p_name AS name,
         p_location AS location,
         p_SYMBOL AS symbol,
@@ -1137,34 +1290,41 @@ router.get('/LaunchedProductList', function (req, res) {
         SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
         SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
         SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
+        SUBSTRING(p_releasedate, 9, 2) AS releaseDateHour,
+        SUBSTRING(p_releasedate, 11, 2) AS releaseDateMinute,
         p_size AS size,
         p_duration AS durationInYear,
         SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
         SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
         SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
+        SUBSTRING(p_validdate, 9, 2) AS deadlineHour,
+        SUBSTRING(p_validdate, 11, 2) AS deadlineMinute,
         p_Image1 AS imageURL,
         p_TaiPowerApprovalDate AS taiPowerApprovalDate,
         p_CFSD AS CFSD,
         p_BOEApprovalDate AS BOEApprovalDate,
         p_CFED AS CFED,
         p_PVTrialOperationDate AS PVTrialOperationDate,
-        p_PVOnGridDate AS PVOnGridDate,
+        p_ContractOut AS contractOut,
+        p_CaseConstruction AS caseConstruction,
+        p_ElectricityBilling AS electricityBilling,
         p_fundingType AS fundingType,
         p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
         IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
-        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
+        p_Copywriting AS copyWritingText
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
-                    FROM htoken.order
+                    FROM order_list
                     WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
                     GROUP BY o_symbol) AS T2
         ON T1.p_SYMBOL = T2.o_symbol
         LEFT JOIN ( SELECT o_symbol , COUNT(o_email) AS purchasedNumberOfPeople
-                    FROM htoken.order
+                    FROM order_list
                     GROUP BY o_symbol) AS T3
         ON T1.p_SYMBOL = T3.o_symbol
         LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
-                    FROM htoken.income_arrangement 
+                    FROM income_arrangement 
                     GROUP BY ia_SYMBOL) AS T4
         ON T1.p_SYMBOL = T4.ia_SYMBOL
         WHERE p_state = \'funding\';`, function (err, productArray) {
@@ -1177,24 +1337,25 @@ router.get('/LaunchedProductList', function (req, res) {
             else {
                 if (productArray.length > 0) {
                     /* TODO: 這些資料的斜線要去掉 */
-                    productArray.map(
-                        product => {
-                            if (!product.imageURL)
-                                product.imageURL = "imageURL"
-                            if (!product.taiPowerApprovalDate)
-                                product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                            if (!product.BOEApprovalDate)
-                                product.BOEApprovalDate = "BOEApprovalDate"
-                            if (!product.PVTrialOperationDate)
-                                product.PVTrialOperationDate = "PVTrialOperationDate"
-                            if (!product.PVOnGridDate)
-                                product.PVOnGridDate = "PVOnGridDate"
-                            if (product.fundingType === "PO") {
-                                product.fundingType = "PublicOffering"
-                            } else if (product.fundingType === "PP") {
-                                product.fundingType = "PrivatePlacement"
-                            }
-                        });
+                    // productArray.map(
+                    //     product => {
+                    //         if (!product.imageURL)
+                    //             product.imageURL = "imageURL"
+                    //         if (!product.taiPowerApprovalDate)
+                    //             product.taiPowerApprovalDate = "taiPowerApprovalDate"
+                    //         if (!product.BOEApprovalDate)
+                    //             product.BOEApprovalDate = "BOEApprovalDate"
+                    //         if (!product.PVTrialOperationDate)
+                    //             product.PVTrialOperationDate = "PVTrialOperationDate"
+                    //         if (!product.PVOnGridDate)
+                    //             product.PVOnGridDate = "PVOnGridDate"
+                    //         if (product.fundingType === "PO") {
+                    //             product.fundingType = "PublicOffering"
+                    //         } else if (product.fundingType === "PP") {
+                    //             product.fundingType = "PrivatePlacement"
+                    //         }
+                    //     });
+                    
                     res.status(200);
                     res.json({
                         "message": "產品列表取得成功",
@@ -1211,7 +1372,7 @@ router.get('/LaunchedProductList', function (req, res) {
 });
 
 router.get('/ForcastIncomeBySymbol', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
+    console.log('------------------------==\n@Product/ForcastIncomeBySymbol');
     function returnNumberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -1220,7 +1381,7 @@ router.get('/ForcastIncomeBySymbol', function (req, res) {
     mysqlPoolQuery(
         `SELECT ia_Annual_End AS year, 
                 ia_single_Forecasted_Annual_Income AS incomeOfThePeriod
-         FROM   htoken.income_arrangement
+         FROM   income_arrangement
          WHERE  ia_SYMBOL = ? 
          AND    ia_single_Forecasted_Annual_Income > 0
         `, symbol, function (err, forcastIncomeArray) {
@@ -1257,7 +1418,7 @@ router.get('/ForcastIncomeBySymbol', function (req, res) {
 });
 
 router.get('/CaseImageURLByCaseSymbol', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
+    console.log('------------------------==\n@Product/CaseImageURLByCaseSymbol');
     const mysqlPoolQuery = req.pool;
     const symbol = req.query.symbol;
     mysqlPoolQuery(
@@ -1271,7 +1432,7 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
                 p_Image8 AS ImageURL8,
                 p_Image9 AS ImageURL9,
                 p_Image10 AS ImageURL10
-         FROM   htoken.product
+         FROM   product
          WHERE  p_SYMBOL = ? `, symbol, function (err, imageURLObjectArray) {
 
             let imageURLObject = imageURLObjectArray[0]
@@ -1297,7 +1458,7 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
         });
 });
 
-//Ray ... htoken.  omitted
+//Ray ...   omitted
 router.get('/ProductBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log('------------------------==\n@Product/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
@@ -1307,7 +1468,7 @@ router.get('/ProductBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
     //console.log('symbol', symbol);
 
-    let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    let qstr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1335,7 +1496,7 @@ router.get('/LaunchedProductBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
     //console.log('symbol', symbol);
 
-    let qstr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    let qstr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1359,7 +1520,7 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let symbol = req.query.tokenSymbol;
 
-    let qstr1 = 'SELECT sc_erc721address FROM htoken.smart_contracts WHERE sc_symbol = ?';
+    let qstr1 = 'SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1389,7 +1550,7 @@ router.get('/canBuyToken', async function (req, res) {
     mysqlPoolQuery(
         `SELECT p_CFSD AS CFSD, 
                 u_assetbookContractAddress AS assetbookContractAddress
-         FROM htoken.product , htoken.user
+         FROM product , user
          WHERE p_Symbol = ? AND u_email = ?
          `, keys, function (err, result) {
             if (err) {
@@ -1410,6 +1571,10 @@ router.get('/canBuyToken', async function (req, res) {
                 isServerTimeLargerThanCFSD && isAssetbookContractAddressExist ?
                     canBuyToken = true :
                     canBuyToken = false;
+
+                    // console.log(isServerTimeLargerThanCFSD)
+                    // console.log(isAssetbookContractAddressExist)
+                    // console.log(canBuyToken)
 
                 if (!!canBuyToken) {
                     res.status(200);
@@ -1435,6 +1600,47 @@ router.get('/canBuyToken', async function (req, res) {
                 }
             }
         });
+});
+
+/* getIncomeHistoryBySymbol */
+router.get('/AssetImageURLAndIconURL', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    const symbol = req.query.symbol
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+
+    let queryString = `
+    SELECT  p_Image1 AS imageURL,
+            p_icon AS iconURL
+    FROM    product
+    WHERE   p_SYMBOL = ?
+    `;
+
+    query(queryString, symbol)
+        .then((URL) => {
+            res.status(200);
+            res.json({
+                "message": "[Success] image & icon 取得成功",
+                "result": URL
+            });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(400);
+            res.json({
+                "message": "[Error] image & icon 取得失敗:\n" + err
+            });
+        })
 });
 
 

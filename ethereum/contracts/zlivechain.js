@@ -33,11 +33,11 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr } = require('../../timeserver/blockchain');
+const { addPlatformSupervisor, sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr } = require('../../timeserver/blockchain');
 const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/utilities');
 const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
-const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  managementTeam, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
+const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
 } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10]= assetOwnerArray;
@@ -307,7 +307,6 @@ const setupTest = async () => {
   console.log('AssetOwner2', AssetOwner2);
   console.log('AssetOwner3', AssetOwner3);
   console.log('AssetOwner4', AssetOwner4);
-  console.log('managementTeam', managementTeam);
 
   if (2 === 1) {
     balance0 = await web3.eth.getBalance(admin);//returns strings!
@@ -415,7 +414,7 @@ const setupTest = async () => {
     if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
       if(checkArray[5]){
         console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
-        console.log('--------==AddUse():', idx)
+        console.log('--------==AddUser():', idx)
         const encodedData = instRegistry.methods.addUser(userId, assetbookArray[idx], investorLevelArray[idx]).encodeABI();
         let TxResult = await signTx(admin, adminpkRaw, addrRegistry, encodedData);
         console.log('\nTxResult', TxResult);
@@ -471,6 +470,12 @@ const setupTest = async () => {
   checkEq(supportsInterface0x5b5e139f, true);
   let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
   checkEq(supportsInterface0x780e9d63, true);
+
+  const newplatformSupervisor = AssetOwner10;
+  const result = await addPlatformSupervisor(newplatformSupervisor).catch((err) => {
+    console.log('[Error @ addPlatformSupervisor]', err);
+  });
+  console.log(`result: ${JSON.stringify(result) }`);
 
   console.log('setup has been completed');
   process.exit(0);
@@ -1358,209 +1363,6 @@ const sendAssetBeforeAllowed = async () => {
 
 
 
-//---------------------------------==IncomeManagerCtrt
-// yarn run livechain -c 1 --f 12
-const getIncomeSchedule_API = async() => {
-  console.log('\n-------------------==getIncomeSchedule_API');
-  const symbol = nftSymbol;
-  const schIndex = 1;
-  await getIncomeSchedule(symbol, schIndex);
-  process.exit(0);
-}
-
-// yarn run livechain -c 1 --f 13
-const getIncomeScheduleList_API = async() => {
-  console.log('\n-------------------==getIncomeScheduleList_API');
-  const symbol = nftSymbol;
-  const forecastedPayableTime = TimeOfDeployment_IM+1;
-  await getIncomeScheduleList(symbol, forecastedPayableTime);
-  process.exit(0);
-}
-
-// yarn run livechain -c 1 --f 14
-const checkAddScheduleBatch1_API = async() => {
-  console.log('\n---------------------==checkAddScheduleBatch1_API');
-  const symbol = nftSymbol;
-  console.log('symbol', symbol);
-  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
-  const forecastedPayableAmounts = [3700, 3800, 3900];
-  await checkAddScheduleBatch1(symbol, forecastedPayableTimes, forecastedPayableAmounts);
-}
-//yarn run livechain -c 1 --f 15
-const checkAddScheduleBatch2_API = async() => {
-  console.log('\n---------------------==checkAddScheduleBatch2_API');
-  const symbol = nftSymbol;
-  const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
-  const forecastedPayableAmounts = [3700, 3800, 3900];
-  checkAddScheduleBatch2(symbol, forecastedPayableTimes, forecastedPayableAmounts);
-}
-
-//yarn run livechain -c 1 --f 16
-const checkAddScheduleBatch_API = async() => {
-  console.log('\n---------------------==checkAddScheduleBatch_API');
-  const symbol = nftSymbol;
-  const forecastedPayableTimes = [202202230000, 202205230000, 202208230000];
-  const forecastedPayableAmounts = [3700, 3800, 3900];
-
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
-  const isCheckAddScheduleBatch = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => console.log('[Error @checkAddScheduleBatch]:', err));
-  console.log('isCheckAddScheduleBatch', isCheckAddScheduleBatch);
-  process.exit(0);
-}
-
-//yarn run livechain -c 1 --f 17
-const addScheduleBatch_API = async() => {
-  console.log('\n---------------------==addScheduleBatch_API');
-  const symbol = nftSymbol;
-  const forecastedPayableTimes = [202105230000, 202108230000, 202111230000];
-  //const forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
-  //const forecastedPayableTimes = [202005230000, 202008270000, 202011290000];
-  //const forecastedPayableTimes = [202103010000];
-
-  //const forecastedPayableTimes = [201908170000, 201908170000, 202002230000];//Good
-  const forecastedPayableAmounts = [3701, 3801, 3901];
-  //const forecastedPayableAmounts = [4100];
-
-  const incomeMgrAddr = await findCtrtAddr(symbol,'incomemanager').catch((err) => console.log('[Error @findCtrtAddr]:', err));
-
-  const result = await addScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts);
-  console.log('result', result, typeof result);
-  process.exit(0);
-}
-
-
-//yarn run livechain -c 1 --f 18
-const addScheduleBatchFromDB_API = async () => {
-  const symbol = 'AOOT1902';
-  const forecastedPayableTimes = [202202230000, 202205230000, 202208230000];
-  const forecastedPayableAmounts = [3700, 3800, 3900];
-
-
-  // const result = await addScheduleBatchFromDB(symbol).catch((err) => {
-  //   console.log('[Error @addScheduleBatchFromDB]:', err);
-  // });
-  //console.log('result', result);
-}
-
-
-//yarn run livechain -c 1 --f 19
-const removeIncomeSchedule_API = async() => {
-  console.log('\n---------------==removeIncomeSchedule_API');
-  const symbol = nftSymbol;
-  const schIndex = 6;
-  const result = await removeIncomeSchedule(symbol, schIndex);
-  console.log('result', result, typeof result);
-  process.exit(0);
-}
-
-//editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor
-
-
-//yarn run livechain -c 1 --f 20
-const imApprove_API = async() => {
-  console.log('\n---------------==imApprove_API');
-  const symbol = nftSymbol;
-  const schIndex = 1;
-  const boolValue = true;
-  const result = await imApprove(symbol, schIndex, boolValue);
-  //imApprove(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
-  console.log('result', result, typeof result);
-  process.exit(0);
-}
-
-
-//yarn run livechain -c 1 --f 20
-const setPaymentReleaseResults_API = async() => {
-  console.log('\n---------------==setPaymentReleaseResults_API');
-  const symbol = nftSymbol;
-  const schIndex = 1;
-  const actualPaymentTime = 201908210000;
-  const actualPaymentAmount = 3811;
-  const errorCode = 1;
-  const result = await setPaymentReleaseResults(symbol, schIndex, actualPaymentTime, actualPaymentAmount, errorCode);
-  //setPaymentReleaseResults(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlyPlatformSupervisor
-  console.log('result', result, typeof result);
-  process.exit(0);
-
-}
-
-//yarn run livechain -c 1 --f 21
-//setErrResolution(uint _schIndex, bool boolValue) external onlyPlatformSupervisor
-
-
-
-//yarn run livechain -c 1 --f 23
-const getForecastedSchedulesFromDB_API = async () => {
-  const symbol = 'HToken123';
-  const results1 = await getForecastedSchedulesFromDB(symbol);
-  //console.log('results1', results1);
-  const forecastedPayableTimes = [];
-  const forecastedPayableAmounts = [];
-  for(let i = 0; i < results1.length; i++) {
-    if(typeof results1[i] === 'object' && results1[i] !== null && results1[i] !== undefined){
-      forecastedPayableTimes.push(results1[i].ia_time);
-      forecastedPayableAmounts.push(results1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
-    }
-  }
-
-  console.log(`forecastedPayableTimes: ${forecastedPayableTimes} 
-forecastedPayableAmounts: ${forecastedPayableAmounts}`);
-  process.exit(0);
-}
-
-
-//------------------------------==Assetbook
-//yarn run livechain -c 1 --f 30
-const getAssetbookDetails_API = async () => {
-  const addrAssetBook = addrAssetBook1;
-  const results1 = await getAssetbookDetails(addrAssetBook);
-  console.log('results1', results1);
-  process.exit(0);
-}
-
-//yarn run livechain -c 1 --f 31
-const setHeliumAddr_API = async () => {
-  const addrAssetBook = addrAssetBook1;
-  const _assetOwnerNew = ''
-  const serverTime = 20190626;
-  const results1 = await setHeliumAddr(addrAssetBook, _addrHeliumContract);
-  console.log('results1', results1);
-  process.exit(0);
-}
-
-//yarn run livechain -c 1 --f 32
-const HeliumContractVote_API = async () => {
-  const addrAssetBook = addrAssetBook1;
-  const _assetOwnerNew = ''
-  const serverTime = 20190626;
-  const results1 = await HeliumContractVote(addrAssetBook, serverTime);
-  console.log('results1', results1);
-  process.exit(0);
-}
-
-//yarn run livechain -c 1 --f 33
-const resetVoteStatus_API = async () => {
-  const addrAssetBook = addrAssetBook1;
-  const _assetOwnerNew = ''
-  const serverTime = 20190626;
-  const results1 = await resetVoteStatus(addrAssetBook);
-  console.log('results1', results1);
-  process.exit(0);
-}
-
-//yarn run livechain -c 1 --f 34
-const changeAssetOwner_API = async () => {
-  const addrAssetBook = addrAssetBook1;
-  const _assetOwnerNew = ''
-  const serverTime = 20190626;
-  const results1 = await changeAssetOwner(addrAssetBook, _assetOwnerNew, serverTime);
-  console.log('results1', results1);
-  process.exit(0);
-}
-
-
-
-
 
 //------------------------------==
 const testCtrt = async () => {
@@ -1649,73 +1451,6 @@ if (func === 0) {
 //yarn run livechain -c 1 --f 9
 } else if (func === 9) {
   mintTokenFn1();
-
-//yarn run livechain -c 1 --f 12
-} else if (func === 12) {
-  getIncomeSchedule_API();
-
-//yarn run livechain -c 1 --f 13
-} else if (func === 13) {
-  getIncomeScheduleList_API();
-
-//yarn run livechain -c 1 --f 14
-} else if (func === 14) {
-  checkAddScheduleBatch1_API();
-
-//yarn run livechain -c 1 --f 15
-} else if (func === 15) {
-  checkAddScheduleBatch2_API();
-
-//yarn run livechain -c 1 --f 16
-} else if (func === 16) {
-  checkAddScheduleBatch_API();
-
-//yarn run livechain -c 1 --f 17
-} else if (func === 17) {
-  addScheduleBatch_API();
-
-//yarn run livechain -c 1 --f 18
-} else if (func === 18) {
-  addScheduleBatchFromDB_API();
-
-//yarn run livechain -c 1 --f 19
-} else if (func === 19) {
-  removeIncomeSchedule_API();
-
-//yarn run livechain -c 1 --f 20
-} else if (func === 20) {
-  imApprove_API();
-
-//yarn run livechain -c 1 --f 21
-} else if (func === 21) {
-  setPaymentReleaseResults_API();
-
-//yarn run livechain -c 1 --f 22
-} else if (func === 22) {
-  getForecastedSchedulesFromDB_API();
-
-//------------------==Assetbook from Backend
-//resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
-//yarn run livechain -c 1 --f 30
-} else if (func === 30) {
-  getAssetbookDetails_API();
-
-//yarn run livechain -c 1 --f 31
-} else if (func === 31) {
-  setHeliumAddr_API();
-
-//yarn run livechain -c 1 --f 32
-} else if (func === 32) {
-  HeliumContractVote_API();
-
-//yarn run livechain -c 1 --f 33
-} else if (func === 33) {
-  resetVoteStatus_API();
-
-//yarn run livechain -c 1 --f 34
-} else if (func === 34) {
-  changeAssetOwner_API();
-
 
 
 //------------------==

@@ -56,25 +56,6 @@ if (Helium === undefined){
   //console.log(Helium);
 }
 
-// const MultiSig = require('../ethereum/contracts/build/MultiSig.json');
-// if (MultiSig === undefined){
-//   console.log('[Error] MultiSig is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-// } else {
-//   console.log('[Good] MultiSig is defined');
-//   if (MultiSig.abi === undefined){
-//     console.log('[Error] MultiSig.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-//   } else {
-//     console.log('[Good] MultiSig.abi is defined');
-//       //console.log('MultiSig.abi:', MultiSig.abi);
-//   }
-//   if (MultiSig.bytecode === undefined || MultiSig.bytecode.length < 10){
-//     console.log('[Error] MultiSig.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-//   } else {
-//     console.log('[Good] MultiSig.bytecode is defined');
-//       //console.log('MultiSig.bytecode:', MultiSig.bytecode);
-//   }
-//   //console.log(MultiSig);
-// }
 
 const AssetBook = require('../ethereum/contracts/build/AssetBook.json');
 if (AssetBook === undefined){
@@ -159,27 +140,6 @@ if (HCAT721 === undefined){
 }
 
 
-/*const ArrayTesting = require('../ethereum/contracts/build/ArrayTesting.json');
-if (ArrayTesting === undefined){
-  console.log('[Error] ArrayTesting is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-} else {
-  console.log('[Good] ArrayTesting is defined');
-  if (ArrayTesting.abi === undefined){
-    console.log('[Error] ArrayTesting.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] ArrayTesting.abi is defined');
-      //console.log('ArrayTesting.abi:', ArrayTesting.abi);
-  }
-  if (ArrayTesting.bytecode === undefined || ArrayTesting.bytecode.length < 10){
-    console.log('[Error] ArrayTesting.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    console.log('[Good] ArrayTesting.bytecode is defined');
-      //console.log('ArrayTesting.bytecode:', ArrayTesting.bytecode);
-  }
-  //console.log(ArrayTesting);
-}*/
-
-
 const CrowdFunding = require('../ethereum/contracts/build/CrowdFunding.json');
 if (CrowdFunding === undefined){
   console.log('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
@@ -260,7 +220,6 @@ let accounts, error, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOw
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
 
-//const rate = new BigNumber('1e22').mul(value);
 const addrZero = "0x0000000000000000000000000000000000000000";
 let argsAssetBook1, argsAssetBook2;
 let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
@@ -282,9 +241,6 @@ const tokenName_bytes32 = web3.utils.fromAscii(tokenName);
 const tokenSymbol_bytes32 = web3.utils.fromAscii(tokenSymbol);
 const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
 const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
-
-//const addrRegistry = "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a";
-//const addrTokenController = "0x39523jt032";
 
 
 let reason, uid, authLevel, assetbookAddr;
@@ -325,9 +281,6 @@ beforeEach( async function() {
     console.log('platformSupervisor', platformSupervisor);
     console.log('operator', operator);
     console.log('managementTeam', managementTeam);
-
-    // console.log('AssetOwner1, to addr, or accounts[1]');
-    // console.log('AssetOwner2, accounts[2]');
 
     if (2===1) {
         balancePlatformSupervisor = await web3.eth.getBalance(platformSupervisor);//returns strings!
@@ -417,11 +370,6 @@ beforeEach( async function() {
     addrTokenController = instTokenController.options.address;
     console.log('addrTokenController:', addrTokenController);
 
-    //Deploying HCAT721 contract...
-    /** https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
-    "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, 201902150000,
-    203903310000, 201901310000, "0xefD9Ae81Ca997a12e334fDE1fC45d5491f8E5b8a"
-    */
     const argsHCAT721 = [
     tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
@@ -437,10 +385,6 @@ beforeEach( async function() {
     instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrHCAT721 = instHCAT721.options.address;
     console.log('addrHCAT721:', addrHCAT721);
-    /**
-    value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
-    value: web3.utils.toWei('10','ether')
-    */
 
     console.log('\nDeploying CrowdFunding contract...');
     const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment_CF, addrHeliumCtrt];
@@ -470,22 +414,6 @@ beforeEach( async function() {
     addrIncomeManagerCtrt = instIncomeManager.options.address;
     console.log('addrIncomeManagerCtrt:', addrIncomeManagerCtrt);
 
-  /*
-    console.log('\nDeploying ArrayTesting contract...');
-    instArrayUtils = await new web3.eth.Contract(ArrayTesting.abi)
-     .deploy({ data: prefix+ArrayTesting.bytecode })
-     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-     console.log('ArrayTesting.sol has been deployed');
-     if (instArrayUtils === undefined) {
-       console.log('[Error] instArrayUtils is NOT defined');
-       } else {console.log('[Good] instArrayUtils is defined');}
-     instArrayUtils.setProvider(provider);
-     addrArrayUtils = instArrayUtils.options.address;
-     console.log('addrArrayUtils:', addrArrayUtils);
-    
-
-    */
-
     console.log('--------==BeforeEach is finished');
 });
 
@@ -512,10 +440,6 @@ describe('Tests on HCAT721Ctrt', () => {
     //console.log(instanceCtrt);
     //console.log(accounts);
   });*/
-
-  // it('AssetBook contract test', async () => {
-  //   console.log('addrAssetBook1', addrAssetBook1);
-  // });
 
   it('AssetBook, Registry, HCAT721 functions test', async function() {
     this.timeout(19500);
@@ -586,10 +510,6 @@ describe('Tests on HCAT721Ctrt', () => {
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook2).call();
     console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
 
-    // return (AssetBook.assetSymbol, AssetBook.assetAddrIndex, 
-    //   AssetBook.assetAmount, AssetBook.timeIndexStart, 
-    //   AssetBook.timeIndexEnd, AssetBook.isInitialized);
-
 
     //----------------==Registry contract
     console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
@@ -618,9 +538,6 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('\n------------==Check HCAT721 parameters');
     console.log('addrHCAT721', addrHCAT721);
 
-    // await instHCAT721.methods.set_admin(AssetOwner1).send({
-    //   value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue
-    // });//set_tokenDump(address _tokenDump, address vendor)
 
     tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
     console.log('tokenContractDetails', tokenContractDetails);
@@ -687,9 +604,6 @@ describe('Tests on HCAT721Ctrt', () => {
     assetbookMX = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     console.log(assetbookMX);
 
-    // tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId).call();
-    // console.log('HCAT tokenId = '+tokenId, tokenOwnerM);
-    // assert.equal(tokenOwnerM, _to);
 
     accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('\nHCAT accountM', accountM);
@@ -1275,7 +1189,7 @@ describe('Tests on AssetBookCtrt', () => {
   it('AssetBook functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==getAssetbookDetails()');
-    let assetOwnerM, addrHeliumContractM, assetOwner_flagM, HeliumContract_flagM, endorserArray_flagM, votesM, arraylength, endorserArrayN;
+    let assetOwnerM, addrHeliumContractM, assetOwner_flagM, HeliumContract_flagM, endorsers_flagM, calculateVotesM, arraylength, endorser, checkNowTimeM, lastLoginTime, bool1, result;
     serverTime = 201906281600;
 
     assetOwnerM = await instAssetBook1.methods.assetOwner().call();
@@ -1294,14 +1208,35 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('HeliumContract_flagM:', HeliumContract_flagM);
     assert.equal(HeliumContract_flagM, '0');
 
-    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
-    console.log('endorserArray_flagM:', endorserArray_flagM);
-    assert.equal(endorserArray_flagM, '0');
+    endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
+    console.log('endorsers_flagM:', endorsers_flagM);
+    assert.equal(endorsers_flagM, '0');
 
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM:', votesM);
-    assert.equal(votesM, '0');
+    console.log('\n----------------==initial condition is the same as if the user has not logged in for a long time ... check if the Platform can override');
+    // checkNowTimeM = await instAssetBook1.methods.checkNowTime().call();
+    // console.log('checkNowTimeM:', checkNowTimeM);
 
+    lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
+    console.log('lastLoginTimeM:', lastLoginTimeM);
+
+    bool1 = await instAssetBook1.methods.isAblePlatformOverride().call();
+    console.log('isAblePlatformOverride:', bool1);
+    assert.equal(bool1, true);
+
+    assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
+    console.log('assetOwner_flagM after calculateVotes():', assetOwner_flagM);
+    assert.equal(assetOwner_flagM, '0');
+
+    HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
+    console.log('HeliumContract_flagM after calculateVotes():',HeliumContract_flagM);
+    assert.equal(HeliumContract_flagM, '0');
+    
+    endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
+    console.log('endorsers_flagM after calculateVotes():', endorsers_flagM);
+    assert.equal(endorsers_flagM, '0');
+
+
+    console.log('\n----------------==check adding customerService role...');
     bool1 = await instAssetBook1.methods.checkCustomerService().call({from: admin});
     console.log('checkCustomerService(admin):', bool1);
     assert.equal(bool1, true);
@@ -1310,90 +1245,176 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('checkCustomerService(AssetOwner2):', bool1);
     assert.equal(bool1, false);
 
+    error = false;
+    try {
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+      .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] Only customer service is allowed to change assetowner, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
     await instHelium.methods.addCustomerService(AssetOwner2)
     .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instAssetBook1.methods.checkCustomerService().call({from: AssetOwner2});
     console.log('checkCustomerService(AssetOwner2):', bool1);
     assert.equal(bool1, true);
 
-    arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
-    console.log('\nshowEndorserArrayLength():', arraylength);
-    assert.equal(arraylength, 0);
+
+    console.log('\n----------------==Change asset owner when Platform override is allowed...');
+    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner1});
+    console.log('is AssetOwner1 the asset owner?', bool1);
+    assert.equal(bool1, true);
+
+    await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
+    .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    assetOwnerM = await instAssetBook1.methods.assetOwner().call();
+    console.log('assetOwnerM:', assetOwnerM);
+    assert.equal(assetOwnerM, AssetOwner5);
+
+    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner5});
+    console.log('is AssetOwner5 the new asset owner?', bool1);
+    assert.equal(bool1, true);
+
+
+    console.log('\n----------------==after addLoginTime()');
+    // checkNowTimeM = await instAssetBook1.methods.checkNowTime().call();
+    // console.log('checkNowTimeM:', checkNowTimeM);
+
+    console.log('addLoginTime()...');
+    await instAssetBook1.methods.addLoginTime().send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+    lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
+    console.log('lastLoginTimeM:', lastLoginTimeM);
+
+    bool1 = await instAssetBook1.methods.isAblePlatformOverride().call();
+    console.log('isAblePlatformOverride:', bool1)
+    assert.equal(bool1, false);
+
+    calculateVotesM = await instAssetBook1.methods.calculateVotes().call();
+    console.log('calculateVotesM:', calculateVotesM);
+    assert.equal(calculateVotesM, '0');
 
     error = false;
     try {
-      await instAssetBook1.methods.addEndorser(AssetOwner1, serverTime)
-      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+      .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('\n[Success] new endorser cannot be the asset owner, err:', err.toString().substr(0, 150));
+      console.log('\n[Success] The Platform now cannot change assetowner after recent login, err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
 
-    await instAssetBook1.methods.addEndorser(AssetOwner3, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
-    console.log('showEndorserArrayLength():', arraylength);
+
+
+    console.log('\n----------------==check adding endorser roles...');
+    arraylength = await instAssetBook1.methods.endorserCount().call();
+    console.log('endorserCount():', arraylength);
+    assert.equal(arraylength, 0);
+
+    error = false;
+    try {
+      await instAssetBook1.methods.addEndorser(AssetOwner5, serverTime)
+      .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] new endorser cannot be the asset owner himself, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    console.log('\nadding AssetOwner3 as the 1st endorser ...');
+    await instAssetBook1.methods.addEndorser(AssetOwner3, serverTime)
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    arraylength = await instAssetBook1.methods.endorserCount().call();
+    console.log('endorserCount():', arraylength);
     assert.equal(arraylength, 1);
 
-    endorserArrayN = await instAssetBook1.methods.endorserArray(0).call();
+    endorser = await instAssetBook1.methods.endorsers(1).call();
     //if array requires index input, but if that index maps to an undefined value, it fails
-    console.log('endorserArrayN:', endorserArrayN);
-    assert.equal(endorserArrayN, AssetOwner3);
+    console.log('endorser:', endorser);
+    assert.equal(endorser, AssetOwner3);
 
+    console.log('\nadding AssetOwner4 as the 2nd endorser ...');
     await instAssetBook1.methods.addEndorser(AssetOwner4, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    await instAssetBook1.methods.addEndorser(AssetOwner5, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('\nadding AssetOwner3 again as a duplicated endorser ...');
+    error = false;
+    try {
+      await instAssetBook1.methods.addEndorser(AssetOwner3, serverTime)
+      .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] new endorser cannot be a duplicated one, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
 
-    arraylength = await instAssetBook1.methods.showEndorserArrayLength().call();
-    console.log('showEndorserArrayLength() after adding 2 endorsers:', arraylength);
+    console.log('\nadding AssetOwner1 as the 3rd endorser ...');
+    await instAssetBook1.methods.addEndorser(AssetOwner1, serverTime)
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    arraylength = await instAssetBook1.methods.endorserCount().call();
+    console.log('total amount of endorsers:', arraylength);
     assert.equal(arraylength, 3);
 
     error = false;
     try {
       await instAssetBook1.methods.addEndorser(AssetOwner2, serverTime)
-      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('\n[Success] endorser count must be <= 3, err:', err.toString().substr(0, 150));
+      console.log('\n[Success] cannot add more than 3 endorsers , err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
 
-
-    await instAssetBook1.methods.changeEndorser(AssetOwner3, AssetOwner2, serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    endorserArrayN = await instAssetBook1.methods.endorserArray(0).call();
-    console.log('endorserArrayN after changing 1 endorser:', endorserArrayN);
-    assert.equal(endorserArrayN, AssetOwner2);
-
+    console.log('\nchange endorsers...');
+    await instAssetBook1.methods.changeEndorser(AssetOwner1, AssetOwner2, serverTime)
+    .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
+    endorser = await instAssetBook1.methods.endorsers(3).call();
+    console.log('\n[Success]: AssetOwner2 has replaced AssetOwner1 as the new endorser', endorser);
+    assert.equal(endorser, AssetOwner2);
 
 
 
-    await instAssetBook1.methods.assetOwnerVote(serverTime)
-    .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('\ncheck if the asset owner can vote');
+    await instAssetBook1.methods.assetOwnerVote(serverTime).send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM:', assetOwner_flagM);
     assert.equal(assetOwner_flagM, '1');
 
     error = false;
     try {
-      await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
       .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('\n[Success] changeAssetOwner before getting 2 votes, err:', err.toString().substr(0, 150));
+      console.log('\n[Success] endorser cannot change asset owner, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    error = false;
+    try {
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+      .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] admin cannot change asset owner, err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
 
 
-
+    console.log('\nReset the vote result');
     await instAssetBook1.methods.resetVoteStatus()
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
@@ -1401,10 +1422,30 @@ describe('Tests on AssetBookCtrt', () => {
     assert.equal(assetOwner_flagM, '0');
 
 
+    console.log('\n----------------==change assetOwner by voting');
+    lastLoginTimeM = await instAssetBook1.methods.lastLoginTime().call();
+    console.log('lastLoginTimeM:', lastLoginTimeM);
+
+    bool1 = await instAssetBook1.methods.isAblePlatformOverride().call();
+    console.log('isAblePlatformOverride:', bool1);
+    assert.equal(bool1, false);
+
+    error = false;
+    try {
+      await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+      .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] When Platform cannot override, only calculateVotes() >=2 is allowed to change assetowner, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
     error = false;
     try {
       await instAssetBook1.methods.endorserVote(serverTime)
-      .send({value: '0', from: AssetOwner3, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
         error = true;
     } catch (err) {
       console.log('\n[Success] non endorsers cannot vote, err:', err.toString().substr(0, 150));
@@ -1412,47 +1453,69 @@ describe('Tests on AssetBookCtrt', () => {
     }
     if (error) {assert(false);}
 
+    console.log('\ncheck if AssetOwner4 can vote');
     await instAssetBook1.methods.endorserVote(serverTime)
     .send({value: '0', from: AssetOwner4, gas: gasLimitValue, gasPrice: gasPriceValue });
-    endorserArray_flagM = await instAssetBook1.methods.endorserArray_flag().call();
-    console.log('endorserArray_flagM:', endorserArray_flagM);
-    assert.equal(endorserArray_flagM, '1');
+    endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
+    console.log('endorsers_flagM from AssetOwner4:', endorsers_flagM);
+    assert.equal(endorsers_flagM, '1');
 
-
+    console.log('\nLet Platform vote, too.');
     await instAssetBook1.methods.HeliumContractVote(serverTime)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
     console.log('HeliumContract_flagM:', HeliumContract_flagM);
     assert.equal(HeliumContract_flagM, '1');
+    // const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
+    // await waitFor(2000);
 
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM:', votesM);
-    assert.equal(votesM, '2');
-
-    await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
+    console.log('\nabout to change the assetOwner with enough votes...');
+    await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    votesM = await instAssetBook1.methods.calculateVotes().call();
-    console.log('votesM after changeAssetOwner:', votesM);
-    assert.equal(votesM, '0');
-
-    assetOwnerM = await instAssetBook1.methods.assetOwner().call();
-    console.log('assetOwnerM:', assetOwnerM);
-    assert.equal(assetOwnerM, AssetOwner5);
-
-    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner5});
-    console.log('is the new asset owner?', bool1);
+    bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner1});
+    console.log('is AssetOwner1 the new asset owner?', bool1);
     assert.equal(bool1, true);
+
+    endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
+    console.log('endorsers_flagM after changing the assetOwner:', endorsers_flagM);
+    assert.equal(endorsers_flagM, '0');
+
+    HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
+    console.log('HeliumContract_flagM after changing the assetOwner:', HeliumContract_flagM);
+    assert.equal(HeliumContract_flagM, '0');
+
+    // await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
+    // .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    // assetOwnerM = await instAssetBook1.methods.assetOwner().call();
+    // console.log('assetOwnerM:', assetOwnerM);
+    // assert.equal(assetOwnerM, AssetOwner1);
+    // console.log('[Success] assetowner can change owner address by himself');
 
 
     //but after changing to an invalid Helium contract address, we cannot call functions...
     //so put this test at the very last!
+    console.log('\n-----------------==');
+    error = false;
+    try {
+      await instAssetBook1.methods.setHeliumAddr(AssetOwner2)
+      .send({value: '0', from: AssetOwner1, gas: gasLimitValue, gasPrice: gasPriceValue });
+      addrHeliumContractM = await instAssetBook1.methods.addrHeliumContract().call();
+      error = true;
+    } catch (err) {
+      console.log('[Success] only a customer service rep can change Helium address, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
     await instAssetBook1.methods.setHeliumAddr(AssetOwner2)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     addrHeliumContractM = await instAssetBook1.methods.addrHeliumContract().call();
     console.log('addrHeliumContractM after changing it:', addrHeliumContractM);
     assert.equal(addrHeliumContractM, AssetOwner2);
-
+    console.log('[Success] Helium address has been changed by a customer service rep');
 
 
   });
@@ -1479,34 +1542,6 @@ describe('Tests on HeliumCtrt', () => {
   });
 });
 
-//--------------------------------==
-// Make a script entry at package.json:
-//    "testxyz": "mocha --grep xyzCtrt",
-// describe('Tests on xyzCtrt', () => {
-//   it('... functions test', async function()  {
-//     this.timeout(9500);
-//     console.log('\n------------==Check DDD parameters');
-//   });
-// });
-//--------------------------------==
-describe('Tests on ArrayTesting', () => {
-
-  it('ArrayTesting functions test', async function() {
-    console.log('\n------------==Check ArrayTesting parameters');
-    let array1 = [ '1', '2', '3', '4', '5'];
-    let array2 = [ '6', '7', '8'];
-
-    let array, idxStart, idxEnd, amount;
-    array = array1; idxStart = 0; idxEnd = 4; amount = 5;
-    //sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
-    let arrayOut = await instArrayUtils.methods.sliceB(array, idxStart, idxEnd, amount).call();
-    console.log('\narrayOut', arrayOut);
-
-    // console.log('addrCrowdFunding', addrCrowdFunding);
-  });
-});
-
-
 
 //--------------------------------==
 describe('Tests on IncomeManagerCtrt', () => {
@@ -1514,45 +1549,44 @@ describe('Tests on IncomeManagerCtrt', () => {
   it('IncomeManagerCtrt functions test', async function() {
     this.timeout(9500);
     console.log('\n------------==Check IncomeManagerCtrt parameters');
-    let forecastedPayableTime, forecastedPayableAmount, _index, forecastedPayableTimes, forecastedPayableAmounts, result, _errorCode;
+    let forecastedPayableTime, forecastedPayableAmount, schCindex, schIndex, result, _errorCode, _isErrorResolved, paymentCount;
 
-    _index = 1;
-    forecastedPayableTime = TimeOfDeployment_IM+1;
-    forecastedPayableAmount = 3000;
+    const forecastedPayableTimes = [TimeOfDeployment_IM+1, 201906110000, 201908170000, 201911210000, 202002230000];
+    const forecastedPayableAmounts = [3000, 3300, 3700, 3800, 3900];
 
     console.log('\n--------==Initial conditions');
+    schIndex = 0;
     result = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', result);
-    assert.equal(result, 0);
+    assert.equal(result, schIndex);
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('getIncomeSchedule('+_index+'):', result);
-    assert.equal(result[0], false);
-    assert.equal(result[1], false);
-    assert.equal(result[2], false);
-    assert.equal(result[3], false);
-    assert.equal(result[4], false);
-    assert.equal(result[5], false);
-    assert.equal(result[6], false);
-
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease'+forecastedPayableTime+':', bool1);
-    assert.equal(bool1, false);
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('getIncomeSchedule('+schIndex+'):', result);
+    assert.equal(result[0], '0');
+    assert.equal(result[1], '0');
+    assert.equal(result[2], '0');
+    assert.equal(result[3], '0');
+    assert.equal(result[4], '0');
+    assert.equal(result[5], '0');
 
     console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
-    await instIncomeManager.methods.addSchedule(forecastedPayableTime, forecastedPayableAmount)
+    schIndex = 1;
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+
+    await instIncomeManager.methods.addForecastedSchedule(forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nafter adding a new schedule...');
     result = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', result);
-    assert.equal(result, 1);
+    assert.equal(result, schIndex);
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
-    assert.equal(result, 1);
+    assert.equal(result, schIndex);
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('new getIncomeSchedule():', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
@@ -1560,74 +1594,26 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[3], 0);
     assert.equal(result[4], false);
     assert.equal(result[5], 0);
-    assert.equal(result[6], false);
-
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease:', bool1);
-    assert.equal(bool1, false);
-
-
-    console.log('\n--------==imApprove()');
-    await instIncomeManager.methods.imApprove(_index, true)
-    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('getIncomeSchedule():', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], 0);
-    assert.equal(result[3], 0);
-    assert.equal(result[4], true);
-    assert.equal(result[5], 0);
-    assert.equal(result[6], false);
-
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease:', bool1);
-    assert.equal(bool1, true);
-
-
-    console.log('\n--------==setPaymentReleaseResults');
-    _paymentDate = forecastedPayableTime;
-    _paymentAmount = forecastedPayableAmount;
-    _errorCode = 0;
-    await instIncomeManager.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
-    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('getIncomeSchedule():', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], _paymentDate);
-    assert.equal(result[3], _paymentAmount);
-    assert.equal(result[4], true);
-    assert.equal(result[5], 0);
-    assert.equal(result[6], false);
-
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease:', bool1);
-    assert.equal(bool1, false);
 
 
     //-----------------------==add 1 more pair
-    _index = 2; forecastedPayableTime = 201906110000; forecastedPayableAmount = 3300;
+    schIndex += 1;
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
 
-    await instIncomeManager.methods.addSchedule(forecastedPayableTime, forecastedPayableAmount)
+    await instIncomeManager.methods.addForecastedSchedule(forecastedPayableTime, forecastedPayableAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\n--------==after adding a new schedule...');
     result = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', result);
-    assert.equal(result, _index);
+    assert.equal(result, schIndex);
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex(forecastedPayableTime):', result);
-    assert.equal(result, _index);
+    assert.equal(result, schIndex);
 
-    result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
-    console.log('getSchIndex(forecastedPayableTime):', result);
-    assert.equal(result, _index);
-
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('new getIncomeSchedule():', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
@@ -1635,136 +1621,188 @@ describe('Tests on IncomeManagerCtrt', () => {
     assert.equal(result[3], 0);
     assert.equal(result[4], false);
     assert.equal(result[5], 0);
-    assert.equal(result[6], false);
-
-
-    //-----------------------==add 3 more pairs
-    console.log('\n--------==Add 3 more pairs of forecastedPayableTime, forecastedPayableAmount');
-    //forecastedPayableTime = 201906110000;
-    forecastedPayableTimes = [201908170000, 201911210000, 202002230000];
-    forecastedPayableAmounts = [3700, 3800, 3900];
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
-    assert.equal(result, _index);
+    assert.equal(result, schIndex);
 
     result = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', result);
-    assert.equal(result, 2);
+    assert.equal(result, schIndex);
 
+    //-----------------------==add 3 more pairs
+    console.log('\n--------==Add 3 more pairs of forecastedPayableTime, forecastedPayableAmount');
 
-    await instIncomeManager.methods.addScheduleBatch(forecastedPayableTimes, forecastedPayableAmounts)
+    await instIncomeManager.methods.addForecastedScheduleBatch(forecastedPayableTimes.slice(2), forecastedPayableAmounts.slice(2))
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManager.methods.schCindex().call();
-    console.log('new schCindex:', result);
-    assert.equal(result, 5);
+    schCindex = await instIncomeManager.methods.schCindex().call();
+    console.log('new schCindex:', schCindex, typeof schCindex);
+    assert.equal(schCindex, '5');
 
-    for(i = 0; i < forecastedPayableTimes.length; i++) {
-      _index = i+3;
-      result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-      console.log('\ngetIncomeSchedule(index='+_index+'):', result);
-      forecastedPayableTime = forecastedPayableTimes[i];
-      forecastedPayableAmount = forecastedPayableAmounts[i];
-      assert.equal(result[0], forecastedPayableTime);
-      assert.equal(result[1], forecastedPayableAmounts[i]);
+    console.log('forecastedPayableTimes', forecastedPayableTimes,'\nforecastedPayableAmounts', forecastedPayableAmounts);
+    for(let i = 3; i <= forecastedPayableTimes.length; i++) {
+      result = await instIncomeManager.methods.getIncomeSchedule(i).call(); 
+      console.log('\ngetIncomeSchedule(index='+i+'):', result);
+      assert.equal(result[0], forecastedPayableTimes[i-1].toString());
+      assert.equal(result[1], forecastedPayableAmounts[i-1].toString());
       assert.equal(result[2], 0);
       assert.equal(result[3], 0);
       assert.equal(result[4], false);
       assert.equal(result[5], 0);
-      assert.equal(result[6], false);
-      
-      bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-      console.log('isScheduleGoodForRelease:', bool1);
-      assert.equal(bool1, false);
-  
     }
 
+    console.log('\n-----------------==Test addPayment() and editActualSchedule()');
+    paymentCount = await instIncomeManager.methods.paymentCount().call();
+    console.log('paymentCount:', paymentCount, typeof paymentCount);
+    assert.equal(paymentCount, '0');
 
-    console.log('\n--------==imApprove()');
-    await instIncomeManager.methods.imApprove(_index, true)
+    error = false;
+    try {
+      await instIncomeManager.methods.addPaymentCount()
+      .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] only can add payment count when 1st actual payment time and amount exist, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+    //require(schIndex > paymentCount
+    schIndex = 1;
+    console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+    actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+    actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+    await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('getIncomeSchedule():', _index, forecastedPayableTime, forecastedPayableAmount, result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], 0);
-    assert.equal(result[3], 0);
-    assert.equal(result[4], true);
-    assert.equal(result[5], 0);
-    assert.equal(result[6], false);
-
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease:', bool1);
-    assert.equal(bool1, true);
-
-
-    console.log('\n--------==setPaymentReleaseResults');
-    _paymentDate = forecastedPayableTime;
-    _paymentAmount = forecastedPayableAmount;
-    _errorCode = 21;
-    await instIncomeManager.methods.setPaymentReleaseResults(_index, _paymentDate, _paymentAmount, _errorCode)
-    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], _paymentDate);
-    assert.equal(result[3], _paymentAmount);
-    assert.equal(result[4], true);
-    assert.equal(result[5], _errorCode);
-    assert.equal(result[6], false);
+    assert.equal(result[2], actualPaymentTime);
+    assert.equal(result[3], actualPaymentAmount);
+    assert.equal(result[4], '0');
+    assert.equal(result[5], false);
 
-    bool1 = await instIncomeManager.methods.isScheduleGoodForRelease(forecastedPayableTime).call();
-    console.log('isScheduleGoodForRelease:', bool1);
-    assert.equal(bool1, false);
+    console.log('\n--------==addPaymentCount()');
+    await instIncomeManager.methods.addPaymentCount()
+    .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    paymentCount = await instIncomeManager.methods.paymentCount().call();
+    console.log('paymentCount:', paymentCount, typeof paymentCount);
+    assert.equal(paymentCount, '1');
+    console.log('Successfully added paymentCount after entering 1st actual payment time & amount');
 
 
-    await instIncomeManager.methods.setErrResolution(_index, true)
+    console.log('\n-----------------==');
+    error = false;
+    try {
+      await instIncomeManager.methods.addPaymentCount()
+      .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] only can add payment count when actual payment time exists, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+    schIndex = 2;
+    console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+    actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+    actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+    await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    result = await instIncomeManager.methods.getIncomeSchedule(_index).call(); 
-    console.log('\n--------==setErrResolution()', result);
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('', result);
     assert.equal(result[0], forecastedPayableTime);
     assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], _paymentDate);
-    assert.equal(result[3], _paymentAmount);
-    assert.equal(result[4], true);
-    assert.equal(result[5], _errorCode);
-    assert.equal(result[6], true);
+    assert.equal(result[2], actualPaymentTime);
+    assert.equal(result[3], actualPaymentAmount);
+    assert.equal(result[4], '0');
+    assert.equal(result[5], false);
+
+    console.log('\n--------==addPaymentCount()');
+    await instIncomeManager.methods.addPaymentCount()
+    .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    paymentCount = await instIncomeManager.methods.paymentCount().call();
+    console.log('paymentCount:', paymentCount, typeof paymentCount);
+    assert.equal(paymentCount, '2');
+    console.log('Successfully added paymentCount after entering 2nd actual payment time & amount');
 
 
-    console.log('\n--------==getIncomeScheduleList()');
+    error = false;
+    try {
+      schIndex = 2;
+      console.log('\n--------==Try to editActualSchedule after addPaymentCount()');
+      console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+      forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+      forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+      actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+      actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+      await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
+      .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('\n[Success] only can editActualPayment() when schIndex > paymentCount, err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+
+    schIndex = 5;
+    console.log('\n--------==editActualSchedule for schIndex =', schIndex);
+    forecastedPayableTime = forecastedPayableTimes[schIndex-1];
+    forecastedPayableAmount = forecastedPayableAmounts[schIndex-1];
+    actualPaymentTime = forecastedPayableTimes[schIndex-1]+1;
+    actualPaymentAmount = forecastedPayableAmounts[schIndex-1]+1;
+    await instIncomeManager.methods.editActualSchedule(schIndex, actualPaymentTime, actualPaymentAmount)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('', result);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
+    assert.equal(result[2], actualPaymentTime);
+    assert.equal(result[3], actualPaymentAmount);
+    assert.equal(result[4], '0');
+    assert.equal(result[5], false);
+    console.log('\nSuccess: can editActualSchedule('+schIndex+') way ahead');
+
+    console.log('\n--------==getIncomeScheduleList(indexStart = 0; amount = 0;)');
     indexStart = 0; amount = 0;
     let scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
     console.log('scheduleList', scheduleList);
 
 
-
-    console.log('\n--------==editIncomeSchedule');
-    _index = 2; forecastedPayableTime = 201906110222; forecastedPayableAmount = 4000;
-
-    await instIncomeManager.methods.editIncomeSchedule(_index, forecastedPayableTime, forecastedPayableAmount)
+    _errorCode = 21;
+    _isErrorResolved = true;
+    await instIncomeManager.methods.setErrResolution(schIndex, _isErrorResolved, _errorCode)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
-    console.log('\n--------==getIncomeScheduleList()');
+    result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
+    console.log('\n--------==setErrResolution()', result);
+    assert.equal(result[0], forecastedPayableTime);
+    assert.equal(result[1], forecastedPayableAmount);
+    assert.equal(result[2], actualPaymentTime);
+    assert.equal(result[3], actualPaymentAmount);
+    assert.equal(result[4], _errorCode);
+    assert.equal(result[5], _isErrorResolved);
+
+
+
+
+    console.log('\n--------==getIncomeScheduleList(indexStart = 1; amount = 0;)');
     indexStart = 1; amount = 0;
     scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
     console.log('scheduleList', scheduleList);
-
-
-    console.log('\n--------==removeIncomeSchedule()');
-    _index = 3; forecastedPayableTime = 201906110999;
-    await instIncomeManager.methods.removeIncomeSchedule(_index)
-    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-
-    console.log('\n--------==getIncomeScheduleList()');
-    indexStart = 1; amount = 0;
-    scheduleList = await instIncomeManager.methods.getIncomeScheduleList(indexStart, amount).call(); 
-    console.log('scheduleList', scheduleList);
-
 
 
   });
@@ -2072,14 +2110,38 @@ describe('Tests on CrowdFundingCtrt', () => {
       assert.equal(fundingStateM, 4);
     }
 
-
-    //------------------==
-    /*
-    */
-
   });
-
 });
+
+
+describe('Tests on ArrayTesting', () => {
+
+  it('ArrayTesting functions test', async function() {
+    console.log('\n------------==Check ArrayTesting parameters');
+    let array1 = [ '1', '2', '3', '4', '5'];
+    let array2 = [ '6', '7', '8'];
+
+    let array, idxStart, idxEnd, amount;
+    array = array1; idxStart = 0; idxEnd = 4; amount = 5;
+    //sliceB(uint[] calldata array, uint idxStart, uint idxEnd, uint amount) 
+    let arrayOut = await instArrayUtils.methods.sliceB(array, idxStart, idxEnd, amount).call();
+    console.log('\narrayOut', arrayOut);
+
+    // console.log('addrCrowdFunding', addrCrowdFunding);
+  });
+});
+
+
+//--------------------------------==
+// Make a script entry at package.json:
+//    "testxyz": "mocha --grep xyzCtrt",
+// describe('Tests on xyzCtrt', () => {
+//   it('... functions test', async function()  {
+//     this.timeout(9500);
+//     console.log('\n------------==Check DDD parameters');
+//   });
+// });
+//--------------------------------==
 
 //-------------==
 /*

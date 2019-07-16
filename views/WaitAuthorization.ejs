@@ -20,52 +20,20 @@
                     </div>
     
                     <div class="down">
-                        <div class="signUpWindow">
+                        <div class="signUpWindow" style="height: 240px;">
                             <div class="windowUp">
                                 <div class="title">
-                                    會員註冊
+                                    等待授權
                                 </div>
                             </div>
                             <div class="windowDown">
                                 <div class="right">
-                                    <div class="login">
-                                        <form name="addform" id="addform" action="/BackendUser/AddBackendUser" method="post" accept-charset="utf-8" >
-                                            <div class="inputTitle">Email*<span id="errorMessage" style="color:red;font-size:12px; "></span></div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_id" id="m_id" onchange="isEmail(this.value)">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div>
-                                            <!-- <br> -->
-                                            <div class="inputTitle">密碼*</div>
-                                            <div class="inputContainer">
-                                                <input type="password" class="password" name="m_password_1" id="m_password_1">
-                                                <i class="fas fa-lock"></i>
-                                            </div>
-                                            <!-- <br> -->
-                                            <div class="inputTitle">確認密碼*</div>
-                                            <div class="inputContainer">
-                                                <input type="password" class="password" name="m_password_2" id="m_password_2">
-                                                <i class="fas fa-lock"></i>
-                                            </div>
-                                            <div>
-                                                <input type="hidden" name="m_salt" placeholder="m_salt" id="m_salt">
-                                            </div>
-                                            <div>
-                                                <input type="hidden" name="m_passwordhash" placeholder="m_passwordhash" id="m_passwordhash">
-                                            </div>
-                                            <div class="inputTitle">公司*</div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_company">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div>
-                                            <!-- <div class="inputTitle">Email*</div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_email">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div> -->
-                                            <div class="haveAccount responseState"></div>
-                                            <input type='button' value="註冊" id="register" class="register">
-                                        </form>
+                                    <div class="login" style="text-align: center;">
+                                        <br>
+                                        <span>平台方將在審核後授權</span>
+                                        <br><br>
+                                        <!-- <i class="far fa-exclamation-triangle" style="font-size: 100px;color:#ff5c59;"></i> -->
+                                        <i class="far fa-pause-circle" style="font-size: 100px;color:#ff5c59;"></i>
                                         <div class="clear"></div>
                                     </div>
                                 </div>
@@ -80,16 +48,7 @@
             </div>
     
             <div class="clear"></div>
-    
-            <!-- <div class="footer">
-                <div class="Info">
-                    <div class="title">@NCCU Blockchain Hub</div>
-    
-                </div>
-            </div> -->
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/is_js/0.9.0/is.js"></script>
-    <script src="/js/BackendUserRegister.js"></script>
 </body>
 
 </html>
