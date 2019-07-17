@@ -114,7 +114,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
       p_state: "initial",
       p_fundingGoal: _quantityGoal,
       p_lockuptime: TimeTokenUnlock,
-      p_tokenState: "lockupperiod",
+      p_tokenState: "lockup",
     };
     console.log(sql);
 
@@ -225,7 +225,7 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 
     console.log(sqlObject);
 
-    const queryStr1 = 'INSERT INTO order SET ?';
+    const queryStr1 = 'INSERT INTO order_list SET ?';
     const result1 = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
     console.log(result1)
     resolve(true);
@@ -246,6 +246,45 @@ const addActualPaymentTime = (actualPaymentTime, symbol, payablePeriodEnd) => {
       return false;
     });
     console.log('result', result);
+    resolve(true);
+  });
+}
+
+const addIncomeArrangementRow = (symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, ia_state, singleCalibrationActualIncome) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside addIncomeArrangementRow():', symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, ia_state, singleCalibrationActualIncome);
+    const sqlObject = {
+      ia_SYMBOL: symbol,
+      ia_time:  ia_time,
+      ia_actualPaymentTime:  actualPaymentTime,
+      ia_Payable_Period_End:  payablePeriodEnd,
+      ia_Annual_End:  annualEnd,
+      ia_wholecase_Principal_Called_back : wholecasePrincipalCalledBack,
+      ia_wholecase_Book_Value : wholecaseBookValue,
+      ia_wholecase_Forecasted_Annual_Income : wholecaseForecastedAnnualIncome,
+      ia_wholecase_Forecasted_Payable_Income_in_the_Period : wholecaseForecastedPayableIncome,
+      ia_wholecase_Accumulated_Income : wholecaseAccumulatedIncome,
+      ia_wholecase_Income_Recievable : wholecaseIncomeReceivable,
+      ia_wholecase_Theory_Value : wholecaseTheoryValue,
+      ia_single_Principal_Called_back : singlePrincipalCalledBack,
+      ia_single_Forecasted_Annual_Income : singleForecastedAnnualIncome,
+      ia_single_Forecasted_Payable_Income_in_the_Period : singleForecastedPayableIncome,
+      ia_single_Actual_Income_Payment_in_the_Period : singleActualIncomePayment,
+      ia_single_Accumulated_Income_Paid : singleAccumulatedIncomePaid,
+      ia_single_Token_Market_Price : singleTokenMarketPrice,
+      ia_State : ia_state,
+      ia_single_Calibration_Actual_Income_Payment_in_the_Period : singleCalibrationActualIncome,
+    };
+    console.log(sqlObject);
+
+    const queryStr = 'INSERT INTO income_arrangement SET ?';
+    const result = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
+      console.log('[Error @ mysqlPoolQueryB(queryStr)]'+err);
+      reject(err);
+      return false;
+    });
+    console.log('result', result);
+    console.log("\ntransaction_info table has been added with one new row. result:");
     resolve(true);
   });
 }
@@ -275,7 +314,7 @@ const addIncomeArrangementRowDev = (incomeArrangementNum) => {
       ia_single_Token_Market_Price : incomeArrangement.singleTokenMarketPrice,
       ia_State : incomeArrangement.ia_state,
       ia_single_Calibration_Actual_Income_Payment_in_the_Period : incomeArrangement.singleCalibrationActualIncome,
-    };//random() to prevent duplicate NULL entry!
+    };
     console.log(sqlObject);
 
     const queryStr = 'INSERT INTO income_arrangement SET ?';
@@ -937,7 +976,7 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
-    addIncomeArrangementRowDev,
+    addIncomeArrangementRowDev, addIncomeArrangementRow,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 

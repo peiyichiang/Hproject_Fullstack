@@ -221,18 +221,18 @@ let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
 
 const addrZero = "0x0000000000000000000000000000000000000000";
-let argsAssetBook1, argsAssetBook2;
-let instAssetBook1, instAssetBook2, instAsset3, instAsset4; 
-let addrAssetBook1, addrAssetBook2, addrAsset3, addrAsset4;
+let argsAssetBook1, argsAssetBook2, argsAssetBook3;
+let instAssetBook1, instAssetBook2, instAssetBook3;
+let addrAssetBook1, addrAssetBook2, addrAssetBook3;
 
-const { TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2 } = require('../ethereum/contracts/zsetupData');
+const { TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED } = require('../ethereum/contracts/zsetupData');
 
 const tokenName = "NCCU site No.1(2018)";
 const tokenSymbol = "NCCU1801";
 const siteSizeInKW = 300;
 const maxTotalSupply = 773;
 const quantityGoal = 752;//const _goalInPercentage = 0.97;
-const initialAssetPricing = 17000;
+const initialAssetPricing = 15000;
 const pricingCurrency = "NTD";
 const IRR20yrx100 = 470;
 const tokenURI = tokenSymbol+"/uri";
@@ -312,6 +312,7 @@ beforeEach( async function() {
 
     argsAssetBook1 = [ AssetOwner1, addrHeliumCtrt];
     argsAssetBook2 = [ AssetOwner2, addrHeliumCtrt];
+    argsAssetBook3 = [ AssetOwner3, addrHeliumCtrt];
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
@@ -338,6 +339,18 @@ beforeEach( async function() {
     instAssetBook2.setProvider(provider);
     addrAssetBook2 = instAssetBook2.options.address;
     console.log('addrAssetBook2:', addrAssetBook2);
+
+    instAssetBook3 =  await new web3.eth.Contract(AssetBook.abi)
+    .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook3 })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    //.then(console.log);
+    console.log('AssetBook.sol has been deployed');
+    if (instAssetBook3 === undefined) {
+      console.log('[Error] instAssetBook3 is NOT defined');
+      } else {console.log('[Good] instAssetBook3 is defined');}
+    instAssetBook3.setProvider(provider);
+    addrAssetBook3 = instAssetBook3.options.address;
+    console.log('addrAssetBook3:', addrAssetBook3);
 
     
     //Deploying Registry contract...
@@ -387,7 +400,7 @@ beforeEach( async function() {
     console.log('addrHCAT721:', addrHCAT721);
 
     console.log('\nDeploying CrowdFunding contract...');
-    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment_CF, addrHeliumCtrt];
+    const argsCrowdFunding = [tokenSymbol_bytes32, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD, CFED, TimeOfDeployment_CF, addrHeliumCtrt];
     instCrowdFunding = await new web3.eth.Contract(CrowdFunding.abi)
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -512,7 +525,7 @@ describe('Tests on HCAT721Ctrt', () => {
 
 
     //----------------==Registry contract
-    console.log('\n------------==Registry contract: add AssetBook contracts 1 & 2');
+    console.log('\n------------==Registry contract: add AssetBook 1, 2, 3');
     console.log('addrRegistry', addrRegistry);
     uid = "A500000001"; assetbookAddr = addrAssetBook1; authLevel = 5;
     await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
@@ -533,6 +546,15 @@ describe('Tests on HCAT721Ctrt', () => {
     assert.equal(user2M[0], assetbookAddr);
     assert.equal(user2M[1], authLevel);
 
+    uid = "A500000003"; assetbookAddr = addrAssetBook3; authLevel = 5;
+    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    console.log('Registry: getUserFromUid()');
+    let user3M = await instRegistry.methods.getUserFromUid(uid).call();
+    console.log('user3M', user3M);
+    assert.equal(user3M[0], assetbookAddr);
+    assert.equal(user3M[1], authLevel);
 
     //----------------==
     console.log('\n------------==Check HCAT721 parameters');
@@ -597,8 +619,8 @@ describe('Tests on HCAT721Ctrt', () => {
 
     //----------------==Mint Token One
     console.log('\n------------==Assetbook1');
-    _to = addrAssetBook1; amount = 1; serverTime = CFSD2-1;
-    price = 17000; fundingType = 1;//PO: 1, PP: 2
+    _to = addrAssetBook1; amount = 1; serverTime = TimeTokenUnlock-1
+    price = 15000; fundingType = 1;//PO: 1, PP: 2
     tokenId = amount;
 
     assetbookMX = await instAssetBook1.methods.getAsset(0,assetAddr).call();
@@ -663,7 +685,7 @@ describe('Tests on HCAT721Ctrt', () => {
     tokenIdM = await instHCAT721.methods.tokenId().call();
     assert.equal(tokenIdM, 1);
 
-    _to = addrAssetBook1; amount = 3; serverTime = CFSD2-1;
+    _to = addrAssetBook1; amount = 3; serverTime = TimeTokenUnlock-1
     //let _tos = [_to, _to, _to];
     let _uriStrs = [uriBase+"2", uriBase+"3", uriBase+"4"];
     const strToBytes32 = str => web3.utils.fromAscii(str);
@@ -727,7 +749,7 @@ describe('Tests on HCAT721Ctrt', () => {
     //HCAT721: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
-    _to = addrAssetBook2; amount = 3; serverTime = CFSD2-1;
+    _to = addrAssetBook2; amount = 3; serverTime = TimeTokenUnlock-1
     //_tos = [_to, _to, _to];
     _uriStrs = [uriBase+"5", uriBase+"6", uriBase+"7"];
     _uriBytes32s = _uriStrs.map(strToBytes32);
@@ -789,49 +811,19 @@ describe('Tests on HCAT721Ctrt', () => {
     assert.equal(ownerAddrsM1[1], addrAssetBook2);
 
 
-    //-----------------==Check if STO Compliance for balance
-    console.log('\n------------==Check if STO Compliance for balance');
+
+    //-----------------==Check if STO Compliance for buyAmount: addrAssetBook3
+    console.log('\n------------==Check if STO Compliance for buyAmount: addrAssetBook3');
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook3).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook3, 0, 0).call();
+    let totalAssetBalance = initialAssetPricing * balanceXM;
+    console.log(`HCAT721 tokenId = ${tokenIds}, balanceXM = ${balanceXM}
+initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBalance}`);
+
     error = false;
-    _to = addrAssetBook1; amount = 2; serverTime = CFSD2-1;
-    price = 17000;  fundingType = 1; //PO: 1, PP: 2
-    console.log(`mintSerialNFT()... to = addrAssetBook1
-    amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
-
-    //const result2 = await instHCAT721.methods.isFundingApproved(_to, amount, price, fundingType).call();
-    //console.log(result2);
-    
-    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
-    console.log(result1);
-    boolArray = result1[0];
-    uintArray = result1[1];
-    //console.log('boolArray', boolArray);
-  
-    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
-    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
-    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
-    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
-    is msg.sender platformSupervisor: ${boolArray[7]}
-    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
-    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
-    `);
-
-    try {
-      await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-        value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-      error = true;
-    } catch (err) {
-      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 120));
-      assert(err);
-    }
-    if (error) {assert(false);}
-
-
-    //-----------------==Check if STO Compliance for buyAmount
-    console.log('\n------------==Check if STO Compliance for buyAmount');
-    error = false;
-    _to = addrAssetBook1; amount = 8; serverTime = CFSD2-1;
-    price = 17000;  fundingType = 1; //PO: 1, PP: 2
-    console.log(`mintSerialNFT()... to = addrAssetBook1
+    _to = addrAssetBook3; amount = 21; serverTime = TimeTokenUnlock-1;
+    price = initialAssetPricing;  fundingType = 1; //PO: 1, PP: 2
+    console.log(`mintSerialNFT()... to = addrAssetBook3
     amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
 
     result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
@@ -861,6 +853,54 @@ describe('Tests on HCAT721Ctrt', () => {
     if (error) {assert(false);}
 
 
+    amount = 20;
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
+    value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook3, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook3).call();
+    totalAssetBalance = initialAssetPricing * balanceXM;
+    console.log(`\nHCAT721 tokenId = ${tokenIds}, balanceXM = ${balanceXM}
+initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBalance}
+[Success] minting 20 tokens to assetbook3 with maximum allowed buyAmount`);
+
+    //-----------------==Check if STO Compliance for balance
+    console.log('\n------------==Check if STO Compliance for balance: addrAssetBook3');
+
+    error = false;
+    amount = 1;
+    console.log(`mintSerialNFT()... to = addrAssetBook3
+    amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
+
+    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
+    console.log(result1);
+    boolArray = result1[0];
+    uintArray = result1[1];
+    //console.log('boolArray', boolArray);
+  
+    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
+    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
+    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
+    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
+    is msg.sender platformSupervisor: ${boolArray[7]}
+    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
+    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
+    `);
+
+    try {
+      await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
+        value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 120));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+
+
+
+
     //-----------------==Check Token Controller: time
     console.log('\n------------==Check TokenController parameters: time');
     console.log('addrTokenController', addrTokenController);
@@ -873,7 +913,7 @@ describe('Tests on HCAT721Ctrt', () => {
     isTokenApprovedM = tokenControllerDetail[4];
     console.log('TimeOfDeployment_TokCtrl', TimeOfDeployment_TokCtrlM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLockedForReleaseM', isLockedForReleaseM, ', isTokenApprovedM', isTokenApprovedM);
 
-    isSenderAllowed = await instTokenController.methods.checkPlatformSupervisor().call({from: admin});
+    isSenderAllowed = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: admin});
     assert.equal(isSenderAllowed, true);
     console.log('checkPlatformSupervisor() is confirmed working');
 
@@ -897,7 +937,7 @@ describe('Tests on HCAT721Ctrt', () => {
 
     error = false;
     try {
-      _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
       _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock-1;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
@@ -923,7 +963,7 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('tokenStateM', tokenStateM);
     assert.equal(tokenStateM, 1);
 
-    _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
+    _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
     _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
@@ -960,7 +1000,7 @@ describe('Tests on HCAT721Ctrt', () => {
 
     //------------------------==
     //-----------------==Check AssetBook2
-    _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 17000;
+    _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 15000;
     _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
@@ -1165,7 +1205,7 @@ describe('Tests on HCAT721Ctrt', () => {
 
     error = false;
     try {
-      _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 17000;
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
       _fromAssetOwner = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
@@ -1862,7 +1902,7 @@ describe('Tests on CrowdFundingCtrt', () => {
     console.log('\n------------==Check CrowdFunding parameters');
     console.log('addrCrowdFunding', addrCrowdFunding);
 
-    console.log("CFSD2:", CFSD2, ", CFED2:", CFED2);
+    console.log("CFSD:", CFSD, ", CFED:", CFED);
 
     let tokenSymbolB32M = await instCrowdFunding.methods.tokenSymbol().call();
     tokenSymbolM = web3.utils.toAscii(tokenSymbolB32M);
@@ -1884,19 +1924,19 @@ describe('Tests on CrowdFundingCtrt', () => {
     console.log('quantityGoalM', quantityGoalM);
     assert.equal(quantityGoalM, quantityGoal);
 
-    let CFSD2M = await instCrowdFunding.methods.CFSD2().call();
-    console.log('CFSD2M', CFSD2M);
-    assert.equal(CFSD2M, CFSD2);
+    let CFSDM = await instCrowdFunding.methods.CFSD().call();
+    console.log('CFSDM', CFSDM);
+    assert.equal(CFSDM, CFSD);
 
-    let CFED2M = await instCrowdFunding.methods.CFED2().call();
-    console.log('CFED2M', CFED2M);
-    assert.equal(CFED2M, CFED2);
+    let CFEDM = await instCrowdFunding.methods.CFED().call();
+    console.log('CFEDM', CFEDM);
+    assert.equal(CFEDM, CFED);
 
 
     //-------------------==
     console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
-    serverTime = CFSD2-1;
-    console.log('set servertime = CFSD2-1', serverTime);//201905281400;
+    serverTime = CFSD-1;
+    console.log('set servertime = CFSD-1', serverTime);//201905281400;
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1909,8 +1949,8 @@ describe('Tests on CrowdFundingCtrt', () => {
     assert.equal(fundingStateM, 0);
 
     //-------------------==
-    serverTime = CFSD2;
-    console.log('\nset serverTime = CFSD2', CFSD2);
+    serverTime = CFSD;
+    console.log('\nset serverTime = CFSD', CFSD);
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     
@@ -1923,8 +1963,8 @@ describe('Tests on CrowdFundingCtrt', () => {
     assert.equal(fundingStateM, 1);
 
     if (1==2){
-      serverTime = CFED2;
-      console.log('\nset serverTime = CFED2', CFED2);
+      serverTime = CFED;
+      console.log('\nset serverTime = CFED', CFED);
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   
@@ -1938,8 +1978,8 @@ describe('Tests on CrowdFundingCtrt', () => {
       //process.exit(1);
     }
 
-    serverTime = CFSD2+1;
-    console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
+    serverTime = CFSD+1;
+    console.log('\nset serverTime = CFSD+1', serverTime, '\nmakeFundingAction(), invest()');
     // await instCrowdFunding.methods.makeFundingActive(serverTime)
     // .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1988,8 +2028,8 @@ describe('Tests on CrowdFundingCtrt', () => {
 
 
     //------------------==Set time to initial
-    console.log('\nset serverTime = CFSD2-1');
-    serverTime = CFSD2-1;
+    console.log('\nset serverTime = CFSD-1');
+    serverTime = CFSD-1;
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     
@@ -2001,9 +2041,9 @@ describe('Tests on CrowdFundingCtrt', () => {
     console.log('fundingStateM', fundingStateM);
     assert.equal(fundingStateM, 0);
 
-    //------------------==Back to CFSD2
-    serverTime = CFSD2;
-    console.log('\nset serverTime = CFSD2');
+    //------------------==Back to CFSD
+    serverTime = CFSD;
+    console.log('\nset serverTime = CFSD');
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -2032,7 +2072,7 @@ describe('Tests on CrowdFundingCtrt', () => {
 
     if(1==1){
       //-------------------==Pause the crowdfunding
-      serverTime = CFSD2+3;
+      serverTime = CFSD+3;
       console.log('\nPause funding');
       await instCrowdFunding.methods.pauseFunding(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -2046,9 +2086,9 @@ describe('Tests on CrowdFundingCtrt', () => {
       assert.equal(fundingStateM, 2);
 
       //-------------------==resumeFunding the crowdfunding
-      serverTime = CFSD2+3;
+      serverTime = CFSD+3;
       console.log('\nResume funding');
-      await instCrowdFunding.methods.resumeFunding(CFED2, maxTotalSupply, serverTime)
+      await instCrowdFunding.methods.resumeFunding(CFED, maxTotalSupply, serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
@@ -2095,9 +2135,9 @@ describe('Tests on CrowdFundingCtrt', () => {
       }
       
     } else {
-      //-------------------==CFED2 has been reached
-      console.log('\nCFED2 has been reached');
-      serverTime = CFED2;
+      //-------------------==CFED has been reached
+      console.log('\nCFED has been reached');
+      serverTime = CFED;
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 

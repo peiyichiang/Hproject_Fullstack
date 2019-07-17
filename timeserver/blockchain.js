@@ -418,7 +418,9 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     const result = await instHCAT721.methods.checkMintSerialNFT(toAddress, amount, price, fundingType, serverTime).call({from: backendAddr});
     console.log('\nresult', result);
-    const boolArray = result[0];
+    const [boolArray, uintArray] = result;
+    //const boolArray = result[0];
+
     let mesg;
     if(amountArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
@@ -428,23 +430,32 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
     } else {
       if(!boolArray[0]){
         mesg += ', [0] toAddress has no contract';
-      } else if(!boolArray[1]){
+      } 
+      if(!boolArray[1]){
         mesg += ', [1] toAddress has no onERC721Received()';
-      } else if(!boolArray[2]){
+      } 
+      if(!boolArray[2]){
         mesg += ', [2] amount <= 0';
-      } else if(!boolArray[3]){
+      } 
+      if(!boolArray[3]){
         mesg += ', [3] price <= 0';
-      } else if(!boolArray[4]){
+      } 
+      if(!boolArray[4]){
         mesg += ', [4] fundingType <= 0';
-      } else if(!boolArray[5]){
+      } 
+      if(!boolArray[5]){
         mesg += ', [5] serverTime <= TimeOfDeployment';
-      } else if(!boolArray[6]){
+      } 
+      if(!boolArray[6]){
         mesg += ', [6] tokenId + amount > maxTotalSupply';
-      } else if(!boolArray[7]){
+      } 
+      if(!boolArray[7]){
         mesg += ', [7] Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
-      } else if(!boolArray[8]){
+      } 
+      if(!boolArray[8]){
         mesg += ', [8] Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
-      } else if(!boolArray[9]){
+      } 
+      if(!boolArray[9]){
         mesg += ', [9] Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
       }
       if(mesg.substring(0,2) === ', '){
@@ -473,7 +484,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
     const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, serverTime).encodeABI();
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch(async(err) => {
       console.log('\n[Error @ signTx() mintSerialNFT()]'+ err);
-      const mesg = await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime)
+      const mesg = await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime);
     });
     console.log('TxResult', TxResult);
   });
@@ -483,7 +494,7 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
 
 
 //to be called from API and zlivechain.js, etc...
-const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, symbol) => {
+const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //const waitTimeSuper = 13000;
   //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
@@ -514,7 +525,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('\nbalanceArrayBefore', balanceArrayBefore, '\nbalanceArrayAfter after', balanceArrayAfter);
 
   const isFailed = isCorrectAmountArray.includes(false);
-  console.log('\nisFailed', isFailed, 'isCorrectAmountArray', isCorrectAmountArray);
+  console.log('\nisFailed:', isFailed, ', isCorrectAmountArray', isCorrectAmountArray);
 
   console.log('\n--------------==About to call addAssetRecordRowArray()');
   const ar_time = serverTime;
@@ -523,20 +534,24 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   const asset_valuation = 13000;
   const holding_amount_changed = 0;
   const holding_costChanged = 0;
-  const acquired_cost = 13000;
   const moving_ave_holding_cost = 13000;
-  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquired_cost, moving_ave_holding_cost).catch((err) => {
-    console.log('[Error @ addAssetRecordRowArray]'+ err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false, false, false];
-    //is_addAssetRecordRowArray = false;
+
+  const acquiredCostArray = amountArray.map((element) => {
+    return element * pricing;
   });
+  console.log(acquiredCostArray);
+
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]'+ err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,false,false,false];
+  });
+  console.log('emailArrayError:', emailArrayError, ', amountArrayError:', amountArrayError);
 
   const actualPaymentTime = ar_time;
   const payablePeriodEnd = 0;
   const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
     console.log('[Error @ addActualPaymentTime]'+ err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
-    //is_addActualPaymentTime = false;
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
   });
 
   const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {

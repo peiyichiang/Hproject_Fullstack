@@ -382,7 +382,7 @@ const setupTest = async () => {
   // assetSymbol, addrHCAT721Index, 
   // assetAmount, timeIndexStart, 
   // timeIndexEnd, isInitialized);
-  console.log('\n----------------==Registry contract: add AssetBook contracts');
+  console.log('\n----------------==Registry contract: add AssetBook');
   let userM;
   console.log('addrRegistry', addrRegistry);
   //let getUserCountM = await instRegistry.methods.getUserCount().call();
@@ -471,11 +471,15 @@ const setupTest = async () => {
   let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
   checkEq(supportsInterface0x780e9d63, true);
 
-  const newplatformSupervisor = AssetOwner10;
-  const result = await addPlatformSupervisor(newplatformSupervisor).catch((err) => {
-    console.log('[Error @ addPlatformSupervisor]', err);
+  const platformSupervisorNew = AssetOwner10;
+  const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrHelium, encodedData).catch((err) => {
+    reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
+    return false;
   });
-  console.log(`result: ${JSON.stringify(result) }`);
+  console.log('\nTxResult', TxResult);
+  let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
+  console.log('\nresult', result);
 
   console.log('setup has been completed');
   process.exit(0);
@@ -612,12 +616,12 @@ const sequentialMintSuperAPI = async () => {
   const toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];//[...assetbookArray];
   const tokenCtrtAddr = addrHCAT721;
   const fundingType = 2;//PO: 1, PP: 2
-  const price = 20000;
+  const pricing = 15000;
   const maxMintAmountPerRun = 180;
 
-  const serverTime = 201906271000;//297
+  const serverTime = TimeTokenUnlock-1;//201906271000;//297
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
@@ -669,10 +673,10 @@ const sequentialMintSuperNoMintAPI = async () => {
   const amountArray = [236, 312, 407];//236, 312 ... prev 250, 270, 0
   const tokenCtrtAddr = addrHCAT721;
   const fundingType = 2;//PO: 1, PP: 2
-  const price = 20000;
+  const pricing = 20000;
 
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray] = await sequentialMintSuperNoMint(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+  const [isFailed, isCorrectAmountArray] = await sequentialMintSuperNoMint(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing).catch((err) => {
     console.log('[Error @ sequentialMintSuperNoMint]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);

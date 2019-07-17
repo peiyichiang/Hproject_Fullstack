@@ -1,7 +1,7 @@
 //--------------------==
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
 //const {  } = require('./utilities');
@@ -11,6 +11,16 @@ const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOw
 
 let func, arg1, arg2, arg3;
 
+const userIdArray = [];
+const investorLevelArray = [];
+const assetbookArray = [];
+userArray.forEach((user, idx) => {
+  if (idx !== 0 ){
+    userIdArray.push(user.identityNumber);
+    investorLevelArray.push(user.investorLevel);
+    assetbookArray.push(user.addrAssetBook);
+  }
+});
 // yarn run testmt -f F
 // yarn run testmt -f F -a1 arg2 -a2 arg3 -a3 arg3
 const arguLen = process.argv.length;
@@ -391,6 +401,106 @@ const orderBalanceTotal_API = async () => {
   process.exit(0);
 }
 
+
+// yarn run testmt -f 8
+const sequentialMintSuperP2_API = async () => {
+  console.log('\n--------------==About to call addAssetRecordRowArray()');
+  const toAddressArray = [assetbookArray[0], assetbookArray[1], assetbookArray[2]];
+  const amountArray = [ 20, 37, 41 ];
+  const symbol = nftSymbol;
+  const serverTime = TimeTokenUnlock-1;
+  const pricing = 15000;
+
+  const ar_time = serverTime;
+  const singleActualIncomePayment = 0;// after minting tokens
+
+  const asset_valuation = 13000;
+  const holding_amount_changed = 0;
+  const holding_costChanged = 0;
+  const moving_ave_holding_cost = 13000;
+
+  const acquiredCostArray = amountArray.map((element) => {
+    return element * pricing;
+  });
+  console.log(acquiredCostArray);
+
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]'+ err);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false, false, false];
+  });
+  console.log('emailArrayError:', emailArrayError, ', amountArrayError:', amountArrayError);
+
+
+  const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+    console('[Error @ setFundingStateDB()', err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+  });
+  process.exit(0);
+}
+
+// yarn run testmt -f 9
+const addIncomeArrangementRow_API = async () => {
+  const actualPaymentTime = TimeTokenUnlock-1;
+  const symbol = nftSymbol;
+  const payablePeriodEnd = 0;
+  const result2 = await addIncomeArrangementRow(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, ia_state, singleCalibrationActualIncome).catch((err) => {
+    console.log('[Error @ addActualPaymentTime]'+ err);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+    //is_addActualPaymentTime = false;
+  });
+
+}
+
+// yarn run testmt -f 10
+const addIncomeArrangementRow_API = async () => {
+
+}
+
+// yarn run testmt -f 9
+const addIncomeArrangementRow_API = async () => {
+  console.log('\n--------------==About to call addAssetRecordRowArray()');
+  const toAddressArray = [assetbookArray[0], assetbookArray[1], assetbookArray[2]];
+  const amountArray = [ 20, 37, 41 ];
+  const symbol = nftSymbol;
+  const serverTime = TimeTokenUnlock-1;
+  const pricing = 15000;
+
+  const ar_time = serverTime;
+  const singleActualIncomePayment = 0;// after minting tokens
+
+  const asset_valuation = 13000;
+  const holding_amount_changed = 0;
+  const holding_costChanged = 0;
+  const moving_ave_holding_cost = 13000;
+
+  const acquiredCostArray = amountArray.map((element) => {
+    return element * pricing;
+  });
+  console.log(acquiredCostArray);
+
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArray]'+ err);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false, false, false];
+    //is_addAssetRecordRowArray = false;
+  });
+  console.log(emailArrayError, amountArrayError);
+
+  const actualPaymentTime = ar_time;
+  const payablePeriodEnd = 0;
+  const result2 = await addIncomeArrangementRow(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
+    console.log('[Error @ addActualPaymentTime]'+ err);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+    //is_addActualPaymentTime = false;
+  });
+
+  const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+    console('[Error @ setFundingStateDB()', err);
+    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+  });
+  process.exit(0);
+}
+
+
 //------------------------==
 // yarn run testmt -f 0
 if(func === 0){
@@ -423,6 +533,18 @@ if(func === 0){
 //yarn run testmt -f 7
 } else if (func === 7) {
   orderBalanceTotal_API();
+
+//yarn run testmt -f 8
+} else if (func === 8) {
+  sequentialMintSuperP2_API();
+
+//yarn run testmt -f 9
+} else if (func === 9) {
+  addIncomeArrangementRow_API();
+
+//yarn run testmt -f 10
+} else if (func === 10) {
+  addIncomeArrangementRow_API();
 
 
 //yarn run testmt -f 11

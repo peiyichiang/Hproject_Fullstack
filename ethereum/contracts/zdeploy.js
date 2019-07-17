@@ -3,7 +3,7 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 */
 /** deployed contracts
 yarn run deploy -c 1 -s 1 -cName cf
-cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm
+cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, pm
 */
 //const timer = require('./api.js');
 const Web3 = require('web3');
@@ -14,7 +14,7 @@ const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArr
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
 const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, 
-  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
+  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
 } = require('./zsetupData');
 
@@ -179,7 +179,7 @@ const deploy = async () => {
     //yarn run deploy -c 1 -s 1 -cName helium
     if (ctrtName === 'helium') {
       //Deploying Helium contract...
-      const argsHelium = [managementTeam];
+      const argsHelium = [[admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4]];
       console.log('\nDeploying Helium contract...');
       instHelium =  await new web3deploy.eth.Contract(Helium.abi)
       .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
@@ -533,21 +533,23 @@ const deploy = async () => {
     console.log('\n-------------==inside addUserRowAPI');
 
     await asyncForEach(userArray, async (user, idx) => {
-      const email = user.email;
-      const password = user.password;
-      const identityNumber = user.identityNumber;
-      const eth_add = user.eth_add;
-      const cellphone = user.cellphone;
-      const name = user.name;
-      const addrAssetBook = user.addrAssetBook;
-      const investorLevel = user.investorLevel;
-      const imagef = user.imagef;
-      const imageb = user.imageb;
-      const bank_booklet = user.bank_booklet;
-
-      console.log(`email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
-
-      await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+      if(idx !== 0){
+        const email = user.email;
+        const password = user.password;
+        const identityNumber = user.identityNumber;
+        const eth_add = user.eth_add;
+        const cellphone = user.cellphone;
+        const name = user.name;
+        const addrAssetBook = user.addrAssetBook;
+        const investorLevel = user.investorLevel;
+        const imagef = user.imagef;
+        const imageb = user.imageb;
+        const bank_booklet = user.bank_booklet;
+  
+        console.log(`email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
+  
+        await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+      }
     });
     process.exit(0);
   
@@ -563,11 +565,11 @@ const deploy = async () => {
 
   //yarn run deploy -c 1 -n 0 -cName addproduct
   } else if (ctrtName === 'addproduct'){//addproduct
-    console.log('\n-------------==inside addProductRowAPI');
+    console.log('\n-------------==inside addProductRow section');
     const TimeReleaseDate = TimeOfDeployment_HCAT;
     console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}`);
   
-    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD2, CFED2, quantityGoal, TimeTokenUnlock);
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock);
     process.exit(0);
 
 
