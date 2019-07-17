@@ -1273,7 +1273,6 @@ router.get('/testRayAPI',function (req, res, next){
     }
 });
 
-//有容
 router.get('/LaunchedProductList', function (req, res) {
     console.log('------------------------==\n@Product/ProductList');
     let mysqlPoolQuery = req.pool;
@@ -1335,35 +1334,16 @@ router.get('/LaunchedProductList', function (req, res) {
                 })
             }
             else {
-                if (productArray.length > 0) {
-                    /* TODO: 這些資料的斜線要去掉 */
-                    // productArray.map(
-                    //     product => {
-                    //         if (!product.imageURL)
-                    //             product.imageURL = "imageURL"
-                    //         if (!product.taiPowerApprovalDate)
-                    //             product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                    //         if (!product.BOEApprovalDate)
-                    //             product.BOEApprovalDate = "BOEApprovalDate"
-                    //         if (!product.PVTrialOperationDate)
-                    //             product.PVTrialOperationDate = "PVTrialOperationDate"
-                    //         if (!product.PVOnGridDate)
-                    //             product.PVOnGridDate = "PVOnGridDate"
-                    //         if (product.fundingType === "PO") {
-                    //             product.fundingType = "PublicOffering"
-                    //         } else if (product.fundingType === "PP") {
-                    //             product.fundingType = "PrivatePlacement"
-                    //         }
-                    //     });
-                    
+                if (productArray.length > 0) {                    
                     res.status(200);
                     res.json({
                         "message": "產品列表取得成功",
                         "result": productArray
                     });
                 } else {
+                    res.status(404);
                     res.json({
-                        "message": "產品列表取得成功: 找不到已上架產品"
+                        "message": "找不到已上架產品"
                     });
                 }
             }
@@ -1641,6 +1621,84 @@ router.get('/AssetImageURLAndIconURL', function (req, res, next) {
                 "message": "[Error] image & icon 取得失敗:\n" + err
             });
         })
+});
+
+router.get('/ProductDataBySymbol', function (req, res) {
+    console.log('------------------------==\n@Product/ProductList');
+    let mysqlPoolQuery = req.pool;
+    const symbol = req.query.symbol;
+    mysqlPoolQuery(
+        `SELECT 
+        p_irr AS IRR,
+        p_name AS name,
+        p_location AS location,
+        p_pricing AS pricing,
+        p_currency AS currency,
+        p_totalrelease AS maxProductQuantity,
+        ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
+        SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
+        SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
+        SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
+        SUBSTRING(p_releasedate, 9, 2) AS releaseDateHour,
+        SUBSTRING(p_releasedate, 11, 2) AS releaseDateMinute,
+        p_size AS size,
+        p_duration AS durationInYear,
+        SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
+        SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
+        SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
+        SUBSTRING(p_validdate, 9, 2) AS deadlineHour,
+        SUBSTRING(p_validdate, 11, 2) AS deadlineMinute,
+        p_Image1 AS imageURL,
+        p_TaiPowerApprovalDate AS taiPowerApprovalDate,
+        p_CFSD AS CFSD,
+        p_BOEApprovalDate AS BOEApprovalDate,
+        p_CFED AS CFED,
+        p_PVTrialOperationDate AS PVTrialOperationDate,
+        p_ContractOut AS contractOut,
+        p_CaseConstruction AS caseConstruction,
+        p_ElectricityBilling AS electricityBilling,
+        p_fundingType AS fundingType,
+        p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
+        IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
+        p_Copywriting AS copyWritingText
+        FROM product AS T1
+        LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
+                    FROM order_list
+                    WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
+                    GROUP BY o_symbol) AS T2
+        ON T1.p_SYMBOL = T2.o_symbol
+        LEFT JOIN ( SELECT o_symbol , COUNT(o_email) AS purchasedNumberOfPeople
+                    FROM order_list
+                    GROUP BY o_symbol) AS T3
+        ON T1.p_SYMBOL = T3.o_symbol
+        LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
+                    FROM income_arrangement 
+                    GROUP BY ia_SYMBOL) AS T4
+        ON T1.p_SYMBOL = T4.ia_SYMBOL
+        WHERE p_SYMBOL = ?;`, symbol ,function (err, productArray) {
+            if (err) {
+                res.status(400)
+                res.json({
+                    "message": "產品資訊取得失敗:\n" + err
+                })
+            }
+            else {
+                if (productArray.length > 0) {                    
+                    res.status(200);
+                    res.json({
+                        "message": "產品資訊取得成功",
+                        "result": productArray[0]
+                    });
+                } else {
+                    res.status(404);
+                    res.json({
+                        "message": `找不到產品: ${symbol}`
+                    });
+                }
+            }
+            /* code = 304? */
+        });
 });
 
 
