@@ -7,7 +7,7 @@ const router = express.Router();
 const { isTestingMode } = require('../ethereum/contracts/zsetupData');
 const { getTime } = require('../timeserver/utilities');
 const { sequentialMintSuper, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
-const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB } = require('../timeserver/mysql.js');
+const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 /*Infura HttpProvider Endpoint*/
 //web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
@@ -32,9 +32,9 @@ const incomeManagerContract = require('../ethereum/contracts/build/IncomeManager
 const productManagerContract = require('../ethereum/contracts/build/ProductManager.json');
 
 
-const heliumContractAddr = "0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf";
-const registryContractAddr = "0x6E2548A83283921136FE322E0333B03551F7f0C8";
-const productManagerContractAddr = "0x2a8dc29BF3C44Cb2Be3C62D1a968894B2635E7b9";
+const heliumContractAddr = "0x525ea3f39FA977E0190A6386308AcFce4131aAD3";
+const registryContractAddr = "0xB9802E3073A6A3A8f00017a7223fd8abD8C1C0bD";
+const productManagerContractAddr = "0x40F9595FA8eafb302cC2728Dc053eCeABe952678";
 const supervisorAddr = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
 const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"];
 
@@ -445,10 +445,10 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
 router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, res, next) {
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
-    let currentTime = 201906120000;
-    // await getTime().then(function (time) {
-    //     currentTime = time;
-    // })
+    //let currentTime = 201907151610;
+    await getTime().then(function (time) {
+         currentTime = time;
+     })
     console.log(`current time: ${currentTime}`)
 
     mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
@@ -998,7 +998,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else { 
       serverTime = await getTime();}
 
-    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, successAddAssetRecordsIntoDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, successAddAssetRecordsIntoDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
       mesg = '[Error @ sequentialMintSuper]';  
       console.log(mesg, err);
         res.send({
@@ -1072,6 +1072,41 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
 
     }
 });
+
+/** */
+router.post('/HCAT721_AssetRecord/:tokenSymbol', async function (req, res, next) {
+    let tokenSymbol = req.params.tokenSymbol;
+    const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {
+      console.log('[Error @ calculateLastPeriodProfit]', err);
+      res.send({
+        err: err,
+        status: false
+        });
+    });
+    console.log(`result: ${result}`);
+    if(result){
+        if(result[0] === null || result[1] === null){
+            res.send({
+                status: false
+            });
+        } else if(Array.isArray(result[0])){
+            res.send({
+                status: true,
+                emailArrayError: result[0],
+                amountArrayError: result[1]
+            });
+        } else {
+            res.send({
+                status: false
+            });
+        }
+    } else {
+        res.send({
+            status: false
+        });
+    }
+});
+
 
 /**get tokenId  */
 router.get('/HCAT721_AssetTokenContract/:tokenSymbol/:assetBookAddr', async function (req, res, next) {

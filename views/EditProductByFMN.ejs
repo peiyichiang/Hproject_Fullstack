@@ -282,7 +282,6 @@
                             <label for="file">購售電合約</label>
                             <input type="file" class="form-control" name="file" id="file">
                             <%if (data[0].p_assetdocs != null && data[0].p_assetdocs != "") { %>
-                                <!-- <a target="_blank" href="http://140.119.101.130:3000/<%= data[0].p_assetdocs.replace('public','')  %>" style="font-size: 24px;">doc</a> -->
                                 <iframe src="http://140.119.101.130:3000/<%= data[0].p_assetdocs.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
                             <% } %>
                     </div>

@@ -52,11 +52,11 @@ contract Registry {
         addrHelium = _addrHelium;
         currencyType = "NTD";
         //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate); 
-        setRestrictions(1, 0, 0, uintMax, uintMax);
+        setRestrictions(1, 300000, 300000, uintMax, uintMax);
         setRestrictions(2, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(3, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(4, uintMax, uintMax, uintMax, uintMax);
-        setRestrictions(5, 100000, 100000, uintMax, uintMax);
+        setRestrictions(5, 300000, 300000, uintMax, uintMax);
         isAfterDeployment = true;
     }
     function checkDeploymentConditions(

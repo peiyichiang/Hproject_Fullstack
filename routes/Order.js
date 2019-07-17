@@ -476,6 +476,7 @@ const doesPassCompliance = (authLevel, balance, buyAmount, fundingType) => {
         if (buyAmount > COMPLIANCE_LEVELS[authLevel].maxBuyAmountPublic) {
             console.log("buyAmount should be <= maxBuyAmountPublic;", buyAmount, COMPLIANCE_LEVELS[authLevel].maxBuyAmountPublic);
             return false;
+            //COMPLIANCE_LEVELS[1] == "NaturalPerson"
 
         } else if (balance + buyAmount > COMPLIANCE_LEVELS[authLevel].maxBalancePublic) {
             console.log("balance + buyAmount should be <= maxBalancePublic;", balance, buyAmount, COMPLIANCE_LEVELS[authLevel].maxBalancePublic);

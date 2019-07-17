@@ -8,7 +8,7 @@ const log = console.log;
 
 const { getTime } = require('./utilities');
 const { whichTimeServerArray } = require('../ethereum/contracts/zsetupData');
-const { calculatePeriodicProfit } = require('../timeserver/mysql');
+const { calculateLastPeriodProfit } = require('../timeserver/mysql');
 const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED2 } = require('./blockchain.js');
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
@@ -98,7 +98,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         //From DB check if product:tokenState needs to be updated
       };
       if(whichTimeServerArray[5] > 0){
-        //calculatePeriodicProfit(serverTime);//blockchain.js
+        //calculateLastPeriodProfit('NCCU0712');//blockchain.js
       }
   
     }

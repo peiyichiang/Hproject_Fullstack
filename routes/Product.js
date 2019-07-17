@@ -1204,7 +1204,7 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     //根據傳來的symbol、校正前時間 查詢期數、實際發放金額、實際發放時間
-    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
+    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
         if (err) {
             console.log(err);
         } else {
@@ -1236,7 +1236,7 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
                     var sql = {
                         ia_State: req.body.CorrectActualPaymentResult
                     };
-                    var qur1 = mysqlPoolQuery('UPDATE htoken.income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+                    var qur1 = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
                         if (err) {
                             console.log(err);
                         } else {

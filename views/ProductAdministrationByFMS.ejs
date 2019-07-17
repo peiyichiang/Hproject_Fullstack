@@ -366,8 +366,9 @@
                 const currentTimestamp = Math.floor(dateTime / 1000);
 
                 // 計算IA Unix Timestamp
-                FormatedTime=data[i].ia_time.substring(0,4) + "-" + data[i].ia_time.substring(4,6)+ "-" + data[i].ia_time.substring(6,8);
+                FormatedTime=data[i].ia_time.substring(0,4) + "-" + data[i].ia_time.substring(4,6)+ "-" + data[i].ia_time.substring(6,8)+ " " + data[i].ia_time.substring(8,10)+ ":" + data[i].ia_time.substring(10,12) + ":30:000";
                 iaTime_TimeStamp = new Date(FormatedTime).getTime() / 1000;
+                // console.log(FormatedTime);
                 
                 // 所有時間加上90天
                 // iaTime_TimeStamp=iaTime_TimeStamp+(1296000*6);
@@ -377,6 +378,8 @@
                 if(data[i].ia_State==null){
                     data[i].ia_State="待校正";
                 }
+                // console.log("iaTime_TimeStamp:" + iaTime_TimeStamp);
+                // console.log("currentTimestamp:" + currentTimestamp);
                 // 將過期的狀態 改為：已過期
                 if(iaTime_TimeStamp<currentTimestamp){
                     data[i].ia_State="已過期";
