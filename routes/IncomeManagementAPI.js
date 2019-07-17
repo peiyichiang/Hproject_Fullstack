@@ -31,8 +31,8 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
             SUBSTRING(ar_Time, 5, 2) AS periodMonth,
             SUBSTRING(ar_Time, 7, 2) AS periodDate,
             ia_Payable_Period_End AS payablePeriodEnd 
-    FROM     investor_assetRecord  AS T1
-    INNER JOIN  income_arrangement AS T2
+    FROM    investor_assetRecord  AS T1
+    INNER JOIN income_arrangement AS T2
           ON T1.ar_Time = T2.ia_actualPaymentTime
           AND T1.ar_tokenSYMBOL = T2.ia_SYMBOL 
     WHERE ar_tokenSYMBOL = ? && ar_investorEmail = ?
@@ -112,27 +112,27 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
     SELECT ar_investorEmail AS userEmailAddress,
            ar_tokenSYMBOL AS symbol,
            MAX(ar_Time) AS time
-    FROM  investor_assetRecord
+    FROM investor_assetRecord
     GROUP BY userEmailAddress,
              symbol
     ) AS T1
     
-    INNER JOIN  investor_assetRecord AS T2
+    INNER JOIN investor_assetRecord AS T2
     ON T1.userEmailAddress = T2.ar_investorEmail AND 
        T1.symbol = T2.ar_tokenSYMBOL AND
        T1.time = T2.ar_Time
 
-    INNER JOIN  income_arrangement AS T3
+    INNER JOIN income_arrangement AS T3
     ON T1.symbol = T3.ia_SYMBOL AND
        T1.time = T3.ia_actualPaymentTime
 
-    INNER JOIN  product AS T4
+    INNER JOIN product AS T4
     ON T1.symbol = T3.ia_SYMBOL AND
        T1.symbol = T4.p_SYMBOL
 
     INNER JOIN
     (SELECT ia_SYMBOL ,COUNT(*) -1 AS payablePeriodTotal
-    FROM  income_arrangement 
+    FROM income_arrangement 
     GROUP BY ia_SYMBOL
     ) AS T5
     ON T1.symbol = T5.ia_SYMBOL
@@ -143,7 +143,7 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
     let queryString2 = `
     SELECT  ar_tokenSYMBOL AS symbol,
 			SUM(ar_personal_income) AS income
-    FROM     investor_assetRecord
+    FROM    investor_assetRecord
     WHERE   ar_investorEmail = ?
     GROUP   BY ar_investorEmail , symbol
     `
@@ -213,11 +213,11 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
 //            ar_Time AS time,
 //            ia_Payable_Period_End AS payablePeriodEnd,
 //            ar_personal_income AS personalIncome
-//     FROM  investor_assetRecord AS AR
-//     INNER JOIN  income_arrangement AS IA ON AR.ar_Time = IA.ia_time
+//     FROM investor_assetRecord AS AR
+//     INNER JOIN income_arrangement AS IA ON AR.ar_Time = IA.ia_time
 //     WHERE ar_tokenSYMBOL = ? &&
 //           ar_ownerAssetbookAddr = ? &&  
-//           ar_Time = (SELECT MAX(ar_Time) FROM  investor_assetRecord)
+//           ar_Time = (SELECT MAX(ar_Time) FROM investor_assetRecord)
 //     `;
 //     const query = (queryString, keys) => {
 //         return new Promise((resolve, reject) => {

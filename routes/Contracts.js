@@ -138,7 +138,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
         };
 
         //console.log(element)
-        mysqlPoolQuery('UPDATE  user SET ? WHERE u_email = ?', [sql, u_email], async function (err, rows) {
+        mysqlPoolQuery('UPDATE user SET ? WHERE u_email = ?', [sql, u_email], async function (err, rows) {
             if (err) {
                 console.log(err);
                 let databaseResult = err;
@@ -255,7 +255,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
             var mysqlPoolQuery = req.pool;
             let contractAddress = receipt.contractAddress;
 
-            mysqlPoolQuery("INSERT INTO  smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_totalsupply, sc_remaining) VALUES (?,?,?,?)", [tokenSymbol, contractAddress, quantityMax, quantityMax], function (err, rows) {
+            mysqlPoolQuery("INSERT INTO smart_contracts (sc_symbol, sc_crowdsaleaddress, sc_totalsupply, sc_remaining) VALUES (?,?,?,?)", [tokenSymbol, contractAddress, quantityMax, quantityMax], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.send({
@@ -289,7 +289,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
     let currentTime = 201906120000;
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -331,7 +331,7 @@ router.post('/crowdFundingContract/:tokenSymbol/remaining', async function (req,
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBGetResult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBGetResult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -378,7 +378,7 @@ router.get('/crowdFundingContract/:tokenSymbol/investors', async function (req, 
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -408,7 +408,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     // })
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -451,7 +451,7 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
      })
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -498,7 +498,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
     // })
     console.log(`current time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -537,7 +537,7 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -586,7 +586,7 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
     */
     console.log(`entered time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -727,7 +727,7 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
             sc_incomeManagementaddress: incomeManagerAddr
         };
         console.log(nftSymbol)
-        mysqlPoolQuery('UPDATE  smart_contracts SET ? WHERE sc_symbol = ?', [updateContractsAddrsql, nftSymbol], function (err, rows) {
+        mysqlPoolQuery('UPDATE smart_contracts SET ? WHERE sc_symbol = ?', [updateContractsAddrsql, nftSymbol], function (err, rows) {
             if (err) {
                 console.log(err);
                 res.send({
@@ -740,7 +740,7 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
                     p_state: "FundingClosed",
                     p_PAdate: new Date().toLocaleString().toString()
                 };
-                mysqlPoolQuery('UPDATE  product SET ? WHERE p_SYMBOL = ?', [updateCrowdFubdingStatesql, nftSymbol], function (err, rows) {
+                mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [updateCrowdFubdingStatesql, nftSymbol], function (err, rows) {
                     if (err) {
                         console.log(err);
                         res.send(err);
@@ -812,7 +812,7 @@ router.post('/tokenControllerContract/:tokenSymbol/updateState', async function 
     */
     console.log(`entered time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_erc721Controller FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -850,7 +850,7 @@ router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, 
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_erc721Controller FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -921,7 +921,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
 
 
             console.log(nftSymbol)
-            mysqlPoolQuery('UPDATE  smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+            mysqlPoolQuery('UPDATE smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.send({
@@ -950,7 +950,7 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log(nftSymbol);
 
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM  smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
         //console.log(result);
         if (err) {
             //console.log(err);
@@ -998,7 +998,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else { 
       serverTime = await getTime();}
 
-    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, successAddAssetRecordsIntoDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
       mesg = '[Error @ sequentialMintSuper]';  
       console.log(mesg, err);
         res.send({
@@ -1017,94 +1017,101 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
             isCorrectAmountArray: isCorrectAmountArray,
         });
 
+    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+      mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() is not successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError
+      });
+
+    } else if(!is_addAssetRecordRowArray) {
+      mesg = '[Minting Successful but addActualPaymentTime() Failed]';
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError,
+        is_addAssetRecordRowArray: is_addActualPaymentTime,
+        is_addActualPaymentTime: is_addActualPaymentTime
+      });
+
+    } else if(!is_addActualPaymentTime) {
+      mesg = '[Minting Successful but addActualPaymentTime() Failed]';
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError,
+        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+        is_addActualPaymentTime: is_addActualPaymentTime
+      });
+
+    } else if(!is_setFundingStateDB) {
+      mesg = '[Minting Successful but setFundingStateDB() Failed]';
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError,
+        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+        is_addActualPaymentTime: is_addActualPaymentTime,
+        is_setFundingStateDB: is_setFundingStateDB
+      });
+
     } else {
-        mesg = '[Success] All minting actions have been completed successfully';
-        console.log('\n'+mesg);
-
-        if (emailArrayError.length === 0 && amountArrayError.length === 0) {
-          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-
-          /**@todo 更改資料庫狀態 */
-          const result = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
-              console('[Error @ setFundingStateDB()', err);
-              res.send({
-                  success: false,
-                  result: '[Error] failed at setFundingStateDB()',
-              });
-          });
-          console.log('result:', result);
-
-          if (result) {
-              res.send({
-                  success: true,
-                  result: '[Success] All balances are correct',
-              });
-          } else {
-              res.send({
-                  success: false,
-                  result: '[Error] failed at setFundingStateDB()',
-              });
-          }
-        } else if(!successAddAssetRecordsIntoDB) {
-          mesg = '[Minting Successful but addAssetRecordsIntoDB Running Failed]';
-          console.log('\n'+mesg);
-          res.send({
-            success: false,
-            result: mesg,
-            emailArrayError: emailArrayError,
-            amountArrayError: amountArrayError,
-            successAddAssetRecordsIntoDB: successAddAssetRecordsIntoDB
-          });
-
-        } else {
-          mesg = '[Minting Successful but addAssetRecordsIntoDB was partially successful]'    
-          console.log(`\n${mesg}
-        emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-          res.send({
-            success: false,
-            result: mesg, 
-            emailArrayError: emailArrayError,
-            amountArrayError: amountArrayError,
-            successAddAssetRecordsIntoDB: successAddAssetRecordsIntoDB
-          });
-
-      }
-
+      mesg = '[Success] All minting actions and post-mint operations have been completed successfully';
+      console.log('\n'+mesg);
+      res.send({
+          success: true,
+          result: mesg,
+          emailArrayError: emailArrayError,
+          amountArrayError: amountArrayError,
+          is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+          is_addActualPaymentTime: is_addActualPaymentTime,
+          is_setFundingStateDB: is_setFundingStateDB
+      });
     }
 });
 
-/** */
-router.post('/HCAT721_AssetRecord/:tokenSymbol', async function (req, res, next) {
-    let tokenSymbol = req.params.tokenSymbol;
-    const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {
-      console.log('[Error @ calculateLastPeriodProfit]', err);
-      res.send({
-        err: err,
-        status: false
-        });
+
+/** calculateLastPeriodProfit */
+router.post('/HCAT721_AssetTokenContract/:tokenSymbol', async function (req, res, next) {
+  let tokenSymbol = req.params.tokenSymbol;
+  const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {
+    console.log('[Error @ calculateLastPeriodProfit]', err);
+    res.send({
+      err: err,
+      status: false
     });
-    console.log(`result: ${result}`);
-    if(result){
-        if(result[0] === null || result[1] === null){
-            res.send({
-                status: false
-            });
-        } else if(Array.isArray(result[0])){
-            res.send({
-                status: true,
-                emailArrayError: result[0],
-                amountArrayError: result[1]
-            });
-        } else {
-            res.send({
-                status: false
-            });
-        }
+  });
+  console.log(`result: ${result}`);
+  if(result){
+    if(result[0] === null || result[1] === null){
+      res.send({
+        status: false
+      });
+    } else if(Array.isArray(result[0])){
+    res.send({
+      status: true,
+      emailArrayError: result[0],
+      amountArrayError: result[1]
+    });
     } else {
-        res.send({
-            status: false
-        });
+      res.send({
+        status: false
+      });
     }
+  } else {
+    res.send({
+      status: false
+    });
+  }
 });
 
 
@@ -1114,7 +1121,7 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/:assetBookAddr', async func
     let assetBookAddr = req.params.assetBookAddr;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_erc721address FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -1140,7 +1147,7 @@ router.get('/HCAT721_AssetTokenContract/:tokenSymbol/tokenId', async function (r
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT sc_erc721address FROM  smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({
@@ -1256,7 +1263,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
             };
 
             console.log(nftSymbol)
-            mysqlPoolQuery('UPDATE  smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
+            mysqlPoolQuery('UPDATE smart_contracts SET ? WHERE sc_symbol = ?', [sql, nftSymbol], function (err, rows) {
                 if (err) {
                     console.log(err);
                     res.send({
@@ -1495,7 +1502,7 @@ router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async
     let currentTime = req.body.time;
     console.log(`entered time: ${currentTime}`)
 
-    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM  smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
+    mysqlPoolQuery('SELECT sc_incomeManagementaddress FROM smart_contracts WHERE sc_symbol = ?', [symbol], async function (err, DBresult, rows) {
         if (err) {
             //console.log(err);
             res.send({

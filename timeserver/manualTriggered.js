@@ -1,16 +1,13 @@
 //--------------------==
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses } = require('./mysql.js');
 
-const { addPlatformSupervisor, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, setErrResolution } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
 //const {  } = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
-
-const backendAddr = AssetOwner5;
-const backendAddrpkRaw = AssetOwner5pkRaw;
 
 let func, arg1, arg2, arg3;
 
@@ -42,7 +39,7 @@ if (arguLen == 3 && process.argv[2] === '--h') {
         arg3 = parseInt(process.argv[9]);
       }  
     }  
-  }  
+  }
 }
 //console.log(arg1, arg2, arg3);
 
@@ -50,14 +47,69 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 // yarn run testmt -f F -a arg2 -b arg3 -c arg3
 
 // yarn run testmt -f 0
+const newplatformSupervisor = AssetOwner1;
+const newCustomerService = AssetOwner3;
 const addPlatformSupervisor_API = async () => {
   console.log('\n------------------==inside addPlatformSupervisor_API()...');
-  const newplatformSupervisor = AssetOwner5;
-  const result = await addPlatformSupervisor(newplatformSupervisor).catch((err) => {
+  const addrHelium = '0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf';
+  const result = await addPlatformSupervisor(newplatformSupervisor, addrHelium).catch((err) => {
     console.log('[Error @ addPlatformSupervisor]', err);
   });
   console.log(`result: ${result}`);
+  process.exit(0);
 }
+
+// yarn run testmt -f 1
+const checkPlatformSupervisor_API = async () => {
+  console.log('\n------------------==inside checkPlatformSupervisor_API()...');
+  const addrHelium = '0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf';
+  const result = await checkPlatformSupervisor(newplatformSupervisor, addrHelium).catch((err) => {
+    console.log('[Error @ checkPlatformSupervisor]', err);
+  });
+  console.log(`result: ${result}, ${newplatformSupervisor}`);
+  process.exit(0);
+}
+
+// yarn run testmt -f 2
+const addCustomerService_API = async () => {
+  console.log('\n------------------==inside addCustomerService_API()...');
+  const addrHelium = '0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf';
+  const result = await addCustomerService(newCustomerService, addrHelium).catch((err) => {
+    console.log('[Error @ addCustomerService]', err);
+  });
+  console.log(`result: ${result}`);
+  process.exit(0);
+}
+
+// yarn run testmt -f 3
+const checkCustomerService_API = async () => {
+  console.log('\n------------------==inside checkCustomerService_API()...');
+  const addrHelium = '0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf';
+  const result = await checkCustomerService(newCustomerService, addrHelium).catch((err) => {
+    console.log('[Error @ checkCustomerService]', err);
+  });
+  console.log(`result: ${result}, ${newCustomerService}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 4
+const getProfitSymbolAddresses_API = async () => {
+  const resultsAPI = await getProfitSymbolAddresses();
+  console.log('resultsAPI', resultsAPI);
+  process.exit(0);
+}
+
+// yarn run testmt -f 5
+const calculateLastPeriodProfit_API = async () => {
+  console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
+  const symbol = 'NCCU1704';
+  const result = await calculateLastPeriodProfit(symbol).catch((err) => {
+    console.log('[Error @ calculateLastPeriodProfit]', err);
+  });
+  console.log(`result: ${result}`);
+  process.exit(0);
+}
+
 
 // yarn run testmt -f 11
 const incomeManagerCtrt_API = async () => {
@@ -193,7 +245,7 @@ forecastedPayableAmountsError: ${forecastedPayableAmountsError}`);
 
 //yarn run testmt -f 18
 const addForecastedScheduleBatchFromDB_API = async () => {
-  //     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From htoken.income_arrangement where ia_SYMBOL = ?';
+  //     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From income_arrangement where ia_SYMBOL = ?';
 
   const symbol = nftSymbol;
   const result = await addForecastedScheduleBatchFromDB(symbol).catch((err) => {
@@ -217,6 +269,16 @@ const editActualSchedule_API = async() => {
 
 // yarn run testmt -f 13
 // to run getIncomeScheduleList_API
+
+
+//yarn run testmt -f 20
+const addPaymentCount_API = async() => {
+  console.log('\n---------------==addPaymentCount_API');
+  const symbol = nftSymbol;
+  const result = await addPaymentCount(symbol);
+  console.log('result', result);
+  process.exit(0);
+}
 
 
 //yarn run testmt -f 20
@@ -245,8 +307,8 @@ const setErrResolution_API = async() => {
 //yarn run testmt -f 30
 const getAssetbookDetails_API = async () => {
   const addrAssetBook = addrAssetBook1;
-  const results1 = await getAssetbookDetails(addrAssetBook);
-  console.log('results1', results1);
+  const resultsAPI = await getAssetbookDetails(addrAssetBook);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -255,8 +317,8 @@ const setHeliumAddr_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await setHeliumAddr(addrAssetBook, _addrHeliumContract);
-  console.log('results1', results1);
+  const resultsAPI = await setHeliumAddr(addrAssetBook, _addrHeliumContract);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -265,8 +327,8 @@ const HeliumContractVote_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await HeliumContractVote(addrAssetBook, serverTime);
-  console.log('results1', results1);
+  const resultsAPI = await HeliumContractVote(addrAssetBook, serverTime);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -275,8 +337,8 @@ const resetVoteStatus_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await resetVoteStatus(addrAssetBook);
-  console.log('results1', results1);
+  const resultsAPI = await resetVoteStatus(addrAssetBook);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
@@ -285,16 +347,83 @@ const changeAssetOwner_API = async () => {
   const addrAssetBook = addrAssetBook1;
   const _assetOwnerNew = ''
   const serverTime = 20190626;
-  const results1 = await changeAssetOwner(addrAssetBook, _assetOwnerNew, serverTime);
-  console.log('results1', results1);
+  const resultsAPI = await changeAssetOwner(addrAssetBook, _assetOwnerNew, serverTime);
+  console.log('resultsAPI', resultsAPI);
   process.exit(0);
 }
 
+//yarn run testmt -f 6
+const checkCompliance_API = async () => {
+  let authLevel, orderBalance, orderPayment, fundingType;//PO: 1, PP: 2
+
+  const choice = 4;
+  if(choice === 1){
+    authLevel = '5'; orderBalance = 285000; orderPayment = 15000; fundingType = '1';
+  } else if(choice === 2){
+    authLevel = '5'; orderBalance = 285000; orderPayment = 15001; fundingType = '1';
+  } else if(choice === 3){
+    authLevel = '5'; orderBalance = 0; orderPayment = 300001; fundingType = '1';
+
+  } else if(choice === 4){
+    const symbol = 'MYRR1701';
+    const queryStr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    let result = await mysqlPoolQueryB(queryStr1, [symbol]);
+    const product1 = result[0];
+    console.log('result', product1, typeof product1);
+
+    const pricing = product1.p_pricing;
+    authLevel = '5'; orderBalance = 0; orderPayment = 300000;
+    fundingType = product1.p_fundingType;
+  }
+  const results1 = checkCompliance(authLevel, orderBalance, orderPayment, fundingType);
+  console.log('choice:', choice, ', results1:', results1, ', typeof', typeof results1);
+  process.exit(0);
+}
+
+//yarn run testmt -f 7
+const orderBalanceTotal_API = async () => {
+  //const symbol = 'AOOT1905';
+  const symbol = 'MYRR1701';
+  const email = 'aaa@gmail.com';
+  let result = await mysqlPoolQueryB(
+    'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email]);
+  console.log('result', result[0].total, typeof result[0].total);
+  process.exit(0);
+}
 
 //------------------------==
 // yarn run testmt -f 0
 if(func === 0){
   addPlatformSupervisor_API();
+
+//yarn run testmt -f 1
+} else if (func === 1) {
+  checkPlatformSupervisor_API();
+
+//yarn run testmt -f 2
+} else if (func === 2) {
+  addCustomerService_API();
+
+//yarn run testmt -f 3
+} else if (func === 3) {
+  checkCustomerService_API();
+
+//yarn run testmt -f 4
+} else if (func === 4) {
+  getProfitSymbolAddresses_API();
+
+//yarn run testmt -f 5
+} else if (func === 5) {
+  calculateLastPeriodProfit_API();
+
+//yarn run testmt -f 6
+} else if (func === 6) {
+  checkCompliance_API();
+
+//yarn run testmt -f 7
+} else if (func === 7) {
+  orderBalanceTotal_API();
+
 
 //yarn run testmt -f 11
 } else if (func === 11) {
@@ -334,7 +463,7 @@ if(func === 0){
 
 //yarn run testmt -f 20
 } else if (func === 20) {
-  imApprove_API();
+  addPaymentCount_API();
 
 //yarn run testmt -f 21
 } else if (func === 21) {
@@ -344,7 +473,7 @@ if(func === 0){
 } else if (func === 22) {
   getForecastedSchedulesFromDB_API();
 
-//------------------==Assetbook from Backend
+//------------------==Assetbook
 //resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
 //yarn run testmt -f 30
 } else if (func === 30) {

@@ -34,7 +34,8 @@ contract MultiSig {
     // we require addrHeliumContract and endorserCtrt because EOA may change ...
 
     uint public lastLoginTime;
-    uint public antiPlatformOverrideDays = 183;
+    uint public antiPlatformOverrideDaysDefault = 30;
+    uint public antiPlatformOverrideDays = 30;
     uint public assetOwner_flag;
     uint public HeliumContract_flag;
     uint public endorsers_flag;
@@ -99,7 +100,7 @@ contract MultiSig {
     }
 
     function setAntiPlatformOverrideDays(uint _antiPlatformOverrideDays) public ckAssetOwner {
-        require(_antiPlatformOverrideDays >= 183, "minimum _antiPlatformOverrideDays is 183 days");
+        require(_antiPlatformOverrideDays >= antiPlatformOverrideDaysDefault, "minimum _antiPlatformOverrideDays is antiPlatformOverrideDaysDefault days");
         antiPlatformOverrideDays = _antiPlatformOverrideDays;
         emit SetAntiPlatformOverrideDays(_antiPlatformOverrideDays);
     }

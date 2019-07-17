@@ -13,7 +13,7 @@ const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArr
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
-const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum, 
+const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, 
   TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
 } = require('./zsetupData');
@@ -33,14 +33,13 @@ let chain, ctrtName, result;
 
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
-const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5]= assetOwnerArray;
-const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw] = assetOwnerpkRawArray;
+const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
+const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-//MUST USE ADMIN ACCOUNT TO DEPLOY AS THE BACKEND IS USING IT!!!
-const backendAddr = admin;
-const backendAddrpkRaw = adminpkRaw;
-// const backendAddr = AssetOwner1;
-// const backendAddrpkRaw = AssetOwner1pkRaw;
+const backendAddr = AssetOwner1;
+const backendAddrpkRaw = AssetOwner1pkRaw;
+const assetbookOwners = [AssetOwner7, AssetOwner8, AssetOwner9];
+
 
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
@@ -275,8 +274,7 @@ const deploy = async () => {
   } else if (ctrtName === 'assetbook') {
     const addrAssetBookArray = [];
     console.log('\nDeploying AssetBook contracts...');
-    const mainInputArray = [AssetOwner1, AssetOwner2, AssetOwner3];
-    await asyncForEach(mainInputArray, async (item, idx) => {
+    await asyncForEach(assetbookOwners, async (item, idx) => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })

@@ -597,7 +597,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
     console.log("@@@：" + JSON.stringify(req.body));
     // console.log("@@@:" + JSON.stringify(sql));
 
-    var qur = mysqlPoolQuery('UPDATE  product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
@@ -653,7 +653,7 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
     var symbol = req.query.symbol;
     // console.log("@@@:" + symbol);
 
-    var qur = mysqlPoolQuery('UPDATE  product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET p_state = ? WHERE p_SYMBOL = ?', ["creation", symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
@@ -1073,7 +1073,6 @@ router.post('/IncomeCSV', function (req, res, next) {
                       if (err) {
                           console.log(err);
                       } else {
-                          res.status(200);
                           res.send({
                               "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
                               "messageForUser": "",
@@ -1090,7 +1089,6 @@ router.post('/IncomeCSV', function (req, res, next) {
                   console.error(error); //Handle error
               })
             }else{
-                res.status(200);
                 res.send({
                     "messageForDeveloper": "沒有Income CSV文件",
                     "messageForUser": "Income CSV文件遺失，請重新上傳",
@@ -1098,9 +1096,7 @@ router.post('/IncomeCSV', function (req, res, next) {
                 });
             }
           } catch(err) {
-            console.log("2");
             console.error(err)
-            res.status(200);
             res.send({
                 "messageForDeveloper": "沒有Income CSV文件",
                 "messageForUser": "Income CSV文件遺失，請重新上傳",
@@ -1108,8 +1104,6 @@ router.post('/IncomeCSV', function (req, res, next) {
             });
           }
     } else {
-        console.log("3");
-        res.status(200);
         res.send({
             "messageForDeveloper": "沒有Income CSV文件",
             "messageForUser": "請上傳Income CSV文件",
@@ -1279,7 +1273,6 @@ router.get('/testRayAPI',function (req, res, next){
     }
 });
 
-//有容
 router.get('/LaunchedProductList', function (req, res) {
     console.log('------------------------==\n@Product/ProductList');
     let mysqlPoolQuery = req.pool;
@@ -1330,7 +1323,7 @@ router.get('/LaunchedProductList', function (req, res) {
                     GROUP BY o_symbol) AS T3
         ON T1.p_SYMBOL = T3.o_symbol
         LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
-                    FROM  income_arrangement 
+                    FROM income_arrangement 
                     GROUP BY ia_SYMBOL) AS T4
         ON T1.p_SYMBOL = T4.ia_SYMBOL
         WHERE p_state = \'funding\';`, function (err, productArray) {
@@ -1341,35 +1334,16 @@ router.get('/LaunchedProductList', function (req, res) {
                 })
             }
             else {
-                if (productArray.length > 0) {
-                    /* TODO: 這些資料的斜線要去掉 */
-                    // productArray.map(
-                    //     product => {
-                    //         if (!product.imageURL)
-                    //             product.imageURL = "imageURL"
-                    //         if (!product.taiPowerApprovalDate)
-                    //             product.taiPowerApprovalDate = "taiPowerApprovalDate"
-                    //         if (!product.BOEApprovalDate)
-                    //             product.BOEApprovalDate = "BOEApprovalDate"
-                    //         if (!product.PVTrialOperationDate)
-                    //             product.PVTrialOperationDate = "PVTrialOperationDate"
-                    //         if (!product.PVOnGridDate)
-                    //             product.PVOnGridDate = "PVOnGridDate"
-                    //         if (product.fundingType === "PO") {
-                    //             product.fundingType = "PublicOffering"
-                    //         } else if (product.fundingType === "PP") {
-                    //             product.fundingType = "PrivatePlacement"
-                    //         }
-                    //     });
-                    
+                if (productArray.length > 0) {                    
                     res.status(200);
                     res.json({
                         "message": "產品列表取得成功",
                         "result": productArray
                     });
                 } else {
+                    res.status(404);
                     res.json({
-                        "message": "產品列表取得成功: 找不到已上架產品"
+                        "message": "找不到已上架產品"
                     });
                 }
             }
@@ -1387,7 +1361,7 @@ router.get('/ForcastIncomeBySymbol', function (req, res) {
     mysqlPoolQuery(
         `SELECT ia_Annual_End AS year, 
                 ia_single_Forecasted_Annual_Income AS incomeOfThePeriod
-         FROM    income_arrangement
+         FROM   income_arrangement
          WHERE  ia_SYMBOL = ? 
          AND    ia_single_Forecasted_Annual_Income > 0
         `, symbol, function (err, forcastIncomeArray) {
@@ -1444,7 +1418,7 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
                 p_Image8 AS ImageURL8,
                 p_Image9 AS ImageURL9,
                 p_Image10 AS ImageURL10
-         FROM    product
+         FROM   product
          WHERE  p_SYMBOL = ? `, symbol, function (err, imageURLObjectArray) {
 
             let imageURLObject = imageURLObjectArray[0]
@@ -1470,7 +1444,7 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
         });
 });
 
-//Ray ...    omitted
+//Ray ...   omitted
 router.get('/ProductBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log('------------------------==\n@Product/ProductBySymbol:\nreq.query', req.query, 'req.body', req.body);
@@ -1480,7 +1454,7 @@ router.get('/ProductBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
     //console.log('symbol', symbol);
 
-    let qstr1 = 'SELECT * FROM  product WHERE p_SYMBOL = ?';
+    let qstr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1508,7 +1482,7 @@ router.get('/LaunchedProductBySymbol', function (req, res, next) {
     } else { symbol = req.query.symbol; }
     //console.log('symbol', symbol);
 
-    let qstr1 = 'SELECT * FROM  product WHERE p_SYMBOL = ?';
+    let qstr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1532,7 +1506,7 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     let symbol = req.query.tokenSymbol;
 
-    let qstr1 = 'SELECT sc_erc721address FROM  smart_contracts WHERE sc_symbol = ?';
+    let qstr1 = 'SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?';
     //console.log('qstr1', qstr1);
     mysqlPoolQuery(qstr1, [symbol], function (err, result) {
         if (err) {
@@ -1562,7 +1536,7 @@ router.get('/canBuyToken', async function (req, res) {
     mysqlPoolQuery(
         `SELECT p_CFSD AS CFSD, 
                 u_assetbookContractAddress AS assetbookContractAddress
-         FROM  product ,  user
+         FROM product , user
          WHERE p_Symbol = ? AND u_email = ?
          `, keys, function (err, result) {
             if (err) {
@@ -1634,7 +1608,7 @@ router.get('/AssetImageURLAndIconURL', function (req, res, next) {
     let queryString = `
     SELECT  p_Image1 AS imageURL,
             p_icon AS iconURL
-    FROM     product
+    FROM    product
     WHERE   p_SYMBOL = ?
     `;
 
@@ -1653,6 +1627,84 @@ router.get('/AssetImageURLAndIconURL', function (req, res, next) {
                 "message": "[Error] image & icon 取得失敗:\n" + err
             });
         })
+});
+
+router.get('/ProductDataBySymbol', function (req, res) {
+    console.log('------------------------==\n@Product/ProductList');
+    let mysqlPoolQuery = req.pool;
+    const symbol = req.query.symbol;
+    mysqlPoolQuery(
+        `SELECT 
+        p_irr AS IRR,
+        p_name AS name,
+        p_location AS location,
+        p_pricing AS pricing,
+        p_currency AS currency,
+        p_totalrelease AS maxProductQuantity,
+        ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
+        SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
+        SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
+        SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
+        SUBSTRING(p_releasedate, 9, 2) AS releaseDateHour,
+        SUBSTRING(p_releasedate, 11, 2) AS releaseDateMinute,
+        p_size AS size,
+        p_duration AS durationInYear,
+        SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
+        SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
+        SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
+        SUBSTRING(p_validdate, 9, 2) AS deadlineHour,
+        SUBSTRING(p_validdate, 11, 2) AS deadlineMinute,
+        p_Image1 AS imageURL,
+        p_TaiPowerApprovalDate AS taiPowerApprovalDate,
+        p_CFSD AS CFSD,
+        p_BOEApprovalDate AS BOEApprovalDate,
+        p_CFED AS CFED,
+        p_PVTrialOperationDate AS PVTrialOperationDate,
+        p_ContractOut AS contractOut,
+        p_CaseConstruction AS caseConstruction,
+        p_ElectricityBilling AS electricityBilling,
+        p_fundingType AS fundingType,
+        p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
+        IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
+        p_Copywriting AS copyWritingText
+        FROM product AS T1
+        LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
+                    FROM order_list
+                    WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
+                    GROUP BY o_symbol) AS T2
+        ON T1.p_SYMBOL = T2.o_symbol
+        LEFT JOIN ( SELECT o_symbol , COUNT(o_email) AS purchasedNumberOfPeople
+                    FROM order_list
+                    GROUP BY o_symbol) AS T3
+        ON T1.p_SYMBOL = T3.o_symbol
+        LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
+                    FROM income_arrangement 
+                    GROUP BY ia_SYMBOL) AS T4
+        ON T1.p_SYMBOL = T4.ia_SYMBOL
+        WHERE p_SYMBOL = ?;`, symbol ,function (err, productArray) {
+            if (err) {
+                res.status(400)
+                res.json({
+                    "message": "產品資訊取得失敗:\n" + err
+                })
+            }
+            else {
+                if (productArray.length > 0) {                    
+                    res.status(200);
+                    res.json({
+                        "message": "產品資訊取得成功",
+                        "result": productArray[0]
+                    });
+                } else {
+                    res.status(404);
+                    res.json({
+                        "message": `找不到產品: ${symbol}`
+                    });
+                }
+            }
+            /* code = 304? */
+        });
 });
 
 
