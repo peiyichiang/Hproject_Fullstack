@@ -998,7 +998,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else { 
       serverTime = await getTime();}
 
-    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, successAddAssetRecordsIntoDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
       mesg = '[Error @ sequentialMintSuper]';  
       console.log(mesg, err);
         res.send({
@@ -1017,63 +1017,70 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
             isCorrectAmountArray: isCorrectAmountArray,
         });
 
+    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+      mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() is not successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError
+      });
+
+    } else if(!is_addAssetRecordRowArray) {
+      mesg = '[Minting Successful but addActualPaymentTime() Failed]';
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError,
+        is_addAssetRecordRowArray: is_addActualPaymentTime,
+        is_addActualPaymentTime: is_addActualPaymentTime
+      });
+
+    } else if(!is_addActualPaymentTime) {
+      mesg = '[Minting Successful but addActualPaymentTime() Failed]';
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError,
+        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+        is_addActualPaymentTime: is_addActualPaymentTime
+      });
+
+    } else if(!is_setFundingStateDB) {
+      mesg = '[Minting Successful but setFundingStateDB() Failed]';
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError,
+        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+        is_addActualPaymentTime: is_addActualPaymentTime,
+        is_setFundingStateDB: is_setFundingStateDB
+      });
+
     } else {
-        mesg = '[Success] All minting actions have been completed successfully';
-        console.log('\n'+mesg);
-
-        if (emailArrayError.length === 0 && amountArrayError.length === 0) {
-          console.log(`\n[Success] Both token minting and addAssetRecordsIntoDB are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-
-          /**@todo 更改資料庫狀態 */
-          const result = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
-              console('[Error @ setFundingStateDB()', err);
-              res.send({
-                  success: false,
-                  result: '[Error] failed at setFundingStateDB()',
-              });
-          });
-          console.log('result:', result);
-
-          if (result) {
-              res.send({
-                  success: true,
-                  result: '[Success] All balances are correct',
-              });
-          } else {
-              res.send({
-                  success: false,
-                  result: '[Error] failed at setFundingStateDB()',
-              });
-          }
-        } else if(!successAddAssetRecordsIntoDB) {
-          mesg = '[Minting Successful but addAssetRecordsIntoDB Running Failed]';
-          console.log('\n'+mesg);
-          res.send({
-            success: false,
-            result: mesg,
-            emailArrayError: emailArrayError,
-            amountArrayError: amountArrayError,
-            successAddAssetRecordsIntoDB: successAddAssetRecordsIntoDB
-          });
-
-        } else {
-          mesg = '[Minting Successful but addAssetRecordsIntoDB was partially successful]'    
-          console.log(`\n${mesg}
-        emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-          res.send({
-            success: false,
-            result: mesg, 
-            emailArrayError: emailArrayError,
-            amountArrayError: amountArrayError,
-            successAddAssetRecordsIntoDB: successAddAssetRecordsIntoDB
-          });
-
-      }
-
+      mesg = '[Success] All minting actions and post-mint operations have been completed successfully';
+      console.log('\n'+mesg);
+      res.send({
+          success: true,
+          result: mesg,
+          emailArrayError: emailArrayError,
+          amountArrayError: amountArrayError,
+          is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+          is_addActualPaymentTime: is_addActualPaymentTime,
+          is_setFundingStateDB: is_setFundingStateDB
+      });
     }
 });
 
-/**  */
+
+/** calculateLastPeriodProfit */
 router.post('/HCAT721_AssetTokenContract/:tokenSymbol', async function (req, res, next) {
   let tokenSymbol = req.params.tokenSymbol;
   const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {

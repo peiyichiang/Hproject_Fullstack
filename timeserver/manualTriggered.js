@@ -1,5 +1,5 @@
 //--------------------==
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses } = require('./mysql.js');
 
@@ -352,6 +352,44 @@ const changeAssetOwner_API = async () => {
   process.exit(0);
 }
 
+//yarn run testmt -f 6
+const checkCompliance_API = async () => {
+  let authLevel, orderBalance, orderPayment, fundingType;//PO: 1, PP: 2
+
+  const choice = 4;
+  if(choice === 1){
+    authLevel = '5'; orderBalance = 285000; orderPayment = 15000; fundingType = '1';
+  } else if(choice === 2){
+    authLevel = '5'; orderBalance = 285000; orderPayment = 15001; fundingType = '1';
+  } else if(choice === 3){
+    authLevel = '5'; orderBalance = 0; orderPayment = 300001; fundingType = '1';
+
+  } else if(choice === 4){
+    const symbol = 'MYRR1701';
+    const queryStr1 = 'SELECT * FROM htoken.product WHERE p_SYMBOL = ?';
+    let result = await mysqlPoolQueryB(queryStr1, [symbol]);
+    const product1 = result[0];
+    console.log('result', product1, typeof product1);
+
+    const pricing = product1.p_pricing;
+    authLevel = '5'; orderBalance = 0; orderPayment = 300000;
+    fundingType = product1.p_fundingType;
+  }
+  const results1 = checkCompliance(authLevel, orderBalance, orderPayment, fundingType);
+  console.log('choice:', choice, ', results1:', results1, ', typeof', typeof results1);
+  process.exit(0);
+}
+
+//yarn run testmt -f 7
+const orderBalanceTotal_API = async () => {
+  //const symbol = 'AOOT1905';
+  const symbol = 'MYRR1701';
+  const email = 'aaa@gmail.com';
+  let result = await mysqlPoolQueryB(
+    'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email]);
+  console.log('result', result[0].total, typeof result[0].total);
+  process.exit(0);
+}
 
 //------------------------==
 // yarn run testmt -f 0
@@ -377,6 +415,15 @@ if(func === 0){
 //yarn run testmt -f 5
 } else if (func === 5) {
   calculateLastPeriodProfit_API();
+
+//yarn run testmt -f 6
+} else if (func === 6) {
+  checkCompliance_API();
+
+//yarn run testmt -f 7
+} else if (func === 7) {
+  orderBalanceTotal_API();
+
 
 //yarn run testmt -f 11
 } else if (func === 11) {
