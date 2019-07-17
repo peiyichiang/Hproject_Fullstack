@@ -2,6 +2,7 @@ var express = require('express');
 const jwt = require('jsonwebtoken');
 //const bcrypt = require('bcrypt');
 var async = require('async');
+const nodemailer = require('nodemailer');
 var router = express.Router();
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
@@ -31,6 +32,7 @@ router.post('/AddOrder', function (req, res, next) {
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
     const email = req.body.email;
+    const tokenCount = req.body.tokenCount;
 
     var sql = {
         o_id: orderId,
@@ -45,18 +47,53 @@ router.post('/AddOrder', function (req, res, next) {
 
     console.log(sql);
 
-    var qur = mysqlPoolQuery('INSERT INTO order_list SET ?', sql, function (err, result) {
+    mysqlPoolQuery('INSERT INTO order_list SET ?', sql, function (err, result) {
         if (err) {
             console.log(err);
             res.status(400);
             res.json({
                 "message": "訂單寫入資料庫失敗:\n" + err
             });
-        } else {
-            res.status(200);
-            res.json({
-                "message": "訂單寫入資料庫成功",
-                "result": result
+        } else {        
+            var transporter = nodemailer.createTransport({
+                /* Helium */
+                host: 'server239.web-hosting.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+        
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: ' <noreply@hcat.io>', // sender address
+                to: email, // list of receivers
+                subject: '', // Subject line
+                html: `<h2>付款成功</h2> <p>您好：我們已收到您的訂單<br>
+                訂單編號為:${orderId}<br>
+                您這次購買 ${symbol} 共 ${tokenCount} 片</p>`, // plain text body
+            };
+        
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "驗證信寄送失敗：" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "訂單寫入資料庫成功 & 驗證信寄送成功",
+                    });
+                }
+                // console.log('Message sent: %s', info.messageId);
+                // Preview only available when sending through an Ethereal account
+                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        
             });
         }
     });
