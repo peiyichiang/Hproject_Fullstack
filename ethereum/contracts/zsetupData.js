@@ -217,9 +217,9 @@ function assetRecordObject(investorEmail, symbol, ar_time, holdingAmount, Accumu
   this.AcquiredCost = AcquiredCost;
   this.MovingAverageofHoldingCost = MovingAverageofHoldingCost;
 }
-const assetRecord1 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291500, 17, 100, 13000, 0, 0, 13000, 13000);
-const assetRecord2 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291510, 17, 100, 13000, 0, 0, 13000, 13000);
-const assetRecord3 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291520, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord1 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord2 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord3 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
 const assetRecordArray = [assetRecord1, assetRecord2, assetRecord3];
 
 
@@ -246,9 +246,9 @@ function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeri
   this.ia_state = ia_state;
   this.singleCalibrationActualIncome = singleCalibrationActualIncome;
 }
-const incomeArrangement1 = new incomeArrangementObject(nftSymbol, 201906281300, 201906281305, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
-const incomeArrangement2 = new incomeArrangementObject(nftSymbol, 201906281310, 201906281315, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
-const incomeArrangement3 = new incomeArrangementObject(nftSymbol, 201906281320, 201906281325, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
+const incomeArrangement1 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+const incomeArrangement2 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+const incomeArrangement3 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3];
 
 

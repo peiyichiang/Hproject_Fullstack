@@ -402,7 +402,15 @@ const orderBalanceTotal_API = async () => {
 }
 
 
-// yarn run testmt -f 8
+
+// yarn run testmt -f 9
+const addXYZ_API = async () => {
+  console.log('\n--------------==About to call addXYZ()');
+
+  process.exit(0);
+}
+
+// yarn run testmt -f 10
 const sequentialMintSuperP2_API = async () => {
   console.log('\n--------------==About to call addAssetRecordRowArray()');
   const toAddressArray = [assetbookArray[0], assetbookArray[1], assetbookArray[2]];
@@ -430,74 +438,36 @@ const sequentialMintSuperP2_API = async () => {
   });
   console.log('emailArrayError:', emailArrayError, ', amountArrayError:', amountArrayError);
 
+  const actualPaymentTime = serverTime;
+  const payablePeriodEnd = 0;
+  const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
+    console.log('[Error @ addActualPaymentTime]'+ err);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
+  });
 
-  const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+  const result3 = await setFundingStateDB(symbol, 'ONM', 'na', 'na').catch((err) => {
     console('[Error @ setFundingStateDB()', err);
     return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
   });
+  console.log('result2', result2, 'result3', result3);
   process.exit(0);
 }
 
-// yarn run testmt -f 9
+
+// yarn run testmt -f ?
 const addIncomeArrangementRow_API = async () => {
-  const actualPaymentTime = TimeTokenUnlock-1;
+  //when FMX uploads new case,the csv will be converted into a new income arrangement row
+  //but in livechain testing, there is no csv. So use this fuction to generate income arrangement row
   const symbol = nftSymbol;
+  const ia_time = 201907170900;
+  const actualPaymentTime = 0;
   const payablePeriodEnd = 0;
+
   const result2 = await addIncomeArrangementRow(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, ia_state, singleCalibrationActualIncome).catch((err) => {
     console.log('[Error @ addActualPaymentTime]'+ err);
     //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
     //is_addActualPaymentTime = false;
   });
-
-}
-
-// yarn run testmt -f 10
-const addIncomeArrangementRow_API = async () => {
-
-}
-
-// yarn run testmt -f 9
-const addIncomeArrangementRow_API = async () => {
-  console.log('\n--------------==About to call addAssetRecordRowArray()');
-  const toAddressArray = [assetbookArray[0], assetbookArray[1], assetbookArray[2]];
-  const amountArray = [ 20, 37, 41 ];
-  const symbol = nftSymbol;
-  const serverTime = TimeTokenUnlock-1;
-  const pricing = 15000;
-
-  const ar_time = serverTime;
-  const singleActualIncomePayment = 0;// after minting tokens
-
-  const asset_valuation = 13000;
-  const holding_amount_changed = 0;
-  const holding_costChanged = 0;
-  const moving_ave_holding_cost = 13000;
-
-  const acquiredCostArray = amountArray.map((element) => {
-    return element * pricing;
-  });
-  console.log(acquiredCostArray);
-
-  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
-    console.log('[Error @ addAssetRecordRowArray]'+ err);
-    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, false, false, false];
-    //is_addAssetRecordRowArray = false;
-  });
-  console.log(emailArrayError, amountArrayError);
-
-  const actualPaymentTime = ar_time;
-  const payablePeriodEnd = 0;
-  const result2 = await addIncomeArrangementRow(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
-    console.log('[Error @ addActualPaymentTime]'+ err);
-    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
-    //is_addActualPaymentTime = false;
-  });
-
-  const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
-    console('[Error @ setFundingStateDB()', err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
-  });
-  process.exit(0);
 }
 
 
@@ -536,15 +506,15 @@ if(func === 0){
 
 //yarn run testmt -f 8
 } else if (func === 8) {
-  sequentialMintSuperP2_API();
+  addIncomeArrangementRow_API();
 
 //yarn run testmt -f 9
 } else if (func === 9) {
-  addIncomeArrangementRow_API();
+  
 
 //yarn run testmt -f 10
 } else if (func === 10) {
-  addIncomeArrangementRow_API();
+  sequentialMintSuperP2_API();
 
 
 //yarn run testmt -f 11

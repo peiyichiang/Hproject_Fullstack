@@ -3,19 +3,19 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 */
 /** deployed contracts
 yarn run deploy -c 1 -s 1 -cName cf
-cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, pm
+cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
 */
 //const timer = require('./api.js');
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRow} = require('../../timeserver/mysql.js');
+const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRowFromObj} = require('../../timeserver/mysql.js');
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
 const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, 
   TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray
+  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray, incomeArrangementArray
 } = require('./zsetupData');
 
 let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
@@ -597,14 +597,12 @@ const deploy = async () => {
 
 
 
-  //yarn run deploy -c 1 -n 0 -cName addipr
-  } else if (ctrtName === 'addipr'){
-    console.log('-----------------== addIncomeArrangementRow...');
-    const symbol = nftSymbol;
-    const time = 201906070000;
-    const actualPaymentTime = 201901010000;
-    const actualPayment = 299;
-    await addIncomeArrangementRow(symbol, time, actualPaymentTime, actualPayment);
+  //yarn run deploy -c 1 -n 0 -cName addia
+  } else if (ctrtName === 'addia'){
+    console.log('-----------------== add Income Arrangement rows from objects...');
+    await asyncForEach(incomeArrangementArray, async (item, idx) => {
+      await addIncomeArrangementRowFromObj(item);
+    });
     process.exit(0);
 
 

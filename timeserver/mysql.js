@@ -245,7 +245,46 @@ const addActualPaymentTime = (actualPaymentTime, symbol, payablePeriodEnd) => {
       reject(err);
       return false;
     });
+    //console.log('result', result);
+    resolve(true);
+  });
+}
+
+const addIncomeArrangementRowFromObj = (iaObj) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside addIncomeArrangementRowFromObj(), iaObj:', iaObj);
+    const sqlObject = {
+      ia_SYMBOL: iaObj.symbol,
+      ia_time:  iaObj.ia_time,
+      ia_actualPaymentTime:  iaObj.actualPaymentTime,
+      ia_Payable_Period_End:  iaObj.payablePeriodEnd,
+      ia_Annual_End:  iaObj.annualEnd,
+      ia_wholecase_Principal_Called_back : iaObj.wholecasePrincipalCalledBack,
+      ia_wholecase_Book_Value : iaObj.wholecaseBookValue,
+      ia_wholecase_Forecasted_Annual_Income : iaObj.wholecaseForecastedAnnualIncome,
+      ia_wholecase_Forecasted_Payable_Income_in_the_Period : iaObj.wholecaseForecastedPayableIncome,
+      ia_wholecase_Accumulated_Income : iaObj.wholecaseAccumulatedIncome,
+      ia_wholecase_Income_Recievable : iaObj.wholecaseIncomeReceivable,
+      ia_wholecase_Theory_Value : iaObj.wholecaseTheoryValue,
+      ia_single_Principal_Called_back : iaObj.singlePrincipalCalledBack,
+      ia_single_Forecasted_Annual_Income : iaObj.singleForecastedAnnualIncome,
+      ia_single_Forecasted_Payable_Income_in_the_Period : iaObj.singleForecastedPayableIncome,
+      ia_single_Actual_Income_Payment_in_the_Period : iaObj.singleActualIncomePayment,
+      ia_single_Accumulated_Income_Paid : iaObj.singleAccumulatedIncomePaid,
+      ia_single_Token_Market_Price : iaObj.singleTokenMarketPrice,
+      ia_State : iaObj.ia_state,
+      ia_single_Calibration_Actual_Income_Payment_in_the_Period : iaObj.singleCalibrationActualIncome,
+    };
+    console.log(sqlObject);
+
+    const queryStr = 'INSERT INTO income_arrangement SET ?';
+    const result = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
+      console.log('[Error @ mysqlPoolQueryB(queryStr)]'+err);
+      reject(err);
+      return false;
+    });
     console.log('result', result);
+    console.log("income arrangement table has been added with one new row. result:");
     resolve(true);
   });
 }
@@ -274,46 +313,6 @@ const addIncomeArrangementRow = (symbol, ia_time, actualPaymentTime, payablePeri
       ia_single_Token_Market_Price : singleTokenMarketPrice,
       ia_State : ia_state,
       ia_single_Calibration_Actual_Income_Payment_in_the_Period : singleCalibrationActualIncome,
-    };
-    console.log(sqlObject);
-
-    const queryStr = 'INSERT INTO income_arrangement SET ?';
-    const result = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
-      console.log('[Error @ mysqlPoolQueryB(queryStr)]'+err);
-      reject(err);
-      return false;
-    });
-    console.log('result', result);
-    console.log("\ntransaction_info table has been added with one new row. result:");
-    resolve(true);
-  });
-}
-
-const addIncomeArrangementRowDev = (incomeArrangementNum) => {
-  return new Promise(async(resolve, reject) => {
-    console.log('\n--------------==inside addIncomeArrangementRowDev(), incomeArrangementNum:', incomeArrangementNum);
-    incomeArrangement = incomeArrangementArray[incomeArrangementNum];
-    const sqlObject = {
-      ia_SYMBOL: incomeArrangement.symbol,
-      ia_time:  incomeArrangement.ia_time,
-      ia_actualPaymentTime:  incomeArrangement.actualPaymentTime,
-      ia_Payable_Period_End:  incomeArrangement.payablePeriodEnd,
-      ia_Annual_End:  incomeArrangement.annualEnd,
-      ia_wholecase_Principal_Called_back : incomeArrangement.wholecasePrincipalCalledBack,
-      ia_wholecase_Book_Value : incomeArrangement.wholecaseBookValue,
-      ia_wholecase_Forecasted_Annual_Income : incomeArrangement.wholecaseForecastedAnnualIncome,
-      ia_wholecase_Forecasted_Payable_Income_in_the_Period : incomeArrangement.wholecaseForecastedPayableIncome,
-      ia_wholecase_Accumulated_Income : incomeArrangement.wholecaseAccumulatedIncome,
-      ia_wholecase_Income_Recievable : incomeArrangement.wholecaseIncomeReceivable,
-      ia_wholecase_Theory_Value : incomeArrangement.wholecaseTheoryValue,
-      ia_single_Principal_Called_back : incomeArrangement.singlePrincipalCalledBack,
-      ia_single_Forecasted_Annual_Income : incomeArrangement.singleForecastedAnnualIncome,
-      ia_single_Forecasted_Payable_Income_in_the_Period : incomeArrangement.singleForecastedPayableIncome,
-      ia_single_Actual_Income_Payment_in_the_Period : incomeArrangement.singleActualIncomePayment,
-      ia_single_Accumulated_Income_Paid : incomeArrangement.singleAccumulatedIncomePaid,
-      ia_single_Token_Market_Price : incomeArrangement.singleTokenMarketPrice,
-      ia_State : incomeArrangement.ia_state,
-      ia_single_Calibration_Actual_Income_Payment_in_the_Period : incomeArrangement.singleCalibrationActualIncome,
     };
     console.log(sqlObject);
 
@@ -600,10 +599,10 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
           console.log('\n[Error @ mysqlPoolQueryB(queryStr6)]');
           reject(err);
         });
-        console.log('result6', result6);
+        //console.log('result6', result6);
       }
     });
-    console.log(`\n------------------==End of addAssetRecordRowArray`);
+    console.log(`\n--------------==End of addAssetRecordRowArray`);
     resolve([emailArrayError, amountArrayError]);
   });
   //process.exit(0);
@@ -976,7 +975,7 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
-    addIncomeArrangementRowDev, addIncomeArrangementRow,
+    addIncomeArrangementRowFromObj, addIncomeArrangementRow,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 

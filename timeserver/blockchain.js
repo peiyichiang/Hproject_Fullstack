@@ -461,7 +461,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
       }
-      console.log(mesg);
+      console.log(`${mesg} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
       resolve(mesg);
     }
   });
@@ -547,19 +547,19 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   });
   console.log('emailArrayError:', emailArrayError, ', amountArrayError:', amountArrayError);
 
-  const actualPaymentTime = ar_time;
+  const actualPaymentTime = serverTime;
   const payablePeriodEnd = 0;
   const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
     console.log('[Error @ addActualPaymentTime]'+ err);
     return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
   });
 
-  const result3 = await setFundingStateDB(nftSymbol, 'ONM', 'na', 'na').catch((err) => {
+  const result3 = await setFundingStateDB(symbol, 'ONM', 'na', 'na').catch((err) => {
     console('[Error @ setFundingStateDB()', err);
     return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
   });
 
-return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];
+return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];//last three boolean values: addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()
   //resolve(isFailed, isCorrectAmountArray);
 }
 

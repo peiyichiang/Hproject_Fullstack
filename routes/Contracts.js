@@ -996,7 +996,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     if(isTestingMode){ 
       serverTime = 201906130000;
     } else { 
-      serverTime = await getTime();}
+      serverTime = await getTime();
+    }
 
     const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
       mesg = '[Error @ sequentialMintSuper]';  
@@ -1017,18 +1018,8 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
             isCorrectAmountArray: isCorrectAmountArray,
         });
 
-    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
-      mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() is not successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
-      console.log('\n'+mesg);
-      res.send({
-        success: false,
-        result: mesg,
-        emailArrayError: emailArrayError,
-        amountArrayError: amountArrayError
-      });
-
     } else if(!is_addAssetRecordRowArray) {
-      mesg = '[Minting Successful but addActualPaymentTime() Failed]';
+      mesg = '[Token minting Successful but addAssetRecordRowArray() Failed]';
       console.log('\n'+mesg);
       res.send({
         success: false,
@@ -1039,8 +1030,18 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
         is_addActualPaymentTime: is_addActualPaymentTime
       });
 
+    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+      mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
+      console.log('\n'+mesg);
+      res.send({
+        success: false,
+        result: mesg,
+        emailArrayError: emailArrayError,
+        amountArrayError: amountArrayError
+      });
+
     } else if(!is_addActualPaymentTime) {
-      mesg = '[Minting Successful but addActualPaymentTime() Failed]';
+      mesg = '[Token minting Successful but addActualPaymentTime() Failed]';
       console.log('\n'+mesg);
       res.send({
         success: false,
@@ -1052,7 +1053,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
       });
 
     } else if(!is_setFundingStateDB) {
-      mesg = '[Minting Successful but setFundingStateDB() Failed]';
+      mesg = '[Token minting Successful but setFundingStateDB() Failed]';
       console.log('\n'+mesg);
       res.send({
         success: false,
@@ -1065,7 +1066,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
       });
 
     } else {
-      mesg = '[Success] All minting actions and post-mint operations have been completed successfully';
+      mesg = '[Success] All token minting, addAssetRecordRowArray(), addActualPaymentTime(), and setFundingStateDB() have been completed successfully';
       console.log('\n'+mesg);
       res.send({
           success: true,

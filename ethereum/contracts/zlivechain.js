@@ -621,10 +621,11 @@ const sequentialMintSuperAPI = async () => {
 
   const serverTime = TimeTokenUnlock-1;//201906271000;//297
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+
   if(isFailed || isFailed === undefined || isFailed === null) {
     console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
   } else {
