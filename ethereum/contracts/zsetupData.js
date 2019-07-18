@@ -38,7 +38,7 @@ const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwne
 const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw];
 //AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
 
-let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
+let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10, addrAssetBook0, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
     cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
@@ -46,10 +46,19 @@ let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
 const chain = 1;
 if (chain === 1){
   addrHelium =     "0x49e0c4Fc9edD11d9B565963d36af102C0efaB66a";
-  addrAssetBook1 = "0x8e10AB006D5aa5f189Cb3a1417Ee0f187EF56E56";
-  addrAssetBook2 = "0xca2628e05A8887295e80c6df474a3D21E563E73A";
-  addrAssetBook3 = "0x5F594C7E19EaD79fcDC66C2c5BBdB7AFcF9c4ed1";
+  addrAssetBook7 = "0x8e10AB006D5aa5f189Cb3a1417Ee0f187EF56E56";
+  addrAssetBook8 = "0xca2628e05A8887295e80c6df474a3D21E563E73A";
+  addrAssetBook9 = "0x5F594C7E19EaD79fcDC66C2c5BBdB7AFcF9c4ed1";
   addrRegistry =   "0x551239714e6C2b59d4AAdc9F51825a5BedD4C021";
+
+  addrAssetBook0 = "0x9151d4BC2a05a127477D5938039551218C0c7703";
+  addrAssetBook1 = "0x51B48015726C16802C850847682DaBd39596D06a";
+  addrAssetBook2 = "0xEa9C8431710206F9092b6146b0C275eeFCC07812";
+  addrAssetBook3 = "0x0F55D711f5D81df7e13BF3D3a69bD44a6eB6A95A";
+  addrAssetBook4 = "0xcDEB03D6B6dfE94B21e802ec7db4e808CF0F2F16";
+  addrAssetBook5 = "0x61490b4f58Ef5D6ce1e20a74E99Aaae076F433cd";
+  addrAssetBook6 = "0xccaF9388399d2BC9Bb9a4038b6adb4f2c54196eE";
+  addrAssetBook10 = "0xF9f35EACEEc9b8031c9534D7E5a508A86DA224BE";
   
 } else if (chain === 2){
   //ganache chain
@@ -183,13 +192,22 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.imageb = Math.random().toString(36).substring(2, 15);
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
-const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner7, '093755500', 'Romeo0', addrAssetBook1, 5, 1);
-const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777001', AssetOwner7, '093755501', 'Romeo1', addrAssetBook1, 5, 10);
-const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777002', AssetOwner8, '093755502', 'Romeo2', addrAssetBook2, 5, 5);
-const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777003', AssetOwner9, '093755503', 'Romeo3', addrAssetBook3, 5, 15);
-const userArray = [user0, user7, user8, user9];
+const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', admin, '093755500', 'Romeo0', addrAssetBook0, 5, 1);
+const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo0', addrAssetBook1, 5, 1);
+const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo0', addrAssetBook2, 5, 1);
+const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo0', addrAssetBook3, 5, 1);
+const user4 = new userObject('000a4@gmail.com', 'user4pw', 'R999777004', AssetOwner4, '093755504', 'Romeo0', addrAssetBook4, 5, 1);
+const user5 = new userObject('000a5@gmail.com', 'user5pw', 'R999777005', AssetOwner5, '093755505', 'Romeo0', addrAssetBook5, 5, 1);
+const user6 = new userObject('000a6@gmail.com', 'user6pw', 'R999777006', AssetOwner6, '093755506', 'Romeo0', addrAssetBook6, 5, 1);
 
-userNum = 3;
+const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777007', AssetOwner7, '093755507', 'Romeo7', addrAssetBook7, 5, 10);
+const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777008', AssetOwner8, '093755508', 'Romeo8', addrAssetBook8, 5, 5);
+const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777009', AssetOwner9, '093755509', 'Romeo9', addrAssetBook9, 5, 15);
+const user10 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner10, '093755510', 'Romeo10', addrAssetBook10, 5, 1);
+
+const userArray = [user0, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10];
+
+userNum = 9;
 const userObjN = userArray[userNum];
 const email = userObjN.email;
 const password = userObjN.password;

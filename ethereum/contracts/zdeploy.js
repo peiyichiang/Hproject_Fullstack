@@ -39,6 +39,7 @@ const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOw
 const backendAddr = AssetOwner1;
 const backendAddrpkRaw = AssetOwner1pkRaw;
 const assetbookOwners = [AssetOwner7, AssetOwner8, AssetOwner9];
+const assetbookOwnersx = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner10];
 
 
 console.log('process.argv', process.argv);
@@ -273,7 +274,7 @@ const deploy = async () => {
   //yarn run deploy -c 1 -s 1 -cName assetbook
   } else if (ctrtName === 'assetbook') {
     const addrAssetBookArray = [];
-    console.log('\nDeploying AssetBook contracts...');
+    console.log('\nDeploying AssetBook contracts: 1~3...');
     await asyncForEach(assetbookOwners, async (item, idx) => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
@@ -294,12 +295,47 @@ const deploy = async () => {
       addrAssetBookArray.push(instAssetBookN.options.address);
       console.log(`Finished deploying AssetBook${idx+1}...`);
     });
-    console.log(`\nFinished deploying assetbook 1, 2, 3:
-  addrAssetBook1 = "${addrAssetBookArray[0]}";
-  addrAssetBook2 = "${addrAssetBookArray[1]}";
-  addrAssetBook3 = "${addrAssetBookArray[2]}";`);
+    console.log(`\nFinished deploying assetbook 7, 8, 9:
+  addrAssetBook7 = "${addrAssetBookArray[0]}";
+  addrAssetBook8 = "${addrAssetBookArray[1]}";
+  addrAssetBook9 = "${addrAssetBookArray[2]}";`);
     process.exit(0);
 
+  //yarn run deploy -c 1 -s 1 -cName assetbookx
+  } else if (ctrtName === 'assetbookx') {
+    const addrAssetBookArray = [];
+    console.log('\nDeploying AssetBook contracts 0 ~ 6,10...');
+    await asyncForEach(assetbookOwnersx, async (item, idx) => {
+      argsAssetBookN = [item, addrHelium];
+      instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
+      .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+      if (instAssetBookN === undefined) {
+        console.log(`\n[Error] instAssetBook${idx+1} is NOT defined`);
+        } else {console.log(`[Good] instAssetBook${idx+1} is defined`);}
+    
+      console.log(`AssetBook${idx+1} has been deployed`);
+      console.log(`addrAssetBook${idx+1}: ${instAssetBookN.options.address}`);
+      addrAssetBookArray.push(instAssetBookN.options.address);
+      console.log(`Finished deploying AssetBook${idx+1}...`);
+    });
+    //const assetbookOwnersx = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner10];
+    console.log(`\nFinished deploying assetbooksx:
+  addrAssetBook0 = "${addrAssetBookArray[0]}";
+  addrAssetBook1 = "${addrAssetBookArray[1]}";
+  addrAssetBook2 = "${addrAssetBookArray[2]}";
+  addrAssetBook3 = "${addrAssetBookArray[3]}";
+  addrAssetBook4 = "${addrAssetBookArray[4]}";
+  addrAssetBook5 = "${addrAssetBookArray[5]}";
+  addrAssetBook6 = "${addrAssetBookArray[6]}";
+  addrAssetBook10 = "${addrAssetBookArray[7]}";`);
+    process.exit(0);
 
   //yarn run deploy -c 1 -s 1 -cName assetbookx
   } else if (ctrtName === 'assetbookx'){

@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = console.log;
 console.log('loading blockchain.js...');
 
-const { getTime, isEmpty, asyncForEach, checkInt, checkIntFromOne } = require('./utilities');
+const { getTime, isEmpty, asyncForEach, asyncForEachMint, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium } = require('../ethereum/contracts/zsetupData');
 const { addActualPaymentTime } = require('./mysql');
 
@@ -357,7 +357,7 @@ const sequentialCheckBalances = async (toAddressArray, tokenCtrtAddr) => {
     const balanceArrayBefore = [];
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
-    await asyncForEachFilter(toAddressArray, async (toAddress) => {
+    await asyncForEachMint(toAddressArray, async (toAddress) => {
       console.log(`\n--------------==next: check the balance of ${toAddress}`);
       const tokenBalanceBeforeMinting = await instHCAT721.methods.balanceOf(toAddress).call();
       balanceArrayBefore.push(parseInt(tokenBalanceBeforeMinting));
@@ -392,7 +392,7 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
       console.log(`toAddressArray and amountArray must be of the same length`);
       return false;
     }
-    await asyncForEach(toAddressArray, async (toAddress, idx) => {
+    await asyncForEachMint(toAddressArray, async (toAddress, idx) => {
       const amount = amountArray[idx];
       const balanceBefore = balanceArrayBefore[idx];
       const tokenBalanceAfterMinting_ = await instHCAT721.methods.balanceOf(toAddress).call();
@@ -418,11 +418,11 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     const result = await instHCAT721.methods.checkMintSerialNFT(toAddress, amount, price, fundingType, serverTime).call({from: backendAddr});
     console.log('\nresult', result);
-    const [boolArray, uintArray] = result;
-    //const boolArray = result[0];
+    const uintArray = result[1];
+    const boolArray = result[0];
 
     let mesg;
-    if(amountArray.every(checkBoolTrueArray)){
+    if(boolArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
       resolve(mesg);
@@ -462,7 +462,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
         mesg = mesg.substring(2);
       }
       console.log(`${mesg} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
-      resolve(mesg);
+      resolve(true);
     }
   });
 }
@@ -477,14 +477,14 @@ const sequentialMint = async(toAddressArrayOut, amountArrayOut, fundingType, pri
     console.log(`toAddressArrayOut and amountArrayOut must be of the same length`);
     return false;
   }
-  await asyncForEach(toAddressArrayOut, async (toAddress, idx) => {
+  await asyncForEachMint(toAddressArrayOut, async (toAddress, idx) => {
     const amount = amountArrayOut[idx];
     console.log(`\n-----------==next: mint to ${toAddress} ${amount} tokens`);
 
     const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amount, price, fundingType, serverTime).encodeABI();
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch(async(err) => {
       console.log('\n[Error @ signTx() mintSerialNFT()]'+ err);
-      const mesg = await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime);
+      await checkMint(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime);
     });
     console.log('TxResult', TxResult);
   });
@@ -512,7 +512,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   console.log('balanceArrayBefore', balanceArrayBefore);
 
   console.log('\n--------------==Minting tokens via sequentialMint()...');
-  await sequentialMint(toAddressArrayOut, amountArrayOut, fundingType, price, tokenCtrtAddr, serverTime).catch((err) => {
+  await sequentialMint(toAddressArrayOut, amountArrayOut, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
     console.log('[Error @ sequentialMint]'+ err);
     return false;
   });

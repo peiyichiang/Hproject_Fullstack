@@ -27,7 +27,7 @@ const checkBoolTrueArray = (item) => item;
 
 
 async function asyncForEach(array, callback) {
-  console.log('\n------------------==asyncForEach: array');
+  console.log('\n------------------==asyncForEach');
   for (let idx = 0; idx < array.length; idx++) {
     const item = array[idx];
     console.log(`\n--------------==next in asyncForEach
@@ -46,6 +46,18 @@ async function asyncForEach(array, callback) {
         console.log('\n[Error]', err);
       });
     }
+  }
+}
+
+async function asyncForEachMint(toAddrArray, callback) {
+  console.log('\n------------------==asyncForEachMint');
+  for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
+    const toAddr = toAddrArray[idxMint];
+    console.log(`\n--------------==next in asyncForEachMint
+    idxMint: ${idxMint}, ${toAddr}`);
+      await callback(toAddr, idxMint).catch((err) => {
+        console.log('\n[Error]', err);
+      });
   }
 }
 
@@ -106,5 +118,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach, checkInt, checkIntFromOne, checkBoolTrueArray
+  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach, asyncForEachMint, checkInt, checkIntFromOne, checkBoolTrueArray
 }
