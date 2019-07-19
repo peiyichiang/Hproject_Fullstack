@@ -41,7 +41,7 @@ const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, As
 let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10, addrAssetBook0, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
  */
 const chain = 1;
 if (chain === 1){
@@ -105,12 +105,6 @@ const TimeTokenUnlock = TimeOfDeployment_CF+30;
 const TimeTokenValid =  TimeOfDeployment_CF+90;
 fundmanager = 'FundManagerN';
 
-/** deployed contracts
-    yarn run deploy -c 1 -n 0 -cName tokc
-    -c chain    -n symNum   
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
-   addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
-*/
 //fundingType: PO: 1, PP: 2
 symNum = 1;
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {

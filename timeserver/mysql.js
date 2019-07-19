@@ -6,7 +6,7 @@ require('dotenv').config()
 const chalk = require('chalk');
 const log = console.log;
 
-const { isEmpty, asyncForEach } = require('./utilities');
+const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, incomeArrangementArray} = require('../ethereum/contracts/zsetupData');
 
 const serverTimeMin = 201905270900;
@@ -539,7 +539,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
     } else {
       console.log('all input values are okay');
       const queryStr4 = 'SELECT u_email FROM user WHERE u_assetbookContractAddress = ?';
-      await asyncForEach(inputArray, async (addrAssetbook, index) => {
+      await asyncForEachAssetRecordRowArray(inputArray, async (addrAssetbook, index) => {
         const result4 = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {
           console.log('\n[Error @ mysqlPoolQueryB(queryStr4)]');
           reject(err);
@@ -569,7 +569,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
     const emailArrayError = [];
     const amountArrayError = [];
     console.log('\n------------------==emailArray:\n', emailArray);
-    await asyncForEach(emailArray, async (email, idx) => {
+    await asyncForEachAssetRecordRowArray2(emailArray, async (email, idx) => {
       const amount = amountArray[idx];
       const acquiredCost = acquiredCostArray[idx];
 

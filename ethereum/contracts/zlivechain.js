@@ -627,10 +627,22 @@ const showAssetBookBalances = async () => {
 
     const instAssetBookX = new web3.eth.Contract(AssetBook.abi, assetbook);
     assetbookXM = await instAssetBookX.methods.getAsset(0, addrHCAT721).call();
-    console.log('AssetBook1:', assetbookXM);
+    console.log(`AssetBook${idx}: ${assetbookXM}`);
   });
 
   console.log('showAssetBookBalances() has been completed');
+  process.exit(0);
+}
+//yarn run livechain -c 1 --f 31
+const showAssetBookBalancesBigAmount = async () => {
+  const assetbookBalances = [];
+  await asyncForEach(assetbookArray, async (assetbook, idx) => {
+    console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
+    balanceXM = await instHCAT721.methods.balanceOf(assetbook).call();
+    assetbookBalances.push(parseInt(balanceXM));
+  });
+  console.log('assetbookBalances', assetbookBalances);
+  console.log('assetbookBalances() has been completed');
   process.exit(0);
 }
 
@@ -667,7 +679,7 @@ const showAssetInfo = async () => {
 const sequentialMintSuperAPI = async () => {
   console.log('\n-----------------------==sequentialMintSuperAPI()');
   let amountArray, toAddressArray;
-  const choice = 9;
+  const choice = 7;
   if(choice === 1){
     amountArray = [20, 37, 41];//98
     toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
@@ -683,16 +695,27 @@ const sequentialMintSuperAPI = async () => {
     amountArray = [2000, 3900, 4183];//10083
     toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
 
-  } else if(choice === 9){
+  } else if(choice === 5){
     amountArray = [69, 77, 81, 99, 104, 113, 128, 139, 147, 156];//1169
     toAddressArray = [...assetbookArray];
+
+  } else if(choice === 6){
+    amountArray = [1231, 1776, 1974, 2025, 2038, 2386, 2731, 3132, 3416, 3612];//24321
+    toAddressArray = [...assetbookArray];
+
+  } else if(choice === 7){
+                //[ 3210, 3724, 2925, 2719, 2847, 2991, 3479, 3746, 3952, 4355 ]
+    amountArray = [ 3712, 3724, 3468, 3562, 2847, 2991, 3479, 3746, 3952, 4355 ];//24321
+    toAddressArray = [...assetbookArray];
+
   }
+  // yarn run livechain -c 1 --f 31 for balances
 
 
   const tokenCtrtAddr = addrHCAT721;
   const fundingType = 2;//PO: 1, PP: 2
   const pricing = 15000;
-  const maxMintAmountPerRun = 180;
+  const maxMintAmountPerRun = 190;
 
   const serverTime = TimeTokenUnlock-1;//201906271000;//297
   //from blockchain.js
@@ -1034,8 +1057,10 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   addrHCAT721 = ${addrHCAT721}
   `);
   console.log('\nsending tokens via transferAssetBatch()...');
-  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch((err) => {
+  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch( async(err) => {
     console.log('[Error @ signTx()]', err);
+    result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, addrHCAT721, addrZero, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
+    console.log('\ncheckSafeTransferFromBatch result', result);
     process.exit(1);
   });// _fromAssetOwner, _fromAssetOwnerpkRaw
   //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
@@ -1552,6 +1577,10 @@ if (func === 0) {
 //yarn run livechain -c 1 --f 23
 } else if (func === 23) {
   addUserX();
+
+//yarn run livechain -c 1 --f 31
+} else if (func === 31) {
+  showAssetBookBalancesBigAmount();
 
 //------------------==
 //yarn run livechain -c 1 --f 91

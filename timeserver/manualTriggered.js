@@ -4,7 +4,8 @@ const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, exclud
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
-//const {  } = require('./utilities');
+
+const { breakdownArray, breakdownArrays } = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -458,6 +459,7 @@ const sequentialMintSuperP2_API = async () => {
 const addIncomeArrangementRow_API = async () => {
   //when FMX uploads new case,the csv will be converted into a new income arrangement row
   //but in livechain testing, there is no csv. So use this fuction to generate income arrangement row
+  console.log('\n--------------==addIncomeArrangementRow_API()');
   const symbol = nftSymbol;
   const ia_time = 201907170900;
   const actualPaymentTime = 0;
@@ -468,6 +470,17 @@ const addIncomeArrangementRow_API = async () => {
     //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
     //is_addActualPaymentTime = false;
   });
+}
+
+
+//yarn run testmt -f 41
+const breakdownArray_API = async () => {
+  console.log('\n---------------------==breakdownArray_API()');
+  const toAddress = '0x0001';
+  const amount = 757;
+  const maxMintAmountPerRun = 180;
+  const result = await breakdownArray(toAddress, amount, maxMintAmountPerRun);
+  console.log('result', result);
 }
 
 
@@ -586,4 +599,9 @@ if(func === 0){
 //yarn run testmt -f 34
 } else if (func === 34) {
   changeAssetOwner_API();
+
+//yarn run testmt -f 41
+} else if (func === 41) {
+  breakdownArray_API();
+
 }
