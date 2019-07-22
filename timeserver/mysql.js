@@ -348,7 +348,7 @@ const getProfitSymbolAddresses = async() => {
     }
     console.log('foundSymbols', foundSymbols);
     */
-
+    let mesg;
     const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")'
     const result2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr2)]');
@@ -357,6 +357,12 @@ const getProfitSymbolAddresses = async() => {
     });
     const result2Len = result2.length;
     console.log('\nArray length @ getProfitSymbolAddresses:', result2Len);
+    if(result2Len === 0 ){
+      mesg = '[Error @ getProfitSymbolAddresses > queryStr2';
+      console.log('\n'+mesg);
+      reject(mesg);
+      return false;
+    }
     // console.log('result2:', result2);
 
     const foundSymbols = [];
@@ -368,27 +374,32 @@ const getProfitSymbolAddresses = async() => {
       }
     }
     //console.log('foundHCAT721Addrs', foundHCAT721Addrs);
-    const queryStr3 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)';
+    const queryStrAcPaymentTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_assetRecord_status = false AND ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)';
 
-    const result3Array = [];
+    const APT_Array = [];
     await asyncForEach(foundSymbols, async (symbol, index) => {
-      const result3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
-        console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]');
+      const result3 = await mysqlPoolQueryB(queryStrAcPaymentTime, [symbol]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStrAcPaymentTime)]');
         reject(err);
         return false;
       });
-      result3Array.push(result3);
+      if(isEmpty(result3)){
+        mesg = '[Error] Actual Payment Time Array query returns nothing. symbol = '+symbol;
+        console.log(mesg);
+        reject(mesg);
+      }
+      APT_Array.push(result3);
     });
-    // const result3ArrayLen = result3Array.length;
-    // console.log('\nArray length @ lastPeriodProfit:', result3ArrayLen)
-    console.log('result3Array:', result3Array);//[ [], [], [] ]
-    resolve([foundSymbols, foundHCAT721Addrs, result3Array]);
+    // const APT_ArrayLen = APT_Array.length;
+    // console.log('\nArray length @ lastPeriodProfit:', APT_ArrayLen)
+    console.log('APT_Array:', APT_Array);//[ [], [], [] ]
+    resolve([foundSymbols, foundHCAT721Addrs, APT_Array]);
   });
 }
 
 const getProductPricing = async(symbol) => {
   return new Promise(async(resolve, reject) => {
-    console.log('\n--------------==inside calculateLastPeriodProfit()');
+    console.log('\n--------------==inside getProductPricing()');
     const queryStr1 = 'SELECT p_pricing FROM product WHERE p_SYMBOL = ?';//"NCCU0716"
     const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       console.log('\n[Error @ getProductPricing]');
@@ -396,6 +407,7 @@ const getProductPricing = async(symbol) => {
       return false;
     });
     if(Number.isInteger(result1)){
+      console.log('result found as an integer:', result1);
       resolve(result1);
     } else{
       console.log('result is not an integer. result1:', result1);
@@ -414,22 +426,28 @@ const calculateLastPeriodProfit = async() => {
     const holding_costChanged = 0;
     const moving_ave_holding_cost = 13000;
 
-    const [foundSymbols, foundHCAT721Addrs] = await getProfitSymbolAddresses();
+    const [foundSymbols, foundHCAT721Addrs, APT_Array] = await getProfitSymbolAddresses().catch((err) => {
+      console.log('\n[Error @ getProfitSymbolAddresses]');
+      return false;
+    });
     console.log('foundSymbols:', foundSymbols, ', foundHCAT721Addrs:', foundHCAT721Addrs);
 
     const symbolsLength = foundSymbols.length;
     if(symbolsLength !== foundHCAT721Addrs.length){
-      reject('[Error @foundSymbols and foundHCAT721Addrs are of difference length');
+      reject('[Error] foundSymbols and foundHCAT721Addrs are of difference length');
       return false;
-    }
 
-    if (symbolsLength === 0) {
+    } else if(APT_Array[0].length === 0){
+      reject('[Error] Actual Payment Time Array query returns nothing');
+      return false;
+
+    } else if (symbolsLength === 0) {
       reject('[calculateLastPeriodProfit] no symbol was found');
       return false;
 
     } else if (symbolsLength > 0) {
       console.log('[calculateLastPeriodProfit] symbol(s) found');
-      await asyncForEach(result2, async (entry, index) => {
+      await asyncForEach(foundSymbols, async (symbol, index) => {
 
         const pricing = await getProductPricing(symbol);
         if(!pricing){
@@ -438,9 +456,8 @@ const calculateLastPeriodProfit = async() => {
           return false;
         }
 
-        const symbol = entry.ia_SYMBOL;
-        const ar_time = entry.ia_actualPaymentTime;
-        const singleActualIncomePayment = entry.ia_single_Actual_Income_Payment_in_the_Period;
+        const ar_time = APT_Array[index].ia_actualPaymentTime;
+        const singleActualIncomePayment = APT_Array[index].ia_single_Actual_Income_Payment_in_the_Period;
         console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
 
         const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
@@ -674,7 +691,7 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
       //console.log('result', result1);
       resolve(true);
     } else {
-      const result1 = await mysqlPoolQueryB(queryStr2, [tokenState, symbol]).catch((err) => {
+      const result = await mysqlPoolQueryB(queryStr2, [tokenState, symbol]).catch((err) => {
         console.log('\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]');
         reject(err);
         return false;

@@ -123,8 +123,8 @@ const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 10
 
 //const isTestingMode = true;
 const isTestingMode = false;
-//const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
-const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
+//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFEDOrders(serverTime);//blockchain.js

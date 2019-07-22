@@ -8,7 +8,7 @@ const log = console.log;
 
 const { getTime } = require('./utilities');
 const { whichTimeServerArray } = require('../ethereum/contracts/zsetupData');
-const { calculatePeriodicProfit } = require('../timeserver/mysql');
+const { calculateLastPeriodProfit } = require('../timeserver/mysql');
 const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED2 } = require('./blockchain.js');
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
@@ -54,7 +54,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[1] > 0){
         const result = await makeOrdersExpiredCFED2(serverTime).catch((err) => {
-          reject('[Failed @ timeserver: makeOrdersExpiredCFED2]: '+ err);
+          console.log('[Failed @ timeserver: makeOrdersExpiredCFED2]: '+ err);
         });;//blockchain.js
         if(result){
           log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED2();'));
@@ -66,7 +66,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[2] > 0){
         const result = await updateExpiredOrders(serverTime).catch((err) => {
-          reject('[Failed @ timeserver: updateExpiredOrders]: '+ err);
+          console.log('[Failed @ timeserver: updateExpiredOrders]: '+ err);
         });
         if(result){
           log(chalk.green('>> [Success@ timeserver] updateExpiredOrders();'));
@@ -77,7 +77,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[3] > 0){
         const result = await updateFundingStateFromDB(serverTime).catch((err) => {
-          reject('[Failed @ timeserver: updateFundingStateFromDB]: '+ err);
+          console.log('[Failed @ timeserver: updateFundingStateFromDB]: '+ err);
         });
         if(result){
           log(chalk.green('>> [Success@ timeserver] updateFundingStateFromDB();'));
@@ -88,7 +88,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       };
       if(whichTimeServerArray[4] > 0){
         const result = await updateTokenStateFromDB(serverTime).catch((err) => {
-          reject('[Failed @ timeserver: updateTokenStateFromDB]: '+ err);
+          console.log('[Failed @ timeserver: updateTokenStateFromDB]: '+ err);
         });
         if(result){
           log(chalk.green('>> [Success@ timeserver] updateTokenStateFromDB();'));
@@ -98,7 +98,14 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         //From DB check if product:tokenState needs to be updated
       };
       if(whichTimeServerArray[5] > 0){
-        //calculateLastPeriodProfit();//mysql.js
+        const result = await calculateLastPeriodProfit().catch((err) => {
+          console.log('[Failed @ timeserver: calculateLastPeriodProfit]: '+ err);
+        });
+        if(result){
+          log(chalk.green('>> [Success@ timeserver] calculateLastPeriodProfit();'));
+        } else {
+          log(chalk.red('>> [Fail@ timeserver] calculateLastPeriodProfit() returns false;'));
+        };//mysql.js
       }
   
     }
