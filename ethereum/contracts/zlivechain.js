@@ -270,30 +270,88 @@ const checkDeployedContracts = async () => {
 
 }
 
-const addOneUser = async () => {
-  const userId = "";
-  const assetbookAddr = "";
+
+
+//yarn run livechain -c 1 --f 21
+const addUseArray = async() => {
+  if(userIdArray.length !== assetbookArray.length) {
+    console.log('userIdArray and assetbookArray must have the same length!');
+    process.exit(0);
+  }
+  await asyncForEach(userIdArray, async (userId, idx) => {
+    console.log('\n--------==Check if this user has already been added into RegistryCtrt');
+    const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbookArray[idx], investorLevelArray[idx]).call({from: admin});
+    /**
+        boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+        //ckUidLength(uid)
+        boolArray[1] = bytes(uid).length > 0;
+        boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
+
+        //ckAssetbookValid(assetbookAddr)
+        boolArray[3] = assetbookAddr != address(0);
+        boolArray[4] = assetbookAddr.isContract();
+        boolArray[5] = uidToAssetbook[uid] == address(0);
+        boolArray[6] = authLevel > 0 && authLevel < 10;
+     */
+    console.log('checkArray', checkArray);
+
+    if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
+      if(checkArray[5]){
+        console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
+        console.log('--------==AddUser():', idx)
+        const encodedData = instRegistry.methods.addUser(userId, assetbookArray[idx], investorLevelArray[idx]).encodeABI();
+        let TxResult = await signTx(admin, adminpkRaw, addrRegistry, encodedData);
+        console.log('\nTxResult', TxResult);
+        console.log(`after addUser() on AssetOwner${idx+1}...`);
+    
+        userM = await instRegistry.methods.getUserFromUid(userId).call();
+        console.log('userM', userM);
+        checkEq(userM[0], assetbookArray[idx]);
+        checkEq(userM[1], investorLevelArray[idx].toString());
+      } else {
+        console.log(`\nThis uid ${userId} has already been added. Skipping this uid...`);
+      }
+    } else {
+      console.log('\nError detected');
+      process.exit(0);
+    }
+  });
+}
+
+
+//yarn run livechain -c 1 --f 22
+const getUserFromAssetbook = async() => {
+  const index = 0;
+  const assetbookAddr = assetbookArray[index];
+  console.log(`\n-----------------==getUserFromAssetbook 
+assetbookArray length: ${assetbookArray.length}
+index = ${index}, assetbookAddr: ${assetbookAddr}`);
+
+  const userDetails = await instRegistry.methods.getUserFromAssetbook(assetbookAddr).call();
+  console.log('\nuserDetails', userDetails);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 23
+const addUserX = async() => {
+  const index = 10;
   const authLevel = 5;
+
+  const userId = "F13497227"+index;
+  const assetbookAddr = assetbookArray[index];
+  console.log(`\n-----------------==addUserX 
+assetbookArray length: ${assetbookArray.length}
+index = ${index}, assetbookAddr: ${assetbookAddr}`);
+
   console.log('\nuserId1', userId, 'assetbookAddr', assetbookAddr, 'authLevel', authLevel);
 
-  userIdHasBeenAdded = false;
-  fromAddr = admin; privateKey = adminpk;
-  if (userIdHasBeenAdded) {
-    userM = await instRegistry.methods.getUserFromUid(userId).call();
-    console.log('userM', userM);
-    checkEq(userM[0], assetbookAddr);
-    checkEq(userM[1], authLevel.toString());
+  const encodedData = instRegistry.methods.addUser(userId, assetbookAddr, authLevel).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrRegistry, encodedData);
+  console.log('\nTxResult', TxResult);
 
-  } else {
-    await instRegistry.methods.addUser(userId, assetbookAddr, authLevel)
-      .send({ value: '0', from: fromAddr, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('\nafter addUser() on AssetOwner1:');
-    userM = await instRegistry.methods.getUserFromUid(userId).call();
-    console.log('userM', userM);
-    checkEq(userM[0], assetbookAddr);
-    checkEq(userM[1], authLevel.toString());
-  }
-
+  const userDetails = await instRegistry.methods.getUserFromAssetbook(assetbookAddr).call();
+  console.log('\nuserDetails', userDetails, 'assetbookArray.length:', assetbookArray.length);
+  process.exit(0);
 }
 
 
@@ -382,7 +440,7 @@ const setupTest = async () => {
   // assetSymbol, addrHCAT721Index, 
   // assetAmount, timeIndexStart, 
   // timeIndexEnd, isInitialized);
-  console.log('\n----------------==Registry contract: add AssetBook contracts');
+  console.log('\n----------------==Registry contract: add AssetBook');
   let userM;
   console.log('addrRegistry', addrRegistry);
   //let getUserCountM = await instRegistry.methods.getUserCount().call();
@@ -471,11 +529,15 @@ const setupTest = async () => {
   let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
   checkEq(supportsInterface0x780e9d63, true);
 
-  const newplatformSupervisor = AssetOwner10;
-  const result = await addPlatformSupervisor(newplatformSupervisor).catch((err) => {
-    console.log('[Error @ addPlatformSupervisor]', err);
+  const platformSupervisorNew = AssetOwner10;
+  const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrHelium, encodedData).catch((err) => {
+    reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
+    return false;
   });
-  console.log(`result: ${JSON.stringify(result) }`);
+  console.log('\nTxResult', TxResult);
+  let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
+  console.log('\nresult', result);
 
   console.log('setup has been completed');
   process.exit(0);
@@ -565,10 +627,22 @@ const showAssetBookBalances = async () => {
 
     const instAssetBookX = new web3.eth.Contract(AssetBook.abi, assetbook);
     assetbookXM = await instAssetBookX.methods.getAsset(0, addrHCAT721).call();
-    console.log('AssetBook1:', assetbookXM);
+    console.log(`AssetBook${idx}: ${assetbookXM}`);
   });
 
   console.log('showAssetBookBalances() has been completed');
+  process.exit(0);
+}
+//yarn run livechain -c 1 --f 31
+const showAssetBookBalancesBigAmount = async () => {
+  const assetbookBalances = [];
+  await asyncForEach(assetbookArray, async (assetbook, idx) => {
+    console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
+    balanceXM = await instHCAT721.methods.balanceOf(assetbook).call();
+    assetbookBalances.push(parseInt(balanceXM));
+  });
+  console.log('assetbookBalances', assetbookBalances);
+  console.log('assetbookBalances() has been completed');
   process.exit(0);
 }
 
@@ -604,40 +678,78 @@ const showAssetInfo = async () => {
 // yarn run livechain -c 1 --f 6
 const sequentialMintSuperAPI = async () => {
   console.log('\n-----------------------==sequentialMintSuperAPI()');
-  //const amountArray = [180, 370, 27];//5083
-  const amountArray = [20, 37, 41];//98
-  //const amountArray = [2000, 3900, 4183];//10083
-  //const amountArray = [1000, 1900, 2183];//5083
+  let amountArray, toAddressArray;
+  const choice = 7;
+  if(choice === 1){
+    amountArray = [20, 37, 41];//98
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+  } else if(choice === 2){
+    amountArray = [180, 370, 27];//5083
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
 
-  const toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];//[...assetbookArray];
+  } else if(choice === 3){
+    amountArray = [1000, 1900, 2183];//5083
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
+  } else if(choice === 4){
+    amountArray = [2000, 3900, 4183];//10083
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
+  } else if(choice === 5){
+    amountArray = [69, 77, 81, 99, 104, 113, 128, 139, 147, 156];//1169
+    toAddressArray = [...assetbookArray];
+
+  } else if(choice === 6){
+    amountArray = [1231, 1776, 1974, 2025, 2038, 2386, 2731, 3132, 3416, 3612];//24321
+    toAddressArray = [...assetbookArray];
+
+  } else if(choice === 7){
+                //[ 3210, 3724, 2925, 2719, 2847, 2991, 3479, 3746, 3952, 4355 ]
+    amountArray = [ 3712, 3724, 3468, 3562, 2847, 2991, 3479, 3746, 3952, 4355 ];//24321
+    toAddressArray = [...assetbookArray];
+
+  }
+  // yarn run livechain -c 1 --f 31 for balances
+
+
   const tokenCtrtAddr = addrHCAT721;
   const fundingType = 2;//PO: 1, PP: 2
-  const price = 20000;
-  const maxMintAmountPerRun = 180;
+  const pricing = 15000;
+  const maxMintAmountPerRun = 190;
 
-  const serverTime = 201906271000;//297
+  const serverTime = TimeTokenUnlock-1;//201906271000;//297
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime).catch((err) => {
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
     console.log('[Error @ sequentialMintSuper]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
-  if(isFailed || isFailed === undefined || isFailed === null) {
-    console.log('\n[Failed] Some/All minting actions have failed. Check balances!');
+
+  if (isFailed || isFailed === undefined || isFailed === null) {
+    mesg = '[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!';
+    console.log('\n'+mesg);
+
+  } else if(!is_addAssetRecordRowArray) {
+    mesg = '[Token minting Successful but addAssetRecordRowArray() Failed]';
+    console.log('\n'+mesg);
+
+  } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+    mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
+    console.log('\n'+mesg);
+
+  } else if(!is_addActualPaymentTime) {
+    mesg = '[Token minting Successful but addActualPaymentTime() Failed]';
+    console.log('\n'+mesg);
+
+  } else if(!is_setFundingStateDB) {
+    mesg = '[Token minting Successful but setFundingStateDB() Failed]';
+    console.log('\n'+mesg);
+
   } else {
-    console.log('\n[Success] All minting actions have been completed successfully');
-
-    if(emailArrayError === null || emailArrayError.length > 0){
-      console.log(`\n[Minting Successful but addAssetRecordRowArray Failed]
-      emailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-
-    } else {
-      console.log(`\n[Success] Both token minting and addAssetRecordRowArray are successful.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-
-    }
-
+    mesg = '[Success] All token minting, addAssetRecordRowArray(), addActualPaymentTime(), and setFundingStateDB() have been completed successfully';
+    console.log('\n'+mesg);
   }
 
-  
+  /*
   ownerCindexM = await instHCAT721.methods.ownerCindex().call();
   console.log('\nownerCindexM', ownerCindexM);
 
@@ -656,7 +768,7 @@ const sequentialMintSuperAPI = async () => {
     // idxToOwnerM = await instHCAT721.methods.idxToOwner(1).call();
     // console.log('\nidxToOwnerM', idxToOwnerM);
     // checkeq(idxToOwnerM, _to);
-  });
+  });*/
 
   process.exit(0);
 }
@@ -669,10 +781,10 @@ const sequentialMintSuperNoMintAPI = async () => {
   const amountArray = [236, 312, 407];//236, 312 ... prev 250, 270, 0
   const tokenCtrtAddr = addrHCAT721;
   const fundingType = 2;//PO: 1, PP: 2
-  const price = 20000;
+  const pricing = 20000;
 
   //from blockchain.js
-  const [isFailed, isCorrectAmountArray] = await sequentialMintSuperNoMint(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price).catch((err) => {
+  const [isFailed, isCorrectAmountArray] = await sequentialMintSuperNoMint(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing).catch((err) => {
     console.log('[Error @ sequentialMintSuperNoMint]', err);
   });
   console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
@@ -945,8 +1057,10 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
   addrHCAT721 = ${addrHCAT721}
   `);
   console.log('\nsending tokens via transferAssetBatch()...');
-  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch((err) => {
+  TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch( async(err) => {
     console.log('[Error @ signTx()]', err);
+    result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(0, addrHCAT721, addrZero, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
+    console.log('\ncheckSafeTransferFromBatch result', result);
     process.exit(1);
   });// _fromAssetOwner, _fromAssetOwnerpkRaw
   //signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData)
@@ -1452,6 +1566,21 @@ if (func === 0) {
 } else if (func === 9) {
   mintTokenFn1();
 
+//yarn run livechain -c 1 --f 21
+} else if (func === 21) {
+  addUseArray();
+
+//yarn run livechain -c 1 --f 22
+} else if (func === 22) {
+  getUserFromAssetbook();
+
+//yarn run livechain -c 1 --f 23
+} else if (func === 23) {
+  addUserX();
+
+//yarn run livechain -c 1 --f 31
+} else if (func === 31) {
+  showAssetBookBalancesBigAmount();
 
 //------------------==
 //yarn run livechain -c 1 --f 91
@@ -1533,7 +1662,7 @@ const signTxn = (fromAddr, ctrtAddr, encodedData, privateKey) => {
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
   return new Promise((resolve, reject) => {
 
-      web3.eth.getTransactionCount(userEthAddr)
+      web3.eth.getTransactionCount(userEthAddr, 'pending')
           .then(nonce => {
 
               let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');

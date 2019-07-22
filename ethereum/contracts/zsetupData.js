@@ -38,18 +38,27 @@ const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwne
 const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw];
 //AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
 
-let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrRegistry;
+let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10, addrAssetBook0, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
+    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
  */
 const chain = 1;
 if (chain === 1){
-  addrHelium =     "0xaF2C0D3B0f7FD828933425080BaD9649D3d5Db4A";
-  addrAssetBook1 = "0xf840C19EaD2AE954B479A9b96FA15987a3c3963D";
-  addrAssetBook2 = "0x7E04E1B910750BB0FC3AE8376273722414Eb5724";
-  addrAssetBook3 = "0x56b57a7448fCE729430F302b52ef4a6E8D7F1153";
-  addrRegistry =   "0x0cC84cf986Bd934999e194C05dc4D46701710F39";
+  addrHelium =     "0x49e0c4Fc9edD11d9B565963d36af102C0efaB66a";
+  addrAssetBook7 = "0x8e10AB006D5aa5f189Cb3a1417Ee0f187EF56E56";
+  addrAssetBook8 = "0xca2628e05A8887295e80c6df474a3D21E563E73A";
+  addrAssetBook9 = "0x5F594C7E19EaD79fcDC66C2c5BBdB7AFcF9c4ed1";
+  addrRegistry =   "0x551239714e6C2b59d4AAdc9F51825a5BedD4C021";
+
+  addrAssetBook0 = "0x9151d4BC2a05a127477D5938039551218C0c7703";
+  addrAssetBook1 = "0x51B48015726C16802C850847682DaBd39596D06a";
+  addrAssetBook2 = "0xEa9C8431710206F9092b6146b0C275eeFCC07812";
+  addrAssetBook3 = "0x0F55D711f5D81df7e13BF3D3a69bD44a6eB6A95A";
+  addrAssetBook4 = "0xcDEB03D6B6dfE94B21e802ec7db4e808CF0F2F16";
+  addrAssetBook5 = "0x61490b4f58Ef5D6ce1e20a74E99Aaae076F433cd";
+  addrAssetBook6 = "0xccaF9388399d2BC9Bb9a4038b6adb4f2c54196eE";
+  addrAssetBook10 = "0xF9f35EACEEc9b8031c9534D7E5a508A86DA224BE";
   
 } else if (chain === 2){
   //ganache chain
@@ -72,8 +81,8 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
   this.fundingType = fundingType;
   this.IRR20yrx100 = IRR20yrx100;
   this.duration = duration;
-  this.nftName = nftSymbol+"_2019";
-  this.location = nftSymbol.substr(0, nftSymbol.length-4);
+  this.nftName = nftName;
+  this.location = location;//.substr(0, nftSymbol.length-4)
   this.addrTokenController = addrTokenController;
   this.addrHCAT721 = addrHCAT721;
   this.addrCrowdFunding = addrCrowdFunding;
@@ -87,8 +96,8 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 // console.log('currentTime', currentTime);
 //To be copied to timeserverTest.js
 const TimeOfDeployment_CF = 201905281410;
-const CFSD2 = TimeOfDeployment_CF+10;
-const CFED2 = TimeOfDeployment_CF+15;
+const CFSD = TimeOfDeployment_CF+10;
+const CFED = TimeOfDeployment_CF+15;
 const TimeOfDeployment_TokCtrl = TimeOfDeployment_CF + 20;
 const TimeOfDeployment_HCAT = TimeOfDeployment_CF + 21;
 const TimeOfDeployment_IM = TimeOfDeployment_CF + 22;
@@ -96,24 +105,18 @@ const TimeTokenUnlock = TimeOfDeployment_CF+30;
 const TimeTokenValid =  TimeOfDeployment_CF+90;
 fundmanager = 'FundManagerN';
 
-/** deployed contracts
-    yarn run deploy -c 1 -n 0 -cName tokc
-    -c chain    -n symNum   
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, pm, db2
-   addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager
-*/
 //fundingType: PO: 1, PP: 2
-symNum = 5;
+symNum = 1;
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
-const productObj0 = new productObject("ACOS1901", "tokenNameZZZ", "MARS0001", 973, 924, 300, 18000, "NTD", 470, 20, 20, 2, "", "", "", "");
+const productObj0 = new productObject("AMER1901", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 1, "", "", "", "");
 
-const productObj1 = new productObject("AKOS1903", "tokenNameZZZ", "MARS0001", 1486, 1372, 500, 18000, "NTD", 470, 20, 2, "0x695128dC5B84E0Cc242B43575df7Eb5aBC9070e6", "0x2BdA4a3553A084220e1A6c637F8c9f6b44AC01Ec", "0x7c1C2D8E2b215Fc4E94c523A4a34860C7B442bc0", "");
+const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0x9796376315CE9DBE0f78Da6f3f26B60048852B5b", "0x77aC1f79a02B5D8D3A4aED5647cEDf25A68cb577", "0xA43a549f6C785A85F485c6ff30E3AE627104E1C4", "0x36502181603025f9C01A9876D5267183FC9b9628");
 
-const productObj2 = new productObject("ALOS1902", "tokenNameZZZ", "MARS0001", 5073, 4935, 950, 19000, "NTD", 480, 20, 2, "", "", "", "");
+const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 1, "", "", "", "");
 
-const productObj3 = new productObject("AMOS1902", "tokenNameZZZ", "MARS0001", 10379, 9837, 2280, 20000, "NTD", 490, 20, 2, "0x91BC75052fFbB98a6baca4DF3B96470853985E35", "0x97218B571B213e6C92A5Fc816563F33ae9237606", "0xcB09F5C6cBeb794b8B1B7b6F9897ae4DF0795389", "");
+const productObj3 = new productObject("AURA1904", "Uranus1904", "Uranus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 500, 20, 1, "", "", "", "");
 
-const productObj4 = new productObject("AOOT1904", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj4 = new productObject("ANEP1904", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
 const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
 
@@ -124,7 +127,7 @@ const isTestingMode = false;
 const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
-index 1: cancelOverCFED2Orders(serverTime);//blockchain.js
+index 1: cancelOverCFEDOrders(serverTime);//blockchain.js
 index 2: updateExpiredOrders(serverTime);//blockchain.js
 index 3: updateCFC(serverTime);//blockchain.js
 index 4: updateTCC(serverTime);//blockchain.js
@@ -183,13 +186,22 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.imageb = Math.random().toString(36).substring(2, 15);
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
-const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777001', AssetOwner7, '093755501', 'Romeo1', addrAssetBook1, 5, 10);
-const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777002', AssetOwner8, '093755502', 'Romeo2', addrAssetBook2, 5, 5);
-const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777003', AssetOwner9, '093755503', 'Romeo3', addrAssetBook3, 5, 15);
-const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner7, '093755500', 'Romeo0', addrAssetBook1, 5, 1);
-const userArray = [user0, user7, user8, user9];
+const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', admin, '093755500', 'Romeo0', addrAssetBook0, 5, 1);
+const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo0', addrAssetBook1, 5, 1);
+const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo0', addrAssetBook2, 5, 1);
+const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo0', addrAssetBook3, 5, 1);
+const user4 = new userObject('000a4@gmail.com', 'user4pw', 'R999777004', AssetOwner4, '093755504', 'Romeo0', addrAssetBook4, 5, 1);
+const user5 = new userObject('000a5@gmail.com', 'user5pw', 'R999777005', AssetOwner5, '093755505', 'Romeo0', addrAssetBook5, 5, 1);
+const user6 = new userObject('000a6@gmail.com', 'user6pw', 'R999777006', AssetOwner6, '093755506', 'Romeo0', addrAssetBook6, 5, 1);
 
-userNum = 3;
+const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777007', AssetOwner7, '093755507', 'Romeo7', addrAssetBook7, 5, 10);
+const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777008', AssetOwner8, '093755508', 'Romeo8', addrAssetBook8, 5, 5);
+const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777009', AssetOwner9, '093755509', 'Romeo9', addrAssetBook9, 5, 15);
+const user10 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner10, '093755510', 'Romeo10', addrAssetBook10, 5, 1);
+
+const userArray = [user0, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10];
+
+userNum = 9;
 const userObjN = userArray[userNum];
 const email = userObjN.email;
 const password = userObjN.password;
@@ -217,9 +229,9 @@ function assetRecordObject(investorEmail, symbol, ar_time, holdingAmount, Accumu
   this.AcquiredCost = AcquiredCost;
   this.MovingAverageofHoldingCost = MovingAverageofHoldingCost;
 }
-const assetRecord1 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291500, 17, 100, 13000, 0, 0, 13000, 13000);
-const assetRecord2 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291510, 17, 100, 13000, 0, 0, 13000, 13000);
-const assetRecord3 = new assetRecordObject('johndoe@gmail.com', nftSymbol, 201906291520, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord1 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord2 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord3 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
 const assetRecordArray = [assetRecord1, assetRecord2, assetRecord3];
 
 
@@ -246,9 +258,9 @@ function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeri
   this.ia_state = ia_state;
   this.singleCalibrationActualIncome = singleCalibrationActualIncome;
 }
-const incomeArrangement1 = new incomeArrangementObject(nftSymbol, 201906281300, 201906281305, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
-const incomeArrangement2 = new incomeArrangementObject(nftSymbol, 201906281310, 201906281315, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
-const incomeArrangement3 = new incomeArrangementObject(nftSymbol, 201906281320, 201906281325, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 500, 0, 0, 0, 0);
+const incomeArrangement1 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+const incomeArrangement2 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+const incomeArrangement3 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3];
 
 
@@ -258,8 +270,8 @@ const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeAr
 
 console.log(`
 const TimeOfDeployment_CF = ${TimeOfDeployment_CF};
-const CFSD2 = ${CFSD2};
-const CFED2 = ${CFED2};
+const CFSD = ${CFSD};
+const CFED = ${CFED};
 const TimeOfDeployment_TokCtrl = ${TimeOfDeployment_TokCtrl};
 const TimeOfDeployment_HCAT = ${TimeOfDeployment_HCAT};
 const TimeOfDeployment_IM = ${TimeOfDeployment_IM};
@@ -280,7 +292,7 @@ addrHCAT721 = '${addrHCAT721}'
 duration: ${duration}, fundingType: ${fundingType}
 `);
 
-const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD2, CFED2, TimeOfDeployment_CF, addrHelium];
+const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD, CFED, TimeOfDeployment_CF, addrHelium];
 
 const argsTokenController = [
   TimeOfDeployment_TokCtrl, TimeTokenUnlock, TimeTokenValid, addrHelium ];
@@ -596,7 +608,7 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
 module.exports = {
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
-  CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
+  CFSD, CFED, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
   email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance

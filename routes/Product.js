@@ -1239,7 +1239,18 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
                         }
                     });
                 }
-
+            }else if(req.body.CorrectActualPaymentResult=="ia_state_unapproved"){
+                    var sql = {
+                        ia_State: req.body.CorrectActualPaymentResult
+                    };
+                    var qur1 = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            res.setHeader('Content-Type', 'application/json');
+                            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+                        }
+                    });
             }
         }
     });
