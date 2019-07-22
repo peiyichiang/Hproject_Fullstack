@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
 const { getTime, asyncForEach } = require('../timeserver/utilities');
-const { addScheduleBatch,editActualSchedule,getIncomeScheduleList,addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
+const { addScheduleBatch, editActualSchedule, getIncomeScheduleList, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 
 //撈取資料(Platform_Supervisor專用，沒在用)
 router.get('/Product', function (req, res, next) {
@@ -17,7 +17,7 @@ router.get('/Product', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -86,7 +86,7 @@ router.get('/ProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -148,7 +148,7 @@ router.get('/ProductByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -239,7 +239,7 @@ router.get('/AddProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -283,7 +283,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -362,12 +362,12 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname:req.body.p_EPCname,
-        p_Copywriting:req.body.p_Copywriting,
-        p_ContractOut:req.body.p_ContractOut,
-        p_CaseConstruction:req.body.p_CaseConstruction,
-        p_ElectricityBilling:req.body.p_ElectricityBilling,
-        p_isNewCase:req.body.p_isNewCase
+        p_EPCname: req.body.p_EPCname,
+        p_Copywriting: req.body.p_Copywriting,
+        p_ContractOut: req.body.p_ContractOut,
+        p_CaseConstruction: req.body.p_CaseConstruction,
+        p_ElectricityBilling: req.body.p_ElectricityBilling,
+        p_isNewCase: req.body.p_isNewCase
     };
 
     console.log(sql);
@@ -392,7 +392,7 @@ router.get('/DeleteProduct', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -455,7 +455,7 @@ router.get('/EditProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -509,7 +509,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -584,12 +584,12 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname:req.body.p_EPCname,
-        p_Copywriting:req.body.p_Copywriting,
-        p_ContractOut:req.body.p_ContractOut,
-        p_CaseConstruction:req.body.p_CaseConstruction,
-        p_ElectricityBilling:req.body.p_ElectricityBilling,
-        p_isNewCase:req.body.p_isNewCase
+        p_EPCname: req.body.p_EPCname,
+        p_Copywriting: req.body.p_Copywriting,
+        p_ContractOut: req.body.p_ContractOut,
+        p_CaseConstruction: req.body.p_CaseConstruction,
+        p_ElectricityBilling: req.body.p_ElectricityBilling,
+        p_isNewCase: req.body.p_isNewCase
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
@@ -617,7 +617,7 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -673,7 +673,7 @@ router.get('/EditProductByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -738,7 +738,7 @@ router.get('/SetProductDraftByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -798,7 +798,7 @@ router.get('/EditProductByPlatformSupervisor', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -899,7 +899,7 @@ router.get('/SetFMSNoteAndReturnByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -953,7 +953,7 @@ router.get('/SetPANoteAndReturnByPA', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -1062,52 +1062,52 @@ router.post('/IncomeCSV', function (req, res, next) {
         //判斷文件路徑是否存在
         try {
             if (fs.existsSync(IncomeCSVFilePath)) {
-              console.log("1");
-              //file exists
-              // 將csv轉換成sql語句
-              csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
-              .on('data', function (sql) {
-                  //console.log(sql);
-                  var mysqlPoolQuery = req.pool;
-                  var qur = mysqlPoolQuery(sql, function (err, rows) {
-                      if (err) {
-                          console.log(err);
-                      } else {
-                          res.send({
-                              "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
-                              "messageForUser": "",
-                              "isSuccess":true
-                          });
-                      }
-                  });
-  
-              })
-              .on('end', function (rows) {
-                  // console.log(rows); // 5 - Num of rows handled, including header
-              })
-              .on('error', function (error) {
-                  console.error(error); //Handle error
-              })
-            }else{
+                console.log("1");
+                //file exists
+                // 將csv轉換成sql語句
+                csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
+                    .on('data', function (sql) {
+                        //console.log(sql);
+                        var mysqlPoolQuery = req.pool;
+                        var qur = mysqlPoolQuery(sql, function (err, rows) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                res.send({
+                                    "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
+                                    "messageForUser": "",
+                                    "isSuccess": true
+                                });
+                            }
+                        });
+
+                    })
+                    .on('end', function (rows) {
+                        // console.log(rows); // 5 - Num of rows handled, including header
+                    })
+                    .on('error', function (error) {
+                        console.error(error); //Handle error
+                    })
+            } else {
                 res.send({
                     "messageForDeveloper": "沒有Income CSV文件",
                     "messageForUser": "Income CSV文件遺失，請重新上傳",
-                    "isSuccess":false
+                    "isSuccess": false
                 });
             }
-          } catch(err) {
+        } catch (err) {
             console.error(err)
             res.send({
                 "messageForDeveloper": "沒有Income CSV文件",
                 "messageForUser": "Income CSV文件遺失，請重新上傳",
-                "isSuccess":false
+                "isSuccess": false
             });
-          }
+        }
     } else {
         res.send({
             "messageForDeveloper": "沒有Income CSV文件",
             "messageForUser": "請上傳Income CSV文件",
-            "isSuccess":false
+            "isSuccess": false
         });
     }
 
@@ -1122,7 +1122,7 @@ router.get('/IncomeArrangement', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -1171,7 +1171,7 @@ router.post('/CorrectActualPayment', function (req, res, next) {
         //校正後金額
         ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
         //校正後時間
-        ia_actualPaymentTime:req.body.CorrectActualPaymentTime,
+        ia_actualPaymentTime: req.body.CorrectActualPaymentTime,
         ia_State: "ia_state_underReview"
     };
 
@@ -1198,34 +1198,34 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     //根據傳來的symbol、校正前時間 查詢期數、實際發放金額、實際發放時間
-    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol , req.body.OriginalPaymentTime], async function (err, rows) {
+    var qur = mysqlPoolQuery('SELECT ia_Payable_Period_End,ia_single_Actual_Income_Payment_in_the_Period,ia_actualPaymentTime FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time = ?', [req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
         if (err) {
             console.log(err);
         } else {
             var data = rows;
             // 期數
-            var period=rows[0].ia_Payable_Period_End;
+            var period = rows[0].ia_Payable_Period_End;
             console.log("第幾期：" + period);
             // 實際發放金額
-            var actualPaymentAmount_=rows[0].ia_single_Actual_Income_Payment_in_the_Period;
+            var actualPaymentAmount_ = rows[0].ia_single_Actual_Income_Payment_in_the_Period;
             console.log("實際發放金額：" + actualPaymentAmount_);
             // console.log(rows[0].ia_single_Actual_Income_Payment_in_the_Period);
             // 實際發放時間
-            var actualPaymentTime_=rows[0].ia_actualPaymentTime;
+            var actualPaymentTime_ = rows[0].ia_actualPaymentTime;
             console.log("實際發放時間：" + actualPaymentTime_);
             // console.log(rows[0].ia_actualPaymentTime);                    
-            
+
             // 如果通過審核就寫入到智能合約
-            if(req.body.CorrectActualPaymentResult=="ia_state_approved"){
+            if (req.body.CorrectActualPaymentResult == "ia_state_approved") {
                 const symbol = req.body.CorrectActualPaymentTokenSymbol;
                 const schIndex = period;
-                const actualPaymentTime =actualPaymentTime_;
+                const actualPaymentTime = actualPaymentTime_;
                 const actualPaymentAmount = actualPaymentAmount_;
                 const result = await editActualSchedule(symbol, schIndex, actualPaymentTime, actualPaymentAmount);
                 console.log('result', result);
 
                 // 如果成功寫入智能合約，就設置審核狀態
-                if(result==true){
+                if (result == true) {
                     //設置審核狀態 
                     var sql = {
                         ia_State: req.body.CorrectActualPaymentResult
@@ -1276,10 +1276,10 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
     // });
 });
 
-router.get('/testRayAPI',function (req, res, next){
-    if(addScheduleBatch("ACHM6666",[201907081516,201907081517],[3,4])){
+router.get('/testRayAPI', function (req, res, next) {
+    if (addScheduleBatch("ACHM6666", [201907081516, 201907081517], [3, 4])) {
         console.log("###Success");
-    }else{
+    } else {
         console.log("###Fail");
     }
 });
@@ -1345,7 +1345,24 @@ router.get('/LaunchedProductList', function (req, res) {
                 })
             }
             else {
-                if (productArray.length > 0) {                    
+                /* 取得現在時間 */
+                let timeNow = new Date();
+                const minuteAndHour = timeNow.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: "numeric",
+                    minute: "numeric"
+                });
+                let year = timeNow.getFullYear();
+                let month = String(timeNow.getMonth() + 1).padStart(2, '0'); //January is 0!
+                let day = String(timeNow.getDate()).padStart(2, '0');
+                let hour = minuteAndHour.substring(0, 2);
+                let minute = minuteAndHour.substring(3, 5);
+                timeNow = year + month + day + hour + minute;
+                /* 回傳還沒超過 CFED 的專案 */
+                productArray = productArray.filter(function (item, index, array) {
+                    return timeNow > item.CFED;
+                });
+                if (productArray.length > 0) {
                     res.status(200);
                     res.json({
                         "message": "產品列表取得成功",
@@ -1563,9 +1580,9 @@ router.get('/canBuyToken', async function (req, res) {
                     canBuyToken = true :
                     canBuyToken = false;
 
-                    // console.log(isServerTimeLargerThanCFSD)
-                    // console.log(isAssetbookContractAddressExist)
-                    // console.log(canBuyToken)
+                // console.log(isServerTimeLargerThanCFSD)
+                // console.log(isAssetbookContractAddressExist)
+                // console.log(canBuyToken)
 
                 if (!!canBuyToken) {
                     res.status(200);
@@ -1687,7 +1704,7 @@ router.get('/ProductDataBySymbol', function (req, res) {
                     FROM income_arrangement 
                     GROUP BY ia_SYMBOL) AS T4
         ON T1.p_SYMBOL = T4.ia_SYMBOL
-        WHERE p_SYMBOL = ?;`, symbol ,function (err, productArray) {
+        WHERE p_SYMBOL = ?;`, symbol, function (err, productArray) {
             if (err) {
                 res.status(400)
                 res.json({
@@ -1695,7 +1712,7 @@ router.get('/ProductDataBySymbol', function (req, res) {
                 })
             }
             else {
-                if (productArray.length > 0) {                    
+                if (productArray.length > 0) {
                     res.status(200);
                     res.json({
                         "message": "產品資訊取得成功",
