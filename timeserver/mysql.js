@@ -374,7 +374,7 @@ const getProfitSymbolAddresses = async() => {
       }
     }
     //console.log('foundHCAT721Addrs', foundHCAT721Addrs);
-    const queryStrAcPaymentTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_assetRecord_status = false AND ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)';
+    const queryStrAcPaymentTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_assetRecord_status = 0 AND ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)';
 
     const APT_Array = [];
     await asyncForEach(foundSymbols, async (symbol, index) => {
@@ -386,7 +386,7 @@ const getProfitSymbolAddresses = async() => {
       if(isEmpty(result3)){
         mesg = '[Error] Actual Payment Time Array query returns nothing. symbol = '+symbol;
         console.log(mesg);
-        reject(mesg);
+        //reject(mesg);
       }
       APT_Array.push(result3);
     });
@@ -406,6 +406,7 @@ const getProductPricing = async(symbol) => {
       reject(err);
       return false;
     });
+    const pricing = result1[0].p_pricing;
     if(Number.isInteger(result1)){
       console.log('result found as an integer:', result1);
       resolve(result1);
@@ -437,6 +438,10 @@ const calculateLastPeriodProfit = async() => {
       reject('[Error] foundSymbols and foundHCAT721Addrs are of difference length');
       return false;
 
+    } else if(APT_Array.length !== foundSymbols.length){
+      reject('[Error] APT_Array and foundSymbols are of different length');
+      return false;
+
     } else if(APT_Array[0].length === 0){
       reject('[Error] Actual Payment Time Array query returns nothing');
       return false;
@@ -451,16 +456,16 @@ const calculateLastPeriodProfit = async() => {
 
         const pricing = await getProductPricing(symbol);
         if(!pricing){
-          console.log('\n[Error @ addAssetRecordRowArray> getProductPricing]');
+          console.log('\n[Error @ addAssetRecordRowArray> getProductPricing]', pricing);
           reject(false);
           return false;
         }
 
-        const ar_time = APT_Array[index].ia_actualPaymentTime;
-        const singleActualIncomePayment = APT_Array[index].ia_single_Actual_Income_Payment_in_the_Period;
+        const ar_time = APT_Array[index][0].ia_actualPaymentTime;
+        const singleActualIncomePayment = APT_Array[index][0].ia_single_Actual_Income_Payment_in_the_Period;
         console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
 
-        const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+        const instHCAT721 = new web3.eth.Contract(HCAT721.abi, foundHCAT721Addrs[index]);
         const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
         console.log(`\ntoAddressArray: ${toAddressArray}`);
 
@@ -560,6 +565,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
         const result4 = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {
           console.log('\n[Error @ mysqlPoolQueryB(queryStr4)]');
           reject(err);
+          return [null, null];
         });
         console.log('\nresult4', result4);
         if(result4 === null || result4 === undefined){
@@ -596,7 +602,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
         console.log(`[Error @ email] email: ${email}, amount: ${amount} ... added to emailArrayError and amountArrayError`);
 
       } else {
-        console.log(`email: ${email}, symbol: ${symbol}, ar_time: ${ar_time}, amount: ${amount}, acquiredCost: ${acquiredCost}`);
+        console.log(`check600: email: ${email}, symbol: ${symbol}, ar_time: ${ar_time}, amount: ${amount}, acquiredCost: ${acquiredCost}`);
         const sqlObject = {
           ar_investorEmail: email,
           ar_tokenSYMBOL: symbol,
@@ -615,6 +621,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
         const result6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
           console.log('\n[Error @ mysqlPoolQueryB(queryStr6)]');
           reject(err);
+          return [null, null];
         });
         //console.log('result6', result6);
       }

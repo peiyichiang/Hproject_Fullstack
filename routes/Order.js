@@ -424,7 +424,7 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
     
     let qur = mysqlPoolQuery(
         'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, result) {
-            const orderBalanceTotal = parseInt(result[0].total);
+            let orderBalanceTotal = parseInt(result[0].total);
             if(isNaN(orderBalanceTotal)){orderBalanceTotal = 0;}
 
             if (err) {

@@ -172,7 +172,7 @@ const updateFundingStateCFC = async (crowdFundingAddr, serverTime, symbol) => {
     console.log('\n[updateFundingStateCFC] crowdFundingAddr', crowdFundingAddr, 'serverTime', serverTime);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
 
-    const stateDescription = await instCrowdFunding.methods.stateDescription().call();
+    let stateDescription = await instCrowdFunding.methods.stateDescription().call();
     //const symbol = await instCrowdFunding.methods.tokenSymbol().call();
     let fundingState = await instCrowdFunding.methods.fundingState().call();
     console.log(`\nsymbol: ${symbol}, fundingState: ${fundingState}`);
@@ -841,7 +841,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, tokenCount, serverTim
 
     const boolArray = result[0];
     let mesg;
-    if(amountArray.every(checkBoolTrueArray)){
+    if(boolArray[0] && boolArray[1] && boolArray[2] && boolArray[3] && boolArray[4] && boolArray[5] && boolArray[6] && boolArray[7]){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
       resolve(true);
@@ -920,7 +920,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
     console.error(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
 
     // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
-    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
+    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order_list OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
