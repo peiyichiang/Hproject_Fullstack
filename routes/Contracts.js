@@ -6,7 +6,7 @@ const router = express.Router();
 
 const { isTestingMode } = require('../ethereum/contracts/zsetupData');
 const { getTime } = require('../timeserver/utilities');
-const { sequentialMintSuper, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
+const { sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 /*Infura HttpProvider Endpoint*/
@@ -973,20 +973,42 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
 // http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
     console.log(`\n---------------------==\nAPI mintSequentialPerCtrt...`);
-    const toAddressArray = req.body.toAddressArray.split(",");
-    const amountArray = req.body.amountArray.split(",").map(function (item) {
-        return parseInt(item, 10);
-    });
-    const tokenCtrtAddr = req.body.erc721address;
-    const fundingType = req.body.fundingType;//PO: 1, PP: 2
+    const isCombinedAPI = true;
+
     const price = req.body.price;
     const nftSymbol = req.params.nftSymbol;
+    const fundingType = req.body.fundingType;//PO: 1, PP: 2
+    let toAddressArray, amountArray, tokenCtrtAddr, mesg;
+
+    if(isCombinedAPI){
+      [toAddressArray, amountArray, tokenCtrtAddr] = await preMint(nftSymbol).catch((err) => {
+        res.send({
+          success: false,
+          result: 'failed at preMint(), err: ' + err,
+        });
+      });
+      console.log(`Returned values from preMint():
+toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
+      if(toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)){
+        res.send({
+          success: false,
+          result: 'preMint() returns false/none-true/none-valid values',
+        });
+      }
+    } else {
+      toAddressArray = req.body.toAddressArray.split(",");
+      amountArray = req.body.amountArray.split(",").map(function (item) {
+          return parseInt(item, 10);
+      });
+      tokenCtrtAddr = req.body.erc721address;
+    }
+
 
     console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}
     toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
 
     const maxMintAmountPerRun = 180;
-    let mesg, serverTime;
+    let mesg = '', serverTime;
     // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
     // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
 

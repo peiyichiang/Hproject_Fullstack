@@ -1,9 +1,9 @@
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
 
 const { breakdownArray, breakdownArrays } = require('./utilities');
 
@@ -470,6 +470,7 @@ const addIncomeArrangementRow_API = async () => {
     //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
     //is_addActualPaymentTime = false;
   });
+  process.exit(0);
 }
 
 
@@ -481,6 +482,44 @@ const breakdownArray_API = async () => {
   const maxMintAmountPerRun = 180;
   const result = await breakdownArray(toAddress, amount, maxMintAmountPerRun);
   console.log('result', result);
+  process.exit(0);
+}
+
+//yarn run testmt -f 25
+const setAssetRecordStatus_API = async () => {
+  console.log('\n---------------------==setAssetRecordStatus_API()');
+  const assetRecordStatus = '1';
+  const symbol = 'AVEN1902';
+  const actualPaymentTime = 201905281441+10;
+  const result = await setAssetRecordStatus(assetRecordStatus, symbol, actualPaymentTime);
+  console.log('result', result);
+  process.exit(0);
+}
+
+//yarn run testmt -f 26
+const getMaxActualPaymentTime_API = async () => {
+  console.log('\n---------------------==getMaxActualPaymentTime_API()');
+  const symbol = 'AVEN1902';
+  const serverTime = 201905281445;
+  const result = await getMaxActualPaymentTime(symbol, serverTime);
+  let resultBoolean;
+  if(result){
+    resultBoolean = true;
+  } else {
+    resultBoolean = false;
+  }
+  console.log('result:', result, ', resultBoolean:', resultBoolean);
+  process.exit(0);
+}
+
+//yarn run testmt -f 40
+const preMint_API = async () => {
+  console.log('\n---------------------==preMint_API()');
+  const nftSymbol = 'AVEN1902';//'NCCU0723';
+  const [toAddressArray, amountArray, tokenCtrtAddr] = await preMint(nftSymbol);
+  console.log(`Returned values from preMint():
+toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
+  process.exit(0);
 }
 
 
@@ -578,6 +617,16 @@ if(func === 0){
 } else if (func === 22) {
   getForecastedSchedulesFromDB_API();
 
+
+//------------------==Income_arrangement
+//yarn run testmt -f 25
+} else if (func === 25) {
+  setAssetRecordStatus_API();
+
+//yarn run testmt -f 26
+} else if (func === 26) {
+  getMaxActualPaymentTime_API();
+
 //------------------==Assetbook
 //resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
 //yarn run testmt -f 30
@@ -599,6 +648,11 @@ if(func === 0){
 //yarn run testmt -f 34
 } else if (func === 34) {
   changeAssetOwner_API();
+
+
+//yarn run testmt -f 40
+} else if (func === 40) {
+  preMint_API();
 
 //yarn run testmt -f 41
 } else if (func === 41) {
