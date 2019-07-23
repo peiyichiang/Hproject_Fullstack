@@ -121,10 +121,10 @@ const productObj4 = new productObject("ANEP1904", "Neptune", "Neptune base 0001"
 const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
 
 
-//const isTestingMode = true;
-const isTestingMode = false;
-const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
-//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+const isTestingMode = true;
+// const isTestingMode = false;
+//const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
+const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFEDOrders(serverTime);//blockchain.js
