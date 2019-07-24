@@ -44,16 +44,16 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
             initArray.push(incomeHistoryList[0])
 
             /* 計算各期累積收益 */
-            // incomeHistoryList.reduce(
-            //     (array, nextElement) => {
-            //         const index = array.length - 1
-            //         if (index > 0) {
-            //             nextElement.income = nextElement.income + array[index].income
-            //         } else {
-            //             nextElement.income = nextElement.income
-            //         }
-            //         return array.concat(nextElement);
-            //     }, initArray)
+            incomeHistoryList.reduce(
+                (array, nextElement) => {
+                    const index = array.length - 1
+                    if (index > 0) {
+                        nextElement.income = nextElement.income + array[index].income
+                    } else {
+                        nextElement.income = nextElement.income
+                    }
+                    return array.concat(nextElement);
+                }, initArray)
 
             incomeHistoryList.map(
                 incomeHistory => {
@@ -176,24 +176,21 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
                             latestAssetHistoryByToken.incomeTotal = returnNumberWithCommas(incomeObject.income)
                     })
                 });
-            res.status(200);
             if (latestAssetHistoryArray.length > 0) {
+                res.status(200);
                 res.json({
-                    "message": "[Success] 我的資產取得成功！",
+                    "message": "我的資產取得成功",
                     "result": latestAssetHistoryArray
                 });
             } else {
-                res.json({
-                    "message": "[Success] 我的資產取得成功: 找不到資產"
-                });
+                res.status(404);
+                res.json({ "message": "找不到資產我的資產" });
             }
         })
         .catch((err) => {
-            console.log(err);
+            console.error(err);
             res.status(400);
-            res.json({
-                "message": "[Error] 我的資產取得失敗: " + err
-            });
+            res.json({ "message": "我的資產取得失敗: " + err });
         })
 });
 
