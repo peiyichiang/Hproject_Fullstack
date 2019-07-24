@@ -58,7 +58,7 @@ router.get('/backend_user', function (req, res, next) {
                 }
                 //FrontEnd_data=前端使用者資料
                 var FrontEnd_data = rows;
-                res.render('Viewbackend_user', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
+                res.render('PlatformAdmin', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
             });
         });
     }
@@ -540,24 +540,90 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
         return;
     }
 
-    // var db = req.con;
-    var mysqlPoolQuery = req.pool;
     var data = "";
-    console.log("＊：" + req);
-
+    var mysqlPoolQuery = req.pool;
+    
     if(JWT_decoded!==undefined){
-        mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
+        mysqlPoolQuery('SELECT fp_investor_email,fp_application_date,fp_imagef,fp_imageb,fp_bankAccountimage,fp_isApproved FROM forget_pw', function (err, rows) {
             if (err) {
                 console.log(err);
             }
+            //data=前端使用者申請忘記密碼的資料
             var data = rows;
-    
-            // use index.ejs
-            res.render('ViewProduct', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
+            console.log("***：" + JSON.stringify(data));
+            mysqlPoolQuery('SELECT * FROM user', function (err, rows) {
+                if (err) {
+                    console.log(err);
+                }
+                //FrontEnd_data=前端使用者資料
+                var FrontEnd_data = rows;
+                res.render('PlatformCustomerService', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id,ForgetPassword_data:data, FrontEnd_data: FrontEnd_data });
+            });
         });
     }
 
 });
+
+//CustomerService設置 忘記密碼 審核通過
+router.post('/SetForgetPasswordApproved', function (req, res, next) {
+    var token = req.cookies.access_token;
+    // console.log(token);
+    var JWT_decoded;
+    var dateNow = new Date();
+
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if(decoded.exp<dateNow.getTime()/1000){
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: err, error: '' });
+                return;
+            } else {
+                //JWT token驗證成功
+                JWT_decoded = decoded;
+                if (decoded.payload.m_permission != "Platform_CustomerService") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+    
+
+    var email = req.body.ForgetPasswordEmail;
+    console.log(email);
+
+    var sql = {
+        fp_isApproved: 1,
+    };
+
+    var mysqlPoolQuery = req.pool;
+    if(JWT_decoded!==undefined){
+        var qur = mysqlPoolQuery('UPDATE forget_pw SET ? WHERE fp_investor_email = ?', [sql, email], function (err, rows) {
+            if (err) {
+                console.log(err);
+                // res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+                res.redirect('/BackendUser/BackendUser_CustomerService');
+            } else {
+                // res.setHeader('Content-Type', 'application/json');
+                // res.redirect('/BackendUser/backend_user');
+                // res.render('error', { message: '更改密碼成功', error: '' });
+                res.redirect('/BackendUser/BackendUser_CustomerService');
+            }
+        });
+    }
+
+});
+
 
 //BackendUser_Platform_Supervisor登入後跳轉到該頁面
 router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {

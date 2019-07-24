@@ -272,6 +272,7 @@ const addIncomeArrangementRowFromObj = (iaObj) => {
       ia_single_Actual_Income_Payment_in_the_Period : iaObj.singleActualIncomePayment,
       ia_single_Accumulated_Income_Paid : iaObj.singleAccumulatedIncomePaid,
       ia_single_Token_Market_Price : iaObj.singleTokenMarketPrice,
+      ia_assetRecord_status: iaObj.assetRecordStatus,
       ia_State : iaObj.ia_state,
       ia_single_Calibration_Actual_Income_Payment_in_the_Period : iaObj.singleCalibrationActualIncome,
     };
@@ -328,28 +329,54 @@ const addIncomeArrangementRow = (symbol, ia_time, actualPaymentTime, payablePeri
   });
 }
 
-//yarn run testmt -f 4
-const getProfitSymbolAddresses = async() => {
+
+
+const getProductPricing = async(symbol) => {
   return new Promise(async(resolve, reject) => {
-    /*
-    const queryStr1 = 'SELECT p_SYMBOL from product where p_state = "ONM"'
-    const result1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
-      console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr1)]');
+    console.log('\n--------------==inside getProductPricing()');
+    const queryStr1 = 'SELECT p_pricing FROM product WHERE p_SYMBOL = ?';//"NCCU0716"
+    const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
+      console.log('\n[Error @ getProductPricing]');
       reject(err);
       return false;
     });
-    const result1Len = result1.length;
-    console.log('\nArray length @ getProfitSymbolAddresses:', result1Len);
-    const foundSymbols = [];
-    for(let i = 0; i < result1.length; i++) {
-      if(typeof result1[i] === 'object' && result1[i] !== null){
-        foundSymbols.push(result1[i].p_SYMBOL);
-      }
+    const pricing = result1[0].p_pricing;
+    if(Number.isInteger(result1)){
+      console.log('result found as an integer:', result1);
+      resolve(result1);
+    } else{
+      console.log('result is not an integer. result1:', result1);
+      reject(false);
     }
-    console.log('foundSymbols', foundSymbols);
-    */
-    let mesg;
-    const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")'
+  });
+}
+
+//yarn run testmt -f 26
+const getMaxActualPaymentTime = async(symbol, serverTime) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('-----------==getProfitSymbolAddress');
+    const queryStr2 = 'SELECT MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime <= ?';
+    const result2 = await mysqlPoolQueryB(queryStr2, [symbol, serverTime]).catch((err) => {
+      console.log('\n[Error @ getMaxActualPaymentTime > mysqlPoolQueryB()]');
+      reject(err);
+      return false;
+    });
+    console.log('result2', result2);
+    if(result2.length > 0){
+      const MAX_ia_actualPaymentTime = result2[0]['MAX(ia_actualPaymentTime)'];
+      resolve(MAX_ia_actualPaymentTime);
+    } else {
+      resolve(undefined);
+    }
+  });
+}
+
+//yarn run testmt -f 4
+const getProfitSymbolAddresses = async(serverTime) => {
+  return new Promise(async(resolve, reject) => {
+    let mesg = '';
+    console.log('-----------==getProfitSymbolAddress');
+    const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")';
     const result2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr2)]');
       reject(err);
@@ -373,13 +400,22 @@ const getProfitSymbolAddresses = async() => {
         foundHCAT721Addrs.push(result2[i].sc_erc721address);
       }
     }
+
+
     //console.log('foundHCAT721Addrs', foundHCAT721Addrs);
-    const queryStrAcPaymentTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_assetRecord_status = 0 AND ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)';
+    const queryStrAcPmtTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
 
     const APT_Array = [];
     await asyncForEach(foundSymbols, async (symbol, index) => {
-      const result3 = await mysqlPoolQueryB(queryStrAcPaymentTime, [symbol]).catch((err) => {
-        console.log('\n[Error @ mysqlPoolQueryB(queryStrAcPaymentTime)]');
+      const MaxActualPaymentTime = await getMaxActualPaymentTime(symbol, serverTime);
+      if(MaxActualPaymentTime){
+        console.log('[Good] MaxActualPaymentTime is found! MaxActualPaymentTime =', MaxActualPaymentTime);
+      } else {
+        console.log('[Warning] MaxActualPaymentTime is not found!');
+      }
+
+      const result3 = await mysqlPoolQueryB(queryStrAcPmtTime, [symbol, MaxActualPaymentTime]).catch((err) => {
+        console.log('\n[Error @ mysqlPoolQueryB(queryStrAcPmtTime)]');
         reject(err);
         return false;
       });
@@ -397,29 +433,9 @@ const getProfitSymbolAddresses = async() => {
   });
 }
 
-const getProductPricing = async(symbol) => {
-  return new Promise(async(resolve, reject) => {
-    console.log('\n--------------==inside getProductPricing()');
-    const queryStr1 = 'SELECT p_pricing FROM product WHERE p_SYMBOL = ?';//"NCCU0716"
-    const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
-      console.log('\n[Error @ getProductPricing]');
-      reject(err);
-      return false;
-    });
-    const pricing = result1[0].p_pricing;
-    if(Number.isInteger(result1)){
-      console.log('result found as an integer:', result1);
-      resolve(result1);
-    } else{
-      console.log('result is not an integer. result1:', result1);
-      reject(false);
-    }
-  });
-}
-
 //----------------------------==AssetRecord in DB
 //For timeserver to trigger ... calculate periodic profit
-const calculateLastPeriodProfit = async() => {
+const calculateLastPeriodProfit = async(serverTime) => {
   return new Promise(async(resolve, reject) => {
     console.log('\n--------------==inside calculateLastPeriodProfit()');
     const asset_valuation = 13000;
@@ -427,11 +443,11 @@ const calculateLastPeriodProfit = async() => {
     const holding_costChanged = 0;
     const moving_ave_holding_cost = 13000;
 
-    const [foundSymbols, foundHCAT721Addrs, APT_Array] = await getProfitSymbolAddresses().catch((err) => {
+    const [foundSymbols, foundHCAT721Addrs, APT_Array] = await getProfitSymbolAddresses(serverTime).catch((err) => {
       console.log('\n[Error @ getProfitSymbolAddresses]');
       return false;
     });
-    console.log('foundSymbols:', foundSymbols, ', foundHCAT721Addrs:', foundHCAT721Addrs);
+    console.log('mysql434: foundSymbols:', foundSymbols, ', foundHCAT721Addrs:', foundHCAT721Addrs, 'APT_Array', APT_Array);
 
     const symbolsLength = foundSymbols.length;
     if(symbolsLength !== foundHCAT721Addrs.length){
@@ -442,10 +458,6 @@ const calculateLastPeriodProfit = async() => {
       reject('[Error] APT_Array and foundSymbols are of different length');
       return false;
 
-    } else if(APT_Array[0].length === 0){
-      reject('[Error] Actual Payment Time Array query returns nothing');
-      return false;
-
     } else if (symbolsLength === 0) {
       reject('[calculateLastPeriodProfit] no symbol was found');
       return false;
@@ -454,43 +466,66 @@ const calculateLastPeriodProfit = async() => {
       console.log('[calculateLastPeriodProfit] symbol(s) found');
       await asyncForEach(foundSymbols, async (symbol, index) => {
 
-        const pricing = await getProductPricing(symbol);
-        if(!pricing){
-          console.log('\n[Error @ addAssetRecordRowArray> getProductPricing]', pricing);
-          reject(false);
-          return false;
+        if(APT_Array[index].length === 0){
+          console.log('[Error] Actual Payment Time Array query returns nothing');
+          resolve([undefined, undefined]);
+        } else {
+
+          const pricing = await getProductPricing(symbol);
+          if(!pricing){
+            console.log('\n[Error @ addAssetRecordRowArray > getProductPricing]', pricing);
+            reject(false);
+            return false;
+          }
+
+          const ar_time = APT_Array[index][0].ia_actualPaymentTime;
+          const singleActualIncomePayment = APT_Array[index][0].ia_single_Actual_Income_Payment_in_the_Period;
+          console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
+
+          const instHCAT721 = new web3.eth.Contract(HCAT721.abi, foundHCAT721Addrs[index]);
+          const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+          console.log(`\ntoAddressArray: ${toAddressArray}`);
+
+          const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
+          console.log(`\namountArray: ${amountArray}`);
+
+          const acquiredCostArray = amountArray.map((element) => {
+            return element * pricing;
+          });
+
+          const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+            console.log('\n[Error @ addAssetRecordRowArray]');
+            reject(err);
+            return false;
+          });
+
+          const rAssetRecordStatus = await setAssetRecordStatus('1', symbol, ar_time);
+          console.log(`\n-----------------==At the end of calculateLastPeriodProfit(): emailArrayError=${emailArrayError}, amountArrayError=${amountArrayError}, rAssetRecordStatus=${rAssetRecordStatus}`)
+          resolve([emailArrayError, amountArrayError, rAssetRecordStatus]);
         }
-
-        const ar_time = APT_Array[index][0].ia_actualPaymentTime;
-        const singleActualIncomePayment = APT_Array[index][0].ia_single_Actual_Income_Payment_in_the_Period;
-        console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
-
-        const instHCAT721 = new web3.eth.Contract(HCAT721.abi, foundHCAT721Addrs[index]);
-        const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-        console.log(`\ntoAddressArray: ${toAddressArray}`);
-
-        const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
-        console.log(`\namountArray: ${amountArray}`);
-
-        const acquiredCostArray = amountArray.map((element) => {
-          return element * pricing;
-        });
-
-        const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
-          console.log('\n[Error @ addAssetRecordRowArray]');
-          reject(err);
-          return false;
-        });
-        resolve([emailArrayError, amountArrayError]);
       });
     }
   });
 }
 
+const setAssetRecordStatus = async (assetRecordStatus, symbol, actualPaymentTime) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n-------==setAssetRecordStatus');
+    const queryStr1 = 'UPDATE income_arrangement SET ia_assetRecord_status = ? WHERE (ia_SYMBOL = ?) and (ia_actualPaymentTime = ?)';
+    const result1 = await mysqlPoolQueryB(queryStr1, [assetRecordStatus, symbol, actualPaymentTime]).catch((err) => {
+      const mesg = '[Error @ setAssetRecordStatus > mysqlPoolQueryB]';
+      console.log('\n'+mesg);
+      reject(err);
+      return false;
+    });
+    console.log("\nresult1:", result1);
+    resolve(true);
+  });
+}
 
 const addAssetRecordRow = async (investorEmail, symbol, ar_time, holdingAmount, AccumulatedIncomePaid, UserAssetValuation, HoldingAmountChanged, HoldingCostChanged, AcquiredCost, MovingAverageofHoldingCost) => {
   return new Promise(async(resolve, reject) => {
-    console.log('-------==addAssetRecordRow');
+    console.log('\n-------==addAssetRecordRow');
     const sql = {
       ar_investorEmail: investorEmail,
       ar_tokenSYMBOL: symbol,
@@ -519,7 +554,7 @@ const addAssetRecordRow = async (investorEmail, symbol, ar_time, holdingAmount, 
 const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost) => {
   return new Promise(async(resolve, reject) => {
     console.log('\n----------------------==addAssetRecordRowArray');
-    let mesg;
+    let mesg = '';
     if(typeof symbol !== "string" || isEmpty(symbol)){
       mesg = '[Error] symbol must be a string. symbol: ' + symbol;
       reject(mesg);
@@ -602,7 +637,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
         console.log(`[Error @ email] email: ${email}, amount: ${amount} ... added to emailArrayError and amountArrayError`);
 
       } else {
-        console.log(`check600: email: ${email}, symbol: ${symbol}, ar_time: ${ar_time}, amount: ${amount}, acquiredCost: ${acquiredCost}`);
+        console.log(`mysql612: email: ${email}, symbol: ${symbol}, ar_time: ${ar_time}, amount: ${amount}, acquiredCost: ${acquiredCost}`);
         const sqlObject = {
           ar_investorEmail: email,
           ar_tokenSYMBOL: symbol,
@@ -614,7 +649,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
           ar_User_Holding_CostChanged: holding_costChanged,
           ar_User_Acquired_Cost: acquiredCost,
           ar_Moving_Average_of_Holding_Cost: moving_ave_holding_cost
-        };//random() to prevent duplicate NULL entry!
+        };
         console.log(sqlObject);
 
         const queryStr6 = 'INSERT INTO investor_assetRecord SET ?';
@@ -1006,5 +1041,5 @@ module.exports = {
     isIMScheduleGoodDB, setIMScheduleDB,
     addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
-    calculateLastPeriodProfit, getProfitSymbolAddresses
+    calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime
 }

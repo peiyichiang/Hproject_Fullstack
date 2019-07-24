@@ -389,7 +389,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
     const uintArray = result[1];
     const boolArray = result[0];
 
-    let mesg;
+    let mesg = '';
     if(boolArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
@@ -429,7 +429,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
       }
-      console.log(`${mesg} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
+      console.log(`\n[Error message] ${mesg} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
       resolve(true);
     }
   });
@@ -840,7 +840,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, tokenCount, serverTim
     console.log('\nresult', result);
 
     const boolArray = result[0];
-    let mesg;
+    let mesg = '';
     if(boolArray[0] && boolArray[1] && boolArray[2] && boolArray[3] && boolArray[4] && boolArray[5] && boolArray[6] && boolArray[7]){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
@@ -874,7 +874,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, tokenCount, serverTim
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
       }
-      console.log(mesg);
+      console.log('\n[Error message] '+mesg);
       resolve(true);
     }
   });
@@ -1059,6 +1059,40 @@ const getInvestorsFromCFC = async (indexStart, tokenCountStr) => {
   return [assetbookArray, investedTokenQtyArray];
 }
 
+//yarn run testmt -f 40
+const preMint = async(nftSymbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside preMint()');
+
+    const queryStr1 = 'SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?';
+    const result1 = await mysqlPoolQueryB(queryStr1, [nftSymbol]).catch((err) => {
+      let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr1)], '+ err;
+      console.log(`\n${mesg}`);
+      reject(mesg);
+      return false;
+    });
+    console.log('result1:', result1);
+    if(result1){
+      crowdFundingAddr = result1[0].sc_crowdsaleaddress;
+      tokenCtrtAddr = result1[0].sc_erc721address;
+      tokenControllerAddr = result1[0].sc_erc721Controller;
+      console.log(`crowdFundingAddr: ${crowdFundingAddr}
+tokenCtrtAddr: ${tokenCtrtAddr}
+tokenControllerAddr: ${tokenControllerAddr}`);
+
+      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi,crowdFundingAddr);
+      const result2 = await instCrowdFunding.methods.getInvestors(0,0).call();
+      console.log('result2', result2);
+      const toAddressArray = result2[0];
+      const amountArray = result2[1];
+      console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}
+toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
+      resolve([toAddressArray, amountArray, tokenCtrtAddr]);
+    } else {
+      reject('no contract address is found for that symbol');
+    }
+  });
+}
 
 
 //-------------------==Token Controller
@@ -1751,7 +1785,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
     console.log('\ncheckSafeTransferFromBatch result', result);
 
     const boolArray = result[0];
-    let mesg;
+    let mesg = '';
     if(amountArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
@@ -1790,7 +1824,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
       }
-      console.log(mesg);
+      console.log('\n[Error message] '+mesg);
       resolve(mesg);
     }
   });
@@ -1812,7 +1846,7 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
   return new Promise( async ( resolve, reject ) => {
     console.log('entering transferTokens()');
 
-    let mesg;
+    let mesg = '';
     const serverTimeStr = 201905281400;// only used for emitting events in the blockchain
     const addrZero = "0x0000000000000000000000000000000000000000";
 
@@ -1936,7 +1970,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, updateExpiredOrders, getDetailsCFC, 
-  sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper,
+  sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint,
   getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC,
   addAssetbooksIntoCFC, getInvestorsFromCFC,
   getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED2, getInvestorsFromCFC_Check,

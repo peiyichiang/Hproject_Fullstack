@@ -121,10 +121,10 @@ const productObj4 = new productObject("ANEP1904", "Neptune", "Neptune base 0001"
 const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
 
 
-//const isTestingMode = true;
-const isTestingMode = false;
-const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
-//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+const isTestingMode = true;
+// const isTestingMode = false;
+//const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
+const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFEDOrders(serverTime);//blockchain.js
@@ -236,7 +236,7 @@ const assetRecordArray = [assetRecord1, assetRecord2, assetRecord3];
 
 
 //-----------------------== Income Arrangement
-function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, ia_state, singleCalibrationActualIncome) {
+function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, assetRecordStatus, ia_state, singleCalibrationActualIncome) {
   this.symbol = symbol;
   this.ia_time = ia_time;
   this.actualPaymentTime = actualPaymentTime;
@@ -255,13 +255,17 @@ function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeri
   this.singleActualIncomePayment = singleActualIncomePayment;
   this.singleAccumulatedIncomePaid = singleAccumulatedIncomePaid;
   this.singleTokenMarketPrice = singleTokenMarketPrice;
+  this.assetRecordStatus = assetRecordStatus;
   this.ia_state = ia_state;
   this.singleCalibrationActualIncome = singleCalibrationActualIncome;
 }
-const incomeArrangement1 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-const incomeArrangement2 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-const incomeArrangement3 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3];
+const incomeArrangement1 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+const incomeArrangement2 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+const incomeArrangement3 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+const incomeArrangement4 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+const incomeArrangement5 = new incomeArrangementObject(nftSymbol, TimeTokenUnlock+9, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+
+const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
 
 
 
