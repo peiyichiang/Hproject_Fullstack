@@ -5,7 +5,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 
 //let addrIncomeManager, addrProductManager;
 console.log('--------------------==zsetupData.js');
-let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager;
+let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager, whichTimeServerArray;
 
 const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701'];
 const excludedSymbolsIA = [];
@@ -106,13 +106,13 @@ const TimeTokenValid =  TimeOfDeployment_CF+90;
 fundmanager = 'FundManagerN';
 
 //fundingType: PO: 1, PP: 2
-symNum = 1;
+symNum = 2;
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
 const productObj0 = new productObject("AMER1901", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 1, "", "", "", "");
 
 const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0x9796376315CE9DBE0f78Da6f3f26B60048852B5b", "0x77aC1f79a02B5D8D3A4aED5647cEDf25A68cb577", "0xA43a549f6C785A85F485c6ff30E3AE627104E1C4", "0x36502181603025f9C01A9876D5267183FC9b9628");
 
-const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 1, "", "", "", "");
+const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 1, "0x3F914523F1B3b12277F40E5670926176f7f4470B", "0x37A48889F8d977cdc97EF60775Cac76bFe58e029", "0xb0A55a550fd43E1987e6Ec6A1A3cAC0075db85EC", "0x230146DcEC85E43adf30E040E06A55Dd72e8E524");
 
 const productObj3 = new productObject("AURA1904", "Uranus1904", "Uranus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 500, 20, 1, "", "", "", "");
 
@@ -123,8 +123,14 @@ const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 10
 
 //const isTestingMode = true;
 const isTestingMode = false;
-const whichTimeServerArray = [1, 1, 1, 1, 1, 1];//timeserver
-//const whichTimeServerArray = [0, 0, 0, 0, 0, 0];//timeserver
+const useFullTimeServer = true;
+
+if(useFullTimeServer){
+  whichTimeServerArray = [1, 1, 1, 1, 1, 1];
+} else {
+  whichTimeServerArray = [0, 0, 0, 0, 0, 0];
+}
+
 /**
 index 0: addAssetbooksIntoCFC(serverTime);//blockchain.js
 index 1: cancelOverCFEDOrders(serverTime);//blockchain.js
@@ -197,7 +203,7 @@ const user6 = new userObject('000a6@gmail.com', 'user6pw', 'R999777006', AssetOw
 const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777007', AssetOwner7, '093755507', 'Romeo7', addrAssetBook7, 5, 10);
 const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777008', AssetOwner8, '093755508', 'Romeo8', addrAssetBook8, 5, 5);
 const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777009', AssetOwner9, '093755509', 'Romeo9', addrAssetBook9, 5, 15);
-const user10 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', AssetOwner10, '093755510', 'Romeo10', addrAssetBook10, 5, 1);
+const user10 = new userObject('000a10@gmail.com', 'user10pw', 'R999777010', AssetOwner10, '093755510', 'Romeo10', addrAssetBook10, 5, 1);
 
 const userArray = [user0, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10];
 

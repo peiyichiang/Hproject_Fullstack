@@ -37,7 +37,7 @@ const { addPlatformSupervisor, sequentialMintSuper, addScheduleBatch, checkAddSc
 const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/utilities');
 const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
-const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD2, CFED2, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
+const {  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
 } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10]= assetOwnerArray;
@@ -99,15 +99,12 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 }
 
 
-let txnNum = 2, isShowCompiledCtrt = false;
+let txnNum = 2;
 console.log('chain = ', chain, ', txnNum =', txnNum);
 
 let addrTestCtrt, assetbook1M, assetbook2M;
 let amount, to, fromAssetbook, toAssetbook, tokenIds, tokenId_now, nodeUrl, authLevelM, ownerCindexM, isOwnerAdded, idxToOwnerM;
-let choiceOfHCAT721, isFundingApprovedHCAT721, checkPlatformSupervisor;
-
 const uriBase = "nccu0".trim();
-
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
 if (chain === 1) {//POA private chain
@@ -316,6 +313,7 @@ const addUseArray = async() => {
       process.exit(0);
     }
   });
+  process.exit(0);
 }
 
 
@@ -537,7 +535,7 @@ const setupTest = async () => {
   });
   console.log('\nTxResult', TxResult);
   let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
-  console.log('\nresult', result);
+  console.log('\nafter adding platformSupervisor: result', result);
 
   console.log('setup has been completed');
   process.exit(0);
@@ -1084,21 +1082,40 @@ const transferTokens = async (assetbookNumFrom, amountStr, assetbookNumTo) => {
 scenario: 0, check initial values
 yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
 
-scenario: 1, serverTime = CFSD2+1. set state to funding start
+scenario: 1, serverTime = CFSD+1. set state to funding start
 yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
 
-scenario: 2, serverTime = CFED2+1. set state to funding end
-yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
 
-scenario: 3
+scenario: 3: check investors
 yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 10
+[ '790',
+  '460',
+  '550',
+  '690',
+  '730',
+  '840',
+  '970',
+  '1080',
+  '1110',
+  '1230' ]
+scenario: 4: funding
+yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 10
 
-scenario: 4
 scenario: 5
 scenario: 6
 scenario: 7
+
+scenario: 9, serverTime = CFED+1. set state to funding end
+yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
+
+Check CFC details:  yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 579
+Set CFC to funding: yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 579
+Check all balances: yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 579
+Invest/buy:         yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 1079
+
+toAssetbookNumStr: 1 for assetBook1...
 */
-const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
+const investCrowdContract = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
   console.log('\n------------==Check CrowdFunding parameters');
   console.log('addrCrowdFunding', addrCrowdFunding);
   const scenario = parseInt(scenarioStr);
@@ -1110,8 +1127,8 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
     console.log('[Error] toAssetbookNumStr must be >= 1');
     process.exit(1);
   }
-  const addrAssetbookX = assetbookArray[toAssetbookNumStr-1];
-  console.log("CFSD2:", CFSD2, ", CFED2:", CFED2, "\nscenarioStr", scenarioStr, ", toAssetbookNumStr", toAssetbookNumStr, ", amountToInvestStr", amountToInvestStr, ", addrAssetbookX:", addrAssetbookX);
+  const addrAssetbookX = assetbookArray[toAssetbookNum-1];
+  console.log("CFSD:", CFSD, ", CFED:", CFED, "\nscenarioStr", scenarioStr, ", toAssetbookNum", toAssetbookNum, ", amountToInvest", amountToInvest, ", addrAssetbookX:", addrAssetbookX);
 
   if(scenario === 0){
     console.log('\n--------==scenario:', scenario);
@@ -1131,10 +1148,10 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
     quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
     console.log('quantityGoalM', quantityGoalM);
   
-    CFSD2M = await instCrowdFunding.methods.CFSD2().call();
+    CFSD2M = await instCrowdFunding.methods.CFSD().call();
     console.log('CFSD2M', CFSD2M);
   
-    CFED2M = await instCrowdFunding.methods.CFED2().call();
+    CFED2M = await instCrowdFunding.methods.CFED().call();
     console.log('CFED2M', CFED2M);
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
@@ -1154,32 +1171,34 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
     console.log('investedTokenQtyArray', result[1]);
     process.exit(0);
 
-    
-  //serverTime = CFSD2+1;
+  
+  //update serverTime to CFSD+1 for funding, then read stateDescription and fundingState
+  //serverTime = CFSD+1;
   //yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
   } else if(scenario === 1){
     console.log('--------==scenario:', scenario);
     console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
-    serverTime = CFSD2+1;
-    console.log('set servertime = CFSD2-1', serverTime);//201905281400;
+    serverTime = CFSD+1;
+    console.log('set servertime = CFSD+1', serverTime);//201905281400;
     encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
     console.log('TxResult', TxResult);
 
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('\nstateDescriptionM', stateDescriptionM);
+    console.log('\nstateDescriptionM:', stateDescriptionM);
 
     let fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM', fundingStateM);
+    console.log('fundingStateM:', fundingStateM);
     process.exit(0);
 
   
-  //serverTime = CFED2;
+  //update serverTime to CFED to end funding,then read stateDescription and fundingState
+  //serverTime = CFED;
   //yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
-  } else if(scenario === 2){
+  } else if(scenario === 9){
     console.log('--------==scenario:', scenario);
-    serverTime = CFED2;
-    console.log('\nset serverTime = CFSD2', CFSD2);
+    serverTime = CFED;
+    console.log('\nset serverTime = CFSD', CFSD);
     encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
     let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
     console.log('TxResult', TxResult);
@@ -1192,11 +1211,21 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
     process.exit(0);
 
 
-  // to invest...  yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 10
+  // to get investor assetbook list
+  // yarn run livechain -c 1 --f 8 -s 3 -t
   } else if(scenario === 3){
+    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
+    console.log('assetbookArray', result[0]);
+    console.log('investedTokenQtyArray', result[1]);
+
+  //['4224','4194','4884','4224','4564','4174','4444','4854','5084','4604' ]
+  //[ 3724, 3468, 3712, 3562, 3847, 3371, 3479, 3746, 3952, 4355 ]
+  // to invest, -t 1 is for assetbook1
+  // yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
+  } else if(scenario === 4){
     console.log('--------==scenario:', scenario);
-    serverTime = CFSD2+1;
-    encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvestStr, serverTime).encodeABI();
+    serverTime = CFSD+1;
+    encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
     TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
     console.log('TxResult', TxResult);
 
@@ -1231,8 +1260,8 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
   
 /**
     if (1==2){
-      serverTime = CFED2;
-      console.log('\nset serverTime = CFED2', CFED2);
+      serverTime = CFED;
+      console.log('\nset serverTime = CFED', CFED);
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
   
@@ -1246,8 +1275,8 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
       //process.exit(1);
     }
 
-    serverTime = CFSD2+1;
-    console.log('\nset serverTime = CFSD2+1', serverTime, '\nmakeFundingAction(), invest()');
+    serverTime = CFSD+1;
+    console.log('\nset serverTime = CFSD+1', serverTime, '\nmakeFundingAction(), invest()');
     // await instCrowdFunding.methods.makeFundingActive(serverTime)
     // .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1292,8 +1321,8 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
 
 
     //------------------==Set time to initial
-    console.log('\nset serverTime = CFSD2-1');
-    serverTime = CFSD2-1;
+    console.log('\nset serverTime = CFSD-1');
+    serverTime = CFSD-1;
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     
@@ -1305,9 +1334,9 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
     console.log('fundingStateM', fundingStateM);
     assert.equal(fundingStateM, 0);
 
-    //------------------==Back to CFSD2
-    serverTime = CFSD2;
-    console.log('\nset serverTime = CFSD2');
+    //------------------==Back to CFSD
+    serverTime = CFSD;
+    console.log('\nset serverTime = CFSD');
     await instCrowdFunding.methods.updateState(serverTime)
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1336,7 +1365,7 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
 
     if(1==1){
       //-------------------==Pause the crowdfunding
-      serverTime = CFSD2+3;
+      serverTime = CFSD+3;
       console.log('\nPause funding');
       await instCrowdFunding.methods.pauseFunding(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1350,9 +1379,9 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
       assert.equal(fundingStateM, 2);
 
       //-------------------==resumeFunding the crowdfunding
-      serverTime = CFSD2+3;
+      serverTime = CFSD+3;
       console.log('\nResume funding');
-      await instCrowdFunding.methods.resumeFunding(CFED2, maxTotalSupply, serverTime)
+      await instCrowdFunding.methods.resumeFunding(CFED, maxTotalSupply, serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
@@ -1399,9 +1428,9 @@ const invest = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
       }
       
     } else {
-      //-------------------==CFED2 has been reached
+      //-------------------==CFED has been reached
       console.log('\nCFED2 has been reached');
-      serverTime = CFED2;
+      serverTime = CFED;
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
 
@@ -1551,7 +1580,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
 } else if (func === 8) {
-  invest(arg1, arg2, arg3);
+  investCrowdContract(arg1, arg2, arg3);
 
 
 //yarn run livechain -c 1 --f 11

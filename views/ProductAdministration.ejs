@@ -1600,6 +1600,35 @@
 
         }
 
+        const MintTokens = async(nftSymbol, State, buttonID) => {
+            console.log(`nftSymbol: ${nftSymbol}, State: ${State}, buttonID: ${buttonID}`);
+            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+            document.getElementById(buttonID).disabled = true;
+
+            const config={
+              proxy: {
+                host: 'localhost',
+                port: 3030,
+              },
+            }
+            const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
+            const axios = require('axios');
+            const response2 = await axios.post(url2, {}, config).catch(err => { 
+              console.log('err:',err);
+            });
+            const data2 = response2.data;
+            console.log(`response2: ${response2} \nsuccess: ${data2.success}
+result: ${JSON.stringify(data2.result)}`);
+            location.reload();
+
+            // await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mintSequentialPerCtrt", {
+            //   }, async function (result) {
+            //       console.log(result);
+            //       // 設置好後重新整理
+            //       location.reload();
+            //   })
+        }
+
         // 發放代幣
         function Release(nftSymbol, price, fundingType, State, buttonID) {
             console.log(nftSymbol);

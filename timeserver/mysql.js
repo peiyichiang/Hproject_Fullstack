@@ -93,7 +93,7 @@ const addTxnInfoRowFromObj = (row) => {
 }
 
 
-const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock) => {
+const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD2, _CFED2, _quantityGoal, TimeTokenUnlock, fundingType) => {
   return new Promise(async(resolve, reject) => {
     console.log('\nto add product row into DB');
     const sql = {
@@ -115,6 +115,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
       p_fundingGoal: _quantityGoal,
       p_lockuptime: TimeTokenUnlock,
       p_tokenState: "lockup",
+      p_fundingType: fundingType,
     };
     console.log(sql);
 
@@ -420,7 +421,7 @@ const getProfitSymbolAddresses = async(serverTime) => {
         return false;
       });
       if(isEmpty(result3)){
-        mesg = '[Error] Actual Payment Time Array query returns nothing. symbol = '+symbol;
+        mesg = '[Warning] Actual Payment Time Array query returns nothing. symbol = '+symbol;
         console.log(mesg);
         //reject(mesg);
       }
@@ -467,7 +468,7 @@ const calculateLastPeriodProfit = async(serverTime) => {
       await asyncForEach(foundSymbols, async (symbol, index) => {
 
         if(APT_Array[index].length === 0){
-          console.log('[Error] Actual Payment Time Array query returns nothing');
+          console.log('[Warning] Actual Payment Time Array query returns nothing');
           resolve([undefined, undefined]);
         } else {
 

@@ -4,6 +4,7 @@ const moment = require('moment');
 const chalk = require('chalk');
 const log = console.log;
 console.log('loading blockchain.js...');
+require('dotenv').config();
 
 const { getTime, isEmpty, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium } = require('../ethereum/contracts/zsetupData');
@@ -19,12 +20,15 @@ const timeIntervalUpdateExpiredOrders = 1000;
 
 let backendAddr, backendAddrpkRaw, blockchain_ip;
 if(blockchainChoice === 1){//POA
-  blockchain_ip = "http://140.119.101.130:8545";
+  blockchain_ip = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
+  //blockchain_ip = "http://140.119.101.130:8545";
 } else if(blockchainChoice === 2){/*ganache*/
-  blockchain_ip = "http://140.119.101.130:8540";
+  blockchain_ip = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
+  //blockchain_ip = "http://140.119.101.130:8540";
 } else if(blockchainChoice === 3){/*Infura HttpProvider Endpoint*/
-  blockchain_ip = "https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d";
-} 
+  blockchain_ip = process.env.BC_PROVIDER;
+}
+console.log('blockchain_ip = '+blockchain_ip);
 web3 = new Web3(new Web3.providers.HttpProvider(blockchain_ip));
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
@@ -277,17 +281,17 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
 
     } else {
       //enum TokenState{lockup, normal, expired}
-      let fundingStateAlphabets;
-      if(fundingState === '0'){
-        fundingStateAlphabets = 'lockup';
-      } else if(fundingState === '1'){
-        fundingStateAlphabets = 'normal';
-      } else if(fundingState === '2'){
-        fundingStateAlphabets = 'expired';
+      let tokenStateAlphabets;
+      if(tokenState === '0'){
+        tokenStateAlphabets = 'lockup';
+      } else if(tokenState === '1'){
+        tokenStateAlphabets = 'normal';
+      } else if(tokenState === '2'){
+        tokenStateAlphabets = 'expired';
       } else {
-        fundingStateAlphabets = 'out of range';
+        tokenStateAlphabets = 'out of range';
       }
-      console.warn('[Warning] the TC contract should not be updated... DB p_tokenState should be updated with', fundingStateAlphabets, ' tokenState=', tokenState);
+      console.warn('[Warning] the TC contract should not be updated... DB p_tokenState should be updated with', tokenStateAlphabets, ' tokenState=', tokenState);
       resolve(tokenState);
     }
   });
@@ -542,6 +546,56 @@ toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
   console.log('[Completed] All of the investor list has been cycled through');
 }
 
+
+//yarn run testmt -f 40
+const preMint = async(nftSymbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside preMint()');
+
+    const queryStr1 = 'SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?';
+    const result1 = await mysqlPoolQueryB(queryStr1, [nftSymbol]).catch((err) => {
+      let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr1)], '+ err;
+      console.log(`\n${mesg}`);
+      reject(mesg);
+      return false;
+    });
+    console.log('result1:', result1);
+
+    const queryStr2 = 'SELECT p_pricing, p_fundingType from htoken.product where p_SYMBOL = ?';
+    const result2 = await mysqlPoolQueryB(queryStr2, [nftSymbol]).catch((err) => {
+      let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr2)], '+ err;
+      console.log(`\n${mesg}`);
+      reject(mesg);
+      return false;
+    });
+    const pricing = parseInt(result2[0].p_pricing);
+    const fundingType = result2[0].p_fundingType;
+    console.log('result2:', result2[0], pricing, fundingType);
+
+    if(result1 && result2){
+      crowdFundingAddr = result1[0].sc_crowdsaleaddress;
+      tokenCtrtAddr = result1[0].sc_erc721address;
+      tokenControllerAddr = result1[0].sc_erc721Controller;
+      console.log(`crowdFundingAddr: ${crowdFundingAddr}
+tokenCtrtAddr: ${tokenCtrtAddr}
+tokenControllerAddr: ${tokenControllerAddr}`); 
+
+      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi,crowdFundingAddr);
+      const result3 = await instCrowdFunding.methods.getInvestors(0,0).call();
+      console.log('result3', result3);
+      const toAddressArray = result3[0];
+      const amountArray = result3[1].map((item) => {
+        return parseInt(item, 10);
+      });
+      /*console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}
+toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);*/
+      resolve([toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType]);
+    } else {
+      reject('no contract address is found for that symbol');
+    }
+  });
+}
+
 //to be called from API and zlivechain.js, etc...
 const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
@@ -550,7 +604,6 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
     console.log('amountArray has non integer or zero element');
     process.exit(1);
   }
-
 
   console.log('\n--------------==before minting tokens, check balances now...');
   const balanceArrayBefore = await sequentialCheckBalances(toAddressArray, tokenCtrtAddr);
@@ -988,7 +1041,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
           const fundingState = await instCrowdFunding.methods.fundingState().call();
           console.log('\nfundingState:', fundingState);
 
-          await checkInvest(crowdFundingAddr, addrAssetbook, tokenCount, serverTime).call({ from: backendAddr });
+          await checkInvest(crowdFundingAddr, addrAssetbook, tokenCount, serverTime);
 
           console.log('\n[Error @ signTx() invest()]'+ err);
           return false;
@@ -1059,40 +1112,6 @@ const getInvestorsFromCFC = async (indexStart, tokenCountStr) => {
   return [assetbookArray, investedTokenQtyArray];
 }
 
-//yarn run testmt -f 40
-const preMint = async(nftSymbol) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\n-------------==inside preMint()');
-
-    const queryStr1 = 'SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [nftSymbol]).catch((err) => {
-      let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr1)], '+ err;
-      console.log(`\n${mesg}`);
-      reject(mesg);
-      return false;
-    });
-    console.log('result1:', result1);
-    if(result1){
-      crowdFundingAddr = result1[0].sc_crowdsaleaddress;
-      tokenCtrtAddr = result1[0].sc_erc721address;
-      tokenControllerAddr = result1[0].sc_erc721Controller;
-      console.log(`crowdFundingAddr: ${crowdFundingAddr}
-tokenCtrtAddr: ${tokenCtrtAddr}
-tokenControllerAddr: ${tokenControllerAddr}`);
-
-      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi,crowdFundingAddr);
-      const result2 = await instCrowdFunding.methods.getInvestors(0,0).call();
-      console.log('result2', result2);
-      const toAddressArray = result2[0];
-      const amountArray = result2[1];
-      console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}
-toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
-      resolve([toAddressArray, amountArray, tokenCtrtAddr]);
-    } else {
-      reject('no contract address is found for that symbol');
-    }
-  });
-}
 
 
 //-------------------==Token Controller

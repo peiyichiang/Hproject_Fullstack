@@ -1,3 +1,4 @@
+const axios = require('axios');
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock } = require('../ethereum/contracts/zsetupData');
 
@@ -515,12 +516,78 @@ const getMaxActualPaymentTime_API = async () => {
 //yarn run testmt -f 40
 const preMint_API = async () => {
   console.log('\n---------------------==preMint_API()');
-  const nftSymbol = 'AVEN1902';//'NCCU0723';
-  const [toAddressArray, amountArray, tokenCtrtAddr] = await preMint(nftSymbol);
+  //const nftSymbol = 'AVEN1902';//'NCCU0723';
+  let toAddressArray, amountArray, tokenCtrtAddr;
+  [toAddressArray, amountArray, tokenCtrtAddr] = await preMint(nftSymbol).catch((err) => { console.log('preMint() failed. err:'+ err);
+  });
+  const isNumberArray = amountArray.map((item) => {
+    return typeof item === 'number';
+  });
   console.log(`Returned values from preMint():
-toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
+toAddressArray: ${toAddressArray} \namountArray: ${amountArray} isNumberArray: ${isNumberArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
   process.exit(0);
 }
+
+//yarn run testmt -f 42
+const callTestAPI = async () => {
+  console.log('\n---------------------==callTestAPI()');
+  //var util = require('util');
+  const nftSymbol = 'AVEN1902';//'NCCU0723';
+  const config={
+    proxy: {
+      host: 'localhost',
+      port: 3000,
+    },
+  }
+  const url1="/Contracts/HCAT721_AssetTokenContract/"+nftSymbol;
+  const response1 = await axios.get(url1, config).catch(err => { console.log('err:',err); });
+  const data1 = response1.data;
+  console.log(`status: ${data1.status}, result: ${JSON.stringify(data1.result)}`);
+  //util.inspect(response1)
+
+  const url2="/Contracts/HCAT721_AssetTokenContract/test1/"+nftSymbol;
+  const body = {
+    price: 15000,
+    fundingType: '1'
+  }
+  const response2 = await axios.post(url2, body, config).catch(err => { console.log('err:',err); });
+  const data2 = response2.data;
+  console.log(`status: ${data2.status}, result: ${JSON.stringify(data2.result)}`);
+
+  //process.exit(0);
+}
+
+
+//1158,1247,1427,1619,1572,1322,1762,1888,1997,2019
+//yarn run testmt -f 43
+const mintSequentialPerCtrt_API = async () => {
+  console.log('\n---------------------==mintSequentialPerCtrt_API()');
+  //var util = require('util');
+  //const nftSymbol = 'AVEN1902';//'NCCU0723';
+  const config={
+    proxy: {
+      host: 'localhost',
+      port: 3000,
+    },
+  }
+  // const url1="/Contracts/HCAT721_AssetTokenContract/";
+  // const response1 = await axios.get(url1+nftSymbol, config).catch(err => { console.log('err:',err); });
+  // const data1 = response1.data;
+  // console.log(`status: ${data1.status}, result: ${JSON.stringify(data1.result)}`);
+
+
+  const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
+  const body = { xyz: 100,/* price: 15000, fundingType: '2' */};
+  const response2 = await axios.post(url2, body, config).catch(err => { 
+    console.log('err:',err);
+    process.exit(0);
+  });
+  const data2 = response2.data;
+  console.log(`success: ${data2.success}
+result: ${JSON.stringify(data2.result)}`);
+
+  //process.exit(0);
+}// to invest in CFC: see livechain.js: yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
 
 
 //------------------------==
@@ -657,5 +724,13 @@ if(func === 0){
 //yarn run testmt -f 41
 } else if (func === 41) {
   breakdownArray_API();
+
+//yarn run testmt -f 42
+} else if (func === 42) {
+  callTestAPI();
+
+//yarn run testmt -f 43
+} else if (func === 43) {
+  mintSequentialPerCtrt_API();
 
 }

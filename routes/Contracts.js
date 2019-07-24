@@ -5,7 +5,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 
 const { isTestingMode } = require('../ethereum/contracts/zsetupData');
-const { getTime } = require('../timeserver/utilities');
+const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 const { sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
@@ -969,19 +969,42 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
 });
 
 
+router.post('/HCAT721_AssetTokenContract/test1/:nftSymbol', function (req, res, next) {
+  var nftSymbol = req.params.nftSymbol;
+  const price = req.body.price;
+  const fundingType = req.body.fundingType;//PO: 1, PP: 2
+  var mysqlPoolQuery = req.pool;
+  console.log(nftSymbol, price, fundingType);
+
+  mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+      //console.log(result);
+      if (err) {
+          //console.log(err);
+          res.send({
+              status: "fail"
+          });
+      }
+      else {
+          res.send({
+              status: "success",
+              result: result[0]
+          });
+      }
+  });
+
+});
+
+
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
 // http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
     console.log(`\n---------------------==\nAPI mintSequentialPerCtrt...`);
     const isCombinedAPI = true;
-
-    const price = req.body.price;
     const nftSymbol = req.params.nftSymbol;
-    const fundingType = req.body.fundingType;//PO: 1, PP: 2
-    let toAddressArray, amountArray, tokenCtrtAddr, mesg;
+    let toAddressArray, amountArray, tokenCtrtAddr, mesg = '', serverTime, pricing, fundingType;//PO: 1, PP: 2
 
     if(isCombinedAPI){
-      [toAddressArray, amountArray, tokenCtrtAddr] = await preMint(nftSymbol).catch((err) => {
+      [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
         res.send({
           success: false,
           result: 'failed at preMint(), err: ' + err,
@@ -996,6 +1019,8 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
         });
       }
     } else {
+      pricing = req.body.price;
+      fundingType = req.body.fundingType;
       toAddressArray = req.body.toAddressArray.split(",");
       amountArray = req.body.amountArray.split(",").map(function (item) {
           return parseInt(item, 10);
@@ -1004,11 +1029,12 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
     }
 
 
-    console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}
-    toAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
+    console.log(`\n---------==\nnftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}
+\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
 
-    const maxMintAmountPerRun = 180;
-    let mesg = '', serverTime;
+    //process.exit(0);
+
+    const maxMintAmountPerRun = 190;
     // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
     // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
 
@@ -1021,7 +1047,7 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
       serverTime = await getTime();
     }
 
-    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, price, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
+    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
       mesg = '[Error @ sequentialMintSuper]';  
       console.log(mesg, err);
         res.send({
