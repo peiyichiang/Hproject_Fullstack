@@ -98,7 +98,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         //From DB check if product:tokenState needs to be updated
       };
       if(whichTimeServerArray[5] > 0){
-        const result = await calculateLastPeriodProfit().catch((err) => {
+        const result = await calculateLastPeriodProfit(serverTime).catch((err) => {
           console.log('[Failed @ timeserver: calculateLastPeriodProfit]: '+ err);
         });
         if(result){
