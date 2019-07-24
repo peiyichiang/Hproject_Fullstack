@@ -39,6 +39,23 @@ const BookletStorage = multer.diskStorage({
 })
 const uploadBookletImage = multer({ storage: BookletStorage })
 
+const getTimeNow = () => {
+    let timeNow = new Date();/* 現在時間 */
+    const minuteAndHour = timeNow.toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: "numeric",
+        minute: "numeric"
+    });
+    let year = timeNow.getFullYear();
+    let month = String(timeNow.getMonth() + 1).padStart(2, '0'); //January is 0!
+    let day = String(timeNow.getDate()).padStart(2, '0');
+    let hour = minuteAndHour.substring(0, 2);
+    let minute = minuteAndHour.substring(3, 5);
+    return year + month + day + hour + minute;
+}
+
+
+
 
 // const path = require('path');
 // const fs = require('fs');
@@ -562,10 +579,10 @@ router.post('/EditEndorser', function (req, res, next) {
                 mysqlPoolQuery(
                     'SELECT * FROM  user WHERE u_email = ? ;',
                     email,
-                    (err, rows, fields) => {
-                        //   console.log(rows);
+                    (err, result, fields) => {
+                        //   console.log(result);
                         if (err) reject(err);
-                        else resolve(rows);
+                        else resolve(result);
                     }
                 );
                 // 如果使用者沒填寫
@@ -660,104 +677,132 @@ router.post('/EditEndorser', function (req, res, next) {
 
 
 router.post('/ForgetPassword', function (req, res, next) {
-    //   var db = req.con;
+    console.log('------------------------==\n@user/ForgetPassword');
     var mysqlPoolQuery = req.pool;
-    var emailAddress = req.body.emailAddress;
-    mysqlPoolQuery('SELECT * FROM  user WHERE u_email = ?', emailAddress, function (err, rows) {
+    let email = req.body.email;
+    let nationalID = req.body.ID;
+    let verificationCode = '123';/* 驗證碼 *//* 6碼，大小寫英數混合 */
+    const timeNow = getTimeNow();
+    const tenMinutesAfterTimeNow = (parseInt(getTimeNow(),10) + 10).toString();
+
+    mysqlPoolQuery('SELECT * FROM  user WHERE u_email = ? AND u_identityNumber = ?', [email, nationalID], function (err, result) {
+        /* 查詢失敗 */
         if (err) {
-            console.log(err);
+            res.status(400);
+            res.json({ "message": "查詢失敗：" + err });
+            console.error('query error : ' + err);
         }
-        // console.log(rows.length);
-
-        //查無此帳號
-        if (rows.length == 0) {
-            res.render('error', { message: '查無此帳號', error: '' });
-        } else {
-            //將重新設置連結寄送到信箱
-            console.log(rows[0].u_email);
-            email = rows[0].u_email;
-            passwordHash = rows[0].u_password_hash;
-
-            var transporter = nodemailer.createTransport({
-                /* Helium */
-                host: 'server239.web-hosting.com',
-                port: 465,
-                secure: true, // use SSL
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-
-            // setup email data with unicode symbols
-            let mailOptions = {
-                from: ' <noreply@hcat.io>', // sender address
-                to: email, // list of receivers
-                subject: '重新設置密碼', // Subject line
-                text: '請點以下連結重新設置密碼： http://140.119.101.130:3000/user/ResetPassword?hash=' + passwordHash, // plain text body
-                // html: '<b>Hello world?</b>' // html body
-            };
-
-            // send mail with defined transport object
-            transporter.sendMail(mailOptions, (err, info) => {
-                if (err) {
-                    res.status(400)
-                    res.json({
-                        "message": "重新設置密碼連結 寄送失敗：" + err
-                    })
-                }
-                else {
-                    res.status(200);
-                    res.json({
-                        "message": "重新設置密碼連結 寄送成功"
-                    })
-                }
-                // console.log('Message sent: %s', info.messageId);
-                // Preview only available when sending through an Ethereal account
-                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-            });
+        /* 查無此帳號 */
+        else if (result.length == 0) {
+            res.status(404);
+            res.json({ "message": "查無此帳號" });
+            console.error('account not found : ' + email);
         }
-        // res.render('EditBackendUser', { title: 'Edit Product', data: data });
+        /* 新增申請的資料到忘記密碼的資料表 */
+        else {
+            mysqlPoolQuery(
+                `INSERT INTO  forget_pw 
+                 SET fp_investor_email = ? , 
+                     fp_verification_code = ? , 
+                     fp_application_date = ? , 
+                     fp_isApproved = ?`,
+                [email, verificationCode, tenMinutesAfterTimeNow , 0],
+                function (err, result) {
+                    /* 新增申請資料失敗 */
+                    if (err) {
+                        res.status(400);
+                        res.json({ "message": "查詢失敗：" + err });
+                        console.error('query error : ' + err);
+                    }
+                    /* 新增申請資料成功，將重新設置連結寄送到信箱 */
+                    else {
+                        var transporter = nodemailer.createTransport({
+                            host: 'server239.web-hosting.com',
+                            port: 465,
+                            secure: true, // use SSL
+                            auth: {
+                                user: process.env.EMAIL_USER,
+                                pass: process.env.EMAIL_PASS
+                            }
+                        });
+
+                        // setup email data with unicode symbols
+                        let mailOptions = {
+                            from: ' <noreply@hcat.io>', // sender address
+                            to: email, // list of receivers
+                            subject: '驗證碼', // Subject line
+                            text: '以下為您的驗證碼：' + verificationCode, // plain text body
+                            // html: '<b>Hello world?</b>' // html body
+                        };
+
+                        // send mail with defined transport object
+                        transporter.sendMail(mailOptions, (err, info) => {
+                            if (err) {
+                                res.status(400)
+                                res.json({ "message": "驗證碼連結寄送失敗：" + err })
+                                console.error('send varification code email error: ' + err);
+                            }
+                            else {
+                                res.status(200);
+                                res.json({ "message": "驗證碼連結寄送成功" })
+                                // console.log('send email success:' + email);
+                            }
+                        });
+                    }
+                })
+        }
     });
 });
 
-//重設密碼
-router.post('/ResetPassword', function (req, res, next) {
+router.post('/VerifyVerificationCode', function (req, res, next) {
+    console.log('------------------------==\n@user/VerifyVerificationCode');
     var mysqlPoolQuery = req.pool;
-    var newPassword = req.body.password1;
-    var ResetPasswordHash = req.body.resetPasswordHash;
-    var sql = {}
+    let email = req.body.email;
+    let verificationCode = req.body.verificationCode;
+    const timeNow = getTimeNow();
 
-    const saltRounds = 10;
-    bcrypt
-        .genSalt(saltRounds)
-        .then(salt => {
-            console.log(`Salt: ${salt}`);
-            sql.u_salt = salt
-            return bcrypt.hash(newPassword, salt);
-        })
-        .then(hash => {
-            // console.log(`Hash: ${hash}`);
-            sql.u_password_hash = hash
-            // console.log("###" + JSON.stringify(sql));
-
-            mysqlPoolQuery('UPDATE  user SET ? WHERE u_password_hash = ?', [sql, ResetPasswordHash], function (err, rows) {
-                if (err) {
-                    console.log(err);
-                    res.render('error', { message: '更改密碼失敗：' + err, error: '' });
-                } else {
-                    // res.setHeader('Content-Type', 'application/json');
-                    // res.redirect('/BackendUser/backend_user');
-                    res.render('error', { message: '更改密碼成功', error: '' });
+    mysqlPoolQuery(
+        `SELECT fp_investor_email,
+                fp_verification_code,
+                fp_application_date
+         FROM   forget_pw 
+         WHERE  fp_investor_email = ? 
+         ORDER  BY fp_application_date DESC
+         LIMIT  0,1
+        `, email, function (err, result) {
+            /* 查詢失敗 */
+            if (err) {
+                res.status(400);
+                res.json({ "message": "查詢失敗：" + err });
+                console.error('query error : ' + err);
+            }
+            /* 無申請紀錄 */
+            else if (result.length == 0) {
+                res.status(404);
+                res.json({ "message": "無申請紀錄" });
+                console.error('applications record not found : ' + email);
+            }
+            else {
+                /* 驗證碼已過期 */
+                if (timeNow > result[0].fp_application_date) {
+                    res.status(400);
+                    res.json({ "message": "驗證碼已過期，請重新申請" });
+                    console.error('verification code is expired : ' + email);
                 }
-            });
-
-        })
-        .catch(err => console.error(err.message));
-});
-
-router.get('/ResetPassword', function (req, res, next) {
-    res.render('FrontendResetPassword', { title: 'FrontendResetPassword' });
+                else {
+                    if (verificationCode != result[0].fp_verification_code) {
+                        res.status(400);
+                        res.json({ "message": "驗證碼錯誤，請檢查後再試" });
+                        console.error('wrong verification code : ' + email);
+                    }
+                    else {
+                        res.status(200);
+                        res.json({ "message": "驗證通過" });
+                        // console.log('verify success');
+                    }
+                }
+            }
+        });
 });
 
 //更新使用者資料

@@ -1360,7 +1360,7 @@ router.get('/LaunchedProductList', function (req, res) {
                 timeNow = year + month + day + hour + minute;
                 /* 回傳還沒超過 CFED 的專案 */
                 productArray = productArray.filter(function (item, index, array) {
-                    return timeNow > item.CFED;
+                    return timeNow < item.CFED;
                 });
                 if (productArray.length > 0) {
                     res.status(200);
@@ -1381,9 +1381,6 @@ router.get('/LaunchedProductList', function (req, res) {
 
 router.get('/ForcastIncomeBySymbol', function (req, res) {
     console.log('------------------------==\n@Product/ForcastIncomeBySymbol');
-    function returnNumberWithCommas(x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
     const mysqlPoolQuery = req.pool;
     const symbol = req.query.symbol;
     mysqlPoolQuery(
