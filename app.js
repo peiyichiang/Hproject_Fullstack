@@ -7,6 +7,7 @@ var cors = require('cors');
 var session = require('express-session');
 var multer = require('multer');
 var debugSQL = require('debug')('dev:mysql');
+var timeout = require('connect-timeout'); //express v4
 
 require("dotenv").config();
 
@@ -33,6 +34,12 @@ const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
 
 var app = express();
+app.use(timeout(1200000));
+app.use(haltOnTimedout);
+function haltOnTimedout(req, res, next){
+ if (!req.timedout) next();
+}
+
 //智豪
 app.use(session({
     secret: 'NCCU Blockchain Hub',

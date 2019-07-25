@@ -2,7 +2,7 @@ const axios = require('axios');
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
 
@@ -528,6 +528,17 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} isNumberArray: $
   process.exit(0);
 }
 
+//yarn run testmt -f 44
+const getPastScheduleTimes_API = async () => {
+  console.log('\n---------------------==getPastScheduleTimes_API()');
+  const symbol = "ACHM0625";
+  const serverTime = 201906251510;
+  const pastSchedules = await getPastScheduleTimes(symbol, serverTime).catch((err) => {      console.log('getPastScheduleTimes() failed. err:'+ err);
+  });
+  console.log('pastSchedules:', pastSchedules);
+  process.exit(0);
+}
+
 //yarn run testmt -f 42
 const callTestAPI = async () => {
   console.log('\n---------------------==callTestAPI()');
@@ -732,5 +743,9 @@ if(func === 0){
 //yarn run testmt -f 43
 } else if (func === 43) {
   mintSequentialPerCtrt_API();
+
+//yarn run testmt -f 44
+} else if (func === 44) {
+  getPastScheduleTimes_API();
 
 }

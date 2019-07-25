@@ -652,8 +652,8 @@ const sequentialMintSuperAPI = async () => {
     toAddressArray = [...assetbookArray];
 
   } else if(choice === 7){
-                //[ 3210, 3724, 2925, 2719, 2847, 2991, 3479, 3746, 3952, 4355 ]
-    amountArray = [ 3712, 3724, 3468, 3562, 2847, 2991, 3479, 3746, 3952, 4355 ];//24321
+                //[ 1737, 1926, 2206, 2498, 2551, 2349, 2889, 3115, 3324, 3446 ]
+    amountArray = [2212, 2424, 2868, 2992,  3247, 3391, 3479, 3746, 3952, 3855 ];//24321
     toAddressArray = [...assetbookArray];
 
   }
