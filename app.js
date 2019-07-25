@@ -10,7 +10,7 @@ var debugSQL = require('debug')('dev:mysql');
 
 require("dotenv").config();
 
-const { isTestingMode } = require('./ethereum/contracts/zsetupData');
+const { isTimeserverON } = require('./ethereum/contracts/zsetupData');
 
 console.log('loading /app.js modules');
 //智豪
@@ -118,12 +118,12 @@ app.use(function (err, req, res, next) {
 
 // const checkOverZero =(item) => item === 0;
 // if(whichTimeServerArray.every(checkOverZero)){
-if(isTestingMode){
-  console.log('\n------------------==timeserver turned OFF');
-  
-} else {
+if(isTimeserverON){
   console.log('\n------------------==timeserver is ON');
   require('./timeserver/timeserverSource');
+  
+} else {
+  console.log('\n------------------==timeserver turned OFF');
 }
 console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList

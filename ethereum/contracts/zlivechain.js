@@ -12,7 +12,7 @@ setupTest
 getTokenController
 
 //yarn run livechain -c 1 --f 3
-showAssetBookBalances
+showAssetBookBalance_TokenId
 
 //yarn run livechain -c 1 --f 4
 showAssetInfo
@@ -236,7 +236,7 @@ const checkEq = (value1, value2) => {
   }
 }
 
-//yarn run livechain -c 1 --f 0 -a 1 -b 3
+//yarn run livechain -c 1 --f 0
 const checkDeployedContracts = async () => {
   result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
   console.log('\nTokenController checkDeploymentConditions():', result);
@@ -270,7 +270,11 @@ const checkDeployedContracts = async () => {
 
 
 //yarn run livechain -c 1 --f 21
-const addUseArray = async() => {
+const addUserArray = async() => {
+  console.log('\n----------------==Registry contract: add AssetBooks');
+  let userM;
+  console.log('addrRegistry', addrRegistry);
+
   if(userIdArray.length !== assetbookArray.length) {
     console.log('userIdArray and assetbookArray must have the same length!');
     process.exit(0);
@@ -353,7 +357,8 @@ index = ${index}, assetbookAddr: ${assetbookAddr}`);
 }
 
 
-//yarn run livechain -c 1 --f 1 -a 1 -b 3
+//yarn run livechain -c 1 --f 1
+// -a 1 -b 3
 const setupTest = async () => {
   //const addr1 = web3.utils.toChecksumAddress(addrPlatform);
 
@@ -433,61 +438,6 @@ const setupTest = async () => {
   tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook3, 0, 0).call();
   balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook3).call();
   console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
-
-
-  // assetSymbol, addrHCAT721Index, 
-  // assetAmount, timeIndexStart, 
-  // timeIndexEnd, isInitialized);
-  console.log('\n----------------==Registry contract: add AssetBook');
-  let userM;
-  console.log('addrRegistry', addrRegistry);
-  //let getUserCountM = await instRegistry.methods.getUserCount().call();
-  //console.log('getUserCountM', getUserCountM);
-
-
-  
-  if(userIdArray.length !== assetbookArray.length) {
-    console.log('userIdArray and assetbookArray must have the same length!');
-    process.exit(0);
-  }
-  await asyncForEach(userIdArray, async (userId, idx) => {
-    console.log('\n--------==Check if this user has already been added into RegistryCtrt');
-    const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbookArray[idx], investorLevelArray[idx]).call({from: admin});
-    /**
-        boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
-        //ckUidLength(uid)
-        boolArray[1] = bytes(uid).length > 0;
-        boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
-
-        //ckAssetbookValid(assetbookAddr)
-        boolArray[3] = assetbookAddr != address(0);
-        boolArray[4] = assetbookAddr.isContract();
-        boolArray[5] = uidToAssetbook[uid] == address(0);
-        boolArray[6] = authLevel > 0 && authLevel < 10;
-     */
-    console.log('checkArray', checkArray);
-
-    if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
-      if(checkArray[5]){
-        console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
-        console.log('--------==AddUser():', idx)
-        const encodedData = instRegistry.methods.addUser(userId, assetbookArray[idx], investorLevelArray[idx]).encodeABI();
-        let TxResult = await signTx(admin, adminpkRaw, addrRegistry, encodedData);
-        console.log('\nTxResult', TxResult);
-        console.log(`after addUser() on AssetOwner${idx+1}...`);
-    
-        userM = await instRegistry.methods.getUserFromUid(userId).call();
-        console.log('userM', userM);
-        checkEq(userM[0], assetbookArray[idx]);
-        checkEq(userM[1], investorLevelArray[idx].toString());
-      } else {
-        console.log(`\nThis uid ${userId} has already been added. Skipping this uid...`);
-      }
-    } else {
-      console.log('\nError detected');
-      process.exit(0);
-    }
-  });
 
   // process.exit(0);
 
@@ -574,7 +524,7 @@ const addAssetBook = async (assetBookAddr, userId, authLevel) => {
   console.log('addUser() result', result);
 
   console.log('\nafter addUser() on AssetOwner1:');
-  userM = await instRegistry.methods.getUserFromUid(userId).call();
+  let userM = await instRegistry.methods.getUserFromUid(userId).call();
   console.log('userM', userM);
   return userM;
 }
@@ -614,7 +564,7 @@ const getTokenController = async () => {
 
 
 //yarn run livechain -c 1 --f 3
-const showAssetBookBalances = async () => {
+const showAssetBookBalance_TokenId = async () => {
   await asyncForEach(assetbookArray, async (assetbook, idx) => {
     console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
     tokenIds = await instHCAT721.methods.getAccountIds(assetbook, 0, 0).call();
@@ -628,7 +578,7 @@ const showAssetBookBalances = async () => {
     console.log(`AssetBook${idx}: ${assetbookXM}`);
   });
 
-  console.log('showAssetBookBalances() has been completed');
+  console.log('showAssetBookBalance_TokenId() has been completed');
   process.exit(0);
 }
 //yarn run livechain -c 1 --f 31
@@ -885,8 +835,8 @@ const mintTokens = async (assetbookNum, amount) => {
   balanceM = await instHCAT721.methods.balanceOf(to).call();
   console.log('\n-----------==after minting balanceM:', balanceM);
 
-  console.log('\n-----------==Switching to showAssetBookBalances()...');
-  await showAssetBookBalances();
+  console.log('\n-----------==Switching to showAssetBookBalance_TokenId()...');
+  await showAssetBookBalance_TokenId();
   console.log('mintTokens() has been completed');
   process.exit(0);
 }
@@ -1108,9 +1058,9 @@ scenario: 7
 scenario: 9, serverTime = CFED+1. set state to funding end
 yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
 
-Check CFC details:  yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 579
-Set CFC to funding: yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 579
-Check all balances: yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 579
+Check CFC details:  yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 1
+Set CFC to funding: yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 1
+Check all balances: yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 1
 Invest/buy:         yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 1079
 
 toAssetbookNumStr: 1 for assetBook1...
@@ -1538,7 +1488,7 @@ const showMenu = () => {
   console.log('\n');
   console.log("\x1b[32m", '$ yarn run testlive1 --chain C --func F --arg1 arg1 --arg2 arg2');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log("\x1b[32m", 'F = 0: setupTest,  1: getTokenController, 2: showAssetBookBalances, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
+  console.log("\x1b[32m", 'F = 0: setupTest,  1: getTokenController, 2: showAssetBookBalance_TokenId, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'arg1, arg2, ... are arguments used in above functions ...');
 }
 
@@ -1560,7 +1510,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 3
 } else if (func === 3) {
-  showAssetBookBalances();
+  showAssetBookBalance_TokenId();
 
 //yarn run livechain -c 1 --f 4
 } else if (func === 4) {
@@ -1597,7 +1547,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 21
 } else if (func === 21) {
-  addUseArray();
+  addUserArray();
 
 //yarn run livechain -c 1 --f 22
 } else if (func === 22) {

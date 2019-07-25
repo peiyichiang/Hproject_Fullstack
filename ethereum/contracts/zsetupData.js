@@ -106,7 +106,7 @@ const TimeTokenValid =  TimeOfDeployment_CF+90;
 fundmanager = 'FundManagerN';
 
 //fundingType: PO: 1, PP: 2
-symNum = 2;
+
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
 const productObj0 = new productObject("AMER1901", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 1, "", "", "", "");
 
@@ -120,9 +120,21 @@ const productObj4 = new productObject("ANEP1904", "Neptune", "Neptune base 0001"
 
 const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
 
+const productObj6 = new productObject("AAOS0001", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
-//const isTestingMode = true;
-const isTestingMode = false;
+const productObj7 = new productObject("AAOS0002", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+
+const productObj8 = new productObject("AAOS0003", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+
+const productObj9 = new productObject("AAOS0004", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+
+const productObj10 = new productObject("AAOS0005", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+
+const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
+
+symNum = 2;
+const isTimeserverON = true;
+//const isTimeserverON = false;
 const useFullTimeServer = true;
 
 if(useFullTimeServer){
@@ -144,7 +156,6 @@ if(whichTimeServerArray.length !== 6){
   process.exit(1);
 }
 
-const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5];
 const symbolArray = [];
 crowdFundingAddrArray= [];
 tokenControllerAddrArray= [];
@@ -617,7 +628,7 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
 
 module.exports = {
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
-  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
+  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTimeserverON,
   CFSD, CFED, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
