@@ -520,7 +520,7 @@ toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
     const idxMintMax = toAddressArray.length -1;
     await asyncForEachMint2(toAddressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
       let amountSub = amountArrayOut[idxMintSub];
-      console.log(`\n    minting ${amountSub} tokens`);
+      console.log(`    minting ${amountSub} tokens`);
 
       const balB4MintingStr2 = await instHCAT721.methods.balanceOf(toAddress).call();
       const balB4Minting2 = parseInt(balB4MintingStr2);
@@ -536,7 +536,8 @@ toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
           console.log('\n[Error @ signTx() mintSerialNFT()]'+ err);
           await checkMint(tokenCtrtAddr, toAddress, amountSub, price, fundingType, serverTime);
         });
-        console.log('TxResult', TxResult);
+        console.log(`    blockNumber: ${TxResult.blockNumber}, Status: ${TxResult.status}`);
+        //console.log('TxResult', TxResult);
       } else {
         console.log('skipping minting 0 token');
       }
@@ -831,7 +832,8 @@ const makeOrdersExpiredCFED2 = async (serverTime) => {
       return false;
     });
     const symbolArrayLen = symbolArray.length;
-    console.log('\nArray length @ makeOrdersExpiredCFED2:', symbolArrayLen, ', symbols:', symbolArray);
+    console.log('\nArray length @ makeOrdersExpiredCFED2:', symbolArrayLen);
+    //console.log('symbols:', symbolArray);
 
     if (symbolArrayLen === 0) {
       console.log('[makeOrdersExpiredCFED2] no symbol was found');

@@ -852,7 +852,7 @@
                 <td>
                     <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" class="btn btn-success"
                         name="release" value="release"
-                        onclick="Release('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingType  %>','ONM',this.id);">發放代幣</button>
+                        onclick="MintTokens('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingType  %>','ONM',this.id);">發放代幣</button>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
@@ -1600,7 +1600,7 @@
 
         }
 
-        const MintTokens = async(nftSymbol, State, buttonID) => {
+        const MintTokens = async(nftSymbol, price, fundingType, State, buttonID) => {
             console.log(`nftSymbol: ${nftSymbol}, State: ${State}, buttonID: ${buttonID}`);
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
@@ -1612,7 +1612,6 @@
               },
             }
             const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
-            const axios = require('axios');
             const response2 = await axios.post(url2, {}, config).catch(err => { 
               console.log('err:',err);
             });
@@ -1675,6 +1674,7 @@ result: ${JSON.stringify(data2.result)}`);
 
 
     </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
         integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
         crossorigin="anonymous"></script>

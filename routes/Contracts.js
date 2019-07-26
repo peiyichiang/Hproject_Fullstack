@@ -4,7 +4,7 @@ const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 
-const { isTestingMode } = require('../ethereum/contracts/zsetupData');
+const { isTimeserverON } = require('../ethereum/contracts/zsetupData');
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 const { sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
@@ -1041,7 +1041,7 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
     // No while loop! We need human inspections done before automatically minting more tokens
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
-    if(isTestingMode){ 
+    if(isTimeserverON){ 
       serverTime = 201906130000;
     } else { 
       serverTime = await getTime();
@@ -1130,7 +1130,7 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
 
 
 /** calculateLastPeriodProfit */
-router.post('/HCAT721_AssetTokenContract/:tokenSymbol', async function (req, res, next) {
+router.post('/HCAT721_AssetRecord/:tokenSymbol', async function (req, res, next) {
   let tokenSymbol = req.params.tokenSymbol;
   const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {
     console.log('[Error @ calculateLastPeriodProfit]', err);
@@ -1143,22 +1143,28 @@ router.post('/HCAT721_AssetTokenContract/:tokenSymbol', async function (req, res
   if(result){
     if(result[0] === null || result[1] === null){
       res.send({
+        result0: result[0],
+        result1: result[1],
         status: false
       });
     } else if(Array.isArray(result[0])){
-    res.send({
-      status: true,
-      emailArrayError: result[0],
-      amountArrayError: result[1]
-    });
+      res.send({
+        status: true,
+        emailArrayError: result[0],
+        amountArrayError: result[1]
+      });
     } else {
       res.send({
-        status: false
+        status: false,
+        result0: result[0],
+        result1: result[1],
       });
     }
   } else {
     res.send({
-      status: false
+      status: false,
+      result0: result[0],
+      result1: result[1],
     });
   }
 });

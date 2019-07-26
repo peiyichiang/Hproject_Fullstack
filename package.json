@@ -28,6 +28,7 @@
     "bignumber.js": "^8.1.1",
     "chalk": "^2.4.2",
     "concurrently": "^4.1.0",
+    "connect-timeout": "^1.9.0",
     "cookie-parser": "~1.4.3",
     "csv2sql-stream": "0.0.22",
     "debug": "~2.6.9",

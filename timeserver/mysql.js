@@ -342,11 +342,11 @@ const getProductPricing = async(symbol) => {
       return false;
     });
     const pricing = result1[0].p_pricing;
-    if(Number.isInteger(result1)){
-      console.log('result found as an integer:', result1);
-      resolve(result1);
+    if(Number.isInteger(pricing)){
+      console.log('pricing found as an integer:', pricing);
+      resolve(pricing);
     } else{
-      console.log('result is not an integer. result1:', result1);
+      console.log('pricing is not an integer:', pricing);
       reject(false);
     }
   });
@@ -362,21 +362,38 @@ const getMaxActualPaymentTime = async(symbol, serverTime) => {
       reject(err);
       return false;
     });
-    console.log('result2', result2);
     if(result2.length > 0){
       const MAX_ia_actualPaymentTime = result2[0]['MAX(ia_actualPaymentTime)'];
+      console.log('MAX_ia_actualPaymentTime:', MAX_ia_actualPaymentTime);
       resolve(MAX_ia_actualPaymentTime);
     } else {
+      console.log('result2', result2);
       resolve(undefined);
     }
   });
 }
 
-//yarn run testmt -f 4
-const getProfitSymbolAddresses = async(serverTime) => {
+
+const getPastScheduleTimes = async(symbol, serverTime) => {
   return new Promise(async(resolve, reject) => {
-    let mesg = '';
-    console.log('-----------==getProfitSymbolAddress');
+    console.log('-----------==getPastScheduleTimes');
+    const queryStr1 = 'SELECT ia_time FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time <= ?';
+    const result1 = await mysqlPoolQueryB(queryStr1, [symbol, serverTime]).catch((err) => {
+      console.log('\n[Error @ getPastScheduleTimes > mysqlPoolQueryB()]');
+      reject(err);
+      return false;
+    });
+    const pastSchedules = result1.map((item) => {
+      return item.ia_time;
+    });
+    resolve(pastSchedules);
+  });
+}
+
+const getSymbolsONM = async() => {
+  return new Promise(async(resolve, reject) => {
+    console.log('-----------==getSymbolsONM');
+    let mesg;
     const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")';
     const result2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr2)]');
@@ -392,7 +409,6 @@ const getProfitSymbolAddresses = async(serverTime) => {
       return false;
     }
     // console.log('result2:', result2);
-
     const foundSymbols = [];
     const foundHCAT721Addrs = [];
     for(let i = 0; i < result2.length; i++) {
@@ -401,29 +417,40 @@ const getProfitSymbolAddresses = async(serverTime) => {
         foundHCAT721Addrs.push(result2[i].sc_erc721address);
       }
     }
+    resolve([foundSymbols, foundHCAT721Addrs]);
+  });
+}
 
+//yarn run testmt -f 4
+const getProfitSymbolAddresses = async(serverTime) => {
+  return new Promise(async(resolve, reject) => {
+    let mesg = '';
+    console.log('-----------==getProfitSymbolAddress, serverTime:', serverTime);
+    const [foundSymbols, foundHCAT721Addrs] = await getSymbolsONM().catch((err) => {
+      console.log('\n[Error @getSymbolsONM] err:', err);
+      reject(err);
+      return false;
+    });
 
     //console.log('foundHCAT721Addrs', foundHCAT721Addrs);
-    const queryStrAcPmtTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
+    const queryActualPaymentTime = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
 
-    const APT_Array = [];
+    const APT_Array = []; let result3;
     await asyncForEach(foundSymbols, async (symbol, index) => {
       const MaxActualPaymentTime = await getMaxActualPaymentTime(symbol, serverTime);
       if(MaxActualPaymentTime){
         console.log('[Good] MaxActualPaymentTime is found! MaxActualPaymentTime =', MaxActualPaymentTime);
+        result3 = await mysqlPoolQueryB(queryActualPaymentTime, [symbol, MaxActualPaymentTime]).catch((err) => {
+          console.log('\n[Error @ mysqlPoolQueryB(queryActualPaymentTime)]');
+          reject(err);
+          return false;
+        });
+        if(isEmpty(result3)){
+          console.log('[Warning] Actual Payment Time Array query returns nothing. symbol = '+symbol);
+        }
+  
       } else {
         console.log('[Warning] MaxActualPaymentTime is not found!');
-      }
-
-      const result3 = await mysqlPoolQueryB(queryStrAcPmtTime, [symbol, MaxActualPaymentTime]).catch((err) => {
-        console.log('\n[Error @ mysqlPoolQueryB(queryStrAcPmtTime)]');
-        reject(err);
-        return false;
-      });
-      if(isEmpty(result3)){
-        mesg = '[Warning] Actual Payment Time Array query returns nothing. symbol = '+symbol;
-        console.log(mesg);
-        //reject(mesg);
       }
       APT_Array.push(result3);
     });
@@ -1039,7 +1066,7 @@ module.exports = {
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
     addProductRow, addSmartContractRow, 
-    isIMScheduleGoodDB, setIMScheduleDB,
+    isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM,
     addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
     calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime
