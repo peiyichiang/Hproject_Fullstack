@@ -282,39 +282,74 @@ router.get('/verify_email', function (req, res) {
 /* test post image function */
 router.post('/post_IDImage', uploadIDImages.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
-    var email = req.body.email
-    var imageLocation = req.body.imageLocation
+    var email = req.body.email;
+    var imageLocation = req.body.imageLocation;
+    var DBtableType = req.body.DBtableType;
 
-    if (req.body.picture == "IDfront") {
-        mysqlPoolQuery('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
-            if (err) {
-                res.status(400)
-                res.json({
-                    "message": "新增照片地址失敗:" + err
-                })
-            }
-            else {
-                res.status(200);
-                res.json({
-                    "message": "新增照片地址成功！"
-                })
-            }
-        })
-    } else if (req.body.picture == "IDback") {
-        mysqlPoolQuery('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
-            if (err) {
-                res.status(400)
-                res.json({
-                    "message": "新增照片地址失敗:" + err
-                })
-            }
-            else {
-                res.status(200);
-                res.json({
-                    "message": "新增照片地址成功！"
-                })
-            }
-        })
+    if (DBtableType === 'user') {
+        if (req.body.picture == "IDfront") {
+            mysqlPoolQuery('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "新增照片地址失敗:" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "新增照片地址成功！"
+                    })
+                }
+            })
+        } else if (req.body.picture == "IDback") {
+            mysqlPoolQuery('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "新增照片地址失敗:" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "新增照片地址成功！"
+                    })
+                }
+            })
+        }
+    } else {
+        if (req.body.picture == "IDfront") {
+            mysqlPoolQuery('UPDATE forget_pw SET fp_imagef =\'' + imageLocation + '\'' + 'WHERE fp_investor_email = \'' + email + '\'', function (err) {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "新增照片地址失敗:" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "新增照片地址成功！"
+                    })
+                }
+            })
+        } else if (req.body.picture == "IDback") {
+            mysqlPoolQuery('UPDATE forget_pw SET fp_imageb =\'' + imageLocation + '\'' + 'WHERE fp_investor_email = \'' + email + '\'', function (err) {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "新增照片地址失敗:" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "新增照片地址成功！"
+                    })
+                }
+            })
+        }
     }
 
     /* error handling for image upload*/
@@ -332,20 +367,39 @@ router.post('/post_BookletImage', uploadBookletImage.single('image'), function (
     let mysqlPoolQuery = req.pool;
     var email = req.body.email;
     var imageLocation = req.body.imageLocation;
-    mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "新增照片地址失敗" + err
-            })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "新增照片地址成功！"
-            })
-        }
-    })
+    var DBtableType = req.body.DBtableType;
+
+    if (DBtableType === 'user') {
+        mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
+            if (err) {
+                res.status(400)
+                res.json({
+                    "message": "新增照片地址失敗" + err
+                })
+            }
+            else {
+                res.status(200);
+                res.json({
+                    "message": "新增照片地址成功！"
+                })
+            }
+        })
+    } else {
+        mysqlPoolQuery('UPDATE forget_pw SET fp_bankAccountimage =\'' + imageLocation + '\'' + 'WHERE fp_investor_email = \'' + email + '\'', function (err) {
+            if (err) {
+                res.status(400)
+                res.json({
+                    "message": "新增照片地址失敗" + err
+                })
+            }
+            else {
+                res.status(200);
+                res.json({
+                    "message": "新增照片地址成功！"
+                })
+            }
+        })
+    }
 })
 
 //http://140.119.101.130:3000/user/UserByEmail
@@ -679,23 +733,29 @@ router.post('/EditEndorser', function (req, res, next) {
 router.post('/ForgetPassword', function (req, res, next) {
     console.log('------------------------==\n@user/ForgetPassword');
     var mysqlPoolQuery = req.pool;
-    let email = req.body.email;
-    let nationalID = req.body.ID;
-    let verificationCode = '123';/* 驗證碼 *//* 6碼，大小寫英數混合 */
+    const email = req.body.email;
+    const nationalID = req.body.ID;
     const timeNow = getTimeNow();
-    const tenMinutesAfterTimeNow = (parseInt(getTimeNow(),10) + 10).toString();
+    const makeid = (length) => {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    }
+    const verificationCode = makeid(6);
 
     mysqlPoolQuery('SELECT * FROM  user WHERE u_email = ? AND u_identityNumber = ?', [email, nationalID], function (err, result) {
         /* 查詢失敗 */
         if (err) {
-            res.status(400);
-            res.json({ "message": "查詢失敗：" + err });
+            res.status(400).send('查詢失敗：' + err);
             console.error('query error : ' + err);
         }
         /* 查無此帳號 */
         else if (result.length == 0) {
-            res.status(404);
-            res.json({ "message": "查無此帳號" });
+            res.status(404).send('查無此帳號');
             console.error('account not found : ' + email);
         }
         /* 新增申請的資料到忘記密碼的資料表 */
@@ -706,12 +766,11 @@ router.post('/ForgetPassword', function (req, res, next) {
                      fp_verification_code = ? , 
                      fp_application_date = ? , 
                      fp_isApproved = ?`,
-                [email, verificationCode, tenMinutesAfterTimeNow , 0],
+                [email, verificationCode, timeNow, 0],
                 function (err, result) {
                     /* 新增申請資料失敗 */
                     if (err) {
-                        res.status(400);
-                        res.json({ "message": "查詢失敗：" + err });
+                        res.status(400).send('查詢失敗：' + err);
                         console.error('query error : ' + err);
                     }
                     /* 新增申請資料成功，將重新設置連結寄送到信箱 */
@@ -738,13 +797,11 @@ router.post('/ForgetPassword', function (req, res, next) {
                         // send mail with defined transport object
                         transporter.sendMail(mailOptions, (err, info) => {
                             if (err) {
-                                res.status(400)
-                                res.json({ "message": "驗證碼連結寄送失敗：" + err })
+                                res.status(400).send('驗證碼連結寄送失敗：' + err);
                                 console.error('send varification code email error: ' + err);
                             }
                             else {
-                                res.status(200);
-                                res.json({ "message": "驗證碼連結寄送成功" })
+                                res.status(200).json({ "message": "驗證碼連結寄送成功" });
                                 // console.log('send email success:' + email);
                             }
                         });
@@ -760,6 +817,17 @@ router.post('/VerifyVerificationCode', function (req, res, next) {
     let email = req.body.email;
     let verificationCode = req.body.verificationCode;
     const timeNow = getTimeNow();
+    const getTenMinutesAfterFP_application_date = (time) => {
+        console.log(time)
+        /* 分的十位數為5時，時進位且分歸0 */
+        if (time.substring(10, 11) === 5) {
+            console.log('first:', (parseInt(time, 10) + 50).toString())
+            return (parseInt(time, 10) + 50).toString();
+        } else {
+            console.log('second:', (parseInt(time, 10) + 10).toString())
+            return (parseInt(time, 10) + 10).toString();
+        }
+    }
 
     mysqlPoolQuery(
         `SELECT fp_investor_email,
@@ -772,32 +840,29 @@ router.post('/VerifyVerificationCode', function (req, res, next) {
         `, email, function (err, result) {
             /* 查詢失敗 */
             if (err) {
-                res.status(400);
-                res.json({ "message": "查詢失敗：" + err });
+                res.status(400).send('查詢失敗：' + err);
                 console.error('query error : ' + err);
             }
             /* 無申請紀錄 */
             else if (result.length == 0) {
-                res.status(404);
-                res.json({ "message": "無申請紀錄" });
+                res.status(404).send('無申請紀錄');
                 console.error('applications record not found : ' + email);
             }
             else {
+                const tenMinutesAfterFP_application_date = getTenMinutesAfterFP_application_date(result[0].fp_application_date);
                 /* 驗證碼已過期 */
-                if (timeNow > result[0].fp_application_date) {
-                    res.status(400);
-                    res.json({ "message": "驗證碼已過期，請重新申請" });
+                if (timeNow > tenMinutesAfterFP_application_date) {
+                    res.status(400).send('驗證碼已過期，請重新申請');
                     console.error('verification code is expired : ' + email);
                 }
                 else {
+                    /* 驗證碼錯誤 */
                     if (verificationCode != result[0].fp_verification_code) {
-                        res.status(400);
-                        res.json({ "message": "驗證碼錯誤，請檢查後再試" });
+                        res.status(400).send('驗證碼錯誤，請檢查後再試');
                         console.error('wrong verification code : ' + email);
                     }
                     else {
-                        res.status(200);
-                        res.json({ "message": "驗證通過" });
+                        res.status(200).json({ "message": "驗證通過" });
                         // console.log('verify success');
                     }
                 }
@@ -867,6 +932,102 @@ router.get('/UpdateUserInformation', function (req, res, next) {
             })
         })
 });
+
+router.post('/ApplyForResettingPassword', function (req, res, next) {
+    console.log('------------------------==\n@user/VerifyVerificationCode');
+    var mysqlPoolQuery = req.pool;
+    const email = req.body.email;
+    const password = req.body.password;
+    const verificationCode = req.body.verificationCode;
+    let salt;
+    let hash;
+
+    const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+
+    bcrypt
+        .genSalt(saltRounds)
+        .then(_salt => {
+            salt = _salt;
+            return bcrypt.hash(password, salt);
+        })
+        .then(_hash => {
+            hash = _hash;
+            const query = `
+            UPDATE forget_pw 
+            SET   fp_salt = ? ,
+                  fp_password_hash = ?
+            WHERE fp_investor_email = ? AND
+                  fp_verification_code = ?`
+
+            mysqlPoolQuery(query, [salt, hash, email, verificationCode], function (err, result) {
+                if (err) {
+                    res.status(400).send('查詢失敗：' + err);
+                    console.error('query error : ' + err);
+                } else {
+                    res.status(200).json({ "message": "申請成功，請等待身份驗證通過後再以新密碼登入" });
+                }
+            });
+        })
+        .catch(err => console.error(err.message));
+});
+
+//http://140.119.101.130:3000/user/UserLogin
+router.get('/isLoginPasswordCorrect', function (req, res, next) {
+    console.log('------------------------==\n@User/UserLogin');
+    var mysqlPoolQuery = req.pool;
+    const email = req.query.email;
+    const password = req.query.password;
+    let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
+
+    mysqlPoolQuery(qstr1, email, function (err, result) {
+        if (err) {
+            res.status(400);
+            res.json({
+                "message": "[Error] db to/from DB :\n" + err,
+            });
+            console.log(err);
+        } else {
+            if (result.length === 0) {
+                res.status(400);
+                res.json({
+                    "message": "No email is found",
+                });
+                console.error('No email is found:', email)
+            } else if (result.length === 1) {
+                if (result[0].u_verify_status === 0) {
+                    res.status(400);
+                    res.json({
+                        "message": "Email is not verified",
+                    });
+                    console.error('Email is not verified:', email)
+                }
+                else {
+                    bcrypt
+                        .compare(password, result[0].u_password_hash)
+                        .then(compareResult => {
+                            if (compareResult) {
+                                let query = 'UPDATE user SET u_verify_status = ? WHERE u_email = ?';
+                                mysqlPoolQuery(query, [2, email], function (err, result) {
+                                    res.status(200).json({ "message": "密碼正確" });
+                                })
+                            } else {
+                                res.status(400).send('帳號或密碼輸入錯誤：' + err);
+                                console.error('query error : ' + err);
+                            }
+                        })
+                        .catch(err => console.error('Error at compare password & pwHash', err.message));
+                }
+            } else {
+                res.status(400);
+                res.json({
+                    "message": "Duplicate entries are found in DB",
+                });
+                console.error('Duplicate entries are found in DB:', email)
+            }
+        }
+    });
+});
+
 
 
 
