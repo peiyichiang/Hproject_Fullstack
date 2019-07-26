@@ -46,9 +46,6 @@ let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, 
 const chain = 1;
 if (chain === 1){
   addrHelium =     "0x49e0c4Fc9edD11d9B565963d36af102C0efaB66a";
-  addrAssetBook7 = "0x8e10AB006D5aa5f189Cb3a1417Ee0f187EF56E56";
-  addrAssetBook8 = "0xca2628e05A8887295e80c6df474a3D21E563E73A";
-  addrAssetBook9 = "0x5F594C7E19EaD79fcDC66C2c5BBdB7AFcF9c4ed1";
   addrRegistry =   "0x551239714e6C2b59d4AAdc9F51825a5BedD4C021";
 
   addrAssetBook0 = "0x9151d4BC2a05a127477D5938039551218C0c7703";
@@ -58,6 +55,11 @@ if (chain === 1){
   addrAssetBook4 = "0xcDEB03D6B6dfE94B21e802ec7db4e808CF0F2F16";
   addrAssetBook5 = "0x61490b4f58Ef5D6ce1e20a74E99Aaae076F433cd";
   addrAssetBook6 = "0xccaF9388399d2BC9Bb9a4038b6adb4f2c54196eE";
+
+  addrAssetBook7 = "0x8e10AB006D5aa5f189Cb3a1417Ee0f187EF56E56";
+  addrAssetBook8 = "0xca2628e05A8887295e80c6df474a3D21E563E73A";
+  addrAssetBook9 = "0x5F594C7E19EaD79fcDC66C2c5BBdB7AFcF9c4ed1";
+
   addrAssetBook10 = "0xF9f35EACEEc9b8031c9534D7E5a508A86DA224BE";
   
 } else if (chain === 2){
@@ -135,7 +137,8 @@ const productObjArray = [productObj0, productObj1, productObj2, productObj3, pro
 symNum = 2;
 const isTimeserverON = true;
 //const isTimeserverON = false;
-const useFullTimeServer = true;
+//const useFullTimeServer = true;
+const useFullTimeServer = false;
 
 if(useFullTimeServer){
   whichTimeServerArray = [1, 1, 1, 1, 1, 1];

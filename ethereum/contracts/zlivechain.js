@@ -57,7 +57,7 @@ userArray.forEach((user, idx) => {
 const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
 let provider, web3, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, arg3, result;
 const backendAddr = admin;
-const backendRawPrivateKey = adminpkRaw;
+const backendAddrpkRaw = adminpkRaw;
 
 
 console.log('process.argv', process.argv);
@@ -145,7 +145,7 @@ if (chain === 1) {//POA private chain
     provider = new PrivateKeyProvider(adminpk, nodeUrl);//adminpk, AssetOwner1pk, AssetOwner2pk
     web3 = new Web3(provider);
 
-    backendRawPrivateKey = '0x....'
+    backendAddrpkRaw = '0x....'
     await signTx(admin, adminpkRaw, addrRegistry, encodedData);
     */
     web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
@@ -553,7 +553,7 @@ const getTokenController = async () => {
     console.log('Setting serverTime to TimeTokenUnlock+1 ...');
     serverTime = TimeTokenUnlock+1;
     const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrTokenController, encodedData);
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrTokenController, encodedData);
     console.log('\nTxResult', TxResult);
   }
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call(); 
@@ -858,7 +858,7 @@ const mintTokenFn1 = async () => {
 
   const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
   const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
-  const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+  const backendAddrpkRaw = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
   
   tokenIdM = await instHCAT721.methods.tokenId().call();
   const tokenIdM_init = parseInt(tokenIdM);
@@ -883,7 +883,7 @@ const mintTokenFn1 = async () => {
   let encodedData = instHCAT721.methods.mintSerialNFT(to, amount, price, fundingType, currentTime).encodeABI();
   //let contractAddr = addrHCAT721_Test;
   let contractAddr = addrHCAT721;
-  result = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData).catch((err) => console.log('\n[Error @ signTx()]', err));
+  result = await signTx(backendAddr, backendAddrpkRaw, contractAddr, encodedData).catch((err) => console.log('\n[Error @ signTx()]', err));
   console.log('result', result);
 
   totalSupply = await instHCAT721.methods.totalSupply().call();
@@ -1065,13 +1065,13 @@ Invest/buy:         yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 1079
 
 toAssetbookNumStr: 1 for assetBook1...
 */
-const investCrowdContract = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
+const setTimeOnCFC = async (scenarioStr, toAssetbookNumStr, amountToInvestStr) => {
   console.log('\n------------==Check CrowdFunding parameters');
   console.log('addrCrowdFunding', addrCrowdFunding);
   const scenario = parseInt(scenarioStr);
   const toAssetbookNum = parseInt(toAssetbookNumStr);
   const amountToInvest = parseInt(amountToInvestStr);
-  let tokenSymbolM, initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSD2M, CFED2M, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM, encodedData, TxResult;
+  let tokenSymbolM, initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSD2M, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM, encodedData, TxResult;
 
   if(toAssetbookNumStr < 1){
     console.log('[Error] toAssetbookNumStr must be >= 1');
@@ -1081,65 +1081,13 @@ const investCrowdContract = async (scenarioStr, toAssetbookNumStr, amountToInves
   console.log("CFSD:", CFSD, ", CFED:", CFED, "\nscenarioStr", scenarioStr, ", toAssetbookNum", toAssetbookNum, ", amountToInvest", amountToInvest, ", addrAssetbookX:", addrAssetbookX);
 
   if(scenario === 0){
-    console.log('\n--------==scenario:', scenario);
-    console.log('tokenSymbol', nftSymbol);
-    tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
-    console.log('tokenSymbolM', tokenSymbolM);
-  
-    console.log('initialAssetPricing', initialAssetPricing);
-    initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
-    console.log('initialAssetPricingM', initialAssetPricingM);
-  
-    console.log('maxTotalSupply', maxTotalSupply);
-    maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
-    console.log('maxTotalSupplyM', maxTotalSupplyM);
-  
-    console.log('quantityGoal', quantityGoal);
-    quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
-    console.log('quantityGoalM', quantityGoalM);
-  
-    CFSD2M = await instCrowdFunding.methods.CFSD().call();
-    console.log('CFSD2M', CFSD2M);
-  
-    CFED2M = await instCrowdFunding.methods.CFED().call();
-    console.log('CFED2M', CFED2M);
+    // use getDetailsCFC() ... //yarn run testmt -f 39
 
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('\nstateDescriptionM:', stateDescriptionM);
-
-    fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM:', fundingStateM);
-
-    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
-    console.log('remainingTokenQtyM:', remainingTokenQtyM);
-
-    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
-    console.log('quantitySoldM:', quantitySoldM);
-
-    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
-    console.log('assetbookArray', result[0]);
-    console.log('investedTokenQtyArray', result[1]);
-    process.exit(0);
-
-  
   //update serverTime to CFSD+1 for funding, then read stateDescription and fundingState
   //serverTime = CFSD+1;
   //yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 10
   } else if(scenario === 1){
     console.log('--------==scenario:', scenario);
-    console.log('\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}');
-    serverTime = CFSD+1;
-    console.log('set servertime = CFSD+1', serverTime);//201905281400;
-    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
-    console.log('TxResult', TxResult);
-
-    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('\nstateDescriptionM:', stateDescriptionM);
-
-    let fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM:', fundingStateM);
-    process.exit(0);
 
   
   //update serverTime to CFED to end funding,then read stateDescription and fundingState
@@ -1147,26 +1095,11 @@ const investCrowdContract = async (scenarioStr, toAssetbookNumStr, amountToInves
   //yarn run livechain -c 1 --f 8 -s 2 -t 1 -a 10
   } else if(scenario === 9){
     console.log('--------==scenario:', scenario);
-    serverTime = CFED;
-    console.log('\nset serverTime = CFSD', CFSD);
-    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
-    console.log('TxResult', TxResult);
-      
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-
-    fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM', fundingStateM);
-    process.exit(0);
-
 
   // to get investor assetbook list
   // yarn run livechain -c 1 --f 8 -s 3 -t
   } else if(scenario === 3){
-    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
-    console.log('assetbookArray', result[0]);
-    console.log('investedTokenQtyArray', result[1]);
+    // getInvestorsFromCFC() ... yarn run testmt -f 41
 
   //['4224','4194','4884','4224','4564','4174','4444','4854','5084','4604' ]
   //[ 3724, 3468, 3712, 3562, 3847, 3371, 3479, 3746, 3952, 4355 ]
@@ -1174,28 +1107,6 @@ const investCrowdContract = async (scenarioStr, toAssetbookNumStr, amountToInves
   // yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
   } else if(scenario === 4){
     console.log('--------==scenario:', scenario);
-    serverTime = CFSD+1;
-    encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
-    TxResult = await signTx(backendAddr, backendRawPrivateKey, addrCrowdFunding, encodedData);
-    console.log('TxResult', TxResult);
-
-    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
-    console.log('quantitySoldM:', quantitySoldM);
-
-    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
-    console.log('remainingTokenQtyM:', remainingTokenQtyM);
-
-    console.log('after investing the target goal amount');
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
-
-    result = await instCrowdFunding.methods.getInvestors(0, 0).call();
-    console.log('assetbookArray', result[0]);
-    console.log('investedTokenQtyArray', result[1]);
-
-    fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('fundingStateM', fundingStateM);
-    process.exit(0);
 
   } else if(scenario === 4){
     console.log('--------==scenario:', scenario);
@@ -1379,7 +1290,7 @@ const investCrowdContract = async (scenarioStr, toAssetbookNumStr, amountToInves
       
     } else {
       //-------------------==CFED has been reached
-      console.log('\nCFED2 has been reached');
+      console.log('\nCFED has been reached');
       serverTime = CFED;
       await instCrowdFunding.methods.updateState(serverTime)
       .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1415,7 +1326,7 @@ const transferTokensKY = async () => {
   const inst_HCAT721 = new web3.eth.Contract(HCAT721.abi, contractAddr);
   let encodedData = inst_HCAT721.methods.safeTransferFromBatch(fromAssetbook, to, amount, price, serverTime).encodeABI();
   //safeTransferFromBatch(address fromAssetbook, address toAssetbook, uint amount, uint price, uint serverTime)
-  let TxResult = await signTx(backendAddr, backendRawPrivateKey, contractAddr, encodedData);
+  let TxResult = await signTx(backendAddr, backendAddrpkRaw, contractAddr, encodedData);
   console.log('TxResult', TxResult);
 } 
 
@@ -1530,7 +1441,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 10
 } else if (func === 8) {
-  investCrowdContract(arg1, arg2, arg3);
+  setTimeOnCFC(arg1, arg2, arg3);
 
 
 //yarn run livechain -c 1 --f 11

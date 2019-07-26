@@ -9,7 +9,7 @@ const log = console.log;
 const { getTime } = require('./utilities');
 const { whichTimeServerArray } = require('../ethereum/contracts/zsetupData');
 const { calculateLastPeriodProfit } = require('../timeserver/mysql');
-const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED2 } = require('./blockchain.js');
+const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED } = require('./blockchain.js');
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
 */
@@ -53,16 +53,16 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         // after order status change: waiting -> paid -> write into crowdfunding contract
       };
       if(whichTimeServerArray[1] > 0){
-        const result = await makeOrdersExpiredCFED2(serverTime).catch((err) => {
-          console.log('[Failed @ timeserver: makeOrdersExpiredCFED2]: '+ err);
+        const result = await makeOrdersExpiredCFED(serverTime).catch((err) => {
+          console.log('[Failed @ timeserver: makeOrdersExpiredCFED]: '+ err);
         });;//blockchain.js
         if(result){
-          log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED2();'));
+          log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED();'));
         } else {
-          log(chalk.red('>> [Fail@ timeserver] makeOrdersExpiredCFED2() returns false;'));
+          log(chalk.red('>> [Fail@ timeserver] makeOrdersExpiredCFED() returns false;'));
         };//blockchain.js
 
-        // after orders pass CFED2, we make such orders expired
+        // after orders pass CFED, we make such orders expired
       };
       if(whichTimeServerArray[2] > 0){
         const result = await updateExpiredOrders(serverTime).catch((err) => {

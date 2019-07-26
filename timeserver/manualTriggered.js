@@ -1,10 +1,10 @@
 const axios = require('axios');
 //--------------------==
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokens, setTimeCFC } = require('./blockchain.js');
 
 const { breakdownArray, breakdownArrays } = require('./utilities');
 
@@ -39,7 +39,7 @@ if (arguLen == 3 && process.argv[2] === '--h') {
   process.exit(0);
 } else {
   func = parseInt(process.argv[3]);
-  if (func < 0 || func > 50){
+  if (func < 0 || func > 100){
     console.log('func value is out of range. func: ', func);
     process.exit(0);
   }
@@ -429,8 +429,8 @@ const sequentialMintSuperP2_API = async () => {
   const holding_costChanged = 0;
   const moving_ave_holding_cost = 13000;
 
-  const acquiredCostArray = amountArray.map((element) => {
-    return element * pricing;
+  const acquiredCostArray = amountArray.map((item) => {
+    return item * pricing;
   });
   console.log(acquiredCostArray);
 
@@ -500,8 +500,8 @@ const setAssetRecordStatus_API = async () => {
 //yarn run testmt -f 26
 const getMaxActualPaymentTime_API = async () => {
   console.log('\n---------------------==getMaxActualPaymentTime_API()');
-  const symbol = 'AVEN1902';
-  const serverTime = 201905281445;
+  const symbol = 'ACHM6666';
+  const serverTime = 201906271235;
   const result = await getMaxActualPaymentTime(symbol, serverTime);
   let resultBoolean;
   if(result){
@@ -542,7 +542,7 @@ const getPastScheduleTimes_API = async () => {
 //yarn run testmt -f 42
 const callTestAPI = async () => {
   console.log('\n---------------------==callTestAPI()');
-  //var util = require('util');
+  //const util = require('util');
   const nftSymbol = 'AVEN1902';//'NCCU0723';
   const config={
     proxy: {
@@ -568,12 +568,71 @@ const callTestAPI = async () => {
   //process.exit(0);
 }
 
+//yarn run testmt -f 39
+const getDetailsCFC_API = async() => {
+  console.log('\n------------==getDetailsCFC_API');
+  await getDetailsCFC(addrCrowdFunding);
+}
+
+//yarn run testmt -f 41
+const getCrowdfundingInvestors_API = async() => {
+  console.log('\n------------==getCrowdfundingInvestors_API');
+  const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
+  console.log(`investorAssetBooks: ${investorAssetBooks}
+\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+}
+
+/* 1737,1926,2206,2498,2551,2349,2889,3115,3324,3446
+2527, 2716, 2796, 
+*/
+//yarn run testmt -f 42
+const investTokens_API = async() => {
+  console.log('\n------------==inside investTokens_API()');
+  const crowdFundingAddr = addrCrowdFunding;
+  const toAssetbookNumStr = 3;
+  const amountToInvestStr = 590;
+  const serverTime = CFSD+1;
+  const result = await investTokens(crowdFundingAddr, toAssetbookNumStr, amountToInvestStr, serverTime).catch(err => { 
+    console.log('[Error @ investTokens]',err);
+    process.exit(0);
+  });
+  if(result){
+    const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
+    console.log(`investorAssetBooks: ${investorAssetBooks}
+investedTokenQtyArray: ${investedTokenQtyArray}`);
+  } else {
+    console.log('result is not true', result);
+  }
+  process.exit(0);
+}
+
+//yarn run testmt -f 45
+const setOpenFundingCFC_API = async() => {
+  console.log('\n------------==inside setOpenFundingCFC_API()');
+  const crowdFundingAddr = addrCrowdFunding;
+  const serverTime = CFSD+1;
+  console.log('set servertime = CFSD+1', serverTime);
+  const fundingStateM = await setTimeCFC(crowdFundingAddr, serverTime);
+  process.exit(0);
+}
+
+//yarn run testmt -f 46
+const setCloseFundingCFC_API = async() => {
+  console.log('\n------------==inside setCloseFundingCFC_API()');
+  const crowdFundingAddr = addrCrowdFunding;
+  const serverTime = CFED;
+  console.log('set servertime = CFSD+1', serverTime);
+  const fundingStateM = await setTimeCFC(crowdFundingAddr, serverTime);
+  process.exit(0);
+}
+
+
 
 //1158,1247,1427,1619,1572,1322,1762,1888,1997,2019
-//yarn run testmt -f 43
+//yarn run testmt -f 49
 const mintSequentialPerCtrt_API = async () => {
   console.log('\n---------------------==mintSequentialPerCtrt_API()');
-  //var util = require('util');
+  //const util = require('util');
   //const nftSymbol = 'AVEN1902';//'NCCU0723';
   const config={
     proxy: {
@@ -586,9 +645,9 @@ const mintSequentialPerCtrt_API = async () => {
   // const data1 = response1.data;
   // console.log(`status: ${data1.status}, result: ${JSON.stringify(data1.result)}`);
 
-
+  console.log('nftSymbol:', nftSymbol);
   const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
-  const body = { xyz: 100,/* price: 15000, fundingType: '2' */};
+  const body = { /* xyz: 100, price: 15000, fundingType: '2' */};
   const response2 = await axios.post(url2, body, config).catch(err => { 
     console.log('err:',err);
     process.exit(0);
@@ -599,6 +658,42 @@ result: ${JSON.stringify(data2.result)}`);
 
   //process.exit(0);
 }// to invest in CFC: see livechain.js: yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
+
+
+//yarn run testmt -f 91
+const testRabbitMQ = async () => {
+  const amqp = require('amqplib/callback_api');
+  const request = require('request');
+  request.post('http://localhost:3000/Contracts/messages', function (error, response, body) {
+    if (error) {
+      console.log('error', error);
+      throw error;
+    }
+    console.log(`received response: ${response.body}
+body: ${body}`);
+
+    amqp.connect('amqp://localhost', (error0, conn) => {
+      if (error0) {
+        console.log('error0', error0);
+        throw error0;
+      }
+      conn.createChannel((error1, channel) => {
+        if (error1) {
+          console.log('error1', error1);
+          throw error1;
+        }
+        const qSender = 'messageAPI';
+        channel.assertQueue(qSender, { durable: false });
+        console.log(' [*] Waiting for result in: %s. To exit press CTRL+C', qSender);
+        channel.consume(qSender, msg => {
+            console.log(' [x] Received result: %s', msg.content);  
+            conn.close();            
+        }, { noAck: true
+        });
+      });
+    })
+  });
+}
 
 
 //------------------------==
@@ -727,6 +822,9 @@ if(func === 0){
 } else if (func === 34) {
   changeAssetOwner_API();
 
+//yarn run testmt -f 39
+} else if (func === 39) {
+  getDetailsCFC_API();
 
 //yarn run testmt -f 40
 } else if (func === 40) {
@@ -734,18 +832,39 @@ if(func === 0){
 
 //yarn run testmt -f 41
 } else if (func === 41) {
-  breakdownArray_API();
+  getCrowdfundingInvestors_API();
 
 //yarn run testmt -f 42
 } else if (func === 42) {
-  callTestAPI();
-
-//yarn run testmt -f 43
-} else if (func === 43) {
-  mintSequentialPerCtrt_API();
+  investTokens_API();
 
 //yarn run testmt -f 44
 } else if (func === 44) {
   getPastScheduleTimes_API();
+
+//yarn run testmt -f 45
+} else if (func === 45) {
+  setOpenFundingCFC_API();
+
+//yarn run testmt -f 46
+} else if (func === 46) {
+  setCloseFundingCFC_API();
+
+//yarn run testmt -f 49
+} else if (func === 49) {
+  mintSequentialPerCtrt_API();
+
+
+//yarn run testmt -f 91
+} else if (func === 91) {
+  testRabbitMQ();
+
+//yarn run testmt -f 92
+} else if (func === 92) {
+  callTestAPI();
+
+//yarn run testmt -f 93
+} else if (func === 93) {
+  breakdownArray_API();
 
 }

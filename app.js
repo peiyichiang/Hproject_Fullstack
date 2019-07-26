@@ -34,11 +34,11 @@ const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
 
 var app = express();
-app.use(timeout(1200000));
-app.use(haltOnTimedout);
-function haltOnTimedout(req, res, next){
- if (!req.timedout) next();
-}
+// app.use(timeout(1200000));
+// app.use(haltOnTimedout);
+// function haltOnTimedout(req, res, next){
+//  if (!req.timedout) next();
+// }
 
 //智豪
 app.use(session({

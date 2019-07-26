@@ -3,6 +3,7 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
+const amqp = require('amqplib/callback_api');
 
 const { isTimeserverON } = require('../ethereum/contracts/zsetupData');
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
@@ -968,13 +969,11 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
 
 });
 
-
-router.post('/HCAT721_AssetTokenContract/test1/:nftSymbol', function (req, res, next) {
+// http://localhost:3000/Contracts/test1/NCCU0725
+router.get('/test1/:nftSymbol', function (req, res, next) {
   var nftSymbol = req.params.nftSymbol;
-  const price = req.body.price;
-  const fundingType = req.body.fundingType;//PO: 1, PP: 2
   var mysqlPoolQuery = req.pool;
-  console.log(nftSymbol, price, fundingType);
+  console.log('--------------==',nftSymbol);
 
   mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
       //console.log(result);
@@ -991,9 +990,58 @@ router.post('/HCAT721_AssetTokenContract/test1/:nftSymbol', function (req, res, 
           });
       }
   });
+});
+// http://localhost:3000/Contracts/test1/NCCU0725
+router.post('/test1/:nftSymbol', function (req, res, next) {
+  var nftSymbol = req.params.nftSymbol;
+  const price = req.body.price;
+  const fundingType = req.body.fundingType;//PO: 1, PP: 2
+  var mysqlPoolQuery = req.pool;
+  console.log('--------------==',nftSymbol, price, fundingType);
 
+  mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
+      //console.log(result);
+      if (err) {
+          //console.log(err);
+          res.send({
+              status: "fail"
+          });
+      }
+      else {
+          res.send({
+              status: "success",
+              result: result[0]
+          });
+      }
+  });
 });
 
+
+// http://localhost:3000/Contracts/messages
+router.post('/messages',async function (req, res, next) {
+  console.log(`\n------------------==testrabbitmq...`);
+  amqp.connect('amqp://localhost', (err, conn) => {
+    conn.createChannel((error0, channel) => {
+      if (error0) {
+        console.log('error0', error0);
+        throw error0;
+      }
+      const qReceiver = 'messageAPI';
+      channel.assertQueue(qReceiver, {durable: false});
+      // I suppose the process will take about 5 seconds to finish
+      setTimeout(() => {
+        let result = 'xyz0001';
+        channel.sendToQueue(qReceiver, new Buffer.from(result));
+        console.log(` [X] Send: ${result}`);
+      }, 5000)                       
+    });
+    // The connection will close in 10 seconds
+    setTimeout(() => {
+     conn.close();
+    }, 10000);
+   });
+   res.send('The POST request is being processed!');
+});
 
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
 // http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
@@ -1002,13 +1050,18 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     const isCombinedAPI = true;
     const nftSymbol = req.params.nftSymbol;
     let toAddressArray, amountArray, tokenCtrtAddr, mesg = '', serverTime, pricing, fundingType;//PO: 1, PP: 2
-
+    res.send({
+      status: "about to run preMint()",
+      success: false,
+      result: 'unknown'
+    });
     if(isCombinedAPI){
       [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
         res.send({
           success: false,
           result: 'failed at preMint(), err: ' + err,
         });
+        return false;
       });
       console.log(`Returned values from preMint():
 toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
@@ -1017,6 +1070,7 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
           success: false,
           result: 'preMint() returns false/none-true/none-valid values',
         });
+        return false;
       }
     } else {
       pricing = req.body.price;
@@ -1046,6 +1100,9 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
     } else { 
       serverTime = await getTime();
     }
+    res.send({
+      status: "about to mint tokens",
+    });
 
     const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
       mesg = '[Error @ sequentialMintSuper]';  
