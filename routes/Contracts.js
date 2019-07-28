@@ -1096,9 +1096,9 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
     // defined in /timeserver/blockchain.js
     // to mint tokens in different batches of numbers, to each assetbook
     if(isTimeserverON){ 
-      serverTime = 201906130000;
-    } else { 
       serverTime = await getTime();
+    } else { 
+      serverTime = 201906130000;
     }
     res.send({
       status: "about to mint tokens",
