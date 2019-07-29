@@ -308,21 +308,32 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
 }
 
 
+const getTokenBalances = async (addressArray, tokenCtrtAddr) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('------------==getTokenBalances()');
+    const balances = [];
+    let balanceX;
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    await asyncForEach(addressArray, async (addressX, idx) => {
+      balanceX = await instHCAT721.methods.balanceOf(addressX).call();
+      balances.push(parseInt(balanceX));
+      console.log(`token balance: ${balanceX}`);
+    });
+    //console.log('balances:', balances);
+    resolve(balances);
+  });
+}
 
-
-
-
-
-const sequentialCheckBalances = async (toAddressArray, tokenCtrtAddr) => {
+//disable promises so we dont wait for it
+const sequentialCheckBalances = async (addressArray, tokenCtrtAddr) => {
   //return new Promise(async (resolve, reject) => {
     console.log('\n------==inside sequentialCheckBalances()');
-    //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
-
+    //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
     const balanceArrayBefore = [];
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
-    await asyncForEachMint(toAddressArray, async (toAddress) => {
-      console.log(`\n--------------==next: check the balance of ${toAddress}`);
+    await asyncForEachMint(addressArray, async (toAddress) => {
+      console.log(`--------------==balance of ${toAddress}`);
       const balB4Minting = await instHCAT721.methods.balanceOf(toAddress).call();
       balanceArrayBefore.push(parseInt(balB4Minting));
     });
@@ -335,10 +346,10 @@ const sequentialCheckBalances = async (toAddressArray, tokenCtrtAddr) => {
 }
 
 
-const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCtrtAddr, balanceArrayBefore, isToMax) => {
+const sequentialCheckBalancesAfter = async (addressArray, amountArray, tokenCtrtAddr, balanceArrayBefore, isToMax) => {
   //return new Promise(async (resolve, reject) => {
     console.log('\n---------------==inside sequentialCheckBalancesAfter()');
-    //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
+    //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
     if(!amountArray.every(checkInt)){
       console.log('[error @ sequentialCheckBalancesAfter()] amountArray has non integer item');
       return false;
@@ -352,11 +363,11 @@ const sequentialCheckBalancesAfter = async (toAddressArray, amountArray, tokenCt
     const balanceArrayAfter = [];
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     
-    if(toAddressArray.length !== amountArray.length){
-      console.log(`toAddressArray and amountArray must be of the same length`);
+    if(addressArray.length !== amountArray.length){
+      console.log(`addressArray and amountArray must be of the same length`);
       return false;
     }
-    await asyncForEachMint(toAddressArray, async (toAddress, idx) => {
+    await asyncForEachMint(addressArray, async (toAddress, idx) => {
       const amount = amountArray[idx];
       const balanceBefore = balanceArrayBefore[idx];
       const tokenBalanceAfterMinting_ = await instHCAT721.methods.balanceOf(toAddress).call();
@@ -437,21 +448,21 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
 }
 
 
-const sequentialMintToAdd = async(toAddressArray, amountArray, maxMintAmountPerRun, fundingType, price, tokenCtrtAddr, serverTime) => {
+const sequentialMintToAdd = async(addressArray, amountArray, maxMintAmountPerRun, fundingType, price, tokenCtrtAddr, serverTime) => {
   console.log('\n----------------------==sequentialMintToAdd()');
   console.log(`tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}, serverTime: ${serverTime}`);
   const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
-  if(toAddressArray.length !== amountArray.length){
-    console.log(`toAddressArray and amountArray must be of the same length`);
+  if(addressArray.length !== amountArray.length){
+    console.log(`addressArray and amountArray must be of the same length`);
     return false;
   }
 
-  await asyncForEachMint(toAddressArray, async (toAddress, idxMint) => {
+  await asyncForEachMint(addressArray, async (toAddress, idxMint) => {
     const amountForThisAddr = amountArray[idxMint];
-    const [toAddressArrayOut, amountArrayOut] = breakdownArray(toAddress, amountForThisAddr, maxMintAmountPerRun);
-    console.log(`toAddressArray: ${toAddressArray}, amountArray: ${amountArray}
-toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
+    const [addressArrayOut, amountArrayOut] = breakdownArray(toAddress, amountForThisAddr, maxMintAmountPerRun);
+    console.log(`addressArray: ${addressArray}, amountArray: ${amountArray}
+addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
     console.log(`\n---------------==next: mint to ${toAddress} ${amountForThisAddr} tokens`);
 
     const balB4MintingStr1 = await instHCAT721.methods.balanceOf(toAddress).call();
@@ -461,8 +472,8 @@ toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
     plus our minting amount ${amountForThisAddr}
     => max allowed balance for this addr: ${balMaxForThisAddr}`);
 
-    const idxMintMax = toAddressArray.length -1;
-    await asyncForEachMint2(toAddressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
+    const idxMintMax = addressArray.length -1;
+    await asyncForEachMint2(addressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
       let amountSub = amountArrayOut[idxMintSub];
       console.log(`\n    minting ${amountSub} tokens`);
 
@@ -495,27 +506,27 @@ toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
 }
 
 
-const sequentialMintToMax = async(toAddressArray, amountArray, maxMintAmountPerRun, fundingType, price, tokenCtrtAddr, serverTime) => {
+const sequentialMintToMax = async(addressArray, amountArray, maxMintAmountPerRun, fundingType, price, tokenCtrtAddr, serverTime) => {
   console.log('\n----------------------==sequentialMintToMax()');
   console.log(`tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, price: ${price}, serverTime: ${serverTime}`);
   const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
 
-  if(toAddressArray.length !== amountArray.length){
-    console.log(`toAddressArray and amountArray must be of the same length`);
+  if(addressArray.length !== amountArray.length){
+    console.log(`addressArray and amountArray must be of the same length`);
     return false;
   }
 
-  await asyncForEachMint(toAddressArray, async (toAddress, idxMint) => {
+  await asyncForEachMint(addressArray, async (toAddress, idxMint) => {
     const balMaxForThisAddr = amountArray[idxMint];
     const balB4MintingStr1 = await instHCAT721.methods.balanceOf(toAddress).call();
     const balB4Minting1 = parseInt(balB4MintingStr1);
-    const [toAddressArrayOut, amountArrayOut] = breakdownArray(toAddress, balMaxForThisAddr-balB4Minting1, maxMintAmountPerRun);
-    console.log(`toAddressArray: ${toAddressArray}, amountArray: ${amountArray}
-toAddressArrayOut: ${toAddressArrayOut}, amountArrayOut: ${amountArrayOut}`);
+    const [addressArrayOut, amountArrayOut] = breakdownArray(toAddress, balMaxForThisAddr-balB4Minting1, maxMintAmountPerRun);
+    console.log(`addressArray: ${addressArray}, amountArray: ${amountArray}
+addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
     console.log(`\n---------------==next: mint to ${toAddress} ${balMaxForThisAddr} tokens`);
 
-    const idxMintMax = toAddressArray.length -1;
-    await asyncForEachMint2(toAddressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
+    const idxMintMax = addressArray.length -1;
+    await asyncForEachMint2(addressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
       let amountSub = amountArrayOut[idxMintSub];
       console.log(`    minting ${amountSub} tokens`);
 
@@ -565,7 +576,7 @@ const preMint = async(nftSymbol) => {
       //return false;
     }
 
-    const queryStr2 = 'SELECT p_pricing, p_fundingType from htoken.product where p_SYMBOL = ?';
+    const queryStr2 = 'SELECT p_pricing, p_fundingType from product where p_SYMBOL = ?';
     const result2 = await mysqlPoolQueryB(queryStr2, [nftSymbol]).catch((err) => {
       let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr2)], '+ err;
       console.log(`\n${mesg}`);
@@ -592,7 +603,7 @@ tokenControllerAddr: ${tokenControllerAddr}`);
 
       const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
       /*console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}
-toAddressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
+addressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
       resolve([investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, pricing, fundingType]);
     } else {
       reject('no contract address is found for that symbol');
@@ -601,16 +612,16 @@ toAddressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);
 }
 
 //to be called from API and zlivechain.js, etc...
-const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
+const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
-  //console.log(`toAddressArray= ${toAddressArray}, amountArray= ${amountArray}`);
+  //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
   if(!amountArray.every(checkIntFromOne)){
     console.log('amountArray has non integer or zero element');
     process.exit(1);
   }
 
   console.log('\n--------------==before minting tokens, check balances now...');
-  const balanceArrayBefore = await sequentialCheckBalances(toAddressArray, tokenCtrtAddr);
+  const balanceArrayBefore = await sequentialCheckBalances(addressArray, tokenCtrtAddr);
   console.log('balanceArrayBefore', balanceArrayBefore);
   res.send({
     status: "about to mint tokens",
@@ -618,22 +629,22 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   });
 
   console.log('\n--------------==Minting tokens via sequentialMintToMax()...');
-  await sequentialMintToMax(toAddressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
+  await sequentialMintToMax(addressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
     console.log('[Error @ sequentialMintToMax]'+ err);
     return false;
   });
   // console.log('\n--------------==Minting tokens via sequentialMintToAdd()...');
-  // await sequentialMintToAdd(toAddressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
+  // await sequentialMintToAdd(addressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
   //   console.log('[Error @ sequentialMintToAdd]'+ err);
   //   return false;
   // });
 
   const isToMax = true;
   console.log('\n--------------==after minting tokens, check balances now...');
-  const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(toAddressArray, amountArray, tokenCtrtAddr, balanceArrayBefore, isToMax).catch((err) => {
+  const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(addressArray, amountArray, tokenCtrtAddr, balanceArrayBefore, isToMax).catch((err) => {
     console.log('[Error @ sequentialCheckBalancesAfter]'+ err);
   });
-  // const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(toAddressArray, amountArray, tokenCtrtAddr, balanceArrayBefore).catch((err) => {
+  // const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(addressArray, amountArray, tokenCtrtAddr, balanceArrayBefore).catch((err) => {
   //   console.log('[Error @ sequentialCheckBalancesAfter]'+ err);
   // });
   console.log('\n--------------==Done sequentialCheckBalancesAfter()');
@@ -657,7 +668,7 @@ const sequentialMintSuper = async (toAddressArray, amountArray, tokenCtrtAddr, f
   });
   console.log(acquiredCostArray);
 
-  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
     console.log('[Error @ addAssetRecordRowArray]'+ err);
     return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,false,false,false];
   });
@@ -805,17 +816,24 @@ const updateFundingStateFromDB = async (serverTime) => {
       return false;
     }
     const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
-    const symbolArray = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
+    const symbolObjArray = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       reject('[Error @ updateFundingStateFromDB: mysqlPoolQueryB(queryStr2)]: '+ err);
       return false;
     });
 
-    const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateFundingStateFromDB:', symbolArrayLen, ', symbolArray:', symbolArray);
+    const symbolObjArrayLen = symbolObjArray.length;
+    console.log('\nsymbolObjArray length @ updateFundingStateFromDB:', symbolObjArrayLen, ', symbolObjArray:', symbolObjArray);
 
-    if (symbolArrayLen === 0) {
+    if (symbolObjArrayLen === 0) {
       console.log('[updateFundingStateFromDB] no symbol was found for updating its crowdfunding contract');
-    } else if (symbolArrayLen > 0) {
+
+    } else if (symbolObjArrayLen > 0) {
+      const symbolArray = [];
+      for (let i = 0; i < symbolObjArrayLen; i++) {
+        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
+          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+        }
+      }
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['crowdfunding']);
     }
     resolve(true);
@@ -834,27 +852,34 @@ const makeOrdersExpiredCFED = async (serverTime) => {
     }
 
     const queryStr1 = 'SELECT p_SYMBOL FROM product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
-    const symbolArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
+    const symbolObjArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)] '+ err);
       return false;
     });
-    const symbolArrayLen = symbolArray.length;
-    console.log('\nArray length @ makeOrdersExpiredCFED:', symbolArrayLen);
-    //console.log('symbols:', symbolArray);
+    const symbolObjArrayLen = symbolObjArray.length;
+    console.log('\nArray length @ makeOrdersExpiredCFED:', symbolObjArrayLen);
+    //console.log('symbols:', symbolObjArray);
 
-    if (symbolArrayLen === 0) {
+    if (symbolObjArrayLen === 0) {
       console.log('[makeOrdersExpiredCFED] no symbol was found');
       resolve(true);
 
-    } else if (symbolArrayLen > 0) {
+    } else if (symbolObjArrayLen > 0) {
       console.log('[makeOrdersExpiredCFED] symbol(s) found');
 
+      const symbolArray = [];
+      for (let i = 0; i < symbolObjArrayLen; i++) {
+        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
+          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+        }
+      }
+  
       //const queryStr = 'UPDATE product SET p_state = ? WHERE p_SYMBOL = ?';
       const queryStr3 = 'UPDATE order_list SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
       await asyncForEachOrderExpiry(symbolArray, async (symbol, index) => {
         /*
         //------------== auto determines the crowdfunding results -> write it into DB
-        const crowdFundingAddr = await findCtrtAddr(symbol.p_SYMBOL,'crowdfunding').catch((err) => {
+        const crowdFundingAddr = await findCtrtAddr(symbol,'crowdfunding').catch((err) => {
           console.error('[Error @findCtrtAddr]:'+ err);
           continue;
         });
@@ -875,18 +900,18 @@ const makeOrdersExpiredCFED = async (serverTime) => {
         } else if(fundingState === '6'){
           p_state = 'terminated';
         }
-        const results2 = await mysqlPoolQueryB(queryStr, [p_state, symbol.p_SYMBOL]).catch((err) => {
+        const results2 = await mysqlPoolQueryB(queryStr, [p_state, symbol]).catch((err) => {
           console.log('\n[Error @ mysqlPoolQueryB(queryStr)]'+ err);
         });
-        console.log('\nUpdated product of', symbol.p_SYMBOL, results2);
+        console.log('\nUpdated product of', symbol, results2);
         */
 
         //------------== 
-        const results3 = await mysqlPoolQueryB(queryStr3, [symbol.p_SYMBOL]).catch((err) => {
+        const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
           reject('[Error @ mysqlPoolQueryB(queryStr3)] '+ err);
           return false;
         });
-        console.log('-------==[Success] updated orders to expired for symbol', symbol.p_SYMBOL);
+        console.log('-------==[Success] updated orders to expired for symbol', symbol);
         resolve(true);
       });
     }
@@ -1213,16 +1238,22 @@ const updateTokenStateFromDB = async (serverTime) => {
     }
 
     const str = 'SELECT p_SYMBOL FROM product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
-    const symbolArray = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
+    const symbolObjArray = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(str)] '+ err);
       return false;
     });
-    const symbolArrayLen = symbolArray.length;
-    console.log('\nsymbolArray length @ updateTokenStateFromDB:', symbolArrayLen, ', symbolArray:', symbolArray);
+    const symbolObjArrayLen = symbolObjArray.length;
+    console.log('\nsymbolObjArray length @ updateTokenStateFromDB:', symbolObjArrayLen, ', symbolObjArray:', symbolObjArray);
 
-    if (symbolArrayLen === 0) {
+    if (symbolObjArrayLen === 0) {
       console.log('[updateTokenStateFromDB] no symbol was found');
-    } else if (symbolArrayLen > 0) {
+    } else if (symbolObjArrayLen > 0) {
+      const symbolArray = [];
+      for (let i = 0; i < symbolObjArrayLen; i++) {
+        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
+          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+        }
+      }
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['tokencontroller']);
     }
     resolve(true);
@@ -2077,8 +2108,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, updateExpiredOrders, getDetailsCFC, 
-  sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint,
-  getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC,
+  getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens,
   getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers

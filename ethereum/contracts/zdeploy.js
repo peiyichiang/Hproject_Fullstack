@@ -5,7 +5,6 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 yarn run deploy -c 1 -s 1 -cName cf
 cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
 */
-//const timer = require('./api.js');
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
@@ -602,10 +601,10 @@ const deploy = async () => {
   //yarn run deploy -c 1 -n 0 -cName addproduct
   } else if (ctrtName === 'addproduct'){//addproduct
     console.log('\n-------------==inside addProductRow section');
+    const state = 'FundingClosed';
     const TimeReleaseDate = TimeOfDeployment_HCAT;
-    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}, fundingType: ${fundingType}`);
-  
-    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType);
+    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}, fundingType: ${fundingType}, state: ${state}`);
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state);
     process.exit(0);
 
 

@@ -7,7 +7,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 console.log('--------------------==zsetupData.js');
 let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager, whichTimeServerArray;
 
-const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701'];
+const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'AURA1904'];
 const excludedSymbolsIA = [];
 
 const admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
@@ -105,7 +105,7 @@ const TimeOfDeployment_HCAT = TimeOfDeployment_CF + 21;
 const TimeOfDeployment_IM = TimeOfDeployment_CF + 22;
 const TimeTokenUnlock = TimeOfDeployment_CF+30; 
 const TimeTokenValid =  TimeOfDeployment_CF+90;
-fundmanager = 'FundManagerN';
+fundmanager = 'Company_FundManagerN';
 
 //fundingType: PO: 1, PP: 2
 
@@ -118,27 +118,27 @@ const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0
 
 const productObj3 = new productObject("AURA1904", "Uranus1904", "Uranus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 500, 20, 1, "", "", "", "");
 
-const productObj4 = new productObject("ANEP1904", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj4 = new productObject("ANEP1905", "Neptune1905", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
-const productObj5 = new productObject("AOOT1907", "tokenNameZZZ", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
+const productObj5 = new productObject("AOOT1907", "AOOT1907", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "0x85a754958966eA626d1e248D4C94BE79097f0A1a", "0x5398e00628Ee4Dd0a55a185595Dba8214c4D3090", "0x1Ebb4797058fcbC1B38Bdb0e701DeF384f9ba85c", "0x1Fc366016bCAaC35C48D37D956289Dd5B230265b");
 
-const productObj6 = new productObject("AAOS0001", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj6 = new productObject("ASAT1906", "Satarn1906", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
-const productObj7 = new productObject("AAOS0002", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj7 = new productObject("AMAR1907", "MARS1907", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
-const productObj8 = new productObject("AAOS0003", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj8 = new productObject("APLU1908", "APLU1908", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
-const productObj9 = new productObject("AAOS0004", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj9 = new productObject("AHOB1909", "HOBBLE1909", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
-const productObj10 = new productObject("AAOS0005", "Neptune", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "");
 
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 
 symNum = 2;
 const isTimeserverON = true;
 //const isTimeserverON = false;
-//const useFullTimeServer = true;
-const useFullTimeServer = false;
+const useFullTimeServer = true;
+//const useFullTimeServer = false;
 
 if(useFullTimeServer){
   whichTimeServerArray = [1, 1, 1, 1, 1, 1];

@@ -93,7 +93,7 @@ const addTxnInfoRowFromObj = (row) => {
 }
 
 
-const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType) => {
+const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state) => {
   return new Promise(async(resolve, reject) => {
     console.log('\nto add product row into DB');
     const sql = {
@@ -111,7 +111,7 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
       p_fundmanager: fundmanager,
       p_CFSD: _CFSD,
       p_CFED: _CFED,
-      p_state: "initial",
+      p_state: state,
       p_fundingGoal: _quantityGoal,
       p_lockuptime: TimeTokenUnlock,
       p_tokenState: "lockup",
@@ -414,7 +414,7 @@ const getSymbolsONM = async() => {
     const foundSymbols = [];
     const foundHCAT721Addrs = [];
     for(let i = 0; i < result2.length; i++) {
-      if(typeof result2[i] === 'object' && result2[i] !== null){
+      if(typeof result2[i] === 'object' && result2[i] !== null && !excludedSymbols.includes(result2[i].sc_symbol)){
         foundSymbols.push(result2[i].sc_symbol);
         foundHCAT721Addrs.push(result2[i].sc_erc721address);
       }

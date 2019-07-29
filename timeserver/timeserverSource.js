@@ -52,6 +52,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         addAssetbooksIntoCFC(serverTime);//blockchain.js
         // after order status change: waiting -> paid -> write into crowdfunding contract
       };
+
       if(whichTimeServerArray[1] > 0){
         const result = await makeOrdersExpiredCFED(serverTime).catch((err) => {
           console.log('[Failed @ timeserver: makeOrdersExpiredCFED]: '+ err);
@@ -64,6 +65,8 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
 
         // after orders pass CFED, we make such orders expired
       };
+
+      //orderDate+3 => expired orders
       if(whichTimeServerArray[2] > 0){
         const result = await updateExpiredOrders(serverTime).catch((err) => {
           console.log('[Failed @ timeserver: updateExpiredOrders]: '+ err);
@@ -75,6 +78,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         };//blockchain.js
         //find still funding symbols that have passed CDED2 -> expire all orders of that symbol
       };
+
       if(whichTimeServerArray[3] > 0){
         const result = await updateFundingStateFromDB(serverTime).catch((err) => {
           console.log('[Failed @ timeserver: updateFundingStateFromDB]: '+ err);
@@ -86,6 +90,8 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         };//blockchain.js
         //From DB check if product:fundingState needs to be updated, except fundingClosed/notClosed
       };
+
+      //From DB check if product:tokenState needs to be updated
       if(whichTimeServerArray[4] > 0){
         const result = await updateTokenStateFromDB(serverTime).catch((err) => {
           console.log('[Failed @ timeserver: updateTokenStateFromDB]: '+ err);
@@ -97,6 +103,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
         };//blockchain.js
         //From DB check if product:tokenState needs to be updated
       };
+
       if(whichTimeServerArray[5] > 0){
         const result = await calculateLastPeriodProfit(serverTime).catch((err) => {
           console.log('[Failed @ timeserver: calculateLastPeriodProfit]: '+ err);

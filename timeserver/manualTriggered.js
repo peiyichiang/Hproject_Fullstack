@@ -1,10 +1,10 @@
 const axios = require('axios');
 //--------------------==
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED, addrHCAT721 } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule,  addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokens, setTimeCFC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokens, setTimeCFC } = require('./blockchain.js');
 
 const { breakdownArray, breakdownArrays } = require('./utilities');
 
@@ -582,10 +582,20 @@ const getCrowdfundingInvestors_API = async() => {
 \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
 }
 
-/* 1737,1926,2206,2498,2551,2349,2889,3115,3324,3446
-2527, 2716, 2796, 
+
+/**
+investedTokenQtyArray: 2527,2716,2796,2498,2551,2349,2889,3115,3324,3446
+balances: [ 2212, 2424, 2868, 2992, 2741, 2349, 2889, 3115, 3324, 3446 ]
 */
 //yarn run testmt -f 42
+const getTokenBalances_API = async () => {
+  console.log('\n---------------------==getTokenBalances_API()');
+  const balances = await getTokenBalances(assetbookArray, addrHCAT721);
+  console.log('balances:', balances);
+  //process.exit(0);
+}
+
+//yarn run testmt -f 43
 const investTokens_API = async() => {
   console.log('\n------------==inside investTokens_API()');
   const crowdFundingAddr = addrCrowdFunding;
@@ -655,12 +665,15 @@ const mintSequentialPerCtrt_API = async () => {
   const data2 = response2.data;
   console.log(`success: ${data2.success}
 result: ${JSON.stringify(data2.result)}`);
-
   //process.exit(0);
 }// to invest in CFC: see livechain.js: yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
 
 
+
+
+
 //yarn run testmt -f 91
+//message queue
 const testRabbitMQ = async () => {
   const amqp = require('amqplib/callback_api');
   const request = require('request');
@@ -836,6 +849,10 @@ if(func === 0){
 
 //yarn run testmt -f 42
 } else if (func === 42) {
+  getTokenBalances_API();
+
+//yarn run testmt -f 43
+} else if (func === 43) {
   investTokens_API();
 
 //yarn run testmt -f 44
