@@ -1,6 +1,8 @@
 const Web3 = require('web3');
 const nodeUrl = "http://140.119.101.130:8545";//POA
 const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+const winston = require('winston');
+const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
 
 //let addrIncomeManager, addrProductManager;
@@ -629,13 +631,54 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
 
 }
 
+
+//---------------------------==Winston Logger
+const loglevel = 'warn';//to show/hide logs.
+//value = silly, debug, verbose, info, warn, and error
+//console.log => logger.verbose, logger.warn, logger.error
+
+const logFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp(),
+  winston.format.align(),
+  winston.format.printf(
+    info => `${info.level}: ${info.message}`,
+  ),
+);//${info.timestamp} 
+
+//add file and console loggers to the winston instance
+winston.loggers.add('format1', {
+  format: logFormat,
+  transports: [
+    new winstonDailyRotateFile({
+      filename: './logs/custom-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'warn',
+    }),
+    new winston.transports.Console({
+      level: loglevel,
+    }),
+  ],
+});
+
+const logger = winston.loggers.get('format1');
+// logger.silly('Trace message, Winston!');
+// logger.debug('Debug message, Winston!');
+// logger.verbose('A bit more info, Winston!');
+// logger.info('Hello, Winston!');
+// logger.warn('Heads up, Winston!');
+// logger.error('Danger, Winston!');
+
+//---------------------------==
+
+
 module.exports = {
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
-  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTimeserverON,
+  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTimeserverON, useFullTimeServer,
   CFSD, CFED, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance, logger
 }
   /**
   From KuanYi:

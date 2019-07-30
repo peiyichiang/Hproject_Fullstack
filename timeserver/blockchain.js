@@ -6,8 +6,8 @@ const log = console.log;
 console.log('loading blockchain.js...');
 require('dotenv').config();
 
-const { getTime, isEmpty, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
-const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zsetupData');
+const { getTime, isEmpty, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
+const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray, logger } = require('../ethereum/contracts/zsetupData');
 const { addActualPaymentTime } = require('./mysql');
 
 const { mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
@@ -441,7 +441,15 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
       }
-      console.log(`\n[Error message] ${mesg} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
+      let fundingTypeDescription;
+      if(fundingType === '1' || fundingType === 'PO'){
+        fundingTypeDescription = 'Public Offering';
+      } else if(fundingType === '2' || fundingType === 'PP'){
+        fundingTypeDescription = 'Private Placement';
+      } else {
+        fundingTypeDescription = 'Error in funding type';
+      }//PO: 1, PP: 2
+      console.log(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
       resolve(true);
     }
   });
@@ -544,7 +552,12 @@ addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
           console.log('\n[Error @ signTx() mintSerialNFT()]'+ err);
           await checkMint(tokenCtrtAddr, toAddress, amountSub, price, fundingType, serverTime);
         });
-        console.log(`    blockNumber: ${TxResult.blockNumber}, Status: ${TxResult.status}`);
+
+        const maxTotalSupply = await instHCAT721.methods.maxTotalSupply().call();
+        const totalSupply = await instHCAT721.methods.totalSupply().call();
+    
+        console.log(`    fundingType: ${fundingType}, blockNumber: ${TxResult.blockNumber}, Status: ${TxResult.status},
+remainingQuantityForMinting: ${maxTotalSupply-totalSupply}`);
         //console.log('TxResult', TxResult);
       } else {
         console.log('skipping minting 0 token');
@@ -617,16 +630,19 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
   //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
   if(!amountArray.every(checkIntFromOne)){
     console.log('amountArray has non integer or zero element');
-    process.exit(1);
+    return false;
   }
 
   console.log('\n--------------==before minting tokens, check balances now...');
   const balanceArrayBefore = await sequentialCheckBalances(addressArray, tokenCtrtAddr);
-  console.log('balanceArrayBefore', balanceArrayBefore);
-  res.send({
-    status: "about to mint tokens",
-    balanceArrayBefore: balanceArrayBefore
-  });
+  console.log('balanceArrayBefore', balanceArrayBefore, '\ntarget amountArray:', amountArray);
+
+  const [result, isAllGood]= checkTargetAmounts(balanceArrayBefore, amountArray);
+  console.log('result:', result, ', isAllGood:', isAllGood);
+  if(!isAllGood){
+    console.log('[Error] at least one target mint amount is lesser than its existing balance');
+    return false;
+  }
 
   console.log('\n--------------==Minting tokens via sequentialMintToMax()...');
   await sequentialMintToMax(addressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
@@ -1074,9 +1090,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         //console.log(`\nassetbookArrayBf: ${investorList[0]}, \ninvestedTokenQtyArrayBf: ${investorList[1]}`);
         
         const encodedData = instCrowdFunding.methods.invest(addrAssetbook, tokenCount, serverTime).encodeABI();
-        //invest(_assetbook, _quantityToInvest, serverTime)
-        //OR...  investInBatch( _assetbookArr, _quantityToInvestArr, serverTime)
-        ///*
+
         let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch( async(err) => {
           const fundingState = await instCrowdFunding.methods.fundingState().call();
           console.log('\nfundingState:', fundingState);
@@ -1208,6 +1222,27 @@ const investTokens = async (crowdFundingAddr, toAssetbookNumStr, amountToInvestS
     resolve((balance2-balance1) === amountToInvest);
   });
 }
+
+const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountToInvestArray, serverTime) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==investTokensInBatch()...');
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    const encodedData = await instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
+
+    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
+      await asyncForEachCFC(addrAssetbookArray, async(addrAssetbookX,index) => {
+        await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvestArray[index], serverTime);
+      });
+      console.log('\n[Error @ signTx() investInBatch()]'+ err);
+      reject(false);
+      return false;
+    });
+    //console.log('TxResult', TxResult);
+    resolve(true);
+  });
+}
+
+
 
 const setTimeCFC = async (crowdFundingAddr, serverTime) => {
   return new Promise(async(resolve, reject) => {
@@ -2108,7 +2143,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, updateExpiredOrders, getDetailsCFC, 
-  getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC,
+  getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens,
   getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers

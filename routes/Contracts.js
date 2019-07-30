@@ -1046,29 +1046,35 @@ router.post('/messages',async function (req, res, next) {
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
 // http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
-    console.log(`\n---------------------==\nAPI mintSequentialPerCtrt...`);
+    console.log(`\n---------------------==API mintSequentialPerCtrt...`);
     const isCombinedAPI = true;
     const nftSymbol = req.params.nftSymbol;
-    let toAddressArray, amountArray, tokenCtrtAddr, mesg = '', serverTime, pricing, fundingType;//PO: 1, PP: 2
-    res.send({
-      status: "about to run preMint()",
-      success: false,
-      result: 'unknown'
-    });
+    let isSuccess, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
+    /*console.log(`\nSuccess: ${isSuccess} \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
+    is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
+    */
+
     if(isCombinedAPI){
       [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
+        isSuccess = false;
+        console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
         res.send({
           success: false,
           result: 'failed at preMint(), err: ' + err,
         });
         return false;
       });
-      console.log(`Returned values from preMint():
+      console.log(`--------------==Returned values from preMint():
 toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
       if(toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)){
+        isSuccess = false;
+        console.log(`[Error] preMint() returns invalid values,
+        toAddressArray length: ${toAddressArray.length},
+        amountArray length: ${amountArray.length},
+        tokenCtrtAddr: ${tokenCtrtAddr}`);
         res.send({
           success: false,
-          result: 'preMint() returns false/none-true/none-valid values',
+          result: 'preMint() returns invalid values',
         });
         return false;
       }
@@ -1081,11 +1087,6 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
       });
       tokenCtrtAddr = req.body.erc721address;
     }
-
-
-    console.log(`\n---------==\nnftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}
-\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray}`);
-
     //process.exit(0);
 
     const maxMintAmountPerRun = 190;
@@ -1100,88 +1101,103 @@ toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr:
     } else { 
       serverTime = 201906130000;
     }
+    console.log(`\n--------------==About to call sequentialMintSuper()...`);
+    console.log(`nftSymbol: ${nftSymbol}, fundingType: ${fundingType}, pricing: ${pricing}`);
+
     res.send({
-      status: "about to mint tokens",
+      status: true,
+      success: undefined,
+      result: 'good up to pre sequentialMintSuper()'
     });
 
     const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
-      mesg = '[Error @ sequentialMintSuper]';  
-      console.log(mesg, err);
-        res.send({
-            success: false,
-            result: mesg+', err: ' + err,
-        });
+      console.log(`\n[Error @ sequentialMintSuper] \ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, nftSymbol: ${nftSymbol} \n${err}...`);
+      return false;
+      // res.send({
+        //     success: false,
+        //     result: mesg+', err: ' + err,
+        // });
     });
     console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
 
     if (isFailed || isFailed === undefined || isFailed === null) {
-        mesg = '[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!';
-        console.log('\n'+mesg);
-        res.send({
-            success: false,
-            result: mesg,
-            isCorrectAmountArray: isCorrectAmountArray,
-        });
+        mesg = `[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!`;
+        console.log(`\nSuccess: false \n${mesg} \nisCorrectAmountArray: ${isCorrectAmountArray}`);
+        return false;
+        // res.send({
+        //     success: false,
+        //     result: mesg,
+        //     isCorrectAmountArray: isCorrectAmountArray,
+        // });
 
     } else if(!is_addAssetRecordRowArray) {
       mesg = '[Token minting Successful but addAssetRecordRowArray() Failed]';
-      console.log('\n'+mesg);
-      res.send({
-        success: false,
-        result: mesg,
-        emailArrayError: emailArrayError,
-        amountArrayError: amountArrayError,
-        is_addAssetRecordRowArray: is_addActualPaymentTime,
-        is_addActualPaymentTime: is_addActualPaymentTime
-      });
+      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
+      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
+      return false;
+      // res.send({
+      //   success: false,
+      //   result: mesg,
+      //   emailArrayError: emailArrayError,
+      //   amountArrayError: amountArrayError,
+      //   is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+      //   is_addActualPaymentTime: is_addActualPaymentTime
+      // });
 
     } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
-      mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
-      console.log('\n'+mesg);
-      res.send({
-        success: false,
-        result: mesg,
-        emailArrayError: emailArrayError,
-        amountArrayError: amountArrayError
-      });
+      mesg = '[Error] Token minting is successful, but addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
+      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
+      return false;
+      // res.send({
+      //   success: false,
+      //   result: mesg,
+      //   emailArrayError: emailArrayError,
+      //   amountArrayError: amountArrayError
+      // });
 
     } else if(!is_addActualPaymentTime) {
       mesg = '[Token minting Successful but addActualPaymentTime() Failed]';
-      console.log('\n'+mesg);
-      res.send({
-        success: false,
-        result: mesg,
-        emailArrayError: emailArrayError,
-        amountArrayError: amountArrayError,
-        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-        is_addActualPaymentTime: is_addActualPaymentTime
-      });
+      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
+      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} `);
+      return false;
+      // res.send({
+      //   success: false,
+      //   result: mesg,
+      //   emailArrayError: emailArrayError,
+      //   amountArrayError: amountArrayError,
+      //   is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+      //   is_addActualPaymentTime: is_addActualPaymentTime
+      // });
 
     } else if(!is_setFundingStateDB) {
       mesg = '[Token minting Successful but setFundingStateDB() Failed]';
-      console.log('\n'+mesg);
-      res.send({
-        success: false,
-        result: mesg,
-        emailArrayError: emailArrayError,
-        amountArrayError: amountArrayError,
-        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-        is_addActualPaymentTime: is_addActualPaymentTime,
-        is_setFundingStateDB: is_setFundingStateDB
-      });
+      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
+      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
+      return false;
+      // res.send({
+      //   success: false,
+      //   result: mesg,
+      //   emailArrayError: emailArrayError,
+      //   amountArrayError: amountArrayError,
+      //   is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+      //   is_addActualPaymentTime: is_addActualPaymentTime,
+      //   is_setFundingStateDB: is_setFundingStateDB
+      // });
 
     } else {
       mesg = '[Success] All token minting, addAssetRecordRowArray(), addActualPaymentTime(), and setFundingStateDB() have been completed successfully';
-      console.log('\n'+mesg);
-      res.send({
-          success: true,
-          result: mesg,
-          emailArrayError: emailArrayError,
-          amountArrayError: amountArrayError,
-          is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-          is_addActualPaymentTime: is_addActualPaymentTime,
-          is_setFundingStateDB: is_setFundingStateDB
-      });
+      console.log(`\nSuccess: true \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
+      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
+      return true;
+      // res.send({
+      //     success: true,
+      //     result: mesg,
+      //     emailArrayError: emailArrayError,
+      //     amountArrayError: amountArrayError,
+      //     is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+      //     is_addActualPaymentTime: is_addActualPaymentTime,
+      //     is_setFundingStateDB: is_setFundingStateDB
+      // });
     }
 });
 

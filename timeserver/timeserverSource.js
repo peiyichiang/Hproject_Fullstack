@@ -27,7 +27,7 @@ if(mode === 1){
 // '59 * * * * *'  ... for every 59th seconds
 schedule.scheduleJob(modeStr+' * * * * *', async function () {
     getTime().then(function (time) {
-      console.log(`----------------==[timeserverSource.js] current time: ${time}`);
+      console.log(`----------------==[timeserverSource.js] server time: ${time}`);
     });
     let date = new Date().myFormat();
     //console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
@@ -43,7 +43,7 @@ schedule.scheduleJob(modeStr+' * * * * *', async function () {
       console.log('[Error] serverTime is not an integer', date.toString());
       process.exit(0);
     }
-    console.log('[timeserverSource.js] serverTime:', serverTime);
+    //console.log('[timeserverSource.js] serverTime:', serverTime);
   
     if(whichTimeServerArray.length < 6){
       console.log('\n[Error] whichTimeServerArray length is < 6 ... bypassing services...');

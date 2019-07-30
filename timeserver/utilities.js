@@ -104,6 +104,19 @@ async function asyncForEachMint2(toAddrArray, idxMint, idxMintMax, callback) {
   }
 }
 
+
+async function asyncForEachCFC(toAddrArray, callback) {
+  console.log('\n------------------==asyncForEachCFC');
+  for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
+    const toAddr = toAddrArray[idxMint];
+    console.log(`\n--------------==next in asyncForEachCFC
+    idxMint: ${idxMint}, ${toAddr}`);
+      await callback(toAddr, idxMint).catch((err) => {
+        console.log('\n[Error@asyncForEachCFC > callback]', err);
+      });
+  }
+}
+
 async function asyncForEachAbCFC(toAddrArray, callback) {
   console.log('\n------------------==asyncForEachAbCFC');
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
@@ -177,6 +190,29 @@ async function asyncForEachAssetRecordRowArray2(inputArray, callback) {
 }
 
 
+const checkTargetAmounts = (existingBalances, targetAmounts) => {
+  //console.log('\n-----------------==\ninside breakdownArray');
+  if(isEmpty(existingBalances) || isEmpty(targetAmounts)){
+    console.log('existingBalances or targetAmounts is not valid!');
+    return false;
+  }
+  if(existingBalances.length !== targetAmounts.length){
+    console.log('existingBalances and targetAmounts are of different length');
+    return false;
+  }
+  const result = [];  let isAllGood;
+  existingBalances.forEach((item,idx) => {
+    //console.log(`cur= ${item}, idx= ${idx}`);
+    const boolValue = item <= targetAmounts[idx];
+    result.push(boolValue);
+    if(!boolValue){
+      isAllGood = false;
+    };
+  });
+  if(isAllGood === undefined){isAllGood = true;}
+  return [result, isAllGood];
+}
+
 const breakdownArray = (toAddress, amount, maxMintAmountPerRun) => {
   console.log('\n-----------------==\ninside breakdownArray: amount', amount, '\ntoAddress', toAddress);
 
@@ -239,6 +275,7 @@ const breakdownArrays = (toAddressArray, amountArray, maxMintAmountPerRun) => {
   return [toAddressArrayOut, amountArrayOut];
 }
 
+const arraySum = arr => arr.reduce((a,b) => a + b, 0);
 
 const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
 
@@ -291,5 +328,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray
+  reduceArrays, isEmpty, getTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
 }

@@ -1,12 +1,15 @@
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
+
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED, addrHCAT721 } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokens, setTimeCFC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, setTimeCFC } = require('./blockchain.js');
 
-const { breakdownArray, breakdownArrays } = require('./utilities');
+const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum } = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -64,6 +67,7 @@ const newCustomerService = AssetOwner3;
 const addPlatformSupervisor_API = async () => {
   console.log('\n------------------==inside addPlatformSupervisor_API()...');
   const addrHelium = '0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf';
+  //const addrHelium = '0x0Ad4cBba5Ee2b377DF6c56eaeBeED4e89fcc4CAf';
   const result = await addPlatformSupervisor(newplatformSupervisor, addrHelium).catch((err) => {
     console.log('[Error @ addPlatformSupervisor]', err);
   });
@@ -584,14 +588,14 @@ const getCrowdfundingInvestors_API = async() => {
 
 
 /**
-investedTokenQtyArray: 2527,2716,2796,2498,2551,2349,2889,3115,3324,3446
-balances: [ 2212, 2424, 2868, 2992, 2741, 2349, 2889, 3115, 3324, 3446 ]
+investedTokenQtyArray: 4559,4648,4958,4564,5223,5687,5106,5584,6111,5577
+existingBalances:  3544, 3432, 3972, 3776, 4082, 4758, 3904, 4256, 4674, 4418
 */
 //yarn run testmt -f 42
 const getTokenBalances_API = async () => {
   console.log('\n---------------------==getTokenBalances_API()');
-  const balances = await getTokenBalances(assetbookArray, addrHCAT721);
-  console.log('balances:', balances);
+  const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
+  console.log('existingBalances:', existingBalances);
   //process.exit(0);
 }
 
@@ -599,8 +603,8 @@ const getTokenBalances_API = async () => {
 const investTokens_API = async() => {
   console.log('\n------------==inside investTokens_API()');
   const crowdFundingAddr = addrCrowdFunding;
-  const toAssetbookNumStr = 3;
-  const amountToInvestStr = 590;
+  const toAssetbookNumStr = 1;
+  const amountToInvestStr = 513;
   const serverTime = CFSD+1;
   const result = await investTokens(crowdFundingAddr, toAssetbookNumStr, amountToInvestStr, serverTime).catch(err => { 
     console.log('[Error @ investTokens]',err);
@@ -610,8 +614,46 @@ const investTokens_API = async() => {
     const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
     console.log(`investorAssetBooks: ${investorAssetBooks}
 investedTokenQtyArray: ${investedTokenQtyArray}`);
+
+    const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
+    console.log('existingBalances:', existingBalances);
+    const [result, isAllGood]= checkTargetAmounts(existingBalances, investedTokenQtyArray);
+    console.log('result:', result, ', isAllGood:', isAllGood, 'investedTokenQtyArray', investedTokenQtyArray);
+    if(!isAllGood){
+      console.log('[Error] at least one target mint amount is lesser than its existing balance');
+      return false;
+    }
   } else {
     console.log('result is not true', result);
+  }
+
+  process.exit(0);
+}
+
+//original:  3040,2716,3486,3388,3541,4329,3402,3628,3837,3959
+//yarn run testmt -f 47
+const investTokensInBatch_API = async() => {
+  console.log('------------------==investTokensInBatch_API');
+  const amountToInvestArray = [1015, 1216, 986, 788, 1141, 929, 1202, 1328, 1437, 1159];
+  //const amountToInvestArray= [504, 716, 486, 388, 541, 429, 502, 628, 837, 459];
+  const serverTime = CFSD+1;
+  const totalTokensForInvestment = arraySum(amountToInvestArray);
+  const [investorAssetBooksA, investedTokenQtyArrayA] = await getInvestorsFromCFC(addrCrowdFunding);
+  console.log(`investorAssetBooksA: ${investorAssetBooksA}
+investedTokenQtyArrayA: ${investedTokenQtyArrayA}
+totalTokensForInvestment: ${totalTokensForInvestment} `);
+
+  const result = await investTokensInBatch(addrCrowdFunding, assetbookArray, amountToInvestArray, serverTime);
+  console.log('result:', result);
+
+  const [investorAssetBooksB, investedTokenQtyArrayB] = await getInvestorsFromCFC(addrCrowdFunding);
+    console.log(`\n--------==investorAssetBooksB: ${investorAssetBooksB}
+investedTokenQtyArrayB: ${investedTokenQtyArrayB}`);
+
+  if(result){
+    investedTokenQtyArrayB.forEach((item,idx) => {
+      console.log(`${item}, idx= ${idx}, changeInTokenQty: ${item-investedTokenQtyArrayA[idx]}`);
+    });
   }
   process.exit(0);
 }
@@ -669,7 +711,46 @@ result: ${JSON.stringify(data2.result)}`);
 }// to invest in CFC: see livechain.js: yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
 
 
+//yarn run testmt -f 51
+const writeFileToTxtFile_API = async () => {
+  console.log('\n---------------------==writeFileToTxtFile_API()');
+  let logContent;
+  let date = new Date().myFormat();
+  //console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
+  logContent = date+' add these data!!!';
 
+  fs.writeFile(path.resolve(__dirname, '.', 'mintToken.txt'), logContent, function (err) {
+      if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
+  });
+
+  logContent = ' ... Hey, dont forget about me';
+  fs.writeFile(path.resolve(__dirname, '.', 'mintToken.txt'), logContent, function (err) {
+    if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
+  });
+}
+
+//yarn run testmt -f 52
+const writeStreamToTxtFile_API = async () => {
+  //Non-blocking, writing bits and pieces, not writing the whole file at once
+  console.log('\n---------------------==writeStreamToTxtFile_API()');
+  let logContent;
+  let date = new Date().myFormat();
+  const filePath = path.resolve(__dirname, '.', 'zmintToken.txt')
+
+  var stream = fs.createWriteStream(filePath);
+  stream.once('open', function(fd) {
+    logContent = date+' add these data!!!\n';
+    stream.write(logContent);
+
+    logContent = ' ... Hey, dont forget about me\n';
+    stream.write(logContent);
+
+    logContent = ' ... Cool man. Super!\n';
+    stream.write(logContent);
+
+    stream.end();
+  });
+}
 
 
 //yarn run testmt -f 91
@@ -708,6 +789,13 @@ body: ${body}`);
   });
 }
 
+//yarn run testmt -f 94
+const checkTargetAmounts_API = async () => {
+  const balanceArrayBefore = [ 2212, 2424, 2868, 2992, 2741, 2349, 2889, 3115, 3324, 3446 ]; 
+  const targetAmounts = [ 2527, 2716, 2796, 2498, 2551, 2349, 2889, 3115, 3324, 3446 ]
+  const [result, isAllGood] = checkTargetAmounts(balanceArrayBefore, targetAmounts);
+  console.log('balanceArrayBefore:', balanceArrayBefore, ', targetAmounts:', targetAmounts, ', result:', result, ', isAllGood:', isAllGood);
+}
 
 //------------------------==
 // yarn run testmt -f 0
@@ -867,10 +955,21 @@ if(func === 0){
 } else if (func === 46) {
   setCloseFundingCFC_API();
 
+//yarn run testmt -f 47
+} else if (func === 47) {
+  investTokensInBatch_API();
+
 //yarn run testmt -f 49
 } else if (func === 49) {
   mintSequentialPerCtrt_API();
 
+//yarn run testmt -f 51
+} else if (func === 51) {
+  writeFileToTxtFile_API();
+
+//yarn run testmt -f 52
+} else if (func === 52) {
+  writeStreamToTxtFile_API();
 
 //yarn run testmt -f 91
 } else if (func === 91) {
@@ -883,5 +982,9 @@ if(func === 0){
 //yarn run testmt -f 93
 } else if (func === 93) {
   breakdownArray_API();
+
+//yarn run testmt -f 94
+} else if (func === 94) {
+  checkTargetAmounts_API();
 
 }

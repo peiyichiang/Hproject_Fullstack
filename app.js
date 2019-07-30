@@ -6,14 +6,14 @@ var logger = require('morgan');
 var cors = require('cors');
 var session = require('express-session');
 var multer = require('multer');
-var debugSQL = require('debug')('dev:mysql');
-var timeout = require('connect-timeout'); //express v4
+// var debugSQL = require('debug')('dev:mysql');
+// var timeout = require('connect-timeout'); //express v4
 
 require("dotenv").config();
 
-const { isTimeserverON } = require('./ethereum/contracts/zsetupData');
+const { isTimeserverON, useFullTimeServer } = require('./ethereum/contracts/zsetupData');
 
-console.log('loading /app.js modules');
+console.log('loading app.js modules...');
 //智豪
 var indexRouter = require('./routes/TxRecord');
 var productRouter = require('./routes/Product');
@@ -123,15 +123,11 @@ app.use(function (err, req, res, next) {
 });
 
 
-// const checkOverZero =(item) => item === 0;
-// if(whichTimeServerArray.every(checkOverZero)){
 if(isTimeserverON){
-  console.log('\n------------------==timeserver is ON');
   require('./timeserver/timeserverSource');
-  
-} else {
-  console.log('\n------------------==timeserver turned OFF');
 }
+console.log(`\n------------------==timeserver: ${isTimeserverON}, useFullTimeServer: ${useFullTimeServer}`);
+
 console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 
