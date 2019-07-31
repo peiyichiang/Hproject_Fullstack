@@ -7,7 +7,7 @@ const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, exclud
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, setTimeCFC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, setTimeCFC, deployAssetbooks } = require('./blockchain.js');
 
 const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum } = require('./utilities');
 
@@ -753,12 +753,13 @@ const writeStreamToTxtFile_API = async () => {
 }
 
 
+//------------------------------==
 //yarn run testmt -f 91
-//message queue
-const testRabbitMQ = async () => {
+//message queue producer(sender)
+const testRabbitMQ_sender = async () => {
   const amqp = require('amqplib/callback_api');
   const request = require('request');
-  request.post('http://localhost:3000/Contracts/messages', function (error, response, body) {
+  request.post('http://localhost:3000/Contracts/amqpTest1', function (error, response, body) {
     if (error) {
       console.log('error', error);
       throw error;
@@ -776,10 +777,10 @@ body: ${body}`);
           console.log('error1', error1);
           throw error1;
         }
-        const qSender = 'messageAPI';
-        channel.assertQueue(qSender, { durable: false });
-        console.log(' [*] Waiting for result in: %s. To exit press CTRL+C', qSender);
-        channel.consume(qSender, msg => {
+        const boxName = 'amqpTest1';
+        channel.assertQueue(boxName, { durable: false });
+        console.log(' [*] Waiting for result in: %s. To exit press CTRL+C', boxName);
+        channel.consume(boxName, msg => {
             console.log(' [x] Received result: %s', msg.content);  
             conn.close();            
         }, { noAck: true
@@ -796,6 +797,16 @@ const checkTargetAmounts_API = async () => {
   const [result, isAllGood] = checkTargetAmounts(balanceArrayBefore, targetAmounts);
   console.log('balanceArrayBefore:', balanceArrayBefore, ', targetAmounts:', targetAmounts, ', result:', result, ', isAllGood:', isAllGood);
 }
+
+//yarn run testmt -f 102
+const deployAssetbooks_API = async () => {
+  console.log('\n---------------------==deployAssetbooks_API()');
+  const eoaArray = [''];
+  const addrHeliumContract = '';
+  const result = await deployAssetbooks(eoaArray, addrHeliumContract);
+  console.log('result:', result);
+}
+
 
 //------------------------==
 // yarn run testmt -f 0
@@ -973,7 +984,7 @@ if(func === 0){
 
 //yarn run testmt -f 91
 } else if (func === 91) {
-  testRabbitMQ();
+  testRabbitMQ_sender();
 
 //yarn run testmt -f 92
 } else if (func === 92) {
@@ -986,5 +997,9 @@ if(func === 0){
 //yarn run testmt -f 94
 } else if (func === 94) {
   checkTargetAmounts_API();
+
+//yarn run testmt -f 102
+} else if (func === 102) {
+  deployAssetbooks_API();
 
 }

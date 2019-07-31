@@ -1,7 +1,7 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
-require('dotenv').config()
+require('dotenv').config();
 
 const chalk = require('chalk');
 const log = console.log;
@@ -195,6 +195,33 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
       });
   });
 }
+
+
+//-------------------==Add users
+const addUsersIntoDB = async(userObjects) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside addUsersIntoDB');
+    await asyncForEach(userObjects, async (user, idx) => {
+        const email = user.email;
+        const password = user.password;
+        const identityNumber = user.identityNumber;
+        const eth_add = user.eth_add;
+        const cellphone = user.cellphone;
+        const name = user.name;
+        const addrAssetBook = user.addrAssetBook;
+        const investorLevel = user.investorLevel;
+        const imagef = user.imagef;
+        const imageb = user.imageb;
+        const bank_booklet = user.bank_booklet;
+  
+        console.log(`idx: ${idx}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
+  
+        await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+    });
+    resolve(true);
+  });
+}
+
 
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
