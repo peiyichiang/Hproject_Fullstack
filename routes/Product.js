@@ -1239,18 +1239,18 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
                         }
                     });
                 }
-            }else if(req.body.CorrectActualPaymentResult=="ia_state_unapproved"){
-                    var sql = {
-                        ia_State: req.body.CorrectActualPaymentResult
-                    };
-                    var qur1 = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            res.setHeader('Content-Type', 'application/json');
-                            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
-                        }
-                    });
+            } else if (req.body.CorrectActualPaymentResult == "ia_state_unapproved") {
+                var sql = {
+                    ia_State: req.body.CorrectActualPaymentResult
+                };
+                var qur1 = mysqlPoolQuery('UPDATE income_arrangement SET ? WHERE ia_SYMBOL = ? AND ia_time = ?  ', [sql, req.body.CorrectActualPaymentTokenSymbol, req.body.OriginalPaymentTime], async function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        res.setHeader('Content-Type', 'application/json');
+                        res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+                    }
+                });
             }
         }
     });
@@ -1554,6 +1554,7 @@ router.get('/canBuyToken', async function (req, res) {
     const serverTime = await getTime();
     mysqlPoolQuery(
         `SELECT p_CFSD AS CFSD, 
+                p_CFED AS CFED,
                 u_assetbookContractAddress AS assetbookContractAddress
          FROM product , user
          WHERE p_Symbol = ? AND u_email = ?
@@ -1565,7 +1566,7 @@ router.get('/canBuyToken', async function (req, res) {
                 })
             }
             else {
-                serverTime >= Number(result[0].CFSD) ?
+                serverTime >= Number(result[0].CFSD) && serverTime <= Number(result[0].CFSD) ?
                     isServerTimeLargerThanCFSD = true :
                     isServerTimeLargerThanCFSD = false;
 
@@ -1598,7 +1599,7 @@ router.get('/canBuyToken', async function (req, res) {
                     } else {
                         res.status(200);
                         res.json({
-                            "message": "專案尚未開賣",
+                            "message": "非專案開賣時間",
                             "result": canBuyToken
                         });
                     }
