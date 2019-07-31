@@ -52,10 +52,13 @@ router.post('/sendPaidMail', function (req, res, next) {
 
     //宣告發信物件
     var transporter = nodemailer.createTransport({
-        service: 'Gmail',
+        /* Helium */
+        host: 'server239.web-hosting.com',
+        port: 465,
+        secure: true, // use SSL
         auth: {
-            user: '107753016@mail2.nccu.tw',
-            pass: 'dadada456'
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
         }
     });
 
@@ -63,7 +66,7 @@ router.post('/sendPaidMail', function (req, res, next) {
 
     var options = {
         //寄件者
-        from: '103753016@mail2.nccu.tw',
+        from: 'noreply@hcat.io',
         //收件者
         to: mailInfo.email,
         //主旨
@@ -103,10 +106,13 @@ router.post('/sendTransferInfoMail', function (req, res, next) {
 
     //宣告發信物件
     var transporter = nodemailer.createTransport({
-        service: 'Gmail',
+        /* Helium */
+        host: 'server239.web-hosting.com',
+        port: 465,
+        secure: true, // use SSL
         auth: {
-            user: '107753016@mail2.nccu.tw',
-            pass: 'dadada456'
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
         }
     });
 
@@ -114,7 +120,7 @@ router.post('/sendTransferInfoMail', function (req, res, next) {
 
     var options = {
         //寄件者
-        from: '103753016@mail2.nccu.tw',
+        from: 'noreply@hcat.io',
         //收件者
         to: mailInfo.email,
         //主旨
@@ -145,9 +151,7 @@ router.post('/bindOrder', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     var order = JSON.parse(req.body.o_IDs);
 
-    var sql = {
-        o_bankvirtualaccount: req.body.v_account
-    };
+    var sql = {o_bankvirtualaccount: req.body.v_account};
 
     order.o_IDs.forEach(element => {
         //console.log(element)

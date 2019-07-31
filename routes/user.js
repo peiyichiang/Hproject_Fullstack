@@ -56,7 +56,6 @@ const getTimeNow = () => {
 
 
 
-
 // const path = require('path');
 // const fs = require('fs');
 // const solc = require('solc');
@@ -118,6 +117,7 @@ router.get('/UserLogin', function (req, res, next) {
                                     u_endorser2: result[0].u_endorser2,
                                     u_endorser3: result[0].u_endorser3,
                                     u_investorLevel: result[0].u_investorLevel,
+                                    u_account_status: result[0].u_account_status,
                                 }
                                 time = { expiresIn: 1800 };
                                 token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
@@ -187,7 +187,8 @@ router.post('/AddUser', function (req, res, next) {
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
-                u_investorLevel: 5
+                u_investorLevel: 1,
+                u_account_status: 0
             };//Math.random().toString(36).substring(2, 15)
             passwordHash.passwordHash = hash
 
@@ -760,12 +761,14 @@ router.post('/ForgetPassword', function (req, res, next) {
         }
         /* 新增申請的資料到忘記密碼的資料表 */
         else {
+
+
             mysqlPoolQuery(
                 `INSERT INTO  forget_pw 
-                 SET fp_investor_email = ? , 
-                     fp_verification_code = ? , 
-                     fp_application_date = ? , 
-                     fp_isApproved = ?`,
+                             SET fp_investor_email = ? , 
+                                 fp_verification_code = ? , 
+                                 fp_application_date = ? , 
+                                 fp_isApproved = ?`,
                 [email, verificationCode, timeNow, 0],
                 function (err, result) {
                     /* 新增申請資料失敗 */
@@ -817,57 +820,120 @@ router.post('/VerifyVerificationCode', function (req, res, next) {
     let email = req.body.email;
     let verificationCode = req.body.verificationCode;
     const timeNow = getTimeNow();
-    const getTenMinutesAfterFP_application_date = (time) => {
-        console.log(time)
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+    const getTenMinutesAfter_FP_application_date = (time) => {
         /* 分的十位數為5時，時進位且分歸0 */
-        if (time.substring(10, 11) === 5) {
-            console.log('first:', (parseInt(time, 10) + 50).toString())
-            return (parseInt(time, 10) + 50).toString();
-        } else {
-            console.log('second:', (parseInt(time, 10) + 10).toString())
-            return (parseInt(time, 10) + 10).toString();
-        }
+        if (time.substring(10, 11) === 5) { return (parseInt(time, 10) + 50).toString(); }
+        else { return (parseInt(time, 10) + 10).toString(); }
     }
+    const isUserAbleToApplyQuery = `
+    SELECT u_account_status
+    FROM user
+    WHERE u_email = ?`
 
-    mysqlPoolQuery(
-        `SELECT fp_investor_email,
-                fp_verification_code,
-                fp_application_date
-         FROM   forget_pw 
-         WHERE  fp_investor_email = ? 
-         ORDER  BY fp_application_date DESC
-         LIMIT  0,1
-        `, email, function (err, result) {
-            /* 查詢失敗 */
-            if (err) {
-                res.status(400).send('查詢失敗：' + err);
-                console.error('query error : ' + err);
+    query(isUserAbleToApplyQuery, email)
+        .then((result) => {
+            const isUserAbleToApply = result[0].u_account_status === 0;
+            if (isUserAbleToApply) {
+                mysqlPoolQuery(
+                    `SELECT fp_investor_email,
+                            fp_verification_code,
+                            fp_application_date
+                     FROM   forget_pw 
+                     WHERE  fp_investor_email = ? 
+                     ORDER  BY fp_application_date DESC
+                     LIMIT  0,1
+                    `, email, function (err, result) {
+                        /* 查詢失敗 */
+                        if (err) {
+                            res.status(400).send('查詢失敗：' + err);
+                            console.error('query error : ' + err);
+                        }
+                        /* 無申請紀錄 */
+                        else if (result.length == 0) {
+                            res.status(404).send('無申請紀錄');
+                            console.error('applications record not found : ' + email);
+                        }
+                        else {
+                            const tenMinutesAfterFP_application_date = getTenMinutesAfter_FP_application_date(result[0].fp_application_date);
+                            /* 驗證碼已過期 */
+                            if (timeNow > tenMinutesAfterFP_application_date) {
+                                res.status(400).send('驗證碼已過期，請重新申請');
+                                console.error('verification code is expired : ' + email);
+                            }
+                            else {
+                                /* 驗證碼錯誤 */
+                                if (verificationCode != result[0].fp_verification_code) {
+                                    res.status(400).send('驗證碼錯誤，請檢查後再試');
+                                    console.error('wrong verification code : ' + email);
+                                }
+                                else {
+
+                                    res.status(200).json({ "message": "驗證通過" });
+                                }
+                            }
+                        }
+                    });
             }
-            /* 無申請紀錄 */
-            else if (result.length == 0) {
-                res.status(404).send('無申請紀錄');
-                console.error('applications record not found : ' + email);
+            else { res.status(200).json({ "message": "您上筆申請的資料正在審閱中，請等待通知信" }); }
+        })
+        .catch((err) => {
+            res.status(400).send('查詢失敗：' + err);
+            console.error('query error : ' + err);
+        })
+});
+
+router.get('/IsAbleToApply', function (req, res, next) {
+    console.log('------------------------==\n@user/IsAbleToApply');
+    var mysqlPoolQuery = req.pool;
+    const email = req.query.email;
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+
+    const isUserAbleToApplyQuery = `
+    SELECT u_account_status
+    FROM user
+    WHERE u_email = ?`
+
+    query(isUserAbleToApplyQuery, email)
+        .then((result) => {
+            const isUserAbleToApply = result[0].u_account_status === 0;
+            if (isUserAbleToApply) {
+                console.log('1')
+                res.status(200).json({ "message": "符合申請資格" });
             }
             else {
-                const tenMinutesAfterFP_application_date = getTenMinutesAfterFP_application_date(result[0].fp_application_date);
-                /* 驗證碼已過期 */
-                if (timeNow > tenMinutesAfterFP_application_date) {
-                    res.status(400).send('驗證碼已過期，請重新申請');
-                    console.error('verification code is expired : ' + email);
-                }
-                else {
-                    /* 驗證碼錯誤 */
-                    if (verificationCode != result[0].fp_verification_code) {
-                        res.status(400).send('驗證碼錯誤，請檢查後再試');
-                        console.error('wrong verification code : ' + email);
-                    }
-                    else {
-                        res.status(200).json({ "message": "驗證通過" });
-                        // console.log('verify success');
-                    }
-                }
+                console.log('2')
+                res.status(400).send('您上筆申請的資料正在審閱中，請等待通知信');
+                console.error('query error : ' + err);
             }
-        });
+        })
+        .catch((err) => {
+            console.log('3')
+            res.status(400).send('查詢失敗：' + err);
+            console.error('query error : ' + err);
+        })
 });
 
 //更新使用者資料
@@ -915,6 +981,7 @@ router.get('/UpdateUserInformation', function (req, res, next) {
                 u_endorser2: result[0].u_endorser2,
                 u_endorser3: result[0].u_endorser3,
                 u_investorLevel: result[0].u_investorLevel,
+                u_account_status: result[0].u_account_status
             }
             time = { expiresIn: 1800 };
             token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
@@ -939,10 +1006,23 @@ router.post('/ApplyForResettingPassword', function (req, res, next) {
     const email = req.body.email;
     const password = req.body.password;
     const verificationCode = req.body.verificationCode;
+    const applicationType = req.body.applicationType;
+    const isForgetPassword = applicationType == 0;
     let salt;
     let hash;
-
     const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
 
     bcrypt
         .genSalt(saltRounds)
@@ -952,28 +1032,43 @@ router.post('/ApplyForResettingPassword', function (req, res, next) {
         })
         .then(_hash => {
             hash = _hash;
-            const query = `
+            const applicationQuery = `
             UPDATE forget_pw 
             SET   fp_salt = ? ,
                   fp_password_hash = ?
             WHERE fp_investor_email = ? AND
                   fp_verification_code = ?`
-
-            mysqlPoolQuery(query, [salt, hash, email, verificationCode], function (err, result) {
-                if (err) {
-                    res.status(400).send('查詢失敗：' + err);
-                    console.error('query error : ' + err);
-                } else {
-                    res.status(200).json({ "message": "申請成功，請等待身份驗證通過後再以新密碼登入" });
-                }
-            });
+            if (!isForgetPassword) {
+                salt = null;
+                hash = null;
+            }
+            return query(applicationQuery, [salt, hash, email, verificationCode])
         })
-        .catch(err => console.error(err.message));
-});
+        .then(() => {
+            let accountStatus;
+            isForgetPassword ?
+                accountStatus = 1 :/* 申請忘記密碼 */
+                accountStatus = 2  /* 申請換機 */
 
-//http://140.119.101.130:3000/user/UserLogin
-router.get('/isLoginPasswordCorrect', function (req, res, next) {
-    console.log('------------------------==\n@User/UserLogin');
+            const updateAccountStatusQuery = `
+            UPDATE user 
+            SET    u_account_status = ? 
+            WHERE  u_email = ?`
+            return query(updateAccountStatusQuery, [accountStatus, email])
+        })
+        .then(() => {
+            isForgetPassword ?
+                res.status(200).json({ "message": "申請成功，請等待身份驗證通過後再以新密碼登入" }) :
+                res.status(200).json({ "message": "申請成功，請等待身份驗證通過後再重新登入" });
+        })
+        .catch((err) => {
+            res.status(400).send('查詢失敗：' + err);
+            console.error('query error : ' + err);
+        })
+})
+
+router.get('/IsLoginPasswordCorrect', function (req, res, next) {
+    console.log('------------------------==\n@User/IsLoginPasswordCorrect');
     var mysqlPoolQuery = req.pool;
     const email = req.query.email;
     const password = req.query.password;
@@ -1006,13 +1101,10 @@ router.get('/isLoginPasswordCorrect', function (req, res, next) {
                         .compare(password, result[0].u_password_hash)
                         .then(compareResult => {
                             if (compareResult) {
-                                let query = 'UPDATE user SET u_verify_status = ? WHERE u_email = ?';
-                                mysqlPoolQuery(query, [2, email], function (err, result) {
-                                    res.status(200).json({ "message": "密碼正確" });
-                                })
+                                res.status(200).json({ "message": "密碼正確" });
                             } else {
-                                res.status(400).send('帳號或密碼輸入錯誤：' + err);
-                                console.error('query error : ' + err);
+                                res.status(400).send('帳號或密碼輸入錯誤');
+                                console.error('query error');
                             }
                         })
                         .catch(err => console.error('Error at compare password & pwHash', err.message));
@@ -1028,8 +1120,39 @@ router.get('/isLoginPasswordCorrect', function (req, res, next) {
     });
 });
 
+router.post('/UpdateEOA', function (req, res, next) {
+    console.log('------------------------==\n@user/UpdateEOA');
+    var mysqlPoolQuery = req.pool;
+    const email = req.body.email;
+    const EOA = req.body.EOA;
+    console.log(email)
+    console.log(EOA)
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
 
+    const updateUserEOAQuery = `
+    UPDATE user 
+    SET    u_eth_add = ? ,
+           u_verify_status = ?
+    WHERE  u_email = ?`;
 
+    query(updateUserEOAQuery, [EOA, 0, email])
+        .then(() => { res.status(200).json({ "message": "EOA更新成功" }) })
+        .catch((err) => {
+            res.status(400).send('查詢失敗：' + err);
+            console.error('query error : ' + err);
+        })
+});
 
 module.exports = router;
 /**
