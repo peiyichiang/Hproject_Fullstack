@@ -1739,7 +1739,7 @@ router.get('/canBuyToken', async function (req, res) {
                 })
             }
             else {
-                serverTime >= Number(result[0].CFSD) && serverTime <= Number(result[0].CFSD) ?
+                serverTime >= Number(result[0].CFSD) && serverTime <= Number(result[0].CFED) ?
                     isServerTimeLargerThanCFSD = true :
                     isServerTimeLargerThanCFSD = false;
 
