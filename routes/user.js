@@ -17,23 +17,32 @@ var multer = require('multer');
 const Storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const imageLocation = req.body.imageLocation;
-        console.log('imageLocation:', imageLocation)
-        cb(null, './public/images/' + imageLocation)
+        cb(null, './public/images/' + imageLocation);
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname)
+        cb(null, file.originalname);
     }
 })
 const uploadImages = multer({ storage: Storage })
 
+const getTimeNow = () => {
+    let timeNow = new Date();/* 現在時間 */
+    const minuteAndHour = timeNow.toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: "numeric",
+        minute: "numeric"
+    });
+    let year = timeNow.getFullYear();
+    let month = String(timeNow.getMonth() + 1).padStart(2, '0'); //January is 0!
+    let day = String(timeNow.getDate()).padStart(2, '0');
+    let hour = minuteAndHour.substring(0, 2);
+    let minute = minuteAndHour.substring(3, 5);
+    return year + month + day + hour + minute;
+}
+
 // const path = require('path');
 // const fs = require('fs');
 // const solc = require('solc');
-
-/* GET users listing. */
-router.get('/', function (req, res, next) {
-    res.send('respond with a resource');
-});
 
 //http://140.119.101.130:3000/user/UserLogin
 router.get('/UserLogin', function (req, res, next) {
@@ -249,136 +258,11 @@ router.get('/verify_email', function (req, res) {
     });
 });
 
-
-/* test post image function */
-// router.post('/post_IDImage', uploadIDImages.single('image'), function (req, res) {
-//     let mysqlPoolQuery = req.pool;
-//     var email = req.body.email;
-//     var imageLocation = req.body.imageLocation;
-//     var DBtableType = req.body.DBtableType;
-
-//     if (DBtableType === 'user') {
-//         if (req.body.picture == "IDfront") {
-//             mysqlPoolQuery('UPDATE user SET u_imagef =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
-//                 if (err) {
-//                     res.status(400)
-//                     res.json({
-//                         "message": "新增照片地址失敗:" + err
-//                     })
-//                 }
-//                 else {
-//                     res.status(200);
-//                     res.json({
-//                         "message": "新增照片地址成功！"
-//                     })
-//                 }
-//             })
-//         } else if (req.body.picture == "IDback") {
-//             mysqlPoolQuery('UPDATE user SET u_imageb =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
-//                 if (err) {
-//                     res.status(400)
-//                     res.json({
-//                         "message": "新增照片地址失敗:" + err
-//                     })
-//                 }
-//                 else {
-//                     res.status(200);
-//                     res.json({
-//                         "message": "新增照片地址成功！"
-//                     })
-//                 }
-//             })
-//         }
-//     } else {
-//         if (req.body.picture == "IDfront") {
-//             mysqlPoolQuery('UPDATE forget_pw SET fp_imagef =\'' + imageLocation + '\'' + 'WHERE fp_investor_email = \'' + email + '\'', function (err) {
-//                 if (err) {
-//                     res.status(400)
-//                     res.json({
-//                         "message": "新增照片地址失敗:" + err
-//                     })
-//                 }
-//                 else {
-//                     res.status(200);
-//                     res.json({
-//                         "message": "新增照片地址成功！"
-//                     })
-//                 }
-//             })
-//         } else if (req.body.picture == "IDback") {
-//             mysqlPoolQuery('UPDATE forget_pw SET fp_imageb =\'' + imageLocation + '\'' + 'WHERE fp_investor_email = \'' + email + '\'', function (err) {
-//                 if (err) {
-//                     res.status(400)
-//                     res.json({
-//                         "message": "新增照片地址失敗:" + err
-//                     })
-//                 }
-//                 else {
-//                     res.status(200);
-//                     res.json({
-//                         "message": "新增照片地址成功！"
-//                     })
-//                 }
-//             })
-//         }
-//     }
-
-//     /* error handling for image upload*/
-//     // upload(req, res, function (err) {
-//     //     if (err instanceof multer.MulterError) {
-//     //         console.log('照片上傳發生錯誤：' + err)
-//     //     } else if (err) {
-//     //         console.log('照片上傳發生錯誤：' + err)
-//     //     }
-//     //     console.log('照片上傳成功！')
-//     // });
-// })
-
-// router.post('/post_BookletImage', uploadBookletImage.single('image'), function (req, res) {
-//     let mysqlPoolQuery = req.pool;
-//     var email = req.body.email;
-//     var imageLocation = req.body.imageLocation;
-//     var DBtableType = req.body.DBtableType;
-
-//     if (DBtableType === 'user') {
-//         mysqlPoolQuery('UPDATE user SET u_bankBooklet =\'' + imageLocation + '\'' + 'WHERE u_email = \'' + email + '\'', function (err) {
-//             if (err) {
-//                 res.status(400)
-//                 res.json({
-//                     "message": "新增照片地址失敗" + err
-//                 })
-//             }
-//             else {
-//                 res.status(200);
-//                 res.json({
-//                     "message": "新增照片地址成功！"
-//                 })
-//             }
-//         })
-//     } else {
-//         mysqlPoolQuery('UPDATE forget_pw SET fp_bankAccountimage =\'' + imageLocation + '\'' + 'WHERE fp_investor_email = \'' + email + '\'', function (err) {
-//             if (err) {
-//                 res.status(400)
-//                 res.json({
-//                     "message": "新增照片地址失敗" + err
-//                 })
-//             }
-//             else {
-//                 res.status(200);
-//                 res.json({
-//                     "message": "新增照片地址成功！"
-//                 })
-//             }
-//         })
-//     }
-// })
-
 router.post('/Image', uploadImages.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
     const applicationType = req.body.applicationType;
     const pictureType = req.body.pictureType;
     let table;
-    const pictureType = req.body.pictureType;
     const imageLocation = req.body.detailedImageLocation;
     let emailColumnName;
     const email = req.body.email;
@@ -386,46 +270,20 @@ router.post('/Image', uploadImages.single('image'), function (req, res) {
     switch (applicationType) {
         case "signUp":
             table = 'user';
-            URLColumnName = 'u_';
             emailColumnName = 'u_email';
             break;
         case "forget_password":
             table = 'forget_pw';
-            URLColumnName = 'fp_';
             emailColumnName = 'fp_investor_email';
             break;
         default:
             console.log('applicationType is not found');
     }
-
-    // switch (pictureType) {
-    //     case "fp_imagef" || "fp_imagef":
-    //         URLColumnName += 'imagef';
-    //         break;
-    //     case "fp_imageb" || "fp_imageb":
-    //         URLColumnName += 'imageb';
-    //         break;
-    //     case "fp_bankAccountimage" || "fp_bankAccountimage":
-    //         URLColumnName += 'bankAccountimage';
-    //         break;
-    //     default:
-    //         console.log('applicationType is not found');
-    // }
-    console.log('test params:', table, pictureType, imageLocation, emailColumnName, email)
-
+    console.log('test params:', table, pictureType, imageLocation, emailColumnName, email);
+    
     mysqlPoolQuery('UPDATE ? SET ? = ? WHERE ? = ?', [table, pictureType, imageLocation, emailColumnName, email], function (err) {
-        if (err) {
-            res.status(400)
-            res.json({
-                "message": "新增照片地址失敗" + err
-            })
-        }
-        else {
-            res.status(200);
-            res.json({
-                "message": "新增照片地址成功！"
-            })
-        }
+        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
     })
 })
 
