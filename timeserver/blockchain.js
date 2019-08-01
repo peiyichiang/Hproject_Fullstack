@@ -4,10 +4,9 @@ const moment = require('moment');
 const chalk = require('chalk');
 const log = console.log;
 console.log('loading blockchain.js...');
-require('dotenv').config();
 
 const { getTime, isEmpty, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
-const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray, logger } = require('../ethereum/contracts/zsetupData');
+const { gasLimitValue, gasPriceValue, blockchainURL, Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray, wlogger } = require('../ethereum/contracts/zsetupData');
 const { addActualPaymentTime } = require('./mysql');
 
 const { mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
@@ -17,29 +16,19 @@ const blockchainChoice = 1;//1 POA, 2 ganache, 3 Infura
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
 
-const userIdArray = [];
+const userIdentityNumberArray = [];
 const investorLevelArray = [];
 const assetbookArray = [];
 userArray.forEach((user, idx) => {
   if (idx !== 0 ){
-    userIdArray.push(user.identityNumber);
+    userIdentityNumberArray.push(user.identityNumber);
     investorLevelArray.push(user.investorLevel);
     assetbookArray.push(user.addrAssetBook);
   }
 });
 
-let backendAddr, backendAddrpkRaw, blockchain_ip;
-if(blockchainChoice === 1){//POA
-  blockchain_ip = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
-  //blockchain_ip = "http://140.119.101.130:8545";
-} else if(blockchainChoice === 2){/*ganache*/
-  blockchain_ip = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
-  //blockchain_ip = "http://140.119.101.130:8540";
-} else if(blockchainChoice === 3){/*Infura HttpProvider Endpoint*/
-  blockchain_ip = process.env.BC_PROVIDER;
-}
-console.log('blockchain_ip = '+blockchain_ip);
-web3 = new Web3(new Web3.providers.HttpProvider(blockchain_ip));
+let backendAddr, backendAddrpkRaw;
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -130,19 +119,115 @@ const checkCustomerService = async(eoa, addrHeliumX) => {
   });
 }
 
+//----------------------==Registry Contract
+const addUsersToRegistryCtrt = async(registryContractAddr, userIDs, userAssetbooks, investorLevels) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n----------------== addUsersToRegistryCtrt()');
+    let userM;
+    console.log('registryContractAddr', registryContractAddr);
+    const instRegistry = new web3.eth.Contract(Registry.abi, registryContractAddr);
+
+    if(userIDs.length !== userAssetbooks.length) {
+      console.log('userIDs and userAssetbooks must have the same length!');
+      process.exit(0);
+    }
+    await asyncForEach(userIDs, async (userId, idx) => {
+      console.log('\n--------==Check if this user has already been added into RegistryCtrt');
+      const checkArray = await instRegistry.methods.checkAddSetUser(userId, userAssetbooks[idx], investorLevels[idx]).call({from: admin});
+      /**
+          boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+          //ckUidLength(uid)
+          boolArray[1] = bytes(uid).length > 0;
+          boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
+
+          //ckAssetbookValid(assetbookAddr)
+          boolArray[3] = assetbookAddr != address(0);
+          boolArray[4] = assetbookAddr.isContract();
+          boolArray[5] = uidToAssetbook[uid] == address(0);
+          boolArray[6] = authLevel > 0 && authLevel < 10;
+      */
+      console.log('checkArray', checkArray);
+
+      if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
+        if(checkArray[5]){
+          console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
+          console.log('--------==AddUser():', idx)
+          const encodedData = instRegistry.methods.addUser(userId, userAssetbooks[idx], investorLevels[idx]).encodeABI();
+          let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryContractAddr, encodedData);
+          console.log('\nTxResult', TxResult);
+          console.log(`after addUser() on AssetOwner${idx+1}...`);
+      
+          userM = await instRegistry.methods.getUserFromUid(userId).call();
+          console.log('userM', userM);
+        } else {
+          console.log(`\nThis uid ${userId} has already been added. Skipping this uid...`);
+        }
+        resolve(true);
+      } else {
+        console.log('\nError detected');
+        reject(false);
+      }
+    });
+  });
+}
 
 //Set compliance regulatory rules
-const setRestrictions = async(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) => {
+const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) => {
   return new Promise(async (resolve, reject) => {
     //console.log('--------------==setRestrictions()');
-    const instHelium = new web3.eth.Contract(Helium.abi, addrRegistry);
+    const instHelium = new web3.eth.Contract(Helium.abi, registryContractAddr);
     const encodedData= instHelium.methods.setRestrictions(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData).catch((err) => {
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryContractAddr, encodedData).catch((err) => {
       reject('[Error @ signTx() setRestrictions()]'+ err);
       return false;
     });
     console.log('\nTxResult', TxResult);
     resolve(result);
+  });
+}
+
+
+
+//-------------------==Assetbook Contracts
+const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
+  return new Promise(async (resolve, reject) => {
+    //console.log('--------------==deployAssetbooks()');
+    console.log('\nDeploying AssetBook contracts to eoaArray...');
+
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3.version', web3deploy.version);
+    const prefix = '0x';
+
+    const addrAssetBookArray = [];
+    await asyncForEach(eoaArray, async (item, idx) => {
+      const argsAssetBookN = [item, addrHeliumContract];
+      const instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
+      .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(false);
+          return false;
+        });
+      if (instAssetBookN === undefined) {
+        console.log(`\n[Error] instAssetBook${idx} is NOT defined`);
+        } else {console.log(`[Good] instAssetBook${idx} is defined`);}
+    
+      console.log(`AssetBook${idx} has been deployed`);
+      console.log(`addrAssetBook${idx}: ${instAssetBookN.options.address}`);
+      addrAssetBookArray.push(instAssetBookN.options.address);
+      console.log(`Finished deploying AssetBook${idx}...`);
+    });
+
+    addrAssetBookArray.forEach((item, idx) => {
+      console.log(`addrAssetBook${idx} = "${item}"`);
+    });
+    resolve(true);
   });
 }
 
@@ -2091,6 +2176,62 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
 
 
 
+//--------------------------==
+//message queue producer(sender)
+const rabbitMQSender = async (functionName, symbol, price) => {
+  console.log(`\n------------------==rabbitMQSender`);
+  const amqp = require('amqplib/callback_api');
+
+  console.log(`functionName: ${functionName}, symbol: ${symbol}, price: ${price}`);
+  const response = rabbitMQReceiver(functionName, symbol, price);
+  console.log(`received response: ${response}`);
+
+  amqp.connect('amqp://localhost', (error0, conn) => {
+    if (error0) {
+      console.log('error0', error0);
+      throw error0;
+    }
+    conn.createChannel((error1, channel) => {
+      if (error1) {
+        console.log('error1', error1);
+        throw error1;
+      }
+      const boxName = 'amqpTest2';
+      channel.assertQueue(boxName, { durable: false });
+      console.log(' [*] Waiting for result in: %s. To exit press CTRL+C', boxName);
+      channel.consume(boxName, msg => {
+          console.log(' [x] Received result: %s', msg.content);  
+          conn.close();            
+      }, { noAck: true
+      });
+    });
+  })
+}
+
+//message queue consumer (receiver) 
+const rabbitMQReceiver = async (functionName, symbol, price) => {
+  console.log(`\n------------------==rabbitMQReceiver`);
+  amqp.connect('amqp://localhost', (err, conn) => {
+    conn.createChannel((error0, channel) => {
+      if (error0) {
+        console.log('error0', error0);
+        throw error0;
+      }
+      const boxName = 'amqpTest2';
+      channel.assertQueue(boxName, {durable: false});
+      // I suppose the process will take about 5 seconds to finish
+      setTimeout(() => {
+        let result = 'xyz0001';
+        channel.sendToQueue(boxName, new Buffer.from(result));
+        console.log(` [X] Send: ${result}`);
+      }, 5000)                       
+    });
+    // The connection will close in 10 seconds
+    setTimeout(() => {
+     conn.close();
+    }, 10000);
+   });
+}
 
 //--------------------------==
 /*sign rawtx*/
@@ -2142,9 +2283,8 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, updateExpiredOrders, getDetailsCFC, 
-  getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens,
   getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver
 }

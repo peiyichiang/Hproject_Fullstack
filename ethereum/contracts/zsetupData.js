@@ -1,8 +1,26 @@
 const Web3 = require('web3');
-const nodeUrl = "http://140.119.101.130:8545";//POA
-const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
 const winston = require('winston');
 const winstonDailyRotateFile = require('winston-daily-rotate-file');
+
+require("dotenv").config();
+let blockchainChoice = 1, blockchainURL, gasLimitValue, gasPriceValue;
+if(blockchainChoice === 1){//POA
+  blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
+  gasLimitValue = '7000000';//intrinsic gas too low
+  gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
+
+} else if(blockchainChoice === 2){/*ganache*/
+  blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
+  gasLimitValue = '7000000';// for POW private chain
+  gasPriceValue = '20000000000';//100000000000000000
+
+} else if(blockchainChoice === 3){/*Infura HttpProvider Endpoint*/
+  blockchainURL = process.env.BC_PROVIDER;
+  gasLimitValue = '7000000';// for POW private chain
+  gasPriceValue = '20000000000';//100000000000000000
+
+}
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 
 //let addrIncomeManager, addrProductManager;
@@ -635,7 +653,7 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
 //---------------------------==Winston Logger
 const loglevel = 'warn';//to show/hide logs.
 //value = silly, debug, verbose, info, warn, and error
-//console.log => logger.verbose, logger.warn, logger.error
+//console.log => wlogger.verbose, wlogger.warn, wlogger.error
 
 const logFormat = winston.format.combine(
   winston.format.colorize(),
@@ -646,7 +664,7 @@ const logFormat = winston.format.combine(
   ),
 );//${info.timestamp} 
 
-//add file and console loggers to the winston instance
+//add file and console wloggers to the winston instance
 winston.loggers.add('format1', {
   format: logFormat,
   transports: [
@@ -661,24 +679,25 @@ winston.loggers.add('format1', {
   ],
 });
 
-const logger = winston.loggers.get('format1');
-// logger.silly('Trace message, Winston!');
-// logger.debug('Debug message, Winston!');
-// logger.verbose('A bit more info, Winston!');
-// logger.info('Hello, Winston!');
-// logger.warn('Heads up, Winston!');
-// logger.error('Danger, Winston!');
+const wlogger = winston.loggers.get('format1');
+// wlogger.silly('Trace message, Winston!');
+// wlogger.debug('Debug message, Winston!');
+// wlogger.verbose('A bit more info, Winston!');
+// wlogger.info('Hello, Winston!');
+// wlogger.warn('Heads up, Winston!');
+// wlogger.error('Danger, Winston!');
 
 //---------------------------==
 
 
 module.exports = {
+  blockchainURL, gasLimitValue, gasPriceValue,
   addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTimeserverON, useFullTimeServer,
   CFSD, CFED, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance, logger
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance, wlogger
 }
   /**
   From KuanYi:

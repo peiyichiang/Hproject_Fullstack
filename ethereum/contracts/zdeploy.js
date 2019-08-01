@@ -12,10 +12,13 @@ const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArr
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
-const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, 
+const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, blockchainURL,
   TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray, incomeArrangementArray
 } = require('./zsetupData');
+
+//to be overwritten as we are deploying new contracts
+let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
 let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
 console.log('process.argv', process.argv);
@@ -30,15 +33,12 @@ if (process.argv.length < 8) {
 let chain, ctrtName, result;
 
 
-let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
 const backendAddr = AssetOwner1;
 const backendAddrpkRaw = AssetOwner1pkRaw;
-const assetbookOwners = [AssetOwner7, AssetOwner8, AssetOwner9];
-const assetbookOwnersx = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner10];
 
 
 console.log('process.argv', process.argv);
@@ -81,22 +81,20 @@ console.log('chain = ', chain, ', ctrtName =', ctrtName);
 if (chain === 1) {//POA private chain
   gasLimitValue = '7000000';//intrinsic gas too low
   gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
-  const nodeUrl = "http://140.119.101.130:8545";//POA
 
   backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
-  provider = new PrivateKeyProvider(backendAddrpkBuffer, nodeUrl);
+  provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
   web3deploy = new Web3(provider);
-  web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+  web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
   console.log('web3.version', web3deploy.version);
   prefix = '0x';
 
 } else if (chain === 2) {//2: POW private chain
   gasLimitValue = '7000000';// for POW private chain
   gasPriceValue = '20000000000';//100000000000000000
-  const nodeUrl = "http://140.119.101.130:8540";
-
+  
   backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
-  //provider = new PrivateKeyProvider(backendAddrpkBuffer, nodeUrl);
+  //provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
 
   //web3.setProvider(ganache.provider());
 
@@ -107,21 +105,15 @@ if (chain === 1) {//POA private chain
   const options = { gasLimit: 8000000, accounts: [{balance: 9140000000000000000, secretKey: pkey}] };
   //const server = ganache.server(options);
   provider = ganache.provider(options);
-
   web3deploy = new Web3(provider);
-  web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+  web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
   
-
-
-
 } else if (chain === 3) {
   const options = { gasLimit: 7000000 };
   gasLimitValue = '5000000';// for POW Infura Rinkeby chain
   gasPriceValue = '20000000000';//100000000000000000
   provider = ganache.provider(options);
-  const nodeUrl = "https://rinkeby.infura.io/v3/b789f67c3ef041a8ade1433c4b33de0f";
-  //const noeeUrl = "https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d";
-  web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+  web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 } else {
   console.log('chain is out of range. chain =', chain);
@@ -273,8 +265,8 @@ const deploy = async () => {
   //yarn run deploy -c 1 -s 1 -cName assetbook
   } else if (ctrtName === 'assetbook') {
     const addrAssetBookArray = [];
-    console.log('\nDeploying AssetBook contracts: 1~3...');
-    await asyncForEach(assetbookOwners, async (item, idx) => {
+    console.log('\nDeploying AssetBook contracts to assetOwnerArray...');
+    await asyncForEach(assetOwnerArray, async (item, idx) => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
@@ -294,14 +286,14 @@ const deploy = async () => {
       addrAssetBookArray.push(instAssetBookN.options.address);
       console.log(`Finished deploying AssetBook${idx+1}...`);
     });
-    console.log(`\nFinished deploying assetbook 7, 8, 9:
-  addrAssetBook7 = "${addrAssetBookArray[0]}";
-  addrAssetBook8 = "${addrAssetBookArray[1]}";
-  addrAssetBook9 = "${addrAssetBookArray[2]}";`);
+
+    addrAssetBookArray.forEach((item, idx) => {
+      console.log(`addrAssetBook${idx} = "${item}"`);
+    });
     process.exit(0);
 
-  //yarn run deploy -c 1 -s 1 -cName assetbookx
-  } else if (ctrtName === 'assetbookx') {
+  //yarn run deploy -c 1 -s 1 -cName assetbook2
+  } else if (ctrtName === 'assetbook2') {
     const addrAssetBookArray = [];
     console.log('\nDeploying AssetBook contracts 0 ~ 6,10...');
     await asyncForEach(assetbookOwnersx, async (item, idx) => {
@@ -568,7 +560,6 @@ const deploy = async () => {
     console.log('\n-------------==inside addUserRowAPI');
 
     await asyncForEach(userArray, async (user, idx) => {
-      if(idx !== 0){
         const email = user.email;
         const password = user.password;
         const identityNumber = user.identityNumber;
@@ -581,10 +572,9 @@ const deploy = async () => {
         const imageb = user.imageb;
         const bank_booklet = user.bank_booklet;
   
-        console.log(`email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
+        console.log(`idx: ${idx}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
   
         await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
-      }
     });
     process.exit(0);
   

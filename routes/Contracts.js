@@ -5,17 +5,12 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 const amqp = require('amqplib/callback_api');
 
-const { isTimeserverON } = require('../ethereum/contracts/zsetupData');
+const { isTimeserverON, blockchainURL } = require('../ethereum/contracts/zsetupData');
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
-const { sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
+const { sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
-/*Infura HttpProvider Endpoint*/
-//web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d"));
-/*POA*/
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8545"));
-/*ganache*/
-//web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 /**後台公私鑰*/
 const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
@@ -42,7 +37,7 @@ const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3
 const addrZero = "0x0000000000000000000000000000000000000000";
 /**time server*/
 getTime().then(function (time) {
-    console.log(`[Routes/Contract.js] current time: ${time}`)
+    console.log(`[Routes/Contract.js] server time: ${time}`)
 })
 
 
@@ -1017,8 +1012,27 @@ router.post('/test1/:nftSymbol', function (req, res, next) {
 });
 
 
-// http://localhost:3000/Contracts/messages
-router.post('/messages',async function (req, res, next) {
+//------------------------------==
+// message queue relay API
+// http://localhost:3000/Contracts/amqpRelay
+router.post('/amqpRelay', async function (req, res, next) {
+  console.log(`\n------------------==amqpRelay`);
+  const nftSymbol = req.body.nftSymbol;
+  const price = req.body.price;
+  const functionName = req.body.functionName;
+  //const nftSymbol = req.params.nftSymbol;
+
+  res.send({
+    status: true,
+    success: undefined,
+    result: 'The request is being processed!'
+  });
+  rabbitMQSender(functionName, nftSymbol, price);
+});
+
+//message queue consumer (receiver) 
+// http://localhost:3000/Contracts/amqpTest1receiver
+router.post('/amqpTest1receiver',async function (req, res, next) {
   console.log(`\n------------------==testrabbitmq...`);
   amqp.connect('amqp://localhost', (err, conn) => {
     conn.createChannel((error0, channel) => {
@@ -1026,12 +1040,12 @@ router.post('/messages',async function (req, res, next) {
         console.log('error0', error0);
         throw error0;
       }
-      const qReceiver = 'messageAPI';
-      channel.assertQueue(qReceiver, {durable: false});
+      const boxName = 'amqpTest1';
+      channel.assertQueue(boxName, {durable: false});
       // I suppose the process will take about 5 seconds to finish
       setTimeout(() => {
         let result = 'xyz0001';
-        channel.sendToQueue(qReceiver, new Buffer.from(result));
+        channel.sendToQueue(boxName, new Buffer.from(result));
         console.log(` [X] Send: ${result}`);
       }, 5000)                       
     });
