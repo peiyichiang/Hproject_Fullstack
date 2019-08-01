@@ -5,17 +5,17 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 const amqp = require('amqplib/callback_api');
 
-const { isTimeserverON, blockchainURL } = require('../ethereum/contracts/zsetupData');
+const { isTimeserverON, blockchainURL, admin, adminpkRaw, wlogger } = require('../ethereum/contracts/zsetupData');
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
-const { sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
+const { addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 /**後台公私鑰*/
-const backendAddr = '0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB';
-const backendPrivateKey = Buffer.from('17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C', 'hex');
-const backendRawPrivateKey = '0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C';
+const backendAddr = admin;
+const backendRawPrivateKey = adminpkRaw;
+const backendPrivateKey = Buffer.from(backendRawPrivateKey.substr(2), 'hex');
 
 /**contracts info*/
 const heliumContract = require('../ethereum/contracts/build/Helium.json');
@@ -47,9 +47,9 @@ getTime().then(function (time) {
 /**deploy helium contract*/
 router.post('/heliumContract', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     const helium = new web3deploy.eth.Contract(heliumContract.abi);
@@ -81,9 +81,9 @@ router.get('/heliumContract', function (req, res, next) {
 /*deploy registry contract*/
 router.post('/registryContract', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
 
     const web3deploy = new Web3(provider);
 
@@ -186,9 +186,9 @@ router.get('/registryContract/users/:u_id', async function (req, res, next) {
 router.post('/assetbookContract', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
 
     const web3deploy = new Web3(provider);
 
@@ -219,9 +219,9 @@ router.post('/assetbookContract', async function (req, res, next) {
 router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next) {
     //const provider = new PrivateKeyProvider(privateKey, 'https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d');
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
 
     const web3deploy = new Web3(provider);
 
@@ -618,9 +618,9 @@ router.post('/crowdFundingContract/:tokenSymbol/updateState', async function (re
 /**close funding*/
 router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     let tokenControllerAddr;
@@ -767,9 +767,9 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
 /*deploy tokenController contract*/
 router.post('/tokenControllerContract', async function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     let TimeOfDeployment = req.body.TimeOfDeployment;
@@ -871,9 +871,9 @@ router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, 
 /*deploy HCAT721_AssetToken contract*/
 router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     let nftName = req.body.nftName;
@@ -964,6 +964,7 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
 
 });
 
+//------------------------------==
 // http://localhost:3000/Contracts/test1/NCCU0725
 router.get('/test1/:nftSymbol', function (req, res, next) {
   var nftSymbol = req.params.nftSymbol;
@@ -1012,7 +1013,6 @@ router.post('/test1/:nftSymbol', function (req, res, next) {
 });
 
 
-//------------------------------==
 // message queue relay API
 // http://localhost:3000/Contracts/amqpRelay
 router.post('/amqpRelay', async function (req, res, next) {
@@ -1060,159 +1060,116 @@ router.post('/amqpTest1receiver',async function (req, res, next) {
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
 // http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
-    console.log(`\n---------------------==API mintSequentialPerCtrt...`);
-    const isCombinedAPI = true;
-    const nftSymbol = req.params.nftSymbol;
-    let isSuccess, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
-    /*console.log(`\nSuccess: ${isSuccess} \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-    is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
-    */
+  console.log(`\n---------------------==API mintSequentialPerCtrt...`);
+  const isCombinedAPI = true;
+  const maxMintAmountPerRun = 190;
+  const nftSymbol = req.params.nftSymbol;
 
-    if(isCombinedAPI){
-      [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
-        isSuccess = false;
-        console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
-        res.send({
-          success: false,
-          result: 'failed at preMint(), err: ' + err,
-        });
-        return false;
+  let isSuccess = false, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
+
+  if(isCombinedAPI){
+    [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
+      console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
+      res.send({
+        success: false,
+        result: 'failed at preMint(), err: ' + err,
       });
-      console.log(`--------------==Returned values from preMint():
+      return false;
+    });
+    console.log(`--------------==Returned values from preMint():
 toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
-      if(toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)){
-        isSuccess = false;
-        console.log(`[Error] preMint() returns invalid values,
-        toAddressArray length: ${toAddressArray.length},
-        amountArray length: ${amountArray.length},
-        tokenCtrtAddr: ${tokenCtrtAddr}`);
-        res.send({
-          success: false,
-          result: 'preMint() returns invalid values',
-        });
-        return false;
-      }
-    } else {
-      pricing = req.body.price;
-      fundingType = req.body.fundingType;
-      toAddressArray = req.body.toAddressArray.split(",");
-      amountArray = req.body.amountArray.split(",").map(function (item) {
-          return parseInt(item, 10);
+    if(toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)){
+      console.log(`[Error] preMint() returns invalid values,
+      toAddressArray length: ${toAddressArray.length},
+      amountArray length: ${amountArray.length},
+      tokenCtrtAddr: ${tokenCtrtAddr}`);
+      res.send({
+        success: false,
+        result: 'preMint() returns invalid values',
       });
-      tokenCtrtAddr = req.body.erc721address;
+      return false;
     }
-    //process.exit(0);
-
-    const maxMintAmountPerRun = 190;
-    // const [toAddressArrayOut, amountArrayOut] = reduceArrays(toAddressArray, amountArray);//reduce order arrays from the same duplicated accounts
-    // console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArrayOut);
-
-    // No while loop! We need human inspections done before automatically minting more tokens
-    // defined in /timeserver/blockchain.js
-    // to mint tokens in different batches of numbers, to each assetbook
-    if(isTimeserverON){ 
-      serverTime = await getTime();
-    } else { 
-      serverTime = 201906130000;
-    }
-    console.log(`\n--------------==About to call sequentialMintSuper()...`);
-    console.log(`nftSymbol: ${nftSymbol}, fundingType: ${fundingType}, pricing: ${pricing}`);
-
-    res.send({
-      status: true,
-      success: undefined,
-      result: 'good up to pre sequentialMintSuper()'
+  } else {
+    pricing = req.body.price;
+    fundingType = req.body.fundingType;
+    toAddressArray = req.body.toAddressArray.split(",");
+    amountArray = req.body.amountArray.split(",").map(function (item) {
+        return parseInt(item, 10);
     });
+    tokenCtrtAddr = req.body.erc721address;
+  }
+  //process.exit(0);
 
-    const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
-      console.log(`\n[Error @ sequentialMintSuper] \ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, nftSymbol: ${nftSymbol} \n${err}...`);
+  if(isTimeserverON){ 
+    serverTime = await getTime();
+  } else { 
+    serverTime = 201906130000;
+  }
+
+  console.log(`\n--------------==Calling addAssetRecordRowArrayAfterMintToken()...`);
+  const [is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await addAssetRecordRowArrayAfterMintToken(toAddressArray, amountArray, serverTime, nftSymbol, pricing).catch((err) => {
+    console.log('[Error @ addAssetRecordRowArrayAfterMintToken]:', err);
+    console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, nftSymbol: ${nftSymbol} \n${err}...`);
+    //return false;
+  });
+
+  console.log(` \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError} \nis_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
+
+  if(!is_addAssetRecordRowArray) {
+    mesg = '[addAssetRecordRowArray() Failed]';
+    //return false;
+
+  } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+    mesg = '[Error] addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
+    //return false;
+
+  } else if(!is_addActualPaymentTime) {
+    mesg = '[addActualPaymentTime() Failed]';
+    //return false;
+
+  } else if(!is_setFundingStateDB) {
+    mesg = '[setFundingStateDB() Failed]';
+    //return false;
+  } else {
+    isSuccess = true;
+    mesg = '[Success @ addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()]';
+    //return false;
+  }
+  console.log(`\nSuccess: ${isSuccess} \n${mesg}`);
+
+  res.send({
+    status: true,
+    success: isSuccess,
+    is_addAssetRecordRowArray: is_addAssetRecordRowArray, 
+    emailArrayError: emailArrayError, 
+    amountArrayError: amountArrayError, 
+    is_addActualPaymentTime: is_addActualPaymentTime, 
+    is_setFundingStateDB: is_setFundingStateDB,
+    result: 'Good up to addAssetRecordRowArrayAfterMintToken(), before calling sequentialMintSuper()',
+  });
+
+  // console.log(`yarn run testmt -f 50 to reset symbol status`);
+  // process.exit(0);
+  //--------------------------==
+  console.log(`\n--------------==Before calling sequentialMintSuper()...`);
+  console.log(`nftSymbol: ${nftSymbol}, fundingType: ${fundingType}, pricing: ${pricing}`);
+  const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
+    console.log(`\n[Error @ sequentialMintSuper] \ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, nftSymbol: ${nftSymbol} \n${err}...`);
+    return false;
+  });
+  console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+
+  if (isFailed || isFailed === undefined || isFailed === null) {
+      mesg = `[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!`;
+      console.log(`\nSuccess: false \n${mesg} \nisCorrectAmountArray: ${isCorrectAmountArray}`);
       return false;
-      // res.send({
-        //     success: false,
-        //     result: mesg+', err: ' + err,
-        // });
-    });
-    console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
 
-    if (isFailed || isFailed === undefined || isFailed === null) {
-        mesg = `[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!`;
-        console.log(`\nSuccess: false \n${mesg} \nisCorrectAmountArray: ${isCorrectAmountArray}`);
-        return false;
-        // res.send({
-        //     success: false,
-        //     result: mesg,
-        //     isCorrectAmountArray: isCorrectAmountArray,
-        // });
-
-    } else if(!is_addAssetRecordRowArray) {
-      mesg = '[Token minting Successful but addAssetRecordRowArray() Failed]';
-      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
-      return false;
-      // res.send({
-      //   success: false,
-      //   result: mesg,
-      //   emailArrayError: emailArrayError,
-      //   amountArrayError: amountArrayError,
-      //   is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-      //   is_addActualPaymentTime: is_addActualPaymentTime
-      // });
-
-    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
-      mesg = '[Error] Token minting is successful, but addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
-      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`);
-      return false;
-      // res.send({
-      //   success: false,
-      //   result: mesg,
-      //   emailArrayError: emailArrayError,
-      //   amountArrayError: amountArrayError
-      // });
-
-    } else if(!is_addActualPaymentTime) {
-      mesg = '[Token minting Successful but addActualPaymentTime() Failed]';
-      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} `);
-      return false;
-      // res.send({
-      //   success: false,
-      //   result: mesg,
-      //   emailArrayError: emailArrayError,
-      //   amountArrayError: amountArrayError,
-      //   is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-      //   is_addActualPaymentTime: is_addActualPaymentTime
-      // });
-
-    } else if(!is_setFundingStateDB) {
-      mesg = '[Token minting Successful but setFundingStateDB() Failed]';
-      console.log(`\nSuccess: false \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
-      return false;
-      // res.send({
-      //   success: false,
-      //   result: mesg,
-      //   emailArrayError: emailArrayError,
-      //   amountArrayError: amountArrayError,
-      //   is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-      //   is_addActualPaymentTime: is_addActualPaymentTime,
-      //   is_setFundingStateDB: is_setFundingStateDB
-      // });
-
-    } else {
-      mesg = '[Success] All token minting, addAssetRecordRowArray(), addActualPaymentTime(), and setFundingStateDB() have been completed successfully';
-      console.log(`\nSuccess: true \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-      is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
-      return true;
-      // res.send({
-      //     success: true,
-      //     result: mesg,
-      //     emailArrayError: emailArrayError,
-      //     amountArrayError: amountArrayError,
-      //     is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-      //     is_addActualPaymentTime: is_addActualPaymentTime,
-      //     is_setFundingStateDB: is_setFundingStateDB
-      // });
-    }
+  } else {
+    mesg = '[Success] All token minting have been completed successfully';
+    console.log(`\nSuccess: true \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
+    is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
+    return true;
+  }
 });
 
 
@@ -1372,9 +1329,9 @@ router.post('/HCAT721_AssetTokenContract/safeTransferFromBatch', async function 
 /*deploy incomeManager contract*/
 router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     let nftSymbol = req.params.nftSymbol;
@@ -1669,9 +1626,9 @@ router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async
 /**deploy productManager contract*/
 router.post('/productManagerContract', function (req, res, next) {
     /**POA */
-    const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8545');
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, 'http://140.119.101.130:8540');
+    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     const productManager = new web3deploy.eth.Contract(productManagerContract.abi);

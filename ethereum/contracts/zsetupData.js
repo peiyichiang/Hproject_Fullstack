@@ -30,29 +30,30 @@ let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTota
 const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'AURA1904'];
 const excludedSymbolsIA = [];
 
-const admin = "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-const adminpkRaw = "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
-const AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
-const AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
-const AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
-const AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
-const AssetOwner3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
-const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
-const AssetOwner4 = "0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E";
-const AssetOwner4pkRaw = "0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f";
-const AssetOwner5 = "0xa6cc621A179f01A719ee57dB4637A4A1f603A442";
-const AssetOwner5pkRaw = "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a";
+//console.log('acquired admin:',process.env.admin, process.env.adminpkRaw);
+const admin = process.env.admin;
+const adminpkRaw =  process.env.adminpkRaw;
+const AssetOwner1 = process.env.AssetOwner1;
+const AssetOwner1pkRaw = process.env.AssetOwner1pkRaw;
+const AssetOwner2 = process.env.AssetOwner2;
+const AssetOwner2pkRaw = process.env.AssetOwner2pkRaw;
+const AssetOwner3 = process.env.AssetOwner3;
+const AssetOwner3pkRaw = process.env.AssetOwner3pkRaw;
+const AssetOwner4 = process.env.AssetOwner4;
+const AssetOwner4pkRaw = process.env.AssetOwner4pkRaw;
+const AssetOwner5 = process.env.AssetOwner5;
+const AssetOwner5pkRaw = process.env.AssetOwner5pkRaw;
 
-const AssetOwner6 = "0x6Ae6Bd45E4F30fdFe487BC5940f092a69A72462B";
-const AssetOwner6pkRaw = "0x5df6762ff8e898f6ca718844d6be97852f5ea3e0b9f3b9af89cb9f8dd074a6db";
-const AssetOwner7 = "0x836434d111AC6893Ff4d6C7547870e6bb1D31B67";
-const AssetOwner7pkRaw = "0x85d930838529708da898206a9cc6c8fca172b398011ed414dab48bdb76fe4148";
-const AssetOwner8 = "0x52566ac53BD14B4519e063b6A16CC0d249FF8Fd2";
-const AssetOwner8pkRaw = "0x3bd92e02137d5678463a23cdff407e5af06ab6b7bfe1b8c8ac172b1ce19182a4";
-const AssetOwner9 = "0xe93c0A8845E8477ae460578d2D84d918aaCA37F7";
-const AssetOwner9pkRaw = "0x4717997c64e19cfbd4df771c3f8900232b8681c77162bf5de0f5e7dca115237d";
-const AssetOwner10 = "0x61D9068dA7B5dF1BBfb0a254Cb40C6739A52bd76";
-const AssetOwner10pkRaw = "0x7347b852ddbbb7c1c39e7ca381f4c30ce3cd8adb55a48f7f67310d0a8db3ae68";
+const AssetOwner6 = process.env.AssetOwner6;
+const AssetOwner6pkRaw = process.env.AssetOwner6pkRaw;
+const AssetOwner7 = process.env.AssetOwner7;
+const AssetOwner7pkRaw = process.env.AssetOwner7pkRaw;
+const AssetOwner8 = process.env.AssetOwner8;
+const AssetOwner8pkRaw = process.env.AssetOwner8pkRaw;
+const AssetOwner9 = process.env.AssetOwner9;
+const AssetOwner9pkRaw = process.env.AssetOwner9pkRaw;
+const AssetOwner10 = process.env.AssetOwner10;
+const AssetOwner10pkRaw = process.env.AssetOwner10pkRaw;
 
 const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10];
 const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw];
@@ -157,8 +158,8 @@ const productObjArray = [productObj0, productObj1, productObj2, productObj3, pro
 symNum = 2;
 const isTimeserverON = true;
 //const isTimeserverON = false;
-const useFullTimeServer = true;
-//const useFullTimeServer = false;
+//const useFullTimeServer = true;
+const useFullTimeServer = false;
 
 if(useFullTimeServer){
   whichTimeServerArray = [1, 1, 1, 1, 1, 1];
@@ -227,12 +228,12 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
 const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', admin, '093755500', 'Romeo0', addrAssetBook0, 5, 1);
-const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo0', addrAssetBook1, 5, 1);
-const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo0', addrAssetBook2, 5, 1);
-const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo0', addrAssetBook3, 5, 1);
-const user4 = new userObject('000a4@gmail.com', 'user4pw', 'R999777004', AssetOwner4, '093755504', 'Romeo0', addrAssetBook4, 5, 1);
-const user5 = new userObject('000a5@gmail.com', 'user5pw', 'R999777005', AssetOwner5, '093755505', 'Romeo0', addrAssetBook5, 5, 1);
-const user6 = new userObject('000a6@gmail.com', 'user6pw', 'R999777006', AssetOwner6, '093755506', 'Romeo0', addrAssetBook6, 5, 1);
+const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5, 1);
+const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5, 1);
+const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5, 1);
+const user4 = new userObject('000a4@gmail.com', 'user4pw', 'R999777004', AssetOwner4, '093755504', 'Romeo4', addrAssetBook4, 5, 1);
+const user5 = new userObject('000a5@gmail.com', 'user5pw', 'R999777005', AssetOwner5, '093755505', 'Romeo5', addrAssetBook5, 5, 1);
+const user6 = new userObject('000a6@gmail.com', 'user6pw', 'R999777006', AssetOwner6, '093755506', 'Romeo6', addrAssetBook6, 5, 1);
 
 const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777007', AssetOwner7, '093755507', 'Romeo7', addrAssetBook7, 5, 10);
 const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777008', AssetOwner8, '093755508', 'Romeo8', addrAssetBook8, 5, 5);
@@ -692,26 +693,10 @@ const wlogger = winston.loggers.get('format1');
 
 module.exports = {
   blockchainURL, gasLimitValue, gasPriceValue,
-  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
+  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, admin, adminpkRaw, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum,
   TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTimeserverON, useFullTimeServer,
   CFSD, CFED, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
   argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
   email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance, wlogger
 }
-  /**
-  From KuanYi:
-  "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-  "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
- 
-  https://iancoleman.io/bip39
-  m/44'/60'/0'/0/0 	0xa6cc621A179f01A719ee57dB4637A4A1f603A442 	0x02afa51468bfb825ddfa794b360f42c016da3dba10df065a11650b63799befed45 	0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
-
-  m/44'/60'/0'/0/1 	0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2 	0x025e0eaf152f741fc91f437d0b6dfdaf96c076ad98010a0d60ba0490c05a46bbdd 	0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca
-
-  m/44'/60'/0'/0/2 	0x470Dea51542017db8D352b8B36B798a4B6d92c2E 	0x0384a124835b166c5b3fceec66c861959843eeccb92e18de938be272328692d33f 	0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2
-
-  m/44'/60'/0'/0/3 	0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61 	0x034d315e0adb4a832b692b51478feb1b81e761b9834aaf35f83cd23c43239027ed 	0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45
-
-  m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
-  */

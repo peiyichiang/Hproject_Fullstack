@@ -55,19 +55,6 @@ if(ethAddrChoice === 0){//reserved to API developer
 }
 console.log(`using backendAddr: ${backendAddr}`);
 
-// const choiceOfHCAT721 = 2;
-// if(choiceOfHCAT721===1){
-//   console.log('use HCAT721_Test!!!');
-//   HCAT721 = require('../ethereum/contracts/build/HCAT721_AssetToken_Test.json');
-// } else if(choiceOfHCAT721===2){
-//   console.log('use HCAT721');
-//   HCAT721 = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
-// }
-
-//const heliumContractAddr = "0x7E5b6677C937e05db8b80ee878014766b4B86e05";
-//const registryContractAddr = "0xcaFCE4eE56DBC9d0b5b044292D3DcaD3952731d8";
-//const productManagerContractAddr = "0x96191257D876A4a9509D9F86093faF75B7cCAc31";
-
 
 //-------------------==Helium Contract
 const addPlatformSupervisor = async(platformSupervisorNew, addrHeliumX) => {
@@ -709,6 +696,57 @@ addressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
   });
 }
 
+const addAssetRecordRowArrayAfterMintToken = async(addressArray, amountArray, serverTime, symbol, pricing) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==About to call addAssetRecordRowArray()');
+    let mesg;
+    const ar_time = serverTime;
+    const singleActualIncomePayment = 0;// after minting tokens
+
+    const asset_valuation = 13000;
+    const holding_amount_changed = 0;
+    const holding_costChanged = 0;
+    const moving_ave_holding_cost = 13000;
+
+    const acquiredCostArray = amountArray.map((element) => {
+      return element * pricing;
+    });
+    console.log('acquiredCostArray:', acquiredCostArray);
+
+    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+      mesg = '[Error @ addAssetRecordRowArray]'+ err;
+      console.log(mesg);
+      reject(mesg);
+      return [false,false,false];
+      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,false,false,false];
+    });
+    console.log('\nemailArrayError:', emailArrayError, '\namountArrayError:', amountArrayError);
+
+    const actualPaymentTime = serverTime;
+    const payablePeriodEnd = 0;
+    const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
+      mesg = '[Error @ addActualPaymentTime] '+ err;
+      console.log(mesg);
+      reject(mesg);
+      return [true, emailArrayError, amountArrayError, false,false];
+      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
+    });
+
+    const result3 = await setFundingStateDB(symbol, 'ONM', 'na', 'na').catch((err) => {
+      mesg = '[Error @ setFundingStateDB()] '+ err;
+      console(mesg);
+      reject(mesg);
+      return [true, emailArrayError, amountArrayError,result2,false];
+      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+    });
+
+    console.log('\n--------------== End of addAssetRecordRowArray()');
+    resolve([true, emailArrayError, amountArrayError, result2, result3]);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];
+    //last three boolean values: addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()
+  });
+}
+
 //to be called from API and zlivechain.js, etc...
 const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
@@ -745,50 +783,15 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
   const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(addressArray, amountArray, tokenCtrtAddr, balanceArrayBefore, isToMax).catch((err) => {
     console.log('[Error @ sequentialCheckBalancesAfter]'+ err);
   });
-  // const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(addressArray, amountArray, tokenCtrtAddr, balanceArrayBefore).catch((err) => {
-  //   console.log('[Error @ sequentialCheckBalancesAfter]'+ err);
-  // });
+
   console.log('\n--------------==Done sequentialCheckBalancesAfter()');
   console.log('\nbalanceArrayBefore', balanceArrayBefore, '\nbalanceArrayAfter', balanceArrayAfter);
 
   const isFailed = isCorrectAmountArray.includes(false);
   console.log('\nisFailed:', isFailed, ', isCorrectAmountArray', isCorrectAmountArray);
+  return [isFailed, isCorrectAmountArray];
   //process.exit(0);
 
-  console.log('\n--------------==About to call addAssetRecordRowArray()');
-  const ar_time = serverTime;
-  const singleActualIncomePayment = 0;// after minting tokens
-
-  const asset_valuation = 13000;
-  const holding_amount_changed = 0;
-  const holding_costChanged = 0;
-  const moving_ave_holding_cost = 13000;
-
-  const acquiredCostArray = amountArray.map((element) => {
-    return element * pricing;
-  });
-  console.log(acquiredCostArray);
-
-  const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
-    console.log('[Error @ addAssetRecordRowArray]'+ err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,false,false,false];
-  });
-  console.log('emailArrayError:', emailArrayError, ', amountArrayError:', amountArrayError);
-
-  const actualPaymentTime = serverTime;
-  const payablePeriodEnd = 0;
-  const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
-    console.log('[Error @ addActualPaymentTime]'+ err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
-  });
-
-  const result3 = await setFundingStateDB(symbol, 'ONM', 'na', 'na').catch((err) => {
-    console('[Error @ setFundingStateDB()', err);
-    return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
-  });
-
-return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];//last three boolean values: addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()
-  //resolve(isFailed, isCorrectAmountArray);
 }
 
 
@@ -2283,7 +2286,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens,
   getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver

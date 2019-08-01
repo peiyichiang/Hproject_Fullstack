@@ -710,6 +710,17 @@ result: ${JSON.stringify(data2.result)}`);
   //process.exit(0);
 }// to invest in CFC: see livechain.js: yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
 
+//yarn run testmt -f 50
+const resetAfterMintToken_API = async () => {
+  console.log('-----------------== resetAfterMintToken_API()')
+  const result3 = await setFundingStateDB(nftSymbol, 'FundingClosed', 'na', 'na').catch((err) => {
+    mesg = '[Error @ setFundingStateDB()] '+ err;
+    console(mesg);
+  });
+  console.log('result3', result3);
+  process.exit(0);
+}
+
 
 //yarn run testmt -f 51
 const writeFileToTxtFile_API = async () => {
@@ -973,6 +984,10 @@ if(func === 0){
 //yarn run testmt -f 49
 } else if (func === 49) {
   mintSequentialPerCtrt_API();
+
+//yarn run testmt -f 50
+} else if (func === 50) {
+  resetAfterMintToken_API();
 
 //yarn run testmt -f 51
 } else if (func === 51) {

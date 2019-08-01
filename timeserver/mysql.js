@@ -768,7 +768,7 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
         reject(err);
         return false;
       });
-      console.log('[setFundingStateDB] symbol', symbol, 'pstate', pstate);
+      console.log('[Success @setFundingStateDB] have set symbol', symbol, 'to p_state =', pstate);
       //console.log('result2', result2);
       resolve(true);
     }
