@@ -20,7 +20,7 @@ if(blockchainChoice === 1){//POA
   gasPriceValue = '20000000000';//100000000000000000
 
 }
-const web3 = new Web3(new Web3.providers.HttpProvider(nodeUrl));
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 
 //let addrIncomeManager, addrProductManager;
