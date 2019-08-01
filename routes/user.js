@@ -378,7 +378,7 @@ router.post('/Image', uploadImages.single('image'), function (req, res) {
     const applicationType = req.body.applicationType;
     const pictureType = req.body.pictureType;
     let table;
-    let URLColumnName;
+    const pictureType = req.body.pictureType;
     const imageLocation = req.body.detailedImageLocation;
     let emailColumnName;
     const email = req.body.email;
@@ -398,22 +398,22 @@ router.post('/Image', uploadImages.single('image'), function (req, res) {
             console.log('applicationType is not found');
     }
 
-    switch (pictureType) {
-        case "IDFront":
-            URLColumnName += 'imagef';
-            break;
-        case "IDBack":
-            URLColumnName += 'imageb';
-            break;
-        case "bankBooklet":
-            URLColumnName += 'bankAccountimage';
-            break;
-        default:
-            console.log('applicationType is not found');
-    }
-    console.log('test params:', table, URLColumnName, imageLocation, emailColumnName, email)
+    // switch (pictureType) {
+    //     case "fp_imagef" || "fp_imagef":
+    //         URLColumnName += 'imagef';
+    //         break;
+    //     case "fp_imageb" || "fp_imageb":
+    //         URLColumnName += 'imageb';
+    //         break;
+    //     case "fp_bankAccountimage" || "fp_bankAccountimage":
+    //         URLColumnName += 'bankAccountimage';
+    //         break;
+    //     default:
+    //         console.log('applicationType is not found');
+    // }
+    console.log('test params:', table, pictureType, imageLocation, emailColumnName, email)
 
-    mysqlPoolQuery('UPDATE ? SET ? = ? WHERE ? = ?', [table, URLColumnName, imageLocation, emailColumnName, email], function (err) {
+    mysqlPoolQuery('UPDATE ? SET ? = ? WHERE ? = ?', [table, pictureType, imageLocation, emailColumnName, email], function (err) {
         if (err) {
             res.status(400)
             res.json({
