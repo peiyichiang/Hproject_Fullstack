@@ -294,19 +294,19 @@ router.post('/Image', uploadImages.single('image'), function (req, res) {
         case "forget_password":
             switch (pictureType) {
                 case "fp_imagef":
-                    mysqlPoolQuery('UPDATE forget_pw SET fp_imagef = ? WHERE u_email = ?', params, function (err) {
+                    mysqlPoolQuery('UPDATE forget_pw SET fp_imagef = ? WHERE fp_investor_email = ?', params, function (err) {
                         if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
                         else { res.status(200).json({ "message": "新增照片地址成功！" }); }
                     })
                     break;
                 case "fp_imageb":
-                    mysqlPoolQuery('UPDATE forget_pw SET fp_imageb = ? WHERE u_email = ?', params, function (err) {
+                    mysqlPoolQuery('UPDATE forget_pw SET fp_imageb = ? WHERE fp_investor_email = ?', params, function (err) {
                         if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
                         else { res.status(200).json({ "message": "新增照片地址成功！" }); }
                     })
                     break;
                 case "fp_bankAccountimage":
-                    mysqlPoolQuery('UPDATE forget_pw SET fp_bankAccountimage = ? WHERE u_email = ?', params, function (err) {
+                    mysqlPoolQuery('UPDATE forget_pw SET fp_bankAccountimage = ? WHERE fp_investor_email = ?', params, function (err) {
                         if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
                         else { res.status(200).json({ "message": "新增照片地址成功！" }); }
                     })
