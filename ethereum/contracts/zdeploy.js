@@ -8,7 +8,7 @@ cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addord
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const {addSmartContractRow, addProductRow, addUserRow, addOrderRow, addIncomeArrangementRowFromObj} = require('../../timeserver/mysql.js');
+const {addSmartContractRow, addProductRow, addUsersIntoDB, addOrdersIntoDB, addIncomeArrangementRowsIntoDB } = require('../../timeserver/mysql.js');
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
@@ -555,28 +555,15 @@ const deploy = async () => {
     // const instProductManager = new web3.eth.Contract(ProductManager.abi, addrProductManager);
 
 
+  //yarn run testmt -f 55
   //yarn run deploy -c 1 -n 0 -cName adduser
   } else if (ctrtName === 'adduser'){//adduser
     console.log('\n-------------==inside addUserRowAPI');
-
-    await asyncForEach(userArray, async (user, idx) => {
-        const email = user.email;
-        const password = user.password;
-        const identityNumber = user.identityNumber;
-        const eth_add = user.eth_add;
-        const cellphone = user.cellphone;
-        const name = user.name;
-        const addrAssetBook = user.addrAssetBook;
-        const investorLevel = user.investorLevel;
-        const imagef = user.imagef;
-        const imageb = user.imageb;
-        const bank_booklet = user.bank_booklet;
-  
-        console.log(`idx: ${idx}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
-  
-        await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+    const result = await addUsersIntoDB(userArray).catch((err) => {
+      console.log('\n[Error @ addUsersIntoDB()]'+ err);
     });
-    process.exit(0);
+    console.log('result', result);
+    //process.exit(0);
   
   
   //yarn run deploy -c 1 -n 0 -cName addsctrt
@@ -584,7 +571,9 @@ const deploy = async () => {
     console.log('\n-------------==inside addSmartContractRowAPI');
     console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
   
-    await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController);
+    await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController).catch((err) => {
+      console.log('\n[Error @ addSmartContractRow()]'+ err);
+    });
     process.exit(0);
 
 
@@ -594,7 +583,9 @@ const deploy = async () => {
     const state = 'FundingClosed';
     const TimeReleaseDate = TimeOfDeployment_HCAT;
     console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}, fundingType: ${fundingType}, state: ${state}`);
-    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state);
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
+      console.log('\n[Error @ addProductRow()]'+ err);
+    });
     process.exit(0);
 
 
@@ -603,32 +594,19 @@ const deploy = async () => {
     console.log('\n-------------------==inside addOrderAPI');
     const fundCount = 180000;
     const paymentStatus = 'waiting';
-
-    await asyncForEach(userArray, async (user, idx) => {
-      //if(idx !== 0){
-        const identityNumber = user.identityNumber;
-        const email = user.email;
-        const tokenCount = user.tokenOrderAmount;
-        // const addrAssetBook = user.addrAssetBook;
-        // const investorLevel = user.investorLevel;
-        console.log(`userNum: ${idx}, user: ${user}
-    identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
-    nftSymbol: ${nftSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
-    
-        await addOrderRow(identityNumber, email, tokenCount, nftSymbol, fundCount, paymentStatus);
-     // }
+    const result = await addOrdersIntoDB(userArray, fundCount, paymentStatus).catch((err) => {
+      console.log('\n[Error @ addOrdersIntoDB()]'+ err);
     });
-    process.exit(0);
-
+    console.log('result', result);
 
 
   //yarn run deploy -c 1 -n 0 -cName addia
   } else if (ctrtName === 'addia'){
     console.log('-----------------== add Income Arrangement rows from objects...');
-    await asyncForEach(incomeArrangementArray, async (item, idx) => {
-      await addIncomeArrangementRowFromObj(item);
+    const result = await addIncomeArrangementRowsIntoDB(incomeArrangementArray).catch((err) => {
+      console.log('\n[Error @ addIncomeArrangementRowsIntoDB()]'+ err);
     });
-    process.exit(0);
+    console.log('result', result);
 
 
   //yarn run deploy -c 1 -n 0 -cName initCtrt

@@ -156,11 +156,11 @@ const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 
 symNum = 2;
-const isTimeserverON = true;
+const isTimeserverON = process.env.isTimeserverONEnv === '1';
 //const isTimeserverON = false;
-//const useFullTimeServer = true;
-const useFullTimeServer = false;
 
+const useFullTimeServer = process.env.useFullTimeServerEnv === '1';
+console.log(`isTimeserverON: ${isTimeserverON} ${typeof isTimeserverON}, useFullTimeServer: ${useFullTimeServer} ${typeof useFullTimeServer}`);
 if(useFullTimeServer){
   whichTimeServerArray = [1, 1, 1, 1, 1, 1];
 } else {
