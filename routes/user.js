@@ -262,29 +262,62 @@ router.post('/Image', uploadImages.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
     const applicationType = req.body.applicationType;
     const pictureType = req.body.pictureType;
-    let table;
     const imageLocation = req.body.detailedImageLocation;
-    let emailColumnName;
     const email = req.body.email;
+    const params = [imageLocation, email]
 
     switch (applicationType) {
         case "signUp":
-            table = 'user';
-            emailColumnName = 'u_email';
+            switch (pictureType) {
+                case "u_imagef":
+                    mysqlPoolQuery('UPDATE user SET u_imagef = ? WHERE u_email = ?', params, function (err) {
+                        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+                        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
+                    })
+                    break;
+                case "u_imageb":
+                    mysqlPoolQuery('UPDATE user SET u_imageb = ? WHERE u_email = ?', params, function (err) {
+                        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+                        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
+                    })
+                    break;
+                case "u_bankAccountimage":
+                    mysqlPoolQuery('UPDATE user SET u_bankAccountimage = ? WHERE u_email = ?', params, function (err) {
+                        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+                        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
+                    })
+                    break;
+                default:
+                    console.log('pictureType is not found');
+            }
             break;
         case "forget_password":
-            table = 'forget_pw';
-            emailColumnName = 'fp_investor_email';
+            switch (pictureType) {
+                case "fp_imagef":
+                    mysqlPoolQuery('UPDATE forget_pw SET fp_imagef = ? WHERE u_email = ?', params, function (err) {
+                        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+                        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
+                    })
+                    break;
+                case "fp_imageb":
+                    mysqlPoolQuery('UPDATE forget_pw SET fp_imageb = ? WHERE u_email = ?', params, function (err) {
+                        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+                        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
+                    })
+                    break;
+                case "fp_bankAccountimage":
+                    mysqlPoolQuery('UPDATE forget_pw SET fp_bankAccountimage = ? WHERE u_email = ?', params, function (err) {
+                        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
+                        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
+                    })
+                    break;
+                default:
+                    console.log('pictureType is not found');
+            }
             break;
         default:
             console.log('applicationType is not found');
     }
-    console.log('test params:', table, pictureType, imageLocation, emailColumnName, email);
-    
-    mysqlPoolQuery('UPDATE ? SET ? = ? WHERE ? = ?', [table, pictureType, imageLocation, emailColumnName, email], function (err) {
-        if (err) { res.status(400).json({ "message": "新增照片地址失敗" + err }); }
-        else { res.status(200).json({ "message": "新增照片地址成功！" }); }
-    })
 })
 
 //http://140.119.101.130:3000/user/UserByEmail
