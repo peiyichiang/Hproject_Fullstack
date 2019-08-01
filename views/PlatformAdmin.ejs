@@ -122,19 +122,19 @@
                     <td class="align-middle">
                         <%if (FrontEnd_data[i].u_imagef != null && FrontEnd_data[i].u_imagef !="") { %>
                         <p style="width:150px;"></p>
-                        <img src="http://127.0.0.1:3000/<%= FrontEnd_data[i].u_imagef %>" alt="" style="width:100%;">
+                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + FrontEnd_data[i].u_imagef %>" alt="" style="width:100%;">
                         <% } %>
                     </td>
                     <td class="align-middle">
                         <%if (FrontEnd_data[i].u_imageb != null && FrontEnd_data[i].u_imageb !="") { %>
                         <p style="width:150px;"></p>
-                        <img src="http://127.0.0.1:3000/<%= FrontEnd_data[i].u_imageb %>" alt="" style="width:100%;">
+                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + FrontEnd_data[i].u_imageb %>" alt="" style="width:100%;">
                         <% } %>
                     </td>
                     <td class="align-middle">
                         <%if (FrontEnd_data[i].u_bankBooklet != null && FrontEnd_data[i].u_bankBooklet !="") { %>
                         <p style="width:150px;"></p>
-                        <img src="http://127.0.0.1:3000/<%= FrontEnd_data[i].u_bankBooklet %>" alt=""
+                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + FrontEnd_data[i].u_bankBooklet %>" alt=""
                             style="width:100%;">
                         <% } %>
                     </td>
@@ -208,7 +208,7 @@
 
                 /*部署assetContract*/
                 console.log("assetBookContract deploying...");
-                $.post("http://localhost:3030/Contracts/assetbookContract", {
+                $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/assetbookContract' %>", {
                     assetBookOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"//ethAddr,(key chain開發未完成)
                 }, function (result) {
                     //var result = JSON.parse(resultJSON);
@@ -219,7 +219,7 @@
                     if (result.status == true) {
                         /*部署成功後，註冊會員白名單*/
                         console.log("registering...");
-                        $.post("http://localhost:3030/Contracts/registryContract/users/" + ID, {
+                        $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/registryContract/users/' %>" + ID, {
                             assetBookAddress: result.contractAddress,
                             ethAddr: ethAddr,
                             email: email
