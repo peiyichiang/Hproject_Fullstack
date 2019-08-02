@@ -152,7 +152,7 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
 
 const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet) => {
   return new Promise(async(resolve, reject) => {
-    console.log('------------------------==@user/addUserRow');
+    console.log('----------==@user/addUserRow');
     let salt;
     //const account = web3.eth.accounts.create();
     const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
@@ -200,23 +200,24 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
 //-------------------==Add users
 const addUsersIntoDB = async(userObjects) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n-------------==inside addUsersIntoDB');
+    console.log('\n-------------==inside addUsersIntoDB()');
     await asyncForEach(userObjects, async (user, idx) => {
-        const email = user.email;
-        const password = user.password;
-        const identityNumber = user.identityNumber;
-        const eth_add = user.eth_add;
-        const cellphone = user.cellphone;
-        const name = user.name;
-        const addrAssetBook = user.addrAssetBook;
-        const investorLevel = user.investorLevel;
-        const imagef = user.imagef;
-        const imageb = user.imageb;
-        const bank_booklet = user.bank_booklet;
-  
-        console.log(`idx: ${idx}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
-  
-        await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed:', err));
+      const email = user.email;
+      const password = user.password;
+      const identityNumber = user.identityNumber;
+      const eth_add = user.eth_add;
+      const cellphone = user.cellphone;
+      const name = user.name;
+      const addrAssetBook = user.addrAssetBook;
+      const investorLevel = user.investorLevel;
+      const imagef = user.imagef;
+      const imageb = user.imageb;
+      const bank_booklet = user.bank_booklet;
+
+      console.log(`idx: ${idx}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
+
+      const result = await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed. user:', user, '\nerr:', err));
+      console.log('result of addUserRow:', result);
     });
     resolve(true);
   });
@@ -261,7 +262,24 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
   });
 }
 
-
+const addOrdersIntoDB = async(userObjects, fundCount, paymentStatus) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside addOrdersIntoDB()');
+    await asyncForEach(userObjects, async (user, idx) => {
+      const identityNumber = user.identityNumber;
+      const email = user.email;
+      const tokenCount = user.tokenOrderAmount;
+      // const addrAssetBook = user.addrAssetBook;
+      // const investorLevel = user.investorLevel;
+      console.log(`userNum: ${idx}, user: ${user}
+  identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
+  nftSymbol: ${nftSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+  
+      await addOrderRow(identityNumber, email, tokenCount, nftSymbol, fundCount, paymentStatus);
+    });
+    resolve(true);
+  });
+}
 
 //-----------------------------==IncomeArrangement
 const addActualPaymentTime = (actualPaymentTime, symbol, payablePeriodEnd) => {
@@ -357,6 +375,14 @@ const addIncomeArrangementRow = (symbol, ia_time, actualPaymentTime, payablePeri
   });
 }
 
+const addIncomeArrangementRowsIntoDB = async(symbol) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('-----------------== addIncomeArrangementRowsIntoDB');
+    await asyncForEach(incomeArrangementArray, async (item, idx) => {
+      await addIncomeArrangementRowFromObj(item);
+    });
+  });
+}
 
 
 const getProductPricing = async(symbol) => {
@@ -1095,10 +1121,10 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow,
     addTxnInfoRow, addTxnInfoRowFromObj,
-    addIncomeArrangementRowFromObj, addIncomeArrangementRow,
+    addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB,
     setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB,
-    addProductRow, addSmartContractRow, 
+    addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB,
     isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM,
     addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,

@@ -5,9 +5,9 @@ const fs = require('fs');
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED, addrHCAT721 } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, setTimeCFC, deployAssetbooks } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks } = require('./blockchain.js');
 
 const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum } = require('./utilities');
 
@@ -588,8 +588,8 @@ const getCrowdfundingInvestors_API = async() => {
 
 
 /**
-investedTokenQtyArray: 4559,4648,4958,4564,5223,5687,5106,5584,6111,5577
-existingBalances:  3544, 3432, 3972, 3776, 4082, 4758, 3904, 4256, 4674, 4418
+investedTokenQtyArray: 5072,5161,5471,5077,5223,5687,5106,5584,6111,5577
+existingBalances:  4559, 4648, 4958, 4564, 5223, 5687, 5106, 5584, 6111, 5577 
 */
 //yarn run testmt -f 42
 const getTokenBalances_API = async () => {
@@ -603,14 +603,25 @@ const getTokenBalances_API = async () => {
 const investTokens_API = async() => {
   console.log('\n------------==inside investTokens_API()');
   const crowdFundingAddr = addrCrowdFunding;
-  const toAssetbookNumStr = 1;
-  const amountToInvestStr = 513;
+  const toAssetbookNumStr = 4;
+  const amountToInvest = 513;
   const serverTime = CFSD+1;
-  const result = await investTokens(crowdFundingAddr, toAssetbookNumStr, amountToInvestStr, serverTime).catch(err => { 
+
+  const toAssetbookNum = parseInt(toAssetbookNumStr);
+
+  console.log("\ntoAssetbookNum", toAssetbookNum);
+  if(toAssetbookNum < 1){
+    console.log('[Error] toAssetbookNumStr must be >= 1');
+    reject('toAssetbookNumStr must be integer and greater than 1');
+    return false;
+  }
+  const addrAssetbookX = assetbookArray[toAssetbookNum-1];
+
+  const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime).catch(err => { 
     console.log('[Error @ investTokens]',err);
     process.exit(0);
   });
-  if(result){
+  if(isInvestSuccess){
     const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
     console.log(`investorAssetBooks: ${investorAssetBooks}
 investedTokenQtyArray: ${investedTokenQtyArray}`);
@@ -618,16 +629,28 @@ investedTokenQtyArray: ${investedTokenQtyArray}`);
     const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
     console.log('existingBalances:', existingBalances);
     const [result, isAllGood]= checkTargetAmounts(existingBalances, investedTokenQtyArray);
-    console.log('result:', result, ', isAllGood:', isAllGood, 'investedTokenQtyArray', investedTokenQtyArray);
+    console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, investedTokenQtyArray: ${investedTokenQtyArray}`);
     if(!isAllGood){
       console.log('[Error] at least one target mint amount is lesser than its existing balance');
       return false;
     }
   } else {
-    console.log('result is not true', result);
+    console.log('investTokens failed', isInvestSuccess);
   }
 
   process.exit(0);
+}
+
+//yarn run testmt -f 44
+const checkInvestTokens_API = async() => {
+  console.log('\n------------==inside checkInvestTokens_API()');
+  const crowdFundingAddr = addrCrowdFunding;
+  const toAssetbookNum = 3;
+  const amountToInvest = 513;
+  const serverTime = CFSD+1;
+  const result = await checkInvest(crowdFundingAddr, assetbookArray[toAssetbookNum-1], amountToInvest, serverTime);
+  console.log('checkInvest result', result);
+
 }
 
 //original:  3040,2716,3486,3388,3541,4329,3402,3628,3837,3959
@@ -763,6 +786,12 @@ const writeStreamToTxtFile_API = async () => {
   });
 }
 
+//yarn run testmt -f 55
+const addUsersIntoDB_API = async () => {
+  console.log('\n-------------==inside addUsersIntoDB_API');
+  const result = await addUsersIntoDB(userArray);
+  console.log('result', result);
+}
 
 //------------------------------==
 //yarn run testmt -f 91
@@ -967,7 +996,7 @@ if(func === 0){
 
 //yarn run testmt -f 44
 } else if (func === 44) {
-  getPastScheduleTimes_API();
+  checkInvestTokens_API();
 
 //yarn run testmt -f 45
 } else if (func === 45) {
@@ -996,6 +1025,15 @@ if(func === 0){
 //yarn run testmt -f 52
 } else if (func === 52) {
   writeStreamToTxtFile_API();
+
+//yarn run testmt -f 55
+} else if (func === 55) {
+  addUsersIntoDB_API();
+
+//yarn run testmt -f 61
+} else if (func === 61) {
+  getPastScheduleTimes_API();
+
 
 //yarn run testmt -f 91
 } else if (func === 91) {

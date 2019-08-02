@@ -54,7 +54,7 @@ userArray.forEach((user, idx) => {
     assetbookArray.push(user.addrAssetBook);
   }
 });
-const [addrAssetBook1, addrAssetBook2, addrAssetBook3] = assetbookArray;
+const [addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10] = assetbookArray;
 let provider, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, arg3, result;
 const backendAddr = admin;
 const backendAddrpkRaw = adminpkRaw;

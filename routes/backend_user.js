@@ -624,7 +624,6 @@ router.post('/SetForgetPasswordApproved', function (req, res, next) {
 
 });
 
-
 //BackendUser_Platform_Supervisor登入後跳轉到該頁面
 router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
     var token=req.cookies.access_token;
