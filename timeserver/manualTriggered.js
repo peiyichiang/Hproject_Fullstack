@@ -5,9 +5,10 @@ const fs = require('fs');
 //--------------------==
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED, addrHCAT721 } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, 
+  deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, deployHCATContract, deployIncomeManagerContract } = require('./blockchain.js');
 
 const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum } = require('./utilities');
 
@@ -42,7 +43,7 @@ if (arguLen == 3 && process.argv[2] === '--h') {
   process.exit(0);
 } else {
   func = parseInt(process.argv[3]);
-  if (func < 0 || func > 100){
+  if (func < 0 || func > 999){
     console.log('func value is out of range. func: ', func);
     process.exit(0);
   }
@@ -602,42 +603,63 @@ const getTokenBalances_API = async () => {
 //yarn run testmt -f 43
 const investTokens_API = async() => {
   console.log('\n------------==inside investTokens_API()');
-  const crowdFundingAddr = addrCrowdFunding;
-  const toAssetbookNumStr = 4;
-  const amountToInvest = 513;
-  const serverTime = CFSD+1;
+  let crowdFundingAddr, amountToInvest, serverTime, addrAssetbookX, toAssetbookNumStr;
+  
+  const inputChoice = 0;
+  const functionChoice = 0;
+  if(inputChoice === 0){
+    crowdFundingAddr = addrCrowdFunding;
+    toAssetbookNumStr = 1;
+    amountToInvest = 513;
+    serverTime = CFSD+1;
 
-  const toAssetbookNum = parseInt(toAssetbookNumStr);
-
-  console.log("\ntoAssetbookNum", toAssetbookNum);
-  if(toAssetbookNum < 1){
-    console.log('[Error] toAssetbookNumStr must be >= 1');
-    reject('toAssetbookNumStr must be integer and greater than 1');
-    return false;
-  }
-  const addrAssetbookX = assetbookArray[toAssetbookNum-1];
-
-  const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime).catch(err => { 
-    console.log('[Error @ investTokens]',err);
-    process.exit(0);
-  });
-  if(isInvestSuccess){
-    const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
-    console.log(`investorAssetBooks: ${investorAssetBooks}
-investedTokenQtyArray: ${investedTokenQtyArray}`);
-
-    const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
-    console.log('existingBalances:', existingBalances);
-    const [result, isAllGood]= checkTargetAmounts(existingBalances, investedTokenQtyArray);
-    console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, investedTokenQtyArray: ${investedTokenQtyArray}`);
-    if(!isAllGood){
-      console.log('[Error] at least one target mint amount is lesser than its existing balance');
+    const toAssetbookNum = parseInt(toAssetbookNumStr);
+    console.log("\ntoAssetbookNum", toAssetbookNum);
+    if(toAssetbookNum < 1){
+      console.log('[Error] toAssetbookNumStr must be >= 1');
+      reject('toAssetbookNumStr must be integer and greater than 1');
       return false;
     }
+    addrAssetbookX = assetbookArray[toAssetbookNum-1];
+
   } else {
-    console.log('investTokens failed', isInvestSuccess);
+    crowdFundingAddr = '0x30E49ec3F04a3DAE3c111de9f5a9E38224a56d89';
+    addrAssetbookX = '0x78BeBa1592525403dF2B40C453054E329Ce7D5C0';
+    amountToInvest = 2100;
+    serverTime = ''+201908021026;
   }
 
+  if(functionChoice === 0){
+    const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime).catch(async(err) => { 
+      const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
+      console.log('checkInvest result', result);
+  
+      console.log('\n[Error @ investTokens]',err);
+      process.exit(0);
+    });
+    console.log(`isInvestSuccess: ${isInvestSuccess}, txnHash: ${txnHash}`);
+
+    if(isInvestSuccess){
+      console.log(`isInvestSuccess is true`);
+      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
+      console.log(`investorAssetBooks: ${investorAssetBooks}
+  investedTokenQtyArray: ${investedTokenQtyArray}`);
+  
+      const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
+      console.log('existingBalances:', existingBalances);
+      const [result, isAllGood] = checkTargetAmounts(existingBalances, investedTokenQtyArray);
+      console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, \ninvestorAssetBooks: ${investorAssetBooks}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+      if(!isAllGood){
+        console.log('[Warning] at least one target mint amount is lesser than its existing balance');
+      }
+    } else {
+      console.log('investTokens failed', isInvestSuccess);
+    }
+  } else {
+    console.log(`isInvestSuccess is false!!!`);
+    const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
+    console.log('checkInvest result', result);
+  }
   process.exit(0);
 }
 
@@ -648,7 +670,9 @@ const checkInvestTokens_API = async() => {
   const toAssetbookNum = 3;
   const amountToInvest = 513;
   const serverTime = CFSD+1;
-  const result = await checkInvest(crowdFundingAddr, assetbookArray[toAssetbookNum-1], amountToInvest, serverTime);
+
+  const addrAssetbookX = assetbookArray[toAssetbookNum-1];
+  const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
   console.log('checkInvest result', result);
 
 }
@@ -786,6 +810,35 @@ const writeStreamToTxtFile_API = async () => {
   });
 }
 
+//----------------------------==Deploy contracts
+//yarn run testmt -f 61
+const deployCrowdfundingContract_API = async () => {
+  console.log('\n---------------------==deployCrowdfundingContract_API()');
+  const result = await deployCrowdfundingContract();
+  console.log(`result: ${result}`);
+}
+
+//yarn run testmt -f 62
+const deployTokenControllerContract_API = async () => {
+  console.log('\n---------------------==deployTokenControllerContract_API()');
+  const result = await deployTokenControllerContract();
+  console.log(`result: ${result}`);
+}
+//yarn run testmt -f 63
+const deployHCATContract_API = async () => {
+  console.log('\n---------------------==deployHCATContract_API()');
+  const result = await deployHCATContract();
+  console.log(`result: ${result}`);
+}
+//yarn run testmt -f 64
+const deployIncomeManagerContract_API = async () => {
+  console.log('\n---------------------==deployIncomeManagerContract_API()');
+  const result = await deployIncomeManagerContract();
+  console.log(`result: ${result}`);
+}
+
+
+//----------------------------==
 //yarn run testmt -f 55
 const addUsersIntoDB_API = async () => {
   console.log('\n-------------==inside addUsersIntoDB_API');
@@ -845,6 +898,60 @@ const deployAssetbooks_API = async () => {
   const addrHeliumContract = '';
   const result = await deployAssetbooks(eoaArray, addrHeliumContract);
   console.log('result:', result);
+}
+
+//---------------------------==Delete
+//yarn run testmt -f 141
+const deleteProductRows_API = async () => {
+  console.log('\n---------------------==deleteProductRows_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await deleteProductRows(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 142
+const deleteOrderRows_API = async () => {
+  console.log('\n---------------------==deleteOrderRows_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await deleteOrderRows(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 143
+const deleteTxnInfoRows_API = async () => {
+  console.log('\n---------------------==deleteTxnInfoRows_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await deleteTxnInfoRows(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 144
+const deleteSmartContractRows_API = async () => {
+  console.log('\n---------------------==deleteSmartContractRows_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await deleteSmartContractRows(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 145
+const deleteIncomeArrangementRows_API = async () => {
+  console.log('\n---------------------==deleteIncomeArrangementRows_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await deleteIncomeArrangementRows(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
+  process.exit(0);
+}
+//yarn run testmt -f 146
+const deleteAssetRecordRows_API = async () => {
+  console.log('\n---------------------==deleteAssetRecordRows_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await deleteAssetRecordRows(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
+  process.exit(0);
 }
 
 
@@ -1030,8 +1137,25 @@ if(func === 0){
 } else if (func === 55) {
   addUsersIntoDB_API();
 
+//----------------------==
 //yarn run testmt -f 61
 } else if (func === 61) {
+  deployCrowdfundingContract_API();
+
+//yarn run testmt -f 62
+} else if (func === 62) {
+  deployTokenControllerContract_API();
+
+//yarn run testmt -f 63
+} else if (func === 63) {
+  deployHCATContract_API();
+
+//yarn run testmt -f 64
+} else if (func === 64) {
+  deployIncomeManagerContract_API();
+
+//yarn run testmt -f 81
+} else if (func === 81) {
   getPastScheduleTimes_API();
 
 
@@ -1054,5 +1178,25 @@ if(func === 0){
 //yarn run testmt -f 102
 } else if (func === 102) {
   deployAssetbooks_API();
+
+
+//yarn run testmt -f 141
+} else if (func === 141) {
+  deleteProductRows_API();
+//yarn run testmt -f 142
+} else if (func === 142) {
+  deleteOrderRows_API();
+//yarn run testmt -f 143
+} else if (func === 143) {
+  deleteTxnInfoRows_API();
+//yarn run testmt -f 144
+} else if (func === 144) {
+  deleteSmartContractRows_API();
+//yarn run testmt -f 145
+} else if (func === 145) {
+  deleteIncomeArrangementRows_API();
+//yarn run testmt -f 146
+} else if (func === 146) {
+  deleteAssetRecordRows_API();
 
 }

@@ -74,9 +74,21 @@ const mysqlPoolQueryB = async (sql, options) => {
 const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'INSERT INTO transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    await mysqlPoolQueryB(queryStr1, [txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB]'+ err);
     });
+    console.log(`result: ${result}`);
+    resolve(true);
+  });
+}
+
+const deleteTxnInfoRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'DELETE FROM transaction_info WHERE t_tokenSYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB]'+ err);
+    });
+    console.log(`result: ${result}`);
     resolve(true);
   });
 }
@@ -85,9 +97,10 @@ const addTxnInfoRowFromObj = (row) => {
   //txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'INSERT INTO transaction_info (t_txid, t_tokenSYMBOL, t_fromAssetbook, t_toAssetbook,  t_tokenId, t_txCount, t_holdingDays, t_txTime, t_balanceOffromassetbook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    await mysqlPoolQueryB(queryStr1, [row.txid, row.tokenSymbol, row.fromAssetbook, row.toAssetbook, row.tokenId, row.txCount, row.holdingDays, row.txTime, row.balanceOffromassetbook]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [row.txid, row.tokenSymbol, row.fromAssetbook, row.toAssetbook, row.tokenId, row.txCount, row.holdingDays, row.txTime, row.balanceOffromassetbook]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB]'+ err);
     });
+    console.log(`result: ${result}`);
     resolve(true);
   });
 }
@@ -120,9 +133,21 @@ const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, 
     console.log(sql);
 
     const queryStr1 = 'INSERT INTO product SET ?';
-    await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
+    console.log(`result: ${result}`);
+    resolve(true);
+  });
+}
+
+const deleteProductRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'DELETE FROM product WHERE p_SYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB]'+ err);
+    });
+    console.log(`result: ${result}`);
     resolve(true);
   });
 }
@@ -142,9 +167,21 @@ const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, max
     console.log(sql);
 
     const queryStr1 = 'INSERT INTO smart_contracts SET ?';
-    await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
+    console.log(`result: ${result}`);
+    resolve(true);
+  });
+}
+
+const deleteSmartContractRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'DELETE FROM smart_contracts WHERE sc_symbol = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB]'+ err);
+    });
+    console.log(`result: ${result}`);
     resolve(true);
   });
 }
@@ -188,9 +225,10 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
 
         console.log(userNew);
         const queryStr2 = 'INSERT INTO user SET ?';
-        await mysqlPoolQueryB(queryStr2, userNew).catch((err) => {
+        const result = await mysqlPoolQueryB(queryStr2, userNew).catch((err) => {
           reject('[Error @ mysqlPoolQueryB(queryStr2)]. err: '+ err);
         });
+        console.log(`result: ${result}`);
         resolve(true);
       });
   });
@@ -201,7 +239,7 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
 const addUsersIntoDB = async(userObjects) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addUsersIntoDB()');
-    await asyncForEach(userObjects, async (user, idx) => {
+    const result = await asyncForEach(userObjects, async (user, idx) => {
       const email = user.email;
       const password = user.password;
       const identityNumber = user.identityNumber;
@@ -255,14 +293,25 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
     console.log(sqlObject);
 
     const queryStr1 = 'INSERT INTO order_list SET ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
-    console.log(result1)
+    const result = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
+    console.log(`result: ${result}`);
     resolve(true);
 
   });
 }
 
-const addOrdersIntoDB = async(userObjects, fundCount, paymentStatus) => {
+const deleteOrderRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'DELETE FROM order_list WHERE o_symbol = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB]'+ err);
+    });
+    console.log(`result: ${result}`);
+    resolve(true);
+  });
+}
+
+const addOrdersIntoDB = async(userObjects, fundCount, paymentStatus, nftSymbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addOrdersIntoDB()');
     await asyncForEach(userObjects, async (user, idx) => {
@@ -275,7 +324,8 @@ const addOrdersIntoDB = async(userObjects, fundCount, paymentStatus) => {
   identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
   nftSymbol: ${nftSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
   
-      await addOrderRow(identityNumber, email, tokenCount, nftSymbol, fundCount, paymentStatus);
+      const result = await addOrderRow(identityNumber, email, tokenCount, nftSymbol, fundCount, paymentStatus);
+      console.log(`result: ${result}`);
     });
     resolve(true);
   });
@@ -330,7 +380,7 @@ const addIncomeArrangementRowFromObj = (iaObj) => {
       reject(err);
       return false;
     });
-    console.log('result', result);
+    console.log(`result: ${result}`);
     console.log("income arrangement table has been added with one new row. result:");
     resolve(true);
   });
@@ -369,8 +419,19 @@ const addIncomeArrangementRow = (symbol, ia_time, actualPaymentTime, payablePeri
       reject(err);
       return false;
     });
-    console.log('result', result);
+    console.log(`result: ${result}`);
     console.log("\ntransaction_info table has been added with one new row. result:");
+    resolve(true);
+  });
+}
+
+const deleteIncomeArrangementRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'DELETE FROM income_arrangement WHERE ia_SYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB]'+ err);
+    });
+    console.log(`result: ${result}`);
     resolve(true);
   });
 }
@@ -379,7 +440,8 @@ const addIncomeArrangementRowsIntoDB = async(symbol) => {
   return new Promise(async(resolve, reject) => {
     console.log('-----------------== addIncomeArrangementRowsIntoDB');
     await asyncForEach(incomeArrangementArray, async (item, idx) => {
-      await addIncomeArrangementRowFromObj(item);
+      const result = await addIncomeArrangementRowFromObj(item);
+      //console.log(`result: ${result}`);
     });
   });
 }
@@ -634,6 +696,17 @@ const addAssetRecordRow = async (investorEmail, symbol, ar_time, holdingAmount, 
       return(false);
     });
     console.log("\nA new row has been added. result:", result5);
+    resolve(true);
+  });
+}
+
+const deleteAssetRecordRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'DELETE FROM investor_assetRecord WHERE ar_tokenSYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB]'+ err);
+    });
+    console.log(`result: ${result}`);
     resolve(true);
   });
 }
@@ -1119,14 +1192,10 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
-    mysqlPoolQuery, addOrderRow, addUserRow,
-    addTxnInfoRow, addTxnInfoRowFromObj,
-    addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB,
-    setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB,
-    addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB,
-    isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM,
-    addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
+    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
+    addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB, setFundingStateDB, getFundingStateDB,
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
-    calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime
+    calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
+    deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows
 }

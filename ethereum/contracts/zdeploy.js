@@ -3,7 +3,7 @@ chain: 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeb
 */
 /** deployed contracts
 yarn run deploy -c 1 -s 1 -cName cf
-cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
+cName = helium, assetbook, registry, adduser, cf, tokc, hcat, addproduct, addorder, im, addctrt, addia, pm
 */
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
@@ -12,9 +12,7 @@ const {addSmartContractRow, addProductRow, addUsersIntoDB, addOrdersIntoDB, addI
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
-const { nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, blockchainURL,
-  TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray, incomeArrangementArray
+const { isTimeserverON, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, blockchainURL, TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray, incomeArrangementArray
 } = require('./zsetupData');
 
 //to be overwritten as we are deploying new contracts
@@ -25,21 +23,40 @@ console.log('process.argv', process.argv);
 if (process.argv.length < 8) {
   console.log('not enough arguments. Make it like: yarn run deploy -n 1 --chain 1 --cName contractName');
   console.log('chain = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addsctrt, addPS, pm');
+  console.log('cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, addorder, im, addctrt, addPS, pm');
   process.exit(1);
 }
 // chain    symNum   ctrtName
 //const symNum = parseInt(process.argv[5]);
-let chain, ctrtName, result;
+let chain, ctrtName, result, backendAddr, backendAddrpkRaw;
 
 
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-const backendAddr = AssetOwner1;
-const backendAddrpkRaw = AssetOwner1pkRaw;
+const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
+if(ethAddrChoice === 0){//reserved to API developer
+  backendAddr = admin;
+  backendAddrpkRaw = adminpkRaw;
 
+} else if(ethAddrChoice === 1){//reserved to Blockchain developer
+  backendAddr = AssetOwner1;
+  backendAddrpkRaw = AssetOwner1pkRaw;
+
+} else if(ethAddrChoice === 2){//reserved to Backend developer
+  backendAddr = AssetOwner2;
+  backendAddrpkRaw = AssetOwner2pkRaw;
+
+} else if(ethAddrChoice === 3){//
+  backendAddr = AssetOwner3;
+  backendAddrpkRaw = AssetOwner3pkRaw;
+
+} else if(ethAddrChoice === 4){//reserved tp the timeserver
+  backendAddr = AssetOwner4;
+  backendAddrpkRaw = AssetOwner4pkRaw;
+}
+console.log('from backendAddr:', backendAddr);
 
 console.log('process.argv', process.argv);
 const arguLen = process.argv.length;
@@ -128,7 +145,7 @@ gasLimit: ${gasLimitValue}, gasPrice: ${gasPriceValue}`);
 
 // Slow tests... so changed my `mocha` command to `mocha --watch`
 
-let instRegistry, instTokenController, instHCAT721, instCrowdFunding,  instIncomeManager, instProductManager;
+let instRegistry, instHCAT721, instIncomeManager, instProductManager;
 let balance0, balance1, balance2;
 let argsAssetBookN, argsAssetBook1, argsAssetBook2, argsAssetBook3, argsAssetBook4;
 let instAssetBookN, instAssetBook1, instAssetBook2, instAssetBook3, instAssetBook4; 
@@ -150,7 +167,6 @@ checkTrue = (item) => item;
 const deploy = async () => {
     console.log('\n--------==To deploy');
 
-    console.log('admin', admin);
     // console.log('AssetOwner1', AssetOwner1);
     // console.log('AssetOwner2', AssetOwner2);
     // console.log('AssetOwner3', AssetOwner3);
@@ -281,14 +297,14 @@ const deploy = async () => {
         console.log(`\n[Error] instAssetBook${idx+1} is NOT defined`);
         } else {console.log(`[Good] instAssetBook${idx+1} is defined`);}
     
-      console.log(`AssetBook${idx+1} has been deployed`);
-      console.log(`addrAssetBook${idx+1}: ${instAssetBookN.options.address}`);
+      console.log(`AssetBook${idx} has been deployed`);
+      console.log(`addrAssetBook${idx}: ${instAssetBookN.options.address}`);
       addrAssetBookArray.push(instAssetBookN.options.address);
-      console.log(`Finished deploying AssetBook${idx+1}...`);
+      console.log(`Finished deploying AssetBook${idx}...`);
     });
 
     addrAssetBookArray.forEach((item, idx) => {
-      console.log(`addrAssetBook${idx} = "${item}"`);
+      console.log(`addrAssetBook${idx} = "${item}";`);
     });
     process.exit(0);
 
@@ -380,171 +396,28 @@ const deploy = async () => {
 
 
   //yarn run deploy -c 1 -n 0 -cName cf
-} else if (ctrtName === 'cf') {
-  console.log('\nDeploying CrowdFunding contract...');
-  console.log('argsCrowdFunding', argsCrowdFunding);
+  } else if (ctrtName === 'cf') {
 
-  instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
-   .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-   .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-   .on('receipt', function (receipt) {
-     console.log('receipt:', receipt);
-   })
-   .on('error', function (error) {
-       console.log('error:', error.toString());
-   });
-
-   console.log('CrowdFunding.sol has been deployed');
-   console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-
-   if (instCrowdFunding === undefined) {
-     console.log('[Error] instCrowdFunding is NOT defined');
-   } else {console.log('[Good] instCrowdFunding is defined');}
-   
-   instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-   console.log(`\nconst addrCrowdFunding= ${instCrowdFunding.options.address}`);
-
-   result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
-   console.log('checkDeploymentConditions():', result);
-   if(result.every(checkTrue)){
-     console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
-   } else {
-     console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
-   }
-   process.exit(0);
+    process.exit(0);
 
 
   //yarn run deploy -c 1 -s 1 -cName tokc
   } else if (ctrtName === 'tokc') {
-    //Deploying TokenController contract...
-    console.log('\nDeploying TokenController contract...');
-    instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
-    .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
 
-    console.log('TokenController.sol has been deployed');
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-
-    if (instTokenController === undefined) {
-      console.log('[Error] instTokenController is NOT defined');
-      } else {console.log('[Good] instTokenController is defined');}
-    instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    console.log(`\nconst addrTokenController = ${instTokenController.options.address}`);
-
-    result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
-    console.log('checkDeploymentConditions():', result);
-    if(result.every(checkTrue)){
-      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
-    } else {
-      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
-    }
-    // const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
-    // let instHCAT721;
-    // if(choiceOfHCAT721===1){
-    //   console.log('use HCAT721_Test!!!');
-    //   instHCAT721 = new web3.eth.Contract(HCAT721_Test.abi, addrHCAT721);
-    // } else if(choiceOfHCAT721===2){
-    //   console.log('use HCAT721');
-    //   instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
-    // }
 
     process.exit(0);
 
 
   //yarn run deploy -c 1 -s 1 -cName hcat/hcattest
   } else if (ctrtName === 'hcat' || ctrtName === 'hcattest') {
-    console.log('\nDeploying HCAT721 contract... initial');
-    /**https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
-    */
-    console.log('\nDeploying HCAT721 contract... .deploy()');
-    if (ctrtName === 'hcat'){
-      console.log('check1 hcat');
-      instHCAT721 = await new web3deploy.eth.Contract(HCAT721.abi)
-      .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
-      .send({ from: backendAddr, gas: 9000000, gasPrice: '0' })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      }).on('error', function (error) {
-          console.log('error:', error.toString());
-      });
-      console.log('HCAT721.sol has been deployed');
-  
-    } else if(ctrtName === 'hcattest'){
-      console.log('check1 hcattest');
 
-      instHCAT721 = await new web3deploy.eth.Contract(HCAT721_Test.abi)
-      .deploy({ data: prefix+HCAT721_Test.bytecode, arguments: argsHCAT721 })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      })
-      .on('error', function (error) {
-          console.log('error:', error.toString());
-      });
-      console.log('HCAT721_Test.sol has been deployed');
-    }
-    // instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
-    // .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    // .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    // .on('receipt', function (receipt) {
-    //   console.log('receipt:', receipt);
-    // })
-    // .on('error', function (error) {
-    //     console.log('error:', error.toString());
-    // });
-
-
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
-
-    if (instHCAT721 === undefined) {
-      console.log('[Error] instHCAT721 is NOT defined');
-      } else {console.log('[Good] instHCAT721 is defined');}
-    instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    console.log(`\nctrtName = ${ctrtName}; const addrHCAT721 = ${instHCAT721.options.address}`);
-
-    result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
-    console.log('checkDeploymentConditions():', result);
-    if(result.every(checkTrue)){
-      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
-    } else {
-      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
-    }
     process.exit(0);
 
 
 
     //yarn run deploy -c 1 -s 1 -cName im
   } else if (ctrtName === 'im') {
-    instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
-    .deploy({ data: IncomeManager.bytecode, arguments: argsIncomeManager })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
 
-    console.log('IncomeManager.sol has been deployed');
-    if (instIncomeManager === undefined) {
-      console.log('[Error] instIncomeManager is NOT defined');
-      } else {console.log('[Good] instIncomeManager is defined');}
-    instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    console.log(`const addrIncomeManager = ${instIncomeManager.options.address}`);
-
-    result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
-    console.log('checkDeploymentConditions():', result);
-    if(result.every(checkTrue)){
-      console.log('[Success] all checks have passed');
-    } else {
-      console.log('[Failed] Some/one check(s) have/has failed');
-    }
     process.exit(0);
 
 
@@ -566,8 +439,8 @@ const deploy = async () => {
     //process.exit(0);
   
   
-  //yarn run deploy -c 1 -n 0 -cName addsctrt
-  } else if (ctrtName === 'addsctrt'){//addSmartContractRowAPI
+  //yarn run deploy -c 1 -n 0 -cName addctrt
+  } else if (ctrtName === 'addctrt'){//addSmartContractRowAPI
     console.log('\n-------------==inside addSmartContractRowAPI');
     console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
   
@@ -581,8 +454,14 @@ const deploy = async () => {
   } else if (ctrtName === 'addproduct'){//addproduct
     console.log('\n-------------==inside addProductRow section');
     const state = 'FundingClosed';
-    const TimeReleaseDate = TimeOfDeployment_HCAT;
-    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, TimeReleaseDate: ${TimeReleaseDate}, fundingType: ${fundingType}, state: ${state}`);
+    let TimeReleaseDate;
+    if(isTimeserverON){
+      TimeReleaseDate = getTime();
+    } else {
+      TimeReleaseDate = TimeOfDeployment_HCAT;
+    }
+    console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
+    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
     await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
       console.log('\n[Error @ addProductRow()]'+ err);
     });
@@ -592,12 +471,13 @@ const deploy = async () => {
   //yarn run deploy -c 1 -n 0 -cName addorder
   } else if (ctrtName === 'addorder'){//addorder
     console.log('\n-------------------==inside addOrderAPI');
-    const fundCount = 180000;
+    const fundCount = 150000;
     const paymentStatus = 'waiting';
-    const result = await addOrdersIntoDB(userArray, fundCount, paymentStatus).catch((err) => {
+    const result = await addOrdersIntoDB(userArray, fundCount, paymentStatus, nftSymbol).catch((err) => {
       console.log('\n[Error @ addOrdersIntoDB()]'+ err);
     });
     console.log('result', result);
+    process.exit(0);
 
 
   //yarn run deploy -c 1 -n 0 -cName addia

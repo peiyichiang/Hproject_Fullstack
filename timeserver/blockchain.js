@@ -221,6 +221,261 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
 
 
 //-------------------==Crowdfunding
+//yarn run testmt -f 61
+const deployCrowdfundingContract = async() => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==deployCrowdfundingContract()');
+    let acCFSD, acCFED, TimeOfDeployment_CF;
+    if(isTimeserverON){
+      acTimeOfDeployment_CF = await getTime();
+      acCFSD = TimeOfDeployment_CF+1;
+      acCFED = TimeOfDeployment_CF+1000000;//1 month to buy
+    } else {
+      acCFSD = CFSD;
+      acCFED = CFED;
+      acTimeOfDeployment_CF = TimeOfDeployment_CF;
+    }
+    const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply,quantityGoal,acCFSD,acCFED,acTimeOfDeployment_CF, addrHelium];
+  
+    console.log(`acTimeOfDeployment_CF: ${acTimeOfDeployment_CF}
+acCFSD: ${acCFSD}, acCFED: ${acCFED}
+argsCrowdFunding: ${argsCrowdFunding}`);
+  
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3.version', web3deploy.version);
+    const prefix = '0x';
+
+    let instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
+     .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
+     .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+     .on('receipt', function (receipt) {
+       console.log('receipt:', receipt);
+     })
+     .on('error', function (error) {
+         console.log('error:', error.toString());
+     });
+  
+     console.log('CrowdFunding.sol has been deployed');
+     console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
+  
+     if (instCrowdFunding === undefined) {
+       console.log('[Error] instCrowdFunding is NOT defined');
+     } else {console.log('[Good] instCrowdFunding is defined');}
+     
+     instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+     console.log(`\nconst addrCrowdFunding= ${instCrowdFunding.options.address}`);
+  
+     result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
+     console.log('checkDeploymentConditions():', result);
+     if(result.every(checkTrue)){
+       console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+     } else {
+       console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+     }
+     resolve(true);
+  })
+}
+
+//-------------------==TokenController
+//yarn run testmt -f 62
+const deployTokenControllerContract = async() => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==Deploying TokenController contract...');
+    let acTimeTokenUnlock, acTimeTokenValid, TimeOfDeployment_TokCtrl;
+    if(isTimeserverON){
+      acTimeOfDeployment_TokCtrl = await getTime();
+      acTimeTokenUnlock = TimeOfDeployment_TokCtrl+2;//2 sec to unlock
+      acTimeTokenValid = TimeOfDeployment_TokCtrl+9000000;//9 months to expire
+    } else {
+      acTimeTokenUnlock = TimeTokenUnlock;
+      acTimeTokenValid = TimeTokenValid;
+      acTimeOfDeployment_TokCtrl = TimeOfDeployment_TokCtrl;
+    }
+    const argsTokenController = [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock,acTimeTokenValid, addrHelium ];
+
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3.version', web3deploy.version);
+    const prefix = '0x';
+
+    let instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
+    .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('TokenController.sol has been deployed');
+    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
+
+    if (instTokenController === undefined) {
+      console.log('[Error] instTokenController is NOT defined');
+      } else {console.log('[Good] instTokenController is defined');}
+    instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    console.log(`\nconst addrTokenController = ${instTokenController.options.address}`);
+
+    result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
+    console.log('checkDeploymentConditions():', result);
+    if(result.every(checkTrue)){
+      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+    } else {
+      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+    }
+    // const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
+    // let instHCAT721;
+    // if(choiceOfHCAT721===1){
+    //   console.log('use HCAT721_Test!!!');
+    //   instHCAT721 = new web3.eth.Contract(HCAT721_Test.abi, addrHCAT721);
+    // } else if(choiceOfHCAT721===2){
+    //   console.log('use HCAT721');
+    //   instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
+    // }
+    resolve(true);
+  });
+}
+
+//-------------------==HCAT
+//yarn run testmt -f 63
+const deployHCATContract = async() => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==Deploying HCAT721 contract... initial');
+    /**https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
+    */
+    let TimeOfDeployment_HCAT;
+    if(isTimeserverON){
+      acTimeOfDeployment_HCAT = await getTime();
+    } else {
+      acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
+    }
+    const nftName_bytes32 = web3.utils.fromAscii(nftName);
+    const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
+    const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
+    const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+    
+    const argsHCAT721 = [
+    nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
+    initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
+    addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
+
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3.version', web3deploy.version);
+    const prefix = '0x';
+
+    console.log('\nDeploying HCAT721 contract... .deploy()');
+    if (ctrtName === 'hcat'){
+      console.log('check1 hcat');
+      instHCAT721 = await new web3deploy.eth.Contract(HCAT721.abi)
+      .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
+      .send({ from: backendAddr, gas: 9000000, gasPrice: '0' })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      }).on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+      console.log('HCAT721.sol has been deployed');
+  
+    } else if(ctrtName === 'hcattest'){
+      console.log('check1 hcattest');
+
+      instHCAT721 = await new web3deploy.eth.Contract(HCAT721_Test.abi)
+      .deploy({ data: prefix+HCAT721_Test.bytecode, arguments: argsHCAT721 })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+      });
+      console.log('HCAT721_Test.sol has been deployed');
+    }
+    // instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
+    // .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
+    // .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    // .on('receipt', function (receipt) {
+    //   console.log('receipt:', receipt);
+    // })
+    // .on('error', function (error) {
+    //     console.log('error:', error.toString());
+    // });
+
+    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
+
+    if (instHCAT721 === undefined) {
+      console.log('[Error] instHCAT721 is NOT defined');
+    } else {
+      console.log('[Good] instHCAT721 is defined');
+    }
+
+    instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    console.log(`\nctrtName = ${ctrtName}; \nconst addrHCAT721 = "${instHCAT721.options.address}";`);
+
+    result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
+    console.log('checkDeploymentConditions():', result);
+    if(result.every(checkTrue)){
+      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+    } else {
+      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+    }
+    resolve(true);
+  });
+}
+
+//-------------------==IncomeManager
+//yarn run testmt -f 64
+const deployIncomeManagerContract = async() => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==Deploying IncomeManager contract...');
+    let TimeOfDeployment_IM;
+    if(isTimeserverON){
+      acTimeOfDeployment_IM = await getTime();
+    } else {
+      acTimeOfDeployment_IM = TimeOfDeployment_IM;
+    }
+    const argsIncomeManager =[addrHCAT721, addrHelium, TimeOfDeployment_IM];
+
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3.version', web3deploy.version);
+    const prefix = '0x';
+
+    instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
+    .deploy({ data: IncomeManager.bytecode, arguments: argsIncomeManager })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('IncomeManager.sol has been deployed');
+    if (instIncomeManager === undefined) {
+      console.log('[Error] instIncomeManager is NOT defined');
+      } else {console.log('[Good] instIncomeManager is defined');}
+    instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    console.log(`const addrIncomeManager = ${instIncomeManager.options.address}`);
+
+    result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
+    console.log('checkDeploymentConditions():', result);
+    if(result.every(checkTrue)){
+      console.log('[Success] all checks have passed');
+    } else {
+      console.log('[Failed] Some/one check(s) have/has failed');
+    }
+    resolve(true);
+  });
+}
+
+
 const getFundingStateCFC = async (crowdFundingAddr) => {
   console.log('[getFundingStateCFC] crowdFundingAddr...');
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
@@ -1025,24 +1280,205 @@ const makeOrdersExpiredCFED = async (serverTime) => {
 
 
 //----------------------------------==
-const checkInvest = async(crowdFundingAddr, addrAssetbook, tokenCount, serverTime) => {
-  return new Promise( async ( resolve, reject ) => {
+
+
+// yarn run testts -a 2 -c 1
+// after order status change: waiting -> paid -> write into crowdfunding contract
+const addAssetbooksIntoCFC = async (serverTime) => {
+  // check if serverTime > CFSD for each symbol...
+  console.log('\ninside addAssetbooksIntoCFC()... serverTime:',serverTime);
+  const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
+  const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
+    console.log('\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)]'+ err);
+  });
+
+  const foundSymbolArray = [];
+  const symbolArray = [];
+
+  if(results1.length === 0){
+    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] No paid order is found'));
+    return true;
+  } else {
+    for(let i = 0; i < results1.length; i++) {
+      if(typeof results1[i] === 'object' && results1[i] !== null){
+        foundSymbolArray.push(results1[i].o_symbol);
+        if(!excludedSymbols.includes(results1[i].o_symbol)){
+          symbolArray.push(results1[i].o_symbol)}
+      } else {
+        symbolArray.push(results1[i]);
+      }
+    }
+  }
+  //console.log('foundSymbolArray', foundSymbolArray);
+  console.log('symbolArray of paid orders:', symbolArray);
+  if(symbolArray.length === 0){
+    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded'));
+    return true;
+  }
+
+
+  await asyncForEachAbCFC(symbolArray, async (symbol, index) => {
+
+    const crowdFundingAddr = await findCtrtAddr(symbol, 'crowdfunding');
+    console.error(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
+
+    // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
+    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order_list OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
+    //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
+    const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
+      console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
+    });
+    console.log('results3', results3);
+    if(results3.length === 0){
+      console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
+    } else {
+      console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
+      const assetbookArray = [];
+      const assetbookArrayError = [];
+      const emailArray = [];
+      const emailArrayError = [];
+      const tokenCountArray = [];
+      const tokenCountArrayError = [];
+      const orderIdArray = [];
+      const orderIdArrayError = [];
+      const txnHashArray = [];
+      const isInvestSuccessArray = [];
+
+      if(typeof results3[0] === 'object' && results3[0] !== null){
+        results3.forEach((item)=>{
+          if(!Number.isInteger(item.o_tokenCount) && parseInt(item.o_tokenCount) > 0 && isEmpty(item.o_email) || isEmpty(item.u_assetbookContractAddress) || isEmpty(item.o_id)){
+            emailArrayError.push(item.o_email);
+            tokenCountArrayError.push(parseInt(item.o_tokenCount));
+            orderIdArrayError.push(item.o_id);
+            assetbookArrayError.push(item.u_assetbookContractAddress);
+          } else {
+            emailArray.push(item.o_email);
+            tokenCountArray.push(parseInt(item.o_tokenCount));
+            orderIdArray.push(item.o_id);
+            assetbookArray.push(item.u_assetbookContractAddress);
+          }
+        });
+      }
+      console.log(`\nemailArray: ${emailArray} \ntokenCountArray: ${tokenCountArray} \norderIdArray: ${orderIdArray} \nemailArrayError: ${emailArrayError} \ntokenCountArrayError: ${tokenCountArrayError} \norderIdArrayError: ${orderIdArrayError}`);
+
+
+      console.log('\n----------------==assetbookArray', assetbookArray);
+      if(assetbookArray.length !== emailArray.length){
+        console.log('[Error] assetbookArray and emailArray have different length')
+        return false;//process.exit(0);
+      }
+      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+      const investorListBf = await instCrowdFunding.methods.getInvestors(0, 0).call();
+      console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]}, \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
+
+      await asyncForEachAbCFC2(assetbookArray, async (addrAssetbook, index) => {
+        const tokenCount = parseInt(tokenCountArray[index]);
+        console.log(`\n----==[Good] For ${addrAssetbook}, found its tokenCount ${tokenCount}`);
+
+        console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
+tokenCount: ${tokenCount}, serverTime: ${serverTime}
+addrAssetbook: ${addrAssetbook}
+crowdFundingAddr: ${crowdFundingAddr}`);
+
+        const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, tokenCount, serverTime, 'asyncForEachAbCFC2');
+        isInvestSuccessArray.push(isInvestSuccess);
+        txnHashArray.push(txnHash);
+        console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
+      });
+      console.log(`\nisInvestSuccessArray: ${isInvestSuccessArray}
+txnHashArray: ${txnHashArray}`);
+
+      const investorListAf = await instCrowdFunding.methods.getInvestors(0, 0).call();
+      console.log(`\nAfter calling investTokens() for \nassetbookArrayAf: ${investorListAf[0]}, \ninvestedTokenQtyArrayAf: ${investorListAf[1]}`);
+
+      if(orderIdArray.length === txnHashArray.length){
+        const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
+        await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
+          const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
+            console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
+          });
+          //console.log('\nresults5', results5);
+        });
+        log(chalk.green('\n>>[Success @ addAssetbooksIntoCFC()];'));
+      } else {
+        log(chalk.red(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
+        orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
+
+      }
+
+    }
+  //process.exit(0);
+  });
+}
+
+const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTimeStr, invokedBy = '') => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==investTokens()...');
+    const amountToInvest = parseInt(amountToInvestStr);
+    const serverTime = parseInt(serverTimeStr);
+
+    console.log("amountToInvest",amountToInvest,', serverTime:', serverTime, "\naddrAssetbookX:",addrAssetbookX,'\ncrowdFundingAddr:',crowdFundingAddr);
+  
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, tokenCount, serverTime).call({ from: backendAddr });
+    console.log('check1');
+    const balance1 = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
+    console.log('check2');
+    const encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
+    console.log('check3');
+    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
+      console.log('check4');
+      const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
+      console.log(`\n[Error @ signTx() invest() invoked by ${invokedBy}]
+checkInvest result: ${result} \nerr: ${err}`);
+      reject(false);
+      return false;
+    });
+    //console.log('TxResult', TxResult);
+    const balance2 = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
+
+    const quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM);
+  
+    const remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM);
+  
+    resolve([(balance2-balance1) === amountToInvest, TxResult.transactionHash]);
+  });
+}
+
+const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, serverTimeStr) => {
+  return new Promise( async ( resolve, reject ) => {
+    console.log('inside checkInvest()');
+    const amountToInvest = parseInt(amountToInvestStr);
+    const serverTime = parseInt(serverTimeStr);
+    let tokenSymbolM, fundingTypeM, fundingStateM, stateDescriptionM;
+
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    console.log('check1');
+    tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    fundingTypeM = await instCrowdFunding.methods.fundingType().call();
+    console.log('tokenSymbolM:', tokenSymbolM, ', fundingTypeM:', fundingTypeM);
+
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('\nfundingStateM:', fundingStateM);
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('stateDescriptionM:', stateDescriptionM);
+    
+
+    console.log('check3');
+    const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
     console.log('\ncheckInvestFunction resultArray:', resultArray);
 
-    const fundingState = await instCrowdFunding.methods.fundingState().call();
-    console.log('\nfundingState:', fundingState);
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM', stateDescriptionM);
 
-    let mesg = '';
+    let mesg = '', CFSD_M, CFED_M;
     if(resultArray.includes(false)){
       if(!resultArray[0]){
-        mesg += ', [0] serverTime >= CFSD';
+        CFSD_M = await instCrowdFunding.methods.CFSD().call();
+        mesg += ', [0] serverTime '+serverTime+' >= CFSD '+CFSD_M;
       }
       if(!resultArray[1]){
-        mesg += ', [1] serverTime < CFED';
+        CFED_M = await instCrowdFunding.methods.CFED().call();
+        mesg += ', [1] serverTime '+serverTime+' < CFED '+CFED_M;
       }
       if(!resultArray[2]){
         mesg += ', [2] checkPlatformSupervisor()';
@@ -1081,132 +1517,25 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, tokenCount, serverTim
   });
 }
 
-// yarn run testts -a 2 -c 1
-// after order status change: waiting -> paid -> write into crowdfunding contract
-const addAssetbooksIntoCFC = async (serverTime) => {
-  // check if serverTime > CFSD for each symbol...
-  console.log('\ninside addAssetbooksIntoCFC()... serverTime:',serverTime);
-  const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
-  const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
-    console.log('\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)]'+ err);
-  });
+const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountToInvestArray, serverTime) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==investTokensInBatch()...');
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    const encodedData = await instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
 
-  const foundSymbolArray = [];
-  const symbolArray = [];
-
-  if(results1.length === 0){
-    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] No paid order is found'));
-    return true;
-  } else {
-    for(let i = 0; i < results1.length; i++) {
-      if(typeof results1[i] === 'object' && results1[i] !== null){
-        foundSymbolArray.push(results1[i].o_symbol);
-        if(!excludedSymbols.includes(results1[i].o_symbol)){
-          symbolArray.push(results1[i].o_symbol)}
-      } else {
-        symbolArray.push(results1[i]);
-      }
-    }
-  }
-  //console.log('foundSymbolArray', foundSymbolArray);
-  console.log('symbolArray of paid orders:', symbolArray);
-  if(symbolArray.length === 0){
-    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded'));
-    return true;
-  }
-
-  await asyncForEachAbCFC(symbolArray, async (symbol, index) => {
-
-    const crowdFundingAddr = await findCtrtAddr(symbol, 'crowdfunding');
-    console.error(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
-
-    // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
-    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order_list OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
-    //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
-    const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
-      console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
-    });
-    console.log('results3', results3);
-    if(results3.length === 0){
-      console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
-    } else {
-      console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
-      const assetbookArray = [];
-      const assetbookArrayError = [];
-      const emailArray = [];
-      const emailArrayError = [];
-      const tokenCountArray = [];
-      const tokenCountArrayError = [];
-      const orderIdArray = [];
-      const orderIdArrayError = [];
-      const txnHashArray = [];
-
-      if(typeof results3[0] === 'object' && results3[0] !== null){
-        results3.forEach((item)=>{
-          if(!Number.isInteger(item.o_tokenCount) && parseInt(item.o_tokenCount) > 0 && isEmpty(item.o_email) || isEmpty(item.u_assetbookContractAddress) || isEmpty(item.o_id)){
-            emailArrayError.push(item.o_email);
-            tokenCountArrayError.push(parseInt(item.o_tokenCount));
-            orderIdArrayError.push(item.o_id);
-            assetbookArrayError.push(item.u_assetbookContractAddress);
-          } else {
-            emailArray.push(item.o_email);
-            tokenCountArray.push(parseInt(item.o_tokenCount));
-            orderIdArray.push(item.o_id);
-            assetbookArray.push(item.u_assetbookContractAddress);
-          }
-        });
-      }
-      console.log(`\nemailArray: ${emailArray} \ntokenCountArray: ${tokenCountArray} \norderIdArray: ${orderIdArray} \nemailArrayError: ${emailArrayError} \ntokenCountArrayError: ${tokenCountArrayError} \norderIdArrayError: ${orderIdArrayError}`);
-
-
-      console.log('\n----------------==assetbookArray', assetbookArray);
-      if(assetbookArray.length !== emailArray.length){
-        console.log('[Error] assetbookArray and emailArray have different length')
-        return false;//process.exit(0);
-      }
-      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-      const investorListBf = await instCrowdFunding.methods.getInvestors(0, 0).call();
-      console.log(`\nassetbookArrayBf: ${investorListBf[0]}, \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
-
-      await asyncForEachAbCFC2(assetbookArray, async (addrAssetbook, index) => {
-        const tokenCount = parseInt(tokenCountArray[index]);
-        console.log(`\n----==[Good] For ${addrAssetbook}, found its tokenCount ${tokenCount}`);
-
-        console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
-tokenCount: ${tokenCount}, serverTime: ${serverTime}
-addrAssetbook: ${addrAssetbook}
-crowdFundingAddr: ${crowdFundingAddr}`);
-
-        const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvestStr, serverTime, 'asyncForEachAbCFC2');
-        txnHashArray.push(txnHash);
-        console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
-
-        const investorListAf = await instCrowdFunding.methods.getInvestors(0, 0).call();
-        console.log(`\nassetbookArrayAf: ${investorListAf[0]}, \ninvestedTokenQtyArrayAf: ${investorListAf[1]}`);
-          
+    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
+      await asyncForEachCFC(addrAssetbookArray, async(addrAssetbookX,index) => {
+        const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvestArray[index], serverTime);
+        console.log('checkInvest result:', result);
       });
-
-      console.log(`\ntxnHashArray: ${txnHashArray}`)
-      if(orderIdArray.length === txnHashArray.length){
-        const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
-        await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
-          const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
-            console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
-          });
-          //console.log('\nresults5', results5);
-        });
-        log(chalk.green('\n>>[Success @ addAssetbooksIntoCFC()];'));
-      } else {
-        log(chalk.red(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
-        orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
-
-      }
-
-    }
-  //process.exit(0);
+      console.log('\n[Error @ signTx() investInBatch()]'+ err);
+      reject(false);
+      return false;
+    });
+    //console.log('TxResult', TxResult);
+    resolve(true);
   });
 }
-
 
 const getDetailsCFC = async(crowdFundingAddr) => {
   console.log('----------------==getDetailsCFC. crowdFundingAddr=', crowdFundingAddr);
@@ -1264,58 +1593,6 @@ const getInvestorsFromCFC = async (crowdFundingAddr, indexStart = 0, tokenCountS
     resolve([investorAssetBooks, investedTokenQtyArray]);
   });
 }
-
-const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTime, invokedBy = '') => {
-  return new Promise(async(resolve, reject) => {
-    console.log('\n--------------==investTokens()...');
-    const amountToInvest = parseInt(amountToInvestStr);
-
-    console.log("amountToInvest", amountToInvest, ", addrAssetbookX:", addrAssetbookX);
-  
-    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    const balance1 = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
-    const encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
-    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
-      const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
-      console.log(`\n[Error @ signTx() invest() invoked by ${invokedBy}]
-checkInvest result: ${result} \nerr: ${err}`);
-      reject(false);
-      return false;
-    });
-    //console.log('TxResult', TxResult);
-    const balance2 = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
-
-    const quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
-    console.log('quantitySoldM:', quantitySoldM);
-  
-    const remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
-    console.log('remainingTokenQtyM:', remainingTokenQtyM);
-  
-    resolve([(balance2-balance1) === amountToInvest, TxResult.transactionHash]);
-  });
-}
-
-const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountToInvestArray, serverTime) => {
-  return new Promise(async(resolve, reject) => {
-    console.log('\n--------------==investTokensInBatch()...');
-    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    const encodedData = await instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
-
-    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
-      await asyncForEachCFC(addrAssetbookArray, async(addrAssetbookX,index) => {
-        const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvestArray[index], serverTime);
-        console.log('checkInvest result:', result);
-      });
-      console.log('\n[Error @ signTx() investInBatch()]'+ err);
-      reject(false);
-      return false;
-    });
-    //console.log('TxResult', TxResult);
-    resolve(true);
-  });
-}
-
-
 
 const setTimeCFC = async (crowdFundingAddr, serverTime) => {
   return new Promise(async(resolve, reject) => {
@@ -2273,5 +2550,6 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver,
+  deployCrowdfundingContract, deployTokenControllerContract, deployHCATContract, deployIncomeManagerContract
 }

@@ -55,9 +55,30 @@ userArray.forEach((user, idx) => {
   }
 });
 const [addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10] = assetbookArray;
-let provider, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, arg3, result;
-const backendAddr = admin;
-const backendAddrpkRaw = adminpkRaw;
+let provider, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, arg3, result, backendAddr, backendAddrpkRaw;
+
+const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
+if(ethAddrChoice === 0){//reserved to API developer
+  backendAddr = admin;
+  backendAddrpkRaw = adminpkRaw;
+
+} else if(ethAddrChoice === 1){//reserved to Blockchain developer
+  backendAddr = AssetOwner1;
+  backendAddrpkRaw = AssetOwner1pkRaw;
+
+} else if(ethAddrChoice === 2){//reserved to Backend developer
+  backendAddr = AssetOwner2;
+  backendAddrpkRaw = AssetOwner2pkRaw;
+
+} else if(ethAddrChoice === 3){//
+  backendAddr = AssetOwner3;
+  backendAddrpkRaw = AssetOwner3pkRaw;
+
+} else if(ethAddrChoice === 4){//reserved tp the timeserver
+  backendAddr = AssetOwner4;
+  backendAddrpkRaw = AssetOwner4pkRaw;
+}
+console.log(`using backendAddr: ${backendAddr}`);
 
 
 console.log('process.argv', process.argv);
@@ -250,6 +271,47 @@ const checkDeployedContracts = async () => {
 }
 
 
+//yarn run livechain -c 1 --f 18
+const changePermissionToPS_API = async() => {
+  const platformSupervisorNew = AssetOwner1;
+  const encodedData= instHelium.methods.changePermissionToPS(platformSupervisorNew).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrHelium, encodedData).catch((err) => {
+    reject('[Error @ signTx() changePermissionToPS()]'+ err);
+    return false;
+  });
+  //console.log('\nTxResult', TxResult);
+  let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
+  console.log('\nafter adding platformSupervisor: result', result);
+  process.exit(0);
+}
+
+
+//yarn run livechain -c 1 --f 19
+const addPlatformSupervisor_API = async() => {
+  const platformSupervisorNew = AssetOwner10;
+  const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrHelium, encodedData).catch((err) => {
+    reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
+    return false;
+  });
+  //console.log('\nTxResult', TxResult);
+  let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
+  console.log('\nafter adding platformSupervisor: result', result);
+  process.exit(0);
+}
+
+//yarn run livechain -c 1 --f 20
+const addBackendToCustomerService = async() => {
+  console.log(`\n----------------==addBackendToCustomerService() \nAdding AssetOwner3: ${AssetOwner3} \nfrom admin: ${admin}`);
+  const encodedData = instHelium.methods.addCustomerService(AssetOwner3).encodeABI();
+  let TxResult = await signTx(admin, adminpkRaw, addrHelium, encodedData);
+  //console.log('\nTxResult', TxResult);
+  console.log(`after adding backend as customerService...`);
+
+  isCustomerService = await instHelium.methods.checkCustomerService(AssetOwner3).call();
+  console.log('isCustomerService:', isCustomerService);
+  process.exit(0);
+}
 
 //yarn run livechain -c 1 --f 21
 const addUsersToRegistryCtrt = async() => {
@@ -281,10 +343,10 @@ const addUsersToRegistryCtrt = async() => {
     if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
       if(checkArray[5]){
         console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
-        console.log('--------==AddUser():', idx)
+        console.log('--------==AddUser():', idx);
         const encodedData = instRegistry.methods.addUser(userId, assetbookArray[idx], investorLevelArray[idx]).encodeABI();
         let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData);
-        console.log('\nTxResult', TxResult);
+        //console.log('\nTxResult', TxResult);
         console.log(`after addUser() on AssetOwner${idx+1}...`);
     
         userM = await instRegistry.methods.getUserFromUid(userId).call();
@@ -459,16 +521,6 @@ const setupTest = async () => {
   let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
   checkEq(supportsInterface0x780e9d63, true);
 
-  const platformSupervisorNew = AssetOwner10;
-  const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
-  let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHelium, encodedData).catch((err) => {
-    reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
-    return false;
-  });
-  console.log('\nTxResult', TxResult);
-  let result = await instHelium.methods.checkPlatformSupervisor(platformSupervisorNew).call();
-  console.log('\nafter adding platformSupervisor: result', result);
-
   console.log('setup has been completed');
   process.exit(0);
 };
@@ -526,11 +578,18 @@ const getTokenController = async () => {
   console.log('addrTokenController', addrTokenController);
   isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
   tokenIdM = await instHCAT721.methods.tokenId().call();
-  console.log('isTokenApprovedOperational() =', isTokenApprovedOperational);
+  console.log('isTokenApprovedOperational():', isTokenApprovedOperational);
   console.log('tokenId or tokenCount from assetCtrt', tokenIdM);
   checkEq(isTokenApprovedOperational, false);
   checkEq(tokenIdM, '0');
 
+  const isPlatformSupervisor = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr}); 
+  console.log('isPlatformSupervisor()', isPlatformSupervisor);
+
+  if(!isPlatformSupervisor){
+    console.log('backendAddr is not a platformSupervisor!!');
+    process.exit(0);
+  }
   if (!isTokenApprovedOperational) {
     console.log('Setting serverTime to TimeTokenUnlock+1 ...');
     serverTime = TimeTokenUnlock+1;
@@ -1438,6 +1497,18 @@ if (func === 0) {
 } else if (func === 9) {
   mintTokenFn1();
 
+//yarn run livechain -c 1 --f 18
+} else if (func === 18) {
+  changePermissionToPS_API();
+
+//yarn run livechain -c 1 --f 19
+} else if (func === 19) {
+  addPlatformSupervisor_API();
+
+//yarn run livechain -c 1 --f 20
+} else if (func === 20) {
+  addBackendToCustomerService();
+
 //yarn run livechain -c 1 --f 21
 } else if (func === 21) {
   addUsersToRegistryCtrt();
@@ -1466,6 +1537,8 @@ if (func === 0) {
 //yarn run livechain -c 1 --f 93
 } else if (func === 93) {
   transferTokensKY();
+} else {
+  console.log('no matched entry number');
 }
 //showMenu();
 

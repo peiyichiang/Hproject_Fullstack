@@ -116,6 +116,36 @@ contract CrowdFunding {
         boolArray[7] = _addrHelium.isContract();
     }
 
+    function changeCFED(uint _CFED) public onlyPlatformSupervisor {
+        CFED = _CFED;
+    }
+    function changeCFSD(uint _CFSD) public onlyPlatformSupervisor {
+        CFSD = _CFSD;
+    }
+
+    function changeInitialConditions(
+        string memory _tokenSymbol,
+        uint _initialAssetPricing,
+        string memory _pricingCurrency,
+        uint _maxTotalSupply,
+        uint _quantityGoal,
+        uint _CFSD,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED,//CrowdFunding End Date
+        uint _TimeOfDeployment,
+        address _addrHelium
+        ) public onlyPlatformSupervisor {
+        tokenSymbol = _tokenSymbol;
+        initialAssetPricing = _initialAssetPricing;
+        pricingCurrency = _pricingCurrency;
+        maxTotalSupply = _maxTotalSupply;//專案總量
+        quantityGoal = _quantityGoal;
+
+        CFSD = _CFSD;
+        CFED = _CFED;// yyyymmddhhmm
+        TimeOfDeployment = _TimeOfDeployment;
+        addrHelium = _addrHelium;
+    }
+
     function getContractDetails() public view returns(
         uint TimeOfDeployment_, uint maxTokenQtyForEachInvestmentFund_,
         string memory tokenSymbol_, string memory pricingCurrency_,

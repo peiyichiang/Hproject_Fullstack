@@ -198,12 +198,12 @@ async function asyncForEachAssetRecordRowArray2(inputArray, callback) {
 const checkTargetAmounts = (existingBalances, targetAmounts) => {
   //console.log('\n-----------------==\ninside breakdownArray');
   if(isEmpty(existingBalances) || isEmpty(targetAmounts)){
-    console.log('existingBalances or targetAmounts is not valid!');
-    return false;
+    console.log('existingBalances or targetAmounts is emtpy!');
+    return [undefined, undefined];
   }
   if(existingBalances.length !== targetAmounts.length){
     console.log('existingBalances and targetAmounts are of different length');
-    return false;
+    return [undefined, undefined];
   }
   const result = [];  let isAllGood;
   existingBalances.forEach((item,idx) => {

@@ -42,8 +42,9 @@ contract Helium {
         addPlatformSupervisor(management[0]);
         addPlatformSupervisor(management[1]);
         addPlatformSupervisor(management[2]);
-        addPlatformSupervisor(management[3]);
-        addPlatformSupervisor(management[4]);
+
+        addCustomerService(management[3]);
+        addCustomerService(management[4]);
         isAfterDeployment = true;
         /*
         managementList[Helium_Admin] = true;
