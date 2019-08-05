@@ -5,7 +5,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 const amqp = require('amqplib/callback_api');
 
-const { isTimeserverON, blockchainURL, admin, adminpkRaw, wlogger } = require('../ethereum/contracts/zsetupData');
+const { isTimeserverON, blockchainURL, admin, adminpkRaw, wlogger } = require('../timeserver/envVariables.js');
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 const { addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
@@ -13,8 +13,8 @@ const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calcu
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 /**後台公私鑰*/
-const backendAddr = admin;
-const backendRawPrivateKey = adminpkRaw;
+const backendAddr = process.env.admin;
+const backendRawPrivateKey = process.env.adminpkRaw;
 const backendPrivateKey = Buffer.from(backendRawPrivateKey.substr(2), 'hex');
 
 /**contracts info*/
@@ -552,8 +552,8 @@ router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res
             let quantityGoal = await crowdFunding.methods.quantityGoal().call({ from: backendAddr })
             let maxTotalSupply = await crowdFunding.methods.maxTotalSupply().call({ from: backendAddr })
             let quantitySold = await crowdFunding.methods.quantitySold().call({ from: backendAddr })
-            let CFSD2 = await crowdFunding.methods.CFSD2().call({ from: backendAddr })
-            let CFED2 = await crowdFunding.methods.CFED2().call({ from: backendAddr })
+            let CFSD2 = await crowdFunding.methods.CFSD().call({ from: backendAddr })
+            let CFED2 = await crowdFunding.methods.CFED().call({ from: backendAddr })
 
             res.send({
                 fundingState: fundingState,

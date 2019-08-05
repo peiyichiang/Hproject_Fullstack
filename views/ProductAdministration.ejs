@@ -1646,8 +1646,7 @@ result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`
                 let tokenControllerCtrtAddr = result.result.sc_erc721Controller;
 
 
-                $.get("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +  'Contracts/crowdFundingContract/' %>
-                " + nftSymbol + "/investors", async function (result) {
+                $.get("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +  'Contracts/crowdFundingContract/' %>" + nftSymbol + "/investors", async function (result) {
                     console.log(result);
                     let assetBookAddrs = result[0];
                     let amounts = result[1];
