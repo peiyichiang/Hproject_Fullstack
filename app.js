@@ -9,9 +9,8 @@ var multer = require('multer');
 // var debugSQL = require('debug')('dev:mysql');
 // var timeout = require('connect-timeout'); //express v4
 
-require("dotenv").config();
-
-const { isTimeserverON, useFullTimeServer } = require('./ethereum/contracts/zsetupData');
+//require("dotenv").config();
+const { serverPort, isTimeserverON } = require('./timeserver/envVariables');
 
 console.log('loading app.js modules...');
 //智豪
@@ -126,9 +125,9 @@ app.use(function (err, req, res, next) {
 if(isTimeserverON){
   require('./timeserver/timeserverSource');
 }
-console.log(`\n------------------==timeserver: ${isTimeserverON}, useFullTimeServer: ${useFullTimeServer}`);
+console.log(`\n------------------==timeserver: ${isTimeserverON}`);
 
-console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
+console.log(`[end of @ app.js] http://localhost:${serverPort}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 
 

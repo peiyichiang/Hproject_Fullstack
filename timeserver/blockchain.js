@@ -6,7 +6,8 @@ const log = console.log;
 console.log('loading blockchain.js...');
 
 const { getTime, isEmpty, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
-const { gasLimitValue, gasPriceValue, blockchainURL, Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray, wlogger } = require('../ethereum/contracts/zsetupData');
+const {gasLimitValue, gasPriceValue, blockchainURL} = require('./envVariables');
+const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray, wlogger } = require('../ethereum/contracts/zsetupData');
 const { addActualPaymentTime } = require('./mysql');
 
 const { mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');

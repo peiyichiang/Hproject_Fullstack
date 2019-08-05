@@ -1,38 +1,31 @@
-const Web3 = require('web3');
 const winston = require('winston');
 const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
-require("dotenv").config();
-let blockchainChoice = 1, blockchainURL, gasLimitValue, gasPriceValue;
-if(blockchainChoice === 1){//POA
-  blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
-  gasLimitValue = '7000000';//intrinsic gas too low
-  gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
+const {isTimeserverON, admin, adminpkRaw } = require('../../timeserver/envVariables');
 
-} else if(blockchainChoice === 2){/*ganache*/
-  blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
-  gasLimitValue = '7000000';// for POW private chain
-  gasPriceValue = '20000000000';//100000000000000000
+const AssetOwner1 = '0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2';
+const AssetOwner1pkRaw = '0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca';
+const AssetOwner2 = '0x470Dea51542017db8D352b8B36B798a4B6d92c2E';
+const AssetOwner2pkRaw = '0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2';
+const AssetOwner3 = '0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61';
+const AssetOwner3pkRaw = '0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45';
+const AssetOwner4 = '0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E';
+const AssetOwner4pkRaw = '0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f';
+const AssetOwner5 = '0xa6cc621A179f01A719ee57dB4637A4A1f603A442';
+const AssetOwner5pkRaw = '0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a';
 
-} else if(blockchainChoice === 3){/*Infura HttpProvider Endpoint*/
-  blockchainURL = process.env.BC_PROVIDER;
-  gasLimitValue = '7000000';// for POW private chain
-  gasPriceValue = '20000000000';//100000000000000000
+const AssetOwner6 = '0x6Ae6Bd45E4F30fdFe487BC5940f092a69A72462B';
+const AssetOwner6pkRaw = '0x5df6762ff8e898f6ca718844d6be97852f5ea3e0b9f3b9af89cb9f8dd074a6db';
+const AssetOwner7 = '0x836434d111AC6893Ff4d6C7547870e6bb1D31B67';
+const AssetOwner7pkRaw = '0x85d930838529708da898206a9cc6c8fca172b398011ed414dab48bdb76fe4148';
+const AssetOwner8 = '0x52566ac53BD14B4519e063b6A16CC0d249FF8Fd2';
+const AssetOwner8pkRaw = '0x3bd92e02137d5678463a23cdff407e5af06ab6b7bfe1b8c8ac172b1ce19182a4';
+const AssetOwner9 = '0xe93c0A8845E8477ae460578d2D84d918aaCA37F7';
+const AssetOwner9pkRaw = '0x4717997c64e19cfbd4df771c3f8900232b8681c77162bf5de0f5e7dca115237d';
+const AssetOwner10 = '0x61D9068dA7B5dF1BBfb0a254Cb40C6739A52bd76';
+const AssetOwner10pkRaw = '0x7347b852ddbbb7c1c39e7ca381f4c30ce3cd8adb55a48f7f67310d0a8db3ae68';
 
-}
-const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
-
-
-//let addrIncomeManager, addrProductManager;
-console.log('--------------------==zsetupData.js');
-let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager, whichTimeServerArray;
-
-const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'NCCC0801'];//'AURA1904'
-const excludedSymbolsIA = [];
-
-//console.log('acquired admin:',process.env.admin, process.env.adminpkRaw);
-const admin = process.env.admin;
-const adminpkRaw =  process.env.adminpkRaw;
+/*require("dotenv").config();
 const AssetOwner1 = process.env.AssetOwner1;
 const AssetOwner1pkRaw = process.env.AssetOwner1pkRaw;
 const AssetOwner2 = process.env.AssetOwner2;
@@ -54,6 +47,15 @@ const AssetOwner9 = process.env.AssetOwner9;
 const AssetOwner9pkRaw = process.env.AssetOwner9pkRaw;
 const AssetOwner10 = process.env.AssetOwner10;
 const AssetOwner10pkRaw = process.env.AssetOwner10pkRaw;
+*/
+
+//let addrIncomeManager, addrProductManager;
+console.log('--------------------==zsetupData.js');
+let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager, whichTimeServerArray;
+
+const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'NCCC0801'];//'AURA1904'
+const excludedSymbolsIA = [];
+
 
 const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10];
 const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw];
@@ -139,16 +141,6 @@ const productObjArray = [productObj0, productObj1, productObj2, productObj3, pro
 
 symNum = 4;
 
-const isTimeserverON = process.env.isTimeserverONEnv === '1';
-//const isTimeserverON = false;
-
-const useFullTimeServer = process.env.useFullTimeServerEnv === '1';
-console.log(`isTimeserverON: ${isTimeserverON} ${typeof isTimeserverON}, useFullTimeServer: ${useFullTimeServer} ${typeof useFullTimeServer}`);
-if(useFullTimeServer){
-  whichTimeServerArray = [1, 1, 1, 1, 1, 1];
-} else {
-  whichTimeServerArray = [1, 0, 0, 0, 0, 0];
-}
 
 // const currentTime = await timer.getTime();
 // console.log('currentTime', currentTime);
@@ -184,10 +176,6 @@ index 3: updateCFC(serverTime);//blockchain.js
 index 4: updateTCC(serverTime);//blockchain.js
 index 5: calculateLastPeriodProfit(serverTime);//blockchain.js
 */
-if(whichTimeServerArray.length !== 6){
-  console.log('whichTimeServerArray should have length ===', 6);
-  process.exit(1);
-}
 
 const symbolArray = [];
 crowdFundingAddrArray= [];
@@ -679,10 +667,7 @@ const wlogger = winston.loggers.get('format1');
 
 
 module.exports = {
-  blockchainURL, gasLimitValue, gasPriceValue,
-  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, admin, adminpkRaw, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTimeserverON, useFullTimeServer,
-  CFSD, CFED, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
-  argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
+  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, admin, adminpkRaw, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
   TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
   email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, checkCompliance, wlogger
 }
