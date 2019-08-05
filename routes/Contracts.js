@@ -43,18 +43,6 @@ getTime().then(function (time) {
 })
 
 
-router.get('/', function(req,res){
-    res.send({
-        blockchainURL: blockchainURL,
-        backendAddr: backendAddr,
-        backendRawPrivateKey: backendRawPrivateKey,
-        heliumContractAddr: heliumContractAddr,
-        registryContractAddr: registryContractAddr,
-        productManagerContractAddr: productManagerContractAddr,
-        management: management
-    })
-})
-
 /**@dev Helium ------------------------------------------------------------------------------------- */
 /**deploy helium contract*/
 router.post('/heliumContract', function (req, res, next) {
