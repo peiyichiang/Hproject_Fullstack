@@ -10,7 +10,7 @@ var multer = require('multer');
 // var timeout = require('connect-timeout'); //express v4
 
 //require("dotenv").config();
-const { serverPort, isTimeserverON } = require('./timeserver/envVariables');
+const { SERVER_PORT, isTimeserverON, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
 
 console.log('loading app.js modules...');
 //智豪
@@ -122,12 +122,18 @@ app.use(function (err, req, res, next) {
 });
 
 
+console.log(`\n------------------==timeserver: ${isTimeserverON}`);
 if(isTimeserverON){
   require('./timeserver/timeserverSource');
+  console.log(`  is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}
+  is_makeOrdersExpiredCFED: ${is_makeOrdersExpiredCFED}
+  is_updateExpiredOrders: ${is_updateExpiredOrders}
+  is_updateFundingStateFromDB: ${is_updateFundingStateFromDB}
+  is_updateTokenStateFromDB: ${is_updateTokenStateFromDB}
+  is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
+  `);
 }
-console.log(`\n------------------==timeserver: ${isTimeserverON}`);
-
-console.log(`[end of @ app.js] http://localhost:${serverPort}/Product/ProductList`);
+console.log(`[end of @ app.js] http://localhost:${SERVER_PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 
 

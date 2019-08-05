@@ -8,17 +8,22 @@ cName = helium, assetbook, registry, adduser, cf, tokc, hcat, addproduct, addord
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
+const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON } = require('../../timeserver/envVariables');
+
 const {addSmartContractRow, addProductRow, addUsersIntoDB, addOrdersIntoDB, addIncomeArrangementRowsIntoDB } = require('../../timeserver/mysql.js');
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
-const { isTimeserverON, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, assetOwnerArray, assetOwnerpkRawArray, symNum, blockchainURL, TimeOfDeployment_HCAT, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, fundmanager, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, userArray, incomeArrangementArray
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement
+} = require('./zTestParameters');
+
+const { TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
 } = require('./zsetupData');
 
 //to be overwritten as we are deploying new contracts
 let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
 
-let provider, web3, web3deploy, gasLimitValue, gasPriceValue, prefix = '';
+let provider, web3, web3deploy, prefix = '';
 console.log('process.argv', process.argv);
 if (process.argv.length < 8) {
   console.log('not enough arguments. Make it like: yarn run deploy -n 1 --chain 1 --cName contractName');
@@ -95,10 +100,10 @@ console.log('chain = ', chain, ', ctrtName =', ctrtName);
 
 
 //1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
-if (chain === 1) {//POA private chain
-  gasLimitValue = '7000000';//intrinsic gas too low
-  gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
+// gasLimitValue = 9000000;//intrinsic gas too low
+// gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
 
+if (chain === 1) {//POA private chain
   backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
   provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
   web3deploy = new Web3(provider);
@@ -107,8 +112,6 @@ if (chain === 1) {//POA private chain
   prefix = '0x';
 
 } else if (chain === 2) {//2: POW private chain
-  gasLimitValue = '7000000';// for POW private chain
-  gasPriceValue = '20000000000';//100000000000000000
   
   backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
   //provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
@@ -119,16 +122,14 @@ if (chain === 1) {//POA private chain
   //https://github.com/trufflesuite/ganache-cli
   const ganache = require("ganache-cli");
   //9140000000000000000 => 7ED7CD92FF120000
-  const options = { gasLimit: 8000000, accounts: [{balance: 9140000000000000000, secretKey: pkey}] };
+  const options = { gasLimit: gasLimitValue, accounts: [{balance: 9140000000000000000, secretKey: pkey}] };
   //const server = ganache.server(options);
   provider = ganache.provider(options);
   web3deploy = new Web3(provider);
   web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
   
 } else if (chain === 3) {
-  const options = { gasLimit: 7000000 };
-  gasLimitValue = '5000000';// for POW Infura Rinkeby chain
-  gasPriceValue = '20000000000';//100000000000000000
+  const options = { gasLimit: gasLimitValue };
   provider = ganache.provider(options);
   web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -139,6 +140,8 @@ if (chain === 1) {//POA private chain
 console.log(`-------------------==connecting to chain: ${chain}
 gasLimit: ${gasLimitValue}, gasPrice: ${gasPriceValue}`);
 
+const gasLimitValueStr = gasLimitValue+'';
+const gasPriceValueStr = gasPriceValue+'';
 
 //Mocha starts > BeforeEach: Deploy a new contract
 // > it: Manipulate the contract > it: make an assertion > repeat
@@ -191,7 +194,7 @@ const deploy = async () => {
       console.log('\nDeploying Helium contract...');
       instHelium =  await new web3deploy.eth.Contract(Helium.abi)
       .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -215,7 +218,7 @@ const deploy = async () => {
       const argsTestCtrt = [HCAT721SerialNumber, addrHelium];
       instTestCtrt =  await new web3deploy.eth.Contract(TestCtrt.abi)
       .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -239,7 +242,7 @@ const deploy = async () => {
       console.log('\nDeploying multiSig contracts...');
       instMultiSig1 =  await new web3deploy.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -258,7 +261,7 @@ const deploy = async () => {
 
       instMultiSig2 =  await new web3deploy.eth.Contract(MultiSig.abi)
       .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -286,7 +289,7 @@ const deploy = async () => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -316,7 +319,7 @@ const deploy = async () => {
       argsAssetBookN = [item, addrHelium];
       instAssetBookN =  await new web3deploy.eth.Contract(AssetBook.abi)
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
       .on('receipt', function (receipt) {
         console.log('receipt:', receipt);
       })
@@ -356,7 +359,7 @@ const deploy = async () => {
     const argsAssetBookx = [assetowner, addrHelium];
     instAssetBookx =  await new web3deploy.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookx })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -378,7 +381,7 @@ const deploy = async () => {
     const argsRegistry = [addrHelium];
     instRegistry =  await new web3deploy.eth.Contract(Registry.abi)
     .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })
@@ -501,7 +504,7 @@ const deploy = async () => {
 
     instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
     .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
     })

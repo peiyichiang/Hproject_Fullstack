@@ -5,12 +5,16 @@ const chalk = require('chalk');
 const log = console.log;
 console.log('loading blockchain.js...');
 
-const { getTime, isEmpty, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
-const {gasLimitValue, gasPriceValue, blockchainURL} = require('./envVariables');
-const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray, wlogger } = require('../ethereum/contracts/zsetupData');
-const { addActualPaymentTime } = require('./mysql');
 
-const { mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
+const { getTime, isEmpty, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
+
+const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON} = require('./envVariables');
+
+const { excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
+
+const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  wlogger } = require('../ethereum/contracts/zsetupData');
+
+const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
 const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 const blockchainChoice = 1;//1 POA, 2 ganache, 3 Infura
@@ -223,24 +227,8 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
 
 //-------------------==Crowdfunding
 //yarn run testmt -f 61
-const deployCrowdfundingContract = async() => {
+const deployCrowdfundingContract = async(argsCrowdFunding) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n--------------==deployCrowdfundingContract()');
-    let acCFSD, acCFED, TimeOfDeployment_CF;
-    if(isTimeserverON){
-      acTimeOfDeployment_CF = await getTime();
-      acCFSD = TimeOfDeployment_CF+1;
-      acCFED = TimeOfDeployment_CF+1000000;//1 month to buy
-    } else {
-      acCFSD = CFSD;
-      acCFED = CFED;
-      acTimeOfDeployment_CF = TimeOfDeployment_CF;
-    }
-    const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply,quantityGoal,acCFSD,acCFED,acTimeOfDeployment_CF, addrHelium];
-  
-    console.log(`acTimeOfDeployment_CF: ${acTimeOfDeployment_CF}
-acCFSD: ${acCFSD}, acCFED: ${acCFED}
-argsCrowdFunding: ${argsCrowdFunding}`);
   
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
@@ -256,10 +244,10 @@ argsCrowdFunding: ${argsCrowdFunding}`);
      })
      .on('error', function (error) {
          console.log('error:', error.toString());
+         reject(error.toString());
      });
   
      console.log('CrowdFunding.sol has been deployed');
-     console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
   
      if (instCrowdFunding === undefined) {
        console.log('[Error] instCrowdFunding is NOT defined');
@@ -281,20 +269,8 @@ argsCrowdFunding: ${argsCrowdFunding}`);
 
 //-------------------==TokenController
 //yarn run testmt -f 62
-const deployTokenControllerContract = async() => {
+const deployTokenControllerContract = async(argsTokenController) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n--------------==Deploying TokenController contract...');
-    let acTimeTokenUnlock, acTimeTokenValid, TimeOfDeployment_TokCtrl;
-    if(isTimeserverON){
-      acTimeOfDeployment_TokCtrl = await getTime();
-      acTimeTokenUnlock = TimeOfDeployment_TokCtrl+2;//2 sec to unlock
-      acTimeTokenValid = TimeOfDeployment_TokCtrl+9000000;//9 months to expire
-    } else {
-      acTimeTokenUnlock = TimeTokenUnlock;
-      acTimeTokenValid = TimeTokenValid;
-      acTimeOfDeployment_TokCtrl = TimeOfDeployment_TokCtrl;
-    }
-    const argsTokenController = [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock,acTimeTokenValid, addrHelium ];
 
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
@@ -310,10 +286,9 @@ const deployTokenControllerContract = async() => {
     })
     .on('error', function (error) {
         console.log('error:', error.toString());
+        reject(error.toString());
     });
-
     console.log('TokenController.sol has been deployed');
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
 
     if (instTokenController === undefined) {
       console.log('[Error] instTokenController is NOT defined');
@@ -328,42 +303,16 @@ const deployTokenControllerContract = async() => {
     } else {
       console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
     }
-    // const instTokenController = new web3.eth.Contract(TokenController.abi, addrTokenController);
-    // let instHCAT721;
-    // if(choiceOfHCAT721===1){
-    //   console.log('use HCAT721_Test!!!');
-    //   instHCAT721 = new web3.eth.Contract(HCAT721_Test.abi, addrHCAT721);
-    // } else if(choiceOfHCAT721===2){
-    //   console.log('use HCAT721');
-    //   instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
-    // }
     resolve(true);
   });
 }
 
 //-------------------==HCAT
 //yarn run testmt -f 63
-const deployHCATContract = async() => {
+const deployHCATContract = async(argsHCAT721) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n--------------==Deploying HCAT721 contract... initial');
     /**https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
     */
-    let TimeOfDeployment_HCAT;
-    if(isTimeserverON){
-      acTimeOfDeployment_HCAT = await getTime();
-    } else {
-      acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
-    }
-    const nftName_bytes32 = web3.utils.fromAscii(nftName);
-    const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
-    const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
-    const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
-    
-    const argsHCAT721 = [
-    nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
-    initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
-
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
@@ -394,20 +343,10 @@ const deployHCATContract = async() => {
       })
       .on('error', function (error) {
           console.log('error:', error.toString());
-      });
+          reject(error.toString());
+        });
       console.log('HCAT721_Test.sol has been deployed');
     }
-    // instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
-    // .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    // .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    // .on('receipt', function (receipt) {
-    //   console.log('receipt:', receipt);
-    // })
-    // .on('error', function (error) {
-    //     console.log('error:', error.toString());
-    // });
-
-    console.log('symNum:', symNum, ', nftSymbol', nftSymbol, ', maxTotalSupply', maxTotalSupply, ', initialAssetPricing', initialAssetPricing, ', siteSizeInKW', siteSizeInKW);
 
     if (instHCAT721 === undefined) {
       console.log('[Error] instHCAT721 is NOT defined');
@@ -431,16 +370,8 @@ const deployHCATContract = async() => {
 
 //-------------------==IncomeManager
 //yarn run testmt -f 64
-const deployIncomeManagerContract = async() => {
+const deployIncomeManagerContract = async(argsIncomeManager) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n--------------==Deploying IncomeManager contract...');
-    let TimeOfDeployment_IM;
-    if(isTimeserverON){
-      acTimeOfDeployment_IM = await getTime();
-    } else {
-      acTimeOfDeployment_IM = TimeOfDeployment_IM;
-    }
-    const argsIncomeManager =[addrHCAT721, addrHelium, TimeOfDeployment_IM];
 
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
@@ -456,7 +387,8 @@ const deployIncomeManagerContract = async() => {
     })
     .on('error', function (error) {
         console.log('error:', error.toString());
-    });
+        reject(error.toString());
+      });
 
     console.log('IncomeManager.sol has been deployed');
     if (instIncomeManager === undefined) {
@@ -2510,8 +2442,8 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
               let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
               let txParams = {
                   nonce: web3.utils.toHex(nonce),
-                  gas: 9000000,
-                  gasPrice: 0,
+                  gas: gasLimitValue,//9000000,
+                  gasPrice: gasPriceValue,//0,
                   //gasPrice: web3js.utils.toHex(20 * 1e9),
                   //gasLimit: web3.utils.toHex(3400000),
                   to: contractAddr,

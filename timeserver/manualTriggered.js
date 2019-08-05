@@ -2,8 +2,14 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
+
 //--------------------==
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftSymbol, checkCompliance, TimeTokenUnlock, addrCrowdFunding, CFSD, CFED, addrHCAT721 } = require('../ethereum/contracts/zsetupData');
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
+  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA,  } = require('../ethereum/contracts/zTestParameters');
+
+const { isTimeserverON } = require('./envVariables');
+
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, 
   deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
@@ -814,26 +820,81 @@ const writeStreamToTxtFile_API = async () => {
 //yarn run testmt -f 61
 const deployCrowdfundingContract_API = async () => {
   console.log('\n---------------------==deployCrowdfundingContract_API()');
-  const result = await deployCrowdfundingContract();
+  let acCFSD, acCFED, acTimeOfDeployment_CF;
+  if(isTimeserverON){
+    acTimeOfDeployment_CF = await getTime();
+    acCFSD = TimeOfDeployment_CF+1;
+    acCFED = TimeOfDeployment_CF+1000000;//1 month to buy
+  } else {
+    acTimeOfDeployment_CF = TimeOfDeployment_CF;
+    acCFSD = CFSD;
+    acCFED = CFED;
+  }
+  
+  console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacCFSD: ${acCFSD}, acCFED: ${acCFED}, acTimeOfDeployment_CF: ${acTimeOfDeployment_CF}`);
+  const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD, CFED, TimeOfDeployment_CF, addrHelium];
+
+  const result = await deployCrowdfundingContract(argsCrowdFunding);
   console.log(`result: ${result}`);
 }
 
 //yarn run testmt -f 62
 const deployTokenControllerContract_API = async () => {
   console.log('\n---------------------==deployTokenControllerContract_API()');
-  const result = await deployTokenControllerContract();
+  let acTimeTokenUnlock, acTimeTokenValid, TimeOfDeployment_TokCtrl;
+  if(isTimeserverON){
+    acTimeOfDeployment_TokCtrl = await getTime();
+    acTimeTokenUnlock = TimeOfDeployment_TokCtrl+2;//2 sec to unlock
+    acTimeTokenValid = TimeOfDeployment_TokCtrl+9000000;//9 months to expire
+  } else {
+    acTimeTokenUnlock = TimeTokenUnlock;
+    acTimeTokenValid = TimeTokenValid;
+    acTimeOfDeployment_TokCtrl = TimeOfDeployment_TokCtrl;
+  }
+  const argsTokenController = [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock,acTimeTokenValid, addrHelium ];
+  console.log(`acTimeOfDeployment_TokCtrl: ${acTimeOfDeployment_TokCtrl}, acTimeTokenUnlock: ${acTimeTokenUnlock}, acTimeTokenValid: ${acTimeTokenValid}`);
+
+  const result = await deployTokenControllerContract(argsTokenController);
   console.log(`result: ${result}`);
 }
+
 //yarn run testmt -f 63
 const deployHCATContract_API = async () => {
   console.log('\n---------------------==deployHCATContract_API()');
-  const result = await deployHCATContract();
+  let TimeOfDeployment_HCAT;
+  if(isTimeserverON){
+    acTimeOfDeployment_HCAT = await getTime();
+  } else {
+    acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
+  }
+  const nftName_bytes32 = web3.utils.fromAscii(nftName);
+  const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
+  const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
+  const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+  
+  const argsHCAT721 = [
+  nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
+  initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
+  addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
+  console.log(`nftName: ${nftName}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply} \ninitialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}, tokenURI: ${tokenURI}`);
+
+  const result = await deployHCATContract(argsHCAT721);
   console.log(`result: ${result}`);
 }
+
 //yarn run testmt -f 64
 const deployIncomeManagerContract_API = async () => {
   console.log('\n---------------------==deployIncomeManagerContract_API()');
-  const result = await deployIncomeManagerContract();
+  let TimeOfDeployment_IM;
+  if(isTimeserverON){
+    acTimeOfDeployment_IM = await getTime();
+  } else {
+    acTimeOfDeployment_IM = TimeOfDeployment_IM;
+  }
+  const argsIncomeManager =[addrHCAT721, addrHelium, TimeOfDeployment_IM];
+  console.log(`TimeOfDeployment_IM: ${TimeOfDeployment_IM}`);
+
+  const result = await deployIncomeManagerContract(argsIncomeManager);
   console.log(`result: ${result}`);
 }
 

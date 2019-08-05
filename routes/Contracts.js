@@ -5,9 +5,12 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 const amqp = require('amqplib/callback_api');
 
-const { isTimeserverON, blockchainURL, admin, adminpkRaw, wlogger } = require('../ethereum/contracts/zsetupData');
+const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON } = require('../timeserver/envVariables');
+
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
+
 const { addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
+
 const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
@@ -37,7 +40,7 @@ const management = ["0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB", "0x17200B9d6F3
 const addrZero = "0x0000000000000000000000000000000000000000";
 /**time server*/
 getTime().then(function (time) {
-    console.log(`[Routes/Contract.js] server time: ${time}`)
+    console.log(`[Contracts.js] server time: ${time}`)
 })
 
 
@@ -49,7 +52,7 @@ router.post('/heliumContract', function (req, res, next) {
     /**POA */
     const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
     /**ganache */
-    //const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
+    //const provider = new PrivateKeyProvider(backgetTimeendPrivateKey, blockchainURL);
     const web3deploy = new Web3(provider);
 
     const helium = new web3deploy.eth.Contract(heliumContract.abi);
@@ -1710,8 +1713,8 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
                 console.log(userPrivateKey);
                 let txParams = {
                     nonce: web3.utils.toHex(nonce),
-                    gas: 9000000,
-                    gasPrice: 0,
+                    gas: gasLimitValue,//9000000,
+                    gasPrice: gasPriceValue,//0,
                     //gasPrice: web3js.utils.toHex(20 * 1e9),
                     //gasLimit: web3.utils.toHex(3400000),
                     to: contractAddr,

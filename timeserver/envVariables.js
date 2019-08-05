@@ -1,22 +1,29 @@
 require("dotenv").config();
 
-const serverPort = process.env.PORT;
+const SERVER_HOST = process.env.SERVER_HOST;
+const SERVER_PORT = process.env.SERVER_PORT;
+const DB_host = process.env.DB_HOST;
+const DB_user = process.env.DB_USER;
+const DB_password = process.env.DB_PASS;
+const DB_name = process.env.DB_NAME;
+const DB_port = process.env.DB_PORT;
 
-let blockchainChoice = 1, blockchainURL, gasLimitValue, gasPriceValue;
-if(blockchainChoice === 1){//POA
+const blockchainChoice = process.env.BLOCKCHAIN_CHOICE;
+let blockchainURL, gasLimitValue, gasPriceValue;
+if(blockchainChoice === '1'){//POA
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
-  gasLimitValue = '7000000';//intrinsic gas too low
-  gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
+  gasLimitValue = 9000000;//intrinsic gas too low
+  gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
 
-} else if(blockchainChoice === 2){/*ganache*/
+} else if(blockchainChoice === '2'){/*ganache*/
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
-  gasLimitValue = '7000000';// for POW private chain
-  gasPriceValue = '20000000000';//100000000000000000
+  gasLimitValue = 9000000;// for POW private chain
+  gasPriceValue = 20000000000;//100000000000000000
 
-} else if(blockchainChoice === 3){/*Infura HttpProvider Endpoint*/
+} else if(blockchainChoice === '3'){/*Infura HttpProvider Endpoint*/
   blockchainURL = process.env.BC_PROVIDER;
-  gasLimitValue = '7000000';// for POW private chain
-  gasPriceValue = '20000000000';//100000000000000000
+  gasLimitValue = 9000000;// for POW private chain
+  gasPriceValue = 20000000000;//100000000000000000
 
 }
 
@@ -42,4 +49,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 const admin = process.env.admin;
 const adminpkRaw =  process.env.adminpkRaw;
 
-module.exports = { serverPort, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };
+module.exports = { SERVER_HOST, SERVER_PORT, DB_host, DB_user, DB_password, DB_name, DB_port,  blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };

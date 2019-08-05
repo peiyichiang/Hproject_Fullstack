@@ -1,22 +1,24 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
-require('dotenv').config();
 
 const chalk = require('chalk');
 const log = console.log;
 
+const { DB_host, DB_user, DB_password, DB_name, DB_port } = require('./envVariables');
+
 const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
+
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, incomeArrangementArray} = require('../ethereum/contracts/zsetupData');
 
 const serverTimeMin = 201905270900;
 
 const DatabaseCredential = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  host: DB_host,
+  user: DB_user,
+  password: DB_password,
+  database: DB_name,
+  port: DB_port,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -38,7 +40,7 @@ const mysqlPoolQuery = async (sql, options, callback) => {
               // callback
               callback(err, result, fields);
               //console.log(`[connection sussessful @ mysql.js] `);
-              // http://localhost:${process.env.PORT}/Product/ProductList
+              // http://localhost:${serverPort}/Product/ProductList
           });
           // release connection。
           // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release

@@ -33,11 +33,18 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 //const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { addPlatformSupervisor, sequentialMintSuper, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr } = require('../../timeserver/blockchain');
+const { sequentialMintSuper } = require('../../timeserver/blockchain');
+
 const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/utilities');
+
 const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
-const {  blockchainURL, addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
+const {serverPort, blockchainURL, gasLimitValue, gasPriceValue} = require('../../timeserver/envVariables');
+
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement
+} = require('./zTestParameters');
+
+const { TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
 } = require('./zsetupData');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10]= assetOwnerArray;
@@ -55,7 +62,7 @@ userArray.forEach((user, idx) => {
   }
 });
 const [addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10] = assetbookArray;
-let provider, gasLimitValue, gasPriceValue, prefix = '', chain, func, arg1, arg2, arg3, result, backendAddr, backendAddrpkRaw;
+let provider, chain, func, arg1, arg2, arg3, result, backendAddr, backendAddrpkRaw;
 
 const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 if(ethAddrChoice === 0){//reserved to API developer
@@ -134,8 +141,6 @@ if (chain === 1) {//POA private chain
   let scenario = 1;//1: new accounts, 2: POA node accounts
   if (scenario === 1) {
     console.log('scenario = ', scenario);
-    gasLimitValue = '9000000';//intrinsic gas too low
-    gasPriceValue = '0';//insufficient fund for gas * gasPrice + value
     console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
     prefix = '0x';
 
@@ -162,17 +167,11 @@ if (chain === 1) {//POA private chain
   console.log('leaving chain === 1');
 
 } else if (chain === 2) {
-  //gasLimitValue = 5000000 for POW private chain
-  const options = { gasLimit: 9000000 };
-  gasLimitValue = '9000000';
-  gasPriceValue = '20000000000';//100000000000000000
+  const options = { gasLimit: parseInt(gasLimitValue) };
   provider = ganache.provider(options);
 
 } else if (chain === 3) {
-  //gasLimitValue = 5000000 for POW Infura Rinkeby chain
-  const options = { gasLimit: 7000000 };
-  gasLimitValue = '7000000';
-  gasPriceValue = '20000000000';//100000000000000000
+  const options = { gasLimit: parseInt(gasLimitValue) };
   provider = ganache.provider(options);
 
 } else {
@@ -1576,8 +1575,8 @@ const signTxn = (fromAddr, ctrtAddr, encodedData, privateKey) => {
     //var amount = web3.utils.toHex(1e16);
     var rawTransaction = {
       "from": fromAddr,
-      "gasPrice": web3.utils.toHex(20 * 1e9),
-      "gasLimit": web3.utils.toHex(7000000),
+      "gasPrice": web3.utils.toHex(gasPriceValue),
+      "gasLimit": web3.utils.toHex(gasLimitValue),
       "to": ctrtAddr,
       "value": "0x0",
       "data": encodedData,
@@ -1610,12 +1609,12 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
       web3.eth.getTransactionCount(userEthAddr, 'pending')
           .then(nonce => {
 
-              let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
+              let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2),'hex');
               console.log(userPrivateKey);
               let txParams = {
                   nonce: web3.utils.toHex(nonce),
-                  gas: 9000000,
-                  gasPrice: 0,
+                  gas: gasLimitValue,//9000000,
+                  gasPrice: gasPriceValue,//0,
                   //gasPrice: web3js.utils.toHex(20 * 1e9),
                   //gasLimit: web3.utils.toHex(3400000),
                   to: contractAddr,
