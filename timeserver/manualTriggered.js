@@ -5,7 +5,7 @@ const fs = require('fs');
 
 //--------------------==
 const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA,  } = require('../ethereum/contracts/zTestParameters');
+   } = require('../ethereum/contracts/zTestParameters');
 
 const { isTimeserverON } = require('./envVariables');
 
@@ -609,15 +609,17 @@ const getTokenBalances_API = async () => {
 //yarn run testmt -f 43
 const investTokens_API = async() => {
   console.log('\n------------==inside investTokens_API()');
-  let crowdFundingAddr, amountToInvest, serverTime, addrAssetbookX, toAssetbookNumStr;
+  let crowdFundingAddr, tokenAddr, amountToInvest, serverTime, addrAssetbook, toAssetbookNumStr, checkPart2 = false;
   
-  const inputChoice = 0;
+  const inputChoice = 1;
   const functionChoice = 0;
   if(inputChoice === 0){
     crowdFundingAddr = addrCrowdFunding;
+    tokenAddr = '';
     toAssetbookNumStr = 1;
     amountToInvest = 513;
     serverTime = CFSD+1;
+    checkPart2 = true;
 
     const toAssetbookNum = parseInt(toAssetbookNumStr);
     console.log("\ntoAssetbookNum", toAssetbookNum);
@@ -626,45 +628,53 @@ const investTokens_API = async() => {
       reject('toAssetbookNumStr must be integer and greater than 1');
       return false;
     }
-    addrAssetbookX = assetbookArray[toAssetbookNum-1];
+    addrAssetbook = assetbookArray[toAssetbookNum-1];
+
+  } else if(inputChoice === 1){
+    crowdFundingAddr = '0xaC7248A4672e5B99cf52C2Ade237C05EB41f9b6B';
+    addrAssetbook = '0xDCAA050B47330752953875bB9363838355C07773';
+    amountToInvest = 1;
+    serverTime = ''+201908061426;
+    tokenAddr = '';
 
   } else {
     crowdFundingAddr = '0x30E49ec3F04a3DAE3c111de9f5a9E38224a56d89';
-    addrAssetbookX = '0x78BeBa1592525403dF2B40C453054E329Ce7D5C0';
+    addrAssetbook = '0x78BeBa1592525403dF2B40C453054E329Ce7D5C0';
     amountToInvest = 2100;
     serverTime = ''+201908021026;
+    tokenAddr = '';
   }
 
   if(functionChoice === 0){
-    const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime).catch(async(err) => { 
-      const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
-      console.log('checkInvest result', result);
-  
-      console.log('\n[Error @ investTokens]',err);
-      process.exit(0);
+    const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'manualTriggered').catch(async(err) => { 
+      const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
+      console.log('\ncheckInvest result:', result);
+        console.log('\n[Error @ investTokens]', err);
+        return [false, '0x0'];
     });
-    console.log(`isInvestSuccess: ${isInvestSuccess}, txnHash: ${txnHash}`);
+    console.log(`\nisInvestSuccess: ${isInvestSuccess}, txnHash: ${txnHash}`);
 
     if(isInvestSuccess){
-      console.log(`isInvestSuccess is true`);
-      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
+      console.log(`\nGo into getInvestorsFromCFC`);
+      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
       console.log(`investorAssetBooks: ${investorAssetBooks}
-  investedTokenQtyArray: ${investedTokenQtyArray}`);
+investedTokenQtyArray: ${investedTokenQtyArray}`);
   
-      const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
-      console.log('existingBalances:', existingBalances);
-      const [result, isAllGood] = checkTargetAmounts(existingBalances, investedTokenQtyArray);
-      console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, \ninvestorAssetBooks: ${investorAssetBooks}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
-      if(!isAllGood){
-        console.log('[Warning] at least one target mint amount is lesser than its existing balance');
+      if(checkPart2){
+        const existingBalances = await getTokenBalances(assetbookArray, tokenAddr);
+        console.log('existingBalances:', existingBalances);
+        const [result, isAllGood] = checkTargetAmounts(existingBalances, investedTokenQtyArray);
+        console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, \ninvestorAssetBooks: ${investorAssetBooks}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+        if(!isAllGood){
+          console.log('[Warning] at least one target mint amount is lesser than its existing balance');
+        }
+  
       }
     } else {
-      console.log('investTokens failed', isInvestSuccess);
+      console.log('investTokens failed. isInvestSuccess:', isInvestSuccess);
     }
   } else {
-    console.log(`isInvestSuccess is false!!!`);
-    const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
-    console.log('checkInvest result', result);
+    console.log(`functionChoice is out of range: ${functionChoice}`);
   }
   process.exit(0);
 }
@@ -677,8 +687,8 @@ const checkInvestTokens_API = async() => {
   const amountToInvest = 513;
   const serverTime = CFSD+1;
 
-  const addrAssetbookX = assetbookArray[toAssetbookNum-1];
-  const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
+  const addrAssetbook = assetbookArray[toAssetbookNum-1];
+  const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
   console.log('checkInvest result', result);
 
 }
