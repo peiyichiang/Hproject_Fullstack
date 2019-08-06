@@ -16,8 +16,8 @@ const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calcu
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 /**後台公私鑰*/
-const backendAddr = process.env.admin;
-const backendRawPrivateKey = process.env.adminpkRaw;
+const backendAddr = process.env.HELIUM_ADMIN;
+const backendRawPrivateKey = process.env.HELIUM_ADMIN_PRIVATEKEY;
 const backendPrivateKey = Buffer.from(backendRawPrivateKey.substr(2), 'hex');
 
 /**contracts info*/
