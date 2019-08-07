@@ -1042,8 +1042,6 @@ router.post('/UpdateEOA', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     const email = req.body.email;
     const EOA = req.body.EOA;
-    console.log(email)
-    console.log(EOA)
     const query = (queryString, keys) => {
         return new Promise((resolve, reject) => {
             mysqlPoolQuery(
