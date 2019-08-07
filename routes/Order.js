@@ -54,7 +54,7 @@ router.post('/AddOrder', function (req, res, next) {
             res.json({
                 "message": "訂單寫入資料庫失敗:\n" + err
             });
-        } else {        
+        } else {
             var transporter = nodemailer.createTransport({
                 /* Helium */
                 host: 'server239.web-hosting.com',
@@ -65,7 +65,7 @@ router.post('/AddOrder', function (req, res, next) {
                     pass: process.env.EMAIL_PASS
                 }
             });
-        
+
             // setup email data with unicode symbols
             let mailOptions = {
                 from: ' <noreply@hcat.io>', // sender address
@@ -75,7 +75,7 @@ router.post('/AddOrder', function (req, res, next) {
                 訂單編號為:${orderId}<br>
                 您這次購買 ${symbol} 共 ${tokenCount} 片</p>`, // plain text body
             };
-        
+
             // send mail with defined transport object
             transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
@@ -93,7 +93,7 @@ router.post('/AddOrder', function (req, res, next) {
                 // console.log('Message sent: %s', info.messageId);
                 // Preview only available when sending through an Ethereal account
                 console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        
+
             });
         }
     });
@@ -420,12 +420,12 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
     }
     console.log('symbol', symbol, 'email', email, '\nauthLevel', authLevel, 'orderPayment', orderPayment, 'fundingType', fundingType);
     const fundingTypeArray = ['PublicOffering', 'PrivatePlacement', '1', '2'];//PO: 1, PP: 2
-    const authLevelArray = ['1', '2' ,'3', '4', '5'];
-    
+    const authLevelArray = ['1', '2', '3', '4', '5'];
+
     let qur = mysqlPoolQuery(
         'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, result) {
             let orderBalanceTotal = parseInt(result[0].total);
-            if(isNaN(orderBalanceTotal)){orderBalanceTotal = 0;}
+            if (isNaN(orderBalanceTotal)) { orderBalanceTotal = 0; }
 
             if (err) {
                 console.log(err);
@@ -468,22 +468,21 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
                 res.json({ "message": "[Error input]:" + reason + '...' + errInput });
 
             } else {
-                const results1 = checkCompliance(authLevel, orderBalanceTotal, orderPayment,  fundingType);
-                if (results1){
-                  res.status(200);
-                  console.log('\norderBalance', orderBalanceTotal);
-                  res.json({
-                      "message": "[Success] Success",
-                      "orderBalance": orderBalanceTotal
-                  });
- 
+                const results1 = checkCompliance(authLevel, orderBalanceTotal, orderPayment, fundingType);
+                if (results1) {
+                    res.status(200);
+                    console.log('\norderBalance', orderBalanceTotal);
+                    res.json({
+                        "message": "[Success] Success",
+                        "orderBalance": orderBalanceTotal
+                    });
+
                 } else {
-                  reason = `does not pass compliance`;
-                  errInput = fundingType;
-                  console.log(reason, ', authLevel', authLevel);
-                  res.status(400);
-                  res.json({ "message": "[Error input]:" + reason + '...' + errInput });
-                }                  
+                    reason = `does not pass compliance`;
+                    errInput = fundingType;
+                    console.log(reason, ', authLevel', authLevel);
+                    res.status(400).send('[Error input]:' + reason + '...' + errInput);
+                }
             }
         });
 });

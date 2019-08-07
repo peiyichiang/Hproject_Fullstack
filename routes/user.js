@@ -1060,7 +1060,7 @@ router.post('/UpdateEOA', function (req, res, next) {
     const updateUserEOAQuery = `
     UPDATE user 
     SET    u_eth_add = ? ,
-           u_verify_status = ?
+           u_account_status = ?
     WHERE  u_email = ?`;
 
     query(updateUserEOAQuery, [EOA, 0, email])
