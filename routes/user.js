@@ -215,7 +215,7 @@ router.post('/send_email', function (req, res) {
         from: ' <noreply@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: '請點以下連結以完成驗證： http://140.119.101.130:3000/user/verify_email?hash=' + passwordHash, // plain text body
+        text: `請點以下連結以完成驗證： ${process.env.SERVER_PROTOCOL}://hcat.io:${process.env.SERVER_PORT}/user/verify_email?hash=` + passwordHash, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
