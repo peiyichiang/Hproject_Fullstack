@@ -54,25 +54,16 @@ router.get('/UserLogin', function (req, res, next) {
 
     mysqlPoolQuery(qstr1, email, function (err, result) {
         if (err) {
-            res.status(400);
-            res.json({
-                "message": "[Error] db to/from DB :\n" + err,
-            });
-            console.log(err);
+            res.status(400).send('查詢失敗：', err);
+            console.error('query error : ', err);
         } else {
             if (result.length === 0) {
-                res.status(400);
-                res.json({
-                    "message": "No email is found",
-                });
-                console.error('No email is found:', email)
+                res.status(400).send('查無此帳號');
+                console.error('email is not found: ', email);
             } else if (result.length === 1) {
                 if (result[0].u_verify_status === 0) {
-                    res.status(400);
-                    res.json({
-                        "message": "Email is not verified",
-                    });
-                    console.error('Email is not verified:', email)
+                    res.status(400).send('此帳號信箱驗證尚未通過，請收取驗證信並點按驗證連結後再試一次');
+                    console.error('email is not verified : ', email);
                 }
                 else {
                     bcrypt
@@ -101,17 +92,14 @@ router.get('/UserLogin', function (req, res, next) {
                                 time = { expiresIn: 1800 };
                                 token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
 
-                                res.status(200);
-                                res.json({
-                                    "message": "password is correct",
+                                res.status(200).json({
+                                    "message": "密碼正確",
                                     "jwt": token
                                 });
+
                             } else {
-                                res.status(400);
-                                res.json({
-                                    "message": "password is not correct",
-                                });
-                                console.error("password is not correct");
+                                res.status(400).send('密碼錯誤，請確認後再試一次');
+                                console.error('wrong password : ', email);
                             }
                         })
                         .catch(err => console.error('Error at compare password & pwHash', err.message));
