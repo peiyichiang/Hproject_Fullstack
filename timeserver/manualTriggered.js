@@ -13,7 +13,7 @@ const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  check
 const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, 
   deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, precheckDeploymentTCC, checkDeploymentTCC, deployHCATContract, deployIncomeManagerContract, checkDeploymentCFC, precheckDeploymentCFC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray } = require('./blockchain.js');
 
 const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime } = require('./utilities');
 
@@ -830,17 +830,17 @@ const writeStreamToTxtFile_API = async () => {
 
 //----------------------------==Deploy contracts
 //yarn run testmt -f 60
-const precheckDeploymentCFC_API = async () => {
-  console.log('\n---------------------==precheckDeploymentCFC_API()');
-  const result_precheck = await precheckDeploymentCFC(argsCrowdFunding);
-  console.log(`result_precheck: ${result_precheck}`);
+const checkArgumentsCFC_API = async () => {
+  console.log('\n---------------------==checkArgumentsCFC_API()');
+  const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
 }
 
 //yarn run testmt -f 61
 const deployCrowdfundingContract_API = async () => {
   console.log('\n---------------------==deployCrowdfundingContract_API()');
   let acCFSD, acCFED, acTimeOfDeployment_CF;
-  const mode = 1;
+  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_CF = getLocalTime();
     acCFSD = acTimeOfDeployment_CF+1;
@@ -854,11 +854,12 @@ const deployCrowdfundingContract_API = async () => {
   console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacTimeOfDeployment_CF: ${acTimeOfDeployment_CF}, acCFSD: ${acCFSD}, acCFED: ${acCFED}`);
   const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium];
 
-  const result_precheck = await precheckDeploymentCFC(argsCrowdFunding);
-  console.log(`result_precheck: ${result_precheck}`);
+  const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
 
-  if(result_precheck){
-    if(mode === 1){
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
+    if(isToDeploy === 1){
       const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
       console.log(`result: ${result_deployment}`);
     } else {
@@ -879,7 +880,7 @@ const deployTokenControllerContract_API = async () => {
   console.log('\n---------------------==deployTokenControllerContract_API()');
   let acTimeTokenUnlock, acTimeTokenValid, TimeOfDeployment_TokCtrl;
 
-  const mode = 1;
+  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_TokCtrl = getLocalTime();
     acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
@@ -892,13 +893,14 @@ const deployTokenControllerContract_API = async () => {
   const argsTokenController = [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock,acTimeTokenValid, addrHelium ];
   console.log(`acTimeOfDeployment_TokCtrl: ${acTimeOfDeployment_TokCtrl}, acTimeTokenUnlock: ${acTimeTokenUnlock}, acTimeTokenValid: ${acTimeTokenValid}`);
 
-  const result_precheck = await precheckDeploymentTCC(argsTokenController);
-  console.log(`result_precheck: ${result_precheck}`);
+  const result_checkArguments = await checkArgumentsTCC(argsTokenController);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
 
-  if(result_precheck){
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
     //process.exit(0);
-    if(mode === 1){
-          const result_deployment = await deployTokenControllerContract(argsTokenController);
+    if(isToDeploy === 1){
+      const result_deployment = await deployTokenControllerContract(argsTokenController);
     console.log(`result: ${result_deployment}`);
     } else {
       const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
@@ -911,21 +913,21 @@ const deployTokenControllerContract_API = async () => {
   process.exit(0);
 }
 
-
-
 //yarn run testmt -f 67
 const deployHCATContract_API = async () => {
   console.log('\n---------------------==deployHCATContract_API()');
-  let TimeOfDeployment_HCAT;
+  let acTimeOfDeployment_HCAT;
+
+  const isToDeploy = 2;
   if(timeChoice === 1){
     acTimeOfDeployment_HCAT = getLocalTime();
   } else {
     acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
   }
-  const nftName_bytes32 = web3.utils.fromAscii(nftName);
-  const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
-  const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
-  const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+  const nftName_bytes32 = await fromAsciiToBytes32(nftName);
+  const nftSymbol_bytes32 = await fromAsciiToBytes32(nftSymbol);
+  const pricingCurrency_bytes32 = await fromAsciiToBytes32(pricingCurrency);
+  const tokenURI_bytes32 = await fromAsciiToBytes32(tokenURI);
   
   const argsHCAT721 = [
   nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
@@ -933,8 +935,24 @@ const deployHCATContract_API = async () => {
   addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
   console.log(`nftName: ${nftName}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply} \ninitialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}, tokenURI: ${tokenURI}`);
 
-  const result = await deployHCATContract(argsHCAT721);
-  console.log(`result: ${result}`);
+  const result_checkArguments = await checkArgumentsHCAT(argsHCAT721);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
+
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
+    //process.exit(0);
+    if(isToDeploy === 1){
+      const result_deployment = await deployHCATContract(argsHCAT721);
+      console.log(`result: ${result_deployment}`);
+    
+    } else {
+      const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
+      const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
+      console.log(`result: ${result}`);
+    }
+  } else {
+    console.log(`not to deploy due to incorrect argument values`);
+  }
   process.exit(0);
 }
 
@@ -955,6 +973,22 @@ const deployIncomeManagerContract_API = async () => {
   process.exit(0);
 }
 
+
+//yarn run testmt -f 95
+const checkAssetbookArray_API = async() => {
+  console.log('\n---------------------==checkAssetbookArray_API()');
+  const addressArray = [...assetbookArray, '0x5Fd93F8a4B023D837f0b04bb2836Daf535BfeFBF'];
+  const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
+    console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). addressArray: ${addressArray}`);
+    return false;
+  });
+  if(checkResult.includes(false)){
+    console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+    return false;
+  } else {
+    console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+  }
+}
 
 //----------------------------==
 //yarn run testmt -f 55
@@ -1296,6 +1330,10 @@ if(func === 0){
 //yarn run testmt -f 94
 } else if (func === 94) {
   checkTargetAmounts_API();
+
+//yarn run testmt -f 95
+} else if (func === 95) {
+  checkAssetbookArray_API();
 
 //yarn run testmt -f 102
 } else if (func === 102) {

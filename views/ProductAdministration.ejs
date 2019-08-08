@@ -1611,9 +1611,18 @@
                 port: 3030,
               },
             }
+            const url1='/Contracts/doAssetRecords/'+nftSymbol+'/';
+            const response1 = await axios.post(url1, {}, config).catch(err => { 
+              console.log('err1:',err);
+            });
+            const data1 = response1.data;
+            console.log(`response1: ${response1} \nsuccess: ${data1.success}
+result: ${JSON.stringify(data1.result)}`);
+
+            //----------------==mint tokens
             const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
             const response2 = await axios.post(url2, {}, config).catch(err => { 
-              console.log('err:',err);
+              console.log('err2:',err);
             });
             const data2 = response2.data;
             console.log(`response2: ${response2} \nsuccess: ${data2.success}
