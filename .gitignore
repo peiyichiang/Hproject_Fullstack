@@ -100,3 +100,9 @@ typings/
 
 public/uploadImgs/
 public/images/
+public/media/
+
+#https ca
+*.crt
+*.key
+*.ca-bundle
