@@ -33,16 +33,24 @@ router.post('/AddOrder', function (req, res, next) {
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
     const email = req.body.email;
     const tokenCount = req.body.tokenCount;
+    const fundCount = req.body.fundCount
+
+    /* TODO */
+    const getBankVirtualAccount = () => {
+        return '822-03113250581281'
+    }
+    const bankVirtualAccount = getBankVirtualAccount();
 
     var sql = {
         o_id: orderId,
         o_symbol: symbol,
         o_email: email,
         o_txHash: Math.random().toString(36).substring(2, 15),
-        o_tokenCount: req.body.tokenCount,
-        o_fundCount: req.body.fundCount,
+        o_tokenCount: tokenCount,
+        o_fundCount: fundCount,
         o_purchaseDate: currentDate,
-        o_paymentStatus: "waiting"
+        o_paymentStatus: "waiting",
+        o_bankvirtualaccount: bankVirtualAccount
     };//random() to prevent duplicate NULL entry!
 
     console.log(sql);
@@ -71,9 +79,11 @@ router.post('/AddOrder', function (req, res, next) {
                 from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '', // Subject line
-                html: `<h2>付款成功</h2> <p>您好：我們已收到您的訂單<br>
+                html: `<h2>下單成功</h2> <p>您好：我們已收到您的訂單<br>
                 訂單編號為:${orderId}<br>
-                您這次購買 ${symbol} 共 ${tokenCount} 片</p>`, // plain text body
+                您這次購買 ${symbol} 共 ${tokenCount} 片，共 ${fundCount} 元<br>
+                請付款至以下帳號：${bankVirtualAccount}
+                </p>`, // plain text body
             };
 
             // send mail with defined transport object
