@@ -112,7 +112,7 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 //fundingType: PO: 1, PP: 2
 
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
-const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "", "", "", "");
+const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "0xF811f727da052379D8cbfBF1188E290B32ff9f99", "0x9812d0eBcd89d8491Bca80000c147f739B9Cef73", "", "");
 
 const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "", "", "", "");
 
@@ -330,5 +330,8 @@ duration: ${duration}, fundingType: ${fundingType}
 
 
 module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA, 
+   excludedSymbols, excludedSymbolsIA, 
 }
+/**
+email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb,
+ */

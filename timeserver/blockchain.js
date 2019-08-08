@@ -3,10 +3,11 @@ const Tx = require('ethereumjs-tx');
 const moment = require('moment');
 const chalk = require('chalk');
 const log = console.log;
+const PrivateKeyProvider = require("truffle-privatekey-provider");
+
 console.log('loading blockchain.js...');
 
-
-const { getTime, isEmpty, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
+const { getTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 
 const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON} = require('./envVariables');
 
@@ -17,7 +18,6 @@ const { Helium, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager
 const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
 const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
-const blockchainChoice = 1;//1 POA, 2 ganache, 3 Infura
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
 
@@ -251,23 +251,177 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
   
      if (instCrowdFunding === undefined) {
        console.log('[Error] instCrowdFunding is NOT defined');
+       resolve(false);
+       return false;
      } else {console.log('[Good] instCrowdFunding is defined');}
      
      instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-     console.log(`\nconst addrCrowdFunding= ${instCrowdFunding.options.address}`);
-  
-     result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
-     console.log('checkDeploymentConditions():', result);
-     if(result.every(checkTrue)){
-       console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
-     } else {
-       console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
-     }
-     resolve(true);
+     const crowdFundingAddr = instCrowdFunding.options.address;
+     console.log(`\nconst addrCrowdFunding= ${crowdFundingAddr}`);
+     const checkResult = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
+     console.log('checkResult:', checkResult);
+     resolve(checkResult);
   })
 }
 
+const precheckDeploymentCFC = async(argsCrowdFunding) => {
+  return new Promise(async (resolve, reject) => {
+    const [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium] = argsCrowdFunding;
+    let mesg = '';
+    if(initialAssetPricing <= 0){
+      mesg += ', [0] initialAssetPricing has to be > 0';
+    } 
+    if(maxTotalSupply < quantityGoal){
+      mesg += ', [1] maxTotalSupply has to be >= quantityGoal';
+    } 
+    if(acTimeOfDeployment_CF <= 201905281400){
+      mesg += ', [2] TimeOfDeployment should be > 201905281400';
+    } 
+    if(acCFSD <= acTimeOfDeployment_CF){
+      mesg += ', [3] CFSD should be > TimeOfDeployment';
+    } 
+    if(acCFED <= acCFSD){
+      mesg += ', [4] CFED should be > CFSD';
+    } 
+    if(nftSymbol.length < 8 || nftSymbol.length > 32){
+      mesg += ', [5] nftSymbol should be between 8 and 32';
+    } 
+    if(pricingCurrency.length < 3 || pricingCurrency.length > 32){
+      mesg += ', [6] pricingCurrency should be between 3 and 32';
+    }
+
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
+    const Helium_Admin = await instHelium.methods.Helium_Admin().call();
+    if(Helium_Admin.length === 0){
+      mesg += ', [7] addrHelium should have Helium Contract';
+    }
+    if(mesg.substring(0,2) === ', '){
+      mesg = mesg.substring(2);
+    }
+    console.log('\n==>>>mesg:', mesg);
+    if(mesg.length > 0){
+      resolve(false);
+    } else {
+      resolve(true);
+    }
+  });
+}
+
+const checkCrowdfundingCtrt = async(crowdFundingAddr) => {
+  return new Promise( async ( resolve, reject ) => {
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    const tokenSymbol = await instCrowdFunding.methods.tokenSymbol().call();
+    const initialAssetPricing = await instCrowdFunding.methods.initialAssetPricing().call();
+    const maxTotalSupply = await instCrowdFunding.methods.maxTotalSupply().call();
+    const fundingType = await instCrowdFunding.methods.fundingType().call();
+    const CFSD = await instCrowdFunding.methods.CFSD().call();
+    const CFED = await instCrowdFunding.methods.CFED().call();
+    const stateDescription = await instCrowdFunding.methods.stateDescription().call();
+
+    console.log(`\ncheckCrowdfundingCtrt()... tokenSymbol: ${tokenSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, fundingType: ${fundingType}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
+    resolve([true, tokenSymbol, initialAssetPricing, maxTotalSupply, fundingType, CFSD, CFED, stateDescription]);
+  });
+}
+
+const checkDeploymentCFC = async(crowdFundingAddr, argsCrowdFunding) => {
+  return new Promise(async (resolve, reject) => {
+    const is_checkCrowdfunding = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
+      console.log(`${err} \ncheckCrowdfundingCtrt() failed...`);
+      reject(false);
+      return false;
+    });
+
+    if(is_checkCrowdfunding){
+      console.log(`\ncheckCrowdfundingCtrt() returns true...`);
+
+      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+      const boolArray = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
+      console.log('checkDeploymentConditions():', boolArray);
+
+      if(boolArray.includes(false)){
+        console.log('[Failed] Some/one check(s) have/has failed checkDeploymentConditions()');
+
+        const initialAssetPricing = await instCrowdFunding.methods.initialAssetPricing().call();
+        const maxTotalSupply = await instCrowdFunding.methods.maxTotalSupply().call();
+        const quantityGoal = await instCrowdFunding.methods.quantityGoal().call();
+        const TimeOfDeployment = await instCrowdFunding.methods.TimeOfDeployment().call();
+        const CFSD = await instCrowdFunding.methods.CFSD().call();
+        const CFED = await instCrowdFunding.methods.CFED().call();
+        const tokenSymbol = await instCrowdFunding.methods.tokenSymbol().call();
+        const pricingCurrency = await instCrowdFunding.methods.pricingCurrency().call();
+        const addrHelium = await instCrowdFunding.methods.addrHelium().call();
+
+        console.log(`\n===>>> initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, quantityGoal: ${quantityGoal}, TimeOfDeployment: ${TimeOfDeployment}, CFSD: ${CFSD}, CFED: ${CFED}, tokenSymbol: ${tokenSymbol}, pricingCurrency: ${pricingCurrency}, addrHelium: ${addrHelium}`);
+
+        let mesg = '';
+        if(!boolArray[0]){
+          mesg += ', [0] initialAssetPricing has to be > 0';
+        } 
+        if(!boolArray[1]){
+          mesg += ', [1] maxTotalSupply has to be >= quantityGoal';
+        } 
+        if(!boolArray[2]){
+          mesg += ', [2] TimeOfDeployment should be > 201905281400';
+        } 
+        if(!boolArray[3]){
+          mesg += ', [3] CFSD should be > TimeOfDeployment';
+        } 
+        if(!boolArray[4]){
+          mesg += ', [4] CFED should be > CFSD';
+        } 
+        if(!boolArray[5]){
+          mesg += ', [5] tokenSymbol should be between 8 and 32';
+        } 
+        if(!boolArray[6]){
+          mesg += ', [6] pricingCurrency should be between 3 and 32';
+        } 
+        if(!boolArray[7]){
+          mesg += ', [7] addrHelium should have a contract';
+        }
+        if(mesg.substring(0,2) === ', '){
+          mesg = mesg.substring(2);
+        }
+        console.log(`\n[Error message] ${mesg}`);
+        resolve(false);
+  
+      } else {
+        console.log('[Success] all checks have passed checkDeploymentConditions()');
+        resolve(true);
+      }
+    }
+  });
+}
+
 //-------------------==TokenController
+const precheckDeploymentTCC = async(argsTokenController) => {
+  return new Promise(async (resolve, reject) => {
+    const [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock, acTimeTokenValid, addrHelium ] = argsTokenController;
+    let mesg = '';
+    if(acTimeOfDeployment_TokCtrl <= 201905281400){
+      mesg += ', [2] TimeOfDeployment should be > 201905281400';
+    } 
+    if(acTimeTokenUnlock <= acTimeOfDeployment_TokCtrl){
+      mesg += ', [3] acTimeTokenUnlock should be > acTimeOfDeployment_TokCtrl';
+    } 
+    if(acTimeTokenValid <= acTimeTokenUnlock){
+      mesg += ', [4] acTimeTokenValid should be > acTimeTokenUnlock';
+    } 
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
+    const Helium_Admin = await instHelium.methods.Helium_Admin().call();
+    if(Helium_Admin.length === 0){
+      mesg += ', [7] addrHelium should have Helium Contract';
+    }
+    if(mesg.substring(0,2) === ', '){
+      mesg = mesg.substring(2);
+    }
+    console.log('\n==>>>mesg:', mesg);
+    if(mesg.length > 0){
+      resolve(false);
+    } else {
+      resolve(true);
+    }
+  });
+}
 //yarn run testmt -f 62
 const deployTokenControllerContract = async(argsTokenController) => {
   return new Promise(async (resolve, reject) => {
@@ -292,20 +446,79 @@ const deployTokenControllerContract = async(argsTokenController) => {
 
     if (instTokenController === undefined) {
       console.log('[Error] instTokenController is NOT defined');
-      } else {console.log('[Good] instTokenController is defined');}
+      resolve(false);
+      return false;
+    } else {console.log('[Good] instTokenController is defined');}
     instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    console.log(`\nconst addrTokenController = ${instTokenController.options.address}`);
+    const tokenControllerAddr = instTokenController.options.address;
+    console.log(`\nconst addrTokenController = ${tokenControllerAddr}`);
 
-    result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
-    console.log('checkDeploymentConditions():', result);
-    if(result.every(checkTrue)){
-      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
-    } else {
-      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
-    }
-    resolve(true);
+    const checkResult = await checkDeploymentTCC(tokenControllerAddr, argsCrowdFunding);
+    console.log('checkResult:', checkResult);
+    resolve(checkResult);
   });
 }
+
+//yarn run testmt -f 621
+const checkTokenControllerCtrt = async(tokenControllerCtrtAddr) => {
+  return new Promise( async ( resolve, reject ) => {
+    const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
+    const TimeUnlock = await instTokenController.methods.TimeUnlock().call();
+    const TimeValid = await instTokenController.methods.TimeValid().call();
+    const TokenState = await instTokenController.methods.tokenState().call();
+    const TimeOfDeployment = await instTokenController.methods.TimeOfDeployment().call();
+    console.log(`checkTokenControllerCtrt()... TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
+    resolve([true, TimeUnlock, TimeValid, TokenState, TimeOfDeployment]);
+  });
+}
+
+const checkDeploymentTCC = async(tokenControllerAddr, argsTokenController) => {
+  return new Promise(async (resolve, reject) => {
+    const [is_checkTokenControllerCtrt, TimeUnlock, TimeValid, TokenState, TimeOfDeployment] = await checkTokenControllerCtrt(tokenControllerAddr).catch(async(err) => {
+      console.log(`${err} \ncheckTokenControllerCtrt() failed...`);
+      reject(false);
+      return false;
+    });
+
+    if(is_checkTokenControllerCtrt){
+      console.log(`\ncheckTokenControllerCtrt() returns true...`);
+
+      const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
+      const boolArray = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
+      console.log('checkDeploymentConditions():', boolArray);
+
+      if(boolArray.includes(false)){
+        console.log('[Failed] Some/one check(s) have/has failed checkDeploymentConditions()');
+
+        console.log(`\n===>>> TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
+
+        let mesg = '';
+        if(!boolArray[0]){
+          mesg += ', [0] TimeOfDeployment should be > 201905281400';
+        } 
+        if(!boolArray[1]){
+          mesg += ', [1] TimeUnlock should be > TimeOfDeployment';
+        } 
+        if(!boolArray[2]){
+          mesg += ', [2] TimeValid should be > TimeUnlock';
+        } 
+        if(!boolArray[3]){
+          mesg += ', [3] addrHelium should have a contract';
+        } 
+        if(mesg.substring(0,2) === ', '){
+          mesg = mesg.substring(2);
+        }
+        console.log(`\n[Error message] ${mesg}`);
+        resolve(false);
+  
+      } else {
+        console.log('[Success] all checks have passed checkDeploymentConditions()');
+        resolve(true);
+      }
+    }
+  });
+}
+
 
 //-------------------==HCAT
 //yarn run testmt -f 63
@@ -350,6 +563,8 @@ const deployHCATContract = async(argsHCAT721) => {
 
     if (instHCAT721 === undefined) {
       console.log('[Error] instHCAT721 is NOT defined');
+      resolve(false);
+      return false;
     } else {
       console.log('[Good] instHCAT721 is defined');
     }
@@ -357,16 +572,37 @@ const deployHCATContract = async(argsHCAT721) => {
     instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     console.log(`\nctrtName = ${ctrtName}; \nconst addrHCAT721 = "${instHCAT721.options.address}";`);
 
-    result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
+    const result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
     console.log('checkDeploymentConditions():', result);
-    if(result.every(checkTrue)){
-      console.log('[Success] all checks have passed checkSafeTransferFromBatch()');
+    if(result.includes(false)){
+      console.log('[Failed] Some/one check(s) have/has failed checkDeploymentConditions()');
+      resolve(false);
     } else {
-      console.log('[Failed] Some/one check(s) have/has failed checkSafeTransferFromBatch()');
+      console.log('[Success] all checks have passed checkDeploymentConditions()');
+      resolve(true);
     }
-    resolve(true);
   });
 }
+
+const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
+  return new Promise( async ( resolve, reject ) => {
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    const nftsymbolM_b32 = await instHCAT721.methods.symbol().call();
+    const nftsymbol = web3.utils.toAscii(nftsymbolM_b32);
+    const maxTotalSupply = await instHCAT721.methods.maxTotalSupply().call();
+    const initialAssetPricing = await instHCAT721.methods.initialAssetPricing().call();
+    const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
+    const tokenId = await instHCAT721.methods.tokenId.call();
+    const isPlatformSupervisor = await instHCAT721.methods.checkPlatformSupervisorFromHCAT.call();
+    console.log(`checkHCATTokenCtrt()... nftsymbol: ${nftsymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
+    resolve([true, nftsymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
+  });
+}
+
+// check to as assetbook
+// check 
+
+
 
 //-------------------==IncomeManager
 //yarn run testmt -f 64
@@ -393,18 +629,22 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
     console.log('IncomeManager.sol has been deployed');
     if (instIncomeManager === undefined) {
       console.log('[Error] instIncomeManager is NOT defined');
-      } else {console.log('[Good] instIncomeManager is defined');}
+      resolve(false);
+      return false;
+    } else {console.log('[Good] instIncomeManager is defined');}
+
     instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     console.log(`const addrIncomeManager = ${instIncomeManager.options.address}`);
 
-    result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
+    const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
     console.log('checkDeploymentConditions():', result);
-    if(result.every(checkTrue)){
-      console.log('[Success] all checks have passed');
-    } else {
+    if(result.includes(false)){
       console.log('[Failed] Some/one check(s) have/has failed');
+      resolve(false);
+    } else {
+      console.log('[Success] all checks have passed');
+      resolve(true);
     }
-    resolve(true);
   });
 }
 
@@ -653,64 +893,72 @@ const sequentialCheckBalancesAfter = async (addressArray, amountArray, tokenCtrt
   //});
 }
 
+
 const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime) => {
   return new Promise( async ( resolve, reject ) => {
-    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-    const result = await instHCAT721.methods.checkMintSerialNFT(toAddress, amount, price, fundingType, serverTime).call({from: backendAddr});
-    console.log('\nresult', result);
-    const uintArray = result[1];
-    const boolArray = result[0];
+    const isAssetbookGood = await checkAssetbook(toAddress).catch(async(err) => {
+      console.log(`${err} \ncheckAssetbook() failed...`);
+      reject(false);
+      return false;
+    });
+    if(isAssetbookGood){
+      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+      const result = await instHCAT721.methods.checkMintSerialNFT(toAddress, amount, price, fundingType, serverTime).call({from: backendAddr});
+      console.log('\nresult', result);
+      const uintArray = result[1];
+      const boolArray = result[0];
 
-    let mesg = '';
-    if(boolArray.every(checkBoolTrueArray)){
-      mesg = '[Success] all checks have passed';
-      console.log(mesg);
-      resolve(mesg);
+      let mesg = '';
+      if(boolArray.every(checkBoolTrueArray)){
+        mesg = '[Success] all checks have passed';
+        console.log(mesg);
+        resolve(mesg);
 
-    } else {
-      if(!boolArray[0]){
-        mesg += ', [0] toAddress has no contract';
-      } 
-      if(!boolArray[1]){
-        mesg += ', [1] toAddress has no onERC721Received()';
-      } 
-      if(!boolArray[2]){
-        mesg += ', [2] amount <= 0';
-      } 
-      if(!boolArray[3]){
-        mesg += ', [3] price <= 0';
-      } 
-      if(!boolArray[4]){
-        mesg += ', [4] fundingType <= 0';
-      } 
-      if(!boolArray[5]){
-        mesg += ', [5] serverTime <= TimeOfDeployment';
-      } 
-      if(!boolArray[6]){
-        mesg += ', [6] tokenId + amount > maxTotalSupply';
-      } 
-      if(!boolArray[7]){
-        mesg += ', [7] Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
-      } 
-      if(!boolArray[8]){
-        mesg += ', [8] Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
-      } 
-      if(!boolArray[9]){
-        mesg += ', [9] Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
-      }
-      if(mesg.substring(0,2) === ', '){
-        mesg = mesg.substring(2);
-      }
-      let fundingTypeDescription;
-      if(fundingType === '1' || fundingType === 'PO'){
-        fundingTypeDescription = 'Public Offering';
-      } else if(fundingType === '2' || fundingType === 'PP'){
-        fundingTypeDescription = 'Private Placement';
       } else {
-        fundingTypeDescription = 'Error in funding type';
-      }//PO: 1, PP: 2
-      console.log(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
-      resolve(true);
+        if(!boolArray[0]){
+          mesg += ', [0] toAddress has no contract';
+        } 
+        if(!boolArray[1]){
+          mesg += ', [1] toAddress has no onERC721Received()';
+        } 
+        if(!boolArray[2]){
+          mesg += ', [2] amount <= 0';
+        } 
+        if(!boolArray[3]){
+          mesg += ', [3] price <= 0';
+        } 
+        if(!boolArray[4]){
+          mesg += ', [4] fundingType <= 0';
+        } 
+        if(!boolArray[5]){
+          mesg += ', [5] serverTime <= TimeOfDeployment';
+        } 
+        if(!boolArray[6]){
+          mesg += ', [6] tokenId + amount > maxTotalSupply';
+        } 
+        if(!boolArray[7]){
+          mesg += ', [7] Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
+        } 
+        if(!boolArray[8]){
+          mesg += ', [8] Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
+        } 
+        if(!boolArray[9]){
+          mesg += ', [9] Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
+        }
+        if(mesg.substring(0,2) === ', '){
+          mesg = mesg.substring(2);
+        }
+        let fundingTypeDescription;
+        if(fundingType === '1' || fundingType === 'PO'){
+          fundingTypeDescription = 'Public Offering';
+        } else if(fundingType === '2' || fundingType === 'PP'){
+          fundingTypeDescription = 'Private Placement';
+        } else {
+          fundingTypeDescription = 'Error in funding type';
+        }//PO: 1, PP: 2
+        console.log(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
+        resolve(true);
+      }
     }
   });
 }
@@ -935,12 +1183,22 @@ const addAssetRecordRowArrayAfterMintToken = async(addressArray, amountArray, se
   });
 }
 
+
+
 //to be called from API and zlivechain.js, etc...
 const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
   console.log('\n----------------------==inside sequentialMintSuper()...');
   //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
   if(!amountArray.every(checkIntFromOne)){
     console.log('amountArray has non integer or zero element');
+    return false;
+  }
+  const [is_checkHCATTokenCtrt, nftsymbolM, maxTotalSupplyM, initialAssetPricingM, TimeOfDeploymentM, tokenIdM, isPlatformSupervisorM] = await checkHCATTokenCtrt(toAddress).catch(async(err) => {
+    console.log(`${err} \ncheckHCATTokenCtrt() failed...`);
+    return false;
+  });
+  if(!is_checkHCATTokenCtrt){
+    console.log(`\ncheckHCATTokenCtrt() failed...`);
     return false;
   }
 
@@ -1305,18 +1563,24 @@ const addAssetbooksIntoCFC = async (serverTime) => {
       console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]}, \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
 
       await asyncForEachAbCFC2(assetbookArray, async (addrAssetbook, index) => {
-        const tokenCount = parseInt(tokenCountArray[index]);
-        console.log(`\n----==[Good] For ${addrAssetbook}, found its tokenCount ${tokenCount}`);
+        const amountToInvest = parseInt(tokenCountArray[index]);
+        console.log(`\n----==[Good] For ${addrAssetbook}, found its amountToInvest ${amountToInvest}`);
 
         console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
-tokenCount: ${tokenCount}, serverTime: ${serverTime}
+amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
 addrAssetbook: ${addrAssetbook}
 crowdFundingAddr: ${crowdFundingAddr}`);
 
-        const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, tokenCount, serverTime, 'asyncForEachAbCFC2');
+        const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'asyncForEachAbCFC2').catch(async(err) => { 
+          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
+          console.log('\ncheckInvest result:', result);
+          console.log('\n[Error @ investTokens]', err);
+          return [false, '0x0'];
+        });
+        console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
+
         isInvestSuccessArray.push(isInvestSuccess);
         txnHashArray.push(txnHash);
-        console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
       });
       console.log(`\nisInvestSuccessArray: ${isInvestSuccessArray}
 txnHashArray: ${txnHashArray}`);
@@ -1350,102 +1614,123 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     const amountToInvest = parseInt(amountToInvestStr);
     const serverTime = parseInt(serverTimeStr);
 
-    console.log("amountToInvest",amountToInvest,', serverTime:', serverTime, "\naddrAssetbookX:",addrAssetbookX,'\ncrowdFundingAddr:',crowdFundingAddr);
+    console.log("amountToInvest:",amountToInvest,', serverTime:', serverTime, "\naddrAssetbookX:",addrAssetbookX,'\ncrowdFundingAddr:',crowdFundingAddr);
   
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    console.log('check1');
-    const balance1 = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
-    console.log('check2');
+    console.log('investTokens1');
+    const balanceB4Investing = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
+    const quantitySoldMB4 = await instCrowdFunding.methods.quantitySold().call();
+
+    console.log(`balanceB4Investing: ${balanceB4Investing}, quantitySoldMB4: ${quantitySoldMB4}`);
+
     const encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
-    console.log('check3');
-    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
-      console.log('check4');
-      const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
-      console.log(`\n[Error @ signTx() invest() invoked by ${invokedBy}]
-checkInvest result: ${result} \nerr: ${err}`);
+    console.log('investTokens3');
+    const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => {
+      console.log(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
       reject(false);
       return false;
     });
     //console.log('TxResult', TxResult);
-    const balance2 = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
+    const balanceAfterInvesting = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
+    const quantitySoldMAf = await instCrowdFunding.methods.quantitySold().call();
+    const isMintingSuccessful = (balanceAfterInvesting-balanceB4Investing) === amountToInvest;
+    console.log(`balanceAfterInvesting: ${balanceAfterInvesting}, quantitySoldMAf: ${quantitySoldMAf} \nisMintingSuccessful: ${isMintingSuccessful}`);
 
-    const quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
-    console.log('quantitySoldM:', quantitySoldM);
-  
     const remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('remainingTokenQtyM:', remainingTokenQtyM);
   
-    resolve([(balance2-balance1) === amountToInvest, TxResult.transactionHash]);
+    resolve([isMintingSuccessful, TxResult.transactionHash]);
+  });
+}
+
+
+
+const checkAssetbook = async(addrAssetbook) => {
+  return new Promise( async ( resolve, reject ) => {
+    console.log('-----------==inside checkAssetbook()');
+    const instAssetbook = new web3.eth.Contract(AssetBook.abi, addrAssetbook);
+    const assetOwnerM = await instAssetbook.methods.assetOwner().call();
+    const lastLoginTimeM = await instAssetbook.methods.lastLoginTime().call();
+    const assetCindexM = await instAssetbook.methods.assetCindex().call();
+    console.log(`checkAssetbook()... assetOwnerM: ${assetOwnerM}
+    lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
+    resolve(true);
   });
 }
 
 const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, serverTimeStr) => {
   return new Promise( async ( resolve, reject ) => {
-    console.log('inside checkInvest()');
+    console.log('-----------==inside checkInvest()');
     const amountToInvest = parseInt(amountToInvestStr);
     const serverTime = parseInt(serverTimeStr);
-    let tokenSymbolM, fundingTypeM, fundingStateM, stateDescriptionM;
 
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    console.log('check1');
-    tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
-    fundingTypeM = await instCrowdFunding.methods.fundingType().call();
-    console.log('tokenSymbolM:', tokenSymbolM, ', fundingTypeM:', fundingTypeM);
-
-    fundingStateM = await instCrowdFunding.methods.fundingState().call();
-    console.log('\nfundingStateM:', fundingStateM);
-    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    console.log('stateDescriptionM:', stateDescriptionM);
+    console.log('checkInvest1');
+    const [is_checkCrowdfunding, tokenSymbol, initialAssetPricing, maxTotalSupply, fundingType, CFSD, CFED, stateDescription] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
+      console.log(`${err} \ncheckCrowdfundingCtrt() failed...`);
+      reject(false);
+      return false;
+    });
+    if(!is_checkCrowdfunding){
+      resolve(false);
+      return false;
+    }
+    console.log('Please manually check if above data is correct.\nIf yes, then the crowdfunding contract is good');
     
-
-    console.log('check3');
-    const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
-    console.log('\ncheckInvestFunction resultArray:', resultArray);
-
-
-    let mesg = '', CFSD_M, CFED_M;
-    if(resultArray.includes(false)){
-      if(!resultArray[0]){
-        CFSD_M = await instCrowdFunding.methods.CFSD().call();
-        mesg += ', [0] serverTime '+serverTime+' >= CFSD '+CFSD_M;
-      }
-      if(!resultArray[1]){
-        CFED_M = await instCrowdFunding.methods.CFED().call();
-        mesg += ', [1] serverTime '+serverTime+' < CFED '+CFED_M;
-      }
-      if(!resultArray[2]){
-        mesg += ', [2] checkPlatformSupervisor()';
-      }
-      if(!resultArray[3]){
-        mesg += ', [3] addrAssetbook.isContract()';
-      }
-      if(!resultArray[4]){
-        mesg += ', [4] addrAssetbook onERC721Received()';
-      }
-      if(!resultArray[5]){
-        mesg += ', [5] quantityToInvest > 0';
-      }
-      if(!resultArray[6]){
-        mesg += ', [6] not enough remainingQty';
-      }
-      if(!resultArray[7]){
-        mesg += ', [7] serverTime > TimeOfDeployment';
-      }
-      if(resultArray.length>8){
+    console.log('\ncheckInvest2');
+    const isAssetbookGood = await checkAssetbook(addrAssetbook).catch(async(err) => {
+      console.log(`${err} \ncheckAssetbook() failed...`);
+      reject(false);
+      return false;
+    });
+    if(isAssetbookGood){
+      console.log(`tokenSymbol: ${tokenSymbol}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, fundingType: ${fundingType}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
+      const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
+      console.log('\ncheckInvestFunction resultArray:', resultArray);
+    
+      let mesg = '', CFSD_M, CFED_M;
+      if(resultArray.includes(false)){
+        if(!resultArray[0]){
+          mesg += ', [0] serverTime '+serverTime+' >= CFSD '+CFSD;
+        }
+        if(!resultArray[1]){
+          mesg += ', [1] serverTime '+serverTime+' < CFED '+CFED;
+        }
+        if(!resultArray[2]){
+          mesg += ', [2] checkPlatformSupervisor()';
+        }
+        if(!resultArray[3]){
+          mesg += ', [3] addrAssetbook.isContract()';
+        }
+        if(!resultArray[4]){
+          mesg += ', [4] addrAssetbook onERC721Received()';
+        }
+        if(!resultArray[5]){
+          mesg += ', [5] quantityToInvest > 0';
+        }
+        if(!resultArray[6]){
+          mesg += ', [6] not enough remainingQty';
+        }
+        if(!resultArray[7]){
+          mesg += ', [7] serverTime > TimeOfDeployment';
+        }
         if(!resultArray[8]){
           mesg += ', [8] fundingState should be either initial, funding, or fundingGoalReached';
         }
+        if(mesg.substring(0,2) === ', '){
+          mesg = mesg.substring(2);
+        }
+        console.log('\n[Error message] '+mesg);
+        resolve(false);
+  
+      } else {
+        mesg = '[Success] all checks have passed via checkInvestFunction()';
+        console.log(mesg);
+        resolve(true);
       }
-      if(mesg.substring(0,2) === ', '){
-        mesg = mesg.substring(2);
-      }
-      console.log('\n[Error message] '+mesg);
-      reject(false);
-
     } else {
-      mesg = '[Success] all checks have passed via checkInvestFunction()';
-      console.log(mesg);
-      resolve(true);
+      console.log(`checkAssetbook() returned false`);
+      resolve(false);
     }
   });
 }
@@ -1509,16 +1794,20 @@ const getDetailsCFC = async(crowdFundingAddr) => {
 }
 
 //to get all the list: set inputs to both zeros
-const getInvestorsFromCFC = async (crowdFundingAddr, indexStart = 0, tokenCountStr = 0) => {
+const getInvestorsFromCFC = async (crowdFundingAddr, indexStartStr = 0, tokenCountStr = 0) => {
   return new Promise(async(resolve, reject) => {
     console.log('\n--------------==getInvestorsFromCFC()...');
-    if(!Number.isInteger(indexStart) || !Number.isInteger(tokenCountStr)){
-      console.log(`[Error] Non integer is found: indexStart: ${indexStart}, tokenCountStr: ${tokenCountStr}`);
+    if(!Number.isInteger(indexStartStr) || !Number.isInteger(tokenCountStr)){
+      console.log(`[Error] Non integer is found: indexStartStr: ${indexStartStr}, tokenCountStr: ${tokenCountStr}`);
       reject('index or tokenCount is not valid');
     }
-    tokenCount = parseInt(tokenCountStr);
+    console.log(`getInvestorsFromCFC1`);
+    const indexStart = parseInt(indexStartStr);
+    const tokenCount = parseInt(tokenCountStr);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    console.log(`getInvestorsFromCFC2`);
     const result = await instCrowdFunding.methods.getInvestors(indexStart, tokenCount).call();
+    //console.log('result', result);
     const investorAssetBooks = result[0];
     const investedTokenQtyArray = result[1].map((item) => {
       return parseInt(item, 10);
@@ -2484,5 +2773,5 @@ module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver,
-  deployCrowdfundingContract, deployTokenControllerContract, deployHCATContract, deployIncomeManagerContract
+  deployCrowdfundingContract, deployTokenControllerContract, precheckDeploymentTCC, checkDeploymentTCC, deployHCATContract, deployIncomeManagerContract, checkDeploymentCFC, precheckDeploymentCFC
 }
