@@ -28,6 +28,9 @@ var paymentGWRouter = require('./routes/PaymentGW');
 var ContractsRouter = require('./routes/Contracts');
 // var usersRouter = require('./routes/users');
 
+//Ray
+var contractExplorerRouter = require('./routes/ContractExplorer');
+
 // DataBase
 const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
@@ -68,6 +71,9 @@ app.use(function (req, res, next) {
 app.use('/', indexRouter);
 app.use('/Product', productRouter);
 app.use('/BackendUser', backendUserRouter);
+
+//Ray
+app.use('/ContractExplorer', contractExplorerRouter);
 
 //＊＊＊＊＊＊＊＊＊＊＊＊＊＊上傳文件＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 //配置diskStorage來控制文檔存儲的位置以及文檔名字等

@@ -1342,11 +1342,12 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
   }
   const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
     console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed inside asyncForEachAbCFC(). addressArray: ${addressArray}`);
-    return false;
+    return [true, false];
+    //return [isFailed, isCorrectAmountArray];
   });
   if(checkResult.includes(false)){
     console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
-    return false;
+    return [true, false];
   } else {
     console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
   }

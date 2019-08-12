@@ -1,6 +1,8 @@
 const winston = require('winston');
 const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
+const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'NCCC0801'];//'AURA1904'
+const excludedSymbolsIA = [];
 //---------------------------==
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
@@ -337,5 +339,5 @@ const wlogger = winston.loggers.get('format1');
 
 
 module.exports = { COMPLIANCE_LEVELS, checkCompliance,
-  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, TestCtrt, wlogger
+  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, TestCtrt, wlogger,  excludedSymbols, excludedSymbolsIA, 
 }

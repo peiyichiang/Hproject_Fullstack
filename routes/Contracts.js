@@ -1034,7 +1034,7 @@ router.post('/doAssetRecords/:nftSymbol/', async function (req, res, next) {
   const nftSymbol = req.params.nftSymbol;
   let isSuccess = false, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
 
-  if (isCombinedAPI) {
+  if (true) {
     [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
       console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
       res.send({
@@ -1168,8 +1168,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
 
     } else {
         mesg = '[Success] All token minting have been completed successfully';
-        console.log(`\nSuccess: true \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-    is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
+        console.log(`\nmesg: ${mesg}`);
         return true;
     }
 });
