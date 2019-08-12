@@ -1732,7 +1732,7 @@ router.get('/canBuyToken', async function (req, res) {
                 p_CFED AS CFED,
                 u_assetbookContractAddress AS assetbookContractAddress
          FROM product , user
-         WHERE p_Symbol = ? AND u_email = ?
+         WHERE p_SYMBOL = ? AND u_email = ?
          `, keys, function (err, result) {
             if (err) {
                 res.status(400).send("專案狀態取得失敗:" + err);
