@@ -48,12 +48,10 @@ const getCrowdfundingDetails = async(addrAssetBook) => {
   const text = await response.text();
   //console.log(text);
   return text;
-
 }
 
 const button2 = async(addrAssetBook) => {
   console.log(`addrAssetBook: ${addrAssetBook}`);
-
   const url = ``;
   const response = await fetch(url);
   const text = await response.text();
@@ -61,15 +59,27 @@ const button2 = async(addrAssetBook) => {
   return text;
 }
 
+const getHeliumCtrtAddr = async() => {
+  console.log(`inside getHeliumCtrtAddr()...`);
+  const url = `http://${SERVER_HOST}:${SERVER_PORT}/Contracts/heliumContract/`;
+  const response = await fetch(url);
+  const text = await response.text();
+  return text;
+}
+
 const testFunction = () => {
   console.log('testFunction');
 }
 
-document.getElementById("button0").addEventListener('click', () => testFunction());
+
+document.getElementById("button0").addEventListener('click', async() => {
+  const addrHeliumCtrt = await getHeliumCtrtAddr();
+  console.log(`addrHeliumCtrt: ${addrHeliumCtrt}`);
+});
 
 document.getElementById("button1").addEventListener('click', async() => {
-  const assetOwner = await getCrowdfundingDetails(addrAssetBook);
-  console.log(`assetOwner: ${assetOwner}`);
+  const addrHeliumCtrt = await getHeliumCtrtAddr();
+  console.log(`addrHeliumCtrt: ${addrHeliumCtrt}`);
 });
 
 document.getElementById("button2").addEventListener('click', async() => {

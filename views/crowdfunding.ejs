@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+  <link rel="stylesheet" href="/css/ContractExplorer.css">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <title>HeliumCryptic Smart Contract Explorer</title>
+</head>
+
+<body>
+  <h2>HeliumCryptic Smart Contract Explorer</h2>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h5>Crowdfunding Contract:</h5>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="">Symbol</span>
+            </div>
+            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbolCFC" aria-describedby="tokenSymbolCFC">
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="">Contract</span>
+            </div>
+            <input type="text" class="form-control" placeholder="token CtrtAddr" aria-label="tokenCtrtAddr" id="tokenCtrtAddrCFC" aria-describedby="tokenCtrtAddrCFC">
+        </div>
+
+        <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
+          <button type="button" id="BtnGetCfDetails" class="btn btn-primary">Get Crowdfunding Details</button>
+
+          <button type="button" id="getRemainingTokenQty" class="btn btn-primary">getRemainingTokenQty</button>
+
+          <button type="button" id="getInvestors" class="btn btn-primary">getInvestors</button>
+
+          <button type="button" id="ownerToQty" class="btn btn-primary">ownerToQty</button>
+
+          <button type="button" id="idxToOwner" class="btn btn-primary">idxToOwner</button>
+
+          <button type="button" id="checkPlatformSupervisorFromCFC" class="btn btn-primary">check PlatformSupervisor From CFC</button>
+
+        </div>
+
+      </div>
+
+      <div class="col">
+        Result:
+      </div>
+    </div>
+  </div>
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+  <script>
+    const SERVER_HOST = 'localhost';
+    const SERVER_PORT = '3030';
+    const BcApiBase = `http://${SERVER_HOST}:${SERVER_PORT}/Contracts/`;
+    // http://localhost:3030/ContractExplorer/crowdfunding
+
+    const isEmpty = value => 
+      value === undefined ||
+      value === null ||
+      (typeof value === 'object' && Object.keys(value).length === 0) ||
+      (typeof value === 'string' && value.trim().length === 0);
+
+    const getHeliumCtrtAddr = async() => {
+      console.log(`inside getHeliumCtrtAddr()...`);
+      const url = BcApiBase+`heliumContract`;
+      const response = await fetch(url);
+      const text = await response.text();
+      return text;
+    }
+    
+    const getHeliumCtrtAddr2 = async() => {
+      console.log(`inside getHeliumCtrtAddr()...`);
+      const url = BcApiBase+`heliumContract`;
+      const response = await fetch(url);
+      const text = await response.text();
+      return text;
+    }
+
+    $('#BtnGetCfDetails').on('click',  async function (e) {
+      console.log('inside BtnGetCfDetails function... \ne.target:', e.target);
+
+      const tokenSymbol = 'AOOT1905';
+      const ctrtAddrCFC = '0x0';
+      // const tokenSymbol = document.getElementById("tokenSymbolCFC").value;
+      // const ctrtAddrCFC = document.getElementById("tokenCtrtAddrCFC").value;
+
+      if(isEmpty(tokenSymbol) || isEmpty(ctrtAddrCFC)){
+        console.log('At leaset one input value is empty');
+        return;
+      }
+
+      console.log(`tokenSymbol: ${tokenSymbol}, ctrtAddrCFC: ${ctrtAddrCFC}`);
+
+      const url = BcApiBase+`getCrowdfundingDetails/${tokenSymbol}`;
+      // http://localhost:3030/Contracts/getCrowdfundingDetails/
+      const response = await fetch(url);
+      const text = await response.text();
+      console.log(text);
+
+      // const addrHelium = await getHeliumCtrtAddr();
+      // console.log(addrHelium);
+
+      //location.reload();
+    });
+
+  </script>
+
+</body>
+
+</html>
+<!--
+  http://localhost:3030/ContractExplorer/crowdfunding
+
+-->

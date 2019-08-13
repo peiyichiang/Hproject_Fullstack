@@ -744,6 +744,32 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
 
 })
 
+// http://localhost:3030/Contract/getCrowdfundingDetails
+router.get('/getCrowdfundingDetails/:tokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.params.tokenSymbol;
+  //const crowdfundingCtrtAddr = req.body.crowdfundingCtrtAddr;
+  console.log(`tokenSymbol: ${tokenSymbol}`);
+
+  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+  });
+  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+  const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
+  console.log(`crowdfundingCtrtDetails: ${crowdfundingCtrtDetails}`);
+  res.send({
+      crowdfundingCtrtDetails: crowdfundingCtrtDetails
+  })
+});
+
+
+
+
 /**@dev TokenController ------------------------------------------------------------------------------------- */
 /*deploy tokenController contract*/
 router.post('/tokenControllerContract', async function (req, res, next) {

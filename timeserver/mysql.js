@@ -950,13 +950,13 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     const ctrtAddrresultLen = ctrtAddrresult.length;
     //console.log('\nArray length @ findCtrtAddr:', ctrtAddrresultLen, ', ctrtAddrresult:', ctrtAddrresult);
     if(ctrtAddrresultLen == 0){
-      reject('no '+ctrtType+' contract address for '+symbol+' is found');
+      resolve('no '+ctrtType+' contract address for '+symbol+' is found');
     } else if(ctrtAddrresultLen > 1){
-      reject('multiple '+ctrtType+' addresses were found for '+symbol);
+      resolve('multiple '+ctrtType+' addresses were found for '+symbol);
     } else {
       const targetAddr = ctrtAddrresult[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
-        reject('[Error] targetAddr is not valid. scColumnName: '+ scColumnName+ ', targetAddr: '+ targetAddr);
+        resolve('empty targetAddr value is found. scColumnName: '+ scColumnName+ ', targetAddr: '+ targetAddr);
       } else {
         resolve(targetAddr);
       }

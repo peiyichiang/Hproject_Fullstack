@@ -2,34 +2,38 @@ var express = require('express');
 //var jwt = require('jsonwebtoken');
 var router = express.Router();
 
-router.get('/ContractExplorer', function (req, res, next) {
-    res.render('ContractExplorer');
+
+router.get('/crowdfunding', function (req, res, next) {
+  res.render('crowdfunding');
 });
 
 // router.post('/ContractExplorer', function (req, res, next) {
+//     console.log('inside button response...');
 
-//     //   var db = req.con;
-//     var mysqlPoolQuery = req.pool;
-//     var ID = req.body.m_id;
-//     var Password = req.body.m_password;
-
-//     mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
-//         if (err) {
-//             console.log(err);
-//         }
-//         console.log(rows.length);
-
-//         if (rows.length == 0) {
-//             res.render('error', { message: '查無此帳號', error: '' });
-//         } else {
-//             // console.log("Password:" + Password);
-//             // console.log( rows[0].m_passwordhash);
-//         }
-//         // res.render('EditBackendUser', { title: 'Edit Product', data: data });
-//     });
-
+//     res.send({
+//       status: 'success'
+//   });
 // });
+/**
+    var mysqlPoolQuery = req.pool;
+    var ID = req.body.m_id;
+    var Password = req.body.m_password;
 
+    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        console.log(rows.length);
+
+        if (rows.length == 0) {
+            res.render('error', { message: '查無此帳號', error: '' });
+        } else {
+            // console.log("Password:" + Password);
+            // console.log( rows[0].m_passwordhash);
+        }
+        // res.render('EditBackendUser', { title: 'Edit Product', data: data });
+    });
+ */
 
 
 /*
