@@ -4,8 +4,9 @@ var router = express.Router();
 
 
 router.get('/crowdfunding', function (req, res, next) {
-  res.render('crowdfunding');
+  res.render('crowdfunding', {contractType: 'Crowdfunding'});
 });
+
 
 // router.post('/ContractExplorer', function (req, res, next) {
 //     console.log('inside button response...');

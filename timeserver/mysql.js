@@ -263,6 +263,21 @@ const addUsersIntoDB = async(userObjects) => {
   });
 }
 
+const getAssetbookFromEmail = async(email) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside getAssetbookFromEmail()');
+    const queryStr3 = 'SELECT u_assetbookContractAddress FROM user WHERE u_email = ?';
+    const result1 = await mysqlPoolQueryB(queryStr3, [email]).catch((err) => {
+      console.log('\n[Error @ getAssetbookFromEmail]');
+      reject(err);
+      return false;
+    });
+    const assetbookX = result1[0].u_assetbookContractAddress;
+    resolve(assetbookX);
+  });
+}
+
+
 
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
@@ -1154,7 +1169,6 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 
 }
 
-
 const addForecastedSchedulesIntoDB = async () => {
   // already done when uploading csv into DB
 }
@@ -1196,7 +1210,7 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail,
     mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
     calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
     deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows

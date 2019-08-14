@@ -1,8 +1,16 @@
 const winston = require('winston');
 const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
+//const { sLog } = require('../../timeserver/utilities');
+const sLog = str => {
+  if(process.env.IS_LOG_ON){
+    console.log(str);
+  }
+}
 const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'NCCC0801'];//'AURA1904'
 const excludedSymbolsIA = [];
+
+sLog('--------------------==zsetupData.js');
 //---------------------------==
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
@@ -97,17 +105,17 @@ const Helium = require('./build/Helium.json');
 if (Helium === undefined){
   console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] Helium is defined');
+  sLog('[Good] Helium is defined');
   if (Helium.abi === undefined){
     console.log('[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Helium.abi is defined');
+    sLog('[Good] Helium.abi is defined');
       //console.log('Helium.abi:', Helium.abi);
   }
   if (Helium.bytecode === undefined || Helium.bytecode.length < 10){
     console.log('[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Helium.bytecode is defined');
+    sLog('[Good] Helium.bytecode is defined');
       //console.log('Helium.bytecode:', Helium.bytecode);
   }
   //console.log(Helium);
@@ -117,17 +125,17 @@ const AssetBook = require('./build/AssetBook.json');
 if (AssetBook === undefined){
   console.log('[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] AssetBook is defined');
+  sLog('[Good] AssetBook is defined');
   if (AssetBook.abi === undefined){
     console.log('[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] AssetBook.abi is defined');
+    sLog('[Good] AssetBook.abi is defined');
       //console.log('AssetBook.abi:', AssetBook.abi);
   }
   if (AssetBook.bytecode === undefined || AssetBook.bytecode.length < 10){
     console.log('[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] AssetBook.bytecode is defined');
+    sLog('[Good] AssetBook.bytecode is defined');
       //console.log('AssetBook.bytecode:', AssetBook.bytecode);
   }
   //console.log(AssetBook);
@@ -138,17 +146,17 @@ const Registry = require('./build/Registry.json');
 if (Registry === undefined){
   console.log('[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] Registry is defined');
+  sLog('[Good] Registry is defined');
   if (Registry.abi === undefined){
     console.log('[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Registry.abi is defined');
+    sLog('[Good] Registry.abi is defined');
       //console.log('Registry.abi:', Registry.abi);
   }
   if (Registry.bytecode === undefined || Registry.bytecode.length < 10){
     console.log('[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] Registry.bytecode is defined');
+    sLog('[Good] Registry.bytecode is defined');
       //console.log('Registry.bytecode:', Registry.bytecode);
   }
   //console.log(Registry);
@@ -158,17 +166,17 @@ const TokenController = require('./build/TokenController.json');
 if (TokenController === undefined){
   console.log('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] TokenController is defined');
+  sLog('[Good] TokenController is defined');
   if (TokenController.abi === undefined){
     console.log('[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] TokenController.abi is defined');
+    sLog('[Good] TokenController.abi is defined');
       //console.log('TokenController.abi:', TokenController.abi);
   }
   if (TokenController.bytecode === undefined || TokenController.bytecode.length < 10){
     console.log('[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] TokenController.bytecode is defined');
+    sLog('[Good] TokenController.bytecode is defined');
       //console.log('TokenController.bytecode:', TokenController.bytecode);
   }
   //console.log(TokenController);
@@ -178,17 +186,17 @@ const HCAT721 = require('./build/HCAT721_AssetToken.json');
 if (HCAT721 === undefined){
   console.log('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] HCAT721 is defined');
+  sLog('[Good] HCAT721 is defined');
   if (HCAT721.abi === undefined){
     console.log('[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] HCAT721.abi is defined');
+    sLog('[Good] HCAT721.abi is defined');
       //console.log('HCAT721.abi:', HCAT721.abi);
   }
   if (HCAT721.bytecode === undefined || HCAT721.bytecode.length < 10){
     console.log('[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] HCAT721.bytecode is defined');
+    sLog('[Good] HCAT721.bytecode is defined');
       //console.log('HCAT721.bytecode:', HCAT721.bytecode);
   }
   //console.log(HCAT721);
@@ -200,17 +208,17 @@ const HCAT721_Test = require('./build/HCAT721_AssetToken_Test.json');
 if (HCAT721_Test === undefined) {
   console.log('[Error] HCAT721_Test is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] HCAT721_Test is defined');
+  sLog('[Good] HCAT721_Test is defined');
   if (HCAT721_Test.abi === undefined) {
     console.log('[Error] HCAT721_Test.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] HCAT721_Test.abi is defined');
+    sLog('[Good] HCAT721_Test.abi is defined');
     //console.log('HCAT721_Test.abi:', HCAT721_Test.abi);
   }
   if (HCAT721_Test.bytecode === undefined || HCAT721_Test.bytecode.length < 10) {
     console.log('[Error] HCAT721_Test.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] HCAT721_Test.bytecode is defined');
+    sLog('[Good] HCAT721_Test.bytecode is defined');
     //console.log('HCAT721_Test.bytecode:', HCAT721_Test.bytecode);
   }
   //console.log(HCAT721_Test);
@@ -220,17 +228,17 @@ const CrowdFunding = require('./build/CrowdFunding.json');
 if (CrowdFunding === undefined){
   console.log('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] CrowdFunding is defined');
+  sLog('[Good] CrowdFunding is defined');
   if (CrowdFunding.abi === undefined){
     console.log('[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] CrowdFunding.abi is defined');
+    sLog('[Good] CrowdFunding.abi is defined');
       //console.log('CrowdFunding.abi:', CrowdFunding.abi);
   }
   if (CrowdFunding.bytecode === undefined || CrowdFunding.bytecode.length < 10){
     console.log('[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] CrowdFunding.bytecode is defined');
+    sLog('[Good] CrowdFunding.bytecode is defined');
       //console.log('CrowdFunding.bytecode:', CrowdFunding.bytecode);
   }
   //console.log(CrowdFunding);
@@ -240,17 +248,17 @@ const IncomeManager = require('./build/IncomeManagerCtrt.json');
 if (IncomeManager === undefined){
   console.log('[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] IncomeManager is defined');
+  sLog('[Good] IncomeManager is defined');
   if (IncomeManager.abi === undefined){
     console.log('[Error] IncomeManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] IncomeManager.abi is defined');
+    sLog('[Good] IncomeManager.abi is defined');
       //console.log('IncomeManager.abi:', IncomeManager.abi);
   }
   if (IncomeManager.bytecode === undefined || IncomeManager.bytecode.length < 10){
     console.log('[Error] IncomeManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] IncomeManager.bytecode is defined');
+    sLog('[Good] IncomeManager.bytecode is defined');
       //console.log('IncomeManager.bytecode:', IncomeManager.bytecode);
   }
   //console.log(IncomeManager);
@@ -260,17 +268,17 @@ const ProductManager = require('./build/ProductManager.json');
 if (ProductManager === undefined){
   console.log('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] ProductManager is defined');
+  sLog('[Good] ProductManager is defined');
   if (ProductManager.abi === undefined){
     console.log('[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ProductManager.abi is defined');
+    sLog('[Good] ProductManager.abi is defined');
       //console.log('ProductManager.abi:', ProductManager.abi);
   }
   if (ProductManager.bytecode === undefined || ProductManager.bytecode.length < 10){
     console.log('[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] ProductManager.bytecode is defined');
+    sLog('[Good] ProductManager.bytecode is defined');
       //console.log('ProductManager.bytecode:', ProductManager.bytecode);
   }
   //console.log(ProductManager);
@@ -280,17 +288,17 @@ const TestCtrt = require('./build/TestCtrt.json');
 if (TestCtrt === undefined){
   console.log('[Error] TestCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
-  console.log('[Good] TestCtrt is defined');
+  sLog('[Good] TestCtrt is defined');
   if (TestCtrt.abi === undefined){
     console.log('[Error] TestCtrt.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] TestCtrt.abi is defined');
+    sLog('[Good] TestCtrt.abi is defined');
       //console.log('TestCtrt.abi:', TestCtrt.abi);
   }
   if (TestCtrt.bytecode === undefined || TestCtrt.bytecode.length < 10){
     console.log('[Error] TestCtrt.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
-    console.log('[Good] TestCtrt.bytecode is defined');
+    sLog('[Good] TestCtrt.bytecode is defined');
       //console.log('TestCtrt.bytecode:', TestCtrt.bytecode);
   }
   //console.log(TestCtrt);

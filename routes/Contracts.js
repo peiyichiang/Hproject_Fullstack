@@ -11,7 +11,7 @@ const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities')
 
 const { doAssetRecords, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
-const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
+const { findCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -744,8 +744,9 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
 
 })
 
-// http://localhost:3030/Contract/getCrowdfundingDetails
-router.get('/getCrowdfundingDetails/:tokenSymbol', async function (req, res, next) {
+
+// http://localhost:3030/Contract/crowdFundingContract/getCrowdfundingDetails
+router.get('/crowdFundingContract/getCrowdfundingDetails/:tokenSymbol', async function (req, res, next) {
   const tokenSymbol = req.params.tokenSymbol;
   //const crowdfundingCtrtAddr = req.body.crowdfundingCtrtAddr;
   console.log(`tokenSymbol: ${tokenSymbol}`);
@@ -762,13 +763,130 @@ router.get('/getCrowdfundingDetails/:tokenSymbol', async function (req, res, nex
   const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
   const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
   console.log(`crowdfundingCtrtDetails: ${crowdfundingCtrtDetails}`);
+
+  const fundingCindex = await instCrowdfunding.methods.fundingCindex().call();
+  const fundingState = await instCrowdfunding.methods.fundingState().call();
+  const stateDescription = await instCrowdfunding.methods.stateDescription().call();
+
   res.send({
-      crowdfundingCtrtDetails: crowdfundingCtrtDetails
+      crowdfundingCtrtDetails: crowdfundingCtrtDetails,
+      fundingDetails: [fundingCindex, fundingState, stateDescription]
   })
 });
 
 
 
+// http://localhost:3030/Contract/crowdFundingContract/getInvestors
+router.post('/crowdFundingContract/getInvestors/:tokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.params.tokenSymbol;
+  const indexStart = req.body.indexStart;
+  const amount = req.body.amount;
+  console.log(`tokenSymbol: ${tokenSymbol}, indexStart: ${indexStart}, amount: ${amount}`);
+
+  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+  });
+  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+  const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
+  console.log(`investors: ${investors}`);
+  res.send({
+      investors: investors
+  })
+});
+
+// http://localhost:3030/Contract/crowdFundingContract/emailToQty
+router.post('/crowdFundingContract/emailToQty/:tokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.params.tokenSymbol;
+  const email = req.body.email;
+  console.log(`tokenSymbol: ${tokenSymbol}, email: ${email}`);
+
+  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+    return false;
+  });
+  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+
+  if(isEmpty(email)){
+    res.send({
+      err: 'email is empty',
+      status: false
+    });
+    return false;
+  }
+  const assetbookX = await getAssetbookFromEmail(email);
+  if(isEmpty(assetbookX)){
+    console.log('assetbookX is empty:', assetbookX);
+    res.send({
+      err: 'assetbook is empty',
+      status: false
+    });
+    return false;
+  } else{
+    console.log('assetbookX:', assetbookX);
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+    const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookX).call();
+    console.log(`quantityOwned: ${quantityOwned}`);
+    res.send({
+        quantityOwned: quantityOwned
+    })
+  }
+});
+
+// http://localhost:3030/Contract/crowdFundingContract/ownerToQty
+router.post('/crowdFundingContract/ownerToQty/:tokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.params.tokenSymbol;
+  const owner = req.body.owner;
+  console.log(`tokenSymbol: ${tokenSymbol}, owner: ${owner}`);
+
+  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+  });
+  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+  const quantityOwned = await instCrowdfunding.methods.ownerToQty(owner).call();
+  console.log(`quantityOwned: ${quantityOwned}`);
+  res.send({
+      quantityOwned: quantityOwned
+  })
+});
+
+// http://localhost:3030/Contract/crowdFundingContract/idxToOwner
+router.post('/crowdFundingContract/idxToOwner/:tokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.params.tokenSymbol;
+  const index = req.body.index;
+  console.log(`API: tokenSymbol: ${tokenSymbol}, index: ${index}`);
+
+  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+  });
+  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+  const addrOwner = await instCrowdfunding.methods.idxToOwner(index).call();
+  console.log(`addrOwner: ${addrOwner}`);
+  res.send({
+      addrOwner: addrOwner
+  })
+});
 
 /**@dev TokenController ------------------------------------------------------------------------------------- */
 /*deploy tokenController contract*/

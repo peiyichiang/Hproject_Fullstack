@@ -8,7 +8,7 @@ cName = helium, assetbook, registry, adduser, cf, tokc, hcat, addproduct, addord
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON } = require('../../timeserver/envVariables');
+const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON } = require('../../timeserver/envVariables');
 
 const {addSmartContractRow, addProductRow, addUsersIntoDB, addOrdersIntoDB, addIncomeArrangementRowsIntoDB } = require('../../timeserver/mysql.js');
 
@@ -21,7 +21,7 @@ const { TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721
 } = require('./zsetupData');
 
 //to be overwritten as we are deploying new contracts
-let {addrHelium, addrRegistry, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager} = require('./zsetupData');
+//let {} = require('./zsetupData');
 
 let provider, web3, web3deploy, prefix = '';
 console.log('process.argv', process.argv);
