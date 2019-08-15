@@ -954,7 +954,7 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     // } else if(ctrtType === 'helium'){
     //   scColumnName = 'sc_helium';
     } else {
-      reject(ctrtType+' is undefined for symbol '+ symbol);
+      reject(ctrtType+' is undefined');
       return undefined;
     }
     const queryStr1 = 'SELECT '+scColumnName+' FROM smart_contracts WHERE sc_symbol = ?';
@@ -965,15 +965,15 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     const ctrtAddrresultLen = ctrtAddrresult.length;
     //console.log('\nArray length @ findCtrtAddr:', ctrtAddrresultLen, ', ctrtAddrresult:', ctrtAddrresult);
     if(ctrtAddrresultLen == 0){
-      resolve('no '+ctrtType+' contract address for '+symbol+' is found');
+      resolve([false, '0x0', `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
     } else if(ctrtAddrresultLen > 1){
-      resolve('multiple '+ctrtType+' addresses were found for '+symbol);
+      resolve([false, '0x0', `[Error] multiple ${ctrtType} addresses are found for ${symbol}`]);
     } else {
       const targetAddr = ctrtAddrresult[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
-        resolve('empty targetAddr value is found. scColumnName: '+ scColumnName+ ', targetAddr: '+ targetAddr);
+        resolve([false, '0x0', `[Error] empty ${ctrtType} contract address value is found for ${symbol}, targetAddr: ${targetAddr}`]);
       } else {
-        resolve(targetAddr);
+        resolve([true, targetAddr, `[Good] one ${ctrtType} address is found for ${symbol}`]);
       }
     }
   });

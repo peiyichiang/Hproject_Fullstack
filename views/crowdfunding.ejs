@@ -14,6 +14,11 @@
 <body>
   <h2>HeliumCryptic Smart Contract Explorer</h2>
   <div class="container">
+    <div class="alert alert-warning alert-dismissible collapse"  id="alertInputs" role="alert">
+      <button type="button" class="close" data-dismiss="alert">x</button>
+      <strong>Success! </strong> Product have added to your wishlist.
+    </div>
+
     <div class="row">
       <div class="col">
         <h5><%= contractType %> Contract:</h5>
@@ -101,12 +106,20 @@
   </div>
   <!-- Optional JavaScript -->
   <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <!--
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
   <script>
     // http://localhost:3030/ContractExplorer/crowdfunding
+
+    // $(document).ready(function() {
+    //   $("#alertInputs").hide();
+    // });
 
     const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
     //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
@@ -127,41 +140,86 @@
       return text;
     }
     
-    const checkInputs = () => {
+    const showAlert = (variableName, variableValue) => {
+      document.getElementById("alertInputs").innerText = variableName+' value empty. Using default value: '+variableValue;
+          //jQuery("#alertInputs").fadeOut("slow");
+          $('.collapse').collapse();
+          $("#alertInputs").fadeTo(5000, 500).slideUp(500, function() {
+            $("#alertInputs").slideUp(500);
+          });
+    }
+
+    const checkInputs = (funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
-      if(isEmpty(tokenSymbol_input)) {
-        tokenSymbol_input = 'ACHM6666';
+      let tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input;
+
+      const isTestingOn = 1;
+      tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
+      ctrtAddrCFC_input = document.getElementById("tokenCtrtAddrCFC").value;
+
+      const isTokenSymbolEmpty = isEmpty(tokenSymbol_input);
+      const isTokenCtrtAddrCFC_empty = isEmpty(ctrtAddrCFC_input);
+
+      if(isTokenSymbolEmpty && isTokenCtrtAddrCFC_empty){
+        console.log('At least tokenSymbol or tokenCtrtAddrCFC should be valid');
+
+        if(isTestingOn === 1) {
+          tokenSymbol_input = 'ACHM6666';
+          showAlert('Token symbol and Token contract', 'tokenSymbol_input = '+tokenSymbol_input);
+        } else {
+          showAlert('Token symbol and Token contract', 'no value');
+          return [false, undefined, undefined, undefined, undefined];
+        }
+      } 
+      
+      if(!isTokenSymbolEmpty){
+
+      } else {
+
       }
-      let ctrtAddrCFC_input = document.getElementById("tokenCtrtAddrCFC").value;
-      if(isEmpty(ctrtAddrCFC_input)){
-         ctrtAddrCFC_input = '0x0';
+      
+      if(funcName === 'getCrowdfundingDetails'){
+        if(isTokenCtrtAddrCFC_empty){
+          if(isTokenSymbolEmpty && isEmpty(tokenSymbol_input)) {
+            tokenSymbol_input = 'ACHM6666';
+            showAlert('Token symbol', tokenSymbol_input);
+          } else {
+            ctrtAddrCFC_input = '0x0';
+            showAlert('Token contract', ctrtAddrCFC_input);
+          }
+        }
       }
-      let email_input = document.getElementById("email").value;
-      if(isEmpty(email_input)){
-        email_input = 'achmed1923@gmail.com';
+
+      if(funcName === 'emailToQty'){
+        email_input = document.getElementById("email").value;
+        if(isEmpty(email_input)){
+          email_input = 'achmed1923@gmail.com';
+          showAlert('Email', email_input);
+        }
       }
-      let assetbookAddr_input = document.getElementById("assetbookAddr").value;
-      if(isEmpty(assetbookAddr_input)){
-        assetbookAddr_input = '0x0';
+
+      if(funcName === 'ownerToQty'){
+        assetbookAddr_input = document.getElementById("assetbookAddr").value;
+        if(isEmpty(assetbookAddr_input)){
+          assetbookAddr_input = '0x0';
+          showAlert('Assetbook', assetbookAddr_input);
+        }
       }
-      let investorIndex_input = document.getElementById("investorIndex").value;
+
+      investorIndex_input = document.getElementById("investorIndex").value;
       if(isEmpty(investorIndex_input)){
         investorIndex_input = '0';
       }
       
 
-      if(isEmpty(tokenSymbol_input) && isEmpty(ctrtAddrCFC_input)){
-        console.log('At leaset one input value should not be empty');
-        return [false, undefined, undefined, undefined, undefined];
-      }
+
       console.log(`tokenSymbol: ${tokenSymbol_input}, ctrtAddrCFC: ${ctrtAddrCFC_input}, email_input: ${email_input}`);
       return [true, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input];
     }
 
     $('#getCrowdfundingDetails').on('click',  async function (e) {
       console.log('inside getCrowdfundingDetails function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input] = checkInputs();
+      const [isGood, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input] = checkInputs('getCrowdfundingDetails');
       if(!isGood) return;
 
       const url = BcApiBaseCFC+`getCrowdfundingDetails/${tokenSymbol_input}`;
@@ -238,9 +296,8 @@
     
     $('#emailToQty').on('click',  async function (e) {
       console.log('inside emailToQty function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input] = checkInputs();
+      const [isGood, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input] = checkInputs('emailToQty');
       if(!isGood) return;
-
 
       const url = BcApiBaseCFC+`emailToQty/${tokenSymbol_input}`;
       // http://localhost:3030/Contracts/emailToQty/
@@ -260,7 +317,7 @@
 
     $('#ownerToQty').on('click',  async function (e) {
       console.log('inside ownerToQty function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input] = checkInputs();
+      const [isGood, tokenSymbol_input, ctrtAddrCFC_input, email_input, assetbookAddr_input, investorIndex_input] = checkInputs('ownerToQty');
       if(!isGood) return;
 
       const url = BcApiBaseCFC+`ownerToQty/${tokenSymbol_input}`;
