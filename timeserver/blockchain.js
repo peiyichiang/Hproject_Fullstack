@@ -11,9 +11,9 @@ const { getTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTs
 
 const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON} = require('./envVariables');
 
-const { excludedSymbols, excludedSymbolsIA, assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
+const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
 
-const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  wlogger } = require('../ethereum/contracts/zsetupData');
+const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
 const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
