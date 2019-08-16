@@ -11,7 +11,7 @@ const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities')
 
 const { doAssetRecords, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
-const { findCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
+const { findCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -745,148 +745,164 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
 })
 
 
-// http://localhost:3030/Contract/crowdFundingContract/getCrowdfundingDetails
-router.get('/crowdFundingContract/getCrowdfundingDetails/:tokenSymbol', async function (req, res, next) {
-  const tokenSymbol = req.params.tokenSymbol;
-  //const crowdfundingCtrtAddr = req.body.crowdfundingCtrtAddr;
-  console.log(`tokenSymbol: ${tokenSymbol}`);
+//-----------------------==mysql
+router.post('/getTokenSymbolFromCtrtAddr', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const ctrtType = req.body.ctrtType;
 
-  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
+  console.log(`${ctrtType} addr: ${ctrtAddr}`);
+  const [isGood, symbol, resultMesg] = await findSymbolFromCtrtAddr(ctrtAddr, ctrtType);
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, symbol found: ${symbol}`);
+  res.send({
+    isGood: isGood,
+    symbol: symbol, 
+    resultMesg: resultMesg
+  });
+});
+
+router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.body.tokenSymbol;
+  const ctrtType = req.body.ctrtType;
+
+  console.log(`tokenSymbol: ${tokenSymbol}, ctrtType: ${ctrtType}`);
+  const [isGood, contractAddr, resultMesg] = await findCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
     console.log('[Error @findCtrtAddr]:', err);
     res.send({
         err: err,
         status: false
     });
+    return;
   });
-  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
-
-  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
-  const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
-  console.log(`crowdfundingCtrtDetails: ${crowdfundingCtrtDetails}`);
-
-  const fundingCindex = await instCrowdfunding.methods.fundingCindex().call();
-  const fundingState = await instCrowdfunding.methods.fundingState().call();
-  const stateDescription = await instCrowdfunding.methods.stateDescription().call();
-
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${contractAddr}`);
   res.send({
-      crowdfundingCtrtDetails: crowdfundingCtrtDetails,
-      fundingDetails: [fundingCindex, fundingState, stateDescription]
-  })
+    isGood: isGood,
+    contractAddr: contractAddr, 
+    resultMesg: resultMesg
+  });
+});
+
+//-----------------------==
+// http://localhost:3030/Contract/crowdfunding/getCrowdfundingDetails
+router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.params.ctrtAddr;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+  if(isEmpty(crowdfundingCtrtAddr) || crowdfundingCtrtAddr === 'undefined'){
+    res.send({
+      err: 'crowdfundingCtrtAddr is invalid. '+crowdfundingCtrtAddr,
+      status: false
+    });
+    return;
+  }
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+    const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
+    console.log(`crowdfundingCtrtDetails: ${crowdfundingCtrtDetails}`);
+
+    const fundingCindex = await instCrowdfunding.methods.fundingCindex().call();
+    const fundingState = await instCrowdfunding.methods.fundingState().call();
+    const stateDescription = await instCrowdfunding.methods.stateDescription().call();
+
+    res.send({
+        crowdfundingCtrtDetails: crowdfundingCtrtDetails,
+        fundingDetails: [fundingCindex, fundingState, stateDescription]
+    });
 });
 
 
 
-// http://localhost:3030/Contract/crowdFundingContract/getInvestors
-router.post('/crowdFundingContract/getInvestors/:tokenSymbol', async function (req, res, next) {
-  const tokenSymbol = req.params.tokenSymbol;
+// http://localhost:3030/Contract/crowdfunding/getInvestors
+router.post('/crowdfunding/getInvestors', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const indexStart = req.body.indexStart;
   const amount = req.body.amount;
-  console.log(`tokenSymbol: ${tokenSymbol}, indexStart: ${indexStart}, amount: ${amount}`);
-
-  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, indexStart: ${indexStart}, amount: ${amount}`);
+  if(parseInt(indexStart) < 0 || parseInt(amount) < 0 || crowdfundingCtrtAddr === 'undefined'){
     res.send({
-        err: err,
-        status: false
+      err: 'indexStart or amount or contract addr is invalid',
+      status: false,
     });
-  });
-  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
-
-  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
-  const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
-  console.log(`investors: ${investors}`);
-  res.send({
-      investors: investors
-  })
+    return;
+  }
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr).catch(
+      (err) => {
+        console.error('err:', err);
+        res.send({
+          err: err,
+          status: false,
+        });
+        return;
+      });
+    const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
+    console.log(`investors: ${investors}`);
+    res.send({
+        investors: investors
+    });
 });
 
-// http://localhost:3030/Contract/crowdFundingContract/emailToQty
-router.post('/crowdFundingContract/emailToQty/:tokenSymbol', async function (req, res, next) {
-  const tokenSymbol = req.params.tokenSymbol;
+// http://localhost:3030/Contract/crowdfunding/emailToQty
+router.post('/crowdfunding/emailToQty', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const email = req.body.email;
-  console.log(`tokenSymbol: ${tokenSymbol}, email: ${email}`);
-
-  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
-    res.send({
-        err: err,
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, email: ${email}`);
+    const assetbookX = await getAssetbookFromEmail(email);
+    if(isEmpty(assetbookX)|| crowdfundingCtrtAddr === 'undefined'){
+      console.log('assetbookX is empty:', assetbookX);
+      res.send({
+        err: 'assetbook or contract addr is invalid',
         status: false
-    });
-    return false;
-  });
-  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+      });
+      return;
+    } else{
+      console.log('assetbookX:', assetbookX);
+      const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+      const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookX).call();
+      console.log(`quantityOwned: ${quantityOwned}`);
+      res.send({
+          quantityOwned: quantityOwned
+      });
+    }
+});
 
-  if(isEmpty(email)){
+// http://localhost:3030/Contract/crowdfunding/ownerToQty
+router.post('/crowdfunding/ownerToQty', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, assetbookAddr: ${assetbookAddr}`);
+  if(assetbookAddr === '0x0' || isEmpty(assetbookAddr)|| crowdfundingCtrtAddr === 'undefined'){
     res.send({
-      err: 'email is empty',
-      status: false
+      err: 'assetbookAddr or contract addr is invalid',
+      status: false,
+      quantityOwned: undefined
     });
-    return false;
+    return;
   }
-  const assetbookX = await getAssetbookFromEmail(email);
-  if(isEmpty(assetbookX)){
-    console.log('assetbookX is empty:', assetbookX);
-    res.send({
-      err: 'assetbook is empty',
-      status: false
-    });
-    return false;
-  } else{
-    console.log('assetbookX:', assetbookX);
-    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
-    const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookX).call();
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+    const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookAddr).call();
     console.log(`quantityOwned: ${quantityOwned}`);
     res.send({
         quantityOwned: quantityOwned
-    })
-  }
-});
-
-// http://localhost:3030/Contract/crowdFundingContract/ownerToQty
-router.post('/crowdFundingContract/ownerToQty/:tokenSymbol', async function (req, res, next) {
-  const tokenSymbol = req.params.tokenSymbol;
-  const owner = req.body.owner;
-  console.log(`tokenSymbol: ${tokenSymbol}, owner: ${owner}`);
-
-  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
-    res.send({
-        err: err,
-        status: false
     });
-  });
-  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
-
-  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
-  const quantityOwned = await instCrowdfunding.methods.ownerToQty(owner).call();
-  console.log(`quantityOwned: ${quantityOwned}`);
-  res.send({
-      quantityOwned: quantityOwned
-  })
 });
 
-// http://localhost:3030/Contract/crowdFundingContract/idxToOwner
-router.post('/crowdFundingContract/idxToOwner/:tokenSymbol', async function (req, res, next) {
-  const tokenSymbol = req.params.tokenSymbol;
+// http://localhost:3030/Contract/crowdfunding/idxToOwner
+router.post('/crowdfunding/idxToOwner', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const index = req.body.index;
-  console.log(`API: tokenSymbol: ${tokenSymbol}, index: ${index}`);
-
-  const crowdfundingCtrtAddr = await findCtrtAddr(tokenSymbol, 'crowdfunding').catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, index: ${index} ${typeof index}`);
+  if(parseInt(index) < 0 || isEmpty(index)|| crowdfundingCtrtAddr === 'undefined'){
     res.send({
-        err: err,
-        status: false
+      err: 'index or contract addr is invalid',
+      status: false,
     });
-  });
-  console.log(`crowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
-
+    return;
+  }
   const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
-  const addrOwner = await instCrowdfunding.methods.idxToOwner(index).call();
-  console.log(`addrOwner: ${addrOwner}`);
-  res.send({
-      addrOwner: addrOwner
-  })
+    const addrOwner = await instCrowdfunding.methods.idxToOwner(index).call();
+    console.log(`addrOwner: ${addrOwner}`);
+    res.send({
+        addrOwner: addrOwner
+    });
 });
+
 
 /**@dev TokenController ------------------------------------------------------------------------------------- */
 /*deploy tokenController contract*/
@@ -1604,33 +1620,39 @@ router.get('/incomeManagerContract/:tokenSymbol/checkAddScheduleBatch', async fu
     const forecastedPayableTimes = req.params.forecastedPayableTimes;
     const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
 
-    const incomeMgrAddr = await findCtrtAddr(symbol, 'incomemanager').catch((err) => {
-        console.log('[Error @findCtrtAddr]:', err);
-        res.send({
-            err: err,
-            status: false
-        });
+    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      res.send({
+        err: err,
+        status: false
+      });
     });
-
-    const [array1, array2] = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
-        console.log('[Error @checkAddScheduleBatch]:', err);
-        res.send({
-            err: err,
-            status: false
-        });
-    });
-    if (array1.length > 0 && array2.length > 0) {
-        res.send({
-            err: err,
-            status: false,
-            array1: array1,
-            array2: array2
-        });
+    console.log(`\n${resultMesg}. \naddrIncomeManager: ${addrIncomeManager}`);
+    if(isGood){
+      const [array1, array2] = await checkAddScheduleBatch(addrIncomeManager, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
+          console.log('[Error @checkAddScheduleBatch]:', err);
+          res.send({
+              err: err,
+              status: false
+          });
+      });
+      if (array1.length > 0 && array2.length > 0) {
+          res.send({
+              err: err,
+              status: false,
+              array1: array1,
+              array2: array2
+          });
+      } else {
+          res.send({
+              err: result,
+              status: false
+          });
+      }
     } else {
-        res.send({
-            err: result,
-            status: false
-        });
+      res.send({
+        err: resultMesg,
+        status: false
+      });
     }
 });
 
@@ -1640,38 +1662,42 @@ router.post('/incomeManagerContract/:tokenSymbol/addScheduleBatchFromDB', async 
     const symbol = req.params.tokenSymbol;
     // const forecastedPayableTimes = req.params.forecastedPayableTimes;
     // const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
-    const incomeMgrAddr = await findCtrtAddr(symbol, 'incomemanager').catch((err) => {
-        console.log('[Error @findCtrtAddr]:', err);
-        res.send({
-            err: err,
-            status: false,
-        });
-        return;
+    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      res.send({
+        err: err,
+        status: false,
+      });
     });
-
-    const result = await addScheduleBatchFromDB(symbol).catch((err) => {
+    console.log(`\n${resultMesg}. \naddrIncomeManager: ${addrIncomeManager}`);
+    if(isGood){
+      const result = await addScheduleBatchFromDB(symbol).catch((err) => {
         console.log('[Error @addScheduleBatchFromDB]:', err);
         res.send({
             err: err,
             status: false,
         });
-        return;
-    });
+        return undefined;
+      });
 
-    if (result) {
-        res.send({ status: true });
-
+      if (result) {
+          res.send({ status: true });
+      } else {
+          const results = await checkAddScheduleBatch(addrIncomeManager, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
+              console.log('[Error @checkAddScheduleBatch]:', err);
+              res.send({
+                  err: err,
+                  status: false
+              });
+          });
+          console.log(results);
+          res.send({ status: false });
+      }
     } else {
-        const results = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
-            console.log('[Error @checkAddScheduleBatch]:', err);
-            res.send({
-                err: err,
-                status: false
-            });
-        });
-        console.log(results);
-        res.send({ status: false });
-    }
+      res.send({
+        err: resultMesg,
+        status: false,
+    });
+  }
 });
 
 

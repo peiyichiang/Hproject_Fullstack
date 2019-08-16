@@ -3,6 +3,7 @@ require("dotenv").config();
 //----------------------------==Server Settings
 const SERVER_HOST = process.env.SERVER_HOST;
 const SERVER_PORT = process.env.SERVER_PORT;
+const SERVER_PROTOCOL = process.env.SERVER_PROTOCOL;
 
 //----------------------------==Database Settings
 const DB_host = process.env.DB_HOST;
@@ -56,4 +57,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { SERVER_HOST, SERVER_PORT, DB_host, DB_user, DB_password, DB_name, DB_port,  blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };
+module.exports = { SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port,  blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };

@@ -954,20 +954,20 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     // } else if(ctrtType === 'helium'){
     //   scColumnName = 'sc_helium';
     } else {
-      reject(ctrtType+' is undefined');
+      reject(ctrtType+' is out of range');
       return undefined;
     }
     const queryStr1 = 'SELECT '+scColumnName+' FROM smart_contracts WHERE sc_symbol = ?';
     const ctrtAddrresult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
-        reject('[Error @ mysqlPoolQueryB(queryStr1)]:'+ err);
+        reject('[Error @ findCtrtAddr @ 963:'+ err);
       });
     const ctrtAddrresultLen = ctrtAddrresult.length;
     //console.log('\nArray length @ findCtrtAddr:', ctrtAddrresultLen, ', ctrtAddrresult:', ctrtAddrresult);
     if(ctrtAddrresultLen == 0){
-      resolve([false, '0x0', `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
+      resolve([false, undefined, `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
     } else if(ctrtAddrresultLen > 1){
-      resolve([false, '0x0', `[Error] multiple ${ctrtType} addresses are found for ${symbol}`]);
+      resolve([false, 'multipleAddr', `[Error] multiple ${ctrtType} addresses are found for ${symbol}`]);
     } else {
       const targetAddr = ctrtAddrresult[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
@@ -978,6 +978,47 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     }
   });
 }
+
+const findSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
+  return new Promise(async(resolve, reject) => {
+    //console.log('\n---------==inside findSymbolFromCtrtAddr');
+    let scColumnName, mesg;
+    if(ctrtType === 'incomemanager'){
+      scColumnName = 'sc_incomeManagementaddress';
+    } else if(ctrtType === 'crowdfunding'){
+      scColumnName = 'sc_crowdsaleaddress';
+    } else if(ctrtType === 'hcat721'){
+      scColumnName = 'sc_erc721address';
+    } else if(ctrtType === 'tokencontroller'){
+      scColumnName = 'sc_erc721Controller';
+    // } else if(ctrtType === 'helium'){
+    //   scColumnName = 'sc_helium';
+    } else {
+      reject(ctrtType+' is out of range');
+      return undefined;
+    }
+    const queryStr1 = 'SELECT sc_symbol from smart_contracts where '+ scColumnName+' = ?';
+    const symbolResult = await mysqlPoolQueryB(queryStr1, [ctrtAddr]).catch((err) => {
+      reject('[Error @ findSymbolFromCtrtAddr @ 755]'+err);
+    });
+
+    const symbolResultLen = symbolResult.length;
+    //console.log('\nArray length @ findSymbolFromCtrtAddr:', symbolResultLen, ', symbolResult:', symbolResult);
+    if(symbolResultLen == 0){
+      resolve([false, undefined, `[Error] no symbol is found for ${ctrtType} contract address$ {ctrtAddr}`]);
+    } else if(symbolResultLen > 1){
+      resolve([false, 'multipleSymbols', `[Error] multiple symbols are found for ${ctrtType} addresses ${ctrtAddr}`]);
+    } else {
+      const symbol = symbolResult[0]['sc_symbol'];
+      if(isEmpty(symbol)){
+        resolve([false, '', `[Error] empty symbol value is found for ${ctrtType} contract address ${ctrtAddr}`]);
+      } else {
+        resolve([true, symbol, `[Good] one symbol is found for ${ctrtType} address ${ctrtAddr}`]);
+      }
+    }
+  });
+}
+
 //------------------------==
 function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
   return new Promise(async(resolve, reject) => {
@@ -1211,7 +1252,6 @@ module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB, setFundingStateDB, getFundingStateDB,
     setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail,
-    mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
-    calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
+    mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
     deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows
 }

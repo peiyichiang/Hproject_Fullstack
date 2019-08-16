@@ -10,8 +10,7 @@ const { isTimeserverON } = require('./envVariables');
 
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, 
-  deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray } = require('./blockchain.js');
 
@@ -1052,6 +1051,16 @@ const deployAssetbooks_API = async () => {
   console.log('result:', result);
 }
 
+//yarn run testmt -f 103
+const findSymbolFromCtrtAddr_API = async() => {
+  console.log('\n---------------------==findSymbolFromCtrtAddr_API()');
+  const ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
+  const ctrtType = 'crowdfunding';
+  const [isGood, symbol, resultMesg] = await findSymbolFromCtrtAddr(ctrtAddr, ctrtType);
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, symbol found: ${symbol}`);
+  process.exit(0);
+}
+
 //---------------------------==Delete
 //yarn run testmt -f 141
 const deleteProductRows_API = async () => {
@@ -1339,6 +1348,9 @@ if(func === 0){
 } else if (func === 102) {
   deployAssetbooks_API();
 
+//yarn run testmt -f 103
+} else if (func === 103) {
+  findSymbolFromCtrtAddr_API();
 
 //yarn run testmt -f 141
 } else if (func === 141) {
