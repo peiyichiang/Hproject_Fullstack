@@ -3,6 +3,25 @@ const path = require('path');
 
 const { excludedSymbols } = require('../ethereum/contracts/zsetupData');
 
+//----------------------------==Log
+let IS_LOG_ON;
+// try{
+//   IS_LOG_ON = process.env.IS_LOG_ON;
+// } catch(err){
+//   console.log(`${err}`);
+// };
+if(process.env.IS_LOG_ON){
+  console.log(`IS_LOG_ON: true, ${IS_LOG_ON}`);
+} else{
+  console.log(`IS_LOG_ON: false, ${IS_LOG_ON}`);
+}
+const sLog = str => {
+  if(process.env.IS_LOG_ON){
+    console.log(str);
+  }
+}
+
+//----------------------------==
 const isEmpty = value => 
     value === undefined ||
     value === null ||
@@ -16,24 +35,26 @@ const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myOb
 
 const getTime = () => {
   return new Promise(function (resolve, reject) {
-      try {
-          let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString()
-          resolve(time)
-      } catch (error) {
-          console.log(`cannot find timeserver time. Use local time instead`);
-          let time = new Date().myFormat()
-          resolve(time)
-      }
+    try {
+      let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString();
+      resolve(time);
+    } catch (error) {
+      console.log(`cannot find timeserver time. Use local time instead`);
+      let time = new Date().myFormat();
+      resolve(time);
+    }
   })
 }
+const getLocalTime = () => parseInt(new Date().myFormat());
+
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
 
 
+const checkBoolTrueArray = (item) => item;
 const checkInt =(item) => Number.isInteger(item);
 const checkIntFromOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
-const checkBoolTrueArray = (item) => item;
 
 
 async function asyncForEach(array, callback) {
@@ -333,5 +354,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, isEmpty, isAllTrueBool, getTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
+  reduceArrays, sLog, isEmpty, isAllTrueBool, getTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
 }

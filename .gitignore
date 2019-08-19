@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 archives/
 ethereum/contracts/build/
+#ethereum/contracts/zTestParameters.js
 .vscode/
 time.txt
 
@@ -99,3 +100,9 @@ typings/
 
 public/uploadImgs/
 public/images/
+public/media/
+
+#https ca
+*.crt
+*.key
+*.ca-bundle

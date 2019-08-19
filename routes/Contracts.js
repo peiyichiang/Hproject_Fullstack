@@ -9,9 +9,9 @@ const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimese
 
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 
-const { addAssetRecordRowArrayAfterMintToken, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
+const { doAssetRecords, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
-const { findCtrtAddr, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
+const { findCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -744,6 +744,166 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
 
 })
 
+
+//-----------------------==mysql
+router.post('/getTokenSymbolFromCtrtAddr', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const ctrtType = req.body.ctrtType;
+
+  console.log(`${ctrtType} addr: ${ctrtAddr}`);
+  const [isGood, symbol, resultMesg] = await findSymbolFromCtrtAddr(ctrtAddr, ctrtType);
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, symbol found: ${symbol}`);
+  res.send({
+    isGood: isGood,
+    symbol: symbol, 
+    resultMesg: resultMesg
+  });
+});
+
+router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
+  const tokenSymbol = req.body.tokenSymbol;
+  const ctrtType = req.body.ctrtType;
+
+  console.log(`tokenSymbol: ${tokenSymbol}, ctrtType: ${ctrtType}`);
+  const [isGood, contractAddr, resultMesg] = await findCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
+    console.log('[Error @findCtrtAddr]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+    return;
+  });
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${contractAddr}`);
+  res.send({
+    isGood: isGood,
+    contractAddr: contractAddr, 
+    resultMesg: resultMesg
+  });
+});
+
+//-----------------------==
+// http://localhost:3030/Contract/crowdfunding/getCrowdfundingDetails
+router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.params.ctrtAddr;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
+  if(isEmpty(crowdfundingCtrtAddr) || crowdfundingCtrtAddr === 'undefined'){
+    res.send({
+      err: 'crowdfundingCtrtAddr is invalid. '+crowdfundingCtrtAddr,
+      status: false
+    });
+    return;
+  }
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+    const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
+    console.log(`crowdfundingCtrtDetails: ${crowdfundingCtrtDetails}`);
+
+    const fundingCindex = await instCrowdfunding.methods.fundingCindex().call();
+    const fundingState = await instCrowdfunding.methods.fundingState().call();
+    const stateDescription = await instCrowdfunding.methods.stateDescription().call();
+
+    res.send({
+        crowdfundingCtrtDetails: crowdfundingCtrtDetails,
+        fundingDetails: [fundingCindex, fundingState, stateDescription]
+    });
+});
+
+
+
+// http://localhost:3030/Contract/crowdfunding/getInvestors
+router.post('/crowdfunding/getInvestors', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
+  const indexStart = req.body.indexStart;
+  const amount = req.body.amount;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, indexStart: ${indexStart}, amount: ${amount}`);
+  if(parseInt(indexStart) < 0 || parseInt(amount) < 0 || crowdfundingCtrtAddr === 'undefined'){
+    res.send({
+      err: 'indexStart or amount or contract addr is invalid',
+      status: false,
+    });
+    return;
+  }
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr).catch(
+      (err) => {
+        console.error('err:', err);
+        res.send({
+          err: err,
+          status: false,
+        });
+        return;
+      });
+    const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
+    console.log(`investors: ${investors}`);
+    res.send({
+        investors: investors
+    });
+});
+
+// http://localhost:3030/Contract/crowdfunding/emailToQty
+router.post('/crowdfunding/emailToQty', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
+  const email = req.body.email;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, email: ${email}`);
+    const assetbookX = await getAssetbookFromEmail(email);
+    if(isEmpty(assetbookX)|| crowdfundingCtrtAddr === 'undefined'){
+      console.log('assetbookX is empty:', assetbookX);
+      res.send({
+        err: 'assetbook or contract addr is invalid',
+        status: false
+      });
+      return;
+    } else{
+      console.log('assetbookX:', assetbookX);
+      const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+      const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookX).call();
+      console.log(`quantityOwned: ${quantityOwned}`);
+      res.send({
+          quantityOwned: quantityOwned
+      });
+    }
+});
+
+// http://localhost:3030/Contract/crowdfunding/ownerToQty
+router.post('/crowdfunding/ownerToQty', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, assetbookAddr: ${assetbookAddr}`);
+  if(assetbookAddr === '0x0' || isEmpty(assetbookAddr)|| crowdfundingCtrtAddr === 'undefined'){
+    res.send({
+      err: 'assetbookAddr or contract addr is invalid',
+      status: false,
+      quantityOwned: undefined
+    });
+    return;
+  }
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+    const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookAddr).call();
+    console.log(`quantityOwned: ${quantityOwned}`);
+    res.send({
+        quantityOwned: quantityOwned
+    });
+});
+
+// http://localhost:3030/Contract/crowdfunding/idxToOwner
+router.post('/crowdfunding/idxToOwner', async function (req, res, next) {
+  const crowdfundingCtrtAddr = req.body.ctrtAddr;
+  const index = req.body.index;
+  console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, index: ${index} ${typeof index}`);
+  if(parseInt(index) < 0 || isEmpty(index)|| crowdfundingCtrtAddr === 'undefined'){
+    res.send({
+      err: 'index or contract addr is invalid',
+      status: false,
+    });
+    return;
+  }
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+    const addrOwner = await instCrowdfunding.methods.idxToOwner(index).call();
+    console.log(`addrOwner: ${addrOwner}`);
+    res.send({
+        addrOwner: addrOwner
+    });
+});
+
+
 /**@dev TokenController ------------------------------------------------------------------------------------- */
 /*deploy tokenController contract*/
 router.post('/tokenControllerContract', async function (req, res, next) {
@@ -1026,6 +1186,84 @@ router.post('/amqpTest1receiver', async function (req, res, next) {
     res.send('The POST request is being processed!');
 });
 
+
+//-----------------------------==
+
+router.post('/doAssetRecords/:nftSymbol/', async function (req, res, next) {
+  console.log(`\n--------------==Calling doAssetRecords API...`);
+  const nftSymbol = req.params.nftSymbol;
+  let isSuccess = false, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
+
+  if (true) {
+    [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
+      console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
+      res.send({
+          success: false,
+          result: 'failed at preMint(), err: ' + err,
+      });
+      return false;
+    });
+    console.log(`--------------==Returned values from preMint():
+    toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
+    if (toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)) {
+      console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+      res.send({
+          success: false,
+          result: 'preMint() returns invalid values',
+      });
+      return false;
+    }
+  }
+
+  if (isTimeserverON) {
+    serverTime = await getTime();
+  } else {
+      serverTime = 201906130000;
+  }
+  console.log('serverTime:', serverTime);
+
+  const [is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await doAssetRecords(toAddressArray, amountArray, serverTime, nftSymbol, pricing).catch((err) => {
+      console.log('[Error @ doAssetRecords]:', err);
+      console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \nfundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, nftSymbol: ${nftSymbol} \n${err}...`);
+      //return false;
+  });
+
+  console.log(` \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError} \nis_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
+
+  if (!is_addAssetRecordRowArray) {
+      mesg = '[addAssetRecordRowArray() Failed]';
+      //return false;
+
+  } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+      mesg = '[Error] addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
+      //return false;
+
+  } else if (!is_addActualPaymentTime) {
+      mesg = '[addActualPaymentTime() Failed]';
+      //return false;
+
+  } else if (!is_setFundingStateDB) {
+      mesg = '[setFundingStateDB() Failed]';
+      //return false;
+  } else {
+      isSuccess = true;
+      mesg = '[Success @ addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()]';
+      //return false;
+  }
+  console.log(`\nSuccess: ${isSuccess} \n${mesg}`);
+
+  res.send({
+      status: true,
+      success: isSuccess,
+      is_addAssetRecordRowArray: is_addAssetRecordRowArray,
+      emailArrayError: emailArrayError,
+      amountArrayError: amountArrayError,
+      is_addActualPaymentTime: is_addActualPaymentTime,
+      is_setFundingStateDB: is_setFundingStateDB,
+      result: 'successfully done at doAssetRecords()',
+  });
+});
+
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
 // http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
 router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
@@ -1037,32 +1275,24 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     let isSuccess = false, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
 
     if (isCombinedAPI) {
-        [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
-            console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
-            res.send({
-                success: false,
-                result: 'failed at preMint(), err: ' + err,
-            });
-            return false;
+      [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
+        console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
+        res.send({
+            success: false,
+            result: 'failed at preMint(), err: ' + err,
         });
-        console.log(`--------------==Returned values from preMint():
-        toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
-        if (toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)) {
-            console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
-            res.send({
-                success: false,
-                result: 'preMint() returns invalid values',
-            });
-            return false;
-        }
-    } else {
-        pricing = req.body.price;
-        fundingType = req.body.fundingType;
-        toAddressArray = req.body.toAddressArray.split(",");
-        amountArray = req.body.amountArray.split(",").map(function (item) {
-            return parseInt(item, 10);
+        return false;
+      });
+      console.log(`--------------==Returned values from preMint():
+      toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
+      if (toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)) {
+        console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+        res.send({
+            success: false,
+            result: 'preMint() returns invalid values',
         });
-        tokenCtrtAddr = req.body.erc721address;
+        return false;
+      }
     }
     //process.exit(0);
 
@@ -1071,47 +1301,13 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
     } else {
         serverTime = 201906130000;
     }
-
-    console.log(`\n--------------==Calling addAssetRecordRowArrayAfterMintToken()...`);
-    const [is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await addAssetRecordRowArrayAfterMintToken(toAddressArray, amountArray, serverTime, nftSymbol, pricing).catch((err) => {
-        console.log('[Error @ addAssetRecordRowArrayAfterMintToken]:', err);
-        console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, nftSymbol: ${nftSymbol} \n${err}...`);
-        //return false;
-    });
-
-    console.log(` \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError} \nis_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
-
-    if (!is_addAssetRecordRowArray) {
-        mesg = '[addAssetRecordRowArray() Failed]';
-        //return false;
-
-    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
-        mesg = '[Error] addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
-        //return false;
-
-    } else if (!is_addActualPaymentTime) {
-        mesg = '[addActualPaymentTime() Failed]';
-        //return false;
-
-    } else if (!is_setFundingStateDB) {
-        mesg = '[setFundingStateDB() Failed]';
-        //return false;
-    } else {
-        isSuccess = true;
-        mesg = '[Success @ addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()]';
-        //return false;
-    }
-    console.log(`\nSuccess: ${isSuccess} \n${mesg}`);
+    console.log('serverTime:', serverTime);
+    isSuccess = true;
 
     res.send({
-        status: true,
-        success: isSuccess,
-        is_addAssetRecordRowArray: is_addAssetRecordRowArray,
-        emailArrayError: emailArrayError,
-        amountArrayError: amountArrayError,
-        is_addActualPaymentTime: is_addActualPaymentTime,
-        is_setFundingStateDB: is_setFundingStateDB,
-        result: 'Good up to addAssetRecordRowArrayAfterMintToken(), before calling sequentialMintSuper()',
+      status: true,
+      success: isSuccess,
+      result: 'successfully done at preMint()',
     });
 
     // console.log(`yarn run testmt -f 50 to reset symbol status`);
@@ -1132,8 +1328,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', asyn
 
     } else {
         mesg = '[Success] All token minting have been completed successfully';
-        console.log(`\nSuccess: true \n${mesg} \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}
-    is_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime} \nis_setFundingStateDB: ${is_setFundingStateDB}`);
+        console.log(`\nmesg: ${mesg}`);
         return true;
     }
 });
@@ -1425,33 +1620,39 @@ router.get('/incomeManagerContract/:tokenSymbol/checkAddScheduleBatch', async fu
     const forecastedPayableTimes = req.params.forecastedPayableTimes;
     const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
 
-    const incomeMgrAddr = await findCtrtAddr(symbol, 'incomemanager').catch((err) => {
-        console.log('[Error @findCtrtAddr]:', err);
-        res.send({
-            err: err,
-            status: false
-        });
+    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      res.send({
+        err: err,
+        status: false
+      });
     });
-
-    const [array1, array2] = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
-        console.log('[Error @checkAddScheduleBatch]:', err);
-        res.send({
-            err: err,
-            status: false
-        });
-    });
-    if (array1.length > 0 && array2.length > 0) {
-        res.send({
-            err: err,
-            status: false,
-            array1: array1,
-            array2: array2
-        });
+    console.log(`\n${resultMesg}. \naddrIncomeManager: ${addrIncomeManager}`);
+    if(isGood){
+      const [array1, array2] = await checkAddScheduleBatch(addrIncomeManager, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
+          console.log('[Error @checkAddScheduleBatch]:', err);
+          res.send({
+              err: err,
+              status: false
+          });
+      });
+      if (array1.length > 0 && array2.length > 0) {
+          res.send({
+              err: err,
+              status: false,
+              array1: array1,
+              array2: array2
+          });
+      } else {
+          res.send({
+              err: result,
+              status: false
+          });
+      }
     } else {
-        res.send({
-            err: result,
-            status: false
-        });
+      res.send({
+        err: resultMesg,
+        status: false
+      });
     }
 });
 
@@ -1461,38 +1662,42 @@ router.post('/incomeManagerContract/:tokenSymbol/addScheduleBatchFromDB', async 
     const symbol = req.params.tokenSymbol;
     // const forecastedPayableTimes = req.params.forecastedPayableTimes;
     // const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
-    const incomeMgrAddr = await findCtrtAddr(symbol, 'incomemanager').catch((err) => {
-        console.log('[Error @findCtrtAddr]:', err);
-        res.send({
-            err: err,
-            status: false,
-        });
-        return;
+    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+      res.send({
+        err: err,
+        status: false,
+      });
     });
-
-    const result = await addScheduleBatchFromDB(symbol).catch((err) => {
+    console.log(`\n${resultMesg}. \naddrIncomeManager: ${addrIncomeManager}`);
+    if(isGood){
+      const result = await addScheduleBatchFromDB(symbol).catch((err) => {
         console.log('[Error @addScheduleBatchFromDB]:', err);
         res.send({
             err: err,
             status: false,
         });
-        return;
-    });
+        return undefined;
+      });
 
-    if (result) {
-        res.send({ status: true });
-
+      if (result) {
+          res.send({ status: true });
+      } else {
+          const results = await checkAddScheduleBatch(addrIncomeManager, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
+              console.log('[Error @checkAddScheduleBatch]:', err);
+              res.send({
+                  err: err,
+                  status: false
+              });
+          });
+          console.log(results);
+          res.send({ status: false });
+      }
     } else {
-        const results = await checkAddScheduleBatch(incomeMgrAddr, forecastedPayableTimes, forecastedPayableAmounts).catch((err) => {
-            console.log('[Error @checkAddScheduleBatch]:', err);
-            res.send({
-                err: err,
-                status: false
-            });
-        });
-        console.log(results);
-        res.send({ status: false });
-    }
+      res.send({
+        err: resultMesg,
+        status: false,
+    });
+  }
 });
 
 

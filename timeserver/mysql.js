@@ -263,6 +263,21 @@ const addUsersIntoDB = async(userObjects) => {
   });
 }
 
+const getAssetbookFromEmail = async(email) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside getAssetbookFromEmail()');
+    const queryStr3 = 'SELECT u_assetbookContractAddress FROM user WHERE u_email = ?';
+    const result1 = await mysqlPoolQueryB(queryStr3, [email]).catch((err) => {
+      console.log('\n[Error @ getAssetbookFromEmail]');
+      reject(err);
+      return false;
+    });
+    const assetbookX = result1[0].u_assetbookContractAddress;
+    resolve(assetbookX);
+  });
+}
+
+
 
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
@@ -939,30 +954,71 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     // } else if(ctrtType === 'helium'){
     //   scColumnName = 'sc_helium';
     } else {
-      reject(ctrtType+' is undefined for symbol '+ symbol);
+      reject(ctrtType+' is out of range');
       return undefined;
     }
     const queryStr1 = 'SELECT '+scColumnName+' FROM smart_contracts WHERE sc_symbol = ?';
     const ctrtAddrresult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
-        reject('[Error @ mysqlPoolQueryB(queryStr1)]:'+ err);
+        reject('[Error @ findCtrtAddr @ 963:'+ err);
       });
     const ctrtAddrresultLen = ctrtAddrresult.length;
     //console.log('\nArray length @ findCtrtAddr:', ctrtAddrresultLen, ', ctrtAddrresult:', ctrtAddrresult);
     if(ctrtAddrresultLen == 0){
-      reject('no '+ctrtType+' contract address for '+symbol+' is found');
+      resolve([false, undefined, `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
     } else if(ctrtAddrresultLen > 1){
-      reject('multiple '+ctrtType+' addresses were found for '+symbol);
+      resolve([false, 'multipleAddr', `[Error] multiple ${ctrtType} addresses are found for ${symbol}`]);
     } else {
       const targetAddr = ctrtAddrresult[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
-        reject('[Error] targetAddr is not valid. scColumnName: '+ scColumnName+ ', targetAddr: '+ targetAddr);
+        resolve([false, '0x0', `[Error] empty ${ctrtType} contract address value is found for ${symbol}, targetAddr: ${targetAddr}`]);
       } else {
-        resolve(targetAddr);
+        resolve([true, targetAddr, `[Good] one ${ctrtType} address is found for ${symbol}`]);
       }
     }
   });
 }
+
+const findSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
+  return new Promise(async(resolve, reject) => {
+    //console.log('\n---------==inside findSymbolFromCtrtAddr');
+    let scColumnName, mesg;
+    if(ctrtType === 'incomemanager'){
+      scColumnName = 'sc_incomeManagementaddress';
+    } else if(ctrtType === 'crowdfunding'){
+      scColumnName = 'sc_crowdsaleaddress';
+    } else if(ctrtType === 'hcat721'){
+      scColumnName = 'sc_erc721address';
+    } else if(ctrtType === 'tokencontroller'){
+      scColumnName = 'sc_erc721Controller';
+    // } else if(ctrtType === 'helium'){
+    //   scColumnName = 'sc_helium';
+    } else {
+      reject(ctrtType+' is out of range');
+      return undefined;
+    }
+    const queryStr1 = 'SELECT sc_symbol from smart_contracts where '+ scColumnName+' = ?';
+    const symbolResult = await mysqlPoolQueryB(queryStr1, [ctrtAddr]).catch((err) => {
+      reject('[Error @ findSymbolFromCtrtAddr @ 755]'+err);
+    });
+
+    const symbolResultLen = symbolResult.length;
+    //console.log('\nArray length @ findSymbolFromCtrtAddr:', symbolResultLen, ', symbolResult:', symbolResult);
+    if(symbolResultLen == 0){
+      resolve([false, undefined, `[Error] no symbol is found for ${ctrtType} contract address$ {ctrtAddr}`]);
+    } else if(symbolResultLen > 1){
+      resolve([false, 'multipleSymbols', `[Error] multiple symbols are found for ${ctrtType} addresses ${ctrtAddr}`]);
+    } else {
+      const symbol = symbolResult[0]['sc_symbol'];
+      if(isEmpty(symbol)){
+        resolve([false, '', `[Error] empty symbol value is found for ${ctrtType} contract address ${ctrtAddr}`]);
+      } else {
+        resolve([true, symbol, `[Good] one symbol is found for ${ctrtType} address ${ctrtAddr}`]);
+      }
+    }
+  });
+}
+
 //------------------------==
 function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
   return new Promise(async(resolve, reject) => {
@@ -1154,7 +1210,6 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 
 }
 
-
 const addForecastedSchedulesIntoDB = async () => {
   // already done when uploading csv into DB
 }
@@ -1196,8 +1251,7 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,
-    mysqlPoolQueryB, findCtrtAddr, getForecastedSchedulesFromDB,
-    calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail,
+    mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
     deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows
 }

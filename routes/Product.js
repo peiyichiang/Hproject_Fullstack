@@ -1354,18 +1354,18 @@ router.get('/LaunchedProductList', function (req, res) {
         p_currency AS currency,
         p_totalrelease AS maxProductQuantity,
         ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
-        SUBSTRING(p_releasedate, 1, 4) AS releaseDateYear,
-        SUBSTRING(p_releasedate, 5, 2) AS releaseDateMonth,
-        SUBSTRING(p_releasedate, 7, 2) AS releaseDateDate,
-        SUBSTRING(p_releasedate, 9, 2) AS releaseDateHour,
-        SUBSTRING(p_releasedate, 11, 2) AS releaseDateMinute,
+        SUBSTRING(p_CFSD, 1, 4) AS releaseDateYear,
+        SUBSTRING(p_CFSD, 5, 2) AS releaseDateMonth,
+        SUBSTRING(p_CFSD, 7, 2) AS releaseDateDate,
+        SUBSTRING(p_CFSD, 9, 2) AS releaseDateHour,
+        SUBSTRING(p_CFSD, 11, 2) AS releaseDateMinute,
         p_size AS size,
         p_duration AS durationInYear,
-        SUBSTRING(p_validdate, 1, 4) AS deadlineYear,
-        SUBSTRING(p_validdate, 5, 2) AS deadlineMonth,
-        SUBSTRING(p_validdate, 7, 2) AS deadlineDate,
-        SUBSTRING(p_validdate, 9, 2) AS deadlineHour,
-        SUBSTRING(p_validdate, 11, 2) AS deadlineMinute,
+        SUBSTRING(p_CFED, 1, 4) AS deadlineYear,
+        SUBSTRING(p_CFED, 5, 2) AS deadlineMonth,
+        SUBSTRING(p_CFED, 7, 2) AS deadlineDate,
+        SUBSTRING(p_CFED, 9, 2) AS deadlineHour,
+        SUBSTRING(p_CFED, 11, 2) AS deadlineMinute,
         p_Image1 AS imageURL,
         p_TaiPowerApprovalDate AS taiPowerApprovalDate,
         p_CFSD AS CFSD,
@@ -1603,7 +1603,9 @@ router.get('/SymbolToTokenAddr', function (req, res, next) {
 
 //回傳該使用者是否可購買token
 router.get('/canBuyToken', async function (req, res) {
-    let keys = [req.query.symbol, req.query.email]
+    const email = req.query.email;
+    const symbol = req.query.symbol;
+    const keys = [symbol, email];
     let mysqlPoolQuery = req.pool;
     let isServerTimeLargerThanCFSD;
     let isAssetbookContractAddressExist;
@@ -1614,13 +1616,10 @@ router.get('/canBuyToken', async function (req, res) {
                 p_CFED AS CFED,
                 u_assetbookContractAddress AS assetbookContractAddress
          FROM product , user
-         WHERE p_Symbol = ? AND u_email = ?
+         WHERE p_SYMBOL = ? AND u_email = ?
          `, keys, function (err, result) {
             if (err) {
-                res.status(400)
-                res.json({
-                    "message": "專案狀態取得失敗:" + err
-                })
+                res.status(400).send("專案狀態取得失敗:" + err);
             }
             else {
                 serverTime >= Number(result[0].CFSD) && serverTime <= Number(result[0].CFED) ?
@@ -1640,25 +1639,16 @@ router.get('/canBuyToken', async function (req, res) {
                 // console.log(canBuyToken)
 
                 if (!!canBuyToken) {
-                    res.status(200);
-                    res.json({
-                        "message": "可購買token",
-                        "result": canBuyToken
-                    });
+                    res.status(200).json({ "message": "可購買token", });
                 }
                 else {
                     if (!!isServerTimeLargerThanCFSD) {
-                        res.status(200);
-                        res.json({
-                            "message": "使用者尚未通過身份驗證",
-                            "result": canBuyToken
-                        });
+                        res.status(400).send("使用者尚未通過身份驗證");
+                        console.error('assetbook address is not found : ', email);
                     } else {
-                        res.status(200);
-                        res.json({
-                            "message": "非專案開賣時間",
-                            "result": canBuyToken
-                        });
+                        res.status(400).send("非專案開賣時間");
+                        console.error('product is not funding : ', symbol);
+                        console.error('check product CFED & CFSD , also check that server time is on');
                     }
                 }
             }
@@ -1786,7 +1776,7 @@ router.get('/ProductDataBySymbol', function (req, res) {
 
 //通過文件Hash值查詢是否記錄在公鏈上
 router.get('/eDocument', async function (req, res) {
-    var Contract = new web3.eth.Contract(abi,address);
+    var Contract = await new web3.eth.Contract(abi, address);
     console.log("123");
 
     Contract.methods.test().call()

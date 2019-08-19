@@ -7,10 +7,9 @@ var cors = require('cors');
 var session = require('express-session');
 var multer = require('multer');
 // var debugSQL = require('debug')('dev:mysql');
-// var timeout = require('connect-timeout'); //express v4
 
 //require("dotenv").config();
-const { SERVER_PORT, isTimeserverON, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
+const { SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, isTimeserverON, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
 
 console.log('loading app.js modules...');
 //智豪
@@ -27,6 +26,9 @@ var orderRouter = require('./routes/Order');
 var paymentGWRouter = require('./routes/PaymentGW');
 var ContractsRouter = require('./routes/Contracts');
 // var usersRouter = require('./routes/users');
+
+//Ray
+var contractExplorerRouter = require('./routes/ContractExplorer');
 
 // DataBase
 const { mysqlPoolQuery } = require('./timeserver/mysql.js');
@@ -68,6 +70,9 @@ app.use(function (req, res, next) {
 app.use('/', indexRouter);
 app.use('/Product', productRouter);
 app.use('/BackendUser', backendUserRouter);
+
+//Ray
+app.use('/ContractExplorer', contractExplorerRouter);
 
 //＊＊＊＊＊＊＊＊＊＊＊＊＊＊上傳文件＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 //配置diskStorage來控制文檔存儲的位置以及文檔名字等
@@ -132,8 +137,8 @@ if(isTimeserverON){
   is_updateTokenStateFromDB: ${is_updateTokenStateFromDB}
   is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
   `);
-}
-console.log(`[end of @ app.js] http://localhost:${SERVER_PORT}/Product/ProductList`);
+} 
+console.log(`[end of @ app.js] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/Product/ProductList \n[Interface of Crowdfunding] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/crowdfunding`);
 //http://localhost:3000/Product/ProductList
 
 

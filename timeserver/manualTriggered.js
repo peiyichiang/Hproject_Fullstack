@@ -2,21 +2,19 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-
 //--------------------==
 const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA,  } = require('../ethereum/contracts/zTestParameters');
+   } = require('../ethereum/contracts/zTestParameters');
 
 const { isTimeserverON } = require('./envVariables');
 
 const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, findCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, 
-  deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, deployHCATContract, deployIncomeManagerContract } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray } = require('./blockchain.js');
 
-const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum } = require('./utilities');
+const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime } = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -33,6 +31,9 @@ userArray.forEach((user, idx) => {
     assetbookArray.push(user.addrAssetBook);
   }
 });
+
+const timeChoice = 1;
+
 // yarn run testmt -f F
 // yarn run testmt -f F -a1 arg2 -a2 arg3 -a3 arg3
 const arguLen = process.argv.length;
@@ -609,15 +610,17 @@ const getTokenBalances_API = async () => {
 //yarn run testmt -f 43
 const investTokens_API = async() => {
   console.log('\n------------==inside investTokens_API()');
-  let crowdFundingAddr, amountToInvest, serverTime, addrAssetbookX, toAssetbookNumStr;
+  let crowdFundingAddr, tokenAddr, amountToInvest, serverTime, addrAssetbook, toAssetbookNumStr, checkPart2 = false;
   
-  const inputChoice = 0;
+  const inputChoice = 1;
   const functionChoice = 0;
   if(inputChoice === 0){
     crowdFundingAddr = addrCrowdFunding;
+    tokenAddr = '';
     toAssetbookNumStr = 1;
     amountToInvest = 513;
     serverTime = CFSD+1;
+    checkPart2 = true;
 
     const toAssetbookNum = parseInt(toAssetbookNumStr);
     console.log("\ntoAssetbookNum", toAssetbookNum);
@@ -626,45 +629,53 @@ const investTokens_API = async() => {
       reject('toAssetbookNumStr must be integer and greater than 1');
       return false;
     }
-    addrAssetbookX = assetbookArray[toAssetbookNum-1];
+    addrAssetbook = assetbookArray[toAssetbookNum-1];
+
+  } else if(inputChoice === 1){
+    crowdFundingAddr = '0xaC7248A4672e5B99cf52C2Ade237C05EB41f9b6B';
+    addrAssetbook = '0xDCAA050B47330752953875bB9363838355C07773';
+    amountToInvest = 1;
+    serverTime = ''+201908061426;
+    tokenAddr = '';
 
   } else {
     crowdFundingAddr = '0x30E49ec3F04a3DAE3c111de9f5a9E38224a56d89';
-    addrAssetbookX = '0x78BeBa1592525403dF2B40C453054E329Ce7D5C0';
+    addrAssetbook = '0x78BeBa1592525403dF2B40C453054E329Ce7D5C0';
     amountToInvest = 2100;
     serverTime = ''+201908021026;
+    tokenAddr = '';
   }
 
   if(functionChoice === 0){
-    const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime).catch(async(err) => { 
-      const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
-      console.log('checkInvest result', result);
-  
-      console.log('\n[Error @ investTokens]',err);
-      process.exit(0);
+    const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'manualTriggered').catch(async(err) => { 
+      const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
+      console.log('\ncheckInvest result:', result);
+        console.log('\n[Error @ investTokens]', err);
+        return [false, '0x0'];
     });
-    console.log(`isInvestSuccess: ${isInvestSuccess}, txnHash: ${txnHash}`);
+    console.log(`\nisInvestSuccess: ${isInvestSuccess}, txnHash: ${txnHash}`);
 
     if(isInvestSuccess){
-      console.log(`isInvestSuccess is true`);
-      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(addrCrowdFunding);
+      console.log(`\nGo into getInvestorsFromCFC`);
+      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
       console.log(`investorAssetBooks: ${investorAssetBooks}
-  investedTokenQtyArray: ${investedTokenQtyArray}`);
+investedTokenQtyArray: ${investedTokenQtyArray}`);
   
-      const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
-      console.log('existingBalances:', existingBalances);
-      const [result, isAllGood] = checkTargetAmounts(existingBalances, investedTokenQtyArray);
-      console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, \ninvestorAssetBooks: ${investorAssetBooks}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
-      if(!isAllGood){
-        console.log('[Warning] at least one target mint amount is lesser than its existing balance');
+      if(checkPart2){
+        const existingBalances = await getTokenBalances(assetbookArray, tokenAddr);
+        console.log('existingBalances:', existingBalances);
+        const [result, isAllGood] = checkTargetAmounts(existingBalances, investedTokenQtyArray);
+        console.log(`result: ${result}, txnHash: ${txnHash}, isAllGood: ${isAllGood}, \ninvestorAssetBooks: ${investorAssetBooks}\ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+        if(!isAllGood){
+          console.log('[Warning] at least one target mint amount is lesser than its existing balance');
+        }
+  
       }
     } else {
-      console.log('investTokens failed', isInvestSuccess);
+      console.log('investTokens failed. isInvestSuccess:', isInvestSuccess);
     }
   } else {
-    console.log(`isInvestSuccess is false!!!`);
-    const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
-    console.log('checkInvest result', result);
+    console.log(`functionChoice is out of range: ${functionChoice}`);
   }
   process.exit(0);
 }
@@ -677,8 +688,8 @@ const checkInvestTokens_API = async() => {
   const amountToInvest = 513;
   const serverTime = CFSD+1;
 
-  const addrAssetbookX = assetbookArray[toAssetbookNum-1];
-  const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvest, serverTime);
+  const addrAssetbook = assetbookArray[toAssetbookNum-1];
+  const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
   console.log('checkInvest result', result);
 
 }
@@ -817,35 +828,62 @@ const writeStreamToTxtFile_API = async () => {
 }
 
 //----------------------------==Deploy contracts
+//yarn run testmt -f 60
+const checkArgumentsCFC_API = async () => {
+  console.log('\n---------------------==checkArgumentsCFC_API()');
+  const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
+}
+
 //yarn run testmt -f 61
 const deployCrowdfundingContract_API = async () => {
   console.log('\n---------------------==deployCrowdfundingContract_API()');
   let acCFSD, acCFED, acTimeOfDeployment_CF;
-  if(isTimeserverON){
-    acTimeOfDeployment_CF = await getTime();
-    acCFSD = TimeOfDeployment_CF+1;
-    acCFED = TimeOfDeployment_CF+1000000;//1 month to buy
+  const isToDeploy = 1;
+  if(timeChoice === 1){
+    acTimeOfDeployment_CF = getLocalTime();
+    acCFSD = acTimeOfDeployment_CF+1;
+    acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
   } else {
     acTimeOfDeployment_CF = TimeOfDeployment_CF;
     acCFSD = CFSD;
     acCFED = CFED;
   }
   
-  console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacCFSD: ${acCFSD}, acCFED: ${acCFED}, acTimeOfDeployment_CF: ${acTimeOfDeployment_CF}`);
-  const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, CFSD, CFED, TimeOfDeployment_CF, addrHelium];
+  console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacTimeOfDeployment_CF: ${acTimeOfDeployment_CF}, acCFSD: ${acCFSD}, acCFED: ${acCFED}`);
+  const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium];
 
-  const result = await deployCrowdfundingContract(argsCrowdFunding);
-  console.log(`result: ${result}`);
+  const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
+
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
+    if(isToDeploy === 1){
+      const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
+      console.log(`result: ${result_deployment}`);
+    } else {
+      const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
+      const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
+      console.log(`result: ${result}`);
+    }
+  } else {
+    console.log(`not to deploy due to incorrect argument values`);
+  }
+  process.exit(0);
 }
 
-//yarn run testmt -f 62
+
+
+//yarn run testmt -f 64
 const deployTokenControllerContract_API = async () => {
   console.log('\n---------------------==deployTokenControllerContract_API()');
   let acTimeTokenUnlock, acTimeTokenValid, TimeOfDeployment_TokCtrl;
-  if(isTimeserverON){
-    acTimeOfDeployment_TokCtrl = await getTime();
-    acTimeTokenUnlock = TimeOfDeployment_TokCtrl+2;//2 sec to unlock
-    acTimeTokenValid = TimeOfDeployment_TokCtrl+9000000;//9 months to expire
+
+  const isToDeploy = 1;
+  if(timeChoice === 1){
+    acTimeOfDeployment_TokCtrl = getLocalTime();
+    acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
+    acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
   } else {
     acTimeTokenUnlock = TimeTokenUnlock;
     acTimeTokenValid = TimeTokenValid;
@@ -854,23 +892,41 @@ const deployTokenControllerContract_API = async () => {
   const argsTokenController = [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock,acTimeTokenValid, addrHelium ];
   console.log(`acTimeOfDeployment_TokCtrl: ${acTimeOfDeployment_TokCtrl}, acTimeTokenUnlock: ${acTimeTokenUnlock}, acTimeTokenValid: ${acTimeTokenValid}`);
 
-  const result = await deployTokenControllerContract(argsTokenController);
-  console.log(`result: ${result}`);
+  const result_checkArguments = await checkArgumentsTCC(argsTokenController);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
+
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
+    //process.exit(0);
+    if(isToDeploy === 1){
+      const result_deployment = await deployTokenControllerContract(argsTokenController);
+    console.log(`result: ${result_deployment}`);
+    } else {
+      const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
+      const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
+      console.log(`result: ${result}`);
+    }
+  } else {
+    console.log(`not to deploy due to incorrect argument values`);
+  }
+  process.exit(0);
 }
 
-//yarn run testmt -f 63
+//yarn run testmt -f 67
 const deployHCATContract_API = async () => {
   console.log('\n---------------------==deployHCATContract_API()');
-  let TimeOfDeployment_HCAT;
-  if(isTimeserverON){
-    acTimeOfDeployment_HCAT = await getTime();
+  let acTimeOfDeployment_HCAT;
+
+  const isToDeploy = 2;
+  if(timeChoice === 1){
+    acTimeOfDeployment_HCAT = getLocalTime();
   } else {
     acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
   }
-  const nftName_bytes32 = web3.utils.fromAscii(nftName);
-  const nftSymbol_bytes32 = web3.utils.fromAscii(nftSymbol);
-  const pricingCurrency_bytes32 = web3.utils.fromAscii(pricingCurrency);
-  const tokenURI_bytes32 = web3.utils.fromAscii(tokenURI);
+  const nftName_bytes32 = await fromAsciiToBytes32(nftName);
+  const nftSymbol_bytes32 = await fromAsciiToBytes32(nftSymbol);
+  const pricingCurrency_bytes32 = await fromAsciiToBytes32(pricingCurrency);
+  const tokenURI_bytes32 = await fromAsciiToBytes32(tokenURI);
   
   const argsHCAT721 = [
   nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
@@ -878,16 +934,33 @@ const deployHCATContract_API = async () => {
   addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
   console.log(`nftName: ${nftName}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply} \ninitialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}, tokenURI: ${tokenURI}`);
 
-  const result = await deployHCATContract(argsHCAT721);
-  console.log(`result: ${result}`);
+  const result_checkArguments = await checkArgumentsHCAT(argsHCAT721);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
+
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
+    //process.exit(0);
+    if(isToDeploy === 1){
+      const result_deployment = await deployHCATContract(argsHCAT721);
+      console.log(`result: ${result_deployment}`);
+    
+    } else {
+      const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
+      const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
+      console.log(`result: ${result}`);
+    }
+  } else {
+    console.log(`not to deploy due to incorrect argument values`);
+  }
+  process.exit(0);
 }
 
-//yarn run testmt -f 64
+//yarn run testmt -f 70
 const deployIncomeManagerContract_API = async () => {
   console.log('\n---------------------==deployIncomeManagerContract_API()');
   let TimeOfDeployment_IM;
-  if(isTimeserverON){
-    acTimeOfDeployment_IM = await getTime();
+  if(timeChoice === 1){
+    acTimeOfDeployment_IM = getLocalTime();
   } else {
     acTimeOfDeployment_IM = TimeOfDeployment_IM;
   }
@@ -896,8 +969,25 @@ const deployIncomeManagerContract_API = async () => {
 
   const result = await deployIncomeManagerContract(argsIncomeManager);
   console.log(`result: ${result}`);
+  process.exit(0);
 }
 
+
+//yarn run testmt -f 95
+const checkAssetbookArray_API = async() => {
+  console.log('\n---------------------==checkAssetbookArray_API()');
+  const addressArray = [...assetbookArray, '0x5Fd93F8a4B023D837f0b04bb2836Daf535BfeFBF'];
+  const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
+    console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). addressArray: ${addressArray}`);
+    return false;
+  });
+  if(checkResult.includes(false)){
+    console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+    return false;
+  } else {
+    console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+  }
+}
 
 //----------------------------==
 //yarn run testmt -f 55
@@ -959,6 +1049,16 @@ const deployAssetbooks_API = async () => {
   const addrHeliumContract = '';
   const result = await deployAssetbooks(eoaArray, addrHeliumContract);
   console.log('result:', result);
+}
+
+//yarn run testmt -f 103
+const findSymbolFromCtrtAddr_API = async() => {
+  console.log('\n---------------------==findSymbolFromCtrtAddr_API()');
+  const ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
+  const ctrtType = 'crowdfunding';
+  const [isGood, symbol, resultMesg] = await findSymbolFromCtrtAddr(ctrtAddr, ctrtType);
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, symbol found: ${symbol}`);
+  process.exit(0);
 }
 
 //---------------------------==Delete
@@ -1203,16 +1303,20 @@ if(func === 0){
 } else if (func === 61) {
   deployCrowdfundingContract_API();
 
-//yarn run testmt -f 62
-} else if (func === 62) {
-  deployTokenControllerContract_API();
-
-//yarn run testmt -f 63
-} else if (func === 63) {
-  deployHCATContract_API();
+//yarn run testmt -f 611
+} else if (func === 611) {
+  checkDeploymentCFC_API();
 
 //yarn run testmt -f 64
 } else if (func === 64) {
+  deployTokenControllerContract_API();
+
+//yarn run testmt -f 67
+} else if (func === 67) {
+  deployHCATContract_API();
+
+//yarn run testmt -f 70
+} else if (func === 70) {
   deployIncomeManagerContract_API();
 
 //yarn run testmt -f 81
@@ -1236,10 +1340,17 @@ if(func === 0){
 } else if (func === 94) {
   checkTargetAmounts_API();
 
+//yarn run testmt -f 95
+} else if (func === 95) {
+  checkAssetbookArray_API();
+
 //yarn run testmt -f 102
 } else if (func === 102) {
   deployAssetbooks_API();
 
+//yarn run testmt -f 103
+} else if (func === 103) {
+  findSymbolFromCtrtAddr_API();
 
 //yarn run testmt -f 141
 } else if (func === 141) {
