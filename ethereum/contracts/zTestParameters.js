@@ -113,7 +113,7 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
 const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "0xF811f727da052379D8cbfBF1188E290B32ff9f99", "0x9812d0eBcd89d8491Bca80000c147f739B9Cef73", "0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A", "");
 
-const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0xaCab94A5d3650873F85E16Abadfb15AFf87fe65C", "0x0002", "0x0003", "0x0004");
+const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0xaCab94A5d3650873F85E16Abadfb15AFf87fe65C", "0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9", "0xA80c0A88e38aa61190A3Ad41bd3907774D291f87", "0xCb5B388E9f4f7028547797a4C0C1844f9e04Cecd");
 
 const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
 

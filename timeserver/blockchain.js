@@ -752,6 +752,44 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
 
 
 //-------------------==IncomeManager
+//yarn run testmt -f 6x
+const checkArgumentsIncomeManager = async(argsIncomeManager) => {
+  return new Promise(async (resolve, reject) => {
+    const [addrHCAT721, addrHelium, acTimeOfDeployment_IM] = argsIncomeManager;
+    let mesg = '';
+    console.log(`addrHCAT721: ${addrHCAT721}, addrHelium: ${addrHelium}, acTimeOfDeployment_IM: ${acTimeOfDeployment_IM}`);
+
+    const [is_checkHCATTokenCtrt, nftsymbolM, maxTotalSupplyM, initialAssetPricingM, TimeOfDeploymentM, tokenIdM, isPlatformSupervisorM] = await checkHCATTokenCtrt(addrHCAT721).catch(async(err) => {
+      console.log(`${err} \ncheckHCATTokenCtrt() failed...`);
+      return false;
+    });
+    if(!is_checkHCATTokenCtrt){
+      console.log(`\ncheckHCATTokenCtrt() returned false...`);
+      mesg += ', [0] addrHCAT721 should have a HCAT Contract';
+    }
+
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHelium);
+    const Helium_Admin = await instHelium.methods.Helium_Admin().call();
+    if(Helium_Admin.length === 0){
+      mesg += ', [1] addrHelium should have Helium Contract';
+    }
+
+    if(acTimeOfDeployment_IM <= 0){
+      mesg += ', [2] acTimeOfDeployment_IM should be > 0';
+    }
+
+    if(mesg.substring(0,2) === ', '){
+      mesg = mesg.substring(2);
+    }
+    console.log('\n==>>>mesg:', mesg);
+    if(mesg.length > 0){
+      resolve(false);
+    } else {
+      resolve(true);
+    }
+  });
+}
+
 //yarn run testmt -f 64
 const deployIncomeManagerContract = async(argsIncomeManager) => {
   return new Promise(async (resolve, reject) => {
@@ -762,7 +800,7 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
     console.log('web3.version', web3deploy.version);
     const prefix = '0x';
 
-    instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
+    const instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
     .deploy({ data: IncomeManager.bytecode, arguments: argsIncomeManager })
     .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
@@ -781,7 +819,8 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
     } else {console.log('[Good] instIncomeManager is defined');}
 
     instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    console.log(`const addrIncomeManager = ${instIncomeManager.options.address}`);
+    const IncomeManager_Addr = instIncomeManager.options.address
+    console.log(`const addrIncomeManager = ${IncomeManager_Addr}`);
 
     const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
     console.log('checkDeploymentConditions():', result);
@@ -795,7 +834,22 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
   });
 }
 
+const checkDeploymentIncomeManager = async(IncomeManager_Addr, argsIncomeManager) => {
+  return new Promise(async (resolve, reject) => {
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, IncomeManager_Addr);
+    const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
+    console.log('checkDeploymentConditions():', result);
+    if(result.includes(false)){
+      console.log('[Failed] Some/one check(s) have/has failed');
+      resolve(false);
+    } else {
+      console.log('[Success] all checks have passed');
+      resolve(true);
+    }
+  });
+}
 
+//----------------------------==
 const getFundingStateCFC = async (crowdFundingAddr) => {
   console.log('[getFundingStateCFC] crowdFundingAddr...');
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
@@ -3042,5 +3096,5 @@ module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
   addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32,
-  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray
+  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray
 }
