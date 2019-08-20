@@ -111,7 +111,106 @@ const checkCustomerService = async(eoa, addrHeliumX) => {
   });
 }
 
+
+//----------------------==Helium Contract
+const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n----------------== inside deployHeliumContract()');
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3deploy.version:', web3deploy.version);
+    const prefix = '0x';
+
+    const argsHelium = [[eoa0, eoa1, eoa2, eoa3, eoa4]];
+    console.log('\nDeploying Helium contract...');
+    instHelium =  await new web3deploy.eth.Contract(Helium.abi)
+    .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('Helium.sol has been deployed');
+    if (instHelium === undefined) {
+      console.log('[Error] instHelium is NOT defined');
+      } else {console.log('[Good] instHelium is defined');}
+    instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    const addrHeliumContract = instHelium.options.address;
+    console.log(`const addrHelium = ${addrHeliumContract}`);
+    resolve(addrHeliumContract);
+  });
+}
+
 //----------------------==Registry Contract
+const deployRegistryContract = async(addrHeliumContract) => {
+  return new Promise(async (resolve, reject) => {
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3deploy.version:', web3deploy.version);
+    const prefix = '0x';
+
+    console.log('\n----------------== deployRegistryContract()');
+    const argsRegistry = [addrHeliumContract];
+    instRegistry =  await new web3deploy.eth.Contract(Registry.abi)
+    .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+        reject(error);
+    });
+
+    console.log('Registry.sol has been deployed');
+    if (instRegistry === undefined) {
+      console.log('[Error] instRegistry is NOT defined');
+      } else {console.log('[Good] instRegistry is defined');}
+    instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    const addrRegistryCtrt = instRegistry.options.address;
+    console.log(`const addrRegistryCtrt = ${addrRegistryCtrt}`);
+    resolve(addrRegistryCtrt);
+  });
+}
+
+const deployProductManagerContract = async(addrHCATContract, addrHeliumContract) => {
+  return new Promise(async (resolve, reject) => {
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3deploy.version:', web3deploy.version);
+    const prefix = '0x';
+
+    console.log('\n----------------== deployProductManagerContract()');
+    const argsProductManager =[addrHCATContract, addrHeliumContract];
+
+    instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
+    .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      console.log('[Error] instProductManager is NOT defined');
+      } else {console.log('[Good] instProductManager is defined');}
+    instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    const addrProductManager = instProductManager.options.address
+    console.log(`\nconst addrProductManager = ${addrProductManager}`);
+    resolve(addrProductManager);
+  });
+}
+
+
 const addUsersToRegistryCtrt = async(registryContractAddr, userIDs, userAssetbooks, investorLevels) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n----------------== addUsersToRegistryCtrt()');
@@ -179,17 +278,15 @@ const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPubli
 }
 
 
-
 //-------------------==Assetbook Contracts
 const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
   return new Promise(async (resolve, reject) => {
-    //console.log('--------------==deployAssetbooks()');
-    console.log('\nDeploying AssetBook contracts to eoaArray...');
+    console.log('\nDeploying AssetBook contracts from eoaArray...');
 
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
-    console.log('web3.version', web3deploy.version);
+    console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
     const addrAssetBookArray = [];
@@ -203,12 +300,10 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
       })
       .on('error', function (error) {
           console.log('error:', error.toString());
-          reject(false);
-          return false;
         });
       if (instAssetBookN === undefined) {
         console.log(`\n[Error] instAssetBook${idx} is NOT defined`);
-        } else {console.log(`[Good] instAssetBook${idx} is defined`);}
+      } else {console.log(`[Good] instAssetBook${idx} is defined`);}
     
       console.log(`AssetBook${idx} has been deployed`);
       console.log(`addrAssetBook${idx}: ${instAssetBookN.options.address}`);
@@ -219,7 +314,7 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
     addrAssetBookArray.forEach((item, idx) => {
       console.log(`addrAssetBook${idx} = "${item}"`);
     });
-    resolve(true);
+    resolve(addrAssetBookArray);
   });
 }
 
@@ -233,7 +328,7 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
-    console.log('web3.version', web3deploy.version);
+    console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
     const instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
@@ -435,7 +530,7 @@ const deployTokenControllerContract = async(argsTokenController) => {
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
-    console.log('web3.version', web3deploy.version);
+    console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
     const instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
@@ -619,7 +714,7 @@ const deployHCATContract = async(argsHCAT721) => {
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
-    console.log('web3.version', web3deploy.version);
+    console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
     console.log('\nDeploying HCAT721 contract...');
@@ -749,7 +844,25 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
 }
 
 
+const getTokenContractDetails = async(tokenCtrtAddr) => {
+  return new Promise( async ( resolve, reject ) => {
+    try{
+      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+      const tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
+      console.log('tokenContractDetails:', tokenContractDetails);
+      // const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] 
 
+      const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
+
+      const tokenId = await instHCAT721.methods.tokenId.call();
+      console.log(`getTokenContractDetails()... nftsymbol: ${nftsymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
+      resolve([true, nftsymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
+    } catch(err){
+      console.log(`[Error] getTokenContractDetails() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
+      resolve([false, undefined, undefined, undefined, undefined, undefined, undefined]);
+    }
+  });
+}
 
 //-------------------==IncomeManager
 //yarn run testmt -f 6x
@@ -797,11 +910,11 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
-    console.log('web3.version', web3deploy.version);
+    console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
     const instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
-    .deploy({ data: IncomeManager.bytecode, arguments: argsIncomeManager })
+    .deploy({ data: prefix+IncomeManager.bytecode, arguments: argsIncomeManager })
     .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
     .on('receipt', function (receipt) {
       console.log('receipt:', receipt);
@@ -2012,41 +2125,47 @@ const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountT
 }
 
 const getDetailsCFC = async(crowdFundingAddr) => {
-  console.log('----------------==getDetailsCFC. crowdFundingAddr=', crowdFundingAddr);
-  const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-  tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
-  console.log('tokenSymbolM', tokenSymbolM);
+  return new Promise(async(resolve, reject) => {
+    console.log('----------------==getDetailsCFC. crowdFundingAddr=', crowdFundingAddr);
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    console.log('tokenSymbolM', tokenSymbolM);
 
-  initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
-  console.log('initialAssetPricingM', initialAssetPricingM);
+    initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
+    console.log('initialAssetPricingM', initialAssetPricingM);
 
-  maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
-  console.log('maxTotalSupplyM', maxTotalSupplyM);
+    maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
+    console.log('maxTotalSupplyM', maxTotalSupplyM);
 
-  quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
-  console.log('quantityGoalM', quantityGoalM);
+    quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
+    console.log('quantityGoalM', quantityGoalM);
 
-  CFSDM = await instCrowdFunding.methods.CFSD().call();
-  console.log('CFSDM', CFSDM);
+    CFSDM = await instCrowdFunding.methods.CFSD().call();
+    console.log('CFSDM', CFSDM);
 
-  CFEDM = await instCrowdFunding.methods.CFED().call();
-  console.log('CFEDM', CFEDM);
+    CFEDM = await instCrowdFunding.methods.CFED().call();
+    console.log('CFEDM', CFEDM);
 
-  stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-  console.log('\nstateDescriptionM:', stateDescriptionM);
+    stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+    console.log('\nstateDescriptionM:', stateDescriptionM);
 
-  fundingStateM = await instCrowdFunding.methods.fundingState().call();
-  console.log('fundingStateM:', fundingStateM);
+    fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    console.log('fundingStateM:', fundingStateM);
 
-  remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
-  console.log('remainingTokenQtyM:', remainingTokenQtyM);
+    remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
+    console.log('remainingTokenQtyM:', remainingTokenQtyM);
 
-  quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
-  console.log('quantitySoldM:', quantitySoldM);
+    quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
+    console.log('quantitySoldM:', quantitySoldM);
 
-  const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
-  console.log(`investorAssetBooks: ${investorAssetBooks}
+    siteSizeInKWM = await instCrowdFunding.methods.siteSizeInKW().call();
+    console.log('siteSizeInKWM:', siteSizeInKW);
+
+    const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
+    console.log(`investorAssetBooks: ${investorAssetBooks}
 \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+    resolve([initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM]);
+  });
 }
 
 //to get all the list: set inputs to both zeros
@@ -3093,8 +3212,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch,
-  addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32,
-  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray
+  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails
 }

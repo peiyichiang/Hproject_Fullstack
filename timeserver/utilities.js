@@ -43,7 +43,7 @@ const getTime = () => {
       let time = new Date().myFormat();
       resolve(time);
     }
-  })
+  });
 }
 const getLocalTime = () => parseInt(new Date().myFormat());
 

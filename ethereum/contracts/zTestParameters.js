@@ -24,28 +24,18 @@ const AssetOwner9pkRaw = '0x4717997c64e19cfbd4df771c3f8900232b8681c77162bf5de0f5
 const AssetOwner10 = '0x61D9068dA7B5dF1BBfb0a254Cb40C6739A52bd76';
 const AssetOwner10pkRaw = '0x7347b852ddbbb7c1c39e7ca381f4c30ce3cd8adb55a48f7f67310d0a8db3ae68';
 
-/*require("dotenv").config();
-const AssetOwner1 = process.env.AssetOwner1;
-const AssetOwner1pkRaw = process.env.AssetOwner1pkRaw;
-const AssetOwner2 = process.env.AssetOwner2;
-const AssetOwner2pkRaw = process.env.AssetOwner2pkRaw;
-const AssetOwner3 = process.env.AssetOwner3;
-const AssetOwner3pkRaw = process.env.AssetOwner3pkRaw;
-const AssetOwner4 = process.env.AssetOwner4;
-const AssetOwner4pkRaw = process.env.AssetOwner4pkRaw;
-const AssetOwner5 = process.env.AssetOwner5;
-const AssetOwner5pkRaw = process.env.AssetOwner5pkRaw;
-
-const AssetOwner6 = process.env.AssetOwner6;
-const AssetOwner6pkRaw = process.env.AssetOwner6pkRaw;
-const AssetOwner7 = process.env.AssetOwner7;
-const AssetOwner7pkRaw = process.env.AssetOwner7pkRaw;
-const AssetOwner8 = process.env.AssetOwner8;
-const AssetOwner8pkRaw = process.env.AssetOwner8pkRaw;
-const AssetOwner9 = process.env.AssetOwner9;
-const AssetOwner9pkRaw = process.env.AssetOwner9pkRaw;
-const AssetOwner10 = process.env.AssetOwner10;
-const AssetOwner10pkRaw = process.env.AssetOwner10pkRaw;
+/*newly deployed assetbooks
+addrAssetBook0 = "0x9cfb84eCC3E8990EEFF56FE6ED601A9b9deee4bA";
+addrAssetBook1 = "0x6679c0a52285B3005bab5c196edEe458eA0011c7";
+addrAssetBook2 = "0x73D88777C4e29B1ccf9F45964827dE2Eb5076d00";
+addrAssetBook3 = "0x4E669A79886b11a3BA98D10E6aDe0F94D09E3C8E";
+addrAssetBook4 = "0xDA542FBE8515c4784aC81A8ABF5c2C55e33df33d";
+addrAssetBook5 = "0xCAFe7aD86205b4b43c0B95a1B55bF8a54A153Ee2";
+addrAssetBook6 = "0x824A7d628A3D58d0068c6614CC6367f801B31CdA";
+addrAssetBook7 = "0x915eb0eFB735AF262832a8645129f6Ff26E70699";
+addrAssetBook8 = "0x2eB48E0B6350300b5082A6F388a56A679A12ad73";
+addrAssetBook9 = "0xb2223A54065351E36BF341d0a3d99095D575570F";
+addrAssetBook10 = "0xBF0b705c7d3051aC75F21350842f15D3C21b72Da";
 */
 
 //let addrIncomeManager, addrProductManager;
@@ -60,12 +50,13 @@ const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, As
 let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10, addrAssetBook0, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
-    cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
+    cName = addproduct, adduser, addorder, im, addsctrt, addia, pm
  */
 const chain = 1;
 if (chain === 1){
   addrHelium =     "0xEEB51B9B88824a491b076737EBdd40b3babaB3bB";
   addrRegistry =   "0x067E900608Df20060d7597bc4EB1d08b9B1f0C3c";
+  //addrRegistry = "0x7FD747B276687A55f48d9ad91c11a43b07461E4c";new
 
   addrAssetBook0 = "0x33a00F47501a684593Fbdc51bE6086C3Bc8aCe83";
   addrAssetBook1 = "0x19746ba6B0c85052fB24f4120c9072789d0f7301";

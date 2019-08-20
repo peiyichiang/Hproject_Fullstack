@@ -9,7 +9,7 @@ const { DB_host, DB_user, DB_password, DB_name, DB_port } = require('./envVariab
 
 const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
 
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, incomeArrangementArray} = require('../ethereum/contracts/zsetupData');
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray} = require('../ethereum/contracts/zsetupData');
 
 const serverTimeMin = 201905270900;
 
@@ -108,11 +108,11 @@ const addTxnInfoRowFromObj = (row) => {
 }
 
 
-const addProductRow = async (nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state) => {
+const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state) => {
   return new Promise(async(resolve, reject) => {
     console.log('\nto add product row into DB');
     const sql = {
-      p_SYMBOL: nftSymbol,
+      p_SYMBOL: tokenSymbol,
       p_name: nftName,
       p_location: location,
       p_pricing: initialAssetPricing,
@@ -154,11 +154,11 @@ const deleteProductRows = (tokenSymbol) => {
   });
 }
 
-const addSmartContractRow = async (nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
+const addSmartContractRow = async (tokenSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController) => {
   console.log('inside addSmartContractRow()...');
   return new Promise(async(resolve, reject) => {
     const sql = {
-      sc_symbol: nftSymbol,
+      sc_symbol: tokenSymbol,
       sc_crowdsaleaddress: addrCrowdFunding,
       sc_erc721address: addrHCAT721,
       sc_totalsupply: maxTotalSupply,
@@ -238,10 +238,10 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
 
 
 //-------------------==Add users
-const addUsersIntoDB = async(userObjects) => {
+const addUsersIntoDB = async(userArray) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addUsersIntoDB()');
-    const result = await asyncForEach(userObjects, async (user, idx) => {
+    const result = await asyncForEach(userArray, async (user, idx) => {
       const email = user.email;
       const password = user.password;
       const identityNumber = user.identityNumber;
@@ -256,7 +256,7 @@ const addUsersIntoDB = async(userObjects) => {
 
       console.log(`idx: ${idx}, email: ${email}, identityNumber: ${identityNumber}, eth_add: ${eth_add}, cellphone: ${cellphone}, name: ${name}, addrAssetbook: ${addrAssetBook}, investorLevel: ${investorLevel}, imagef: ${imagef}, imageb: ${imageb}, bank_booklet: ${bank_booklet}`);
 
-      const result = await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => console.error('addUserRow() failed. user:', user, '\nerr:', err));
+      const result = await addUserRow(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet).catch(err => reject(`addUserRow() failed. user: ${user}, err: ${err}`));
       console.log('result of addUserRow:', result);
     });
     resolve(true);
@@ -328,22 +328,62 @@ const deleteOrderRows = (tokenSymbol) => {
   });
 }
 
-const addOrdersIntoDB = async(userObjects, fundCount, paymentStatus, nftSymbol) => {
+const addUserArrayOrdersIntoDB = async(userArray, fundCount, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n-------------==inside addOrdersIntoDB()');
-    await asyncForEach(userObjects, async (user, idx) => {
+    console.log('\n-------------==inside addUserArrayOrdersIntoDB()');
+    await asyncForEach(userArray, async (user, idx) => {
       const identityNumber = user.identityNumber;
       const email = user.email;
       const tokenCount = user.tokenOrderAmount;
-      // const addrAssetBook = user.addrAssetBook;
-      // const investorLevel = user.investorLevel;
       console.log(`userNum: ${idx}, user: ${user}
   identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
-  nftSymbol: ${nftSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+  tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
   
-      const result = await addOrderRow(identityNumber, email, tokenCount, nftSymbol, fundCount, paymentStatus);
-      console.log(`result: ${result}`);
+      const result = await addOrderRow(identityNumber, email, tokenCount, tokenSymbol, fundCount, paymentStatus).catch((err) => {
+        reject(err);
+      });
+      console.log(`addOrderRow result: ${result}`);
     });
+    resolve(true);
+  });
+}
+
+const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, fundCount, paymentStatus, tokenSymbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside addArrayOrdersIntoDB()');
+    if(userIndexArray.length !== tokenCountArray.length){
+      reject('userIndexArray and tokenCountArray should have the same length');
+    }
+
+    await asyncForEach(userIndexArray, async (userIndex, idx) => {
+      const user = userArray[userIndex];
+      const identityNumber = user.identityNumber;
+      const email = user.email;
+      const tokenCount = tokenCountArray[idx];
+      console.log(`idx: ${idx}, 
+identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
+tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+  
+      const result = await addOrderRow(identityNumber, email, tokenCount, tokenSymbol, fundCount, paymentStatus).catch((err) => {
+        reject(err);
+      });
+      console.log(`addOrderRow result: ${result}`);
+    });
+    resolve(true);
+  });
+}
+
+const addOrderIntoDB = async(identityNumber, email, tokenCount, fundCount, paymentStatus, tokenSymbol) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------------==inside addOrderIntoDB()');
+    console.log(`userNum: ${idx}, user: ${user}
+identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
+tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+
+    const result = await addOrderRow(identityNumber, email, tokenCount, tokenSymbol, fundCount, paymentStatus).catch((err) => {
+      reject(err);
+    });
+    console.log(`addOrderRow result: ${result}`);
     resolve(true);
   });
 }
@@ -453,13 +493,14 @@ const deleteIncomeArrangementRows = (tokenSymbol) => {
   });
 }
 
-const addIncomeArrangementRowsIntoDB = async(symbol) => {
+const addIncomeArrangementRowsIntoDB = async(incomeArrangementArray) => {
   return new Promise(async(resolve, reject) => {
     console.log('-----------------== addIncomeArrangementRowsIntoDB');
     await asyncForEach(incomeArrangementArray, async (item, idx) => {
       const result = await addIncomeArrangementRowFromObj(item);
       //console.log(`result: ${result}`);
     });
+    resolve(true);
   });
 }
 
@@ -1251,7 +1292,6 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addOrdersIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail,
-    mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
     deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows
 }
