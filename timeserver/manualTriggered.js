@@ -8,7 +8,7 @@ const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddr
 
 const { isTimeserverON } = require('./envVariables');
 
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  checkCompliance } = require('../ethereum/contracts/zsetupData');
+const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRowsIntoDB, findCtrtAddr  } = require('./mysql.js');
 
@@ -1066,12 +1066,12 @@ const deployProductManagerContract_API = async() => {
   console.log('\n--------------==inside deployProductManagerContract_API()');
   const addrHCATContract = addrHCAT721;
   const addrHeliumContract = addrHelium;
-  const addrProductManager = await deployProductManagerContract(addrHCATContract, addrHeliumContract);
+  const addrProductManager = await deployProductManagerContract(addrHeliumContract);
   console.log('\nreturned addrProductManager:', addrProductManager);
   process.exit(0);
 };
 
-//yarn run testmt -f 72
+//yarn run testmt -f 73
 const addProduct_API = async() => {
   console.log('\n-------------==inside addProduct_API()');
   const fundingState = 'initial';
@@ -1086,15 +1086,19 @@ const addProduct_API = async() => {
   const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(addrCrowdFunding);
   console.log(`--------------==\nreturned values: initialAssetPricingM: ${initialAssetPricingM}, maxTotalSupplyM: ${maxTotalSupplyM}, quantityGoalM: ${quantityGoalM}, CFSDM: ${CFSDM}, CFEDM: ${CFEDM}, stateDescriptionM: ${stateDescriptionM}, fundingStateM: ${fundingStateM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
 
-  console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, fundingState: ${fundingState}`);
+  const [pricingCurrencyM, IRR20yrx100M, siteSizeInKWM, maxTotalSupplyMH] = await getTokenContractDetails(addrHCAT721);
+  const [TimeTokenValidM, TimeTokenUnlockM] = await xyz;
 
-  await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, fundingState).catch((err) => {
+  console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, location: ${location}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, fundingState: ${fundingState}`);
+
+  process.exit(0);
+  await addProductRow(nftSymbol, nftName, location, initialAssetPricingM, duration, pricingCurrencyM, IRR20yrx100M, TimeReleaseDate, TimeTokenValidM, siteSizeInKWM, maxTotalSupplyMH, fundmanager, CFSDM, CFEDM, quantityGoalM, TimeTokenUnlockM, fundingType, fundingStateM).catch((err) => {
     console.log('\n[Error @ addProductRow()]'+ err);
   });
   process.exit(0);
 }
 
-//yarn run testmt -f 73
+//yarn run testmt -f 72
 const addSmartContractRow_API = async() => {
   console.log('\n-------------==inside addSmartContractRowAPI');
   console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
@@ -1197,7 +1201,7 @@ const getTokenContractDetails_API = async() => {
     console.log('[Error @findCtrtAddr]:'+ err);
     return false;
   });
-  console.log(`\n${resultMesg}. actionType: ${actionType}`);
+  console.log(`\n${resultMesg}. actionType: ${actionType}, targetAddr: ${targetAddr}`);
   if(isGood){
     const result = await getTokenContractDetails(targetAddr);
     console.log('returned values:', result);
@@ -1568,11 +1572,11 @@ if(func === 0){
 
 //yarn run testmt -f 72
 } else if (func === 72) {
-  addProduct_API();
+  addSmartContractRow_API();
 
 //yarn run testmt -f 73
 } else if (func === 73) {
-  addSmartContractRow_API();
+  addProduct_API();
 
 //yarn run testmt -f 74
 } else if (func === 74) {

@@ -13,7 +13,7 @@ const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON} = require('
 
 const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
 
-const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
+const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
 const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
@@ -178,7 +178,7 @@ const deployRegistryContract = async(addrHeliumContract) => {
   });
 }
 
-const deployProductManagerContract = async(addrHCATContract, addrHeliumContract) => {
+const deployProductManagerContract = async(addrHeliumContract) => {
   return new Promise(async (resolve, reject) => {
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
@@ -187,7 +187,7 @@ const deployProductManagerContract = async(addrHCATContract, addrHeliumContract)
     const prefix = '0x';
 
     console.log('\n----------------== deployProductManagerContract()');
-    const argsProductManager =[addrHCATContract, addrHeliumContract];
+    const argsProductManager =[addrHeliumContract];
 
     instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
     .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
@@ -850,13 +850,26 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
       const tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
       console.log('tokenContractDetails:', tokenContractDetails);
+      const tokenId = tokenContractDetails[0];
+      const siteSizeInKW = tokenContractDetails[1];
+      const maxTotalSupply = tokenContractDetails[2];
+      const totalSupply = tokenContractDetails[3];
+      const initialAssetPricing_ = tokenContractDetails[4];
+      const pricingCurrency = tokenContractDetails[5];
+      const IRR20yrx100 = tokenContractDetails[6];
+      const name = tokenContractDetails[7];
+      const tokenSymbol = tokenContractDetails[8];
+      const tokenURI = tokenContractDetails[9];
+
+      // siteSizeInKWM = await instCrowdFunding.methods.siteSizeInKW().call();
+      // console.log('siteSizeInKWM:', siteSizeInKW);
+  
       // const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] 
 
       const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
 
-      const tokenId = await instHCAT721.methods.tokenId.call();
-      console.log(`getTokenContractDetails()... nftsymbol: ${nftsymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
-      resolve([true, nftsymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
+      console.log(`getTokenContractDetails()... tokenSymbol: ${tokenSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
+      resolve([true, tokenSymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
     } catch(err){
       console.log(`[Error] getTokenContractDetails() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
       resolve([false, undefined, undefined, undefined, undefined, undefined, undefined]);
@@ -2157,9 +2170,6 @@ const getDetailsCFC = async(crowdFundingAddr) => {
 
     quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
     console.log('quantitySoldM:', quantitySoldM);
-
-    siteSizeInKWM = await instCrowdFunding.methods.siteSizeInKW().call();
-    console.log('siteSizeInKWM:', siteSizeInKW);
 
     const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
     console.log(`investorAssetBooks: ${investorAssetBooks}

@@ -57,6 +57,7 @@ if (chain === 1){
   addrHelium =     "0xEEB51B9B88824a491b076737EBdd40b3babaB3bB";
   addrRegistry =   "0x067E900608Df20060d7597bc4EB1d08b9B1f0C3c";
   //addrRegistry = "0x7FD747B276687A55f48d9ad91c11a43b07461E4c";new
+  addrProductMgr = "0xDdF6fcc680e1D76A9710f06aAB91CCfC740EaDA2";
 
   addrAssetBook0 = "0x33a00F47501a684593Fbdc51bE6086C3Bc8aCe83";
   addrAssetBook1 = "0x19746ba6B0c85052fB24f4120c9072789d0f7301";
