@@ -10,174 +10,58 @@ const { addScheduleBatch, editActualSchedule, getIncomeScheduleList, addSchedule
 // Web3
 const Web3 = require('web3');
 // HTTP provider
-const web3 = new Web3(new Web3.providers.HttpProvider("ropsten.infura.io/v3/136557225d6a4fdcbaf3f37ea4b31097"));
-var abi = 
-[
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "_Hash",
-                "type": "string"
-            },
-            {
-                "name": "_blockNumber",
-                "type": "string"
-            },
-            {
-                "name": "_TxHash",
-                "type": "string"
-            }
-        ],
-        "name": "setDocumentBlockInfo",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "_eID",
-                "type": "string"
-            },
-            {
-                "name": "_Hash",
-                "type": "string"
-            },
-            {
-                "name": "_year",
-                "type": "string"
-            },
-            {
-                "name": "_studentName",
-                "type": "string"
-            }
-        ],
-        "name": "setDocumentInfo",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "_eID",
-                "type": "string"
-            }
-        ],
-        "name": "vieweIDtoHash",
-        "outputs": [
-            {
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "_Hash",
-                "type": "string"
-            }
-        ],
-        "name": "viewHashToblockNumber",
-        "outputs": [
-            {
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "_Hash",
-                "type": "string"
-            }
-        ],
-        "name": "viewHashToeID",
-        "outputs": [
-            {
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "_Hash",
-                "type": "string"
-            }
-        ],
-        "name": "viewHashTostudentName",
-        "outputs": [
-            {
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "_Hash",
-                "type": "string"
-            }
-        ],
-        "name": "viewHashToTxHash",
-        "outputs": [
-            {
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "_Hash",
-                "type": "string"
-            }
-        ],
-        "name": "viewHashToyear",
-        "outputs": [
-            {
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    }
+const web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/136557225d6a4fdcbaf3f37ea4b31097"));
+var abi = [
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_Hash",
+				"type": "string"
+			}
+		],
+		"name": "sethashTable",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_Hash",
+				"type": "string"
+			}
+		],
+		"name": "searchHash",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "test",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
 ];
 // var address = '0x5d7dBC4003C9fb47693489a22008C5Af41ad16C4';
-var address = '0xc2a687911cb895bee7973328f6eaeafa278580a5';
+var address = '0x56dafa76a1a587b8a76c88b640416e6c80f9a2ce';
 
 
 //撈取資料(Platform_Supervisor專用，沒在用)
@@ -1890,16 +1774,25 @@ router.get('/ProductDataBySymbol', function (req, res) {
         });
 });
 
-//回傳該使用者是否可購買token
+//通過文件Hash值查詢是否記錄在公鏈上
 router.get('/eDocument', async function (req, res) {
     var Contract = await new web3.eth.Contract(abi, address);
     console.log("123");
 
-    res.status(200);
-    res.json({
-        "message": "非專案開賣時間",
-        "result": "123"
-    });
+    Contract.methods.test().call()
+    .then(function(data){
+        //獲取Hash值
+        console.log("＊＊＊:" + data)
+
+        res.status(200);
+        res.json({
+            "message": "非專案開賣時間",
+            "result": data
+        });
+    })
+    
+
+
 });
 
 
