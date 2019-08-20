@@ -12,7 +12,7 @@ const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  check
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUsersIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray } = require('./blockchain.js');
 
 const { checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime } = require('./utilities');
 
@@ -860,7 +860,7 @@ const deployCrowdfundingContract_API = async () => {
     console.log('result_checkArguments: true');
     if(isToDeploy === 1){
       const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
-      console.log(`result: ${result_deployment}`);
+      console.log(`result_deployment: ${result_deployment}`);
     } else {
       const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
       const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
@@ -900,7 +900,7 @@ const deployTokenControllerContract_API = async () => {
     //process.exit(0);
     if(isToDeploy === 1){
       const result_deployment = await deployTokenControllerContract(argsTokenController);
-    console.log(`result: ${result_deployment}`);
+    console.log(`result_deployment: ${result_deployment}`);
     } else {
       const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
       const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
@@ -917,7 +917,7 @@ const deployHCATContract_API = async () => {
   console.log('\n---------------------==deployHCATContract_API()');
   let acTimeOfDeployment_HCAT;
 
-  const isToDeploy = 2;
+  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_HCAT = getLocalTime();
   } else {
@@ -938,11 +938,11 @@ const deployHCATContract_API = async () => {
   console.log(`result_checkArguments: ${result_checkArguments}`);
 
   if(result_checkArguments){
-    console.log('result_checkArguments: true');
+    console.log('result_checkArguments is true');
     //process.exit(0);
     if(isToDeploy === 1){
       const result_deployment = await deployHCATContract(argsHCAT721);
-      console.log(`result: ${result_deployment}`);
+      console.log(`result_deployment: ${result_deployment}`);
     
     } else {
       const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
@@ -958,17 +958,34 @@ const deployHCATContract_API = async () => {
 //yarn run testmt -f 70
 const deployIncomeManagerContract_API = async () => {
   console.log('\n---------------------==deployIncomeManagerContract_API()');
-  let TimeOfDeployment_IM;
+  let acTimeOfDeployment_IM;
+  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_IM = getLocalTime();
   } else {
     acTimeOfDeployment_IM = TimeOfDeployment_IM;
   }
-  const argsIncomeManager =[addrHCAT721, addrHelium, TimeOfDeployment_IM];
-  console.log(`TimeOfDeployment_IM: ${TimeOfDeployment_IM}`);
+  const argsIncomeManager =[addrHCAT721, addrHelium, acTimeOfDeployment_IM];
+  console.log(`TimeOfDeployment_IM: ${acTimeOfDeployment_IM} \naddrHCAT721: ${addrHCAT721} \naddrHelium: ${addrHelium}`);
 
-  const result = await deployIncomeManagerContract(argsIncomeManager);
-  console.log(`result: ${result}`);
+  const result_checkArguments = await checkArgumentsIncomeManager(argsIncomeManager);
+  console.log(`result_checkArguments: ${result_checkArguments}`);
+
+  if(result_checkArguments){
+    console.log('result_checkArguments: true');
+    //process.exit(0);
+    if(isToDeploy === 1){
+      const result_deployment = await deployIncomeManagerContract(argsIncomeManager);
+      console.log(`result_deployment: ${result_deployment}`);
+
+    } else {
+      const IncomeManager_Addr = '';
+      const result = await checkDeploymentIncomeManager(IncomeManager_Addr, argsIncomeManager);
+      console.log(`result: ${result}`);
+    }
+  } else {
+    console.log(`not to deploy due to incorrect argument values`);
+  }
   process.exit(0);
 }
 
