@@ -100,9 +100,28 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 }
 
 //fundingType: PO: 1, PP: 2
+function paddingLeft(str,lenght){
+  if(str.length >= lenght)
+    return str;
+  else
+    return paddingLeft("0" +str,lenght);
+}
+
+function nowDateAddMinites(date ,min){
+  nowDate.setTime(nowDate.setMinutes(nowDate.getMinutes() + min))
+  return nowDate.getFullYear() + paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2) + paddingLeft(String(nowDate.getHours()), 2) + paddingLeft(String(nowDate.getMinutes()), 2)
+
+}
+
+//productDate = today's Date. ex: 0725 
+let nowDate = new Date()
+let productDate = paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2)
+
+const productObj0 = new productObject("TSTA" + productDate, "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 1, "", "", "", "");
+
 
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
-const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "0xF811f727da052379D8cbfBF1188E290B32ff9f99", "0x9812d0eBcd89d8491Bca80000c147f739B9Cef73", "0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A", "");
+//const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "0xF811f727da052379D8cbfBF1188E290B32ff9f99", "0x9812d0eBcd89d8491Bca80000c147f739B9Cef73", "0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A", "");
 
 const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0xaCab94A5d3650873F85E16Abadfb15AFf87fe65C", "0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9", "0xA80c0A88e38aa61190A3Ad41bd3907774D291f87", "0xCb5B388E9f4f7028547797a4C0C1844f9e04Cecd");
 
@@ -126,7 +145,7 @@ const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001
 
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 
-symNum = 1;
+symNum = 0;
 
 
 // const currentTime = await timer.getTime();
@@ -143,6 +162,7 @@ if(isTimeserverON){
   TimeTokenValid =  -1;
 
 } else {
+  
   TimeOfDeployment_CF = 201905281410;
   CFSD = TimeOfDeployment_CF+10;
   CFED = TimeOfDeployment_CF+15;
@@ -151,6 +171,15 @@ if(isTimeserverON){
   TimeOfDeployment_IM = TimeOfDeployment_CF + 22;
   TimeTokenUnlock = TimeOfDeployment_CF+30; 
   TimeTokenValid =  TimeOfDeployment_CF+90;
+  
+  /*TimeOfDeployment_CF = productDate;
+  CFSD = nowDateAddMinites(nowDate, 10);
+  CFED = nowDateAddMinites(nowDate, 15);
+  TimeOfDeployment_TokCtrl = nowDateAddMinites(nowDate, 20);
+  TimeOfDeployment_HCAT = nowDateAddMinites(nowDate, 21);
+  TimeOfDeployment_IM = nowDateAddMinites(nowDate, 22);
+  TimeTokenUnlock = nowDateAddMinites(nowDate, 30); 
+  TimeTokenValid =  nowDateAddMinites(nowDate, 90);*/
 }
 fundmanager = 'Company_FundManagerN';
 
@@ -318,7 +347,7 @@ duration: ${duration}, fundingType: ${fundingType}
 `);
 
 
-module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
+module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
   
 }
 /**
