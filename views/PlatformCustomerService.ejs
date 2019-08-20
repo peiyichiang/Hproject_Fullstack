@@ -131,51 +131,56 @@
                 <th scope="col" class="text-nowrap">身分證正面</th>
                 <th scope="col" class="text-nowrap">身分證反面</th>
                 <th scope="col" class="text-nowrap">存摺照片</th>
-                <th scope="col" class="text-nowrap">審核通過</th>
+                <th scope="col" class="text-nowrap">審核通過 </th>
             </tr>
             <tbody>
-                <% console.log(ForgetPassword_data) %>
+                <%= console.log(ForgetPassword_data) %>
                 <% for ( var i = 0 ; i < ForgetPassword_data.length ; i++){ %>
-                <tr>
-                    <td class="align-middle">
-                        <%= ForgetPassword_data[i].fp_investor_email  %>
-                    </td>
-                    <td class="align-middle">
-                        <%= ForgetPassword_data[i].fp_application_date  %>
-                    </td>
-                    <td class="align-middle">
-                        <!-- <%if (ForgetPassword_data[i].u_imagef != null && ForgetPassword_data[i].u_imagef !="") { %>
-                        <p style="width:150px;"></p>
-                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + ForgetPassword_data[i].u_imagef %>" alt="" style="width:100%;">
-                        <% } %> -->
-                    </td>
-                    <td class="align-middle">
-                        <!-- <%if (ForgetPassword_data[i].u_imageb != null && ForgetPassword_data[i].u_imageb !="") { %>
-                        <p style="width:150px;"></p>
-                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +ForgetPassword_data[i].u_imageb %>" alt="" style="width:100%;">
-                        <% } %> -->
-                    </td>
-                    <td class="align-middle">
-                        <!-- <%if (ForgetPassword_data[i].u_bankBooklet != null && ForgetPassword_data[i].u_bankBooklet !="") { %>
-                        <p style="width:150px;"></p>
-                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +ForgetPassword_data[i].u_bankBooklet %>" alt=""
-                            style="width:100%;">
-                        <% } %> -->
-                    </td>
-                    <td class="align-middle">
-                        <%if (ForgetPassword_data[i].fp_isApproved==1 ) { %>
-                        <p>
-                            approved
-                        </p>
-                        <% }else if (ForgetPassword_data[i].fp_isApproved==0){ %>
-                        <button type="button" style="width: 86px;" class="btn btn-success"
-                            name="Approve" value="Approve"
-                            onclick="SetForgetPasswordApproved('<%= ForgetPassword_data[i].fp_investor_email %>');">
-                            Approve
-                        </button>
-                        <% } %>
-                    </td>
-                </tr>
+                    <!-- 30分鐘過期後就不顯示 -->
+                    <%if ((new Date(ForgetPassword_data[i].fp_application_date_.substr(0,4)+'-'+ForgetPassword_data[i].fp_application_date_.substr(4,2) + '-' + ForgetPassword_data[i].fp_application_date_.substr(6,2) + ' ' + ForgetPassword_data[i].fp_application_date_.substr(8,2) + ':' + ForgetPassword_data[i].fp_application_date_.substr(10,2) + ':00:00').getTime()/1000 + 28800 + 1800) > Math.floor(new Date().getTime() / 1000)  ) { %>
+                        <tr>
+                            <td class="align-middle">
+                                <%= ForgetPassword_data[i].fp_investor_email  %>
+                            </td>
+                            <td class="align-middle">
+                                <!-- <%= new Date(ForgetPassword_data[i].fp_application_date_.substr(0,4)+'-'+ForgetPassword_data[i].fp_application_date_.substr(4,2) + '-' + ForgetPassword_data[i].fp_application_date_.substr(6,2) + ' ' + ForgetPassword_data[i].fp_application_date_.substr(8,2) + ':' + ForgetPassword_data[i].fp_application_date_.substr(10,2) + ':00:00').getTime()/1000 + 28800  %> -->
+                                <!-- <%= ForgetPassword_data[i].fp_application_date_.substr(0,4)+'-'+ForgetPassword_data[i].fp_application_date_.substr(4,2) + '-' + ForgetPassword_data[i].fp_application_date_.substr(6,2) + ' ' + ForgetPassword_data[i].fp_application_date_.substr(8,2) + ':' + ForgetPassword_data[i].fp_application_date_.substr(10,2) + ':00:000'  %> -->
+                                <%= ForgetPassword_data[i].fp_application_date_ %>
+                            </td>
+                            <td class="align-middle">
+                                <!-- <%if (ForgetPassword_data[i].u_imagef != null && ForgetPassword_data[i].u_imagef !="") { %>
+                                <p style="width:150px;"></p>
+                                <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + ForgetPassword_data[i].u_imagef %>" alt="" style="width:100%;">
+                                <% } %> -->
+                            </td>
+                            <td class="align-middle">
+                                <!-- <%if (ForgetPassword_data[i].u_imageb != null && ForgetPassword_data[i].u_imageb !="") { %>
+                                <p style="width:150px;"></p>
+                                <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +ForgetPassword_data[i].u_imageb %>" alt="" style="width:100%;">
+                                <% } %> -->
+                            </td>
+                            <td class="align-middle">
+                                <!-- <%if (ForgetPassword_data[i].u_bankBooklet != null && ForgetPassword_data[i].u_bankBooklet !="") { %>
+                                <p style="width:150px;"></p>
+                                <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +ForgetPassword_data[i].u_bankBooklet %>" alt=""
+                                    style="width:100%;">
+                                <% } %> -->
+                            </td>
+                            <td class="align-middle">
+                                <%if (ForgetPassword_data[i].fp_isApproved==1 ) { %>
+                                <p>
+                                    approved
+                                </p>
+                                <% }else if (ForgetPassword_data[i].fp_isApproved==0){ %>
+                                <button type="button" style="width: 86px;" class="btn btn-success"
+                                    name="Approve" value="Approve"
+                                    onclick="SetForgetPasswordApproved('<%= ForgetPassword_data[i].fp_investor_email %>','<%= ForgetPassword_data[i].fp_application_date_ %>');">
+                                    Approve
+                                </button>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% } %>
                 <% } %>
             </tbody>
         </table>
@@ -184,6 +189,7 @@
     <form style="display:none;" id="ForgetPasswordData" name="ForgetPasswordData" action="/BackendUser/SetForgetPasswordApproved" method="post" accept-charset="utf-8" >
         <div>
             <input type="hidden" name="ForgetPasswordEmail" id="ForgetPasswordEmail" />
+            <input type="hidden" name="ForgetPasswordApplicationTime" id="ForgetPasswordApplicationTime" />
         </div>
     </form>
     <!-- <scrip src="/js/SignOut.js"></script> -->
@@ -246,7 +252,7 @@
         }
 
         // 設定 忘記密碼審核 通過
-        function SetForgetPasswordApproved(email_){
+        function SetForgetPasswordApproved(email_,applicationTime_){
             // alert(email_);
             // $.post("http://localhost:3030/BackendUser/SetForgetPasswordApproved", {
             //     email: "123"
@@ -255,6 +261,7 @@
             //     // console.log(result);
             // });
             document.getElementById("ForgetPasswordEmail").value=email_;
+            document.getElementById("ForgetPasswordApplicationTime").value=applicationTime_;
             document.getElementById("ForgetPasswordData").submit();
         }
 

@@ -544,13 +544,13 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     
     if(JWT_decoded!==undefined){
-        mysqlPoolQuery('SELECT fp_investor_email,fp_application_date,fp_imagef,fp_imageb,fp_bankAccountimage,fp_isApproved FROM forget_pw', function (err, rows) {
+        mysqlPoolQuery('SELECT * FROM htoken.forget_pw AS FPTable INNER JOIN (SELECT fp_investor_email,  MAX(fp_application_date) AS fp_application_date_ FROM htoken.forget_pw group by fp_investor_email) AS SubqueryResult ON FPTable.fp_investor_email = SubqueryResult.fp_investor_email AND FPTable.fp_application_date = SubqueryResult.fp_application_date_', function (err, rows) {
             if (err) {
                 console.log(err);
             }
             //data=前端使用者申請忘記密碼的資料
             var data = rows;
-            console.log("***：" + JSON.stringify(data));
+            // console.log("***：" + JSON.stringify(data));
             mysqlPoolQuery('SELECT * FROM user', function (err, rows) {
                 if (err) {
                     console.log(err);
@@ -598,9 +598,10 @@ router.post('/SetForgetPasswordApproved', function (req, res, next) {
         return;
     }
     
-
     var email = req.body.ForgetPasswordEmail;
-    console.log(email);
+    var applicationTime = req.body.ForgetPasswordApplicationTime;
+    console.log("#:" + email);
+    console.log("#:" + applicationTime);
 
     var sql = {
         fp_isApproved: 1,
@@ -608,16 +609,39 @@ router.post('/SetForgetPasswordApproved', function (req, res, next) {
 
     var mysqlPoolQuery = req.pool;
     if(JWT_decoded!==undefined){
-        var qur = mysqlPoolQuery('UPDATE forget_pw SET ? WHERE fp_investor_email = ?', [sql, email], function (err, rows) {
+        // 設置forget_pw的fp_isApproved = 將忘記密碼審核設置通過
+        var qur = mysqlPoolQuery('UPDATE forget_pw SET ? WHERE fp_investor_email = ? AND fp_application_date = ?', [sql, email,applicationTime], function (err, rows) {
             if (err) {
                 console.log(err);
                 // res.render('error', { message: '更改密碼失敗：' + err, error: '' });
                 res.redirect('/BackendUser/BackendUser_CustomerService');
             } else {
-                // res.setHeader('Content-Type', 'application/json');
-                // res.redirect('/BackendUser/backend_user');
-                // res.render('error', { message: '更改密碼成功', error: '' });
-                res.redirect('/BackendUser/BackendUser_CustomerService');
+                // 撈forget password的salt跟password hash
+                var qur = mysqlPoolQuery('SELECT fp_salt,fp_password_hash FROM htoken.forget_pw WHERE fp_investor_email = ? AND fp_application_date = ?', [email,applicationTime], function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log("＊＊＊:" + rows[0].fp_salt);
+                        console.log("＊＊＊:" + rows[0].fp_password_hash);
+                        var sql = {
+                            u_salt: rows[0].fp_salt,
+                            u_password_hash: rows[0].fp_password_hash,
+                        };
+                        // 修改htoken.user的salt跟hash
+                        var qur = mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, email], function (err, rows) {
+                            if (err) {
+                                console.log(err);
+                                // res.render('error', { message: '更改密碼失敗：' + err, error: '' });
+                                res.redirect('/BackendUser/BackendUser_CustomerService');
+                            } else {
+                                // res.render('error', { message: '更改密碼成功', error: '' });
+                                res.redirect('/BackendUser/BackendUser_CustomerService');
+
+                            }
+                        });
+                        
+                    }
+                });
             }
         });
     }
