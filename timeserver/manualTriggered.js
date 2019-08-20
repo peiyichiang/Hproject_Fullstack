@@ -1,9 +1,10 @@
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+const Web3 = require('web3');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, 
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
    } = require('../ethereum/contracts/zTestParameters');
 
 const { isTimeserverON } = require('./envVariables');
@@ -1213,6 +1214,214 @@ const getTokenContractDetails_API = async() => {
 
 
 //-----------------------------==
+//yarn run testmt -f 100
+const intergrationTestOfProduct = async() => {
+  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid
+  const _deployCrowdfundingContract_API = async () => {
+    console.log('\n---------------------==deployCrowdfundingContract_API()');
+    let acCFSD, acCFED, acTimeOfDeployment_CF;
+    const isToDeploy = 1;
+    if(timeChoice === 1){
+      acTimeOfDeployment_CF = getLocalTime();
+      acCFSD = acTimeOfDeployment_CF+1;
+      acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
+    } else {
+      acTimeOfDeployment_CF = TimeOfDeployment_CF;
+      acCFSD = CFSD;
+      acCFED = CFED;
+    }
+    
+    console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacTimeOfDeployment_CF: ${acTimeOfDeployment_CF}, acCFSD: ${acCFSD}, acCFED: ${acCFED}`);
+    const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium];
+  
+    const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
+    console.log(`result_checkArguments: ${result_checkArguments}`);
+  
+    if(result_checkArguments){
+      console.log('result_checkArguments: true');
+      if(isToDeploy === 1){
+        const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
+        console.log(`result_deployment: ${result_deployment}`);
+        crowdFundingAddr = result_deployment.crowdFundingAddr
+
+      } else {
+        const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
+        const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
+        console.log(`result: ${result}`);
+
+      }
+    } else {
+      console.log(`not to deploy due to incorrect argument values`);
+    }
+  }
+
+  const _deployTokenControllerContract_API = async () => {
+    console.log('\n---------------------==deployTokenControllerContract_API()');
+    let TimeOfDeployment_TokCtrl;
+  
+    const isToDeploy = 1;
+    if(timeChoice === 1){
+      acTimeOfDeployment_TokCtrl = getLocalTime();
+      acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
+      acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
+    } else {
+      acTimeTokenUnlock = TimeTokenUnlock;
+      acTimeTokenValid = TimeTokenValid;
+      acTimeOfDeployment_TokCtrl = TimeOfDeployment_TokCtrl;
+    }
+    const argsTokenController = [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock,acTimeTokenValid, addrHelium ];
+    console.log(`acTimeOfDeployment_TokCtrl: ${acTimeOfDeployment_TokCtrl}, acTimeTokenUnlock: ${acTimeTokenUnlock}, acTimeTokenValid: ${acTimeTokenValid}`);
+  
+    const result_checkArguments = await checkArgumentsTCC(argsTokenController);
+    console.log(`result_checkArguments: ${result_checkArguments}`);
+  
+    if(result_checkArguments){
+      console.log('result_checkArguments: true');
+      //process.exit(0);
+      if(isToDeploy === 1){
+        const result_deployment = await deployTokenControllerContract(argsTokenController);
+      console.log(`result_deployment: ${result_deployment.tokenControllerAddr}`);
+      tokenControllerAddr = result_deployment.tokenControllerAddr
+      } else {
+        const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
+        const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
+        console.log(`result: ${result}`);
+      }
+    } else {
+      console.log(`not to deploy due to incorrect argument values`);
+    }
+  }
+
+  const _deployHCATContract_API = async () => {
+    console.log('\n---------------------==deployHCATContract_API()');
+    let acTimeOfDeployment_HCAT;
+  
+    const isToDeploy = 1;
+    if(timeChoice === 1){
+      acTimeOfDeployment_HCAT = getLocalTime();
+    } else {
+      acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
+    }
+    const nftName_bytes32 = await fromAsciiToBytes32(nftName);
+    const nftSymbol_bytes32 = await fromAsciiToBytes32(nftSymbol);
+    const pricingCurrency_bytes32 = await fromAsciiToBytes32(pricingCurrency);
+    const tokenURI_bytes32 = await fromAsciiToBytes32(tokenURI);
+    
+    const argsHCAT721 = [
+    nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
+    initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
+    addrRegistry, tokenControllerAddr, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
+    console.log(`nftName: ${nftName}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply} \ninitialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}, tokenURI: ${tokenURI}`);
+  
+    const result_checkArguments = await checkArgumentsHCAT(argsHCAT721);
+    console.log(`result_checkArguments: ${result_checkArguments}`);
+  
+    if(result_checkArguments){
+      console.log('result_checkArguments is true');
+      //process.exit(0);
+      if(isToDeploy === 1){
+        const result_deployment = await deployHCATContract(argsHCAT721);
+        console.log(`result_deployment: ${result_deployment.HCAT_Addr}`);
+        hcatAddr = result_deployment.HCAT_Addr
+      
+      } else {
+        const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
+        const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
+        console.log(`result: ${result}`);
+      }
+    } else {
+      console.log(`not to deploy due to incorrect argument values`);
+    }
+  }
+  const _deployIncomeManagerContract_API = async () => {
+    console.log('\n---------------------==deployIncomeManagerContract_API()');
+    let acTimeOfDeployment_IM;
+    const isToDeploy = 1;
+    if(timeChoice === 1){
+      acTimeOfDeployment_IM = getLocalTime();
+    } else {
+      acTimeOfDeployment_IM = TimeOfDeployment_IM;
+    }
+    const argsIncomeManager =[hcatAddr, addrHelium, acTimeOfDeployment_IM];
+    console.log(`TimeOfDeployment_IM: ${acTimeOfDeployment_IM} \naddrHCAT721: ${hcatAddr} \naddrHelium: ${addrHelium}`);
+  
+    const result_checkArguments = await checkArgumentsIncomeManager(argsIncomeManager);
+    console.log(`result_checkArguments: ${result_checkArguments}`);
+  
+    if(result_checkArguments){
+      console.log('result_checkArguments: true');
+      //process.exit(0);
+      if(isToDeploy === 1){
+        const result_deployment = await deployIncomeManagerContract(argsIncomeManager);
+        console.log(`result_deployment: ${result_deployment}`);
+        incomeManagerAddr = result_deployment
+      } else {
+        const IncomeManager_Addr = '';
+        const result = await checkDeploymentIncomeManager(IncomeManager_Addr, argsIncomeManager);
+        console.log(`result: ${result}`);
+      }
+    } else {
+      console.log(`not to deploy due to incorrect argument values`);
+    }
+  }
+  const _addProduct = async() => {
+    console.log('\n-------------==inside addProductRow section');
+    const state = 'FundingClosed';
+    let TimeReleaseDate;
+    if(isTimeserverON){
+      TimeReleaseDate = getTime();
+    } else {
+      TimeReleaseDate = TimeOfDeployment_HCAT;
+    }
+    console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
+    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
+      console.log('\n[Error @ addProductRow()]'+ err);
+    });
+  }  
+
+  const _addCtrt = async() => {
+    console.log('\n-------------==inside addSmartContractRowAPI');
+    console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${crowdFundingAddr}, addrHCAT721: ${hcatAddr}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${incomeManagerAddr}, addrTokenController: ${tokenControllerAddr}`);
+  
+    await addSmartContractRow(nftSymbol, crowdFundingAddr, hcatAddr, maxTotalSupply, incomeManagerAddr, tokenControllerAddr).catch((err) => {
+      console.log('\n[Error @ addSmartContractRow()]'+ err);
+    });
+  } 
+
+  const _deployProductManager = async() => {
+    console.log('\n--------------==inside deployProductManagerContract_API()');
+    const addrHCATContract = hcatAddr;
+    const addrHeliumContract = addrHelium;
+    const addrProductManager = await deployProductManagerContract(addrHCATContract, addrHeliumContract);
+    console.log('\nreturned addrProductManager:', addrProductManager);
+    productManagerAddr = addrProductManager
+  }
+  const _addIncomeArrangement = async() => {
+    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    
+    const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
+    console.log('-----------------== add Income Arrangement rows from objects...');
+    const result = await addIncomeArrangementRowsIntoDB(incomeArrangementArray).catch((err) => {
+      console.log('\n[Error @ addIncomeArrangementRowsIntoDB()]'+ err);
+    });
+    console.log('result', result);
+
+  }
+
+  await _deployCrowdfundingContract_API()
+  await _deployTokenControllerContract_API()
+  await _deployHCATContract_API()
+  await _deployIncomeManagerContract_API()
+  await _addProduct()
+  await _addCtrt()
+  await _deployProductManager()
+  await _addIncomeArrangement()
+}
 //yarn run testmt -f 95
 const checkAssetbookArray_API = async() => {
   console.log('\n---------------------==checkAssetbookArray_API()');
@@ -1340,7 +1549,29 @@ const deleteAssetRecordRows_API = async () => {
   console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
   process.exit(0);
 }
-
+function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, assetRecordStatus, ia_state, singleCalibrationActualIncome) {
+  this.symbol = symbol;
+  this.ia_time = ia_time;
+  this.actualPaymentTime = actualPaymentTime;
+  this.payablePeriodEnd = payablePeriodEnd;
+  this.annualEnd = annualEnd;
+  this.wholecasePrincipalCalledBack = wholecasePrincipalCalledBack;
+  this.wholecaseBookValue = wholecaseBookValue;
+  this.wholecaseForecastedAnnualIncome = wholecaseForecastedAnnualIncome;
+  this.wholecaseForecastedPayableIncome = wholecaseForecastedPayableIncome;
+  this.wholecaseAccumulatedIncome = wholecaseAccumulatedIncome;
+  this.wholecaseIncomeReceivable = wholecaseIncomeReceivable;
+  this.wholecaseTheoryValue = wholecaseTheoryValue;
+  this.singlePrincipalCalledBack = singlePrincipalCalledBack;
+  this.singleForecastedAnnualIncome = singleForecastedAnnualIncome;
+  this.singleForecastedPayableIncome = singleForecastedPayableIncome;
+  this.singleActualIncomePayment = singleActualIncomePayment;
+  this.singleAccumulatedIncomePaid = singleAccumulatedIncomePaid;
+  this.singleTokenMarketPrice = singleTokenMarketPrice;
+  this.assetRecordStatus = assetRecordStatus;
+  this.ia_state = ia_state;
+  this.singleCalibrationActualIncome = singleCalibrationActualIncome;
+}
 
 //------------------------==
 // yarn run testmt -f 0
@@ -1603,7 +1834,10 @@ if(func === 0){
   getTokenContractDetails_API();
 
 //yarn run testmt -f 81
-} else if (func === 81) {
+} else if (func === 73) {
+  intergrationTestOfProduct()
+
+}else if (func === 81) {
   getPastScheduleTimes_API();
 
 
@@ -1627,8 +1861,10 @@ if(func === 0){
 } else if (func === 95) {
   checkAssetbookArray_API();
 
-
 //yarn run testmt -f 103
+}else if(func === 100){
+  intergrationTestOfProduct();
+
 } else if (func === 103) {
   findSymbolFromCtrtAddr_API();
 

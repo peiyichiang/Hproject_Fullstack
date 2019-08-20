@@ -13,7 +13,7 @@ const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON} = require('
 
 const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
 
-const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager,  ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
+const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
 const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
 
@@ -188,7 +188,7 @@ const deployProductManagerContract = async(addrHeliumContract) => {
 
     console.log('\n----------------== deployProductManagerContract()');
     const argsProductManager =[addrHeliumContract];
-
+    console.log(argsProductManager)
     instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
     .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
     .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
@@ -355,7 +355,7 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
      console.log(`\nconst addrCrowdFunding= ${crowdFundingAddr}`);
      const checkResult = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
      console.log('checkResult:', checkResult);
-     resolve(checkResult);
+     resolve({checkResult, crowdFundingAddr});
   })
 }
 
@@ -556,7 +556,7 @@ const deployTokenControllerContract = async(argsTokenController) => {
 
     const checkResult = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
     console.log('checkResult:', checkResult);
-    resolve(checkResult);
+    resolve({checkResult, tokenControllerAddr});
   });
 }
 
@@ -744,7 +744,7 @@ const deployHCATContract = async(argsHCAT721) => {
 
     const checkResult = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
     console.log('checkResult:', checkResult);
-    resolve(checkResult);
+    resolve({checkResult, HCAT_Addr});
   });
 }
 
@@ -955,7 +955,7 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
       resolve(false);
     } else {
       console.log('[Success] all checks have passed');
-      resolve(true);
+      resolve(IncomeManager_Addr);
     }
   });
 }
