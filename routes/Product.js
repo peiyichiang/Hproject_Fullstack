@@ -424,7 +424,8 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
-        p_isNewCase: req.body.p_isNewCase
+        p_isNewCase: req.body.p_isNewCase,
+        p_assetdocsHash:req.body.p_assetdocsHash
     };
 
     console.log(sql);
@@ -646,7 +647,8 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
-        p_isNewCase: req.body.p_isNewCase
+        p_isNewCase: req.body.p_isNewCase,
+        p_assetdocsHash:req.body.p_assetdocsHash
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
