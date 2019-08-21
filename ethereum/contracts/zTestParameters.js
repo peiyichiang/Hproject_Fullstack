@@ -1,4 +1,4 @@
-const {isTimeserverON, admin, adminpkRaw } = require('../../timeserver/envVariables');
+const { symbolNumber, isTimeserverON, admin, adminpkRaw } = require('../../timeserver/envVariables');
 const { sLog } = require('../../timeserver/utilities');
 
 sLog(`\n------------------==zTestParameters.js`);
@@ -40,7 +40,7 @@ addrAssetBook10 = "0xBF0b705c7d3051aC75F21350842f15D3C21b72Da";
 
 //let addrIncomeManager, addrProductManager;
 
-let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, symNum, fundmanager;
+let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager;
 
 
 const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10];
@@ -146,8 +146,6 @@ const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001
 
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 
-symNum = 0;
-
 
 // const currentTime = await timer.getTime();
 // console.log('currentTime', currentTime);
@@ -203,9 +201,9 @@ productObjArray.forEach( (obj) => {
   crowdFundingAddrArray.push(obj.addrCrowdFunding);
   tokenControllerAddrArray.push(obj.addrTokenController)
 });
-sLog(`const symbolArray = ${symbolArray}; \nconst crowdFundingAddrArray = ${crowdFundingAddrArray}; \nconst tokenControllerAddrArray = ${ tokenControllerAddrArray}\nsymNum: ${symNum}`);
+sLog(`const symbolArray = ${symbolArray}; \nconst crowdFundingAddrArray = ${crowdFundingAddrArray}; \nconst tokenControllerAddrArray = ${ tokenControllerAddrArray}\nsymbolNumber: ${symbolNumber}`);
 
-const productObjN = productObjArray[symNum];
+const productObjN = productObjArray[symbolNumber];
 nftName = productObjN.nftName;
 nftSymbol = productObjN.nftSymbol;
 maxTotalSupply = productObjN.maxTotalSupply;
@@ -334,7 +332,7 @@ const TimeTokenUnlock = ${TimeTokenUnlock};
 const TimeTokenValid =  ${TimeTokenValid};
 const fundmanager = '${fundmanager}';
 
-symNum: ${symNum}
+symbolNumber: ${symbolNumber}
 nftSymbol: ${nftSymbol}, nftName: ${nftName}
 maxTotalSupply: ${maxTotalSupply}, quantityGoal: ${quantityGoal}
 siteSizeInKW: ${siteSizeInKW}, tokenURI: ${tokenURI}
@@ -348,7 +346,7 @@ duration: ${duration}, fundingType: ${fundingType}
 `);
 
 
-module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
+module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
   
 }
 /**

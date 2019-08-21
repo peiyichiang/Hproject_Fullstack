@@ -1,19 +1,18 @@
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
-const Web3 = require('web3');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
    } = require('../ethereum/contracts/zTestParameters');
 
-const { isTimeserverON } = require('./envVariables');
+const { symbolNumber, isTimeserverON } = require('./envVariables');
 
-const { AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, checkCompliance } = require('../ethereum/contracts/zsetupData');
+const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRowsIntoDB, findCtrtAddr  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, findCtrtAddr, findAllSmartContractAddrs  } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol } = require('./blockchain.js');
 
 const { getTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime } = require('./utilities');
 
@@ -423,8 +422,8 @@ const deployHeliumContract_API = async() => {
   console.log('\n--------------==inside deployHeliumContract_API()');
   const eoa0 = admin; const eoa1 = AssetOwner1; const eoa2 = AssetOwner2;
   const eoa3 = AssetOwner3; const eoa4 = AssetOwner4;
-  const addrHeliumContract = await deployHeliumContract(eoa0, eoa1, eoa2, eoa3, eoa4);
-  console.log('\nreturned addrHeliumContract:', addrHeliumContract);
+  const {isGood, addrHeliumContract} = await deployHeliumContract(eoa0, eoa1, eoa2, eoa3, eoa4);
+  console.log(`\nreturned isGood: ${isGood}, addrHeliumContract: ${addrHeliumContract}`);
   process.exit(0);
 };
 
@@ -432,8 +431,8 @@ const deployHeliumContract_API = async() => {
 const deployRegistryContract_API = async() => {
   console.log('\n--------------==inside deployRegistryContract_API()');
   const addrHeliumContract = addrHelium;
-  const addrRegistryCtrt = await deployRegistryContract(addrHeliumContract);
-  console.log('\nreturned addrRegistryCtrt:', addrRegistryCtrt);
+  const {isGood, addrRegistryCtrt} = await deployRegistryContract(addrHeliumContract);
+  console.log(`\nreturned isGood: ${isGood}, addrRegistryCtrt: ${addrRegistryCtrt}`);
   process.exit(0);
 };
 
@@ -454,14 +453,14 @@ const deployAssetbookContracts_API = async() => {
     }
     eoaArray = [assetownerOne];
   }
-  const addrAssetBookArray = await deployAssetbooks(eoaArray,addrHeliumContract);
+  const {isGood, addrAssetBookArray} = await deployAssetbooks(eoaArray,addrHeliumContract);
 
-  console.log('\nreturned addrAssetBookArray:');
+  console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
   addrAssetBookArray.forEach((item, idx) => {
     console.log(`addrAssetBook${idx} = "${item}";`);
   });
-  const isBad = addrAssetBookArray.includes(undefined);
-  console.log('isGood:', !isBad);
+  const isAllGood = !(addrAssetBookArray.includes(undefined));
+  console.log('isAllGood:', isAllGood);
   process.exit(0);
 };
 
@@ -932,8 +931,10 @@ const deployCrowdfundingContract_API = async () => {
   if(result_checkArguments){
     console.log('result_checkArguments: true');
     if(isToDeploy === 1){
-      const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
-      console.log(`result_deployment: ${result_deployment}`);
+      const {isGood, crowdFundingAddr} = await deployCrowdfundingContract(argsCrowdFunding).catch((err) => {
+        console.log('\n[Error]'+ err);
+      });
+      console.log(`result_deployment: isGood: ${isGood}, crowdFundingAddr: ${crowdFundingAddr}`);
     } else {
       const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
       const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
@@ -972,8 +973,10 @@ const deployTokenControllerContract_API = async () => {
     console.log('result_checkArguments: true');
     //process.exit(0);
     if(isToDeploy === 1){
-      const result_deployment = await deployTokenControllerContract(argsTokenController);
-    console.log(`result_deployment: ${result_deployment}`);
+      const {isGood, tokenControllerAddr} = await deployTokenControllerContract(argsTokenController).catch((err) => {
+        console.log('\n[Error]'+ err);
+      });
+      console.log(`result_deployment: isGood: ${isGood}, tokenControllerAddr: ${tokenControllerAddr}`);
     } else {
       const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
       const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
@@ -1014,8 +1017,8 @@ const deployHCATContract_API = async () => {
     console.log('result_checkArguments is true');
     //process.exit(0);
     if(isToDeploy === 1){
-      const result_deployment = await deployHCATContract(argsHCAT721);
-      console.log(`result_deployment: ${result_deployment}`);
+      const {isGood, HCAT_Addr} = await deployHCATContract(argsHCAT721).catch((err) => { console.log('\n[Error]'+ err); });
+      console.log(`result_deployment: isGood: ${isGood}, HCAT_Addr: ${HCAT_Addr}`);
     
     } else {
       const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
@@ -1048,8 +1051,10 @@ const deployIncomeManagerContract_API = async () => {
     console.log('result_checkArguments: true');
     //process.exit(0);
     if(isToDeploy === 1){
-      const result_deployment = await deployIncomeManagerContract(argsIncomeManager);
-      console.log(`result_deployment: ${result_deployment}`);
+      const {isGood, IncomeManager_Addr} = await deployIncomeManagerContract(argsIncomeManager).catch((err) => {
+        console.log('\n[Error]'+ err);
+      });
+      console.log(`result_deployment: ${isGood}, IncomeManager_Addr: ${IncomeManager_Addr}`);
 
     } else {
       const IncomeManager_Addr = '';
@@ -1067,35 +1072,35 @@ const deployProductManagerContract_API = async() => {
   console.log('\n--------------==inside deployProductManagerContract_API()');
   const addrHCATContract = addrHCAT721;
   const addrHeliumContract = addrHelium;
-  const addrProductManager = await deployProductManagerContract(addrHeliumContract);
-  console.log('\nreturned addrProductManager:', addrProductManager);
+  const {isGood, addrProductManager} = await deployProductManagerContract(addrHeliumContract).catch((err) => {
+    console.log('\n[Error]'+ err);
+  });
+  console.log(`result_deployment: ${isGood}, addrProductManager: ${addrProductManager}`);
   process.exit(0);
 };
 
 //yarn run testmt -f 73
-const addProduct_API = async() => {
-  console.log('\n-------------==inside addProduct_API()');
-  const fundingState = 'initial';
-  let TimeReleaseDate;
-  if(isTimeserverON){
-    TimeReleaseDate = await getTime();
-  } else {
-    TimeReleaseDate = TimeOfDeployment_HCAT;
-  }
-  console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
+const addProductRowFromSymbol_API = async() => {
+  console.log('\n-------------==inside addProductRowFromSymbol_API()');
+  const tokenSymbol = 'AVEN1902';//nftSymbol
+  const tokenName   = 'Venus1902';//nftName
+  const fundingType = '1';//fundingType
+  const pricingCurrency = 'NTD';//pricingCurrency
+  const fundmanagerIn = 'Company_FundManagerN';
+  const TimeReleaseDateIn = 201908211022;// 201909141234 < x < 201908191835
 
-  const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(addrCrowdFunding);
-  console.log(`--------------==\nreturned values: initialAssetPricingM: ${initialAssetPricingM}, maxTotalSupplyM: ${maxTotalSupplyM}, quantityGoalM: ${quantityGoalM}, CFSDM: ${CFSDM}, CFEDM: ${CFEDM}, stateDescriptionM: ${stateDescriptionM}, fundingStateM: ${fundingStateM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
-
-  const [pricingCurrencyM, IRR20yrx100M, siteSizeInKWM, maxTotalSupplyMH] = await getTokenContractDetails(addrHCAT721);
-  const [TimeTokenValidM, TimeTokenUnlockM] = await xyz;
-
-  console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, location: ${location}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, fundingState: ${fundingState}`);
-
+  const result = await addProductRowFromSymbol(tokenSymbol, tokenName, location, duration, fundingType, pricingCurrency, fundmanagerIn, TimeReleaseDateIn);
+  console.log('------------------==\nresult:', result);
   process.exit(0);
-  await addProductRow(nftSymbol, nftName, location, initialAssetPricingM, duration, pricingCurrencyM, IRR20yrx100M, TimeReleaseDate, TimeTokenValidM, siteSizeInKWM, maxTotalSupplyMH, fundmanager, CFSDM, CFEDM, quantityGoalM, TimeTokenUnlockM, fundingType, fundingStateM).catch((err) => {
-    console.log('\n[Error @ addProductRow()]'+ err);
-  });
+}
+
+//yarn run testmt -f 80
+const findAllSmartContractAddrs_API = async() => {
+  console.log('\n-------------==inside findAllSmartContractAddrs_API()');
+  const tokenSymbol = 'AVEN1902';
+  const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await findAllSmartContractAddrs(tokenSymbol);
+  console.log(`crowdFundingAddr: ${crowdFundingAddr}, tokenControllerAddr: ${tokenControllerAddr}, hcatAddr: ${hcatAddr}, incomeManagerAddr: ${incomeManagerAddr}`);
+
   process.exit(0);
 }
 
@@ -1104,19 +1109,25 @@ const addSmartContractRow_API = async() => {
   console.log('\n-------------==inside addSmartContractRowAPI');
   console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${addrCrowdFunding}, addrHCAT721: ${addrHCAT721}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${addrIncomeManager}, addrTokenController: ${addrTokenController}`);
 
-  await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController).catch((err) => {
+  const isGood = await addSmartContractRow(nftSymbol, addrCrowdFunding, addrHCAT721, maxTotalSupply, addrIncomeManager, addrTokenController).catch((err) => {
     console.log('\n[Error @ addSmartContractRow()]'+ err);
   });
+  console.log(`addSmartContractRow() result: isGood ${isGood}`);
   process.exit(0);
 }
 
 //yarn run testmt -f 74
-const addIncomeArrangementRowIntoDB_API = async() => {
+const addIncomeArrangementRows_API = async() => {
   const iaArray = incomeArrangementArray;
-  const result = await addIncomeArrangementRowsIntoDB(iaArray).catch((err) => {
-    console.log('\n[Error @ addIncomeArrangementRowsIntoDB()]'+ err);
+  const resultArray = await addIncomeArrangementRows(iaArray).catch((err) => {
+    console.log('\n[Error @ addIncomeArrangementRows()]'+ err);
   });
-  console.log('result:', result);
+  console.log('resultArray:', resultArray);
+  if(resultArray.includes(false)){
+    console.log(`\n[Error] Some/All addIncomeArrangementRows() failed`);
+  } else {
+    console.log(`\n[Success] All addIncomeArrangementRows() have succeeded`);
+  }
   process.exit(0);
 }
 
@@ -1213,7 +1224,7 @@ const getTokenContractDetails_API = async() => {
 }
 
 
-//-----------------------------==
+//------------------------------==
 //yarn run testmt -f 100
 const intergrationTestOfProduct = async() => {
   let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid
@@ -1374,7 +1385,7 @@ const intergrationTestOfProduct = async() => {
       TimeReleaseDate = TimeOfDeployment_HCAT;
     }
     console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
-    console.log(`\nsymNum: ${symNum}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
+    console.log(`\nsymbolNumber: ${symbolNumber}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
     await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
       console.log('\n[Error @ addProductRow()]'+ err);
     });
@@ -1406,8 +1417,8 @@ const intergrationTestOfProduct = async() => {
     
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
-    const result = await addIncomeArrangementRowsIntoDB(incomeArrangementArray).catch((err) => {
-      console.log('\n[Error @ addIncomeArrangementRowsIntoDB()]'+ err);
+    const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
+      console.log('\n[Error @ addIncomeArrangementRows()]'+ err);
     });
     console.log('result', result);
 
@@ -1422,6 +1433,9 @@ const intergrationTestOfProduct = async() => {
   await _deployProductManager()
   await _addIncomeArrangement()
 }
+
+
+//------------------------------==
 //yarn run testmt -f 95
 const checkAssetbookArray_API = async() => {
   console.log('\n---------------------==checkAssetbookArray_API()');
@@ -1807,11 +1821,11 @@ if(func === 0){
 
 //yarn run testmt -f 73
 } else if (func === 73) {
-  addProduct_API();
+  addProductRowFromSymbol_API();
 
 //yarn run testmt -f 74
 } else if (func === 74) {
-  addIncomeArrangementRowIntoDB_API();
+  addIncomeArrangementRows_API();
 
 //yarn run testmt -f 75
 } else if (func === 75) {
@@ -1832,6 +1846,10 @@ if(func === 0){
 //yarn run testmt -f 79
 } else if (func === 79) {
   getTokenContractDetails_API();
+
+//yarn run testmt -f 80
+} else if (func === 80) {
+  findAllSmartContractAddrs_API();
 
 //yarn run testmt -f 81
 } else if (func === 73) {

@@ -9,13 +9,13 @@ console.log('loading blockchain.js...');
 
 const { getTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 
-const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON} = require('./envVariables');
+const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON, operationMode} = require('./envVariables');
 
 const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
 
 const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
-const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB } = require('./mysql.js');
+const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB,findAllSmartContractAddrs } = require('./mysql.js');
 
 const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 const timeIntervalOfNewBlocks = 13000;
@@ -131,17 +131,18 @@ const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
       console.log('receipt:', receipt);
     })
     .on('error', function (error) {
-        console.log('error:', error.toString());
+        reject('error:', error.toString());
     });
 
     console.log('Helium.sol has been deployed');
     if (instHelium === undefined) {
-      console.log('[Error] instHelium is NOT defined');
-      } else {console.log('[Good] instHelium is defined');}
+      reject('[Error] instHelium is NOT defined');
+    } else {console.log('[Good] instHelium is defined');}
     instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     const addrHeliumContract = instHelium.options.address;
     console.log(`const addrHelium = ${addrHeliumContract}`);
-    resolve(addrHeliumContract);
+    const isGood = true;
+    resolve({isGood, addrHeliumContract});
   });
 }
 
@@ -164,49 +165,19 @@ const deployRegistryContract = async(addrHeliumContract) => {
     })
     .on('error', function (error) {
         console.log('error:', error.toString());
-        reject(error);
+        reject(error.toString());
     });
 
     console.log('Registry.sol has been deployed');
     if (instRegistry === undefined) {
-      console.log('[Error] instRegistry is NOT defined');
-      } else {console.log('[Good] instRegistry is defined');}
+      reject('[Error] instRegistry is NOT defined');
+    } else {console.log('[Good] instRegistry is defined');}
+
     instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     const addrRegistryCtrt = instRegistry.options.address;
     console.log(`const addrRegistryCtrt = ${addrRegistryCtrt}`);
-    resolve(addrRegistryCtrt);
-  });
-}
-
-const deployProductManagerContract = async(addrHeliumContract) => {
-  return new Promise(async (resolve, reject) => {
-    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
-    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
-    const web3deploy = new Web3(provider);
-    console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
-
-    console.log('\n----------------== deployProductManagerContract()');
-    const argsProductManager =[addrHeliumContract];
-    console.log(argsProductManager)
-    instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
-    .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
-
-    console.log('ProductManager.sol has been deployed');
-    if (instProductManager === undefined) {
-      console.log('[Error] instProductManager is NOT defined');
-      } else {console.log('[Good] instProductManager is defined');}
-    instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    const addrProductManager = instProductManager.options.address
-    console.log(`\nconst addrProductManager = ${addrProductManager}`);
-    resolve(addrProductManager);
+    const isGood = true;
+    resolve({isGood, addrRegistryCtrt});
   });
 }
 
@@ -300,21 +271,28 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
       })
       .on('error', function (error) {
           console.log('error:', error.toString());
+          //addrAssetBookArray.push(error.toString());
+          //reject(error.toString());
         });
       if (instAssetBookN === undefined) {
-        console.log(`\n[Error] instAssetBook${idx} is NOT defined`);
-      } else {console.log(`[Good] instAssetBook${idx} is defined`);}
-    
-      console.log(`AssetBook${idx} has been deployed`);
-      console.log(`addrAssetBook${idx}: ${instAssetBookN.options.address}`);
-      addrAssetBookArray.push(instAssetBookN.options.address);
-      console.log(`Finished deploying AssetBook${idx}...`);
+        const mesg = `[Error] instAssetBook${idx} is NOT defined`;
+        addrAssetBookArray.push(mesg);
+        //reject(mesg);
+      } else {
+        console.log(`[Good] instAssetBook${idx} is defined`);
+        console.log(`AssetBook${idx} has been deployed`);
+        const addrAssetBook = instAssetBookN.options.address;
+        console.log(`addrAssetBook${idx}: ${addrAssetBook}`);
+        addrAssetBookArray.push(addrAssetBook);
+        console.log(`Finished deploying AssetBook${idx}...`);
+      }
     });
 
     addrAssetBookArray.forEach((item, idx) => {
       console.log(`addrAssetBook${idx} = "${item}"`);
     });
-    resolve(addrAssetBookArray);
+    const isGood = 'to be checked';
+    resolve({isGood, addrAssetBookArray});
   });
 }
 
@@ -336,27 +314,25 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
      .on('receipt', function (receipt) {
        console.log('receipt:', receipt);
-     })
+    })
      .on('error', function (error) {
          console.log('error:', error.toString());
          reject(error.toString());
-     });
+    });
+    console.log('CrowdFunding.sol has been deployed');
   
-     console.log('CrowdFunding.sol has been deployed');
-  
-     if (instCrowdFunding === undefined) {
-       console.log('[Error] instCrowdFunding is NOT defined');
-       resolve(false);
-       return false;
-     } else {console.log('[Good] instCrowdFunding is defined');}
-     
-     instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-     const crowdFundingAddr = instCrowdFunding.options.address;
-     console.log(`\nconst addrCrowdFunding= ${crowdFundingAddr}`);
-     const checkResult = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
-     console.log('checkResult:', checkResult);
-     resolve({checkResult, crowdFundingAddr});
-  })
+    if (instCrowdFunding === undefined) {
+      reject('[Error] instCrowdFunding is NOT defined');
+    } else {
+      console.log('[Good] instCrowdFunding is defined');
+      instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const crowdFundingAddr = instCrowdFunding.options.address;
+      console.log(`\nconst addrCrowdFunding= ${crowdFundingAddr}`);
+      const isGood = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
+      console.log('isGood:', isGood);
+      resolve({isGood, crowdFundingAddr});
+    }
+  });
 }
 
 const checkArgumentsCFC = async(argsCrowdFunding) => {
@@ -526,7 +502,20 @@ const checkArgumentsTCC = async(argsTokenController) => {
 //yarn run testmt -f 62
 const deployTokenControllerContract = async(argsTokenController) => {
   return new Promise(async (resolve, reject) => {
+    if(operationMode === 9){
+      const [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock, acTimeTokenValid, addrHelium ] = argsTokenController;
 
+      if(acTimeOfDeployment_TokCtrl > acTimeTokenUnlock) {
+        reject('[Error] acTimeOfDeployment_TokCtrl > acTimeTokenUnlock');
+      }
+      if(acTimeTokenUnlock <= CFED) {
+        reject('[Error] acTimeTokenUnlock <= CFED');
+      }
+      if(acTimeTokenValid <= acTimeTokenUnlock) {
+        reject('[Error] acTimeTokenValid <= acTimeTokenUnlock');
+      }
+
+    }
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
@@ -546,17 +535,15 @@ const deployTokenControllerContract = async(argsTokenController) => {
     console.log('TokenController.sol has been deployed');
 
     if (instTokenController === undefined) {
-      console.log('[Error] instTokenController is NOT defined');
-      resolve(false);
-      return false;
+      reject('[Error] instTokenController is NOT defined');
     } else {console.log('[Good] instTokenController is defined');}
     instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     const tokenControllerAddr = instTokenController.options.address;
     console.log(`\nconst addrTokenController = ${tokenControllerAddr}`);
 
-    const checkResult = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
-    console.log('checkResult:', checkResult);
-    resolve({checkResult, tokenControllerAddr});
+    const isGood = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
+    console.log('isGood:', isGood);
+    resolve({isGood, tokenControllerAddr});
   });
 }
 
@@ -569,7 +556,7 @@ const checkTokenControllerCtrt = async(tokenControllerCtrtAddr) => {
       const TimeValid = await instTokenController.methods.TimeValid().call();
       const TokenState = await instTokenController.methods.tokenState().call();
       const TimeOfDeployment = await instTokenController.methods.TimeOfDeployment().call();
-      console.log(`checkTokenControllerCtrt()... TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
+      console.log(`\n--------==checkTokenControllerCtrt()... TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
       resolve([true, TimeUnlock, TimeValid, TokenState, TimeOfDeployment]);
     } catch(err){
       console.log(`[Error] checkTokenControllerCtrt() failed at tokenControllerCtrtAddr: ${tokenControllerCtrtAddr} <===================================`);
@@ -732,19 +719,17 @@ const deployHCATContract = async(argsHCAT721) => {
     //.send({ from: backendAddr, gas: 9000000, gasPrice: '0' })
   
     if (instHCAT721 === undefined) {
-      console.log('[Error] instHCAT721 is NOT defined');
-      resolve(false);
-      return false;
+      reject('[Error] instHCAT721 is NOT defined');
     } else {
       console.log('[Good] instHCAT721 is defined');
+      instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const HCAT_Addr = instHCAT721.options.address;
+      console.log(`\nconst addrHCAT721 = "${HCAT_Addr}"`);
+  
+      const isGood = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
+      console.log('isGood:', isGood);
+      resolve({isGood, HCAT_Addr});
     }
-    instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    const HCAT_Addr = instHCAT721.options.address;
-    console.log(`\nconst addrHCAT721 = "${HCAT_Addr}"`);
-
-    const checkResult = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
-    console.log('checkResult:', checkResult);
-    resolve({checkResult, HCAT_Addr});
   });
 }
 
@@ -846,36 +831,72 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
 
 const getTokenContractDetails = async(tokenCtrtAddr) => {
   return new Promise( async ( resolve, reject ) => {
+    console.log('\n--------==inside getTokenContractDetails()');
     try{
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
       const tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
-      console.log('tokenContractDetails:', tokenContractDetails);
+      //console.log('tokenContractDetails:', tokenContractDetails);
       const tokenId = tokenContractDetails[0];
       const siteSizeInKW = tokenContractDetails[1];
       const maxTotalSupply = tokenContractDetails[2];
       const totalSupply = tokenContractDetails[3];
-      const initialAssetPricing_ = tokenContractDetails[4];
-      const pricingCurrency = tokenContractDetails[5];
+      const initialAssetPricing = tokenContractDetails[4];
+      const pricingCurrency = web3.utils.toAscii(tokenContractDetails[5]);
       const IRR20yrx100 = tokenContractDetails[6];
-      const name = tokenContractDetails[7];
-      const tokenSymbol = tokenContractDetails[8];
-      const tokenURI = tokenContractDetails[9];
+      const name = web3.utils.toAscii(tokenContractDetails[7]);
+      const tokenSymbol = web3.utils.toAscii(tokenContractDetails[8]);
+      const tokenURI = web3.utils.toAscii(tokenContractDetails[9]);
 
-      // siteSizeInKWM = await instCrowdFunding.methods.siteSizeInKW().call();
-      // console.log('siteSizeInKWM:', siteSizeInKW);
-  
-      // const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] 
-
-      const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
-
-      console.log(`getTokenContractDetails()... tokenSymbol: ${tokenSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
-      resolve([true, tokenSymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
+      console.log(`getTokenContractDetails()... tokenSymbol: ${tokenSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}`);
+      resolve([tokenSymbol, siteSizeInKW, maxTotalSupply, pricingCurrency, IRR20yrx100]);
     } catch(err){
-      console.log(`[Error] getTokenContractDetails() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
-      resolve([false, undefined, undefined, undefined, undefined, undefined, undefined]);
+      console.log(`err: ${err} \n[Error] getTokenContractDetails() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
+      resolve([undefined, undefined, undefined, undefined, undefined]);
     }
   });
 }
+
+//-------------------==
+const addProductRowFromSymbol = async(tokenSymbol, tokenName, location, duration, fundingType, pricingCurrency, fundmanagerIn, TimeReleaseDateIn) => {
+  return new Promise(async (resolve, reject) => {
+    console.log(`---------------==\naddProductRowFromSymbol()`);
+
+
+    const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await findAllSmartContractAddrs(tokenSymbol);
+    console.log(`--------==returned values from findAllSmartContractAddrs():\ncrowdFundingAddr: ${crowdFundingAddr}, tokenControllerAddr: ${tokenControllerAddr}, hcatAddr: ${hcatAddr}, incomeManagerAddr: ${incomeManagerAddr}`);
+
+    const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
+    console.log(`--------==returned values from getDetailsCFC(): \ninitialAssetPricingM: ${initialAssetPricingM}, maxTotalSupplyM: ${maxTotalSupplyM}, quantityGoalM: ${quantityGoalM}, CFSDM: ${CFSDM}, CFEDM: ${CFEDM}, stateDescriptionM: ${stateDescriptionM}, fundingStateM: ${fundingStateM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
+  
+    const [tokenSymbolM, siteSizeInKWM, maxTotalSupplyMH, pricingCurrencyM, IRR20yrx100M] = await getTokenContractDetails(hcatAddr).catch(async(err) => {
+      console.log(`${err} \ngetTokenContractDetails() failed...`);
+      return false;
+    });
+    console.log(`\n--------==returned values from getTokenContractDetails(): \ntokenSymbolM: ${tokenSymbolM}, siteSizeInKWM: ${siteSizeInKWM}, maxTotalSupplyMH: ${maxTotalSupplyMH}, pricingCurrencyM: ${pricingCurrencyM}, IRR20yrx100M: ${IRR20yrx100M}`);
+  
+    const [isGood, TimeTokenUnlockM, TimeTokenValidM, TokenState, TimeOfDeployment] = await checkTokenControllerCtrt(tokenControllerAddr);
+    console.log(`\n TimeTokenUnlockM: ${TimeTokenUnlockM}, TimeTokenValidM: ${TimeTokenValidM}`);
+
+    console.log(`\nlocation: ${location}, duration: ${duration}, fundingType: ${fundingType}, pricingCurrency: ${pricingCurrency}, fundmanagerIn: ${fundmanagerIn}`);
+
+    const TimeReleaseDate = parseInt(TimeReleaseDateIn);
+    if(operationMode === 9){
+      if(TimeReleaseDate > parseInt(CFEDM) && TimeReleaseDate < parseInt(TimeTokenUnlockM)){
+        console.log(`\n--------==TimeReleaseDate is a valid date under operationMode: ${operationMode}`);
+
+      } else {
+        console.log(`\n--------==TimeReleaseDate: ${TimeReleaseDate} is out of allowed range`);
+        resolve(false);
+      }
+    }
+    console.log(`\n--------==TimeReleaseDate: ${TimeReleaseDate}`);
+    const result = await addProductRow(tokenSymbol, tokenName, location, initialAssetPricingM, duration, pricingCurrency, IRR20yrx100M, TimeReleaseDate, TimeTokenValidM, siteSizeInKWM, maxTotalSupplyMH, fundmanagerIn, CFSDM, CFEDM, quantityGoalM, TimeTokenUnlockM, fundingType, fundingStateM).catch((err) => {
+      console.log('\n[Error @ addProductRow()]'+ err);
+    });
+    resolve(result);
+  });
+}
+
 
 //-------------------==IncomeManager
 //yarn run testmt -f 6x
@@ -916,7 +937,6 @@ const checkArgumentsIncomeManager = async(argsIncomeManager) => {
   });
 }
 
-//yarn run testmt -f 64
 const deployIncomeManagerContract = async(argsIncomeManager) => {
   return new Promise(async (resolve, reject) => {
 
@@ -939,23 +959,58 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
 
     console.log('IncomeManager.sol has been deployed');
     if (instIncomeManager === undefined) {
-      console.log('[Error] instIncomeManager is NOT defined');
-      resolve(false);
-      return false;
-    } else {console.log('[Good] instIncomeManager is defined');}
-
-    instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    const IncomeManager_Addr = instIncomeManager.options.address
-    console.log(`const addrIncomeManager = ${IncomeManager_Addr}`);
-
-    const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
-    console.log('checkDeploymentConditions():', result);
-    if(result.includes(false)){
-      console.log('[Failed] Some/one check(s) have/has failed');
-      resolve(false);
+      reject('[Error] instIncomeManager is NOT defined');
     } else {
-      console.log('[Success] all checks have passed');
-      resolve(IncomeManager_Addr);
+      console.log('[Good] instIncomeManager is defined');
+      instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const IncomeManager_Addr = instIncomeManager.options.address
+      console.log(`const addrIncomeManager = ${IncomeManager_Addr}`);
+  
+      const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
+      console.log('checkDeploymentConditions():', result);
+      const isGood = !(result.includes(false));
+      if(isGood){
+        console.log('[Failed] Some/one check(s) have/has failed');
+      } else {
+        console.log('[Success] all checks have passed');
+      }
+      resolve({isGood, IncomeManager_Addr});
+    }
+  });
+}
+
+const deployProductManagerContract = async(addrHeliumContract) => {
+  return new Promise(async (resolve, reject) => {
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3deploy.version:', web3deploy.version);
+    const prefix = '0x';
+
+    console.log('\n----------------== deployProductManagerContract()');
+    const argsProductManager =[addrHeliumContract];
+    console.log(argsProductManager)
+    instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
+    .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
+    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+        reject(error.toString());
+    });
+
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      reject('[Error] instProductManager is NOT defined');
+    } else {
+      console.log('[Good] instProductManager is defined');
+      instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const addrProductManager = instProductManager.options.address
+      console.log(`\nconst addrProductManager = ${addrProductManager}`);
+      const isGood = true;
+      resolve({isGood, addrProductManager});
     }
   });
 }
@@ -3224,5 +3279,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32,
-  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails
+  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol
 }

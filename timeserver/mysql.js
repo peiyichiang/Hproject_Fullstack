@@ -493,14 +493,18 @@ const deleteIncomeArrangementRows = (tokenSymbol) => {
   });
 }
 
-const addIncomeArrangementRowsIntoDB = async(incomeArrangementArray) => {
+const addIncomeArrangementRows = async(incomeArrangementArray) => {
   return new Promise(async(resolve, reject) => {
-    console.log('-----------------== addIncomeArrangementRowsIntoDB');
+    console.log('-----------------== addIncomeArrangementRows');
+    const resultArray = [];
     await asyncForEach(incomeArrangementArray, async (item, idx) => {
-      const result = await addIncomeArrangementRowFromObj(item);
+      const result = await addIncomeArrangementRowFromObj(item).catch((err) => {
+        reject('[Error @ addIncomeArrangementRowFromObj]'+ err);
+      });
       //console.log(`result: ${result}`);
+      resultArray.push(result);
     });
-    resolve(true);
+    resolve(resultArray);
   });
 }
 
@@ -978,6 +982,30 @@ const getTokenStateDB = (symbol) => {
 }
 
 
+const findAllSmartContractAddrs = async(symbol) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n---------==inside findAllSmartContractAddrs');
+    let mesg;
+    const queryStr1 = 'SELECT * FROM smart_contracts WHERE sc_symbol = ?';
+    const ctrtAddrResult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
+      (err) => {
+        reject('[Error @ findAllSmartContractAddrs:'+ err);
+      });
+    const ctrtAddrResultLen = ctrtAddrResult.length;
+    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultLen, ', ctrtAddrResult:', ctrtAddrResult);
+    if(ctrtAddrResultLen == 0){
+      resolve([false, undefined, `[Error] no contract row is found for ${symbol}`]);
+    } else if(ctrtAddrResultLen > 1){
+      resolve([false, 'multipleAddr', `[Error] multiple contract rows are found for ${symbol}`]);
+    } else {
+      //console.log(' ctrtAddrResult[0]:',  ctrtAddrResult[0]);
+      //process.exit(0);
+      const ctrtAddrObj = ctrtAddrResult[0];
+
+      resolve([ctrtAddrObj['sc_crowdsaleaddress'], ctrtAddrObj['sc_erc721Controller'], ctrtAddrObj['sc_erc721address'], ctrtAddrObj['sc_incomeManagementaddress']]);
+    }
+  });
+}
 
 // findCtrtAddr(symbol, 'incomemanager')
 const findCtrtAddr = async(symbol, ctrtType) => {
@@ -999,18 +1027,18 @@ const findCtrtAddr = async(symbol, ctrtType) => {
       return undefined;
     }
     const queryStr1 = 'SELECT '+scColumnName+' FROM smart_contracts WHERE sc_symbol = ?';
-    const ctrtAddrresult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
+    const ctrtAddrResult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
-        reject('[Error @ findCtrtAddr @ 963:'+ err);
+        reject('[Error @ findCtrtAddr:'+ err);
       });
-    const ctrtAddrresultLen = ctrtAddrresult.length;
-    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrresultLen, ', ctrtAddrresult:', ctrtAddrresult);
-    if(ctrtAddrresultLen == 0){
+    const ctrtAddrResultLen = ctrtAddrResult.length;
+    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultLen, ', ctrtAddrResult:', ctrtAddrResult);
+    if(ctrtAddrResultLen == 0){
       resolve([false, undefined, `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
-    } else if(ctrtAddrresultLen > 1){
+    } else if(ctrtAddrResultLen > 1){
       resolve([false, 'multipleAddr', `[Error] multiple ${ctrtType} addresses are found for ${symbol}`]);
     } else {
-      const targetAddr = ctrtAddrresult[0][scColumnName];//.sc_incomeManagementaddress;
+      const targetAddr = ctrtAddrResult[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
         resolve([false, '0x0', `[Error] empty ${ctrtType} contract address value is found for ${symbol}, targetAddr: ${targetAddr}`]);
       } else {
@@ -1040,7 +1068,7 @@ const findSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
     }
     const queryStr1 = 'SELECT sc_symbol from smart_contracts where '+ scColumnName+' = ?';
     const symbolResult = await mysqlPoolQueryB(queryStr1, [ctrtAddr]).catch((err) => {
-      reject('[Error @ findSymbolFromCtrtAddr @ 755]'+err);
+      reject('[Error @ findSymbolFromCtrtAddr]'+err);
     });
 
     const symbolResultLen = symbolResult.length;
@@ -1291,7 +1319,6 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
-    addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRowsIntoDB, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, 
-    deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows
+    addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB,
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, findAllSmartContractAddrs
 }
