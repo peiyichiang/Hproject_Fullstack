@@ -51,17 +51,24 @@ var abi = [
 		"name": "test",
 		"outputs": [
 			{
-				"name": "",
+				"name": "str1",
 				"type": "string"
 			}
 		],
 		"payable": false,
-		"stateMutability": "view",
+		"stateMutability": "pure",
 		"type": "function"
 	}
 ];
-// var address = '0x5d7dBC4003C9fb47693489a22008C5Af41ad16C4';
-var address = '0x56dafa76a1a587b8a76c88b640416e6c80f9a2ce';
+var address = '0x2f0900402b7f0d1c554e372a202a4651378024ce';  //Contract Address
+var AccountAddress="0x9402cf812792E6845813Db3dB5Ae7615d0956167";
+
+var Contract;
+async function init(){
+    Contract = await new web3.eth.Contract(abi, address);
+}
+// 初始化合約
+init(); 
 
 
 //撈取資料(Platform_Supervisor專用，沒在用)
@@ -1777,25 +1784,35 @@ router.get('/ProductDataBySymbol', function (req, res) {
 });
 
 //通過文件Hash值查詢是否記錄在公鏈上
-router.get('/eDocument', async function (req, res) {
-    var Contract = await new web3.eth.Contract(abi, address);
-    console.log("123");
-
-    Contract.methods.test().call()
+router.post('/isFileHashOnEthereum', async function (req, res) {
+    var p_fileHash = req.body.p_fileHash
+    // console.log(p_fileHash);
+    Contract.methods.searchHash(p_fileHash).call()
     .then(function(data){
-        //獲取Hash值
         console.log("＊＊＊:" + data)
-
         res.status(200);
         res.json({
-            "message": "非專案開賣時間",
             "result": data
         });
     })
-    
-
-
 });
 
+// 將文件Hash值寫入到公鏈上(未完成)
+router.get('/WriteHashtoEthereum', function () {
+    return new Promise( (res, rej) => {
+        Contract.methods.sethashTable("1234567").send({
+            from: AccountAddress,
+            gas: 4600000,
+        })
+        .then(function(data){
+            res(data);
+            console.log("寫入成功");
+        }).catch( err => {
+            rej(err);
+            console.log("寫入失敗");
+        })
+    })
+
+});
 
 module.exports = router;
