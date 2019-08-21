@@ -125,3 +125,27 @@ function UploadImage(){
         }
     });
 }
+
+// 計算文件SHA3
+let web3Object = new Web3()
+// 用選擇的方式讀取文件Hash(Inquire.html用)
+$("#file").on('change', function() {
+    // alert("選擇文件！");
+        var reader1 = new FileReader(); //define a Reader
+        var file = $("#file")[0].files[0]; //get the File object 
+        if (!file) {
+            alert("no file selected");
+            return;
+        } //check if user selected a file
+
+    reader1.onloadend = function (evt) {
+        //計算hash
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            alert(web3Object.utils.sha3(evt.target.result));
+            $("#p_assetdocsHash").val(web3Object.utils.sha3(evt.target.result));
+        }
+
+    }
+
+    reader1.readAsDataURL(file);
+});

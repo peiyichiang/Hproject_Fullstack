@@ -9,8 +9,9 @@ const { addScheduleBatch, editActualSchedule, getIncomeScheduleList, addSchedule
 
 // Web3
 const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
 // HTTP provider
-const web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/136557225d6a4fdcbaf3f37ea4b31097"));
+const web3 = new Web3(new Web3.providers.HttpProvider("https://rinkeby.infura.io/v3/136557225d6a4fdcbaf3f37ea4b31097"));
 var abi = [
 	{
 		"constant": false,
@@ -38,7 +39,7 @@ var abi = [
 		"outputs": [
 			{
 				"name": "",
-				"type": "string"
+				"type": "bool"
 			}
 		],
 		"payable": false,
@@ -51,17 +52,25 @@ var abi = [
 		"name": "test",
 		"outputs": [
 			{
-				"name": "",
+				"name": "str1",
 				"type": "string"
 			}
 		],
 		"payable": false,
-		"stateMutability": "view",
+		"stateMutability": "pure",
 		"type": "function"
 	}
 ];
-// var address = '0x5d7dBC4003C9fb47693489a22008C5Af41ad16C4';
-var address = '0x56dafa76a1a587b8a76c88b640416e6c80f9a2ce';
+var address = '0x3f566b3ed659c3100a818ca2eff24b67244fd9a9';  //Contract Address
+var AccountAddress="0x9402cf812792E6845813Db3dB5Ae7615d0956167";
+var PrivateKey="0x3AE8AB94B3EFF34C931909EDC8EE4DEF1F2E7DB30D4F7BD5237E299FF71D2BD0";
+
+var Contract;
+async function init(){
+    Contract = await new web3.eth.Contract(abi, address);
+}
+// 初始化合約
+init(); 
 
 
 //撈取資料(Platform_Supervisor專用，沒在用)
@@ -424,7 +433,8 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
-        p_isNewCase: req.body.p_isNewCase
+        p_isNewCase: req.body.p_isNewCase,
+        p_assetdocsHash:req.body.p_assetdocsHash
     };
 
     console.log(sql);
@@ -646,7 +656,8 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
-        p_isNewCase: req.body.p_isNewCase
+        p_isNewCase: req.body.p_isNewCase,
+        p_assetdocsHash:req.body.p_assetdocsHash
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
@@ -1775,25 +1786,76 @@ router.get('/ProductDataBySymbol', function (req, res) {
 });
 
 //通過文件Hash值查詢是否記錄在公鏈上
-router.get('/eDocument', async function (req, res) {
-    var Contract = await new web3.eth.Contract(abi, address);
-    console.log("123");
-
-    Contract.methods.test().call()
+router.post('/isFileHashOnEthereum', async function (req, res) {
+    var p_fileHash = req.body.p_fileHash
+    // console.log(p_fileHash);
+    Contract.methods.searchHash(p_fileHash).call()
     .then(function(data){
-        //獲取Hash值
         console.log("＊＊＊:" + data)
-
         res.status(200);
         res.json({
-            "message": "非專案開賣時間",
             "result": data
         });
     })
-    
-
-
 });
+
+/*sign rawtx*/
+function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
+    return new Promise((resolve, reject) => {
+  
+        web3.eth.getTransactionCount(userEthAddr, 'pending')
+            .then(nonce => {
+  
+                let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
+                let txParams = {
+                    nonce: web3.utils.toHex(nonce),
+                    gas: 7000000,//9000000,
+                    gasPrice: 3000000000,//0,
+                    //gasPrice: web3js.utils.toHex(20 * 1e9),
+                    //gasLimit: web3.utils.toHex(3400000),
+                    to: contractAddr,
+                    value: 0,
+                    data: encodedData
+                }
+  
+                let tx = new Tx(txParams);
+                tx.sign(userPrivateKey);
+                const serializedTx = tx.serialize();
+                const rawTx = '0x' + serializedTx.toString('hex');
+  
+                //console.log('☆ RAW TX ☆\n', rawTx);
+  
+                web3.eth.sendSignedTransaction(rawTx)
+                    .on('transactionHash', hash => {
+                        //console.log(hash);
+                    })
+                    .on('confirmation', (confirmationNumber, receipt) => {
+                        // //console.log('confirmation', confirmationNumber);
+                    })
+                    .on('receipt', function (receipt) {
+                        //console.log(receipt);
+                        resolve(receipt)
+                    })
+                    .on('error', function (err) {
+                        //console.log(err);
+                        reject(err);
+                    });
+            });
+  
+    });
+  }
+
+// 將文件Hash值寫入到公鏈上(太慢)
+router.get('/WriteHashtoEthereum', async function () {
+    console.log("%%%");
+    const encodedData = Contract.methods.sethashTable("12333333").encodeABI();
+    await signTx(AccountAddress,PrivateKey,address,encodedData).catch((err) => {
+        console.log(err);
+        // reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
+        // return false;
+    });
+});
+
 
 
 module.exports = router;

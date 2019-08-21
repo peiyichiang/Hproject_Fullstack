@@ -144,6 +144,7 @@ $("#file").on('change', function() {
         //計算hash
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
             alert(web3Object.utils.sha3(evt.target.result));
+            $("#p_assetdocsHash").val(web3Object.utils.sha3(evt.target.result));
         }
 
     }
