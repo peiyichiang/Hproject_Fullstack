@@ -102,6 +102,7 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
 console.log('loading blockchain.js smart contract json files');
 
 const Helium = require('./build/Helium.json');
+
 if (Helium === undefined){
   console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {

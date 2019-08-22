@@ -18,7 +18,6 @@ const useFullTimeServer = true;
 deploy contracts by ethereum/contracts/zdeploy.js
 $ yarn run deploy -c 1 -s 1 -cName cName
 cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
-
 copy and paste the contract addresses into zsetupData.js
 
 
