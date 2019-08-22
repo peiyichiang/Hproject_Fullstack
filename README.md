@@ -61,48 +61,56 @@ where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW I
 and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
 
 ### 8. Test
----------------==Basic Tests
+---------------==Testing Flow
 yarn run testmt -f 54 ... deployHeliumContract_API
 yarn run testmt -f 55 ... deployRegistryContract_API
 yarn run testmt -f 56 ... deployAssetbookContracts_API
 yarn run testmt -f 57 ... addUsersIntoDB_API
+yarn run livechain -c 1 --f 21 ... addUsersToRegistryCtrt
+
 ----==
 yarn run testmt -f 61 ... deployCrowdfundingContract_API
 yarn run testmt -f 64 ... deployTokenControllerContract_API
 yarn run testmt -f 67 ... deployHCATContract_API
 yarn run testmt -f 70 ... deployIncomeManagerContract_API
 yarn run testmt -f 71 ... deployProductManagerContract_API
+yarn run testmt -f 72 ... addSmartContractRow_API
+yarn run testmt -f 74 ... addIncomeArrangementRows_API
 
-yarn run testmt -f 72 ... addProduct_API
-yarn run testmt -f 73 ... addSmartContractRow_API
-yarn run testmt -f 74 ... addIncomeArrangementRowsIntoDB_API
-
+yarn run testmt -f 73 ... addProductRowFromSymbol_API
+yarn run testmt -f 100 .. intergrationTestOfProduct
 ----==
-yarn run testmt -f 78 ... addOrdersIntoDBnCFC
+yarn run testmt -f 39 ... getDetailsCFC_API
+yarn run testmt -f 42 ... getCFC_Balances_API
+yarn run testmt -f 78 ... addPaidOrdersIntoDBnCFC
+----==
+----== >>> doAssetRecordsCaller() and API
+yarn run testmt -f 82 ... setTokenController
+yarn run testmt -f 79 ... getTokenContractDetails
+yarn run testmt -f 83 ... getTokenBalances_API
 
 yarn run testmt -f 49 ... mintSequentialPerCtrt_API 
 (OR ProductAdministration.ejs interface button press)
 
-----==
+-----------------==
+yarn run testmt -f 39 ... getDetailsCFC_API
+yarn run testmt -f 41 ... getCrowdfundingInvestors_API
+yarn run testmt -f 42 ... getCFC_Balances_API
+
+yarn run testmt -f 78 ... addPaidOrdersIntoDBnCFC
+yarn run testmt -f 788 .. addAssetbooksIntoCFC_API (like timeserver)
+
 yarn run testmt -f 75 ... addUserArrayOrdersIntoDB_API
 yarn run testmt -f 76 ... addOrderIntoDB_API
 yarn run testmt -f 77 ... addArrayOrdersIntoDB_API
 
---------------==
-yarn run livechain -c 1 --f 0 ... checkDeployedContracts 
-yarn run livechain -c 1 --f 21 ... addUsersToRegistryCtrt
-yarn run livechain -c 1 --f 1 ... setupTest
-yarn run livechain -c 1 --f 2 ... get tokenController
-yarn run livechain -c 1 --f 31 ... showAssetBookBalancesBigAmount
-yarn run livechain -c 1 --f 4 ... showAssetInfo
-
-yarn run testmt -f 39 ... get CFC details
-yarn run testmt -f 41 ... get CF investor assetbooks and amounts
-yarn run testmt -f 42 ... get current balances
 yarn run testmt -f 43 ... invest in CFC
 yarn run testmt -f 44 ... check invest function
 yarn run testmt -f 47 ... invest in CFC in batch!!!
-yarn run testmt -f 42 ... get current balances
+
+//yarn run livechain -c 1 --f 0 ... checkDeployedContracts 
+yarn run livechain -c 1 --f 1 ... setupTest to verify initial conditions
+
 
 
 ### 8. Test deployed smart contracts

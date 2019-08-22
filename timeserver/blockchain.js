@@ -7,7 +7,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 console.log('loading blockchain.js...');
 
-const { getTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
+const { checkEq, getTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 
 const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON, operationMode} = require('./envVariables');
 
@@ -15,7 +15,7 @@ const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = requir
 
 const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
-const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, findCtrtAddr, getForecastedSchedulesFromDB,findAllSmartContractAddrs } = require('./mysql.js');
+const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs } = require('./mysql.js');
 
 const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 const timeIntervalOfNewBlocks = 13000;
@@ -65,10 +65,6 @@ console.log(`using backendAddr: ${backendAddr}`);
 const addPlatformSupervisor = async(platformSupervisorNew, addrHeliumX) => {
   return new Promise(async (resolve, reject) => {
     //console.log('--------------==adding additional PlatformSupervisor...');
-    // const addrHeliumContract = await findCtrtAddr(symbol,'helium').catch((err) => {
-    //   reject('[Error @findCtrtAddr]:'+ err);
-    //   return false;
-    // });
     const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
     const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumX, encodedData).catch((err) => {
@@ -578,7 +574,7 @@ const checkDeploymentTCC = async(tokenControllerAddr, argsTokenController) => {
 
       const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
       const boolArray = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
-      console.log('checkDeploymentConditions():', boolArray);
+      console.log('checkDeploymentConditions():', boolArray);``
 
       if(boolArray.includes(false)){
         console.log('[Failed] Some/one check(s) have/has failed checkDeploymentConditions()');
@@ -856,14 +852,91 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
   });
 }
 
+
+const checkDeployedContracts = async(symbol) => {
+  //console.log('---------------------== checkDeployedContracts');
+  let result;
+
+  const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
+  result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
+  console.log('\nTokenController checkDeploymentConditions():', result);
+  if(result.every(checkBoolTrueArray)){
+    console.log('[Success] all checks have passed');
+  } else {
+    console.log('[Failed] Some/one check(s) have/has failed');
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+  result = await instHCAT721.methods.getTokenContractDetails().call();
+  console.log('\ngetTokenContractDetails', result);
+
+  result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
+  console.log('\nHCAT721 checkDeploymentConditions():', result);
+  if(result.every(checkBoolTrueArray)){
+    console.log('[Success] all checks have passed');
+  } else {
+    console.log('[Failed] Some/one check(s) have/has failed');
+  }
+
+  const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+  result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
+  console.log('\nCrowdFunding checkDeploymentConditions():', result);
+  if(result.every(checkBoolTrueArray)){
+    console.log('[Success] all checks have passed');
+  } else {
+    console.log('[Failed] Some/one check(s) have/has failed');
+  }
+}
+
+const setTokenController = async(tokenControllerCtrtAddr) => {
+  return new Promise(async (resolve, reject) => {
+    console.log(`---------------==\nsetTokenController()`);
+    const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
+    tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call();
+    timeAtDeployment = tokenControllerDetail[0];
+    TimeUnlockM = tokenControllerDetail[1];
+    TimeValidM = tokenControllerDetail[2];
+    isLockedForRelease = tokenControllerDetail[3];
+    isTokenApproved = tokenControllerDetail[4];
+    console.log('\ntimeAtDeployment:', timeAtDeployment, ', TimeUnlockM:', TimeUnlockM, ', TimeValidM:', TimeValidM, ', isLockedForRelease:', isLockedForRelease, ', isTokenApproved:', isTokenApproved);
+    console.log('\ntokenControllerDetail:', tokenControllerDetail);
+
+    console.log('tokenControllerCtrtAddr:', tokenControllerCtrtAddr);
+    let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
+    console.log('isTokenApprovedOperational():', isTokenApprovedOperational);
+    //checkEq(isTokenApprovedOperational, false);
+
+    const isPlatformSupervisor = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr}); 
+    console.log('isPlatformSupervisor()', isPlatformSupervisor);
+
+    if(!isPlatformSupervisor){
+      console.log('backendAddr should be a platformSupervisor!!');
+      resolve(false);
+    }
+    if (!isTokenApprovedOperational) {
+      console.log('Setting serverTime to TimeTokenUnlock+1 ...');
+      serverTime = parseInt(TimeUnlockM)+1;
+      const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerCtrtAddr, encodedData);
+      console.log('\nTxResult', TxResult);
+      isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
+      console.log('\nisTokenApprovedOperational():', isTokenApprovedOperational);
+    }
+    console.log('setTokenController() is completed');
+    resolve(true);
+  });
+}
+
+
+
+
 //-------------------==
 const addProductRowFromSymbol = async(tokenSymbol, tokenName, location, duration, fundingType, pricingCurrency, fundmanagerIn, TimeReleaseDateIn) => {
   return new Promise(async (resolve, reject) => {
     console.log(`---------------==\naddProductRowFromSymbol()`);
 
 
-    const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await findAllSmartContractAddrs(tokenSymbol);
-    console.log(`--------==returned values from findAllSmartContractAddrs():\ncrowdFundingAddr: ${crowdFundingAddr}, tokenControllerAddr: ${tokenControllerAddr}, hcatAddr: ${hcatAddr}, incomeManagerAddr: ${incomeManagerAddr}`);
+    const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await getAllSmartContractAddrs(tokenSymbol);
+    console.log(`--------==returned values from getAllSmartContractAddrs():\ncrowdFundingAddr: ${crowdFundingAddr}, tokenControllerAddr: ${tokenControllerAddr}, hcatAddr: ${hcatAddr}, incomeManagerAddr: ${incomeManagerAddr}`);
 
     const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
     console.log(`--------==returned values from getDetailsCFC(): \ninitialAssetPricingM: ${initialAssetPricingM}, maxTotalSupplyM: ${maxTotalSupplyM}, quantityGoalM: ${quantityGoalM}, CFSDM: ${CFSDM}, CFEDM: ${CFEDM}, stateDescriptionM: ${stateDescriptionM}, fundingStateM: ${fundingStateM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
@@ -1189,20 +1262,36 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
   });
 }
 
-
-const getTokenBalances = async (addressArray, tokenCtrtAddr) => {
+const getCFC_Balances = async(crowdFundingAddr, assetbooks) => {
   return new Promise(async (resolve, reject) => {
-    console.log('------------==getTokenBalances()');
-    const balances = [];
-    let balanceX;
-    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-    await asyncForEach(addressArray, async (addressX, idx) => {
-      balanceX = await instHCAT721.methods.balanceOf(addressX).call();
-      balances.push(parseInt(balanceX));
-      console.log(`token balance: ${balanceX}`);
+    console.log(`---------------==\ngetCFC_Balances()`);
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+
+    const cfQuantities = [];
+    await asyncForEach(assetbooks, async (assetbook, idx) => {
+      console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
+      const qty = await instCrowdFunding.methods.ownerToQty(assetbook).call();
+      cfQuantities.push(parseInt(qty));
     });
-    //console.log('balances:', balances);
-    resolve(balances);
+    console.log('cfQuantities', cfQuantities);
+    console.log('cfQuantities() has been completed');
+    resolve(cfQuantities);
+  });
+}
+
+const getTokenBalances = async(tokenCtrtAddr, assetbooks) => {
+  return new Promise(async (resolve, reject) => {
+    console.log(`---------------==\ngetTokenBalances()`);
+    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+    const assetbookBalances = [];
+    await asyncForEach(assetbooks, async (assetbook, idx) => {
+      console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
+      balanceXM = await instHCAT721.methods.balanceOf(assetbook).call();
+      assetbookBalances.push(parseInt(balanceXM));
+    });
+    console.log('assetbookBalances', assetbookBalances);
+    console.log('assetbookBalances() has been completed');
+    resolve(assetbookBalances);
   });
 }
 
@@ -1462,12 +1551,12 @@ remainingQuantityForMinting: ${maxTotalSupply-totalSupply}`);
 
 
 //yarn run testmt -f 40
-const preMint = async(nftSymbol) => {
+const preMint = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside preMint()');
 
     const queryStr1 = 'SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [nftSymbol]).catch((err) => {
+    const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr1)], '+ err;
       console.log(`\n${mesg}`);
       reject(mesg);
@@ -1480,7 +1569,7 @@ const preMint = async(nftSymbol) => {
     }
 
     const queryStr2 = 'SELECT p_pricing, p_fundingType from product where p_SYMBOL = ?';
-    const result2 = await mysqlPoolQueryB(queryStr2, [nftSymbol]).catch((err) => {
+    const result2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       let mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr2)], '+ err;
       console.log(`\n${mesg}`);
       reject(mesg);
@@ -1505,7 +1594,7 @@ tokenCtrtAddr: ${tokenCtrtAddr}
 tokenControllerAddr: ${tokenControllerAddr}`); 
 
       const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
-      /*console.log(`nftSymbol: ${nftSymbol}, tokenCtrtAddr: ${tokenCtrtAddr}
+      /*console.log(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
 addressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
       resolve([investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, pricing, fundingType]);
     } else {
@@ -1514,58 +1603,62 @@ addressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
   });
 }
 
-const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pricing) => {
+const preMintCaller = async(symbol) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n--------------==About to call addAssetRecordRowArray()');
-    let mesg;
-    const ar_time = serverTime;
-    const singleActualIncomePayment = 0;// after minting tokens
+    let mesg = '', serverTime;//PO: 1, PP: 2
 
-    const asset_valuation = 13000;
-    const holding_amount_changed = 0;
-    const holding_costChanged = 0;
-    const moving_ave_holding_cost = 13000;
-
-    const acquiredCostArray = amountArray.map((element) => {
-      return element * pricing;
+    const [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(symbol).catch((err) => {
+      console.log(`[Error] failed at preMint() \nsymbol: ${symbol} \nerr: ${err}`);
+      resolve([false, 'premint', 'failed at preMint. err: '+err, undefined, undefined, undefined, undefined, undefined]);
     });
-    console.log('acquiredCostArray:', acquiredCostArray);
+    console.log(`--------------==Returned values from preMint():
+    toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, pricing: ${pricing}, fundingType: ${fundingType}`);
 
-    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
-      mesg = '[Error @ addAssetRecordRowArray]'+ err;
-      console.log(mesg);
-      reject(mesg);
-      return [false,false,false];
-      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,false,false,false];
-    });
-    console.log('\nemailArrayError:', emailArrayError, '\namountArrayError:', amountArrayError);
+    if (toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
+      console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+      resolve([false, 'premintResult', 'preMint() returns invalid values', undefined, undefined, undefined, undefined, undefined]);
+    }
+    //process.exit(0);
 
-    const actualPaymentTime = serverTime;
-    const payablePeriodEnd = 0;
-    const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
-      mesg = '[Error @ addActualPaymentTime] '+ err;
-      console.log(mesg);
-      reject(mesg);
-      return [true, emailArrayError, amountArrayError, false,false];
-      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
-    });
-
-    const result3 = await setFundingStateDB(symbol, 'ONM', 'na', 'na').catch((err) => {
-      mesg = '[Error @ setFundingStateDB()] '+ err;
-      console(mesg);
-      reject(mesg);
-      return [true, emailArrayError, amountArrayError,result2,false];
-      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
-    });
-
-    console.log('\n--------------== End of addAssetRecordRowArray()');
-    resolve([true, emailArrayError, amountArrayError, result2, result3]);
-    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];
-    //last three boolean values: addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()
+    if (isTimeserverON) {
+        serverTime = await getTime();
+    } else {
+        serverTime = 201906130000;
+    }
+    console.log('serverTime:', serverTime);
+    resolve([true, 'after premint', 'successfully done after preMint()', toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType]);
   });
 }
 
 
+
+
+const mintSequentialPerContract = async(symbol, toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType) => {
+  return new Promise(async (resolve, reject) => {
+    const maxMintAmountPerRun = 190;
+    // console.log(`yarn run testmt -f 50 to reset symbol status`);
+    // process.exit(0);
+    //--------------------------==
+    console.log(`\n--------------==Before calling sequentialMintSuper()...`);
+    console.log(`symbol: ${symbol}, fundingType: ${fundingType}, pricing: ${pricing}`);
+    const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol).catch((err) => {
+        console.log(`\n[Error @ sequentialMintSuper] \ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, symbol: ${symbol} \n${err}...`);
+        return false;
+    });
+    console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+
+    if (isFailed || isFailed === undefined || isFailed === null) {
+        mesg = `[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!`;
+        console.log(`\nSuccess: false \n${mesg} \nisCorrectAmountArray: ${isCorrectAmountArray}`);
+        return false;
+
+    } else {
+        mesg = '[Success] All token minting have been completed successfully';
+        console.log(`\nmesg: ${mesg}`);
+        return true;
+    }
+  });
+}
 
 //to be called from API and zlivechain.js, etc...
 const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, symbol) => {
@@ -1710,8 +1803,8 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
 
       } else {
         //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
-        const [isGood, targetAddr, resultMesg] = await findCtrtAddr(symbol, actionType).catch((err) => {
-          console.log('[Error @findCtrtAddr]:'+ err);
+        const [isGood, targetAddr, resultMesg] = await getCtrtAddr(symbol, actionType).catch((err) => {
+          console.log('[Error @getCtrtAddr]:'+ err);
           return false;
         });
         console.log(`\n${resultMesg}. actionType: ${actionType}`);
@@ -1747,6 +1840,99 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
   });
 }
 
+
+
+const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pricing) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==inside doAssetRecords()');
+    let mesg;
+    const ar_time = serverTime;
+    const singleActualIncomePayment = 0;// after minting tokens
+
+    const asset_valuation = 13000;
+    const holding_amount_changed = 0;
+    const holding_costChanged = 0;
+    const moving_ave_holding_cost = 13000;
+
+    const acquiredCostArray = amountArray.map((element) => {
+      return element * pricing;
+    });
+    console.log('acquiredCostArray:', acquiredCostArray);
+
+    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+      mesg = '[Error @ addAssetRecordRowArray]'+ err;
+      console.log(mesg);
+      reject(mesg);
+      return [false,false,false];
+      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,false,false,false];
+    });
+    console.log('\nemailArrayError:', emailArrayError, '\namountArrayError:', amountArrayError);
+
+    const actualPaymentTime = serverTime;
+    const payablePeriodEnd = 0;
+    const result2 = await addActualPaymentTime(actualPaymentTime, symbol, payablePeriodEnd).catch((err) => {
+      mesg = '[Error @ addActualPaymentTime] '+ err;
+      console.log(mesg);
+      reject(mesg);
+      return [true, emailArrayError, amountArrayError, false,false];
+      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError,true,false,false];
+    });
+
+    const result3 = await setFundingStateDB(symbol, 'ONM', 'na', 'na').catch((err) => {
+      mesg = '[Error @ setFundingStateDB()] '+ err;
+      console(mesg);
+      reject(mesg);
+      return [true, emailArrayError, amountArrayError,result2,false];
+      //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, false, false];
+    });
+
+    console.log('\n--------------== End of addAssetRecordRowArray()');
+    resolve([true, emailArrayError, amountArrayError, result2, result3]);
+    //return [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, true, result2, result3];
+    //last three boolean values: addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()
+  });
+}
+
+const doAssetRecordsCaller = async(toAddressArray, amountArray, symbol, pricing) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==inside doAssetRecordsCaller()');
+    if (isTimeserverON) {
+      serverTime = await getTime();
+    } else {
+      serverTime = 201906130000;
+    }
+    console.log('serverTime:', serverTime);
+  
+    const [is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await doAssetRecords(toAddressArray, amountArray, serverTime, symbol, pricing).catch((err) => {
+        console.log('[Error @ doAssetRecords]:', err);
+        console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \nfundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, symbol: ${symbol} \n${err}...`);
+        //return false;
+    });
+  
+    console.log(` \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError} \nis_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
+  
+    if (!is_addAssetRecordRowArray) {
+        mesg = '[addAssetRecordRowArray() Failed]';
+        //return false;
+  
+    } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+        mesg = '[Error] addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
+        //return false;
+  
+    } else if (!is_addActualPaymentTime) {
+        mesg = '[addActualPaymentTime() Failed]';
+        //return false;
+  
+    } else if (!is_setFundingStateDB) {
+        mesg = '[setFundingStateDB() Failed]';
+        //return false;
+    } else {
+        isSuccess = true;
+        mesg = '[Success @ addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()]';
+        //return false;
+    }
+  })
+}
 
 // HHtoekn12222  Htoken001  Htoken0030
 //-------------------------------==DB + BC
@@ -1823,8 +2009,8 @@ const makeOrdersExpiredCFED = async (serverTime) => {
       await asyncForEachOrderExpiry(symbolArray, async (symbol, index) => {
         /*
         //------------== auto determines the crowdfunding results -> write it into DB
-        const crowdFundingAddr = await findCtrtAddr(symbol,'crowdfunding').catch((err) => {
-          console.error('[Error @findCtrtAddr]:'+ err);
+        const crowdFundingAddr = await getCtrtAddr(symbol,'crowdfunding').catch((err) => {
+          console.error('[Error @getCtrtAddr]:'+ err);
           continue;
         });
         const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
@@ -1871,7 +2057,7 @@ const makeOrdersExpiredCFED = async (serverTime) => {
 // after order status change: waiting -> paid -> write into crowdfunding contract
 const addAssetbooksIntoCFC = async (serverTime) => {
   // check if serverTime > CFSD for each symbol...
-  console.log('\ninside addAssetbooksIntoCFC()... serverTime:',serverTime);
+  console.log('\n--------------==inside addAssetbooksIntoCFC() \nserverTime:',serverTime);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
   const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
     console.log('\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)]'+ err);
@@ -1894,7 +2080,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
       }
     }
   }
-  //console.log('foundSymbolArray', foundSymbolArray);
+  console.log('foundSymbolArray', foundSymbolArray);
   console.log('symbolArray of paid orders:', symbolArray);
   if(symbolArray.length === 0){
     log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded'));
@@ -1904,15 +2090,15 @@ const addAssetbooksIntoCFC = async (serverTime) => {
 
   await asyncForEachAbCFC(symbolArray, async (symbol, index) => {
 
-    const [isGood, crowdFundingAddr, resultMesg] = await findCtrtAddr(symbol, 'crowdfunding').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, crowdFundingAddr, resultMesg] = await getCtrtAddr(symbol, 'crowdfunding').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
     if(isGood){
       console.log(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
     } else {
-      console.error(`[Error] at blockchain.js 1676`);
+      console.error(`[Error] at blockchain.js 2008. symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
       return false;
     }
     
@@ -2399,8 +2585,8 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 const get_schCindex = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside get_schCindex()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2420,8 +2606,8 @@ const get_schCindex = async(symbol) => {
 const tokenCtrt = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside tokenCtrt()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2441,8 +2627,8 @@ const tokenCtrt = async(symbol) => {
 const get_paymentCount = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside get_paymentCount()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2460,8 +2646,8 @@ const get_paymentCount = async(symbol) => {
 const get_TimeOfDeployment = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside get_TimeOfDeployment()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2481,8 +2667,8 @@ const get_TimeOfDeployment = async(symbol) => {
 const getIncomeSchedule = async(symbol, schIndex) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside getIncomeSchedule()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2504,8 +2690,8 @@ const getIncomeSchedule = async(symbol, schIndex) => {
 const getIncomeScheduleList = async(symbol, indexStart = 0, amount = 0) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside getIncomeScheduleList()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2536,8 +2722,8 @@ const checkAddForecastedScheduleBatch1 = async(symbol, forecastedPayableTimes, f
       return false;
     }
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2566,8 +2752,8 @@ const checkAddForecastedScheduleBatch2 = async(symbol, forecastedPayableTimes, f
       return false;
     }
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2611,8 +2797,8 @@ const checkAddForecastedScheduleBatch = async (symbol, forecastedPayableTimes, f
       }
     }
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2647,8 +2833,8 @@ const checkAddForecastedScheduleBatch = async (symbol, forecastedPayableTimes, f
 const addForecastedScheduleBatch = async (symbol, forecastedPayableTimes, forecastedPayableAmounts) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-----------------==inside addForecastedScheduleBatch()');
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2695,8 +2881,8 @@ const addForecastedScheduleBatchFromDB = async (symbol) => {
   forecastedPayableAmountsError: ${forecastedPayableAmountsError}`);
   
     if(forecastedPayableTimesError.length === 0 && forecastedPayableAmountsError.length === 0){
-      const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-        reject('[Error @findCtrtAddr]: '+ err);
+      const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+        reject('[Error @getCtrtAddr]: '+ err);
         return undefined;
       });
       console.log(`\n${resultMesg}.`);
@@ -2723,8 +2909,8 @@ const editActualSchedule = async (symbol, schIndex, actualPaymentTime, actualPay
     console.log('\n-----------------==inside editActualSchedule()');
     console.log('symbol', symbol, 'schIndex', schIndex);
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2750,8 +2936,8 @@ const addPaymentCount = async (symbol) => {
     console.log('\n-----------------==inside addPaymentCount()');
     console.log('symbol', symbol);
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2779,8 +2965,8 @@ const setErrResolution = async (symbol, schIndex, isErrorResolved, errorCode) =>
     console.log('\n-----------------==inside setErrResolution()');
     console.log('symbol', symbol, 'schIndex', schIndex);
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
-      reject('[Error @findCtrtAddr]: '+ err);
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
+      reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -3277,7 +3463,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMintCaller, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32,
-  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol
+  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances
 }

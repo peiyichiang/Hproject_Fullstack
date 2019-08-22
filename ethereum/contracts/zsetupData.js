@@ -7,7 +7,7 @@ const sLog = str => {
     console.log(str);
   }
 }
-const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AVEN1902', 'AJUP1903', 'ANEP1905', 'AOOT1907', 'NCCC0801'];//'AURA1904'
+const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AOOT1907', 'NCCC0801', 'TEST01'];//'AURA1904', 'AVEN1902', 'AJUP1903', 'ANEP1905',
 const excludedSymbolsIA = [];
 
 sLog('--------------------==zsetupData.js');

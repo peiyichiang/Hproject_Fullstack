@@ -9,7 +9,7 @@ checkDeployedContracts
 setupTest
 
 //yarn run livechain -c 1 --f 2
-getTokenController
+setTokenController
 
 //yarn run livechain -c 1 --f 3
 showAssetBookBalance_TokenId
@@ -240,32 +240,7 @@ const checkEq = (value1, value2) => {
 
 //yarn run livechain -c 1 --f 0
 const checkDeployedContracts = async () => {
-  result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
-  console.log('\nTokenController checkDeploymentConditions():', result);
-  if(result.every(checkBoolTrueArray)){
-    console.log('[Success] all checks have passed');
-  } else {
-    console.log('[Failed] Some/one check(s) have/has failed');
-  }
-  
-  result = await instHCAT721.methods.getTokenContractDetails().call();
-  console.log('\ngetTokenContractDetails', result);
 
-  result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
-  console.log('\nHCAT721 checkDeploymentConditions():', result);
-  if(result.every(checkBoolTrueArray)){
-    console.log('[Success] all checks have passed');
-  } else {
-    console.log('[Failed] Some/one check(s) have/has failed');
-  }
-
-  result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
-  console.log('\nCrowdFunding checkDeploymentConditions():', result);
-  if(result.every(checkBoolTrueArray)){
-    console.log('[Success] all checks have passed');
-  } else {
-    console.log('[Failed] Some/one check(s) have/has failed');
-  }
 
 }
 
@@ -563,42 +538,7 @@ const addAssetBook = async (assetBookAddr, userId, authLevel) => {
 }
 
 //yarn run livechain -c 1 --f 2
-const getTokenController = async () => {
-
-  tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call();
-  timeAtDeployment = tokenControllerDetail[0];
-  TimeUnlockM = tokenControllerDetail[1];
-  TimeValidM = tokenControllerDetail[2];
-  isLockedForRelease = tokenControllerDetail[3];
-  isTokenApproved = tokenControllerDetail[4];
-  console.log('\ntimeAtDeployment', timeAtDeployment, ', TimeUnlockM', TimeUnlockM, ', TimeValidM', TimeValidM, ', isLockedForRelease', isLockedForRelease, ', isTokenApproved', isTokenApproved);
-  console.log('\ntokenControllerDetail', tokenControllerDetail);
-
-  console.log('addrTokenController', addrTokenController);
-  isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
-  tokenIdM = await instHCAT721.methods.tokenId().call();
-  console.log('isTokenApprovedOperational():', isTokenApprovedOperational);
-  console.log('tokenId or tokenCount from assetCtrt', tokenIdM);
-  checkEq(isTokenApprovedOperational, false);
-  checkEq(tokenIdM, '0');
-
-  const isPlatformSupervisor = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr}); 
-  console.log('isPlatformSupervisor()', isPlatformSupervisor);
-
-  if(!isPlatformSupervisor){
-    console.log('backendAddr is not a platformSupervisor!!');
-    process.exit(0);
-  }
-  if (!isTokenApprovedOperational) {
-    console.log('Setting serverTime to TimeTokenUnlock+1 ...');
-    serverTime = TimeTokenUnlock+1;
-    const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrTokenController, encodedData);
-    console.log('\nTxResult', TxResult);
-  }
-  isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call(); 
-  console.log('isTokenApprovedOperational()', isTokenApprovedOperational);
-  console.log('getTokenController() is completed');
+const setTokenController = async () => {
   process.exit(0);
 }
 
@@ -621,41 +561,15 @@ const showAssetBookBalance_TokenId = async () => {
   console.log('showAssetBookBalance_TokenId() has been completed');
   process.exit(0);
 }
+
 //yarn run livechain -c 1 --f 31
-const showAssetBookBalancesBigAmount = async () => {
-  const assetbookBalances = [];
-  await asyncForEach(assetbookArray, async (assetbook, idx) => {
-    console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
-    balanceXM = await instHCAT721.methods.balanceOf(assetbook).call();
-    assetbookBalances.push(parseInt(balanceXM));
-  });
-  console.log('assetbookBalances', assetbookBalances);
-  console.log('assetbookBalances() has been completed');
+const showAssetBookBalances = async () => {
   process.exit(0);
 }
 
 
 //yarn run livechain -c 1 --f 4
 const showAssetInfo = async () => {
-  console.log('\n--------==showAssetInfo from HCAT721...');
-  //const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
-
-  tokenIdM = await instHCAT721.methods.tokenId().call();
-  const tokenIdM_init = parseInt(tokenIdM);
-  let totalSupply = await instHCAT721.methods.totalSupply().call();
-  console.log('\ntokenIdM', tokenIdM, 'totalSupply', totalSupply);
-
-  let nftNameM = await instHCAT721.methods.name().call();
-  let nftsymbolM = await instHCAT721.methods.symbol().call();
-  let tokenURI_M = await instHCAT721.methods.tokenURI().call();
-
-  let initialAssetPricingM = await instHCAT721.methods.initialAssetPricing().call();
-  let IRR20yrx100M = await instHCAT721.methods.IRR20yrx100().call();
-  let maxTotalSupplyM = await instHCAT721.methods.maxTotalSupply().call();
-  let pricingCurrencyM = await instHCAT721.methods.pricingCurrency().call();
-  let siteSizeInKWM = await instHCAT721.methods.siteSizeInKW().call();
-
-  console.log(`\nnftNameM ${web3.utils.toAscii(nftNameM)}, nftsymbolM ${web3.utils.toAscii(nftsymbolM)}, tokenURI ${web3.utils.toAscii(tokenURI_M)}, pricingCurrencyM ${web3.utils.toAscii(pricingCurrencyM)}, initialAssetPricingM ${initialAssetPricingM}, IRR20yrx100M ${IRR20yrx100M},  siteSizeInKWM ${siteSizeInKWM}, maxTotalSupplyM ${maxTotalSupplyM}, tokenId ${tokenIdM_init}, totalSupply ${totalSupply}`);
   process.exit(0);
 }
 
@@ -1439,7 +1353,7 @@ const showMenu = () => {
   console.log('\n');
   console.log("\x1b[32m", '$ yarn run testlive1 --chain C --func F --arg1 arg1 --arg2 arg2');
   console.log("\x1b[32m", 'C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain');
-  console.log("\x1b[32m", 'F = 0: setupTest,  1: getTokenController, 2: showAssetBookBalance_TokenId, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
+  console.log("\x1b[32m", 'F = 0: setupTest,  1: setTokenController, 2: showAssetBookBalance_TokenId, 3: mintTokens(assetbookNum, amount), 4: showAssetInfo(tokenId), 5: sendAssetBeforeAllowed(), 6: setServerTime(newServerTime), 7: transferTokens(assetbookNum, amount)');
   console.log("\x1b[32m", 'arg1, arg2, ... are arguments used in above functions ...');
 }
 
@@ -1457,7 +1371,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 2
 } else if (func === 2) {
-  getTokenController();
+  setTokenController();
 
 //yarn run livechain -c 1 --f 3
 } else if (func === 3) {
@@ -1522,7 +1436,7 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {
-  showAssetBookBalancesBigAmount();
+  showAssetBookBalances();
 
 //------------------==
 //yarn run livechain -c 1 --f 91

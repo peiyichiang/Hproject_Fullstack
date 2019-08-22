@@ -9,7 +9,7 @@ const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimese
 
 const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 
-const { doAssetRecords, sequentialMintSuper, preMint, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
+const { doAssetRecords, sequentialMintSuper, preMint, preMintCaller, mintSequentialPerContract, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
 const { findCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
@@ -1189,67 +1189,18 @@ router.post('/amqpTest1receiver', async function (req, res, next) {
 
 //-----------------------------==
 
-router.post('/doAssetRecords/:nftSymbol/', async function (req, res, next) {
+router.post('/doAssetRecordsCaller/:symbol/', async function (req, res, next) {
   console.log(`\n--------------==Calling doAssetRecords API...`);
-  const nftSymbol = req.params.nftSymbol;
-  let isSuccess = false, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
+  const symbol = req.params.symbol;
+  const toAddressArray = req.body.toAddressArray;
+  const amountArray = req.body.amountArray;
+  const tokenCtrtAddr = req.body.tokenCtrtAddr;
+  const pricing = req.body.pricing;
+  const fundingType = req.body.fundingType;
 
-  if (true) {
-    [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
-      console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
-      res.send({
-          success: false,
-          result: 'failed at preMint(), err: ' + err,
-      });
-      return false;
-    });
-    console.log(`--------------==Returned values from preMint():
-    toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
-    if (toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)) {
-      console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
-      res.send({
-          success: false,
-          result: 'preMint() returns invalid values',
-      });
-      return false;
-    }
-  }
+  let isSuccess = false, mesg = '';//PO: 1, PP: 2
+  const [[is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await doAssetRecordsCaller(toAddressArray, amountArray, symbol, pricing);
 
-  if (isTimeserverON) {
-    serverTime = await getTime();
-  } else {
-      serverTime = 201906130000;
-  }
-  console.log('serverTime:', serverTime);
-
-  const [is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await doAssetRecords(toAddressArray, amountArray, serverTime, nftSymbol, pricing).catch((err) => {
-      console.log('[Error @ doAssetRecords]:', err);
-      console.log(`\ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \nfundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, nftSymbol: ${nftSymbol} \n${err}...`);
-      //return false;
-  });
-
-  console.log(` \nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError} \nis_addAssetRecordRowArray: ${is_addAssetRecordRowArray} \nis_addActualPaymentTime: ${is_addActualPaymentTime}`);
-
-  if (!is_addAssetRecordRowArray) {
-      mesg = '[addAssetRecordRowArray() Failed]';
-      //return false;
-
-  } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
-      mesg = '[Error] addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.';
-      //return false;
-
-  } else if (!is_addActualPaymentTime) {
-      mesg = '[addActualPaymentTime() Failed]';
-      //return false;
-
-  } else if (!is_setFundingStateDB) {
-      mesg = '[setFundingStateDB() Failed]';
-      //return false;
-  } else {
-      isSuccess = true;
-      mesg = '[Success @ addAssetRecordRowArray(), addActualPaymentTime(), setFundingStateDB()]';
-      //return false;
-  }
   console.log(`\nSuccess: ${isSuccess} \n${mesg}`);
 
   res.send({
@@ -1260,77 +1211,36 @@ router.post('/doAssetRecords/:nftSymbol/', async function (req, res, next) {
       amountArrayError: amountArrayError,
       is_addActualPaymentTime: is_addActualPaymentTime,
       is_setFundingStateDB: is_setFundingStateDB,
-      result: 'successfully done at doAssetRecords()',
+      result: 'successfully done at doAssetRecords()'
+  });
+});
+
+
+router.post('/HCAT721_AssetTokenContract/:symbol/preMintCaller', async function (req, res, next) {
+  console.log(`\n---------------------==API preMintCaller...`);
+  const symbol = req.params.symbol;
+  const [isPreMintGood, label, mesg, toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMintCaller(symbol);
+  res.send({
+    isPreMintGood: isPreMintGood, label: label, mesg: mesg,
+    toAddressArray: toAddressArray, amountArray: amountArray, tokenCtrtAddr: tokenCtrtAddr, pricing: pricing, fundingType: fundingType
   });
 });
 
 //for sequential minting tokens ... if mint amount > maxMintAmountPerRun, we need to wait for it to finished before minting some more tokens
-// http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerCtrt
-router.post('/HCAT721_AssetTokenContract/:nftSymbol/mintSequentialPerCtrt', async function (req, res, next) {
-    console.log(`\n---------------------==API mintSequentialPerCtrt...`);
-    const isCombinedAPI = true;
-    const maxMintAmountPerRun = 190;
-    const nftSymbol = req.params.nftSymbol;
-
-    let isSuccess = false, mesg = '', toAddressArray, amountArray, tokenCtrtAddr, serverTime, pricing, fundingType;//PO: 1, PP: 2
-
-    if (isCombinedAPI) {
-      [toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMint(nftSymbol).catch((err) => {
-        console.log(`[Error] failed at preMint() \nnftSymbol: ${nftSymbol} \nerr: ${err}`);
-        res.send({
-            success: false,
-            result: 'failed at preMint(), err: ' + err,
-        });
-        return false;
-      });
-      console.log(`--------------==Returned values from preMint():
-      toAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}`);
-      if (toAddressArray.length === 0 || amountArray.length === 0 || isEmpty(tokenCtrtAddr)) {
-        console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
-        res.send({
-            success: false,
-            result: 'preMint() returns invalid values',
-        });
-        return false;
-      }
-    }
-    //process.exit(0);
-
-    if (isTimeserverON) {
-        serverTime = await getTime();
-    } else {
-        serverTime = 201906130000;
-    }
-    console.log('serverTime:', serverTime);
-    isSuccess = true;
+// http://localhost:3030/Contracts/HCAT721_AssetTokenContract/Htoken05/mintSequentialPerContract
+router.post('/HCAT721_AssetTokenContract/:symbol/mintSequentialPerContract', async function (req, res, next) {
+    console.log(`\n---------------------==API mintSequentialPerContract...`);
+    const symbol = req.params.symbol;
+    const toAddressArray = req.body.toAddressArray;
+    const amountArray = req.body.amountArray;
+    const tokenCtrtAddr = req.body.tokenCtrtAddr;
+    const pricing = req.body.pricing;
+    const fundingType = req.body.fundingType;
 
     res.send({
-      status: true,
-      success: isSuccess,
-      result: 'successfully done at preMint()',
+      success: 'to be verified',
     });
-
-    // console.log(`yarn run testmt -f 50 to reset symbol status`);
-    // process.exit(0);
-    //--------------------------==
-    console.log(`\n--------------==Before calling sequentialMintSuper()...`);
-    console.log(`nftSymbol: ${nftSymbol}, fundingType: ${fundingType}, pricing: ${pricing}`);
-    const [isFailed, isCorrectAmountArray] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
-        console.log(`\n[Error @ sequentialMintSuper] \ntoAddressArray: ${toAddressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, fundingType: ${fundingType}, pricing: ${pricing}, maxMintAmountPerRun: ${maxMintAmountPerRun}, serverTime: ${serverTime}, nftSymbol: ${nftSymbol} \n${err}...`);
-        return false;
-    });
-    console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
-
-    if (isFailed || isFailed === undefined || isFailed === null) {
-        mesg = `[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!`;
-        console.log(`\nSuccess: false \n${mesg} \nisCorrectAmountArray: ${isCorrectAmountArray}`);
-        return false;
-
-    } else {
-        mesg = '[Success] All token minting have been completed successfully';
-        console.log(`\nmesg: ${mesg}`);
-        return true;
-    }
+    mintSequentialPerContract(symbol, toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType);
 });
 
 

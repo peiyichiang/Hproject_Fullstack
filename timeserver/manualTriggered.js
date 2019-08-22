@@ -10,9 +10,9 @@ const { symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, findSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, findCtrtAddr, findAllSmartContractAddrs  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs  } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, showAssetBookBalances, getCFC_Balances, addAssetbooksIntoCFC } = require('./blockchain.js');
 
 const { getTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime } = require('./utilities');
 
@@ -622,7 +622,6 @@ const getPastScheduleTimes_API = async () => {
   process.exit(0);
 }
 
-//yarn run testmt -f 42
 const callTestAPI = async () => {
   console.log('\n---------------------==callTestAPI()');
   //const util = require('util');
@@ -666,17 +665,22 @@ const getCrowdfundingInvestors_API = async() => {
 \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
 }
 
-
 /**
 investedTokenQtyArray: 5072,5161,5471,5077,5223,5687,5106,5584,6111,5577
 existingBalances:  4559, 4648, 4958, 4564, 5223, 5687, 5106, 5584, 6111, 5577 
 */
 //yarn run testmt -f 42
-const getTokenBalances_API = async () => {
-  console.log('\n---------------------==getTokenBalances_API()');
-  const existingBalances = await getTokenBalances(assetbookArray, addrHCAT721);
-  console.log('existingBalances:', existingBalances);
-  //process.exit(0);
+const getCFC_Balances_API = async () => {
+  console.log('\n---------------------==getCFC_Balances_API()');
+  const symbol = 'AVEN1902';
+  const assetbooks = assetbookArray;
+
+  const [isGood, tokenCtrtAddr, resultMesg] = await getCtrtAddr(symbol, 'crowdfunding');
+  if(isGood){
+    const cfQuantities = await getCFC_Balances(tokenCtrtAddr, assetbooks);
+    console.log(`symbol: ${symbol}, cfQuantities: ${cfQuantities}`);
+  }
+  process.exit(0);
 }
 
 //yarn run testmt -f 43
@@ -815,11 +819,41 @@ const setCloseFundingCFC_API = async() => {
 }
 
 
+//yarn run testmt -f 48
+const mintSequentialPerContract_CLI_API = async () => {
+  console.log('\n---------------------==mintSequentialPerContract_CLI_API()');
+  const symbol = nftSymbol;//'AVEN1902';
+  const [isPreMintGood, label, mesg, toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMintCaller(symbol);
+
+
+  if(isPreMintGood){
+    //----------------==doAssetRecords
+    const url2='/Contracts/doAssetRecords/'+symbol+'/';
+    const response2 = await axios.post(url2, {toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType}, config).catch(err => { 
+      console.log('[Error @ doAssetRecords]:',err);
+    });
+    const data2 = response2.data;
+    console.log(`response2: ${response2} \nsuccess: ${data2.success}
+result: ${JSON.stringify(data2.result)}`);
+
+    //----------------==mint tokens
+    const url3='/Contracts/HCAT721_AssetTokenContract/'+symbol+'/mintSequentialPerContract';
+    const response3 = await axios.post(url3, {toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType}, config).catch(err => { 
+      console.log('[Error @ mintSequentialPerContract]:',err);
+    });
+    const data2 = response3.data;
+    console.log(`response3: ${response3} \nsuccess: ${data2.success}
+result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`);
+    location.reload();
+  } else {
+    console.log(`label: ${label} \nmesg: ${mesg}`);
+  }
+}
 
 //1158,1247,1427,1619,1572,1322,1762,1888,1997,2019
 //yarn run testmt -f 49
-const mintSequentialPerCtrt_API = async () => {
-  console.log('\n---------------------==mintSequentialPerCtrt_API()');
+const mintSequentialPerContract_API = async () => {
+  console.log('\n---------------------==mintSequentialPerContract_API()');
   //const util = require('util');
   //const nftSymbol = 'AVEN1902';//'NCCU0723';
   const config={
@@ -834,7 +868,7 @@ const mintSequentialPerCtrt_API = async () => {
   // console.log(`status: ${data1.status}, result: ${JSON.stringify(data1.result)}`);
 
   console.log('nftSymbol:', nftSymbol);
-  const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
+  const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerContract';
   const body = { /* xyz: 100, price: 15000, fundingType: '2' */};
   const response2 = await axios.post(url2, body, config).catch(err => { 
     console.log('err:',err);
@@ -1095,10 +1129,10 @@ const addProductRowFromSymbol_API = async() => {
 }
 
 //yarn run testmt -f 80
-const findAllSmartContractAddrs_API = async() => {
-  console.log('\n-------------==inside findAllSmartContractAddrs_API()');
+const getAllSmartContractAddrs_API = async() => {
+  console.log('\n-------------==inside getAllSmartContractAddrs_API()');
   const tokenSymbol = 'AVEN1902';
-  const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await findAllSmartContractAddrs(tokenSymbol);
+  const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await getAllSmartContractAddrs(tokenSymbol);
   console.log(`crowdFundingAddr: ${crowdFundingAddr}, tokenControllerAddr: ${tokenControllerAddr}, hcatAddr: ${hcatAddr}, incomeManagerAddr: ${incomeManagerAddr}`);
 
   process.exit(0);
@@ -1181,10 +1215,10 @@ const addArrayOrdersIntoDB_API = async() => {
 }
 
 //yarn run testmt -f 78
-const addOrdersIntoDBnCFC = async() => {
-  console.log('\n-------------------==inside addOrdersIntoDBnCFC');
-  const userIndexArray = [1, 2, 3];
-  const tokenCountArray = [500, 700, 900];
+const addPaidOrdersIntoDBnCFC = async() => {
+  console.log('\n-------------------==inside addPaidOrdersIntoDBnCFC');
+  const userIndexArray = [2, 4, 8];
+  const tokenCountArray = [400, 800, 700];
   const fundCount = 150000;
   const paymentStatus = 'paid';
   const tokenSymbol =  nftSymbol;
@@ -1193,6 +1227,7 @@ const addOrdersIntoDBnCFC = async() => {
     console.log('\n[Error @ addArrayOrdersIntoDB()]'+ err);
   });
   console.log('addArrayOrdersIntoDB result:', result);
+  //process.exit(0);
 
   if(isTimeserverON){
     serverTime = await getTime();
@@ -1200,8 +1235,18 @@ const addOrdersIntoDBnCFC = async() => {
     serverTime = TimeOfDeployment_HCAT;
   }
   await addAssetbooksIntoCFC(serverTime);
+  process.exit(0);
+}
 
-
+//yarn run testmt -f 788
+const addAssetbooksIntoCFC_API = async() => {
+  console.log('\n-------------------==inside addPaidOrdersIntoDBnCFC');
+  if(isTimeserverON){
+    serverTime = await getTime();
+  } else {
+    serverTime = TimeOfDeployment_HCAT;
+  }
+  await addAssetbooksIntoCFC(serverTime);
   process.exit(0);
 }
 
@@ -1209,20 +1254,47 @@ const addOrdersIntoDBnCFC = async() => {
 const getTokenContractDetails_API = async() => {
   console.log('\n---------------------== getTokenContractDetails_API()');
   const actionType = 'hcat721';
-  const [isGood, targetAddr, resultMesg] = await findCtrtAddr(nftSymbol, actionType).catch((err) => {
-    console.log('[Error @findCtrtAddr]:'+ err);
+  const [isGood, targetAddr, resultMesg] = await getCtrtAddr(nftSymbol, actionType).catch((err) => {
+    console.log('[Error @getCtrtAddr]:'+ err);
     return false;
   });
   console.log(`\n${resultMesg}. actionType: ${actionType}, targetAddr: ${targetAddr}`);
   if(isGood){
     const result = await getTokenContractDetails(targetAddr);
     console.log('returned values:', result);
-  
   } else {
-
+    console.log('isGood is false...');
   }
+  process.exit(0);
 }
 
+//yarn run testmt -f 82
+const setTokenController_API = async() => {
+  console.log('\n---------------------== setTokenController_API()');
+  const symbol = 'AVEN1902';
+  const [isGood, tokenControllerCtrtAddr, resultMesg] = await getCtrtAddr(symbol, 'tokencontroller');
+  if(isGood){
+    const result = await setTokenController(tokenControllerCtrtAddr);
+    console.log('result:', result);
+  }
+  process.exit(0);
+}
+
+
+
+//yarn run testmt -f 83
+const getTokenBalances_API = async () => {
+  console.log('\n---------------------==getTokenBalances_API()');
+  const symbol = 'AVEN1902';
+  const assetbooks = assetbookArray;
+
+  const [isGood, tokenCtrtAddr, resultMesg] = await getCtrtAddr(symbol, 'hcat721');
+  if(isGood){
+    const existingBalances = await getTokenBalances(tokenCtrtAddr, assetbooks);
+    console.log('existingBalances:', existingBalances);
+  }
+  process.exit(0);
+}
 
 //------------------------------==
 //yarn run testmt -f 100
@@ -1435,23 +1507,6 @@ const intergrationTestOfProduct = async() => {
 }
 
 
-//------------------------------==
-//yarn run testmt -f 95
-const checkAssetbookArray_API = async() => {
-  console.log('\n---------------------==checkAssetbookArray_API()');
-  const addressArray = [...assetbookArray, '0x5Fd93F8a4B023D837f0b04bb2836Daf535BfeFBF'];
-  const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
-    console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). addressArray: ${addressArray}`);
-    return false;
-  });
-  if(checkResult.includes(false)){
-    console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
-    return false;
-  } else {
-    console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
-  }
-}
-
 
 //------------------------------==
 //yarn run testmt -f 91
@@ -1498,14 +1553,28 @@ const checkTargetAmounts_API = async () => {
   console.log('balanceArrayBefore:', balanceArrayBefore, ', targetAmounts:', targetAmounts, ', result:', result, ', isAllGood:', isAllGood);
 }
 
-
+//yarn run testmt -f 95
+const checkAssetbookArray_API = async() => {
+  console.log('\n---------------------==checkAssetbookArray_API()');
+  const addressArray = [...assetbookArray, '0x5Fd93F8a4B023D837f0b04bb2836Daf535BfeFBF'];
+  const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
+    console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). addressArray: ${addressArray}`);
+    return false;
+  });
+  if(checkResult.includes(false)){
+    console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+    return false;
+  } else {
+    console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+  }
+}
 
 //yarn run testmt -f 103
-const findSymbolFromCtrtAddr_API = async() => {
-  console.log('\n---------------------==findSymbolFromCtrtAddr_API()');
+const getSymbolFromCtrtAddr_API = async() => {
+  console.log('\n---------------------==getSymbolFromCtrtAddr_API()');
   const ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
   const ctrtType = 'crowdfunding';
-  const [isGood, symbol, resultMesg] = await findSymbolFromCtrtAddr(ctrtAddr, ctrtType);
+  const [isGood, symbol, resultMesg] = await getSymbolFromCtrtAddr(ctrtAddr, ctrtType);
   console.log(`\n${resultMesg}.\nisGood: ${isGood}, symbol found: ${symbol}`);
   process.exit(0);
 }
@@ -1728,7 +1797,7 @@ if(func === 0){
 
 //yarn run testmt -f 42
 } else if (func === 42) {
-  getTokenBalances_API();
+  getCFC_Balances_API();
 
 //yarn run testmt -f 43
 } else if (func === 43) {
@@ -1750,9 +1819,13 @@ if(func === 0){
 } else if (func === 47) {
   investTokensInBatch_API();
 
+//yarn run testmt -f 48
+} else if (func === 48) {
+  mintSequentialPerContract_CLI_API();
+
 //yarn run testmt -f 49
 } else if (func === 49) {
-  mintSequentialPerCtrt_API();
+  mintSequentialPerContract_API();
 
 //yarn run testmt -f 50
 } else if (func === 50) {
@@ -1841,7 +1914,11 @@ if(func === 0){
 
 //yarn run testmt -f 78
 } else if (func === 78) {
-  addOrdersIntoDBnCFC();
+  addPaidOrdersIntoDBnCFC();
+
+//yarn run testmt -f 788
+} else if (func === 788) {
+  addAssetbooksIntoCFC_API();
 
 //yarn run testmt -f 79
 } else if (func === 79) {
@@ -1849,14 +1926,40 @@ if(func === 0){
 
 //yarn run testmt -f 80
 } else if (func === 80) {
-  findAllSmartContractAddrs_API();
+  getAllSmartContractAddrs_API();
 
-//yarn run testmt -f 81
-} else if (func === 73) {
-  intergrationTestOfProduct()
-
-}else if (func === 81) {
+} else if (func === 81) {
   getPastScheduleTimes_API();
+
+//yarn run testmt -f 82
+} else if (func === 82) {
+  setTokenController_API();
+
+//yarn run testmt -f 83
+} else if (func === 83) {
+  getTokenBalances_API();
+
+//yarn run testmt -f 84
+} else if (func === 84) {
+
+
+//yarn run testmt -f 85
+} else if (func === 85) {
+
+//yarn run testmt -f 86
+} else if (func === 86) {
+
+//yarn run testmt -f 87
+} else if (func === 87) {
+
+//yarn run testmt -f 88
+} else if (func === 88) {
+
+//yarn run testmt -f 89
+} else if (func === 89) {
+
+//yarn run testmt -f 90
+} else if (func === 90) {
 
 
 //yarn run testmt -f 91
@@ -1879,12 +1982,12 @@ if(func === 0){
 } else if (func === 95) {
   checkAssetbookArray_API();
 
-//yarn run testmt -f 103
+//yarn run testmt -f 100
 }else if(func === 100){
   intergrationTestOfProduct();
 
 } else if (func === 103) {
-  findSymbolFromCtrtAddr_API();
+  getSymbolFromCtrtAddr_API();
 
 //yarn run testmt -f 141
 } else if (func === 141) {

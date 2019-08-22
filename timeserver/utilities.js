@@ -21,6 +21,15 @@ const sLog = str => {
   }
 }
 
+const checkEq = (value1, value2) => {
+  if (value1 === value2) {
+    console.log('checked ok');
+  } else {
+    console.log("\x1b[31m", '[Error] _' + value1 + '<vs>' + value2 + '_', typeof value1, typeof value2);
+    const err = Error('checkEq failed');
+    //process.exit(1);
+  }
+}
 //----------------------------==
 const isEmpty = value => 
     value === undefined ||
@@ -354,5 +363,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, sLog, isEmpty, isAllTrueBool, getTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
+  reduceArrays, checkEq, sLog, isEmpty, isAllTrueBool, getTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
 }

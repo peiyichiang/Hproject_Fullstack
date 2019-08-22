@@ -11,6 +11,18 @@ const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAsse
 
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray} = require('../ethereum/contracts/zsetupData');
 
+const { userArray } = require('../ethereum/contracts/zTestParameters');
+const userIdentityNumberArray = [];
+const investorLevelArray = [];
+const assetbookArray = [];
+userArray.forEach((user, idx) => {
+  if (idx !== 0 ){
+    userIdentityNumberArray.push(user.identityNumber);
+    investorLevelArray.push(user.investorLevel);
+    assetbookArray.push(user.addrAssetBook);
+  }
+});
+
 const serverTimeMin = 201905270900;
 
 const DatabaseCredential = {
@@ -238,10 +250,10 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
 
 
 //-------------------==Add users
-const addUsersIntoDB = async(userArray) => {
+const addUsersIntoDB = async(users) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addUsersIntoDB()');
-    const result = await asyncForEach(userArray, async (user, idx) => {
+    const result = await asyncForEach(users, async (user, idx) => {
       const email = user.email;
       const password = user.password;
       const identityNumber = user.identityNumber;
@@ -328,10 +340,10 @@ const deleteOrderRows = (tokenSymbol) => {
   });
 }
 
-const addUserArrayOrdersIntoDB = async(userArray, fundCount, paymentStatus, tokenSymbol) => {
+const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addUserArrayOrdersIntoDB()');
-    await asyncForEach(userArray, async (user, idx) => {
+    await asyncForEach(users, async (user, idx) => {
       const identityNumber = user.identityNumber;
       const email = user.email;
       const tokenCount = user.tokenOrderAmount;
@@ -354,6 +366,15 @@ const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, fundCount, p
     if(userIndexArray.length !== tokenCountArray.length){
       reject('userIndexArray and tokenCountArray should have the same length');
     }
+    const maxIndex = assetbookArray.length -1;
+    userIndexArray.forEach((index, idx)=> {
+      if(index > maxIndex || index < 0) {
+        let mesg = `index should not be > maxIndex of ${maxIndex}. index value: ${index}`;
+        console.log(mesg);
+        reject(mesg);
+      }
+    });
+    console.log('All index values have been checked good.');
 
     await asyncForEach(userIndexArray, async (userIndex, idx) => {
       const user = userArray[userIndex];
@@ -982,17 +1003,17 @@ const getTokenStateDB = (symbol) => {
 }
 
 
-const findAllSmartContractAddrs = async(symbol) => {
+const getAllSmartContractAddrs = async(symbol) => {
   return new Promise(async(resolve, reject) => {
-    console.log('\n---------==inside findAllSmartContractAddrs');
+    console.log('\n---------==inside getAllSmartContractAddrs');
     let mesg;
     const queryStr1 = 'SELECT * FROM smart_contracts WHERE sc_symbol = ?';
     const ctrtAddrResult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
-        reject('[Error @ findAllSmartContractAddrs:'+ err);
+        reject('[Error @ getAllSmartContractAddrs:'+ err);
       });
     const ctrtAddrResultLen = ctrtAddrResult.length;
-    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultLen, ', ctrtAddrResult:', ctrtAddrResult);
+
     if(ctrtAddrResultLen == 0){
       resolve([false, undefined, `[Error] no contract row is found for ${symbol}`]);
     } else if(ctrtAddrResultLen > 1){
@@ -1007,10 +1028,11 @@ const findAllSmartContractAddrs = async(symbol) => {
   });
 }
 
-// findCtrtAddr(symbol, 'incomemanager')
-const findCtrtAddr = async(symbol, ctrtType) => {
+// getCtrtAddr(symbol, 'incomemanager')
+// getCtrtAddr(symbol, 'tokencontroller')
+const getCtrtAddr = async(symbol, ctrtType) => {
   return new Promise(async(resolve, reject) => {
-    //console.log('\n---------==inside findCtrtAddr');
+    //console.log('\n---------==inside getCtrtAddr');
     let scColumnName, mesg;
     if(ctrtType === 'incomemanager'){
       scColumnName = 'sc_incomeManagementaddress';
@@ -1029,10 +1051,10 @@ const findCtrtAddr = async(symbol, ctrtType) => {
     const queryStr1 = 'SELECT '+scColumnName+' FROM smart_contracts WHERE sc_symbol = ?';
     const ctrtAddrResult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
-        reject('[Error @ findCtrtAddr:'+ err);
+        reject('[Error @ getCtrtAddr:'+ err);
       });
     const ctrtAddrResultLen = ctrtAddrResult.length;
-    //console.log('\nArray length @ findCtrtAddr:', ctrtAddrResultLen, ', ctrtAddrResult:', ctrtAddrResult);
+    //console.log('\nArray length @ getCtrtAddr:', ctrtAddrResultLen, ', ctrtAddrResult:', ctrtAddrResult);
     if(ctrtAddrResultLen == 0){
       resolve([false, undefined, `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
     } else if(ctrtAddrResultLen > 1){
@@ -1048,9 +1070,9 @@ const findCtrtAddr = async(symbol, ctrtType) => {
   });
 }
 
-const findSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
+const getSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
   return new Promise(async(resolve, reject) => {
-    //console.log('\n---------==inside findSymbolFromCtrtAddr');
+    //console.log('\n---------==inside getSymbolFromCtrtAddr');
     let scColumnName, mesg;
     if(ctrtType === 'incomemanager'){
       scColumnName = 'sc_incomeManagementaddress';
@@ -1068,11 +1090,11 @@ const findSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
     }
     const queryStr1 = 'SELECT sc_symbol from smart_contracts where '+ scColumnName+' = ?';
     const symbolResult = await mysqlPoolQueryB(queryStr1, [ctrtAddr]).catch((err) => {
-      reject('[Error @ findSymbolFromCtrtAddr]'+err);
+      reject('[Error @ getSymbolFromCtrtAddr]'+err);
     });
 
     const symbolResultLen = symbolResult.length;
-    //console.log('\nArray length @ findSymbolFromCtrtAddr:', symbolResultLen, ', symbolResult:', symbolResult);
+    //console.log('\nArray length @ getSymbolFromCtrtAddr:', symbolResultLen, ', symbolResult:', symbolResult);
     if(symbolResultLen == 0){
       resolve([false, undefined, `[Error] no symbol is found for ${ctrtType} contract address$ {ctrtAddr}`]);
     } else if(symbolResultLen > 1){
@@ -1191,7 +1213,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   acIncomePaymentArray: ${acIncomePaymentArray}`);
 
   
-  //const crowdFundingAddr = await findCtrtAddr(symbol, 'hcat721');
+  //const crowdFundingAddr = await getCtrtAddr(symbol, 'hcat721');
   const queryStr2 = 'SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?';
   await asyncForEach(symbolArray, async (symbol, index) => {
     const result2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
@@ -1320,5 +1342,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, findCtrtAddr, findSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, findAllSmartContractAddrs
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs
 }
