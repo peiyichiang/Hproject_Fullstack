@@ -1,0 +1,8 @@
+image: node:10
+
+before_script:
+  - yarn install
+  
+test:
+  script:
+  - yarn run testmt -f 100
