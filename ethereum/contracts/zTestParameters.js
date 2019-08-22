@@ -1,5 +1,7 @@
 const { symbolNumber, isTimeserverON, admin, adminpkRaw } = require('../../timeserver/envVariables');
 const { sLog } = require('../../timeserver/utilities');
+var faker = require('faker');
+var _ = require('lodash');
 
 sLog(`\n------------------==zTestParameters.js`);
 const AssetOwner1 = '0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2';
@@ -117,8 +119,10 @@ function nowDateAddMinites(date ,min){
 //productDate = today's Date. ex: 0725 
 let nowDate = new Date()
 let productDate = paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2)
+var p_name = faker.name.findName()
+console.log()
 
-const productObj0 = new productObject("TSTA" + productDate, "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 1, "", "", "", "");
+const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + productDate, p_name, faker.address.streetAddress() + faker.address.city() + faker.address.country(), 1000000000, 900000000, 73310, Math.floor(Math.random()*100000) , "NTD", 530, 20, 1, "", "", "", "");
 
 
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
@@ -346,7 +350,7 @@ duration: ${duration}, fundingType: ${fundingType}
 `);
 
 
-module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
+module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate,
   
 }
 /**

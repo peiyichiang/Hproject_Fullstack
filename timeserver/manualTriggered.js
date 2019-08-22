@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid,
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate
    } = require('../ethereum/contracts/zTestParameters');
 
 const { symbolNumber, isTimeserverON } = require('./envVariables');
@@ -1055,7 +1055,7 @@ const deployIncomeManagerContract_API = async () => {
         console.log('\n[Error]'+ err);
       });
       console.log(`result_deployment: ${isGood}, IncomeManager_Addr: ${IncomeManager_Addr}`);
-
+      
     } else {
       const IncomeManager_Addr = '';
       const result = await checkDeploymentIncomeManager(IncomeManager_Addr, argsIncomeManager);
@@ -1227,10 +1227,23 @@ const getTokenContractDetails_API = async() => {
 //------------------------------==
 //yarn run testmt -f 100
 const intergrationTestOfProduct = async() => {
+  function paddingLeft(str,lenght){
+    if(str.length >= lenght)
+      return str;
+    else
+      return paddingLeft("0" +str,lenght);
+  }
+  
+  function nowDateAddMinites(min){
+     nowDate.setTime(nowDate.setMinutes(nowDate.getMinutes() + min))
+    return nowDate.getFullYear() + paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2) + paddingLeft(String(nowDate.getHours()), 2) + paddingLeft(String(nowDate.getMinutes()), 2)
+  
+  }
   let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid
+  let acCFSD, acCFED, acTimeOfDeployment_CF;
+
   const _deployCrowdfundingContract_API = async () => {
     console.log('\n---------------------==deployCrowdfundingContract_API()');
-    let acCFSD, acCFED, acTimeOfDeployment_CF;
     const isToDeploy = 1;
     if(timeChoice === 1){
       acTimeOfDeployment_CF = getLocalTime();
@@ -1241,7 +1254,10 @@ const intergrationTestOfProduct = async() => {
       acCFSD = CFSD;
       acCFED = CFED;
     }
-    
+    acTimeOfDeployment_CF = getLocalTime();
+    acCFSD = nowDateAddMinites(1)
+    acCFED = nowDateAddMinites(10)
+
     console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacTimeOfDeployment_CF: ${acTimeOfDeployment_CF}, acCFSD: ${acCFSD}, acCFED: ${acCFED}`);
     const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium];
   
@@ -1365,7 +1381,7 @@ const intergrationTestOfProduct = async() => {
       if(isToDeploy === 1){
         const result_deployment = await deployIncomeManagerContract(argsIncomeManager);
         console.log(`result_deployment: ${result_deployment}`);
-        incomeManagerAddr = result_deployment
+        incomeManagerAddr = result_deployment.IncomeManager_Addr
       } else {
         const IncomeManager_Addr = '';
         const result = await checkDeploymentIncomeManager(IncomeManager_Addr, argsIncomeManager);
@@ -1377,16 +1393,16 @@ const intergrationTestOfProduct = async() => {
   }
   const _addProduct = async() => {
     console.log('\n-------------==inside addProductRow section');
-    const state = 'FundingClosed';
+    const state = 'funding';
     let TimeReleaseDate;
     if(isTimeserverON){
-      TimeReleaseDate = getTime();
+      TimeReleaseDate = getLocalTime();
     } else {
       TimeReleaseDate = TimeOfDeployment_HCAT;
     }
     console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
     console.log(`\nsymbolNumber: ${symbolNumber}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
-    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, CFSD, CFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, acCFSD, acCFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
       console.log('\n[Error @ addProductRow()]'+ err);
     });
   }  
@@ -1414,7 +1430,6 @@ const intergrationTestOfProduct = async() => {
     const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
-    
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
     const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
@@ -1424,14 +1439,16 @@ const intergrationTestOfProduct = async() => {
 
   }
 
-  await _deployCrowdfundingContract_API()
-  await _deployTokenControllerContract_API()
-  await _deployHCATContract_API()
-  await _deployIncomeManagerContract_API()
-  await _addProduct()
-  await _addCtrt()
-  await _deployProductManager()
-  await _addIncomeArrangement()
+  await _deployCrowdfundingContract_API();
+  await _deployTokenControllerContract_API();
+  await _deployHCATContract_API();
+  await _deployIncomeManagerContract_API();
+  await _addProduct();
+  await _addCtrt();
+  await _deployProductManager();
+  await _addIncomeArrangement();
+  process.exit(0);
+
 }
 
 
