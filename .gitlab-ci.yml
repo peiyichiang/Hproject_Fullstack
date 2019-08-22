@@ -3,7 +3,7 @@ image: node:10
 before_script:
   - npm install
   - yarn install
-  
+  - yarn run solc
 test:
   script:
   - yarn run testmt -f 100
