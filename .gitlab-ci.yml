@@ -1,6 +1,7 @@
 image: node:10
 
 before_script:
+  - npm install
   - yarn install
   
 test:
