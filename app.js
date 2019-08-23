@@ -24,7 +24,7 @@ var incomeManagementRouter = require('./routes/IncomeManagementAPI');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
-var paymentGWRouter = require('./routes/PaymentGW');
+var paymentRouter = require('./routes/Payment');
 var ContractsRouter = require('./routes/Contracts');
 // var usersRouter = require('./routes/users');
 
@@ -98,7 +98,7 @@ app.post('/upload', cpUpload, function (req, res, next) {
 //有容
 app.use('/user', userRouter);
 app.use('/Order', orderRouter);
-app.use('/paymentGW', paymentGWRouter);
+app.use('/payment', paymentRouter);
 app.use('/Contracts', ContractsRouter);
 app.use('/incomeManagementAPI',incomeManagementRouter)
 
