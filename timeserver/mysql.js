@@ -326,7 +326,7 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
   return new Promise(async(resolve, reject) => {
     console.log('\n-----------==addOrderRow');
     console.log('inside addOrderRow. paymentStatus', paymentStatus, ', symbol', symbol);
-    const timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
+    const timeStamp = Date.now() / 1000 | 0;//... new Date().getTimeServerTime();
     const currentDate = new Date().myFormat();//yyyymmddhhmm
     console.log('currentDate:', currentDate, ', timeStamp', timeStamp);
     const nationalIdLast5 = nationalId.toString().slice(-5);
@@ -862,7 +862,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
       inputArray.forEach( (item, idx) => emailArray.push(item) );
 
     } else {
-      console.log('all input values are okay');
+      console.log('all input values are good');
       const queryStr4 = 'SELECT u_email FROM user WHERE u_assetbookContractAddress = ?';
       await asyncForEachAssetRecordRowArray(inputArray, async (addrAssetbook, index) => {
         const result4 = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {

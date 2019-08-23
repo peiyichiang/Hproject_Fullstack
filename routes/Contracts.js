@@ -7,9 +7,9 @@ const amqp = require('amqplib/callback_api');
 
 const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger } = require('../timeserver/envVariables');
 
-const { getTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
+const { getTimeServerTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 
-const { doAssetRecords, sequentialMintSuper, preMint, preMintCaller, mintSequentialPerContract, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
+const { doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
 const { findCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
@@ -38,7 +38,7 @@ const management = [process.env.HELIUM_ADMIN, process.env.HELIUM_CHAIRMAN, proce
 
 const addrZero = "0x0000000000000000000000000000000000000000";
 /**time server*/
-getTime().then(function (time) {
+getTimeServerTime().then(function (time) {
     console.log(`[Contracts.js] server time: ${time}`)
 })
 
@@ -217,7 +217,7 @@ router.post('/crowdFundingContract/:tokenSymbol', async function (req, res, next
     let CFSD2 = parseInt(req.body.CFSD2);
     let CFED2 = parseInt(req.body.CFED2);
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);
@@ -270,7 +270,7 @@ router.post('/crowdFundingContract/:tokenSymbol/investors/:assetBookAddr', async
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);
@@ -388,7 +388,7 @@ router.post('/crowdFundingContract/:tokenSymbol/pause', async function (req, res
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`)
@@ -431,7 +431,7 @@ router.post('/crowdFundingContract/:tokenSymbol/resume', async function (req, re
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);
@@ -478,7 +478,7 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
     let tokenSymbol = req.params.tokenSymbol;
     let mysqlPoolQuery = req.pool;
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);
@@ -628,7 +628,7 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
     nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
     pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);
@@ -1019,7 +1019,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
     nftSymbolBytes32 = web3.utils.fromAscii(nftSymbol);
     pricingCurrencyBytes32 = web3.utils.fromAscii(pricingCurrency);
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);
@@ -1199,7 +1199,7 @@ router.post('/doAssetRecordsCaller/:symbol/', async function (req, res, next) {
   const fundingType = req.body.fundingType;
 
   let isSuccess = false, mesg = '';//PO: 1, PP: 2
-  const [[is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await doAssetRecordsCaller(toAddressArray, amountArray, symbol, pricing);
+  const [is_addAssetRecordRowArray, emailArrayError, amountArrayError, is_addActualPaymentTime, is_setFundingStateDB] = await doAssetRecordsCaller(toAddressArray, amountArray, symbol, pricing);
 
   console.log(`\nSuccess: ${isSuccess} \n${mesg}`);
 
@@ -1216,13 +1216,26 @@ router.post('/doAssetRecordsCaller/:symbol/', async function (req, res, next) {
 });
 
 
-router.post('/HCAT721_AssetTokenContract/:symbol/preMintCaller', async function (req, res, next) {
-  console.log(`\n---------------------==API preMintCaller...`);
+router.post('/HCAT721_AssetTokenContract/:symbol/preMint', async function (req, res, next) {
+  console.log(`\n---------------------==API preMint...`);
   const symbol = req.params.symbol;
-  const [isPreMintGood, label, mesg, toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType] = await preMintCaller(symbol);
+  let mesg= '';
+  const [is_preMint, mesg_preMint, addressArray, amountArray, tokenCtrtAddr, fundingType, pricing] = await preMint(symbol).catch((err) => {
+    mesg = `[Error] failed @ preMint(). err: ${err}`;
+    console.error(mesg);
+    return false;
+  });
+  console.log(`--------------==Returned values from preMint(): \nis_preMint: ${is_preMint}, mesg_preMint: ${mesg_preMint}
+  \naddressArray: ${addressArray} \namountArray: ${amountArray} \ntokenCtrtAddr: ${tokenCtrtAddr}, \npricing: ${pricing}, fundingType: ${fundingType}`);
+
+  const isNumberArray = amountArray.map((item) => {
+    return typeof item === 'number';
+  });
+  console.log(`isNumberArray: ${isNumberArray}`);
+
   res.send({
-    isPreMintGood: isPreMintGood, label: label, mesg: mesg,
-    toAddressArray: toAddressArray, amountArray: amountArray, tokenCtrtAddr: tokenCtrtAddr, pricing: pricing, fundingType: fundingType
+    is_preMint: is_preMint, mesg_preMint: mesg_preMint,
+    addressArray: addressArray, amountArray: amountArray, tokenCtrtAddr: tokenCtrtAddr, fundingType: fundingType, pricing: pricing
   });
 });
 
@@ -1231,16 +1244,16 @@ router.post('/HCAT721_AssetTokenContract/:symbol/preMintCaller', async function 
 router.post('/HCAT721_AssetTokenContract/:symbol/mintSequentialPerContract', async function (req, res, next) {
     console.log(`\n---------------------==API mintSequentialPerContract...`);
     const symbol = req.params.symbol;
-    const toAddressArray = req.body.toAddressArray;
-    const amountArray = req.body.amountArray;
-    const tokenCtrtAddr = req.body.tokenCtrtAddr;
-    const pricing = req.body.pricing;
-    const fundingType = req.body.fundingType;
+    const maxMintAmountPerRun = 190;
+    const serverTime = await getTimeServerTime();
+    console.log('serverTime:', serverTime);
 
     res.send({
-      success: 'to be verified',
+      success: 'in process...',
     });
-    mintSequentialPerContract(symbol, toAddressArray, amountArray, tokenCtrtAddr, pricing, fundingType);
+  
+    const [is_preMint, is_doAssetRecords, is_addActualPaymentTime, is_setFundingStateDB, is_sequentialMintSuper] = await mintSequentialPerContract(symbol, serverTime, maxMintAmountPerRun);
+    console.log(`is_preMint: ${is_preMint}, is_doAssetRecords: ${is_doAssetRecords}, is_addActualPaymentTime: ${is_addActualPaymentTime}, is_setFundingStateDB: ${is_setFundingStateDB}, is_sequentialMintSuper: ${is_sequentialMintSuper}`);
 });
 
 
@@ -1405,7 +1418,7 @@ router.post('/incomeManagerContract/:nftSymbol', async function (req, res, next)
     let nftSymbol = req.params.nftSymbol;
     let erc721address = req.body.erc721address;
     let currentTime;
-    await getTime().then(function (time) {
+    await getTimeServerTime().then(function (time) {
         currentTime = time;
     })
     console.log(`current time: ${currentTime}`);

@@ -42,7 +42,7 @@ const isAllTruthy = myObj => myObj.every(function(i) { return i; });
 const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myObj[k] === true });//If you really want to check for true rather than just a truthy value
 
 
-const getTime = () => {
+const getTimeServerTime = () => {
   return new Promise(function (resolve, reject) {
     try {
       let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString();
@@ -226,33 +226,41 @@ async function asyncForEachAssetRecordRowArray2(inputArray, callback) {
 
 
 const checkTargetAmounts = (existingBalances, targetAmounts) => {
-  //console.log('\n-----------------==\ninside breakdownArray');
+  let mesg = '', isAllGood;
+  const isGoodArray = [];
+
   if(isEmpty(existingBalances) || isEmpty(targetAmounts)){
-    console.log('existingBalances or targetAmounts is emtpy!');
-    return [undefined, undefined];
+    mesg = 'existingBalances or targetAmounts is emtpy!';
+    //throw new Error(mesg);
+    console.log(mesg);
+    return [isGoodArray, false];
   }
   if(existingBalances.length !== targetAmounts.length){
-    console.log('existingBalances and targetAmounts are of different length');
-    return [undefined, undefined];
+    mesg = 'existingBalances and targetAmounts are of different length';
+    //throw new Error(mesg);
+    console.log(mesg);
+    return [isGoodArray, false];
   }
-  const result = [];  let isAllGood;
+
   existingBalances.forEach((item,idx) => {
-    //console.log(`cur= ${item}, idx= ${idx}`);
     const boolValue = item <= targetAmounts[idx];
-    result.push(boolValue);
-    if(!boolValue){
-      isAllGood = false;
-    };
+    isGoodArray.push(boolValue);
   });
-  if(isAllGood === undefined){isAllGood = true;}
-  return [result, isAllGood];
+  if(isGoodArray.includes(false)){
+    isAllGood = false
+  } else {
+    isAllGood = true;
+  }
+  return [isGoodArray, isAllGood];
 }
 
 const breakdownArray = (toAddress, amount, maxMintAmountPerRun) => {
   console.log('\n-----------------==\ninside breakdownArray: amount', amount, '\ntoAddress', toAddress);
-
+  let mesg = '';
   if(isEmpty(toAddress) || isEmpty(amount) || isEmpty(maxMintAmountPerRun)){
-    console.log('toAddress, amount, or maxMintAmountPerRun is not valid!');
+    mesg = 'toAddress, amount, or maxMintAmountPerRun is not valid!';
+    console.log(mesg);
+    //throw new Error();
     return [undefined, undefined];
   }
   const toAddressOut = [];
@@ -363,5 +371,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isAllTrueBool, getTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
+  reduceArrays, checkEq, sLog, isEmpty, isAllTrueBool, getTimeServerTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
 }

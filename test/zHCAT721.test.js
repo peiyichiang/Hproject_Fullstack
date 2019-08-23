@@ -225,7 +225,17 @@ let argsAssetBook1, argsAssetBook2, argsAssetBook3;
 let instAssetBook1, instAssetBook2, instAssetBook3;
 let addrAssetBook1, addrAssetBook2, addrAssetBook3;
 
-const { TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED } = require('../ethereum/contracts/zsetupData');
+// const { TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED } = require('../ethereum/contracts/zTestParameters');
+//const { checkAssetbook } = require('../timeserver/blockchain');
+
+TimeOfDeployment_CF = 201905281410;
+CFSD = TimeOfDeployment_CF+10;
+CFED = TimeOfDeployment_CF+15;
+TimeOfDeployment_TokCtrl = TimeOfDeployment_CF + 20;
+TimeOfDeployment_HCAT = TimeOfDeployment_CF + 21;
+TimeOfDeployment_IM = TimeOfDeployment_CF + 22;
+TimeTokenUnlock = TimeOfDeployment_CF+30; 
+TimeTokenValid =  TimeOfDeployment_CF+90;
 
 const tokenName = "NCCU site No.1(2018)";
 const tokenSymbol = "NCCU1801";
@@ -352,7 +362,6 @@ beforeEach( async function() {
     addrAssetBook3 = instAssetBook3.options.address;
     console.log('addrAssetBook3:', addrAssetBook3);
 
-    
     //Deploying Registry contract...
     console.log('\nDeploying Registry contract...');
     const argsRegistry = [addrHeliumCtrt];
@@ -456,6 +465,27 @@ describe('Tests on HCAT721Ctrt', () => {
 
   it('AssetBook, Registry, HCAT721 functions test', async function() {
     this.timeout(19500);
+
+    const checkAssetbook = async(addrAssetbookX) => {
+      return new Promise( async ( resolve, reject ) => {
+        console.log('-----------==inside checkAssetbook()');
+        try{
+          const instAssetbook = new web3.eth.Contract(AssetBook.abi, addrAssetbookX);
+          const assetOwnerM = await instAssetbook.methods.assetOwner().call();
+          const lastLoginTimeM = await instAssetbook.methods.lastLoginTime().call();
+          const assetCindexM = await instAssetbook.methods.assetCindex().call();
+          console.log(`checkAssetbook()... assetOwnerM: ${assetOwnerM}
+          lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
+          resolve([true, assetOwnerM, lastLoginTimeM, assetCindexM]);
+        } catch(err) {
+          console.log(`[Error] checkAssetbook() failed at addrAssetbookX: ${err} ${addrAssetbookX} <===================================`);
+          resolve([false, undefined, undefined, undefined]);
+        }
+      });
+    }
+    const result001 = await checkAssetbook(addrAssetBook1);
+    console.log(`--------------== ${result001}`);
+    //process.exit(0);
 
     console.log('\n------------==Check deployment');
     assert.ok(addrHeliumCtrt);
