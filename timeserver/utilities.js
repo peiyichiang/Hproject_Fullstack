@@ -125,7 +125,7 @@ const getInputArrays = (arraylength = 3) => {
     process.exit(1);
 
   } else if(arraylength > 10 || arraylength < 1) {
-    console.error('[Error] arraylength should be <= 10 and >= 1');
+    console.error('[Error] arraylength should be <= 10 or >= 1');
     process.exit(1);
   }
   const totalAmountToInvest = 750 * arraylength;
