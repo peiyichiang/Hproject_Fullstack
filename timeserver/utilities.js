@@ -54,6 +54,7 @@ const getTimeServerTime = () => {
     }
   });
 }
+
 const getLocalTime = () => parseInt(new Date().myFormat());
 
 Date.prototype.myFormat = function () {
@@ -127,6 +128,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     console.error('[Error] arraylength should be <= 10 and >= 1');
     process.exit(1);
   }
+  const totalAmountToInvest = 750 * arraylength;
   
   const userIndexArray = [];
   const tokenCountArray = [];
@@ -135,7 +137,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     do{
       usrIdx = getUsrIdx();
     }while(userIndexArray.includes(usrIdx))
-    
+
     userIndexArray.push(usrIdx);
 
     if(idx === arraylength-1){

@@ -4,7 +4,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log;
 
-const { getTime } = require('./utilities');
+const { getTimeServerTime } = require('./utilities');
 const { timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./envVariables');
 const { calculateLastPeriodProfit } = require('../timeserver/mysql');
 const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED } = require('./blockchain.js');
@@ -24,7 +24,7 @@ if(timeserverMode === 1){
 // '10 * * * * *'  ... for every 10th seconds
 // '59 * * * * *'  ... for every 59th seconds
 schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
-    getTime().then(function (time) {
+    getTimeServerTime().then(function (time) {
       console.log(`----------------==[timeserverSource.js]
 get time from time.txt or localTime: ${time}`);
     });
