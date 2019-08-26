@@ -3,6 +3,7 @@ image: node:10
 before_script:
   - npm install
   - yarn install
+  - timedatectl set-timezone "Asia/Taipei"
   - yarn run solc
 test:
   script:
