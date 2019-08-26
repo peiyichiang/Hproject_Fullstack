@@ -7,6 +7,9 @@ router.get('/crowdfunding', function (req, res, next) {
   res.render('crowdfunding', {contractType: 'Crowdfunding'});
 });
 
+router.get('/tokenController', function (req, res, next) {
+  res.render('tokenController', {contractType: 'TokenController'});
+});
 
 // router.post('/ContractExplorer', function (req, res, next) {
 //     console.log('inside button response...');
@@ -46,7 +49,7 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
+            if(decoded.exp<dateNow.getLocalTime()/1000){
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }

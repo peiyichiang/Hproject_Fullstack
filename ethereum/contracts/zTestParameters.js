@@ -151,7 +151,7 @@ const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 
 
-// const currentTime = await timer.getTime();
+// const currentTime = await timer.getTimeServerTime();
 // console.log('currentTime', currentTime);
 let TimeOfDeployment_CF, CFSD, CFED, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid;
 if(isTimeserverON){
