@@ -65,6 +65,90 @@ const checkBoolTrueArray = (item) => item;
 const checkInt =(item) => Number.isInteger(item);
 const checkIntFromOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
 
+const arraySum = arr => arr.reduce((a,b) => a + b, 0);
+
+const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
+
+const getAllIndexes = (arr, val) => {
+  var indexes = [], i;
+  for(i = 0; i < arr.length; i++){
+      if (arr[i] === val) indexes.push(i);
+  }
+  return indexes;
+}
+
+const reduceArrays = (toAddressArray, amountArray) => {
+  const toAddressArrayOut = [...new Set(toAddressArray)];
+  console.log('toAddressArrayOut', toAddressArrayOut);
+
+  const amountArrayOut = [];
+  for(let i = 0; i < toAddressArrayOut.length; i++){
+    indexes = getAllIndexes(toAddressArray, toAddressArrayOut[i]);
+    console.log('indexes', indexes);
+    sum = sumIndexedValues(indexes, amountArray);
+    amountArrayOut.push(sum);
+  }
+  console.log('amountArrayOut', amountArrayOut);
+  return [toAddressArrayOut, amountArrayOut];
+}
+
+const arraysSortedEqual = (array1, array2) => {
+  if (array1 === array2) return true;
+  if (array1 == null || array2 == null) return false;
+  if (array1.length != array2.length) return false;
+
+  // If you don't care about the order of the elements inside
+  // the array, you should sort both arrays here.
+  // Please note that calling sort on an array will modify that array.
+  // you might want to clone your array first.
+
+  let array1out = array1.sort((a, b) => a - b); // For ascending sort
+  let array2out = array2.sort((a, b) => a - b); // For ascending sort
+  //numArray.sort((array1, array2) => array2 - array1); // For descending sort
+
+  for (let i = 0; i < array1out.length; ++i) {
+    if (array1out[i] !== array2out[i]) return false;
+  }
+  return true;
+}
+
+const getRndIntegerBothEnd = ((min, max) => {
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+});
+const getUsrIdx = () => getRndIntegerBothEnd(1, 10);// 1 ~ 10
+
+const getInvestQty = () => getRndIntegerBothEnd(500,1000);
+
+const getInputArrays = () => {
+  let arraylength, totalAmountToInvest;
+  const choice = 1;
+  if(choice === 1){
+    arraylength = 3;
+    totalAmountToInvest = 2300;
+  } else {
+    arraylength = 5;
+    totalAmountToInvest = 3770;
+  }
+  
+  const userIndexArray = [];
+  const tokenCountArray = [];
+  let usrIdx;;
+  for (let idx = 0; idx < arraylength; idx++) {
+    usrIdx = getUsrIdx();
+    userIndexArray.push(usrIdx);
+
+    if(idx === arraylength-1){
+      const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
+      tokenCountArray.push(remainingQty);
+    } else {
+      tokenCountArray.push(getInvestQty());
+    }
+  }
+  const tokenCountTotal = arraySum(tokenCountArray);
+  console.log('tokenCountTotal:', tokenCountTotal);
+  return [userIndexArray, tokenCountArray];
+};
+
 
 async function asyncForEach(array, callback) {
   console.log('\n------------------==asyncForEach:', array);
@@ -318,52 +402,6 @@ const breakdownArrays = (toAddressArray, amountArray, maxMintAmountPerRun) => {
   return [toAddressArrayOut, amountArrayOut];
 }
 
-const arraySum = arr => arr.reduce((a,b) => a + b, 0);
-
-const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
-
-const getAllIndexes = (arr, val) => {
-  var indexes = [], i;
-  for(i = 0; i < arr.length; i++){
-      if (arr[i] === val) indexes.push(i);
-  }
-  return indexes;
-}
-
-const reduceArrays = (toAddressArray, amountArray) => {
-  const toAddressArrayOut = [...new Set(toAddressArray)];
-  console.log('toAddressArrayOut', toAddressArrayOut);
-
-  const amountArrayOut = [];
-  for(let i = 0; i < toAddressArrayOut.length; i++){
-    indexes = getAllIndexes(toAddressArray, toAddressArrayOut[i]);
-    console.log('indexes', indexes);
-    sum = sumIndexedValues(indexes, amountArray);
-    amountArrayOut.push(sum);
-  }
-  console.log('amountArrayOut', amountArrayOut);
-  return [toAddressArrayOut, amountArrayOut];
-}
-
-const arraysSortedEqual = (array1, array2) => {
-  if (array1 === array2) return true;
-  if (array1 == null || array2 == null) return false;
-  if (array1.length != array2.length) return false;
-
-  // If you don't care about the order of the elements inside
-  // the array, you should sort both arrays here.
-  // Please note that calling sort on an array will modify that array.
-  // you might want to clone your array first.
-
-  let array1out = array1.sort((a, b) => a - b); // For ascending sort
-  let array2out = array2.sort((a, b) => a - b); // For ascending sort
-  //numArray.sort((array1, array2) => array2 - array1); // For descending sort
-
-  for (let i = 0; i < array1out.length; ++i) {
-    if (array1out[i] !== array2out[i]) return false;
-  }
-  return true;
-}
 
 const validateEmail =(email) => {
   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -371,5 +409,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isAllTrueBool, getTimeServerTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum
+  reduceArrays, checkEq, sLog, isEmpty, isAllTrueBool, getTimeServerTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }

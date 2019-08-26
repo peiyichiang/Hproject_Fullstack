@@ -14,7 +14,7 @@ const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calcul
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC } = require('./blockchain.js');
 
-const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime } = require('./utilities');
+const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays } = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -850,11 +850,13 @@ const addPaidOrdersIntoDBnCFC = async() => {
 
 //yarn run testmt -f 85
 const addOrders_CFC_MintTokens_API = async () => {
-  const userIndexArray = [2, 4, 7];
-  const tokenCountArray = [500, 800, 700];
   const fundCount = 150000;
   const paymentStatus = 'paid';
   const tokenSymbol =  nftSymbol;
+
+  const [userIndexArray, tokenCountArray] = getInputArrays();
+  console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`)
+  process.exit(0);
 
   const result = await addArrayOrdersIntoDB(userIndexArray, tokenCountArray, fundCount, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addArrayOrdersIntoDB()]'+ err);
