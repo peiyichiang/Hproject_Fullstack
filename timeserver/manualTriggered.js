@@ -14,7 +14,7 @@ const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calcul
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC } = require('./blockchain.js');
 
-const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays } = require('./utilities');
+const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -994,7 +994,7 @@ const deployCrowdfundingContract_API = async () => {
   let acCFSD, acCFED, acTimeOfDeployment_CF;
   const isToDeploy = 1;
   if(timeChoice === 1){
-    acTimeOfDeployment_CF = getLocalTime();
+    acTimeOfDeployment_CF = await getLocalTime();
     acCFSD = acTimeOfDeployment_CF+1;
     acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
   } else {
@@ -1036,7 +1036,7 @@ const deployTokenControllerContract_API = async () => {
 
   const isToDeploy = 1;
   if(timeChoice === 1){
-    acTimeOfDeployment_TokCtrl = getLocalTime();
+    acTimeOfDeployment_TokCtrl = await getLocalTime();
     acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
     acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
   } else {
@@ -1076,7 +1076,7 @@ const deployHCATContract_API = async () => {
 
   const isToDeploy = 1;
   if(timeChoice === 1){
-    acTimeOfDeployment_HCAT = getLocalTime();
+    acTimeOfDeployment_HCAT = await getLocalTime();
   } else {
     acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
   }
@@ -1118,7 +1118,7 @@ const deployIncomeManagerContract_API = async () => {
   let acTimeOfDeployment_IM;
   const isToDeploy = 1;
   if(timeChoice === 1){
-    acTimeOfDeployment_IM = getLocalTime();
+    acTimeOfDeployment_IM = await getLocalTime();
   } else {
     acTimeOfDeployment_IM = TimeOfDeployment_IM;
   }
@@ -1343,7 +1343,7 @@ const intergrationTestOfProduct = async() => {
     console.log('\n---------------------==deployCrowdfundingContract_API()');
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_CF = getLocalTime();
+      acTimeOfDeployment_CF = await getLocalTime();
       acCFSD = acTimeOfDeployment_CF+1;
       acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
     } else {
@@ -1351,7 +1351,7 @@ const intergrationTestOfProduct = async() => {
       acCFSD = CFSD;
       acCFED = CFED;
     }
-    acTimeOfDeployment_CF = getLocalTime();
+    acTimeOfDeployment_CF = await getLocalTime();
     acCFSD = nowDateAddMinites(1)
     acCFED = nowDateAddMinites(10)
 
@@ -1375,7 +1375,7 @@ const intergrationTestOfProduct = async() => {
 
       }
     } else {
-      console.log(`not to deploy due to incorrect argument values`);
+      console.error(`not to deploy due to incorrect argument values`);
     }
   }
 
@@ -1385,7 +1385,7 @@ const intergrationTestOfProduct = async() => {
   
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_TokCtrl = getLocalTime();
+      acTimeOfDeployment_TokCtrl = await getLocalTime();
       acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
       acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
     } else {
@@ -1412,7 +1412,7 @@ const intergrationTestOfProduct = async() => {
         console.log(`result: ${result}`);
       }
     } else {
-      console.log(`not to deploy due to incorrect argument values`);
+      console.error(`not to deploy due to incorrect argument values`);
     }
   }
 
@@ -1422,7 +1422,7 @@ const intergrationTestOfProduct = async() => {
   
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_HCAT = getLocalTime();
+      acTimeOfDeployment_HCAT = await getLocalTime();
     } else {
       acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
     }
@@ -1454,7 +1454,7 @@ const intergrationTestOfProduct = async() => {
         console.log(`result: ${result}`);
       }
     } else {
-      console.log(`not to deploy due to incorrect argument values`);
+      console.error(`not to deploy due to incorrect argument values`);
     }
   }
   const _deployIncomeManagerContract_API = async () => {
@@ -1462,7 +1462,7 @@ const intergrationTestOfProduct = async() => {
     let acTimeOfDeployment_IM;
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_IM = getLocalTime();
+      acTimeOfDeployment_IM = await getLocalTime();
     } else {
       acTimeOfDeployment_IM = TimeOfDeployment_IM;
     }
@@ -1485,22 +1485,22 @@ const intergrationTestOfProduct = async() => {
         console.log(`result: ${result}`);
       }
     } else {
-      console.log(`not to deploy due to incorrect argument values`);
+      console.error(`not to deploy due to incorrect argument values`);
     }
   }
   const _addProduct = async() => {
     console.log('\n-------------==inside addProductRow section');
     const state = 'funding';
     let TimeReleaseDate;
-    if(isTimeserverON){
-      TimeReleaseDate = getLocalTime();
+    if(timeChoice === 1){
+      TimeReleaseDate = await getLocalTime();
     } else {
       TimeReleaseDate = TimeOfDeployment_HCAT;
     }
     console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
     console.log(`\nsymbolNumber: ${symbolNumber}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
     await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, acCFSD, acCFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
-      console.log('\n[Error @ addProductRow()]'+ err);
+      console.error('\n[Error @ addProductRow()]'+ err);
     });
   }  
 
@@ -1509,7 +1509,7 @@ const intergrationTestOfProduct = async() => {
     console.log(`nftSymbol ${nftSymbol}, addrCrowdFunding: ${crowdFundingAddr}, addrHCAT721: ${hcatAddr}, maxTotalSupply: ${maxTotalSupply}, addrIncomeManager: ${incomeManagerAddr}, addrTokenController: ${tokenControllerAddr}`);
   
     await addSmartContractRow(nftSymbol, crowdFundingAddr, hcatAddr, maxTotalSupply, incomeManagerAddr, tokenControllerAddr).catch((err) => {
-      console.log('\n[Error @ addSmartContractRow()]'+ err);
+      console.error('\n[Error @ addSmartContractRow()]'+ err);
     });
   } 
 
@@ -1530,12 +1530,39 @@ const intergrationTestOfProduct = async() => {
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
     const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
-      console.log('\n[Error @ addIncomeArrangementRows()]'+ err);
+      console.error('\n[Error @ addIncomeArrangementRows()]'+ err);
     });
     console.log('result', result);
 
   }
-
+  const _addOrders_CFC_MintTokens_API = async () => {
+    const paymentStatus = 'paid';
+    const tokenSymbol =  nftSymbol;
+  
+    const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), quantityGoal);
+    console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`)
+    //process.exit(0);
+  
+    const result = await addArrayOrdersIntoDB(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol).catch((err) => {
+      console.error('\n[Error @ addArrayOrdersIntoDB()]'+ err);
+    });
+    console.log('addArrayOrdersIntoDB result:', result);
+    
+    let serverTime
+    if(timeChoice === 1){
+      serverTime = await getLocalTime() + 1;
+    } else {
+      serverTime = TimeOfDeployment_HCAT;
+    }
+    await addAssetbooksIntoCFC(serverTime);
+  
+    //--------------------==
+    const symbol = nftSymbol;//'AVEN1902';
+    const maxMintAmountPerRun = 190;
+  
+    const [is_preMint, is_doAssetRecords, is_addActualPaymentTime, is_setFundingStateDB, is_sequentialMintSuper] = await mintSequentialPerContract(symbol, serverTime, maxMintAmountPerRun);
+    console.log(`is_preMint: ${is_preMint}, is_doAssetRecords: ${is_doAssetRecords}, is_addActualPaymentTime: ${is_addActualPaymentTime}, is_setFundingStateDB: ${is_setFundingStateDB}, is_sequentialMintSuper: ${is_sequentialMintSuper}`);
+  }
   await _deployCrowdfundingContract_API();
   await _deployTokenControllerContract_API();
   await _deployHCATContract_API();
@@ -1544,6 +1571,7 @@ const intergrationTestOfProduct = async() => {
   await _addCtrt();
   await _deployProductManager();
   await _addIncomeArrangement();
+  await _addOrders_CFC_MintTokens_API();
   process.exit(0);
 
 }

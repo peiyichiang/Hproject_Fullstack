@@ -119,30 +119,31 @@ const getUsrIdx = () => getRndIntegerBothEnd(1, 10);// 1 ~ 10
 
 const getInvestQty = () => getRndIntegerBothEnd(500,1000);
 
-const getInputArrays = () => {
-  let arraylength, totalAmountToInvest;
-  const choice = 1;
-  if(choice === 1){
-    arraylength = 3;
-    totalAmountToInvest = 2300;
-  } else {
-    arraylength = 5;
-    totalAmountToInvest = 3770;
+const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
+  if(typeof arraylength !== 'number'){
+    console.error('[Error] arraylength should be typeof number');
+    process.exit(1);
+  } else if(arraylength > 10 || arraylength < 1) {
+    console.error('[Error] arraylength should be <= 10 and >= 1');
+    process.exit(1);
   }
   
   const userIndexArray = [];
   const tokenCountArray = [];
-  let usrIdx;;
+  let usrIdx;
   for (let idx = 0; idx < arraylength; idx++) {
-    usrIdx = getUsrIdx();
+    do{
+      usrIdx = getUsrIdx();
+    }while(userIndexArray.includes(usrIdx))
+    
     userIndexArray.push(usrIdx);
 
     if(idx === arraylength-1){
       const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
       tokenCountArray.push(remainingQty);
     } else {
-      tokenCountArray.push(getInvestQty());
-    }
+      tokenCountArray.push(getRndIntegerBothEnd(0, totalAmountToInvest-arraySum(tokenCountArray)));
+    } 
   }
   const tokenCountTotal = arraySum(tokenCountArray);
   console.log('tokenCountTotal:', tokenCountTotal);

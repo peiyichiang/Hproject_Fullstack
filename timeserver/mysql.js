@@ -385,13 +385,13 @@ const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSym
   });
 }
 
-const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, fundCount, paymentStatus, tokenSymbol) => {
+const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addArrayOrdersIntoDB()');
     if(userIndexArray.length !== tokenCountArray.length){
       reject('userIndexArray and tokenCountArray should have the same length');
     }
-    const maxIndex = assetbookArray.length -1;
+    const maxIndex = assetbookArray.length ;
     userIndexArray.forEach((index, idx)=> {
       if(index > maxIndex || index < 0) {
         let mesg = `index should not be > maxIndex of ${maxIndex}. index value: ${index}`;
@@ -408,9 +408,9 @@ const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, fundCount, p
       const tokenCount = tokenCountArray[idx];
       console.log(`idx: ${idx}, 
 identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
-tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
+tokenSymbol: ${tokenSymbol}, fundCount: ${initialAssetPricing * tokenCount}, paymentStatus: ${paymentStatus}`);
   
-      const result = await addOrderRow(identityNumber, email, tokenCount, tokenSymbol, fundCount, paymentStatus).catch((err) => {
+      const result = await addOrderRow(identityNumber, email, tokenCount, tokenSymbol, initialAssetPricing * tokenCount, paymentStatus).catch((err) => {
         reject(err);
       });
       console.log(`addOrderRow result: ${result}`);
