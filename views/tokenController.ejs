@@ -37,7 +37,6 @@
             <input type="text" class="form-control" placeholder="token contract addr" aria-label="tokenCtrtAddr" id="tokenCtrtAddrCFC" aria-describedby="tokenCtrtAddrCFC"
             value=''>
         </div>
-        <!-- 0xD24272DBF4642a2550e852BF2f802E446c919Ba0 -->
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
@@ -62,16 +61,7 @@
 
 
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
-          <button type="button" id="getCrowdfundingDetails" class="btn btn-primary">Get TokenController Details</button>
-
-          <button type="button" id="getInvestors" class="btn btn-primary">getInvestors</button>
-
-          <button type="button" id="emailToQty" class="btn btn-primary">emailToQty</button>
-
-          <button type="button" id="ownerToQty" class="btn btn-primary">ownerToQty</button>
-
-          <button type="button" id="idxToOwner" class="btn btn-primary">Investor Index To Owner</button>
-
+          <button type="button" id="getHTokenControllerDetails" class="btn btn-primary">Get TokenController Details</button>
         </div>
 
       </div>
@@ -79,34 +69,21 @@
       <div class="col">
         <h5>Result</h5>
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
-        maxTokenQtyForEachInvestmentFund: <span id="maxTokenQtyForEachInvestmentFund"></span><br>
-        tokenSymbol: <span id="tokenSymbol"></span><br>
-        pricingCurrency: <span id="pricingCurrency"></span><br>
-        initialAssetPricing: <span id="initialAssetPricing"></span><br>
-        maxTotalSupply: <span id="maxTotalSupply"></span><br>
-        quantityGoal: <span id="quantityGoal"></span><br>
-        quantitySold: <span id="quantitySold"></span><br>
-        remainingQty: <span id="remainingQty"></span><br>
-        CFSD: <span id="CFSD"></span><br>
-        CFED: <span id="CFED"></span><br>
+        TimeUnlock: <span id="TimeUnlock"></span><br>
+        TimeValid: <span id="TimeValid"></span><br>
+        isLockedForRelease: <span id="isLockedForRelease"></span><br>
+        isTokenApproved: <span id="isTokenApproved"></span><br>
 
         <br>
-        fundingCindex: <span id="fundingCindex"></span><br>
-        fundingState: <span id="fundingState"></span><br>
-        stateDescription: <span id="stateDescription"></span><br>
-
-        <br>
-        assetbookArray: <span id="assetbookArray"></span><br>
-        investedTokenQtyArray: <span id="investedTokenQtyArray"></span><br>
-
-        <br>
-        quantityOwned: <span id="quantityOwned"></span><br>
-        addrOwner: <span id="addrOwner"></span><br>
+        isTokenApprovedOperational: <span id="isTokenApprovedOperational"></span><br>
+        tokenState: <span id="tokenState"></span><br>
 
       </div>
     </div>
   </div>
-  <!-- Optional JavaScript -->
+  <!-- Optional JavaScript
+
+  -->
   <!-- jQuery first, then Popper.js, then Bootstrap JS -->
   <!--
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -218,7 +195,7 @@
 
         const isGivingDefaultCFC = 1;
         if(isGivingDefaultCFC === 1) {
-          contractAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
+          contractAddr = '0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9';
           mesg = 'Token symbol and Token contract values are empty. Using default value: contractAddr = '+contractAddr;
           isGood = true;
           showAlert(mesg);
@@ -269,53 +246,39 @@
 
 
 
-    $('#getCrowdfundingDetails').on('click',  async function (e) {
-      console.log('inside getCrowdfundingDetails function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('getCrowdfundingDetails');
+    $('#getHTokenControllerDetails').on('click',  async function (e) {
+      console.log('inside getHTokenControllerDetails function... \ne.target:', e.target);
+      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('getHTokenControllerDetails');
       //      console.log('result', result);
       if(!isGood || isEmpty(ctrtAddr)) return;
 
-      const url = BcApiBase+`tokenController/getCrowdfundingDetails/${ctrtAddr}`;
-      // http://localhost:3030/Contracts/getCrowdfundingDetails/
+      const url = BcApiBase+`tokenController/getHTokenControllerDetails/${ctrtAddr}`;
+      // http://localhost:3030/Contracts/getHTokenControllerDetails/
       const response = await fetch(url);
       const json = await response.json();
 
-      const crowdfundingCtrtDetails = json['crowdfundingCtrtDetails'];
-      console.log('crowdfundingCtrtDetails:', crowdfundingCtrtDetails);
-      const TimeOfDeployment = crowdfundingCtrtDetails['0'];
-      const maxTokenQtyForEachInvestmentFund = crowdfundingCtrtDetails['1'];
-      const tokenSymbol = crowdfundingCtrtDetails['2'];
-      const pricingCurrency = crowdfundingCtrtDetails['3'];
-      const initialAssetPricing = crowdfundingCtrtDetails['4'];
-      const maxTotalSupply = crowdfundingCtrtDetails['5'];
-      const quantityGoal = crowdfundingCtrtDetails['6'];
-      const quantitySold = crowdfundingCtrtDetails['7'];
-      const CFSD = crowdfundingCtrtDetails['8'];
-      const CFED = crowdfundingCtrtDetails['9'];
-      const remainingQty = parseInt(maxTotalSupply) - parseInt(quantitySold);
+      const getHTokenControllerDetails = json['getHTokenControllerDetails'];
+      console.log('getHTokenControllerDetails:', getHTokenControllerDetails);
+      const TimeOfDeployment = getHTokenControllerDetails['0'];
+      const TimeUnlock = getHTokenControllerDetails['1'];
+      const TimeValid = getHTokenControllerDetails['2'];
+      const isLockedForRelease = getHTokenControllerDetails['3'];
+      const isTokenApproved = getHTokenControllerDetails['4'];
 
       document.getElementById("TimeOfDeployment").innerText = TimeOfDeployment;
-      document.getElementById("maxTokenQtyForEachInvestmentFund").innerText = maxTokenQtyForEachInvestmentFund;
-      document.getElementById("tokenSymbol").innerText = tokenSymbol;
-      document.getElementById("pricingCurrency").innerText = pricingCurrency;
-      document.getElementById("initialAssetPricing").innerText = initialAssetPricing;
-      document.getElementById("maxTotalSupply").innerText = maxTotalSupply;
-      document.getElementById("quantityGoal").innerText = quantityGoal;
-      document.getElementById("quantitySold").innerText = quantitySold;
-      document.getElementById("remainingQty").innerText = remainingQty;
-      document.getElementById("CFSD").innerText = CFSD;
-      document.getElementById("CFED").innerText = CFED;
+      document.getElementById("TimeUnlock").innerText = TimeUnlock;
+      document.getElementById("TimeValid").innerText = TimeValid;
+      document.getElementById("isLockedForRelease").innerText = isLockedForRelease;
+      document.getElementById("isTokenApproved").innerText = isTokenApproved;
       //location.reload();
 
-      const fundingDetails = json['fundingDetails'];
-      console.log('fundingDetails:', fundingDetails);
-      const fundingCindex = fundingDetails['0'];
-      const fundingState = fundingDetails['1'];
-      const stateDescription = fundingDetails['2'];
+      const details = json['details'];
+      console.log('details:', details);
+      const isTokenApprovedOperational = details['0'];
+      const tokenState = details['1'];
 
-      document.getElementById("fundingCindex").innerText = fundingCindex;
-      document.getElementById("fundingState").innerText = fundingState;
-      document.getElementById("stateDescription").innerText = stateDescription;
+      document.getElementById("isTokenApprovedOperational").innerText = isTokenApprovedOperational;
+      document.getElementById("tokenState").innerText = tokenState;
     });
 
 

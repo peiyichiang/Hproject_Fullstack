@@ -54,6 +54,7 @@ const getTimeServerTime = () => {
     }
   });
 }
+
 const getLocalTime = () => parseInt(new Date().myFormat());
 
 Date.prototype.myFormat = function () {

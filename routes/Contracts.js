@@ -998,6 +998,31 @@ router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, 
     });
 });
 
+//-----------------------==
+// http://localhost:3030/Contract/tokenController/getHTokenControllerDetails
+router.get('/tokenController/getHTokenControllerDetails/:ctrtAddr', async function (req, res, next) {
+  const tokenControllerCtrtAddr = req.params.ctrtAddr;
+  console.log(`\ntokenControllerCtrtAddr: ${tokenControllerCtrtAddr}`);
+  if(isEmpty(tokenControllerCtrtAddr) || tokenControllerCtrtAddr === 'undefined'){
+    res.send({
+      err: 'tokenControllerCtrtAddr is invalid. '+tokenControllerCtrtAddr,
+      status: false
+    });
+    return;
+  }
+    const instTokenController = new web3.eth.Contract(tokenControllerContract.abi, tokenControllerCtrtAddr);
+    const getHTokenControllerDetails = await instTokenController.methods.getHTokenControllerDetails().call();
+    console.log(`getHTokenControllerDetails: ${getHTokenControllerDetails}`);
+
+    const isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
+    const tokenState = await instTokenController.methods.tokenState().call();
+
+    res.send({
+        getHTokenControllerDetails: getHTokenControllerDetails,
+        details: [isTokenApprovedOperational, tokenState]
+    });
+});
+
 
 /**@dev HCAT721_AssetToken ------------------------------------------------------------------------------------- */
 /*deploy HCAT721_AssetToken contract*/
