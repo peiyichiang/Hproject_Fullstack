@@ -61,21 +61,25 @@
 
 
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
-          <button type="button" id="getHTokenControllerDetails" class="btn btn-primary">Get TokenController Details</button>
+          <button type="button" id="getTokenContractDetails" class="btn btn-primary">Get TokenController Details</button>
         </div>
 
       </div>
 
       <div class="col">
         <h5>Result</h5>
-        TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
-        TimeUnlock: <span id="TimeUnlock"></span><br>
-        TimeValid: <span id="TimeValid"></span><br>
-        isLockedForRelease: <span id="isLockedForRelease"></span><br>
-        isTokenApproved: <span id="isTokenApproved"></span><br>
+        tokenId: <span id="tokenId"></span><br>
+        siteSizeInKW: <span id="siteSizeInKW"></span><br>
+        maxTotalSupply: <span id="maxTotalSupply"></span><br>
+        totalSupply: <span id="totalSupply"></span><br>
+        initialAssetPricing: <span id="initialAssetPricing"></span><br>
+        pricingCurrency: <span id="pricingCurrency"></span><br>
+        IRR20yrx100: <span id="IRR20yrx100"></span><br>
+        name: <span id="name"></span><br>
+        symbol: <span id="symbol"></span><br>
+        tokenURI: <span id="tokenURI"></span><br>
 
         <br>
-        isTokenApprovedOperational: <span id="isTokenApprovedOperational"></span><br>
         tokenState: <span id="tokenState"></span><br>
 
       </div>
@@ -94,7 +98,7 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
   <script>
-    // http://localhost:3030/ContractExplorer/tokenController
+    // http://localhost:3030/ContractExplorer/tokenHCAT
 
     // $(document).ready(function() {
     //   $("#alertInputs").hide();
@@ -102,7 +106,7 @@
 
     const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
     //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
-    const contractType = 'tokenController';
+    const contractType = 'tokenHCAT';
     console.log('BcApiBase:', BcApiBase, ', contractType:', contractType);
 
     const isEmpty = value => 
@@ -190,12 +194,12 @@
         // }
         }
       } else {
-        mesg = 'At least tokenSymbol or tokenCtrtAddrCFC should be valid';
+        mesg = 'At least one tokenSymbol or tokenCtrtAddrCFC should be valid';
         console.warn(mesg);
 
         const isGivingDefaultCFC = 1;
         if(isGivingDefaultCFC === 1) {
-          contractAddr = '0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9';
+          contractAddr = '0xA80c0A88e38aa61190A3Ad41bd3907774D291f87';
           mesg = 'Token symbol and Token contract values are empty. Using default value: contractAddr = '+contractAddr;
           isGood = true;
           showAlert(mesg);
@@ -246,39 +250,50 @@
 
 
 
-    $('#getHTokenControllerDetails').on('click',  async function (e) {
-      console.log('inside getHTokenControllerDetails function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('getHTokenControllerDetails');
+    $('#getTokenContractDetails').on('click',  async function (e) {
+      console.log('inside getTokenContractDetails function... \ne.target:', e.target);
+      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('getTokenContractDetails');
       //      console.log('result', result);
       if(!isGood || isEmpty(ctrtAddr)) return;
 
-      const url = BcApiBase+`tokenController/getHTokenControllerDetails/${ctrtAddr}`;
-      // http://localhost:3030/Contracts/getHTokenControllerDetails/
+      const url = BcApiBase+`tokenHCAT/getTokenContractDetails/${ctrtAddr}`;
+      // http://localhost:3030/Contracts/getTokenContractDetails/
       const response = await fetch(url);
       const json = await response.json();
+      console.log('after calling API');
+      const getTokenContractDetails = json['getTokenContractDetails'];
+      console.log('getTokenContractDetails:', getTokenContractDetails);
+      const tokenId = getTokenContractDetails['0'];
+      const siteSizeInKW = getTokenContractDetails['1'];
+      const maxTotalSupply = getTokenContractDetails['2'];
+      const totalSupply = getTokenContractDetails['3'];
+      const initialAssetPricing = getTokenContractDetails['4'];
+      const pricingCurrency =  json['pricingCurrency'];
+      const IRR20yrx100 = getTokenContractDetails['6'];
+      const name = json['name'];
+      const symbol = json['symbol'];
+      const tokenURI = json['tokenURI'];
 
-      const getHTokenControllerDetails = json['getHTokenControllerDetails'];
-      console.log('getHTokenControllerDetails:', getHTokenControllerDetails);
-      const TimeOfDeployment = getHTokenControllerDetails['0'];
-      const TimeUnlock = getHTokenControllerDetails['1'];
-      const TimeValid = getHTokenControllerDetails['2'];
-      const isLockedForRelease = getHTokenControllerDetails['3'];
-      const isTokenApproved = getHTokenControllerDetails['4'];
+      document.getElementById("tokenId").innerText = tokenId;
+      document.getElementById("siteSizeInKW").innerText = siteSizeInKW;
+      document.getElementById("maxTotalSupply").innerText = maxTotalSupply;
+      document.getElementById("totalSupply").innerText = totalSupply;
+      document.getElementById("initialAssetPricing").innerText = initialAssetPricing;
+      document.getElementById("pricingCurrency").innerText = pricingCurrency;
 
-      document.getElementById("TimeOfDeployment").innerText = TimeOfDeployment;
-      document.getElementById("TimeUnlock").innerText = TimeUnlock;
-      document.getElementById("TimeValid").innerText = TimeValid;
-      document.getElementById("isLockedForRelease").innerText = isLockedForRelease;
-      document.getElementById("isTokenApproved").innerText = isTokenApproved;
+      document.getElementById("IRR20yrx100").innerText = parseInt(IRR20yrx100)/100;
+      document.getElementById("name").innerText = name;
+      document.getElementById("symbol").innerText = symbol;
+      document.getElementById("tokenURI").innerText = tokenURI;
+
       //location.reload();
 
-      const details = json['details'];
-      console.log('details:', details);
-      const isTokenApprovedOperational = details['0'];
-      const tokenState = details['1'];
+      // const details = json['details'];
+      // console.log('details:', details);
+      // const pricingCurrency = details['0'];
+      // const tokenState = details['1'];
 
-      document.getElementById("isTokenApprovedOperational").innerText = isTokenApprovedOperational;
-      document.getElementById("tokenState").innerText = tokenState;
+      // document.getElementById("tokenState").innerText = tokenState;
     });
 
 
@@ -288,7 +303,7 @@
       const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs();
       if(!isGood) return;
 
-      const url = BcApiBase+`tokenController/getInvestors`;
+      const url = BcApiBase+`tokenHCAT/getInvestors`;
       // http://localhost:3030/Contracts/getInvestors/
 
       const data = {ctrtAddr: ctrtAddr, indexStart: 0, amount: 0};
@@ -315,7 +330,7 @@
       const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('emailToQty');
       if(!isGood) return;
 
-      const url = BcApiBase+`tokenController/emailToQty`;
+      const url = BcApiBase+`tokenHCAT/emailToQty`;
       // http://localhost:3030/Contracts/emailToQty/
 
       const data = {ctrtAddr: ctrtAddr, email: email};
@@ -336,7 +351,7 @@
       const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('ownerToQty');
       if(!isGood) return;
 
-      const url = BcApiBase+`tokenController/ownerToQty`;
+      const url = BcApiBase+`tokenHCAT/ownerToQty`;
       const data = {ctrtAddr: ctrtAddr, assetbookAddr: assetbookAddr};
       const options = {
         method: 'POST', // or 'PUT'
@@ -355,7 +370,7 @@
       const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('idxToOwner');
       if(!isGood) return;
 
-      const url = BcApiBase+`tokenController/idxToOwner`;
+      const url = BcApiBase+`tokenHCAT/idxToOwner`;
       // http://localhost:3030/Contracts/idxToOwner/
 
       const data = {ctrtAddr: ctrtAddr, index: investorIndex};
@@ -376,6 +391,6 @@
 
 </html>
 <!--
-  http://localhost:3030/ContractExplorer/tokenController
+  http://localhost:3030/ContractExplorer/tokenHCAT
 
 -->

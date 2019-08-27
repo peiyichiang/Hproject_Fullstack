@@ -11,7 +11,7 @@ const { getTimeServerTime, isEmpty, checkIntFromOne } = require('../timeserver/u
 
 const { doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
-const { findCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
+const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -765,13 +765,13 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
   const ctrtType = req.body.ctrtType;
 
   console.log(`tokenSymbol: ${tokenSymbol}, ctrtType: ${ctrtType}`);
-  const [isGood, contractAddr, resultMesg] = await findCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
+  const [isGood, contractAddr, resultMesg] = await getCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
+    console.log('[Error @getCtrtAddr]:', err);
     res.send({
         err: err,
         status: false
     });
-    return;
+    return false;
   });
   console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${contractAddr}`);
   res.send({
@@ -782,16 +782,16 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
 });
 
 //-----------------------==
-// http://localhost:3030/Contract/crowdfunding/getCrowdfundingDetails
+// http://localhost:3030/Contracts/crowdfunding/getCrowdfundingDetails
 router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.params.ctrtAddr;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
-  if(isEmpty(crowdfundingCtrtAddr) || crowdfundingCtrtAddr === 'undefined'){
+  if(isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'crowdfundingCtrtAddr is invalid. '+crowdfundingCtrtAddr,
       status: false
     });
-    return;
+    return false;
   }
     const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
     const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
@@ -809,28 +809,27 @@ router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req
 
 
 
-// http://localhost:3030/Contract/crowdfunding/getInvestors
+// http://localhost:3030/Contracts/crowdfunding/getInvestors
 router.post('/crowdfunding/getInvestors', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const indexStart = req.body.indexStart;
   const amount = req.body.amount;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, indexStart: ${indexStart}, amount: ${amount}`);
-  if(parseInt(indexStart) < 0 || parseInt(amount) < 0 || crowdfundingCtrtAddr === 'undefined'){
+  if(parseInt(indexStart) < 0 || parseInt(amount) < 0 || isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'indexStart or amount or contract addr is invalid',
       status: false,
     });
-    return;
+    return false;
   }
-    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr).catch(
-      (err) => {
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr)/*.catch((err) => {
         console.error('err:', err);
         res.send({
           err: err,
           status: false,
         });
-        return;
-      });
+        return false;
+      });*/
     const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
     console.log(`investors: ${investors}`);
     res.send({
@@ -838,19 +837,19 @@ router.post('/crowdfunding/getInvestors', async function (req, res, next) {
     });
 });
 
-// http://localhost:3030/Contract/crowdfunding/emailToQty
+// http://localhost:3030/Contracts/crowdfunding/emailToQty
 router.post('/crowdfunding/emailToQty', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const email = req.body.email;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, email: ${email}`);
     const assetbookX = await getAssetbookFromEmail(email);
-    if(isEmpty(assetbookX)|| crowdfundingCtrtAddr === 'undefined'){
+    if(isEmpty(assetbookX)){
       console.log('assetbookX is empty:', assetbookX);
       res.send({
         err: 'assetbook or contract addr is invalid',
         status: false
       });
-      return;
+      return false;
     } else{
       console.log('assetbookX:', assetbookX);
       const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
@@ -862,18 +861,18 @@ router.post('/crowdfunding/emailToQty', async function (req, res, next) {
     }
 });
 
-// http://localhost:3030/Contract/crowdfunding/ownerToQty
+// http://localhost:3030/Contracts/crowdfunding/ownerToQty
 router.post('/crowdfunding/ownerToQty', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const assetbookAddr = req.body.assetbookAddr;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, assetbookAddr: ${assetbookAddr}`);
-  if(assetbookAddr === '0x0' || isEmpty(assetbookAddr)|| crowdfundingCtrtAddr === 'undefined'){
+  if(assetbookAddr === '0x0' || isEmpty(assetbookAddr)|| isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'assetbookAddr or contract addr is invalid',
       status: false,
       quantityOwned: undefined
     });
-    return;
+    return false;
   }
   const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
     const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookAddr).call();
@@ -883,17 +882,17 @@ router.post('/crowdfunding/ownerToQty', async function (req, res, next) {
     });
 });
 
-// http://localhost:3030/Contract/crowdfunding/idxToOwner
+// http://localhost:3030/Contracts/crowdfunding/idxToOwner
 router.post('/crowdfunding/idxToOwner', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
-  const index = req.body.index;
+  const index = parseInt(req.body.index);
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, index: ${index} ${typeof index}`);
-  if(parseInt(index) < 0 || isEmpty(index)|| crowdfundingCtrtAddr === 'undefined'){
+  if(index < 0 || isNaN(index)|| idEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'index or contract addr is invalid',
       status: false,
     });
-    return;
+    return false;
   }
   const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
     const addrOwner = await instCrowdfunding.methods.idxToOwner(index).call();
@@ -999,16 +998,16 @@ router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, 
 });
 
 //-----------------------==
-// http://localhost:3030/Contract/tokenController/getHTokenControllerDetails
+// http://localhost:3030/Contracts/tokenController/getHTokenControllerDetails
 router.get('/tokenController/getHTokenControllerDetails/:ctrtAddr', async function (req, res, next) {
   const tokenControllerCtrtAddr = req.params.ctrtAddr;
   console.log(`\ntokenControllerCtrtAddr: ${tokenControllerCtrtAddr}`);
-  if(isEmpty(tokenControllerCtrtAddr) || tokenControllerCtrtAddr === 'undefined'){
+  if(isEmpty(tokenControllerCtrtAddr)){
     res.send({
       err: 'tokenControllerCtrtAddr is invalid. '+tokenControllerCtrtAddr,
       status: false
     });
-    return;
+    return false;
   }
     const instTokenController = new web3.eth.Contract(tokenControllerContract.abi, tokenControllerCtrtAddr);
     const getHTokenControllerDetails = await instTokenController.methods.getHTokenControllerDetails().call();
@@ -1023,6 +1022,49 @@ router.get('/tokenController/getHTokenControllerDetails/:ctrtAddr', async functi
     });
 });
 
+//-----------------------==
+// http://localhost:3030/Contracts/TokenHCAT/getTokenContractDetails
+router.get('/tokenHCAT/getTokenContractDetails/:ctrtAddr', async function (req, res, next) {
+  const tokenCtrtAddr = req.params.ctrtAddr;
+  console.log(`\ntokenCtrtAddr: ${tokenCtrtAddr}`);
+  if(isEmpty(tokenCtrtAddr)){
+    res.send({
+      err: 'tokenCtrtAddr is invalid. '+tokenCtrtAddr,
+      status: false
+    });
+    return false;
+  }
+    const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, tokenCtrtAddr);
+    const getTokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
+    console.log(`getTokenContractDetails: ${getTokenContractDetails}`);
+
+    const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
+    const idToAsset = await instHCAT721.methods.idToAsset().call();
+    const isOwnerAdded = await instHCAT721.methods.isOwnerAdded().call();
+    const idxToOwner = await instHCAT721.methods.idxToOwner().call();
+    const ownerCindex = await instHCAT721.methods.ownerCindex().call();
+    const ownerAddr1 = await instHCAT721.methods.ownerOf(tokenId).call();
+    const ownerAddr2 = await instHCAT721.methods.getIdToAsset(tokenId).call();
+    const getOwnersByOwnerIndex = await instHCAT721.methods.getOwnersByOwnerIndex(indexStart, amount).call();
+    const getAccount = await instHCAT721.methods.getAccount(userAddr).call();
+    const balanceOf = await instHCAT721.methods.balanceOf(userAddr).call();
+    const getTokenIdByIndex = await instHCAT721.methods.getTokenIdByIndex(user, idx).call();
+    const getAccountIds = await instHCAT721.methods.getAccountIds(user, indexStart, amount).call();
+    const allowance = await instHCAT721.methods.allowance(user, operator).call();
+    const checkTokenApprove = await instHCAT721.methods.checkTokenApprove().call();
+    const ownerOf = await instHCAT721.methods.ownerOf().call();
+    const ownerOf = await instHCAT721.methods.ownerOf().call();
+    const ownerOf = await instHCAT721.methods.ownerOf().call();
+    const ownerOf = await instHCAT721.methods.ownerOf().call();
+
+    res.send({
+        getTokenContractDetails: getTokenContractDetails,
+        pricingCurrency: web3.utils.toAscii(getTokenContractDetails[5]),
+        name: web3.utils.toAscii(getTokenContractDetails[7]),
+        symbol: web3.utils.toAscii(getTokenContractDetails[8]),
+        tokenURI: web3.utils.toAscii(getTokenContractDetails[9])
+    });
+});
 
 /**@dev HCAT721_AssetToken ------------------------------------------------------------------------------------- */
 /*deploy HCAT721_AssetToken contract*/
@@ -1118,56 +1160,10 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
 
 });
 
-//------------------------------==
-// http://localhost:3000/Contracts/test1/NCCU0725
-router.get('/test1/:nftSymbol', function (req, res, next) {
-    var nftSymbol = req.params.nftSymbol;
-    var mysqlPoolQuery = req.pool;
-    console.log('--------------==', nftSymbol);
-
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
-        //console.log(result);
-        if (err) {
-            //console.log(err);
-            res.send({
-                status: "fail"
-            });
-        }
-        else {
-            res.send({
-                status: "success",
-                result: result[0]
-            });
-        }
-    });
-});
-// http://localhost:3000/Contracts/test1/NCCU0725
-router.post('/test1/:nftSymbol', function (req, res, next) {
-    var nftSymbol = req.params.nftSymbol;
-    const price = req.body.price;
-    const fundingType = req.body.fundingType;//PO: 1, PP: 2
-    var mysqlPoolQuery = req.pool;
-    console.log('--------------==', nftSymbol, price, fundingType);
-
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
-        //console.log(result);
-        if (err) {
-            //console.log(err);
-            res.send({
-                status: "fail"
-            });
-        }
-        else {
-            res.send({
-                status: "success",
-                result: result[0]
-            });
-        }
-    });
-});
 
 
-// message queue relay API
+
+//-----------------------------== message queue relay API
 // http://localhost:3000/Contracts/amqpRelay
 router.post('/amqpRelay', async function (req, res, next) {
     console.log(`\n------------------==amqpRelay`);
@@ -1568,7 +1564,7 @@ router.get('/incomeManagerContract/:tokenSymbol/checkAddScheduleBatch', async fu
     const forecastedPayableTimes = req.params.forecastedPayableTimes;
     const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
       res.send({
         err: err,
         status: false
@@ -1610,7 +1606,7 @@ router.post('/incomeManagerContract/:tokenSymbol/addScheduleBatchFromDB', async 
     const symbol = req.params.tokenSymbol;
     // const forecastedPayableTimes = req.params.forecastedPayableTimes;
     // const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
       res.send({
         err: err,
         status: false,

@@ -1379,6 +1379,7 @@ const intergrationTestOfProduct = async() => {
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
+      process.exit(1)
     }
   }
 
@@ -1416,6 +1417,7 @@ const intergrationTestOfProduct = async() => {
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
+      process.exit(1)
     }
   }
 
@@ -1458,6 +1460,7 @@ const intergrationTestOfProduct = async() => {
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
+      process.exit(1)
     }
   }
   const _deployIncomeManagerContract_API = async () => {
@@ -1489,6 +1492,7 @@ const intergrationTestOfProduct = async() => {
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
+      process.exit(1)
     }
   }
   const _addProduct = async() => {
@@ -1504,6 +1508,7 @@ const intergrationTestOfProduct = async() => {
     console.log(`\nsymbolNumber: ${symbolNumber}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
     await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, acCFSD, acCFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
       console.error('\n[Error @ addProductRow()]'+ err);
+      process.exit(1)
     });
   }  
 
@@ -1513,6 +1518,7 @@ const intergrationTestOfProduct = async() => {
   
     await addSmartContractRow(nftSymbol, crowdFundingAddr, hcatAddr, maxTotalSupply, incomeManagerAddr, tokenControllerAddr).catch((err) => {
       console.error('\n[Error @ addSmartContractRow()]'+ err);
+      process.exit(1)
     });
   } 
 
@@ -1520,7 +1526,10 @@ const intergrationTestOfProduct = async() => {
     console.log('\n--------------==inside deployProductManagerContract_API()');
     const addrHCATContract = hcatAddr;
     const addrHeliumContract = addrHelium;
-    const addrProductManager = await deployProductManagerContract(addrHCATContract, addrHeliumContract);
+    const addrProductManager = await deployProductManagerContract(addrHCATContract, addrHeliumContract).catch((err) => {
+      console.log(err)
+      process.exit(1)
+    });
     console.log('\nreturned addrProductManager:', addrProductManager);
     productManagerAddr = addrProductManager
   }
@@ -1534,20 +1543,23 @@ const intergrationTestOfProduct = async() => {
     console.log('-----------------== add Income Arrangement rows from objects...');
     const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
       console.error('\n[Error @ addIncomeArrangementRows()]'+ err);
+      process.exit(1)
     });
     console.log('result', result);
 
   }
   const _addOrders_CFC_MintTokens_API = async () => {
-    const paymentStatus = 'paid';
+    const paymentStatus = 'paidTest';
     const tokenSymbol =  nftSymbol;
   
-    const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), quantityGoal);
+    const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), maxTotalSupply);
     console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`)
     //process.exit(0);
   
     const result = await addArrayOrdersIntoDB(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol).catch((err) => {
       console.error('\n[Error @ addArrayOrdersIntoDB()]'+ err);
+      process.exit(1)
+
     });
     console.log('addArrayOrdersIntoDB result:', result);
     
@@ -1557,13 +1569,17 @@ const intergrationTestOfProduct = async() => {
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
-    await addAssetbooksIntoCFC(serverTime);
-  
+    await addAssetbooksIntoCFC(serverTime, "paidTest")
+    /*if(await addAssetbooksIntoCFC(serverTime, "paidTest") != true)
+      process.exit(1)*/
     //--------------------==
     const symbol = nftSymbol;//'AVEN1902';
     const maxMintAmountPerRun = 190;
   
-    const [is_preMint, is_doAssetRecords, is_addActualPaymentTime, is_setFundingStateDB, is_sequentialMintSuper] = await mintSequentialPerContract(symbol, serverTime, maxMintAmountPerRun);
+    const [is_preMint, is_doAssetRecords, is_addActualPaymentTime, is_setFundingStateDB, is_sequentialMintSuper] = await mintSequentialPerContract(symbol, serverTime, maxMintAmountPerRun).catch((err) => {
+      console.log(err)
+      process.exit(1)
+    });
     console.log(`is_preMint: ${is_preMint}, is_doAssetRecords: ${is_doAssetRecords}, is_addActualPaymentTime: ${is_addActualPaymentTime}, is_setFundingStateDB: ${is_setFundingStateDB}, is_sequentialMintSuper: ${is_sequentialMintSuper}`);
   }
   await _deployCrowdfundingContract_API();
