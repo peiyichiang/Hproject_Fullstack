@@ -100,7 +100,7 @@ const deleteTxnInfoRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM transaction_info WHERE t_tokenSYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
-      reject('[Error @ mysqlPoolQueryB]'+ err);
+      reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     console.log(`result: ${result}`);
     resolve(true);
@@ -184,7 +184,7 @@ const deleteProductRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM product WHERE p_SYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
-      reject('[Error @ mysqlPoolQueryB]'+ err);
+      reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     console.log(`result: ${result}`);
     resolve(true);
@@ -218,7 +218,7 @@ const deleteSmartContractRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM smart_contracts WHERE sc_symbol = ?';
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
-      reject('[Error @ mysqlPoolQueryB]'+ err);
+      reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     console.log(`result: ${result}`);
     resolve(true);
@@ -358,7 +358,7 @@ const deleteOrderRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM order_list WHERE o_symbol = ?';
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
-      reject('[Error @ mysqlPoolQueryB]'+ err);
+      reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     console.log(`result: ${result}`);
     resolve(true);
@@ -532,7 +532,7 @@ const deleteIncomeArrangementRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM income_arrangement WHERE ia_SYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
-      reject('[Error @ mysqlPoolQueryB]'+ err);
+      reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     console.log(`result: ${result}`);
     resolve(true);
@@ -812,9 +812,33 @@ const deleteAssetRecordRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM investor_assetRecord WHERE ar_tokenSYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
-      reject('[Error @ mysqlPoolQueryB]'+ err);
+      reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     console.log(`result: ${result}`);
+    resolve(true);
+  });
+}
+
+const deleteAllRecordsBySymbol = async (tokenSymbol) => {
+  return new Promise(async (resolve, reject) => {
+    const result1 = await deleteTxnInfoRows(tokenSymbol).catch((err) => {
+      reject(err);
+    });
+    const result2 = await deleteProductRows(tokenSymbol).catch((err) => {
+      reject(err);
+    });
+    const result3 = await deleteSmartContractRows(tokenSymbol).catch((err) => {
+      reject(err);
+    });
+    const result4 = await deleteOrderRows(tokenSymbol).catch((err) => {
+      reject(err);
+    });
+    const result5 = await deleteIncomeArrangementRows(tokenSymbol).catch((err) => {
+      reject(err);
+    });
+    const result6 = await deleteAssetRecordRows(tokenSymbol).catch((err) => {
+      reject(err);
+    });
     resolve(true);
   });
 }
@@ -1367,5 +1391,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol
 }

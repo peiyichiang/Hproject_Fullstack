@@ -1627,7 +1627,7 @@ tokenControllerAddr: ${tokenControllerAddr}`);
 addressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
 
       if (investorAssetBooks.length === 0 || investedTokenQtyArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
-        console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+        console.log(`[Error] preMint() returns invalid values, investorAssetBooks length: ${investorAssetBooks.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
         resolve([false, 'preMint() returns invalid values', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
       } else {
         resolve([true, 'successfully done @ preMint()', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
@@ -2339,31 +2339,31 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
       const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
       console.log('\ncheckInvestFunction resultArray:', resultArray);
     
-      let mesg = '', CFSD_M, CFED_M;
+      let mesg = 'found error: ', CFSD_M, CFED_M;
       if(resultArray.includes(false)){
         if(!resultArray[0]){
-          mesg += ', [0] serverTime '+serverTime+' >= CFSD '+CFSD;
+          mesg += ', [0] serverTime '+serverTime+' should be >= CFSD '+CFSD;
         }
         if(!resultArray[1]){
-          mesg += ', [1] serverTime '+serverTime+' < CFED '+CFED;
+          mesg += ', [1] serverTime '+serverTime+' should be < CFED '+CFED;
         }
         if(!resultArray[2]){
-          mesg += ', [2] checkPlatformSupervisor()';
+          mesg += ', [2] sender should be a PlatformSupervisor';
         }
         if(!resultArray[3]){
-          mesg += ', [3] addrAssetbook.isContract()';
+          mesg += ', [3] addrAssetbook should be a contract';
         }
         if(!resultArray[4]){
-          mesg += ', [4] addrAssetbook onERC721Received()';
+          mesg += ', [4] addrAssetbook should pass onERC721Received()';
         }
         if(!resultArray[5]){
-          mesg += ', [5] quantityToInvest > 0';
+          mesg += ', [5] quantityToInvest should be > 0';
         }
         if(!resultArray[6]){
-          mesg += ', [6] not enough remainingQty';
+          mesg += ', [6] quantityToInvest should be <= maxTotalSupply';
         }
         if(!resultArray[7]){
-          mesg += ', [7] serverTime > TimeOfDeployment';
+          mesg += ', [7] serverTime should be > TimeOfDeployment';
         }
         if(!resultArray[8]){
           mesg += ', [8] fundingState should be either initial, funding, or fundingGoalReached';

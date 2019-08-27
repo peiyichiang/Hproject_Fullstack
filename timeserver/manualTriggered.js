@@ -10,7 +10,7 @@ const { symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol  } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC } = require('./blockchain.js');
 
@@ -19,7 +19,7 @@ const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-let func, arg1, arg2, arg3;
+let argv3, argv4, argv5, argv6, argv7;
 
 const userIdArray = [];
 const investorLevelArray = [];
@@ -35,7 +35,7 @@ userArray.forEach((user, idx) => {
 const timeChoice = 1;
 
 // yarn run testmt -f F
-// yarn run testmt -f F -a1 arg2 -a2 arg3 -a3 arg3
+// yarn run testmt -f F -a1 argv5 -a2 argv6 -a3 argv6
 const arguLen = process.argv.length;
 console.log('arguLen', arguLen, 'process.argv', process.argv);
 if (arguLen == 3 && process.argv[2] === '--h') {
@@ -49,25 +49,28 @@ if (arguLen == 3 && process.argv[2] === '--h') {
   console.log('not enough arguments. --h for help');
   process.exit(0);
 } else {
-  func = parseInt(process.argv[3]);
-  if (func < 0 || func > 999){
-    console.log('func value is out of range. func: ', func);
+  argv3 = parseInt(process.argv[3]);
+  if (argv3 < 0 || argv3 > 999){
+    console.log('argv3 value is out of range. argv3: ', argv3);
     process.exit(0);
   }
-  if (arguLen >= 6) {
-    arg1 = parseInt(process.argv[5]);
-    if (arguLen >= 8) {
-      arg2 = parseInt(process.argv[7]);
-      if (arguLen >= 10) {
-        arg3 = parseInt(process.argv[9]);
+  if (arguLen >= 5) {
+    argv4 = parseInt(process.argv[4]);
+    if (arguLen >= 6) {
+      argv5 = parseInt(process.argv[5]);
+      if (arguLen >= 7) {
+        argv6 = parseInt(process.argv[6]);
+        if (arguLen >= 8) {
+          argv7 = parseInt(process.argv[7]);
+        }  
       }  
-    }  
+    }
   }
 }
-//console.log(arg1, arg2, arg3);
+//console.log(argv4, argv5, argv6);
 
 // yarn run testmt -f F
-// yarn run testmt -f F -a arg2 -b arg3 -c arg3
+// yarn run testmt -f F -a argv5 -b argv6 -c argv6
 
 // yarn run testmt -f 0
 const newplatformSupervisor = AssetOwner1;
@@ -1640,6 +1643,21 @@ const checkAssetbookArray_API = async() => {
   }
 }
 
+//yarn run testmt -f 101
+const deleteAllRecordsBySymbol_API = async() => {
+  let result, tokenSymbol;
+  if(argv4){
+    tokenSymbol = argv4;
+    console.log('tokenSymbol:', tokenSymbol);
+    process.exit(0);
+    result = await deleteAllRecordsBySymbol(tokenSymbol);
+  } else {
+    console.log('symbol argument is missing in the cli arguments');
+  }
+  process.exit(0);
+}
+
+
 //yarn run testmt -f 103
 const getSymbolFromCtrtAddr_API = async() => {
   console.log('\n---------------------==getSymbolFromCtrtAddr_API()');
@@ -1729,355 +1747,359 @@ function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeri
 
 //------------------------==
 // yarn run testmt -f 0
-if(func === 0){
+if(argv3 === 0){
   addPlatformSupervisor_API();
 
 //yarn run testmt -f 1
-} else if (func === 1) {
+} else if (argv3 === 1) {
   checkPlatformSupervisor_API();
 
 //yarn run testmt -f 2
-} else if (func === 2) {
+} else if (argv3 === 2) {
   addCustomerService_API();
 
 //yarn run testmt -f 3
-} else if (func === 3) {
+} else if (argv3 === 3) {
   checkCustomerService_API();
 
 //yarn run testmt -f 4
-} else if (func === 4) {
+} else if (argv3 === 4) {
   getProfitSymbolAddresses_API();
 
 //yarn run testmt -f 5
-} else if (func === 5) {
+} else if (argv3 === 5) {
   calculateLastPeriodProfit_API();
 
 //yarn run testmt -f 6
-} else if (func === 6) {
+} else if (argv3 === 6) {
   checkCompliance_API();
 
 //yarn run testmt -f 7
-} else if (func === 7) {
+} else if (argv3 === 7) {
   orderBalanceTotal_API();
 
 //yarn run testmt -f 8
-} else if (func === 8) {
+} else if (argv3 === 8) {
   addIncomeArrangementRow_API();
 
 //yarn run testmt -f 9
-} else if (func === 9) {
+} else if (argv3 === 9) {
   
 
 //yarn run testmt -f 10
-} else if (func === 10) {
+} else if (argv3 === 10) {
   sequentialMintSuperP2_API();
 
 
 //yarn run testmt -f 11
-} else if (func === 11) {
+} else if (argv3 === 11) {
   incomeManagerCtrt_API();
 
 //yarn run testmt -f 12
-} else if (func === 12) {
+} else if (argv3 === 12) {
   getIncomeSchedule_API();
 
 //yarn run testmt -f 13
-} else if (func === 13) {
+} else if (argv3 === 13) {
   getIncomeScheduleList_API();
 
 //yarn run testmt -f 14
-} else if (func === 14) {
+} else if (argv3 === 14) {
   checkAddForecastedScheduleBatch1_API();
 
 //yarn run testmt -f 15
-} else if (func === 15) {
+} else if (argv3 === 15) {
   checkAddForecastedScheduleBatch2_API();
 
 //yarn run testmt -f 16
-} else if (func === 16) {
+} else if (argv3 === 16) {
   checkAddForecastedScheduleBatch_API();
 
 //yarn run testmt -f 17
-} else if (func === 17) {
+} else if (argv3 === 17) {
   addForecastedScheduleBatch_API();
 
 //yarn run testmt -f 18
-} else if (func === 18) {
+} else if (argv3 === 18) {
   addForecastedScheduleBatchFromDB_API();
 
 //yarn run testmt -f 19
-} else if (func === 19) {
+} else if (argv3 === 19) {
   editActualSchedule_API();
 
 //yarn run testmt -f 20
-} else if (func === 20) {
+} else if (argv3 === 20) {
   addPaymentCount_API();
 
 //yarn run testmt -f 21
-} else if (func === 21) {
+} else if (argv3 === 21) {
   setErrResolution_API();
 
 //yarn run testmt -f 22
-} else if (func === 22) {
+} else if (argv3 === 22) {
   getForecastedSchedulesFromDB_API();
 
 
 //------------------==Income_arrangement
 //yarn run testmt -f 25
-} else if (func === 25) {
+} else if (argv3 === 25) {
   setAssetRecordStatus_API();
 
 //yarn run testmt -f 26
-} else if (func === 26) {
+} else if (argv3 === 26) {
   getMaxActualPaymentTime_API();
 
 //------------------==Assetbook
 //resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
 //yarn run testmt -f 30
-} else if (func === 30) {
+} else if (argv3 === 30) {
   getAssetbookDetails_API();
 
 //yarn run testmt -f 31
-} else if (func === 31) {
+} else if (argv3 === 31) {
   setHeliumAddr_API();
 
 //yarn run testmt -f 32
-} else if (func === 32) {
+} else if (argv3 === 32) {
   HeliumContractVote_API();
 
 //yarn run testmt -f 33
-} else if (func === 33) {
+} else if (argv3 === 33) {
   resetVoteStatus_API();
 
 //yarn run testmt -f 34
-} else if (func === 34) {
+} else if (argv3 === 34) {
   changeAssetOwner_API();
 
   //---------------==
 //yarn run testmt -f 39
-} else if (func === 39) {
+} else if (argv3 === 39) {
   getDetailsCFC_API();
 
 //yarn run testmt -f 40
-} else if (func === 40) {
+} else if (argv3 === 40) {
   preMint_API();
 
 //yarn run testmt -f 41
-} else if (func === 41) {
+} else if (argv3 === 41) {
   getCrowdfundingInvestors_API();
 
 //yarn run testmt -f 42
-} else if (func === 42) {
+} else if (argv3 === 42) {
   getCFC_Balances_API();
 
 //yarn run testmt -f 43
-} else if (func === 43) {
+} else if (argv3 === 43) {
   investTokens_API();
 
 //yarn run testmt -f 44
-} else if (func === 44) {
+} else if (argv3 === 44) {
   checkInvestTokens_API();
 
 //yarn run testmt -f 45
-} else if (func === 45) {
+} else if (argv3 === 45) {
   setOpenFundingCFC_API();
 
 //yarn run testmt -f 46
-} else if (func === 46) {
+} else if (argv3 === 46) {
   setCloseFundingCFC_API();
 
 //yarn run testmt -f 47
-} else if (func === 47) {
+} else if (argv3 === 47) {
   investTokensInBatch_API();
 
 //yarn run testmt -f 48
-} else if (func === 48) {
+} else if (argv3 === 48) {
   mintSequentialPerContract_CLI_API();
 
 //yarn run testmt -f 49
-} else if (func === 49) {
+} else if (argv3 === 49) {
   mintSequentialPerContract_API();
 
 //yarn run testmt -f 50
-} else if (func === 50) {
+} else if (argv3 === 50) {
   resetAfterMintToken_API();
 
 //yarn run testmt -f 51
-} else if (func === 51) {
+} else if (argv3 === 51) {
   writeFileToTxtFile_API();
 
 //yarn run testmt -f 52
-} else if (func === 52) {
+} else if (argv3 === 52) {
   writeStreamToTxtFile_API();
 
 
 //----------------------==Deploy Registry contract
 //yarn run testmt -f 54
-} else if (func === 54) {
+} else if (argv3 === 54) {
   deployHeliumContract_API();
 
 //yarn run testmt -f 55
-} else if (func === 55) {
+} else if (argv3 === 55) {
   deployRegistryContract_API();
 
 //----------------------==Add Assetbooks
 //yarn run testmt -f 56
-} else if (func === 56) {
+} else if (argv3 === 56) {
   deployAssetbookContracts_API();
 
 //yarn run testmt -f 57
-} else if (func === 57) {
+} else if (argv3 === 57) {
   addUsersIntoDB_API();
 
 //yarn run testmt -f 58
-} else if (func === 58) {
+} else if (argv3 === 58) {
   addUserOneIntoDB_API();
 
 
 //----------------------==
 //yarn run testmt -f 61
-} else if (func === 61) {
+} else if (argv3 === 61) {
   deployCrowdfundingContract_API();
 
 //yarn run testmt -f 611
-} else if (func === 611) {
+} else if (argv3 === 611) {
   checkDeploymentCFC_API();
 
 //yarn run testmt -f 64
-} else if (func === 64) {
+} else if (argv3 === 64) {
   deployTokenControllerContract_API();
 
 //yarn run testmt -f 67
-} else if (func === 67) {
+} else if (argv3 === 67) {
   deployHCATContract_API();
 
 //yarn run testmt -f 70
-} else if (func === 70) {
+} else if (argv3 === 70) {
   deployIncomeManagerContract_API();
 
 //yarn run testmt -f 71
-} else if (func === 71) {
+} else if (argv3 === 71) {
   deployProductManagerContract_API();
 
 //yarn run testmt -f 72
-} else if (func === 72) {
+} else if (argv3 === 72) {
   addSmartContractRow_API();
 
 //yarn run testmt -f 73
-} else if (func === 73) {
+} else if (argv3 === 73) {
   addProductRowFromSymbol_API();
 
 //yarn run testmt -f 74
-} else if (func === 74) {
+} else if (argv3 === 74) {
   addIncomeArrangementRows_API();
 
 //yarn run testmt -f 75
-} else if (func === 75) {
+} else if (argv3 === 75) {
   addUserArrayOrdersIntoDB_API();
 
 //yarn run testmt -f 76
-} else if (func === 76) {
+} else if (argv3 === 76) {
   addOrderIntoDB_API();
 
 //yarn run testmt -f 77
-} else if (func === 77) {
+} else if (argv3 === 77) {
   addArrayOrdersIntoDB_API();
 
 //yarn run testmt -f 78
-} else if (func === 78) {
+} else if (argv3 === 78) {
   addPaidOrdersIntoDBnCFC();
 
 //yarn run testmt -f 788
-} else if (func === 788) {
+} else if (argv3 === 788) {
   addAssetbooksIntoCFC_API();
 
 //yarn run testmt -f 79
-} else if (func === 79) {
+} else if (argv3 === 79) {
   getTokenContractDetails_API();
 
 //yarn run testmt -f 80
-} else if (func === 80) {
+} else if (argv3 === 80) {
   getAllSmartContractAddrs_API();
 
-} else if (func === 81) {
+} else if (argv3 === 81) {
   getPastScheduleTimes_API();
 
 //yarn run testmt -f 82
-} else if (func === 82) {
+} else if (argv3 === 82) {
   setTokenController_API();
 
 //yarn run testmt -f 83
-} else if (func === 83) {
+} else if (argv3 === 83) {
   getTokenBalances_API();
 
 //yarn run testmt -f 84
-} else if (func === 84) {
+} else if (argv3 === 84) {
 
 
 //yarn run testmt -f 85
-} else if (func === 85) {
+} else if (argv3 === 85) {
   addOrders_CFC_MintTokens_API();
 
 //yarn run testmt -f 86
-} else if (func === 86) {
+} else if (argv3 === 86) {
 
 //yarn run testmt -f 87
-} else if (func === 87) {
+} else if (argv3 === 87) {
 
 //yarn run testmt -f 88
-} else if (func === 88) {
+} else if (argv3 === 88) {
 
 //yarn run testmt -f 89
-} else if (func === 89) {
+} else if (argv3 === 89) {
 
 //yarn run testmt -f 90
-} else if (func === 90) {
+} else if (argv3 === 90) {
 
 
 //yarn run testmt -f 91
-} else if (func === 91) {
+} else if (argv3 === 91) {
   testRabbitMQ_sender();
 
 //yarn run testmt -f 92
-} else if (func === 92) {
+} else if (argv3 === 92) {
   callTestAPI();
 
 //yarn run testmt -f 93
-} else if (func === 93) {
+} else if (argv3 === 93) {
   breakdownArray_API();
 
 //yarn run testmt -f 94
-} else if (func === 94) {
+} else if (argv3 === 94) {
   checkTargetAmounts_API();
 
 //yarn run testmt -f 95
-} else if (func === 95) {
+} else if (argv3 === 95) {
   checkAssetbookArray_API();
 
 //yarn run testmt -f 100
-}else if(func === 100){
+} else if(argv3 === 100){
   intergrationTestOfProduct();
 
-} else if (func === 103) {
+//yarn run testmt -f 101
+} else if(argv3 === 101){
+  deleteAllRecordsBySymbol_API(symbol);
+
+} else if (argv3 === 103) {
   getSymbolFromCtrtAddr_API();
 
 //yarn run testmt -f 141
-} else if (func === 141) {
+} else if (argv3 === 141) {
   deleteProductRows_API();
 //yarn run testmt -f 142
-} else if (func === 142) {
+} else if (argv3 === 142) {
   deleteOrderRows_API();
 //yarn run testmt -f 143
-} else if (func === 143) {
+} else if (argv3 === 143) {
   deleteTxnInfoRows_API();
 //yarn run testmt -f 144
-} else if (func === 144) {
+} else if (argv3 === 144) {
   deleteSmartContractRows_API();
 //yarn run testmt -f 145
-} else if (func === 145) {
+} else if (argv3 === 145) {
   deleteIncomeArrangementRows_API();
 //yarn run testmt -f 146
-} else if (func === 146) {
+} else if (argv3 === 146) {
   deleteAssetRecordRows_API();
 
 }
