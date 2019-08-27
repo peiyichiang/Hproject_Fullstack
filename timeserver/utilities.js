@@ -129,7 +129,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     process.exit(1);
   }
   //const totalAmountToInvest = 750 * arraylength;
-  
+  console.log(`totalAmountToInvest: ${totalAmountToInvest}`)
   const userIndexArray = [];
   const tokenCountArray = [];
   let usrIdx;
@@ -138,13 +138,19 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
       usrIdx = getUsrIdx();
     }while(userIndexArray.includes(usrIdx))
 
-    userIndexArray.push(usrIdx);
+    const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
 
-    if(idx === arraylength-1){
-      const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
+    if(idx === arraylength-1 && remainingQty > 0){
+      userIndexArray.push(usrIdx);
       tokenCountArray.push(remainingQty);
+      
     } else {
-      tokenCountArray.push(getRndIntegerBothEnd(0, totalAmountToInvest-arraySum(tokenCountArray)));
+      let tokenCountHold = getRndIntegerBothEnd(1, remainingQty)
+      if(tokenCountHold < 1 || remainingQty < 1 ){
+        continue
+      }
+      tokenCountArray.push(tokenCountHold);
+      userIndexArray.push(usrIdx);
     } 
   }
   const tokenCountTotal = arraySum(tokenCountArray);

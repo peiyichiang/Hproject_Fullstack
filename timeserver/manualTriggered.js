@@ -1546,10 +1546,10 @@ const intergrationTestOfProduct = async() => {
 
   }
   const _addOrders_CFC_MintTokens_API = async () => {
-    const paymentStatus = 'paid';
+    const paymentStatus = 'paidTest';
     const tokenSymbol =  nftSymbol;
   
-    const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), quantityGoal);
+    const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), maxTotalSupply);
     console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`)
     //process.exit(0);
   
@@ -1566,8 +1566,9 @@ const intergrationTestOfProduct = async() => {
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
-    await addAssetbooksIntoCFC(serverTime);
-  
+    await addAssetbooksIntoCFC(serverTime, "paidTest")
+    /*if(await addAssetbooksIntoCFC(serverTime, "paidTest") != true)
+      process.exit(1)*/
     //--------------------==
     const symbol = nftSymbol;//'AVEN1902';
     const maxMintAmountPerRun = 190;

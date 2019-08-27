@@ -389,6 +389,7 @@ const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, initialAsset
   return new Promise(async (resolve, reject) => {
     console.log('\n-------------==inside addArrayOrdersIntoDB()');
     if(userIndexArray.length !== tokenCountArray.length){
+      console.log(`${userIndexArray} & ${tokenCountArray}`)
       reject('userIndexArray and tokenCountArray should have the same length');
     }
     const maxIndex = assetbookArray.length ;
