@@ -11,7 +11,7 @@ const { getTimeServerTime, isEmpty, checkIntFromOne } = require('../timeserver/u
 
 const { doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
-const { findCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
+const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -765,8 +765,8 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
   const ctrtType = req.body.ctrtType;
 
   console.log(`tokenSymbol: ${tokenSymbol}, ctrtType: ${ctrtType}`);
-  const [isGood, contractAddr, resultMesg] = await findCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
-    console.log('[Error @findCtrtAddr]:', err);
+  const [isGood, contractAddr, resultMesg] = await getCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
+    console.log('[Error @getCtrtAddr]:', err);
     res.send({
         err: err,
         status: false
@@ -822,15 +822,14 @@ router.post('/crowdfunding/getInvestors', async function (req, res, next) {
     });
     return;
   }
-    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr).catch(
-      (err) => {
+    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr)/*.catch((err) => {
         console.error('err:', err);
         res.send({
           err: err,
           status: false,
         });
         return;
-      });
+      });*/
     const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
     console.log(`investors: ${investors}`);
     res.send({
@@ -1568,7 +1567,7 @@ router.get('/incomeManagerContract/:tokenSymbol/checkAddScheduleBatch', async fu
     const forecastedPayableTimes = req.params.forecastedPayableTimes;
     const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
 
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
       res.send({
         err: err,
         status: false
@@ -1610,7 +1609,7 @@ router.post('/incomeManagerContract/:tokenSymbol/addScheduleBatchFromDB', async 
     const symbol = req.params.tokenSymbol;
     // const forecastedPayableTimes = req.params.forecastedPayableTimes;
     // const forecastedPayableAmounts = req.params.forecastedPayableAmounts;
-    const [isGood, addrIncomeManager, resultMesg] = await findCtrtAddr(symbol,'incomemanager').catch((err) => {
+    const [isGood, addrIncomeManager, resultMesg] = await getCtrtAddr(symbol,'incomemanager').catch((err) => {
       res.send({
         err: err,
         status: false,
