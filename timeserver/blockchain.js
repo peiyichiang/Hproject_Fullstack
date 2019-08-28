@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-console.log('loading blockchain.js...');
+console.log('--------------------== blockchain.js...');
 
 const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 

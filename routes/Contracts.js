@@ -1022,49 +1022,263 @@ router.get('/tokenController/getHTokenControllerDetails/:ctrtAddr', async functi
     });
 });
 
-//-----------------------==
+
+//-----------------------== HCAT Token
 // http://localhost:3030/Contracts/TokenHCAT/getTokenContractDetails
 router.get('/tokenHCAT/getTokenContractDetails/:ctrtAddr', async function (req, res, next) {
-  const tokenCtrtAddr = req.params.ctrtAddr;
-  console.log(`\ntokenCtrtAddr: ${tokenCtrtAddr}`);
-  if(isEmpty(tokenCtrtAddr)){
+  const ctrtAddr = req.params.ctrtAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
     res.send({
-      err: 'tokenCtrtAddr is invalid. '+tokenCtrtAddr,
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
       status: false
     });
     return false;
   }
-    const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, tokenCtrtAddr);
-    const getTokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
-    console.log(`getTokenContractDetails: ${getTokenContractDetails}`);
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getTokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
+  const pricingCurrency = web3.utils.toAscii(getTokenContractDetails[5]);
+  const name = web3.utils.toAscii(getTokenContractDetails[7]);
+  const symbol = web3.utils.toAscii(getTokenContractDetails[8]);
+  const tokenURI = web3.utils.toAscii(getTokenContractDetails[9]);
 
-    const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
-    const idToAsset = await instHCAT721.methods.idToAsset().call();
-    const isOwnerAdded = await instHCAT721.methods.isOwnerAdded().call();
-    const idxToOwner = await instHCAT721.methods.idxToOwner().call();
-    const ownerCindex = await instHCAT721.methods.ownerCindex().call();
-    const ownerAddr1 = await instHCAT721.methods.ownerOf(tokenId).call();
-    const ownerAddr2 = await instHCAT721.methods.getIdToAsset(tokenId).call();
-    const getOwnersByOwnerIndex = await instHCAT721.methods.getOwnersByOwnerIndex(indexStart, amount).call();
-    const getAccount = await instHCAT721.methods.getAccount(userAddr).call();
-    const balanceOf = await instHCAT721.methods.balanceOf(userAddr).call();
-    const getTokenIdByIndex = await instHCAT721.methods.getTokenIdByIndex(user, idx).call();
-    const getAccountIds = await instHCAT721.methods.getAccountIds(user, indexStart, amount).call();
-    const allowance = await instHCAT721.methods.allowance(user, operator).call();
-    const checkTokenApprove = await instHCAT721.methods.checkTokenApprove().call();
-    const ownerOf = await instHCAT721.methods.ownerOf().call();
-    const ownerOf = await instHCAT721.methods.ownerOf().call();
-    const ownerOf = await instHCAT721.methods.ownerOf().call();
-    const ownerOf = await instHCAT721.methods.ownerOf().call();
-
-    res.send({
-        getTokenContractDetails: getTokenContractDetails,
-        pricingCurrency: web3.utils.toAscii(getTokenContractDetails[5]),
-        name: web3.utils.toAscii(getTokenContractDetails[7]),
-        symbol: web3.utils.toAscii(getTokenContractDetails[8]),
-        tokenURI: web3.utils.toAscii(getTokenContractDetails[9])
-    });
+  const ownerCindex = await instHCAT721.methods.ownerCindex().call();
+  const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
+  console.log(`getTokenContractDetails: ${getTokenContractDetails}, \nownerCindex: ${ownerCindex}, TimeOfDeployment: ${TimeOfDeployment}`);
+  res.send({ getTokenContractDetails, pricingCurrency, name, symbol, tokenURI, ownerCindex, TimeOfDeployment });
 });
+
+router.post('/tokenHCAT/idToAsset', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const tokenId = req.body.tokenId;
+  console.log(`\ntokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr) || isEmpty(tokenId)){
+    res.send({
+      err: 'invalid inputs',
+      ctrtAddr: ctrtAddr,
+      tokenId: tokenId,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const idToAsset = await instHCAT721.methods.idToAsset(tokenId).call();
+  console.log(`idToAsset: ${idToAsset}`);
+  res.send({ idToAsset });
+});
+
+router.post('/tokenHCAT/isOwnerAdded', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const ownerAddr = req.body.ownerAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}, \nownerAddr: ${ownerAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const isOwnerAdded = await instHCAT721.methods.isOwnerAdded(ownerAddr).call();
+  console.log(`isOwnerAdded: ${isOwnerAdded}`);
+
+  res.send({ isOwnerAdded });
+});
+
+router.post('/tokenHCAT/idxToOwner', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const ownerIndex = req.body.ownerIndex;
+  console.log(`\nownerIndex: ${ownerIndex}, tokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const idxToOwner = await instHCAT721.methods.idxToOwner(ownerIndex).call();
+  console.log(`idxToOwner: ${idxToOwner}`);
+  res.send({ idxToOwner });
+});
+
+
+router.post('/tokenHCAT/ownerOf', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const tokenId = req.body.tokenId;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const ownerOf = await instHCAT721.methods.ownerOf(tokenId).call();
+  console.log(`ownerOf ownerAddr1: ${ownerOf}`);
+  res.send({ ownerOf });
+});
+
+router.post('/tokenHCAT/getOwnersByOwnerIndex', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const startIndex = req.body.startIndex;
+  const amount = req.body.amount;
+  console.log(`\nstartIndex: ${startIndex}, amount: ${amount}, ctrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getOwnersByOwnerIndex = await instHCAT721.methods.getOwnersByOwnerIndex(startIndex, amount).call();
+  console.log(`getOwnersByOwnerIndex: ${getOwnersByOwnerIndex}`);
+  res.send({ getOwnersByOwnerIndex });
+});
+
+router.post('/tokenHCAT/getAccount', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getAccount = await instHCAT721.methods.getAccount(assetbookAddr).call();
+  console.log(`getAccount: ${getAccount}`);
+  res.send({ getAccount });
+});
+
+router.post('/tokenHCAT/balanceOf', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const balanceOf = await instHCAT721.methods.balanceOf(assetbookAddr).call();
+  console.log(`balanceOf: ${balanceOf}`);
+  res.send({ balanceOf });
+});
+
+router.post('/tokenHCAT/getTokenIdByIndex', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  const startIndex = req.body.startIndex;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getTokenIdByIndex = await instHCAT721.methods.getTokenIdByIndex(assetbookAddr, startIndex).call();
+  console.log(`getTokenIdByIndex: ${getTokenIdByIndex}`);
+  res.send({ getTokenIdByIndex });
+});
+
+router.post('/tokenHCAT/getAccountIds', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  const startIndex = req.body.startIndex;
+  const amount = req.body.amount;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getAccountIds = await instHCAT721.methods.getAccountIds(assetbookAddr, startIndex, amount).call();
+  console.log(`getAccountIds: ${getAccountIds}`);
+  res.send({ getAccountIds });
+});
+
+router.post('/tokenHCAT/allowance', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  const operatorAddr = req.body.operatorAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const allowance = await instHCAT721.methods.allowance(assetbookAddr, operatorAddr).call();
+  console.log(`allowance: ${allowance}`);
+  res.send({ allowance });
+});
+
+router.post('/tokenHCAT/checkTokenApprove', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const operatorAddr = req.body.operatorAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const checkTokenApprove = await instHCAT721.methods.checkTokenApprove(operatorAddr).call();
+  console.log(`checkTokenApprove: ${checkTokenApprove}`);
+  res.send({ checkTokenApprove });
+});
+
+router.post('/tokenHCAT/tokenApprove', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const operatorAddr = req.body.operatorAddr;
+  const amount = req.body.amount;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const tokenApprove = await instHCAT721.methods.tokenApprove(operatorAddr, amount).call();
+  console.log(`tokenApprove: ${tokenApprove}`);
+  res.send({ tokenApprove });
+});
+
+router.post('/tokenHCAT/ckStringLength', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const tokenId = req.body.tokenId;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const ckStringLength = await instHCAT721.methods.ckStringLength(str, minStrLen, maxStrLen).call();
+  console.log(`ckStringLength: ${ckStringLength}`);
+  res.send({ ckStringLength });
+});
+
 
 /**@dev HCAT721_AssetToken ------------------------------------------------------------------------------------- */
 /*deploy HCAT721_AssetToken contract*/

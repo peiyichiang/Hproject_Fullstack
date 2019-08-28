@@ -12,8 +12,9 @@
 </head>
 
 <body>
-  <h2>HeliumCryptic Smart Contract Explorer</h2>
-  <div class="container">
+  <div class="container" style="max-width: inherit; margin: 15px;">
+    <h2>HeliumCryptic Smart Contract Explorer</h2>
+
     <div class="alert alert-warning alert-dismissible collapse"  id="alertInputs" role="alert">
       <button type="button" class="close" data-dismiss="alert">x</button>
       <strong>Success! </strong> Product have added to your wishlist.
@@ -27,60 +28,114 @@
             <div class="input-group-prepend">
               <span class="input-group-text" id="">Symbol</span>
             </div>
-            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbolCFC" aria-describedby="tokenSymbolCFC">
+            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbol" aria-describedby="tokenSymbol">
         </div>
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
               <span class="input-group-text" id="">Contract</span>
             </div>
-            <input type="text" class="form-control" placeholder="token contract addr" aria-label="tokenCtrtAddr" id="tokenCtrtAddrCFC" aria-describedby="tokenCtrtAddrCFC"
+            <input type="text" class="form-control" placeholder="token contract addr" aria-label="ctrtAddr" id="ctrtAddr" aria-describedby="ctrtAddr"
             value=''>
         </div>
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-              <span class="input-group-text" id="">Email</span>
+              <span class="input-group-text" id="">Owner Assetbook Address</span>
             </div>
-            <input type="email" class="form-control" placeholder="email" aria-label="email" id="email" aria-describedby="email">
+            <input type="text" class="form-control" placeholder="owner assetbook address" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
         </div>
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-              <span class="input-group-text" id="">Assetbook</span>
+              <span class="input-group-text" id="">tokenId</span>
             </div>
-            <input type="text" class="form-control" placeholder="assetbook contract addr" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
+            <input type="text" class="form-control" placeholder="tokenId" aria-label="tokenId" id="tokenId" aria-describedby="tokenId">
         </div>
 
         <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="">Investor Index</span>
-            </div>
-            <input type="text" class="form-control" placeholder="investor index" aria-label="investorIndex" id="investorIndex" aria-describedby="investorIndex">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Owner Index</span>
+          </div>
+          <input type="text" class="form-control" placeholder="Owner Index" aria-label="ownerIndex" id="ownerIndex" aria-describedby="ownerIndex">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Start Index</span>
+          </div>
+          <input type="text" class="form-control" placeholder="Start Index" aria-label="startIndex" id="startIndex" aria-describedby="startIndex">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Amount</span>
+          </div>
+          <input type="text" class="form-control" placeholder="Amount" aria-label="amount" id="amount" aria-describedby="amount">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Operator Address</span>
+          </div>
+          <input type="text" class="form-control" placeholder="operator address" aria-label="operator address" id="operatorAddr" aria-describedby="operator">
         </div>
 
 
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
           <button type="button" id="getTokenContractDetails" class="btn btn-primary">Get TokenController Details</button>
+
+          <button type="button" id="idToAsset" class="btn btn-primary">idToAsset (get Owner Address from tokenId)</button>
+          <button type="button" id="isOwnerAdded" class="btn btn-primary">isOwnerAdded</button>
+          <button type="button" id="idxToOwner" class="btn btn-primary">idxToOwner</button>
+          <button type="button" id="ownerOf" class="btn btn-primary">ownerOf</button>
+          <button type="button" id="getOwnersByOwnerIndex" class="btn btn-primary">getOwnersByOwnerIndex</button>
+          <button type="button" id="getAccount" class="btn btn-primary">getAccount</button>
+
+          <button type="button" id="balanceOf" class="btn btn-primary">balanceOf</button>
+          <button type="button" id="getTokenIdByIndex" class="btn btn-primary">getTokenIdByIndex</button>
+
+          <button type="button" id="getAccountIds" class="btn btn-primary">getAccountIds</button>
+          <button type="button" id="allowance" class="btn btn-primary">allowance</button>
+          
+          <button type="button" id="checkTokenApprove" class="btn btn-primary">checkTokenApprove</button>
+          <button type="button" id="tokenApprove" class="btn btn-primary">tokenApprove</button>
+
+          <button type="button" id="ckStringLength" class="btn btn-primary">ckStringLength</button>
+
         </div>
 
       </div>
 
       <div class="col">
         <h5>Result</h5>
-        tokenId: <span id="tokenId"></span><br>
+        symbol: <span id="symbolM"></span><br>
+        name: <span id="name"></span><br>
+        tokenId: <span id="tokenIdM"></span><br>
         siteSizeInKW: <span id="siteSizeInKW"></span><br>
         maxTotalSupply: <span id="maxTotalSupply"></span><br>
         totalSupply: <span id="totalSupply"></span><br>
         initialAssetPricing: <span id="initialAssetPricing"></span><br>
         pricingCurrency: <span id="pricingCurrency"></span><br>
         IRR20yrx100: <span id="IRR20yrx100"></span><br>
-        name: <span id="name"></span><br>
-        symbol: <span id="symbol"></span><br>
         tokenURI: <span id="tokenURI"></span><br>
-
+        ownerCindex: <span id="ownerCindexM"></span><br>
+        TimeOfDeployment: <span id="TimeOfDeploymentM"></span><br>
+        
         <br>
-        tokenState: <span id="tokenState"></span><br>
+        Asset: <span id="idToAssetM"></span><br>
+        isOwnerAdded: <span id="isOwnerAddedM"></span><br>
+        idxToOwner: <span id="idxToOwnerM"></span><br>
+        ownerOf: <span id="ownerOfM"></span><br>
+        getOwnersByOwnerIndex: <span id="getOwnersByOwnerIndexM"></span><br>
+        getAccount: <span id="getAccountM"></span><br>
+        balanceOf: <span id="balanceOfM"></span><br>
+        getTokenIdByIndex: <span id="getTokenIdByIndexM"></span><br>
+        getAccountIds: <span id="getAccountIdsM"></span><br>
+        allowance: <span id="allowanceM"></span><br>
+        checkTokenApprove: <span id="checkTokenApproveM"></span><br>
+        tokenApprove: <span id="tokenApproveM"></span><br>
+        ckStringLength: <span id="ckStringLengthM"></span><br>
 
       </div>
     </div>
@@ -127,7 +182,7 @@
       document.getElementById("alertInputs").innerText = messageTxt;
       //jQuery("#alertInputs").fadeOut("slow");
       $('.collapse').collapse();
-      $("#alertInputs").fadeTo(5000, 500).slideUp(500, function() {
+      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
         $("#alertInputs").slideUp(500);
       });
     }
@@ -135,20 +190,33 @@
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, tokenSymbol, contractAddr, email, assetbookAddr, investorIndex;
+      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount;
 
-      tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
-      ctrtAddr_input = document.getElementById("tokenCtrtAddrCFC").value;
-      email_input = document.getElementById("email").value;
+      tokenSymbol_input = document.getElementById("tokenSymbol").value;
+
+      ctrtAddr_input = document.getElementById("ctrtAddr").value;
       assetbookAddr_input = document.getElementById("assetbookAddr").value;
-      investorIndex_input = document.getElementById("investorIndex").value;
+      operatorAddr_input = document.getElementById("operatorAddr").value;
 
-      const isTokenSymbolEmpty = isEmpty(tokenSymbol_input);
-      const isTokenCtrtAddrCFC_empty = isEmpty(ctrtAddr_input);
+      tokenId_input = document.getElementById("tokenId").value;
+      startIndex_input = document.getElementById("startIndex").value;
+      ownerIndex_input = document.getElementById("ownerIndex").value;
+      amount_input = document.getElementById("amount").value;
+      
+      const is_tokenSymbol_empty = isEmpty(tokenSymbol_input);
+      const is_ctrtAddr_empty = isEmpty(ctrtAddr_input);
+      const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
+      const is_operatorAddr_empty = isEmpty(operatorAddr_input);
+      const is_tokenId_empty = isEmpty(tokenId_input);
+      const is_startIndex_empty = isEmpty(startIndex_input);
+      const is_ownerIndex_empty = isEmpty(ownerIndex_input);
+      const is_amount_empty = isEmpty(amount_input);
 
-      if(!isTokenSymbolEmpty){
+      console.log(`tokenSymbol_input: ${tokenSymbol_input}, \nctrtAddr_input: ${ctrtAddr_input}, \nassetbookAddr_input: ${assetbookAddr_input}, \noperatorAddr_input: ${operatorAddr_input}, \ntokenId_input: ${tokenId_input}, \nstartIndex_input: ${startIndex_input}, \nis_ownerIndex_empty: ${is_ownerIndex_empty},\namount_input: ${amount_input}`);
+
+
+      if(!is_tokenSymbol_empty){
         if(tokenSymbol_input.length === 8){
-          isGood = true;
           const url = BcApiBase+`getCtrtAddrFromTokenSymbol`;
           console.log('about to find contract address ... url:',url);
           const data = {tokenSymbol: tokenSymbol_input, ctrtType: contractType};
@@ -160,47 +228,30 @@
           const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
           const json = await response.json();
           console.log('json', json);
-          ({ isGood, contractAddr, resultMesg} = json);
-          console.log(`isGood: ${isGood}, contractAddr: ${contractAddr}, \nresultMesg: ${resultMesg}`);
+          ({ isGood, ctrtAddr, resultMesg} = json);
+          console.log(`isGood: ${isGood}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
 
         } else {
           mesg = 'tokenSymbol should have length of 8';
         }
 
-      } else if(!isTokenCtrtAddrCFC_empty){
+      } else if(!is_ctrtAddr_empty){
         if(ctrtAddr_input.length !== 42){
-          mesg = 'TokenController contract address should have length of 42';
+          mesg = 'HCAT Token contract address should have length of 42';
         } else if(ctrtAddr_input.substring(0, 2) !== '0x'){
-          mesg = 'TokenController contract address should start with 0x';
+          mesg = 'HCAT Token contract address should start with 0x';
         } else {
           isGood = true;
-          contractAddr = ctrtAddr_input;
-        // if(!tokenSymbol_input){
-        //   const url = BcApiBase+`getTokenSymbolFromCtrtAddr`;
-        //   console.log('tokenSymbol_input is empty... url:',url);
-        //   const data = {contractAddr: ctrtAddr_input, ctrtType: contractType};
-        //   const options = {
-        //     method: 'POST', // or 'PUT'
-        //     body: JSON.stringify(data), // data can be `string` or {object}!
-        //     headers:{'Content-Type': 'application/json'}
-        //   };
-        //   const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
-        //   const json = await response.json();
-        //   console.log('json', json);
-        //   ({ isGood, symbol, resultMesg} = json);
-        //   // const isGood = json['isGood'];
-        //   // const 
-        //   console.log(`isGood: ${isGood}, symbol: ${symbol}, \nresultMesg: ${resultMesg}`);
-        // }
+          ctrtAddr = ctrtAddr_input;
         }
       } else {
-        mesg = 'At least one tokenSymbol or tokenCtrtAddrCFC should be valid';
+        mesg = 'At least tokenSymbol or ctrtAddr should be valid';
         console.warn(mesg);
 
-        const isGivingDefaultCFC = 1;
-        if(isGivingDefaultCFC === 1) {
-          contractAddr = '0xA80c0A88e38aa61190A3Ad41bd3907774D291f87';
-          mesg = 'Token symbol and Token contract values are empty. Using default value: contractAddr = '+contractAddr;
+        const isGivingDefault = 1;
+        if(isGivingDefault === 1) {
+          ctrtAddr = '0xA80c0A88e38aa61190A3Ad41bd3907774D291f87';
+          mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
           showAlert(mesg);
         } else {
@@ -208,51 +259,89 @@
           showAlert(mesg);
         }
       }
-      console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, contractAddr: ${contractAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
+      console.log(`241----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
       if(!isGood){
-        console.warn(mesg+' resultMesg: '+resultMesg);
-        showAlert(mesg+' resultMesg: '+resultMesg);
+        console.warn(mesg+', resultMesg: '+resultMesg);
+        showAlert(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
       console.log(`-------------==`);
 
-      if(funcName === 'emailToQty' && isEmpty(email_input)){
-          email = 'achmed1923@gmail.com';
-          mesg = 'Email is found empty. Using default value: '+ email;
-          console.warn(mesg);
-          showAlert(mesg);
-        } else {
-          email = email_input;
-        }
-
-      if(funcName === 'ownerToQty' && isEmpty(assetbookAddr_input)){
-          assetbookAddr = '0xc297297Aa3437320CFd2CA0F988E4FC1B82E6A17';
-          mesg = 'Assetbook is found empty. Using default value: '+ assetbookAddr;
-          console.warn(mesg);
-          showAlert(mesg);
+      if((funcName === 'idToAsset' || funcName === 'ownerOf') && is_tokenId_empty){
+        tokenId = 1;
+        mesg = 'tokenId is found empty. Using default value: '+ tokenId;
+        console.warn(mesg);
+        showAlert(mesg);
       } else {
-          assetbookAddr = assetbookAddr_input;
+        tokenId = tokenId_input;
       }
 
-      if(funcName === 'idxToOwner' && isEmpty(investorIndex_input)){
-          investorIndex = '1';
-          mesg = 'investorIndex is found empty. Using default value: '+ investorIndex;
-          console.warn(mesg);
-          showAlert(mesg);
-        } else {
-          investorIndex = investorIndex_input;
-        }
-      
-      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, contractAddr: ${contractAddr}, email: ${email}, assetbookAddr: ${assetbookAddr}, investorIndex: ${investorIndex}`);
-      return [isGood, tokenSymbol, contractAddr, email, assetbookAddr, investorIndex];
+      if( (funcName === 'isOwnerAdded' || funcName === 'getAccount' || funcName === 'balanceOf' || funcName === 'getTokenIdByIndex'|| funcName === 'getAccountIds' || funcName === 'allowance') && is_assetbookAddr_empty){
+        assetbookAddr = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
+        mesg = 'Assetbook is found empty. Using default value: '+ assetbookAddr;
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        assetbookAddr = assetbookAddr_input;
+      }
+
+/*
+  is_tokenSymbol_empty   is_ctrtAddr_empty   is_assetbookAddr_empty
+  is_operatorAddr_empty   is_tokenId_empty   is_startIndex_empty  is_amount_empty
+*/
+/* idToAsset (get Owner Address from tokenId), isOwnerAdded
+idxToOwner   ownerCindex    ownerOf   getOwnersByOwnerIndex
+getAccount   balanceOf      getTokenIdByIndex
+getAccountIds   allowance    checkTokenApprove    ckStringLength
+*/
+      if((funcName === 'idxToOwner') && is_ownerIndex_empty){
+        ownerIndex = 1;
+        mesg = 'ownerIndex is found empty. Using default value: '+ ownerIndex;
+        //if(mesg.substring(0, 2) === ', ') mesg.slice(2);
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        ownerIndex = ownerIndex_input;
+      }
+
+      if((funcName === 'getOwnersByOwnerIndex' || funcName === 'getTokenIdByIndex' || funcName === 'getAccountIds') && is_startIndex_empty){
+        startIndex = 0;
+        mesg = 'startIndex is found empty. Using default value: '+ startIndex;
+        //if(mesg.substring(0, 2) === ', ') mesg.slice(2);
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        startIndex = startIndex_input;
+      }
+
+      if((funcName === 'getOwnersByOwnerIndex' || funcName === 'getAccountIds' || funcName === 'tokenApprove') && is_amount_empty){
+        amount = 0;
+        mesg = 'amount is found empty. Using default value: '+ amount;
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        amount = amount_input;
+      }
+
+      if((funcName === 'allowance' || funcName === 'checkTokenApprove' || funcName === 'tokenApprove') && is_operatorAddr_empty){
+        operatorAddr = '0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734';
+        mesg = 'operator is found empty. Using default value: '+ operatorAddr;
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        operatorAddr = operatorAddr_input;
+      }
+
+      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}, tokenId: ${tokenId}, ownerIndex: ${ownerIndex} startIndex: ${startIndex}, amount: ${amount}`);
+      return [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount];
     }
 
 
 
     $('#getTokenContractDetails').on('click',  async function (e) {
       console.log('inside getTokenContractDetails function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('getTokenContractDetails');
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getTokenContractDetails');
       //      console.log('result', result);
       if(!isGood || isEmpty(ctrtAddr)) return;
 
@@ -263,7 +352,7 @@
       console.log('after calling API');
       const getTokenContractDetails = json['getTokenContractDetails'];
       console.log('getTokenContractDetails:', getTokenContractDetails);
-      const tokenId = getTokenContractDetails['0'];
+      const tokenIdM = getTokenContractDetails['0'];
       const siteSizeInKW = getTokenContractDetails['1'];
       const maxTotalSupply = getTokenContractDetails['2'];
       const totalSupply = getTokenContractDetails['3'];
@@ -273,8 +362,10 @@
       const name = json['name'];
       const symbol = json['symbol'];
       const tokenURI = json['tokenURI'];
+      const ownerCindex = json['ownerCindex'];
+      const TimeOfDeployment = json['TimeOfDeployment'];
 
-      document.getElementById("tokenId").innerText = tokenId;
+      document.getElementById("tokenIdM").innerText = tokenIdM;
       document.getElementById("siteSizeInKW").innerText = siteSizeInKW;
       document.getElementById("maxTotalSupply").innerText = maxTotalSupply;
       document.getElementById("totalSupply").innerText = totalSupply;
@@ -283,107 +374,263 @@
 
       document.getElementById("IRR20yrx100").innerText = parseInt(IRR20yrx100)/100;
       document.getElementById("name").innerText = name;
-      document.getElementById("symbol").innerText = symbol;
+      document.getElementById("symbolM").innerText = symbol;
       document.getElementById("tokenURI").innerText = tokenURI;
+      document.getElementById("ownerCindexM").innerText = ownerCindex;
+      document.getElementById("TimeOfDeploymentM").innerText = TimeOfDeployment;
 
       //location.reload();
-
-      // const details = json['details'];
-      // console.log('details:', details);
-      // const pricingCurrency = details['0'];
-      // const tokenState = details['1'];
-
-      // document.getElementById("tokenState").innerText = tokenState;
     });
 
-
-
-    $('#getInvestors').on('click',  async function (e) {
-      console.log('inside getInvestors function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs();
+    $('#idToAsset').on('click',  async function (e) {
+      console.log('inside idToAsset function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('idToAsset');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
       if(!isGood) return;
 
-      const url = BcApiBase+`tokenHCAT/getInvestors`;
-      // http://localhost:3030/Contracts/getInvestors/
-
-      const data = {ctrtAddr: ctrtAddr, indexStart: 0, amount: 0};
+      const url = BcApiBase+`tokenHCAT/idToAsset`;
+      // http://localhost:3030/Contracts/tokenHCAT/idToAsset/
+      const data = {ctrtAddr, tokenId };
       const options = {
         method: 'POST', // or 'PUT'
         body: JSON.stringify(data), // data can be `string` or {object}!
         headers:{'Content-Type': 'application/json'}
       };
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const json = await response.json();
-      const investors = json['investors'];
-      console.log('investors:', investors);
-
-      const assetbookArray = investors['assetbookArray'];
-      const investedTokenQtyArray = investors['investedTokenQtyArray'];
-      console.log(`assetbookArray: ${assetbookArray} \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
-      document.getElementById("assetbookArray").innerText = assetbookArray;
-      document.getElementById("investedTokenQtyArray").innerText = investedTokenQtyArray;
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("idToAssetM").innerText = jsonObj['idToAsset'];
     });
 
-    
-    $('#emailToQty').on('click',  async function (e) {
-      console.log('inside emailToQty function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('emailToQty');
+    $('#isOwnerAdded').on('click',  async function (e) {
+      console.log('inside isOwnerAdded function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('isOwnerAdded');
+      const ownerAddr = assetbookAddr;
+      console.log(`ownerAddr: ${ownerAddr}, ctrtAddr: ${ctrtAddr}`);
       if(!isGood) return;
 
-      const url = BcApiBase+`tokenHCAT/emailToQty`;
-      // http://localhost:3030/Contracts/emailToQty/
-
-      const data = {ctrtAddr: ctrtAddr, email: email};
+      const url = BcApiBase+`tokenHCAT/isOwnerAdded`;
+      // http://localhost:3030/Contracts/tokenHCAT/isOwnerAdded/
+      const data = {ctrtAddr, ownerAddr };
       const options = {
         method: 'POST', // or 'PUT'
         body: JSON.stringify(data), // data can be `string` or {object}!
         headers:{'Content-Type': 'application/json'}
       };
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const json = await response.json();
-      const quantityOwned = json['quantityOwned'];
-      console.log('quantityOwned:', quantityOwned);
-      document.getElementById("quantityOwned").innerText = quantityOwned;
-    });
-
-    $('#ownerToQty').on('click',  async function (e) {
-      console.log('inside ownerToQty function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('ownerToQty');
-      if(!isGood) return;
-
-      const url = BcApiBase+`tokenHCAT/ownerToQty`;
-      const data = {ctrtAddr: ctrtAddr, assetbookAddr: assetbookAddr};
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const json = await response.json();
-      const quantityOwned = json['quantityOwned'];
-      console.log('quantityOwned:', quantityOwned);
-      document.getElementById("quantityOwned").innerText = quantityOwned;
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("isOwnerAddedM").innerText = jsonObj['isOwnerAdded'];
     });
 
     $('#idxToOwner').on('click',  async function (e) {
       console.log('inside idxToOwner function... \ne.target:', e.target);
-      const [isGood, tokenSymbol_in, ctrtAddr, email, assetbookAddr, investorIndex] = await checkInputs('idxToOwner');
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('idxToOwner');
+      console.log(`ownerIndex: ${ownerIndex}, ctrtAddr: ${ctrtAddr}`);
       if(!isGood) return;
 
       const url = BcApiBase+`tokenHCAT/idxToOwner`;
-      // http://localhost:3030/Contracts/idxToOwner/
-
-      const data = {ctrtAddr: ctrtAddr, index: investorIndex};
+      // http://localhost:3030/Contracts/tokenHCAT/idxToOwner/
+      const data = {ctrtAddr, ownerIndex };
       const options = {
         method: 'POST', // or 'PUT'
         body: JSON.stringify(data), // data can be `string` or {object}!
         headers:{'Content-Type': 'application/json'}
       };
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const json = await response.json();
-      const addrOwner = json['addrOwner'];
-      console.log('addrOwner:', addrOwner);
-      document.getElementById("addrOwner").innerText = addrOwner;
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("idxToOwnerM").innerText = jsonObj['idxToOwner'];
+    });
+
+
+    $('#ownerOf').on('click',  async function (e) {
+      console.log('inside ownerOf function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('ownerOf');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/ownerOf`;
+      // http://localhost:3030/Contracts/tokenHCAT/ownerOf/
+      const data = {ctrtAddr, tokenId };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("ownerOfM").innerText = jsonObj['ownerOf'];
+    });
+
+    $('#getOwnersByOwnerIndex').on('click',  async function (e) {
+      console.log('inside getOwnersByOwnerIndex function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getOwnersByOwnerIndex');
+      console.log(`startIndex: ${startIndex}, amount: ${amount}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+      if((startIndex > 0 && amount > 0) || (startIndex === 0 && amount === 0)){
+        const url = BcApiBase+`tokenHCAT/getOwnersByOwnerIndex`;
+        // http://localhost:3030/Contracts/tokenHCAT/getOwnersByOwnerIndex/
+        const data = {ctrtAddr, startIndex, amount };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+        document.getElementById("getOwnersByOwnerIndexM").innerText = jsonObj['getOwnersByOwnerIndex'];
+      } else {
+        mesg = 'either both startIndex and amount are above zeros, or both are zeros';
+        console.warn(mesg);
+        showAlert(mesg);
+      }
+    });
+
+    $('#getAccount').on('click',  async function (e) {
+      console.log('inside getAccount function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getAccount');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/getAccount`;
+      // http://localhost:3030/Contracts/tokenHCAT/getAccount/
+      const data = {ctrtAddr, assetbookAddr };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("getAccountM").innerText = JSON.stringify(jsonObj['getAccount']);
+    });
+
+    $('#balanceOf').on('click',  async function (e) {
+      console.log('inside balanceOf function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('balanceOf');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/balanceOf`;
+      // http://localhost:3030/Contracts/tokenHCAT/balanceOf/
+      const data = {ctrtAddr, assetbookAddr };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("balanceOfM").innerText = jsonObj['balanceOf'];
+    });
+  /* idToAsset (get Owner Address from tokenId), isOwnerAdded
+idxToOwner   ownerCindex    ownerOf   getOwnersByOwnerIndex
+getAccount   balanceOf      getTokenIdByIndex
+getAccountIds   allowance    checkTokenApprove    ckStringLength
+*/
+    $('#getTokenIdByIndex').on('click',  async function (e) {
+      console.log('inside getTokenIdByIndex function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getTokenIdByIndex');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/getTokenIdByIndex`;
+      // http://localhost:3030/Contracts/tokenHCAT/getTokenIdByIndex/
+      const data = {ctrtAddr, assetbookAddr, startIndex };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("getTokenIdByIndexM").innerText = jsonObj['getTokenIdByIndex'];
+    });
+
+    $('#getAccountIds').on('click',  async function (e) {
+      console.log('inside getAccountIds function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getAccountIds');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/getAccountIds`;
+      // http://localhost:3030/Contracts/tokenHCAT/getAccountIds/
+      const data = {ctrtAddr, assetbookAddr, startIndex, amount };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("getAccountIdsM").innerText = jsonObj['getAccountIds'];
+    });
+
+    $('#allowance').on('click',  async function (e) {
+      console.log('inside allowance function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('allowance');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/allowance`;
+      // http://localhost:3030/Contracts/tokenHCAT/allowance/
+      const data = {ctrtAddr, assetbookAddr, operatorAddr };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("allowanceM").innerText = jsonObj['allowance'];
+    });
+
+    $('#checkTokenApprove').on('click',  async function (e) {
+      console.log('inside checkTokenApprove function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('checkTokenApprove');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/checkTokenApprove`;
+      // http://localhost:3030/Contracts/tokenHCAT/checkTokenApprove/
+      const data = {ctrtAddr, operatorAddr };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("checkTokenApproveM").innerText = jsonObj['checkTokenApprove'];
+    });
+
+    $('#tokenApprove').on('click',  async function (e) {
+      console.log('inside tokenApprove function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('tokenApprove');
+      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`tokenHCAT/tokenApprove`;
+      // http://localhost:3030/Contracts/tokenHCAT/tokenApprove/
+      const data = {ctrtAddr, operatorAddr, amount };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("tokenApproveM").innerText = jsonObj['tokenApprove'];
     });
   </script>
 

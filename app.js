@@ -127,7 +127,7 @@ app.use(function (err, req, res, next) {
 });
 
 
-console.log(`\n------------------==timeserver: ${isTimeserverON}`);
+console.log(`\n--------------------== app.js: timeserver ${isTimeserverON}`);
 if(isTimeserverON){
   require('./timeserver/timeserverSource');
   console.log(`  is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}

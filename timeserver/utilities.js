@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { excludedSymbols } = require('../ethereum/contracts/zsetupData');
-
+console.log('--------------------== utilities.js');
 //----------------------------==Log
 let IS_LOG_ON;
 // try{
@@ -11,9 +11,9 @@ let IS_LOG_ON;
 //   console.log(`${err}`);
 // };
 if(process.env.IS_LOG_ON){
-  console.log(`IS_LOG_ON: true, ${IS_LOG_ON}`);
+  console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=> true`);
 } else{
-  console.log(`IS_LOG_ON: false, ${IS_LOG_ON}`);
+  console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=>false`);
 }
 const sLog = str => {
   if(process.env.IS_LOG_ON){

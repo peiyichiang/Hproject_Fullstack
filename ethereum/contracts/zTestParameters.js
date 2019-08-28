@@ -3,7 +3,7 @@ const { sLog } = require('../../timeserver/utilities');
 var faker = require('faker');
 var _ = require('lodash');
 
-sLog(`\n------------------==zTestParameters.js`);
+sLog(`\n--------------------== zTestParameters.js`);
 const AssetOwner1 = '0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2';
 const AssetOwner1pkRaw = '0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca';
 const AssetOwner2 = '0x470Dea51542017db8D352b8B36B798a4B6d92c2E';
