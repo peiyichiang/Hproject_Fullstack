@@ -27,7 +27,7 @@ if (process.env.SERVER_PROTOCOL == 'http') {
     server = https.createServer({
         key: fs.readFileSync('./bin/hcat_io.key'),
         cert: fs.readFileSync('./bin/hcat_io.crt'),
-        ca: fs.readFileSync('./bin/hcat_io.crt')
+        ca: fs.readFileSync('./bin/hcat_io.ca-bundle')
     }, app)
 }
 
