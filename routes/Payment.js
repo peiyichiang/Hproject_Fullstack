@@ -39,7 +39,7 @@ router.post('/virtualAccount', async function (req, res, next) {
     let checkCode = await calculateCheckCode(virtualAccount_13digits, amountToPaid_11digits);
 
     //產生14碼虛擬帳號
-    let virtualAccount = bankcode + userId.slice(4) + expiredSolarDay + checkCode;
+    let virtualAccount = bankcode +  o_id.slice(-3) + userId.slice(7) + expiredSolarDay + checkCode;
 
 
     //todo 將訂單資訊與虛擬帳號綁定 UPDATE table: order_list in: o_bankvirtualaccount
@@ -126,13 +126,14 @@ router.post('/accountingDetails', async function (req, res, next) {
                     let v_account = accountingDetails[i][2];
                     let payAmount = accountingDetails[i][9]
                     let amountToPay = await getAmountToPay(mysqlPoolQuery, v_account);
-                    let status = await getStatus(mysqlPoolQuery, v_account);
-
                     console.log("應繳金額：" + amountToPay + " >>>>實繳金額 " + payAmount);
-                    //金額正確 & 訂單沒過期
-                    if (amountToPay == payAmount && status != "expired") {
+                    //金額正確 & 合法繳費日期
+                    if (amountToPay == payAmount) {
                         console.log("amountCorrect");
                         await updatePayemtStatus(mysqlPoolQuery, v_account);
+                        let userInfo = await getUserInfo(mysqlPoolQuery, v_account);
+                        let userName = await getUserName(mysqlPoolQuery, userInfo.o_email);
+                        sendPaidMail(userName, userInfo.o_id, userInfo.o_email);
                     }
                 }
                 console.log("====================" + file + "銷帳完成==================");
@@ -149,53 +150,6 @@ router.post('/accountingDetails', async function (req, res, next) {
 
 });
 
-//寄付款成功信件
-router.post('/sendPaidMail', function (req, res, next) {
-
-    var mailInfo = JSON.parse(req.body.mailInfo);
-
-    //宣告發信物件
-    var transporter = nodemailer.createTransport({
-        /* Helium */
-        host: 'server239.web-hosting.com',
-        port: 465,
-        secure: true, // use SSL
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-
-    var text = '<h2>付款成功</h2> <p>' + mailInfo.name + '您好：<br>我們已收到您的付款，訂單編號為:<br>' + mailInfo.o_IDs + '，您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
-
-    var options = {
-        //寄件者
-        from: 'noreply@hcat.io',
-        //收件者
-        to: mailInfo.email,
-        //主旨
-        subject: '付款成功通知',
-        //嵌入 html 的內文
-        html: text
-    };
-
-    //發送信件方法
-    transporter.sendMail(options, function (error, info) {
-        if (error) {
-            console.log(err);
-            res.status(400);
-            res.json({ "message": "[Error] Failure :" + err });
-        } else {
-            console.log('訊息發送: ' + info.response);
-            res.status(200);
-            res.json({
-                "message": "[Success] Success",
-                "info": info.response
-            });
-        }
-    });
-
-})
 
 function getInfoFromOrder_list(mysqlPoolQuery, o_id) {
     return new Promise((resolve, reject) => {
@@ -340,21 +294,6 @@ function getAmountToPay(mysqlPoolQuery, virtualAccount) {
     })
 }
 
-function getStatus(mysqlPoolQuery, virtualAccount) {
-    return new Promise((resolve, reject) => {
-        mysqlPoolQuery('SELECT o_paymentStatus  FROM order_list WHERE o_bankvirtualaccount = ?', [virtualAccount], function (err, DBresult, rows) {
-            if (err) {
-                console.log(err);
-                reject(err);
-            }
-            else {
-                console.log(DBresult);
-                resolve(DBresult[0].o_paymentStatus);
-            }
-        });
-    })
-}
-
 function updatePayemtStatus(mysqlPoolQuery, virtualAccount) {
     return new Promise((resolve, reject) => {
         var sql = { o_paymentStatus: "paid" };
@@ -370,5 +309,81 @@ function updatePayemtStatus(mysqlPoolQuery, virtualAccount) {
 
     })
 }
+
+function getUserInfo(mysqlPoolQuery, virtualAccount) {
+    return new Promise((resolve, reject) => {
+        mysqlPoolQuery('SELECT o_id, o_email  FROM order_list WHERE o_bankvirtualaccount = ?', [virtualAccount], function (err, DBresult, rows) {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            else {
+                // console.log(DBresult);
+                resolve(DBresult[0]);
+            }
+        });
+    })
+}
+
+function getUserName(mysqlPoolQuery, email) {
+    return new Promise((resolve, reject) => {
+        mysqlPoolQuery('SELECT u_name  FROM user WHERE u_email = ?', [email], function (err, DBresult, rows) {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            else {
+                // console.log(DBresult);
+                resolve(DBresult[0].u_name);
+            }
+        });
+    })
+}
+
+//寄付款成功信件
+function sendPaidMail(name, o_IDs, email) {
+    // return new Promise((resolve, reject) => {
+        //宣告發信物件
+        var transporter = nodemailer.createTransport({
+            /* Helium */
+            host: 'server239.web-hosting.com',
+            port: 465,
+            secure: true, // use SSL
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        var text = '<h2>付款成功</h2> <p>' + name + ' 先生/小姐您好：<br<br>><br>我們已收到您的付款。<br>訂單編號為:<br>' + o_IDs + '。<br>您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
+
+        var options = {
+            //寄件者
+            from: 'noreply@hcat.io',
+            //收件者
+            to: email,
+            //主旨
+            subject: '付款成功通知',
+            //嵌入 html 的內文
+            html: text
+        };
+
+        //發送信件方法
+        transporter.sendMail(options, function (error, info) {
+            if (error) {
+                console.log(err);
+                // reject(err);
+            } else {
+                console.log('訊息發送: ' + info.response);
+                // resolve("send email successed");
+            }
+        });
+
+    // })
+
+
+
+}
+
 
 module.exports = router;
