@@ -2622,7 +2622,7 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 
 
 
-//---------------------------==Income Manager contract / IncomeManagerContract
+//---------------------------==Income Manager contract 
 //---------------------------==
 const get_schCindex = async(symbol) => {
   return new Promise(async (resolve, reject) => {

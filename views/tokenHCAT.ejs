@@ -83,7 +83,7 @@
 
 
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
-          <button type="button" id="getTokenContractDetails" class="btn btn-primary">Get TokenController Details</button>
+          <button type="button" id="getTokenContractDetails" class="btn btn-primary">Get HCAT Token Details</button>
 
           <button type="button" id="idToAsset" class="btn btn-primary">idToAsset (get Owner Address from tokenId)</button>
           <button type="button" id="isOwnerAdded" class="btn btn-primary">isOwnerAdded</button>
@@ -219,7 +219,7 @@
         if(tokenSymbol_input.length === 8){
           const url = BcApiBase+`getCtrtAddrFromTokenSymbol`;
           console.log('about to find contract address ... url:',url);
-          const data = {tokenSymbol: tokenSymbol_input, ctrtType: contractType};
+          const data = {tokenSymbol: tokenSymbol_input, ctrtType: 'hcat721'};
           const options = {
             method: 'POST', // or 'PUT'
             body: JSON.stringify(data), // data can be `string` or {object}!

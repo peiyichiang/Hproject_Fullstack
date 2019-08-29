@@ -170,7 +170,7 @@
         if(tokenSymbol_input.length === 8){
           const url = BcApiBase+`getCtrtAddrFromTokenSymbol`;
           console.log('about to find contract address ... url:',url);
-          const data = {tokenSymbol: tokenSymbol_input, ctrtType: contractType};
+          const data = {tokenSymbol: tokenSymbol_input, ctrtType: 'crowdfunding'};
           const options = {
             method: 'POST', // or 'PUT'
             body: JSON.stringify(data), // data can be `string` or {object}!

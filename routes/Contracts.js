@@ -765,7 +765,7 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
   const ctrtType = req.body.ctrtType;
 
   console.log(`tokenSymbol: ${tokenSymbol}, ctrtType: ${ctrtType}`);
-  const [isGood, contractAddr, resultMesg] = await getCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
+  const [isGood, ctrtAddr, resultMesg] = await getCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
     console.log('[Error @getCtrtAddr]:', err);
     res.send({
         err: err,
@@ -773,10 +773,10 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
     });
     return false;
   });
-  console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${contractAddr}`);
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${ctrtAddr}`);
   res.send({
     isGood: isGood,
-    contractAddr: contractAddr, 
+    ctrtAddr: ctrtAddr, 
     resultMesg: resultMesg
   });
 });
@@ -1945,6 +1945,41 @@ router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async
         }
 
     });
+});
+
+//-------------== version 2
+router.get('/incomeManagerCtrt/getContractDetails/:ctrtAddr', async function (req, res, next) {
+  const ctrtAddr = req.params.ctrtAddr;
+  console.log(`\nctrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const schCindex = await instIncomeManager.methods.schCindex().call();
+  const TimeOfDeployment = await instIncomeManager.methods.TimeOfDeployment().call();
+  const paymentCount = await instIncomeManager.methods.paymentCount().call();
+  console.log(`schCindex: ${schCindex}, TimeOfDeployment: ${TimeOfDeployment}, paymentCount: ${paymentCount}`);
+  res.send({ schCindex, TimeOfDeployment, paymentCount });
+});
+
+router.post('/incomeManagerCtrt/allowance', async function (req, res, next) {
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\nctrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const allowance = await instIncomeManager.methods.allowance(assetbookAddr, operatorAddr).call();
+  console.log(`allowance: ${allowance}`);
+  res.send({ allowance });
 });
 
 
