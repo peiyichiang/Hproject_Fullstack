@@ -132,7 +132,7 @@
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, resultMesg, tokenSymbol, contractAddr, email, assetbookAddr, investorIndex;
+      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
 
       tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
       ctrtAddr_input = document.getElementById("tokenCtrtAddrCFC").value;
@@ -156,8 +156,8 @@
           const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
           const json = await response.json();
           console.log('json', json);
-          ({ isGood, contractAddr, resultMesg} = json);
-          console.log(`isGood: ${isGood}, contractAddr: ${contractAddr}, \nresultMesg: ${resultMesg}`);
+          ({ isGood, ctrtAddr, resultMesg} = json);
+          console.log(`isGood: ${isGood}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
 
         } else {
           mesg = 'tokenSymbol should have length of 8';
@@ -170,11 +170,11 @@
           mesg = 'TokenController contract address should start with 0x';
         } else {
           isGood = true;
-          contractAddr = ctrtAddr_input;
+          ctrtAddr = ctrtAddr_input;
         // if(!tokenSymbol_input){
         //   const url = BcApiBase+`getTokenSymbolFromCtrtAddr`;
         //   console.log('tokenSymbol_input is empty... url:',url);
-        //   const data = {contractAddr: ctrtAddr_input, ctrtType: contractType};
+        //   const data = {ctrtAddr: ctrtAddr_input, ctrtType: contractType};
         //   const options = {
         //     method: 'POST', // or 'PUT'
         //     body: JSON.stringify(data), // data can be `string` or {object}!
@@ -195,8 +195,8 @@
 
         const isGivingDefaultCFC = 1;
         if(isGivingDefaultCFC === 1) {
-          contractAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
-          mesg = 'Token symbol and Token contract values are empty. Using default value: contractAddr = '+contractAddr;
+          ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
+          mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
           showAlert(mesg);
         } else {
@@ -204,7 +204,7 @@
           showAlert(mesg);
         }
       }
-      console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, contractAddr: ${contractAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
+      console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
@@ -240,8 +240,8 @@
           investorIndex = investorIndex_input;
         }
       
-      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, contractAddr: ${contractAddr}, email: ${email}, assetbookAddr: ${assetbookAddr}, investorIndex: ${investorIndex}`);
-      return [isGood, tokenSymbol, contractAddr, email, assetbookAddr, investorIndex];
+      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email: ${email}, assetbookAddr: ${assetbookAddr}, investorIndex: ${investorIndex}`);
+      return [isGood, tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex];
     }
 
 
