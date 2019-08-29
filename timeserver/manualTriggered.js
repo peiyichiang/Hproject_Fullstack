@@ -12,7 +12,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol  } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
 const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
 
@@ -1390,7 +1390,7 @@ const intergrationTestOfProduct = async() => {
     const isToDeploy = 1;
     if(timeChoice === 1){
       acTimeOfDeployment_TokCtrl = await getLocalTime();
-      acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
+      acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+1;
       acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
     } else {
       acTimeTokenUnlock = TimeTokenUnlock;
@@ -1506,7 +1506,7 @@ const intergrationTestOfProduct = async() => {
     }
     console.log(`\nTimeReleaseDate: ${TimeReleaseDate}`);
     console.log(`\nsymbolNumber: ${symbolNumber}, nftSymbol: ${nftSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, siteSizeInKW: ${siteSizeInKW}, fundingType: ${fundingType}, state: ${state}`);
-    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, acCFSD, acCFED, quantityGoal, TimeTokenUnlock, fundingType, state).catch((err) => {
+    await addProductRow(nftSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, acTimeOfDeployment_TokCtrl, siteSizeInKW, maxTotalSupply, fundmanager, acCFSD, acCFED, quantityGoal, acTimeTokenUnlock, fundingType, state).catch((err) => {
       console.error('\n[Error @ addProductRow()]'+ err);
       process.exit(1)
     });
@@ -1569,7 +1569,9 @@ const intergrationTestOfProduct = async() => {
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
-    await addAssetbooksIntoCFC(serverTime, "paidTest")
+    if (await addAssetbooksIntoCFC(serverTime, "paidTest") != true ){
+      process.exit(1)
+    }
     /*if(await addAssetbooksIntoCFC(serverTime, "paidTest") != true)
       process.exit(1)*/
     //--------------------==
@@ -1582,6 +1584,18 @@ const intergrationTestOfProduct = async() => {
     });
     console.log(`is_preMint: ${is_preMint}, is_doAssetRecords: ${is_doAssetRecords}, is_addActualPaymentTime: ${is_addActualPaymentTime}, is_setFundingStateDB: ${is_setFundingStateDB}, is_sequentialMintSuper: ${is_sequentialMintSuper}`);
   }
+  const _updateTOkenControllerState = async() => {
+    let serverTime
+    if(timeChoice === 1){
+      serverTime = await getLocalTime();
+    } else {
+      serverTime = TimeOfDeployment_HCAT;
+    }
+    let result = await updateTokenStateTCC(tokenControllerAddr, serverTime, nftSymbol).catch(err => {
+      console.error('\n[Error @ updateTokenStateTCC()]'+ err);
+      process.exit(1)
+    })
+  }
   await _deployCrowdfundingContract_API();
   await _deployTokenControllerContract_API();
   await _deployHCATContract_API();
@@ -1591,6 +1605,7 @@ const intergrationTestOfProduct = async() => {
   await _deployProductManager();
   await _addIncomeArrangement();
   await _addOrders_CFC_MintTokens_API();
+  await _updateTOkenControllerState()
   process.exit(0);
 
 }
