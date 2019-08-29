@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-console.log('loading blockchain.js...');
+console.log('--------------------== blockchain.js...');
 
 const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 
@@ -1592,7 +1592,7 @@ const preMint = async(symbol) => {
       return false;
     });
     console.log('result1:', result1);
-    if(result1.length === 0){
+    if(isEmpty(result1)){
       reject('no contract address is found for that symbol');
       return false;
     }
@@ -1605,7 +1605,7 @@ const preMint = async(symbol) => {
       return false;
     });
     console.log('result2:', result2);
-    if(result2.length === 0){
+    if(isEmpty(result2)){
       reject('no pricing and fundingType is found for that symbol');
       return false;
     }
@@ -1623,12 +1623,13 @@ tokenCtrtAddr: ${tokenCtrtAddr}
 tokenControllerAddr: ${tokenControllerAddr}`); 
 
       const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
-      /*console.log(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
-addressArray: ${investorAssetBooks} \namountArray: ${investedTokenQtyArray}`);*/
+      console.log(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
+      investorAssetBooks: ${investorAssetBooks} \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
 
       if (investorAssetBooks.length === 0 || investedTokenQtyArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
-        console.log(`[Error] preMint() returns invalid values, toAddressArray length: ${toAddressArray.length},amountArray length: ${amountArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+        console.log(`[Error] preMint() returns invalid values, investorAssetBooks length: ${investorAssetBooks.length},investedTokenQtyArray length: ${investedTokenQtyArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
         resolve([false, 'preMint() returns invalid values', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
+
       } else {
         resolve([true, 'successfully done @ preMint()', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
       }
@@ -2083,12 +2084,14 @@ const makeOrdersExpiredCFED = async (serverTime) => {
 
 // yarn run testts -a 2 -c 1
 // after order status change: waiting -> paid -> write into crowdfunding contract
-const addAssetbooksIntoCFC = async (serverTime) => {
+const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   // check if serverTime > CFSD for each symbol...
   console.log('\n--------------==inside addAssetbooksIntoCFC() \nserverTime:',serverTime);
-  const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "paid"';// AND o_symbol ="AOOS1902"
+
+  const queryStr1 = `SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "${paymentStatus}"`;// AND o_symbol ="AOOS1902"
   const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
     console.log('\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)]'+ err);
+    return false;
   });
 
   const foundSymbolArray = [];
@@ -2117,7 +2120,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
 
 
   await asyncForEachAbCFC(symbolArray, async (symbol, index) => {
-
+    //let errBool = false
     const [isGood, crowdFundingAddr, resultMesg] = await getCtrtAddr(symbol, 'crowdfunding').catch((err) => {
       reject('[Error @getCtrtAddr]: '+ err);
       return undefined;
@@ -2131,7 +2134,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
     }
     
     // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
-    const queryStr3 = 'SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order_list OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "paid" AND OrderList.o_symbol = ?';
+    const queryStr3 = `SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order_list OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "${paymentStatus}" AND OrderList.o_symbol = ?`;
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
@@ -2139,6 +2142,7 @@ const addAssetbooksIntoCFC = async (serverTime) => {
     console.log('results3', results3);
     if(results3.length === 0){
       console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
+      return false;
     } else {
       console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
       const assetbookArray = [];
@@ -2190,7 +2194,6 @@ const addAssetbooksIntoCFC = async (serverTime) => {
       } else {
         console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
       }
-
       await asyncForEachAbCFC2(assetbookArray, async (addrAssetbook, index) => {
         const amountToInvest = parseInt(tokenCountArray[index]);
         console.log(`\n----==[Good] For ${addrAssetbook}, found its amountToInvest ${amountToInvest}`);
@@ -2204,6 +2207,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
           const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
           console.log('\ncheckInvest result:', result);
           console.log('\n[Error @ investTokens]', err);
+          //errBool = true
           return [false, '0x0'];
         });
         console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
@@ -2222,6 +2226,7 @@ txnHashArray: ${txnHashArray}`);
         await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
           const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
             console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
+            //errBool = true
           });
           //console.log('\nresults5', results5);
         });
@@ -2229,12 +2234,14 @@ txnHashArray: ${txnHashArray}`);
       } else {
         log(chalk.red(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
         orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
-
+        //errBool = true
       }
 
     }
   //process.exit(0);
   });
+
+  //return !errBool;
 }
 
 const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTimeStr, invokedBy = '') => {
@@ -2339,31 +2346,31 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
       const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
       console.log('\ncheckInvestFunction resultArray:', resultArray);
     
-      let mesg = '', CFSD_M, CFED_M;
+      let mesg = 'found error: ', CFSD_M, CFED_M;
       if(resultArray.includes(false)){
         if(!resultArray[0]){
-          mesg += ', [0] serverTime '+serverTime+' >= CFSD '+CFSD;
+          mesg += ', [0] serverTime '+serverTime+' should be >= CFSD '+CFSD;
         }
         if(!resultArray[1]){
-          mesg += ', [1] serverTime '+serverTime+' < CFED '+CFED;
+          mesg += ', [1] serverTime '+serverTime+' should be < CFED '+CFED;
         }
         if(!resultArray[2]){
-          mesg += ', [2] checkPlatformSupervisor()';
+          mesg += ', [2] sender should be a PlatformSupervisor';
         }
         if(!resultArray[3]){
-          mesg += ', [3] addrAssetbook.isContract()';
+          mesg += ', [3] addrAssetbook should be a contract';
         }
         if(!resultArray[4]){
-          mesg += ', [4] addrAssetbook onERC721Received()';
+          mesg += ', [4] addrAssetbook should pass onERC721Received()';
         }
         if(!resultArray[5]){
-          mesg += ', [5] quantityToInvest > 0';
+          mesg += ', [5] quantityToInvest should be > 0';
         }
         if(!resultArray[6]){
-          mesg += ', [6] not enough remainingQty';
+          mesg += ', [6] quantityToInvest should be <= maxTotalSupply';
         }
         if(!resultArray[7]){
-          mesg += ', [7] serverTime > TimeOfDeployment';
+          mesg += ', [7] serverTime should be > TimeOfDeployment';
         }
         if(!resultArray[8]){
           mesg += ', [8] fundingState should be either initial, funding, or fundingGoalReached';

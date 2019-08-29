@@ -12,8 +12,9 @@
 </head>
 
 <body>
-  <h2>HeliumCryptic Smart Contract Explorer</h2>
-  <div class="container">
+  <div class="container" style="max-width: inherit; margin: 15px;">
+    <h2>HeliumCryptic Smart Contract Explorer</h2>
+
     <div class="alert alert-warning alert-dismissible collapse"  id="alertInputs" role="alert">
       <button type="button" class="close" data-dismiss="alert">x</button>
       <strong>Success! </strong> Product have added to your wishlist.
@@ -123,7 +124,7 @@
       document.getElementById("alertInputs").innerText = messageTxt;
       //jQuery("#alertInputs").fadeOut("slow");
       $('.collapse').collapse();
-      $("#alertInputs").fadeTo(5000, 500).slideUp(500, function() {
+      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
         $("#alertInputs").slideUp(500);
       });
     }
@@ -131,7 +132,7 @@
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, tokenSymbol, contractAddr, email, assetbookAddr, investorIndex;
+      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, resultMesg, tokenSymbol, contractAddr, email, assetbookAddr, investorIndex;
 
       tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
       ctrtAddr_input = document.getElementById("tokenCtrtAddrCFC").value;
@@ -144,7 +145,6 @@
 
       if(!isTokenSymbolEmpty){
         if(tokenSymbol_input.length === 8){
-          isGood = true;
           const url = BcApiBase+`getCtrtAddrFromTokenSymbol`;
           console.log('about to find contract address ... url:',url);
           const data = {tokenSymbol: tokenSymbol_input, ctrtType: contractType};
@@ -195,7 +195,7 @@
 
         const isGivingDefaultCFC = 1;
         if(isGivingDefaultCFC === 1) {
-          contractAddr = '0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9';
+          contractAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
           mesg = 'Token symbol and Token contract values are empty. Using default value: contractAddr = '+contractAddr;
           isGood = true;
           showAlert(mesg);
@@ -207,8 +207,8 @@
       console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, contractAddr: ${contractAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
 
       if(!isGood){
-        console.warn(mesg+' resultMesg: '+resultMesg);
-        showAlert(mesg+' resultMesg: '+resultMesg);
+        console.warn(mesg+', resultMesg: '+resultMesg);
+        showAlert(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
       console.log(`-------------==`);

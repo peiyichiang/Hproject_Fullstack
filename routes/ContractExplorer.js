@@ -11,6 +11,10 @@ router.get('/tokenController', function (req, res, next) {
   res.render('tokenController', {contractType: 'TokenController'});
 });
 
+router.get('/tokenHCAT', function (req, res, next) {
+  res.render('tokenHCAT', {contractType: 'TokenHCAT'});
+});
+
 // router.post('/ContractExplorer', function (req, res, next) {
 //     console.log('inside button response...');
 

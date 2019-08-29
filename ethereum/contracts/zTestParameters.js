@@ -3,7 +3,7 @@ const { sLog } = require('../../timeserver/utilities');
 var faker = require('faker');
 var _ = require('lodash');
 
-sLog(`\n------------------==zTestParameters.js`);
+sLog(`\n--------------------== zTestParameters.js`);
 const AssetOwner1 = '0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2';
 const AssetOwner1pkRaw = '0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca';
 const AssetOwner2 = '0x470Dea51542017db8D352b8B36B798a4B6d92c2E';
@@ -122,7 +122,7 @@ let productDate = paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(Str
 var p_name = faker.name.findName()
 const productObj0MaxTotalSupply = Math.floor(Math.random()*500)+500
 
-const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + productDate, p_name, faker.address.streetAddress() + faker.address.city() + faker.address.country(), productObj0MaxTotalSupply, productObj0MaxTotalSupply - 100, 73310, Math.floor(Math.random()*100000) , "NTD", 530, 20, 2, "", "", "", "");
+const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + productDate, p_name, (faker.address.streetAddress() + faker.address.city() + faker.address.country()).substr(0, 40), productObj0MaxTotalSupply, productObj0MaxTotalSupply - 100, 73310, Math.floor(Math.random()*100000) , "NTD", 530, 20, 2, "", "", "", "");
 
 
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {

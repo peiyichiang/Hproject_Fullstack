@@ -771,7 +771,7 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
         err: err,
         status: false
     });
-    return;
+    return false;
   });
   console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${contractAddr}`);
   res.send({
@@ -782,16 +782,16 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
 });
 
 //-----------------------==
-// http://localhost:3030/Contract/crowdfunding/getCrowdfundingDetails
+// http://localhost:3030/Contracts/crowdfunding/getCrowdfundingDetails
 router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.params.ctrtAddr;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}`);
-  if(isEmpty(crowdfundingCtrtAddr) || crowdfundingCtrtAddr === 'undefined'){
+  if(isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'crowdfundingCtrtAddr is invalid. '+crowdfundingCtrtAddr,
       status: false
     });
-    return;
+    return false;
   }
     const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
     const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
@@ -809,18 +809,18 @@ router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req
 
 
 
-// http://localhost:3030/Contract/crowdfunding/getInvestors
+// http://localhost:3030/Contracts/crowdfunding/getInvestors
 router.post('/crowdfunding/getInvestors', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const indexStart = req.body.indexStart;
   const amount = req.body.amount;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, indexStart: ${indexStart}, amount: ${amount}`);
-  if(parseInt(indexStart) < 0 || parseInt(amount) < 0 || crowdfundingCtrtAddr === 'undefined'){
+  if(parseInt(indexStart) < 0 || parseInt(amount) < 0 || isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'indexStart or amount or contract addr is invalid',
       status: false,
     });
-    return;
+    return false;
   }
     const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr)/*.catch((err) => {
         console.error('err:', err);
@@ -828,7 +828,7 @@ router.post('/crowdfunding/getInvestors', async function (req, res, next) {
           err: err,
           status: false,
         });
-        return;
+        return false;
       });*/
     const investors = await instCrowdfunding.methods.getInvestors(indexStart, amount).call();
     console.log(`investors: ${investors}`);
@@ -837,19 +837,19 @@ router.post('/crowdfunding/getInvestors', async function (req, res, next) {
     });
 });
 
-// http://localhost:3030/Contract/crowdfunding/emailToQty
+// http://localhost:3030/Contracts/crowdfunding/emailToQty
 router.post('/crowdfunding/emailToQty', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const email = req.body.email;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, email: ${email}`);
     const assetbookX = await getAssetbookFromEmail(email);
-    if(isEmpty(assetbookX)|| crowdfundingCtrtAddr === 'undefined'){
+    if(isEmpty(assetbookX)){
       console.log('assetbookX is empty:', assetbookX);
       res.send({
         err: 'assetbook or contract addr is invalid',
         status: false
       });
-      return;
+      return false;
     } else{
       console.log('assetbookX:', assetbookX);
       const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
@@ -861,18 +861,18 @@ router.post('/crowdfunding/emailToQty', async function (req, res, next) {
     }
 });
 
-// http://localhost:3030/Contract/crowdfunding/ownerToQty
+// http://localhost:3030/Contracts/crowdfunding/ownerToQty
 router.post('/crowdfunding/ownerToQty', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const assetbookAddr = req.body.assetbookAddr;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, assetbookAddr: ${assetbookAddr}`);
-  if(assetbookAddr === '0x0' || isEmpty(assetbookAddr)|| crowdfundingCtrtAddr === 'undefined'){
+  if(assetbookAddr === '0x0' || isEmpty(assetbookAddr)|| isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'assetbookAddr or contract addr is invalid',
       status: false,
       quantityOwned: undefined
     });
-    return;
+    return false;
   }
   const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
     const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookAddr).call();
@@ -882,17 +882,17 @@ router.post('/crowdfunding/ownerToQty', async function (req, res, next) {
     });
 });
 
-// http://localhost:3030/Contract/crowdfunding/idxToOwner
+// http://localhost:3030/Contracts/crowdfunding/idxToOwner
 router.post('/crowdfunding/idxToOwner', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
-  const index = req.body.index;
+  const index = parseInt(req.body.index);
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, index: ${index} ${typeof index}`);
-  if(parseInt(index) < 0 || isEmpty(index)|| crowdfundingCtrtAddr === 'undefined'){
+  if(index < 0 || isNaN(index)|| idEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'index or contract addr is invalid',
       status: false,
     });
-    return;
+    return false;
   }
   const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
     const addrOwner = await instCrowdfunding.methods.idxToOwner(index).call();
@@ -998,16 +998,16 @@ router.get('/tokenControllerContract/:tokenSymbol/status', async function (req, 
 });
 
 //-----------------------==
-// http://localhost:3030/Contract/tokenController/getHTokenControllerDetails
+// http://localhost:3030/Contracts/tokenController/getHTokenControllerDetails
 router.get('/tokenController/getHTokenControllerDetails/:ctrtAddr', async function (req, res, next) {
   const tokenControllerCtrtAddr = req.params.ctrtAddr;
   console.log(`\ntokenControllerCtrtAddr: ${tokenControllerCtrtAddr}`);
-  if(isEmpty(tokenControllerCtrtAddr) || tokenControllerCtrtAddr === 'undefined'){
+  if(isEmpty(tokenControllerCtrtAddr)){
     res.send({
       err: 'tokenControllerCtrtAddr is invalid. '+tokenControllerCtrtAddr,
       status: false
     });
-    return;
+    return false;
   }
     const instTokenController = new web3.eth.Contract(tokenControllerContract.abi, tokenControllerCtrtAddr);
     const getHTokenControllerDetails = await instTokenController.methods.getHTokenControllerDetails().call();
@@ -1020,6 +1020,263 @@ router.get('/tokenController/getHTokenControllerDetails/:ctrtAddr', async functi
         getHTokenControllerDetails: getHTokenControllerDetails,
         details: [isTokenApprovedOperational, tokenState]
     });
+});
+
+
+//-----------------------== HCAT Token
+// http://localhost:3030/Contracts/TokenHCAT/getTokenContractDetails
+router.get('/tokenHCAT/getTokenContractDetails/:ctrtAddr', async function (req, res, next) {
+  const ctrtAddr = req.params.ctrtAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getTokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
+  const pricingCurrency = web3.utils.toAscii(getTokenContractDetails[5]);
+  const name = web3.utils.toAscii(getTokenContractDetails[7]);
+  const symbol = web3.utils.toAscii(getTokenContractDetails[8]);
+  const tokenURI = web3.utils.toAscii(getTokenContractDetails[9]);
+
+  const ownerCindex = await instHCAT721.methods.ownerCindex().call();
+  const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
+  console.log(`getTokenContractDetails: ${getTokenContractDetails}, \nownerCindex: ${ownerCindex}, TimeOfDeployment: ${TimeOfDeployment}`);
+  res.send({ getTokenContractDetails, pricingCurrency, name, symbol, tokenURI, ownerCindex, TimeOfDeployment });
+});
+
+router.post('/tokenHCAT/idToAsset', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const tokenId = req.body.tokenId;
+  console.log(`\ntokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr) || isEmpty(tokenId)){
+    res.send({
+      err: 'invalid inputs',
+      ctrtAddr: ctrtAddr,
+      tokenId: tokenId,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const idToAsset = await instHCAT721.methods.idToAsset(tokenId).call();
+  console.log(`idToAsset: ${idToAsset}`);
+  res.send({ idToAsset });
+});
+
+router.post('/tokenHCAT/isOwnerAdded', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const ownerAddr = req.body.ownerAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}, \nownerAddr: ${ownerAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const isOwnerAdded = await instHCAT721.methods.isOwnerAdded(ownerAddr).call();
+  console.log(`isOwnerAdded: ${isOwnerAdded}`);
+
+  res.send({ isOwnerAdded });
+});
+
+router.post('/tokenHCAT/idxToOwner', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const ownerIndex = req.body.ownerIndex;
+  console.log(`\nownerIndex: ${ownerIndex}, tokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const idxToOwner = await instHCAT721.methods.idxToOwner(ownerIndex).call();
+  console.log(`idxToOwner: ${idxToOwner}`);
+  res.send({ idxToOwner });
+});
+
+
+router.post('/tokenHCAT/ownerOf', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const tokenId = req.body.tokenId;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const ownerOf = await instHCAT721.methods.ownerOf(tokenId).call();
+  console.log(`ownerOf ownerAddr1: ${ownerOf}`);
+  res.send({ ownerOf });
+});
+
+router.post('/tokenHCAT/getOwnersByOwnerIndex', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const startIndex = req.body.startIndex;
+  const amount = req.body.amount;
+  console.log(`\nstartIndex: ${startIndex}, amount: ${amount}, ctrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getOwnersByOwnerIndex = await instHCAT721.methods.getOwnersByOwnerIndex(startIndex, amount).call();
+  console.log(`getOwnersByOwnerIndex: ${getOwnersByOwnerIndex}`);
+  res.send({ getOwnersByOwnerIndex });
+});
+
+router.post('/tokenHCAT/getAccount', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getAccount = await instHCAT721.methods.getAccount(assetbookAddr).call();
+  console.log(`getAccount: ${getAccount}`);
+  res.send({ getAccount });
+});
+
+router.post('/tokenHCAT/balanceOf', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const balanceOf = await instHCAT721.methods.balanceOf(assetbookAddr).call();
+  console.log(`balanceOf: ${balanceOf}`);
+  res.send({ balanceOf });
+});
+
+router.post('/tokenHCAT/getTokenIdByIndex', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  const startIndex = req.body.startIndex;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getTokenIdByIndex = await instHCAT721.methods.getTokenIdByIndex(assetbookAddr, startIndex).call();
+  console.log(`getTokenIdByIndex: ${getTokenIdByIndex}`);
+  res.send({ getTokenIdByIndex });
+});
+
+router.post('/tokenHCAT/getAccountIds', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  const startIndex = req.body.startIndex;
+  const amount = req.body.amount;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const getAccountIds = await instHCAT721.methods.getAccountIds(assetbookAddr, startIndex, amount).call();
+  console.log(`getAccountIds: ${getAccountIds}`);
+  res.send({ getAccountIds });
+});
+
+router.post('/tokenHCAT/allowance', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const assetbookAddr = req.body.assetbookAddr;
+  const operatorAddr = req.body.operatorAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const allowance = await instHCAT721.methods.allowance(assetbookAddr, operatorAddr).call();
+  console.log(`allowance: ${allowance}`);
+  res.send({ allowance });
+});
+
+router.post('/tokenHCAT/checkTokenApprove', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const operatorAddr = req.body.operatorAddr;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const checkTokenApprove = await instHCAT721.methods.checkTokenApprove(operatorAddr).call();
+  console.log(`checkTokenApprove: ${checkTokenApprove}`);
+  res.send({ checkTokenApprove });
+});
+
+router.post('/tokenHCAT/tokenApprove', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const operatorAddr = req.body.operatorAddr;
+  const amount = req.body.amount;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const tokenApprove = await instHCAT721.methods.tokenApprove(operatorAddr, amount).call();
+  console.log(`tokenApprove: ${tokenApprove}`);
+  res.send({ tokenApprove });
+});
+
+router.post('/tokenHCAT/ckStringLength', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const tokenId = req.body.tokenId;
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+  const ckStringLength = await instHCAT721.methods.ckStringLength(str, minStrLen, maxStrLen).call();
+  console.log(`ckStringLength: ${ckStringLength}`);
+  res.send({ ckStringLength });
 });
 
 
@@ -1117,56 +1374,10 @@ router.get('/HCAT721_AssetTokenContract/:nftSymbol', function (req, res, next) {
 
 });
 
-//------------------------------==
-// http://localhost:3000/Contracts/test1/NCCU0725
-router.get('/test1/:nftSymbol', function (req, res, next) {
-    var nftSymbol = req.params.nftSymbol;
-    var mysqlPoolQuery = req.pool;
-    console.log('--------------==', nftSymbol);
-
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
-        //console.log(result);
-        if (err) {
-            //console.log(err);
-            res.send({
-                status: "fail"
-            });
-        }
-        else {
-            res.send({
-                status: "success",
-                result: result[0]
-            });
-        }
-    });
-});
-// http://localhost:3000/Contracts/test1/NCCU0725
-router.post('/test1/:nftSymbol', function (req, res, next) {
-    var nftSymbol = req.params.nftSymbol;
-    const price = req.body.price;
-    const fundingType = req.body.fundingType;//PO: 1, PP: 2
-    var mysqlPoolQuery = req.pool;
-    console.log('--------------==', nftSymbol, price, fundingType);
-
-    mysqlPoolQuery('SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?;', [nftSymbol], function (err, result) {
-        //console.log(result);
-        if (err) {
-            //console.log(err);
-            res.send({
-                status: "fail"
-            });
-        }
-        else {
-            res.send({
-                status: "success",
-                result: result[0]
-            });
-        }
-    });
-});
 
 
-// message queue relay API
+
+//-----------------------------== message queue relay API
 // http://localhost:3000/Contracts/amqpRelay
 router.post('/amqpRelay', async function (req, res, next) {
     console.log(`\n------------------==amqpRelay`);
