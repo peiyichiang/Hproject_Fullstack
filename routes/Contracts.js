@@ -1966,9 +1966,10 @@ router.get('/incomeManagerCtrt/getContractDetails/:ctrtAddr', async function (re
   res.send({ schCindex, TimeOfDeployment, paymentCount });
 });
 
-router.post('/incomeManagerCtrt/allowance', async function (req, res, next) {
-  const assetbookAddr = req.body.assetbookAddr;
-  console.log(`\nctrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}`);
+router.post('/incomeManagerCtrt/dateToIdx', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const schDateTime = req.body.schDateTime;
+  console.log(`\nctrtAddr: ${ctrtAddr}, schDateTime: ${schDateTime}`);
   if(isEmpty(ctrtAddr)){
     res.send({
       err: 'ctrtAddr is invalid. '+ctrtAddr,
@@ -1977,11 +1978,27 @@ router.post('/incomeManagerCtrt/allowance', async function (req, res, next) {
     return false;
   }
   const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
-  const allowance = await instIncomeManager.methods.allowance(assetbookAddr, operatorAddr).call();
-  console.log(`allowance: ${allowance}`);
-  res.send({ allowance });
+  const dateToIdx = await instIncomeManager.methods.dateToIdx(schDateTime).call();
+  console.log(`dateToIdx: ${dateToIdx}`);
+  res.send({ dateToIdx });
 });
 
+router.post('/incomeManagerCtrt/idxToSchedule', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const scheduleIndex = req.body.scheduleIndex;
+  console.log(`\nctrtAddr: ${ctrtAddr}, scheduleIndex: ${scheduleIndex}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const idxToSchedule = await instIncomeManager.methods.idxToSchedule(scheduleIndex).call();
+  console.log(`idxToSchedule: ${JSON.stringify(idxToSchedule)}`);
+  res.send({ idxToSchedule });
+});
 
 /**@dev productMAnager ------------------------------------------------------------------------------------- */
 /**deploy productManager contract*/

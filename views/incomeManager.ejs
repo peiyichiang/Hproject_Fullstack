@@ -41,23 +41,16 @@
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-              <span class="input-group-text" id="">Owner Assetbook Address</span>
+              <span class="input-group-text" id="">scheduleIndex</span>
             </div>
-            <input type="text" class="form-control" placeholder="owner assetbook address" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
-        </div>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="">tokenId</span>
-            </div>
-            <input type="text" class="form-control" placeholder="tokenId" aria-label="tokenId" id="tokenId" aria-describedby="tokenId">
+            <input type="text" class="form-control" placeholder="scheduleIndex" aria-label="scheduleIndex" id="scheduleIndex" aria-describedby="scheduleIndex">
         </div>
 
         <div class="input-group mb-3">
           <div class="input-group-prepend">
-            <span class="input-group-text" id="">Owner Index</span>
+            <span class="input-group-text" id="">schedule Date Time</span>
           </div>
-          <input type="text" class="form-control" placeholder="Owner Index" aria-label="ownerIndex" id="ownerIndex" aria-describedby="ownerIndex">
+          <input type="text" class="form-control" placeholder="schDateTime" aria-label="schDateTime" id="schDateTime" aria-describedby="schDateTime">
         </div>
 
         <div class="input-group mb-3">
@@ -78,8 +71,8 @@
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
           <button type="button" id="getContractDetails" class="btn btn-primary">Get Income Manager Contract Details</button>
 
-          <button type="button" id="isOwnerAdded" class="btn btn-primary">isOwnerAdded</button>
-          <button type="button" id="idxToOwner" class="btn btn-primary">idxToOwner</button>
+          <button type="button" id="dateToIdx" class="btn btn-primary">dateToIdx</button>
+          <button type="button" id="idxToSchedule" class="btn btn-primary">idxToSchedule</button>
 
         </div>
 
@@ -91,9 +84,8 @@
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
         paymentCount: <span id="paymentCount"></span><br>
 
-        symbol: <span id="symbolM"></span><br>
-        name: <span id="name"></span><br>
-        tokenId: <span id="tokenIdM"></span><br>
+        indexFromDate: <span id="indexFromDateM"></span><br>
+        idxToSchedule: <span id="idxToScheduleM"></span><br>
         
         <br>
         Asset: <span id="idToAssetM"></span><br>
@@ -162,21 +154,26 @@
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount;
+      let tokenSymbol_input, ctrtAddr_input, scheduleIndex_input, schDateTime_input, amount_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount;
 
       tokenSymbol_input = document.getElementById("tokenSymbol").value;
 
       ctrtAddr_input = document.getElementById("ctrtAddr").value;
-      assetbookAddr_input = document.getElementById("assetbookAddr").value;
-      tokenId_input = document.getElementById("tokenId").value;
+      scheduleIndex_input = document.getElementById("scheduleIndex").value;
+      schDateTime_input = document.getElementById("schDateTime").value;
       
       const is_tokenSymbol_empty = isEmpty(tokenSymbol_input);
       const is_ctrtAddr_empty = isEmpty(ctrtAddr_input);
-      const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
-      const is_tokenId_empty = isEmpty(tokenId_input);
+      const is_scheduleIndex_empty = isEmpty(scheduleIndex_input);
+      const is_schDateTime_empty = isEmpty(schDateTime_input);
 
-      console.log(`tokenSymbol_input: ${tokenSymbol_input}, \nctrtAddr_input: ${ctrtAddr_input}, \nassetbookAddr_input: ${assetbookAddr_input}, \ntokenId_input: ${tokenId_input}`);
-
+      console.log(`tokenSymbol_input: ${tokenSymbol_input}, \nctrtAddr_input: ${ctrtAddr_input}, \nscheduleIndex_input: ${scheduleIndex_input}, \nschDateTime_input: ${schDateTime_input}`);
+    /*scheduleIndex     schDateTime
+    dateToIdx(schDateTime), idxToSchedule(scheduleIndex)
+    getSchIndex(schDateTime)
+    getIncomeSchedule(scheduleIndex)
+    getIncomeScheduleList(scheduleIndex, amount)
+    */
 
       if(!is_tokenSymbol_empty){
         if(tokenSymbol_input.length === 8){
@@ -231,35 +228,37 @@
       }
       console.log(`-------------==`);
 
-      if((funcName === 'idToAsset' || funcName === 'ownerOf') && is_tokenId_empty){
-        tokenId = 1;
-        mesg = 'tokenId is found empty. Using default value: '+ tokenId;
+      if((funcName === 'dateToIdx' || funcName === 'getSchIndex') && is_schDateTime_empty){
+        schDateTime = 201908171200;
+        mesg = 'schDateTime is found empty. Using default value: '+ schDateTime;
         console.warn(mesg);
         showAlert(mesg);
       } else {
-        tokenId = tokenId_input;
+        schDateTime = schDateTime_input;
       }
 
-      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}, tokenId: ${tokenId}, ownerIndex: ${ownerIndex} startIndex: ${startIndex}, amount: ${amount}`);
-      return [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount];
+      if((funcName === 'idxToSchedule' || funcName === 'getIncomeSchedule' || funcName === 'getIncomeScheduleList') && is_scheduleIndex_empty){
+        scheduleIndex = 1;
+        mesg = 'scheduleIndex is found empty. Using default value: '+ scheduleIndex;
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        scheduleIndex = scheduleIndex_input;
+      }
+
+      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, amount: ${amount}`);
+      return [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount];
     }
-
-    /*
-    TimeOfDeployment, schCindex, paymentCount
-    dateToIdx(index), idxToSchedule(index)
+    /*scheduleIndex     schDateTime
+    dateToIdx(schDateTime), idxToSchedule(scheduleIndex)
     getSchIndex(schDateTime)
-    getIncomeSchedule(schIndex)
-    getIncomeScheduleList(schIndex, amount)
-
-    checkAddForecastedScheduleBatch1(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
-    checkAddForecastedScheduleBatch2(uint[] forecastedPayableTimes)
-    checkAddForecastedScheduleBatch(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
-    checkEditActualSchedule(schIndex)
+    getIncomeSchedule(scheduleIndex)
+    getIncomeScheduleList(scheduleIndex, amount)
     */
 
     $('#getContractDetails').on('click',  async function (e) {
       console.log('inside getContractDetails function... \ne.target:', e.target);
-      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getContractDetails');
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getContractDetails');
       if(!isGood || isEmpty(ctrtAddr)) return;
 
       const url = BcApiBase+`incomeManagerCtrt/getContractDetails/${ctrtAddr}`;
@@ -278,15 +277,15 @@
     });
 
 
-    $('#getAccountIds').on('click',  async function (e) {
-      console.log('inside getAccountIds function... \ne.target:', e.target);
-      const [isGood, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getAccountIds');
-      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
+    $('#dateToIdx').on('click',  async function (e) {
+      console.log('inside dateToIdx function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('dateToIdx');
+      console.log(`scheduleIndex: ${scheduleIndex}, ctrtAddr: ${ctrtAddr}`);
       if(!isGood) return;
 
-      const url = BcApiBase+`incomeManagerCtrt/getAccountIds`;
-      // http://localhost:3030/Contracts/incomeManagerCtrt/getAccountIds/
-      const data = {ctrtAddr, assetbookAddr, startIndex, amount };
+      const url = BcApiBase+`incomeManagerCtrt/dateToIdx`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/dateToIdx/
+      const data = {ctrtAddr, scheduleIndex, schDateTime };
       const options = {
         method: 'POST', // or 'PUT'
         body: JSON.stringify(data), // data can be `string` or {object}!
@@ -295,9 +294,46 @@
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
       const jsonObj = await response.json();
       console.log('jsonObj', jsonObj);
-      document.getElementById("getAccountIdsM").innerText = jsonObj['getAccountIds'];
+      document.getElementById("indexFromDateM").innerText = jsonObj['dateToIdx'];
     });
+    /*
+     idxToSchedule(index)
+    getSchIndex(schDateTime)
+    getIncomeSchedule(schIndex)
+    getIncomeScheduleList(schIndex, amount)
 
+    checkAddForecastedScheduleBatch1(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
+    checkAddForecastedScheduleBatch2(uint[] forecastedPayableTimes)
+    checkAddForecastedScheduleBatch(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
+    checkEditActualSchedule(schIndex)
+    */
+    $('#idxToSchedule').on('click',  async function (e) {
+      console.log('inside idxToSchedule function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('idxToSchedule');
+      console.log(`scheduleIndex: ${scheduleIndex}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`incomeManagerCtrt/idxToSchedule`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/idxToSchedule/
+      const data = {ctrtAddr, scheduleIndex, schDateTime };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      const sch = jsonObj['idxToSchedule'];
+      const actualPaymentAmount = sch['actualPaymentAmount'];
+      const actualPaymentTime = sch['actualPaymentTime'];
+      const errorCode = sch['errorCode'];
+      const forecastedPayableAmount = sch['forecastedPayableAmount'];
+      const forecastedPayableTime = sch['forecastedPayableTime'];
+      const isErrorResolved = sch['isErrorResolved'];
+      console.log(`actualPaymentAmount: ${actualPaymentAmount}, actualPaymentTime: ${actualPaymentTime}, errorCode: ${errorCode}, forecastedPayableAmount: ${forecastedPayableAmount}, forecastedPayableTime: ${forecastedPayableTime}, isErrorResolved: ${isErrorResolved}`);
+      document.getElementById("indexFromDateM").innerText = 3;
+    });
   </script>
 
 </body>
