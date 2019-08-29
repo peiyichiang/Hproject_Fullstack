@@ -765,7 +765,7 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
   const ctrtType = req.body.ctrtType;
 
   console.log(`tokenSymbol: ${tokenSymbol}, ctrtType: ${ctrtType}`);
-  const [isGood, contractAddr, resultMesg] = await getCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
+  const [isGood, ctrtAddr, resultMesg] = await getCtrtAddr(tokenSymbol, ctrtType).catch((err) => {
     console.log('[Error @getCtrtAddr]:', err);
     res.send({
         err: err,
@@ -773,10 +773,10 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
     });
     return false;
   });
-  console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${contractAddr}`);
+  console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${ctrtAddr}`);
   res.send({
     isGood: isGood,
-    contractAddr: contractAddr, 
+    ctrtAddr: ctrtAddr, 
     resultMesg: resultMesg
   });
 });
