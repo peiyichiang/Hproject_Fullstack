@@ -1947,6 +1947,41 @@ router.get('/incomeManagerContract/:tokenSymbol/isScheduleGoodForRelease', async
     });
 });
 
+//-------------== version 2
+router.get('/incomeManagerCtrt/getContractDetails/:ctrtAddr', async function (req, res, next) {
+  const ctrtAddr = req.params.ctrtAddr;
+  console.log(`\nctrtAddr: ${ctrtAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const schCindex = await instIncomeManager.methods.schCindex().call();
+  const TimeOfDeployment = await instIncomeManager.methods.TimeOfDeployment().call();
+  const paymentCount = await instIncomeManager.methods.paymentCount().call();
+  console.log(`schCindex: ${schCindex}, TimeOfDeployment: ${TimeOfDeployment}, paymentCount: ${paymentCount}`);
+  res.send({ schCindex, TimeOfDeployment, paymentCount });
+});
+
+router.post('/incomeManagerCtrt/allowance', async function (req, res, next) {
+  const assetbookAddr = req.body.assetbookAddr;
+  console.log(`\nctrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const allowance = await instIncomeManager.methods.allowance(assetbookAddr, operatorAddr).call();
+  console.log(`allowance: ${allowance}`);
+  res.send({ allowance });
+});
+
 
 /**@dev productMAnager ------------------------------------------------------------------------------------- */
 /**deploy productManager contract*/

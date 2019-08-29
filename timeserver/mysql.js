@@ -1095,7 +1095,7 @@ const getCtrtAddr = async(symbol, ctrtType) => {
     // } else if(ctrtType === 'helium'){
     //   scColumnName = 'sc_helium';
     } else {
-      reject(ctrtType+' is out of range');
+      reject('contract type '+ctrtType+' is not found');
       return undefined;
     }
     const queryStr1 = 'SELECT '+scColumnName+' FROM smart_contracts WHERE sc_symbol = ?';

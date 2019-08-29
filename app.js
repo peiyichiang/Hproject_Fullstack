@@ -138,7 +138,7 @@ if(isTimeserverON){
   is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
   `);
 } 
-console.log(`[end of @ app.js] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/Product/ProductList \n[Interface of Crowdfunding] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/crowdfunding \n[Interface of TokenController] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenController \n[Interface of TokenHCAT] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenHCAT`);
+console.log(`[end of @ app.js] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/Product/ProductList \n[Crowdfunding] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/crowdfunding \n[TokenController] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenController \n[TokenHCAT] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenHCAT \n[IncomeManager] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/IncomeManager`);
 //http://localhost:3000/Product/ProductList
 
 
