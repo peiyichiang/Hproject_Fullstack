@@ -2118,11 +2118,12 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
     return true;
   }
 
+  let checkOK = true;
 
   await asyncForEachAbCFC(symbolArray, async (symbol, index) => {
-    //let errBool = false
     const [isGood, crowdFundingAddr, resultMesg] = await getCtrtAddr(symbol, 'crowdfunding').catch((err) => {
       reject('[Error @getCtrtAddr]: '+ err);
+      checkOK = false;
       return undefined;
     });
     console.log(`\n${resultMesg}.`);
@@ -2130,6 +2131,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       console.log(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
     } else {
       console.error(`[Error] at blockchain.js 2008. symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
+      checkOK = false;
       return false;
     }
     
@@ -2138,10 +2140,12 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
+      checkOK = false;
     });
     console.log('results3', results3);
     if(results3.length === 0){
       console.error('[Error] Got no paid order where symbol', symbol, 'result3', results3);
+      checkOK = false;
       return false;
     } else {
       console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
@@ -2177,6 +2181,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       console.log('\n----------------==assetbookArray', assetbookArray);
       if(assetbookArray.length !== emailArray.length){
         console.log('[Error] assetbookArray and emailArray have different length')
+        checkOK = false;
         return false;//process.exit(0);
       }
       const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
@@ -2186,10 +2191,12 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       const addressArray = [...assetbookArray];
       const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
         console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed inside asyncForEachAbCFC(). addressArray: ${addressArray}`);
+        checkOK = false;
         return false;
       });
       if(checkResult.includes(false)){
         console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+        checkOK = false;
         return false;
       } else {
         console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
@@ -2207,7 +2214,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
           const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
           console.log('\ncheckInvest result:', result);
           console.log('\n[Error @ investTokens]', err);
-          //errBool = true
+          checkOK = false;
           return [false, '0x0'];
         });
         console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
@@ -2226,7 +2233,7 @@ txnHashArray: ${txnHashArray}`);
         await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
           const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
             console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
-            //errBool = true
+            checkOK = false;
           });
           //console.log('\nresults5', results5);
         });
@@ -2234,14 +2241,14 @@ txnHashArray: ${txnHashArray}`);
       } else {
         log(chalk.red(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
         orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
-        //errBool = true
+        checkOK = false;
       }
 
     }
   //process.exit(0);
   });
 
-  //return !errBool;
+  return checkOK;
 }
 
 const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTimeStr, invokedBy = '') => {

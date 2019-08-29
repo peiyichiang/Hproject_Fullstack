@@ -1569,7 +1569,9 @@ const intergrationTestOfProduct = async() => {
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
-    await addAssetbooksIntoCFC(serverTime, "paidTest")
+    if (await addAssetbooksIntoCFC(serverTime, "paidTest") != true ){
+      process.exit(1)
+    }
     /*if(await addAssetbooksIntoCFC(serverTime, "paidTest") != true)
       process.exit(1)*/
     //--------------------==
