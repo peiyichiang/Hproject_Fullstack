@@ -83,7 +83,7 @@ router.get('/Product', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -152,7 +152,7 @@ router.get('/ProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -214,7 +214,7 @@ router.get('/ProductByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -305,7 +305,7 @@ router.get('/AddProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -349,7 +349,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -459,7 +459,7 @@ router.get('/DeleteProduct', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -522,7 +522,7 @@ router.get('/EditProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -576,7 +576,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -685,7 +685,7 @@ router.get('/SetProductCreationByFMN', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -741,7 +741,7 @@ router.get('/EditProductByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -806,7 +806,7 @@ router.get('/SetProductDraftByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -866,7 +866,7 @@ router.get('/EditProductByPlatformSupervisor', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -967,7 +967,7 @@ router.get('/SetFMSNoteAndReturnByFMS', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -1021,7 +1021,7 @@ router.get('/SetPANoteAndReturnByPA', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
@@ -1190,7 +1190,7 @@ router.get('/IncomeArrangement', function (req, res, next) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
             //檢查JWT token有沒有過期
-            if (decoded.exp < dateNow.getTimeServerTime() / 1000) {
+            if (decoded.exp < dateNow.getTime() / 1000) {
                 res.render('error', { message: '登入過時，請重新登入', error: '' });
                 return;
             }
