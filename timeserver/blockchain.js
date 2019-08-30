@@ -1265,6 +1265,10 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
       console.log('\nTxResult', TxResult);
       tokenState = await instTokenController.methods.tokenState().call();
       console.log('\nnew tokenState:', tokenState, '\ntokenControllerAddr', tokenControllerAddr);
+      tokenUnlock = await instTokenController.methods.TimeUnlock().call();
+      console.log(`tokenUnlock : ${tokenUnlock}`)
+      tokenValid = await instTokenController.methods.TimeValid().call();
+      console.log(`tokenValid : ${tokenValid}`)
       resolve(tokenState);
 
     } else {
