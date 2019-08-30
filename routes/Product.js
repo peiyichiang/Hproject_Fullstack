@@ -4,7 +4,7 @@ var jwt = require('jsonwebtoken');
 var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
-const { getTime, asyncForEach } = require('../timeserver/utilities');
+const { getTimeServerTime, asyncForEach } = require('../timeserver/utilities');
 const { addScheduleBatch, editActualSchedule, getIncomeScheduleList, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 
 // Web3
@@ -1621,7 +1621,7 @@ router.get('/canBuyToken', async function (req, res) {
     let isServerTimeLargerThanCFSD;
     let isAssetbookContractAddressExist;
     let canBuyToken;
-    const serverTime = await getTime();
+    const serverTime = await getTimeServerTime();
     mysqlPoolQuery(
         `SELECT p_CFSD AS CFSD, 
                 p_CFED AS CFED,
