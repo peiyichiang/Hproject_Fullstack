@@ -124,15 +124,15 @@
       document.getElementById("alertInputs").innerText = messageTxt;
       //jQuery("#alertInputs").fadeOut("slow");
       $('.collapse').collapse();
-      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
+      $("#alertInputs");/*.fadeTo(10000, 500).slideUp(500, function() {
         $("#alertInputs").slideUp(500);
-      });
+      });*/
     }
 
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
+      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, resultMesg = '', tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
 
       tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
       ctrtAddr_input = document.getElementById("tokenCtrtAddrCFC").value;

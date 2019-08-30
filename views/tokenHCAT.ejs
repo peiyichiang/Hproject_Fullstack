@@ -182,15 +182,15 @@
       document.getElementById("alertInputs").innerText = messageTxt;
       //jQuery("#alertInputs").fadeOut("slow");
       $('.collapse').collapse();
-      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
+      $("#alertInputs");/*.fadeTo(10000, 500).slideUp(500, function() {
         $("#alertInputs").slideUp(500);
-      });
+      });*/
     }
 
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount;
+      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg, isGood, resultMesg = '', tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount;
 
       tokenSymbol_input = document.getElementById("tokenSymbol").value;
 

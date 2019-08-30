@@ -2000,6 +2000,41 @@ router.post('/incomeManagerCtrt/idxToSchedule', async function (req, res, next) 
   res.send({ idxToSchedule });
 });
 
+router.post('/incomeManagerCtrt/getIncomeSchedule', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const input = req.body.input;
+  console.log(`\nctrtAddr: ${ctrtAddr}, input: ${input}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const getIncomeSchedule = await instIncomeManager.methods.getIncomeSchedule(input).call();
+  console.log(`getIncomeSchedule: ${JSON.stringify(getIncomeSchedule)}`);
+  res.send({ getIncomeSchedule });
+});
+
+router.post('/incomeManagerCtrt/getIncomeScheduleList', async function (req, res, next) {
+  //const ctrtAddr = req.body.ctrtAddr;
+  //const input = req.body.input;
+  const {ctrtAddr, input, amount } = req.body;
+  console.log(`\nctrtAddr: ${ctrtAddr}, input: ${input}, amount: ${amount}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const getIncomeScheduleList = await instIncomeManager.methods.getIncomeScheduleList(input, amount).call();
+  console.log(`getIncomeScheduleList: ${JSON.stringify(getIncomeScheduleList)}`);
+  res.send({ getIncomeScheduleList });
+});
+
 /**@dev productMAnager ------------------------------------------------------------------------------------- */
 /**deploy productManager contract*/
 router.post('/productManagerContract', function (req, res, next) {
