@@ -1,13 +1,32 @@
 require("dotenv").config();
 
-const symbolNumber = parseInt(process.env.SYMBOLNUMBER);
+let symbolNumber, operationMode, backendAddrChoice;
 
-let operationMode;
-if(process.env.OPERATIONMODE){
-  operationMode = parseInt(process.env.OPERATIONMODE);
+const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
+if(isNaN(SYMBOLNUMBER)){
+  symbolNumber = 1;
 } else {
-  operationMode = 1;
+  symbolNumber = parseInt(SYMBOLNUMBER);
 }
+console.log('symbolNumber', symbolNumber);
+
+const OPERATIONMODE = parseInt(process.env.OPERATIONMODE);
+if(isNaN(OPERATIONMODE)){
+  operationMode = 1;
+} else {
+  operationMode = parseInt(OPERATIONMODE);
+}
+console.log('operationMode', operationMode);
+//9 for production with more strict time checking inside blockchain.js
+
+const BACKENDADDRCHOICE = parseInt(process.env.BACKENDADDRCHOICE);
+if(isNaN(BACKENDADDRCHOICE)){
+  backendAddrChoice = 0;
+} else {
+  backendAddrChoice = parseInt(BACKENDADDRCHOICE);
+}
+console.log('backendAddrChoice', backendAddrChoice);
+//process.exit(0);
 
 //----------------------------==Server Settings
 const SERVER_HOST = process.env.SERVER_HOST;
@@ -66,4 +85,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { symbolNumber, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port,  blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, operationMode };
+module.exports = { symbolNumber, operationMode, backendAddrChoice, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port,  blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };

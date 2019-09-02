@@ -39,7 +39,7 @@ const { getTime, asyncForEach, checkBoolTrueArray } = require('../../timeserver/
 
 const { findCtrtAddr, getForecastedSchedulesFromDB } = require('../../timeserver/mysql');
 
-const {serverPort, blockchainURL, gasLimitValue, gasPriceValue} = require('../../timeserver/envVariables');
+const {serverPort, blockchainURL, gasLimitValue, gasPriceValue, operationMode, backendAddrChoice} = require('../../timeserver/envVariables');
 
 const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement
 } = require('./zTestParameters');
@@ -64,24 +64,24 @@ userArray.forEach((user, idx) => {
 const [addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10] = assetbookArray;
 let provider, chain, func, arg1, arg2, arg3, result, backendAddr, backendAddrpkRaw;
 
-const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
-if(ethAddrChoice === 0){//reserved to API developer
+//backendAddrChoice: 0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
+if(backendAddrChoice === 0){//reserved to API developer
   backendAddr = admin;
   backendAddrpkRaw = adminpkRaw;
 
-} else if(ethAddrChoice === 1){//reserved to Blockchain developer
+} else if(backendAddrChoice === 1){//reserved to Blockchain developer
   backendAddr = AssetOwner1;
   backendAddrpkRaw = AssetOwner1pkRaw;
 
-} else if(ethAddrChoice === 2){//reserved to Backend developer
+} else if(backendAddrChoice === 2){//reserved to Backend developer
   backendAddr = AssetOwner2;
   backendAddrpkRaw = AssetOwner2pkRaw;
 
-} else if(ethAddrChoice === 3){//
+} else if(backendAddrChoice === 3){//
   backendAddr = AssetOwner3;
   backendAddrpkRaw = AssetOwner3pkRaw;
 
-} else if(ethAddrChoice === 4){//reserved tp the timeserver
+} else if(backendAddrChoice === 4){//reserved tp the timeserver
   backendAddr = AssetOwner4;
   backendAddrpkRaw = AssetOwner4pkRaw;
 }
@@ -288,55 +288,6 @@ const addBackendToCustomerService = async() => {
 }
 
 //yarn run livechain -c 1 --f 21
-const addUsersToRegistryCtrt = async() => {
-  console.log('\n----------------==Registry contract: add AssetBooks');
-  let userM;
-  console.log('addrRegistry', addrRegistry);
-
-  if(userIdentityNumberArray.length !== assetbookArray.length) {
-    console.log('userIdentityNumberArray and assetbookArray must have the same length!');
-    process.exit(0);
-  }
-  await asyncForEach(userIdentityNumberArray, async (userId, idx) => {
-    console.log('\n--------==Check if this user has already been added into RegistryCtrt');
-    const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbookArray[idx], investorLevelArray[idx]).call({from: backendAddr});
-    /**
-        boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
-        //ckUidLength(uid)
-        boolArray[1] = bytes(uid).length > 0;
-        boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
-
-        //ckAssetbookValid(assetbookAddr)
-        boolArray[3] = assetbookAddr != address(0);
-        boolArray[4] = assetbookAddr.isContract();
-        boolArray[5] = uidToAssetbook[uid] == address(0);
-        boolArray[6] = authLevel > 0 && authLevel < 10;
-     */
-    console.log('checkArray', checkArray);
-
-    if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
-      if(checkArray[5]){
-        console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
-        console.log('--------==AddUser():', idx);
-        const encodedData = instRegistry.methods.addUser(userId, assetbookArray[idx], investorLevelArray[idx]).encodeABI();
-        let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData);
-        //console.log('\nTxResult', TxResult);
-        console.log(`after addUser() on AssetOwner${idx+1}...`);
-    
-        userM = await instRegistry.methods.getUserFromUid(userId).call();
-        console.log('userM', userM);
-        checkEq(userM[0], assetbookArray[idx]);
-        checkEq(userM[1], investorLevelArray[idx].toString());
-      } else {
-        console.log(`\nThis uid ${userId} has already been added. Skipping this uid...`);
-      }
-    } else {
-      console.log('\nError detected');
-      process.exit(0);
-    }
-  });
-  process.exit(0);
-}
 
 
 //yarn run livechain -c 1 --f 22
@@ -352,27 +303,6 @@ index = ${index}, assetbookAddr: ${assetbookAddr}`);
   process.exit(0);
 }
 
-//yarn run livechain -c 1 --f 23
-const addUserX = async() => {
-  const index = 10;
-  const authLevel = 5;
-
-  const userId = "F13497227"+index;
-  const assetbookAddr = assetbookArray[index];
-  console.log(`\n-----------------==addUserX 
-assetbookArray length: ${assetbookArray.length}
-index = ${index}, assetbookAddr: ${assetbookAddr}`);
-
-  console.log('\nuserId1', userId, 'assetbookAddr', assetbookAddr, 'authLevel', authLevel);
-
-  const encodedData = instRegistry.methods.addUser(userId, assetbookAddr, authLevel).encodeABI();
-  let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData);
-  console.log('\nTxResult', TxResult);
-
-  const userDetails = await instRegistry.methods.getUserFromAssetbook(assetbookAddr).call();
-  console.log('\nuserDetails', userDetails, 'assetbookArray.length:', assetbookArray.length);
-  process.exit(0);
-}
 
 
 //yarn run livechain -c 1 --f 1
@@ -507,35 +437,9 @@ authLevel & STO investor classification on purchase amount and holding balance r
 4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
 5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
 */
-//yarn run livechain -c 1 --f 36
-const addAssetBookAPI = async () => {
-  const assetBookAddr = addrAssetBook3;
-  const userId = "A500000003", authLevel = 5;
-  const [assetBookAddrM, authLevelM] = await addAssetBook(assetBookAddr, userId, authLevel);
-}
 
 
-// addAssetBook(assetBookAddr, userId, authLevel = 5)
-const addAssetBook = async (assetBookAddr, userId, authLevel) => {
-  console.log('\n------------==inside addAssetBook');
-  console.log('userId1', userId, 'assetBookAddr', assetBookAddr, 'authLevel', authLevel);
-  console.log('addrRegistry', addrRegistry);
 
-  const tokenIds = await instHCAT721.methods.getAccountIds(assetBookAddr, 0, 0).call();
-  const balanceXM = await instHCAT721.methods.balanceOf(assetBookAddr).call();
-  console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
-
-  const instRegistry = new web3.eth.Contract(Registry.abi, addrRegistry);
-  let encodedData = instRegistry.methods.addUser(userId, assetBookAddr, authLevel).encodeABI();
-
-  result = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData);
-  console.log('addUser() result', result);
-
-  console.log('\nafter addUser() on AssetOwner1:');
-  let userM = await instRegistry.methods.getUserFromUid(userId).call();
-  console.log('userM', userM);
-  return userM;
-}
 
 //yarn run livechain -c 1 --f 2
 const setTokenController = async () => {
@@ -796,11 +700,7 @@ const mintTokens = async (assetbookNum, amount) => {
 }
 
 
-/*const encodedData = instRegistry.methods.addUser(userId, assetbookArray[idx], investorLevelArray[idx]).encodeABI();
-  let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrRegistry, encodedData);
-  console.log('\nTxResult', TxResult);
-  console.log(`after addUser() on AssetOwner${idx+1}...`);
-*/
+
 // 6 mintTokenFn1
 const mintTokenFn1 = async () => {
   console.log('inside mintTokenFn1');
@@ -1424,7 +1324,6 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 21
 } else if (func === 21) {
-  addUsersToRegistryCtrt();
 
 //yarn run livechain -c 1 --f 22
 } else if (func === 22) {
@@ -1432,7 +1331,6 @@ if (func === 0) {
 
 //yarn run livechain -c 1 --f 23
 } else if (func === 23) {
-  addUserX();
 
 //yarn run livechain -c 1 --f 31
 } else if (func === 31) {

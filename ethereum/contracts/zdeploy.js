@@ -8,17 +8,16 @@ cName = addia
 const Web3 = require('web3');
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON } = require('../../timeserver/envVariables');
+const {serverPort, blockchainURL, gasLimitValue, gasPriceValue, operationMode, backendAddrChoice} = require('../../timeserver/envVariables');
 
-const {addSmartContractRow, addProductRow, addUsersIntoDB, addOrdersIntoDB, addIncomeArrangementRowsIntoDB } = require('../../timeserver/mysql.js');
+const {addSmartContractRow } = require('../../timeserver/mysql.js');
 
 const { getTime, asyncForEach } = require('../../timeserver/utilities');
 
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  symNum, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED, argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManagement, incomeArrangementArray
+const { addrHelium, assetOwnerArray, assetOwnerpkRawArray
 } = require('./zTestParameters');
 
-const { TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManagement, ProductManager
-} = require('./zsetupData');
+const { TestCtrt } = require('./zsetupData');
 
 //to be overwritten as we are deploying new contracts
 //let {} = require('./zsetupData');
@@ -35,29 +34,27 @@ if (process.argv.length < 8) {
 //const symNum = parseInt(process.argv[5]);
 let chain, ctrtName, result, backendAddr, backendAddrpkRaw;
 
-
-
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
-if(ethAddrChoice === 0){//reserved to API developer
+//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
+if(backendAddrChoice === 0){//reserved to API developer
   backendAddr = admin;
   backendAddrpkRaw = adminpkRaw;
 
-} else if(ethAddrChoice === 1){//reserved to Blockchain developer
+} else if(backendAddrChoice === 1){//reserved to Blockchain developer
   backendAddr = AssetOwner1;
   backendAddrpkRaw = AssetOwner1pkRaw;
 
-} else if(ethAddrChoice === 2){//reserved to Backend developer
+} else if(backendAddrChoice === 2){//reserved to Backend developer
   backendAddr = AssetOwner2;
   backendAddrpkRaw = AssetOwner2pkRaw;
 
-} else if(ethAddrChoice === 3){//
+} else if(backendAddrChoice === 3){//
   backendAddr = AssetOwner3;
   backendAddrpkRaw = AssetOwner3pkRaw;
 
-} else if(ethAddrChoice === 4){//reserved tp the timeserver
+} else if(backendAddrChoice === 4){//reserved tp the timeserver
   backendAddr = AssetOwner4;
   backendAddrpkRaw = AssetOwner4pkRaw;
 }
@@ -195,72 +192,9 @@ const deploy = async () => {
 
       //yarn run deploy -c 1 -s 1 -cName testctrt
     } else if (ctrtName === 'testctrt') {
-      console.log('\nDeploying testCtrt contracts...');
-      const HCAT721SerialNumber = 2020;
-      const argsTestCtrt = [HCAT721SerialNumber, addrHelium];
-      instTestCtrt =  await new web3deploy.eth.Contract(TestCtrt.abi)
-      .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
-      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      })
-      .on('error', function (error) {
-          console.log('error:', error.toString());
-      });
-
-      console.log('TestCtrt has been deployed');
-      if (instTestCtrt === undefined) {
-        console.log('[Error] instTestCtrt is NOT defined');
-        } else {console.log('[Good] instTestCtrt is defined');}
-      instTestCtrt.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      console.log(`addrTestCtrt = ${instTestCtrt.options.address}`);
-      process.exit(0);
 
 
     } else if (ctrtName === 'multisig') {
-      const argsMultiSig1 = [AssetOwner1, addrHelium];
-      const argsMultiSig2 = [AssetOwner2, addrHelium];
-
-      console.log('\nDeploying multiSig contracts...');
-      instMultiSig1 =  await new web3deploy.eth.Contract(MultiSig.abi)
-      .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      })
-      .on('error', function (error) {
-          console.log('error:', error.toString());
-      });
-
-      console.log('MultiSig1 has been deployed');
-      if (instMultiSig1 === undefined) {
-        console.log('[Error] instMultiSig1 is NOT defined');
-        } else {console.log('[Good] instMultiSig1 is defined');}
-      instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      addrMultiSig1 = instMultiSig1.options.address;
-      console.log('addrMultiSig1:', addrMultiSig1);
-      console.log('\nwaiting for addrMultiSig2...');
-
-      instMultiSig2 =  await new web3deploy.eth.Contract(MultiSig.abi)
-      .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig2 })
-      .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      })
-      .on('error', function (error) {
-          console.log('error:', error.toString());
-      });
-
-      console.log('MultiSig2 has been deployed');
-      if (instMultiSig2 === undefined) {
-        console.log('[Error] instMultiSig2 is NOT defined');
-        } else {console.log('[Good] instMultiSig2 is defined');}
-      instMultiSig2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      addrMultiSig2 = instMultiSig2.options.address;
-
-      console.log('addrMultiSig1:', addrMultiSig1);
-      console.log('addrMultiSig2:', addrMultiSig2);
-      process.exit(0);
 
 
   //yarn run deploy -c 1 -s 1 -cName assetbook

@@ -12,7 +12,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol  } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
 const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
 
@@ -488,6 +488,58 @@ const addUserOneIntoDB_API = async() => {
   process.exit(0);
 };
 
+//yarn run testmt -f 59
+const addUsersToRegistryCtrt_API = async() => {
+  console.log('\n-------------==inside addUsersToRegistryCtrt_API');
+  let userIDs, userAssetbooks, investorLevels;
+
+  const method = 3;
+  const authLevel = 5;
+  const registryContractAddr = addrRegistry;
+
+  if(method === 1){
+    const assetbookChoice = 10;
+    userIDs = ["A500000010"];
+    userAssetbooks = [assetbookArray[assetbookChoice]];
+    investorLevels = [authLevel];
+
+  } else if(method === 2) {
+    userIDs = ["A500000003"];
+    userAssetbooks = [addrAssetBook3];
+    investorLevels = [authLevel];
+
+  } else if(method === 3) {
+    userIDs = ['A500000021', 'A500000022', 'A500000023'];
+    const addrAssetBook0 = "0x9cfb84eCC3E8990EEFF56FE6ED601A9b9deee4bA";
+    const addrAssetBook1 = "0x6679c0a52285B3005bab5c196edEe458eA0011c7";
+    const addrAssetBook2 = "0x73D88777C4e29B1ccf9F45964827dE2Eb5076d00";
+    const addrAssetBook3 = "0x4E669A79886b11a3BA98D10E6aDe0F94D09E3C8E";
+    const addrAssetBook4 = "0xDA542FBE8515c4784aC81A8ABF5c2C55e33df33d";
+    const addrAssetBook5 = "0xCAFe7aD86205b4b43c0B95a1B55bF8a54A153Ee2";
+    const addrAssetBook6 = "0x824A7d628A3D58d0068c6614CC6367f801B31CdA";
+    const addrAssetBook7 = "0x915eb0eFB735AF262832a8645129f6Ff26E70699";
+    const addrAssetBook8 = "0x2eB48E0B6350300b5082A6F388a56A679A12ad73";
+    const addrAssetBook9 = "0xb2223A54065351E36BF341d0a3d99095D575570F";
+    const addrAssetBook10 = "0xBF0b705c7d3051aC75F21350842f15D3C21b72Da";
+
+    userAssetbooks = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+    investorLevels = [authLevel, authLevel, authLevel];
+  }
+
+  console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
+investorLevels: ${investorLevels}`);
+
+  const {isGood, results} = await addUsersToRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
+    console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
+  });
+  console.log('isGood:', isGood, ', results:', results);
+  process.exit(0);
+};
+
+//yarn run testmt -f 60
+const xyz_API = async () => {
+
+}
 
 
 
@@ -1982,6 +2034,12 @@ if(argv3 === 0){
 } else if (argv3 === 58) {
   addUserOneIntoDB_API();
 
+//yarn run testmt -f 59
+} else if (argv3 === 59) {
+  addUsersToRegistryCtrt_API();
+
+//yarn run testmt -f 60
+} else if (argv3 === 60) {
 
 //----------------------==
 //yarn run testmt -f 61
