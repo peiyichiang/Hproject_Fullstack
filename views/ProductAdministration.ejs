@@ -44,8 +44,7 @@
         <table class="table table-hover table-striped">
             <tr class="bg-warning" style="color:white;">
                 <th class="nowrap">Token代號</th>
-                <th class="nowrap">校正前發放時間</th>
-                <th class="nowrap">校正後發放時間</th>
+                <th class="nowrap">預計發放時間</th>
                 <th class="nowrap">校正前發放金額</th>
                 <th class="nowrap">校正後發放金額</th>
                 <th class="nowrap">審核</th>
@@ -56,31 +55,30 @@
                     <form hidden name="correctActualPaymentForm" id="correctActualPaymentForm"
                         action="/Product/CorrectActualPaymentResult" method="post" accept-charset="utf-8">
                         <div class="modal-body">
-                            Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol" name="CorrectActualPaymentTokenSymbol"> <br><br>
-                            校正前時間：<input type="text" readonly="readonly" id="OriginalPaymentTime" name="OriginalPaymentTime"> <br><br>
-                            校正金額：<input type="text" id="CorrectActualPaymentNumber" name="CorrectActualPaymentNumber"><br><br>
+                            Token代號：<input type="text" readonly="readonly" id="CorrectActualPaymentTokenSymbol"
+                                name="CorrectActualPaymentTokenSymbol">
+                            付款時間：<input type="text" readonly="readonly" id="CorrectActualPaymentTime"
+                                name="CorrectActualPaymentTime">
                             校正結果：<input type="text" id="CorrectActualPaymentResult" name="CorrectActualPaymentResult">
                         </div>
                     </form>
-                    <%= iaData[i].ia_SYMBOL  %>
+
+                    <%= iaData[0].ia_SYMBOL  %>
                 </td>
                 <td>
-                    <%= iaData[i].ia_time  %>
+                    <%= iaData[0].ia_time  %>
                 </td>
                 <td>
-                    <%= iaData[i].ia_actualPaymentTime  %>
+                    <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
                 </td>
                 <td>
-                    <%= iaData[i].ia_single_Forecasted_Payable_Income_in_the_Period  %>
-                </td>
-                <td>
-                    <%= iaData[i].ia_single_Actual_Income_Payment_in_the_Period  %>
+                    <%= iaData[0].ia_single_Actual_Income_Payment_in_the_Period  %>
                 </td>
                 <td>
                     <button type="button" class="btn btn-success"
-                        onclick="correctActualPayment('<%= iaData[i].ia_SYMBOL  %>','<%= iaData[i].ia_time  %>','<%= iaData[i].ia_single_Actual_Income_Payment_in_the_Period  %>','ia_state_approved')">通過</button>&nbsp;&nbsp;&nbsp;&nbsp;<button
+                        onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_approved')">通過</button>&nbsp;&nbsp;&nbsp;&nbsp;<button
                         type="button" class="btn btn-danger"
-                        onclick="correctActualPayment('<%= iaData[i].ia_SYMBOL  %>','<%= iaData[i].ia_time  %>','<%= iaData[i].ia_single_Actual_Income_Payment_in_the_Period  %>','ia_state_unapproved')">退回</button>
+                        onclick="correctActualPayment('<%= iaData[0].ia_SYMBOL  %>','<%= iaData[0].ia_time  %>','ia_state_unapproved')">退回</button>
                 </td>
             </tr>
             <% } %>
@@ -217,18 +215,18 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_csvFIle != null && data[i].p_csvFIle !="") { %>
                     <a target="_blank"
-                        href=<a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_csvFIle.replace('public','')  %>">CSV</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_csvFIle.replace('public','')  %>">CSV</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src=<a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -386,12 +384,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -561,12 +559,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -704,12 +702,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -840,19 +838,19 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" class="btn btn-success"
                         name="release" value="release"
-                        onclick="MintTokens('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingType  %>','ONM',this.id);">發放代幣</button>
+                        onclick="Release('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_fundingType  %>','ONM',this.id);">發放代幣</button>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
@@ -986,12 +984,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -1122,12 +1120,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -1252,12 +1250,12 @@
                 <td>
                     <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                     <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                        href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
                     <% } %>
                 </td>
                 <td>
                     <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
+                    <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt=""
                         style="width:50%;">
                     <% } %>
                 </td>
@@ -1332,12 +1330,11 @@
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>
     <script>
-        function correctActualPayment(iaSymbol, iaTime ,ia_single_Actual_Income_Payment_in_the_Period, isState) {
+        function correctActualPayment(iaSymbol, iaTime, isState) {
             // alert(iaSymbol + "," + iaTime + "," + isState);
             document.getElementById("CorrectActualPaymentTokenSymbol").value = iaSymbol;
-            document.getElementById("OriginalPaymentTime").value=iaTime;
-            document.getElementById("CorrectActualPaymentNumber").value = ia_single_Actual_Income_Payment_in_the_Period;
-            document.getElementById("CorrectActualPaymentResult").value=isState;
+            document.getElementById("CorrectActualPaymentTime").value = iaTime;
+            document.getElementById("CorrectActualPaymentResult").value = isState;
             document.getElementById('correctActualPaymentForm').submit();
         }
 
@@ -1394,7 +1391,7 @@
             // alert(CurrentBtnID);
 
             tokenSymbol = CurrentSYMBOL;
-            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + tokenSymbol + "/terminate", {
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/terminate", {
                 reason: document.getElementById('abortedReasonMessage-text').value
             }, function (result) {
                 //var result = JSON.parse(resultJSON);
@@ -1403,7 +1400,7 @@
                 if (result.TxResult.status == true) {
                     // 設定產品狀態為aborted
                     // 設置產品
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetProductStateByPlatformSupervisor' %>", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -1411,7 +1408,7 @@
                     })
 
                     // 設定p_abortedReason
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetAbortedReasonByPA' %>", {
+                    $.post("http://localhost:3030/Product/SetAbortedReasonByPA", {
                         AbortedReason: document.getElementById('abortedReasonMessage-text').value,
                         tokenSymbol: CurrentSYMBOL
                     }, function (result) {
@@ -1430,7 +1427,7 @@
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
 
-            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + tokenSymbol + "/resume", {
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/resume", {
                 CFED2: CFED2,
                 quantityMax: quantityMax
             }, function (result) {
@@ -1439,7 +1436,7 @@
 
                 if (result.TxResult.status == true) {
                     // 設置產品
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetProductStateByPlatformSupervisor' %>", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -1457,7 +1454,7 @@
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
             // 設置產品
-            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetProductStateByPlatformSupervisor' %>", {
+            $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                 tokenState: State,
                 tokenSymbol: tokenSymbol
             }, function (result) {
@@ -1474,13 +1471,13 @@
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
 
-            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + tokenSymbol + "/pause", function (result) {
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol + "/pause", function (result) {
                 //var result = JSON.parse(resultJSON);
                 console.log(result);
 
                 if (result.TxResult.status == true) {
                     // 設置產品
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetProductStateByPlatformSupervisor' %>", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: State,
                         tokenSymbol: tokenSymbol
                     }, function (result) {
@@ -1505,49 +1502,44 @@
             console.log("deploying...");
             console.log(fundingGoal);
 
-            // 將IncomeCSV文件寫入資料庫
-            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/IncomeCSV' %>", {
-                IncomeCSVFilePath: IncomeCSVFilePath
+            /*部署CrowdFundingContract*/
+            $.post("http://localhost:3030/Contracts/crowdFundingContract/" + tokenSymbol, {
+                tokenPrice: tokenPrice,
+                currency: currency,
+                quantityMax: quantityMax,
+                CFSD2: CFSD2,
+                CFED2: CFED2,
+                fundingGoal: fundingGoal
             }, function (result) {
+                //var result = JSON.parse(resultJSON);
                 console.log(result);
-                console.log(result.isSuccess);
-                if(result.isSuccess){
-                    /*部署CrowdFundingContract*/
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + tokenSymbol, {
-                        tokenPrice: tokenPrice,
-                        currency: currency,
-                        quantityMax: quantityMax,
-                        CFSD2: CFSD2,
-                        CFED2: CFED2,
-                        fundingGoal: fundingGoal
+
+                if (result.status == true) {
+                    // 將IncomeCSV文件寫入資料庫
+                    console.log("#:" + IncomeCSVFilePath);
+                    $.post("http://localhost:3030/Product/IncomeCSV", {
+                        IncomeCSVFilePath: IncomeCSVFilePath
                     }, function (result) {
-                        //var result = JSON.parse(resultJSON);
-                        // console.log(result);
-                        if (result.status == true) {
-                            // 設置產品狀態
-                            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetProductStateByPlatformSupervisor' %>", {
-                                tokenState: State,
-                                tokenSymbol: tokenSymbol
-                            }, function (result) {
-                                console.log(result);
-                                // 設置好後重新整理
-                                location.reload();
-                            })
-                        }
-                    });
-                }else{
-                    alert(result.messageForUser);
-                    location.reload();
+                        console.log(result);
+                        // 設置產品狀態
+                        $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
+                            tokenState: State,
+                            tokenSymbol: tokenSymbol
+                        }, function (result) {
+                            console.log(result);
+                            // 設置好後重新整理
+                            location.reload();
+                        })
+                    })
+
                 }
-            })
-
-
+            });
 
         }
 
         //募資結束
         function FundingFinished(nftName, nftSymbol, maxTotalSupply, initialAssetPricing, pricingCurrency, siteSizeInKW, irr, buttonID, TimeOfDeployment, TimeTokenValid, lockupperiod, HCAT721uri) {
-            $.get("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + nftSymbol + "/status", function (result) {
+            $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/status", function (result) {
                 console.log(result);
                 console.log(result.fundingState);
 
@@ -1561,7 +1553,7 @@
                     document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
                     document.getElementById(buttonID).disabled = true;
 
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + nftSymbol + "/closeFunding", {
+                    $.post("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/closeFunding", {
                         "TimeOfDeployment": TimeOfDeployment,
                         "TimeTokenUnlock": lockupperiod,
                         "TimeTokenValid": TimeTokenValid,
@@ -1583,7 +1575,7 @@
                     document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
                     document.getElementById(buttonID).disabled = true;
                     // 設置產品
-                    $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Product/SetProductStateByPlatformSupervisor' %>", {
+                    $.post("http://localhost:3030/Product/SetProductStateByPlatformSupervisor", {
                         tokenState: "FundingNotClosed",
                         tokenSymbol: nftSymbol
                     }, function (result) {
@@ -1600,34 +1592,6 @@
 
         }
 
-        const MintTokens = async(nftSymbol, price, fundingType, State, buttonID) => {
-            console.log(`nftSymbol: ${nftSymbol}, State: ${State}, buttonID: ${buttonID}`);
-            document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
-            document.getElementById(buttonID).disabled = true;
-
-            const config={
-              proxy: {
-                host: 'localhost',
-                port: 3030,
-              },
-            }
-            const url2='/Contracts/HCAT721_AssetTokenContract/'+nftSymbol+'/mintSequentialPerCtrt';
-            const response2 = await axios.post(url2, {}, config).catch(err => { 
-              console.log('err:',err);
-            });
-            const data2 = response2.data;
-            console.log(`response2: ${response2} \nsuccess: ${data2.success}
-result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`);
-            location.reload();
-
-            // await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mintSequentialPerCtrt", {
-            //   }, async function (result) {
-            //       console.log(result);
-            //       // 設置好後重新整理
-            //       location.reload();
-            //   })
-        }
-
         // 發放代幣
         function Release(nftSymbol, price, fundingType, State, buttonID) {
             console.log(nftSymbol);
@@ -1638,7 +1602,7 @@ result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
 
-            $.get("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/HCAT721_AssetTokenContract/' %>" + nftSymbol, async function (result) {
+            $.get("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol, async function (result) {
                 console.log(result);
                 console.log(result.result.sc_erc721address);
                 let erc721address = result.result.sc_erc721address;
@@ -1646,7 +1610,7 @@ result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`
                 let tokenControllerCtrtAddr = result.result.sc_erc721Controller;
 
 
-                $.get("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +  'Contracts/crowdFundingContract/' %>" + nftSymbol + "/investors", async function (result) {
+                $.get("http://localhost:3030/Contracts/crowdFundingContract/" + nftSymbol + "/investors", async function (result) {
                     console.log(result);
                     let assetBookAddrs = result[0];
                     let amounts = result[1];
@@ -1656,7 +1620,7 @@ result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`
                     console.log(amounts);
                     console.log(amounts.length);
                     console.log("minting...");
-                    await $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/HCAT721_AssetTokenContract/' %>" + nftSymbol + "/mintSequentialPerCtrt", {
+                    await $.post("http://localhost:3030/Contracts/HCAT721_AssetTokenContract/" + nftSymbol + "/mintSequentialPerCtrt", {
                         toAddressArray: assetBookAddrs.join(),
                         erc721address: erc721address,
                         amountArray: amounts.join(),
@@ -1674,7 +1638,6 @@ result: ${JSON.stringify(data2.result)} \n-----------------==about to reload...`
 
 
     </script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
         integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
         crossorigin="anonymous"></script>

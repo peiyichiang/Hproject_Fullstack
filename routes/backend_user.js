@@ -14,15 +14,9 @@ router.get('/backend_user', function (req, res, next) {
     // console.log(req.cookies.access_token);
     var token = req.cookies.access_token;
     var JWT_decoded;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });
@@ -52,13 +46,13 @@ router.get('/backend_user', function (req, res, next) {
             }
             //data=後端使用者資料
             var data = rows;
-            mysqlPoolQuery('SELECT * FROM user', function (err, rows) {
+            mysqlPoolQuery('SELECT * FROM htoken.user', function (err, rows) {
                 if (err) {
                     console.log(err);
                 }
                 //FrontEnd_data=前端使用者資料
                 var FrontEnd_data = rows;
-                res.render('PlatformAdmin', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
+                res.render('Viewbackend_user', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
             });
         });
     }
@@ -97,11 +91,11 @@ router.post('/AddBackendUser', function (req, res, next) {
         var qur = mysqlPoolQuery('INSERT INTO backend_user SET ?', sql, function (err, rows) {
             if (err) {
                 console.log(err);
-                res.render('FailMessage', { message: '帳號重複', error: err });
+                res.render('error', { message: '帳號重複', error: '' });
             } else {
                 // res.setHeader('Content-Type', 'application/json');
                 // res.redirect('/BackendUser/backend_user');
-                res.render('SuccessMessage', { message: '註冊成功', error: '' });
+                res.render('error', { message: '註冊成功', error: '' });
             }
         });
 
@@ -118,25 +112,12 @@ router.get('/ForgetPassword', function (req, res, next) {
     res.render('ForgetPassword', { title: 'ForgetPassword' });
 });
 
-// 註冊成功
-router.get('/SigupSuccess', function (req, res, next) {
-    res.render('SuccessMessage', { title: '註冊成功' });
-});
-// 註冊失敗
-router.get('/SigupFail', function (req, res, next) {
-    res.render('FailMessage', { title: '註冊失敗' });
-});
-//等待授權
-router.get('/WaitAuthorization', function (req, res, next) {
-    res.render('WaitAuthorization', { title: '等待授權' });
-});
-
 //忘記密碼
 router.post('/ForgetPassword', function (req, res, next) {
     //   var db = req.con;
     var mysqlPoolQuery = req.pool;
     var ID = req.body.m_id;
-    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -148,8 +129,8 @@ router.post('/ForgetPassword', function (req, res, next) {
         } else {
             //將重新設置連結寄送到信箱
 
-            // console.log(rows[0].m_email);
-            email=rows[0].m_id;
+            console.log(rows[0].m_email);
+            email=rows[0].m_email;
             passwordHash=rows[0].m_passwordhash;
 
             var transporter = nodemailer.createTransport({
@@ -247,15 +228,9 @@ router.get('/ResetPassword', function (req, res, next) {
 //刪除後端使用者資料：獲取網址上的參數
 router.get('/DeleteBackendUser', function (req, res, next) {
     var token = req.cookies.access_token;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });
@@ -289,15 +264,9 @@ router.get('/DeleteBackendUser', function (req, res, next) {
 router.get('/EditBackendUser', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });
@@ -339,15 +308,9 @@ router.get('/EditBackendUser', function (req, res, next) {
 router.post('/EditBackendUser', function (req, res, next) {
     // console.log("＊：" + JSON.stringify(req.session.m_permission));
     var token = req.cookies.access_token;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });
@@ -406,7 +369,7 @@ router.post('/BackendUserLogin', function (req, res, next) {
     var ID = req.body.m_id;
     var Password = req.body.m_password;
 
-    mysqlPoolQuery('SELECT * FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+    mysqlPoolQuery('SELECT * FROM htoken.backend_user WHERE m_id = ?', ID, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -450,10 +413,10 @@ router.post('/BackendUserLogin', function (req, res, next) {
                     } else if (rows[0].m_permission == "Company_FundManagerS") {
                         res.redirect('/product/ProductByFMS');
                     } else if (rows[0].m_permission == "NA") {
-                        res.render('WaitAuthorization', { message: 'NA', error: '' });
+                        res.render('error', { message: 'NA', error: '' });
                     }
                 } else {
-                    res.render('PasswordWrongMessage', { message: '密碼錯誤', error: '' });
+                    res.render('error', { message: '密碼錯誤', error: '' });
                 }
             }).catch(err => console.error('Error at compare password & pwHash', err.message));
             
@@ -512,15 +475,9 @@ router.post('/BackendUserLogin', function (req, res, next) {
 router.get('/BackendUser_CustomerService', function (req, res, next) {
     var token = req.cookies.access_token;
     var JWT_decoded;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });
@@ -540,85 +497,20 @@ router.get('/BackendUser_CustomerService', function (req, res, next) {
         return;
     }
 
+    // var db = req.con;
+    var mysqlPoolQuery = req.pool;
     var data = "";
-    var mysqlPoolQuery = req.pool;
-    
+    console.log("＊：" + req);
+
     if(JWT_decoded!==undefined){
-        mysqlPoolQuery('SELECT fp_investor_email,fp_application_date,fp_imagef,fp_imageb,fp_bankAccountimage,fp_isApproved FROM forget_pw', function (err, rows) {
+        mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
             if (err) {
                 console.log(err);
             }
-            //data=前端使用者申請忘記密碼的資料
             var data = rows;
-            console.log("***：" + JSON.stringify(data));
-            mysqlPoolQuery('SELECT * FROM user', function (err, rows) {
-                if (err) {
-                    console.log(err);
-                }
-                //FrontEnd_data=前端使用者資料
-                var FrontEnd_data = rows;
-                res.render('PlatformCustomerService', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id,ForgetPassword_data:data, FrontEnd_data: FrontEnd_data });
-            });
-        });
-    }
-
-});
-
-//CustomerService設置 忘記密碼 審核通過
-router.post('/SetForgetPasswordApproved', function (req, res, next) {
-    var token = req.cookies.access_token;
-    // console.log(token);
-    var JWT_decoded;
-    var dateNow = new Date();
-
-    if (token) {
-        // 驗證JWT token
-        jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
-            if (err) {
-                //JWT token驗證失敗
-                res.render('error', { message: err, error: '' });
-                return;
-            } else {
-                //JWT token驗證成功
-                JWT_decoded = decoded;
-                if (decoded.payload.m_permission != "Platform_CustomerService") {
-                    res.render('error', { message: '權限不足', error: '' });
-                    return;
-                }
-            }
-        })
-    } else {
-        //不存在JWT token
-        res.render('error', { message: '請先登入', error: '' });
-        return;
-    }
     
-
-    var email = req.body.ForgetPasswordEmail;
-    console.log(email);
-
-    var sql = {
-        fp_isApproved: 1,
-    };
-
-    var mysqlPoolQuery = req.pool;
-    if(JWT_decoded!==undefined){
-        var qur = mysqlPoolQuery('UPDATE forget_pw SET ? WHERE fp_investor_email = ?', [sql, email], function (err, rows) {
-            if (err) {
-                console.log(err);
-                // res.render('error', { message: '更改密碼失敗：' + err, error: '' });
-                res.redirect('/BackendUser/BackendUser_CustomerService');
-            } else {
-                // res.setHeader('Content-Type', 'application/json');
-                // res.redirect('/BackendUser/backend_user');
-                // res.render('error', { message: '更改密碼成功', error: '' });
-                res.redirect('/BackendUser/BackendUser_CustomerService');
-            }
+            // use index.ejs
+            res.render('ViewProduct', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data });
         });
     }
 
@@ -628,15 +520,9 @@ router.post('/SetForgetPasswordApproved', function (req, res, next) {
 router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
     var token=req.cookies.access_token;
     var JWT_decoded;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });
@@ -663,7 +549,7 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
         var data = "";
 
         var iaData;
-        mysqlPoolQuery("SELECT ia_SYMBOL,ia_time,ia_actualPaymentTime,ia_single_Forecasted_Payable_Income_in_the_Period,ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State =?", "ia_state_underReview"  , function(err, rows) {
+        mysqlPoolQuery("SELECT ia_SYMBOL,ia_time,ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State =?", "ia_state_underReview"  , function(err, rows) {
             if (err) {
                 console.log(err);
             }
@@ -690,15 +576,9 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
 //Company_FundManagerN登入後跳轉到該頁面(根據公司與產品階段撈取資料)
 router.post('/BackendUser_Company_FundManagerN', function (req, res, next) {
     var token = req.cookies.access_token;
-    var dateNow = new Date();
     if (token) {
         // 驗證JWT token
         jwt.verify(token, "my_secret_key", function (err, decoded) {
-            //檢查JWT token有沒有過期
-            if(decoded.exp<dateNow.getTime()/1000){
-                res.render('error', { message: '登入過時，請重新登入', error: '' });
-                return;
-            }
             if (err) {
                 //JWT token驗證失敗
                 res.render('error', { message: err, error: '' });

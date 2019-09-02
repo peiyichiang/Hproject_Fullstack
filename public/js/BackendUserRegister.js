@@ -4,41 +4,26 @@ var m_password_1=document.getElementById('m_password_1');
 var m_password_2=document.getElementById('m_password_2');
 var m_passwordhash=document.getElementById('m_passwordhash');
 
-
 //監聽註冊按鈕
 register.addEventListener('click',function(){
-	// 判斷email是否正確
-	if(is.email(document.getElementById("m_id").value)){
-		//判斷密碼是否相同
-		if(m_password_1.value=="" || m_password_2.value==""){
-			alert("密碼不可為空");
-		}else if(m_password_1.value!=m_password_2.value){
-			alert("密碼不同");
-		}else if(m_password_1.value==m_password_2.value){
-			// 密碼相同
-			//生成salt存到m_salt欄位
-			m_salt.value=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-			//將slat+密碼生成hash
-			// m_passwordhash.value=sha256(m_salt.value + m_password_1.value);
-			// 傳明文密碼到後端
-			m_passwordhash.value=m_password_1.value;
-			// alert(m_passwordhash.value);
-			document.getElementById("addform").submit();
-		}
-	}
+    //判斷密碼是否相同
+    if(m_password_1.value=="" || m_password_2.value==""){
+        alert("密碼不可為空");
+    }else if(m_password_1.value!=m_password_2.value){
+        alert("密碼不同");
+    }else if(m_password_1.value==m_password_2.value){
+        // 密碼相同
+        //生成salt存到m_salt欄位
+        m_salt.value=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        //將slat+密碼生成hash
+		// m_passwordhash.value=sha256(m_salt.value + m_password_1.value);
+		// 傳明文密碼到後端
+		m_passwordhash.value=m_password_1.value;
+        // alert(m_passwordhash.value);
+        document.getElementById("addform").submit();
+    }
     
 });
-
-
-function isEmail(email){
-	if(is.email(email)){
-		document.getElementById("errorMessage").textContent="";
-	}else{
-		document.getElementById("errorMessage").textContent=" (輸入Email有錯誤)";
-		console.log("false");
-	}
-}
-
 
 //生成hash
 var sha256 = function sha256(ascii) {

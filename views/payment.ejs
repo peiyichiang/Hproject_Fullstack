@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        <%= title %>
+    </title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+    <h1>order - List</h1>
+    <table>
+        <tr>
+            <th>o_id</th>
+            <th>o_symbol</th>
+            <th>o_paymentStatus</th>
+        </tr>
+        <% for ( var i = 0 ; i < data.length ; i++){ %>
+        <tr>
+            <td>
+                <%= data[i].o_id  %>
+            </td>
+            <td>
+                <%= data[i].o_symbol  %>
+            </td>
+            <td>
+                <%= data[i].o_paymentStatus  %>
+            </td>
+        </tr>
+        <% } %>
+    </table>
+    <h1>請選擇付款方式</h1>
+    <button id="creditCard" onclick="javascript:location.href='/paymentGW/pay'">信用卡付款</button>
+    <button id="wireTransfer" onclick="javascript:location.href='/paymentGW/bank'">匯款</button>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+    <script src="/javascripts/payment.js"></script>
+</body>
+
+</html>

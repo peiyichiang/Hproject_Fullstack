@@ -288,7 +288,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         require(HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         addrHelium = _addrHelium;
     }
-    function checkPlatformSupervisorFromHCAT() external view returns (bool){
+    function checkPlatformSupervisor() external view returns (bool){
         return (HeliumITF_HCAT(addrHelium).checkPlatformSupervisor(msg.sender));
     }
 

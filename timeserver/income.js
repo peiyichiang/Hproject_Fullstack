@@ -73,7 +73,7 @@ const incomeFromHoldingDays = (args, period, periodIncome, prevTokenAmount) => {
       const symbol = args[1];
       const addrAssetbook = args[2];
 
-      mysqlPoolQuery('SELECT COUNT(t_holdingDays), SUM(t_holdingDays) FROM transaction_info where t_txCount = 1 AND t_tokenSYMBOL = ? AND t_fromAssetbook = ?', [symbol, addrAssetbook], function (err, result) {
+      mysqlPoolQuery('SELECT COUNT(t_holdingDays), SUM(t_holdingDays) FROM htoken.transaction_info where t_txCount = 1 AND t_tokenSYMBOL = ? AND t_fromAssetbook = ?', [symbol, addrAssetbook], function (err, result) {
         if (err) {
           reject(`\n[Error] Failed at getting sum of holdingDays. symbol: ${symbol}, addrAssetbook: ${addrAssetbook}, err: ${err}`);
         } else {

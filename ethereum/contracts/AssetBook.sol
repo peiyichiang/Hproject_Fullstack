@@ -28,26 +28,18 @@ contract MultiSig {
 
     address public assetOwner; /** @dev user EOA */
     address public addrHeliumContract; /** @dev platform address */
-
-    uint public endorserCount;
-    mapping(uint => address) public endorsers;
+    address[] public endorserArray; /** @dev endorser assetbooks: 1 to 3 */
     // we require addrHeliumContract and endorserCtrt because EOA may change ...
-
-    uint public lastLoginTime;
-    uint public antiPlatformOverrideDaysDefault = 30;
-    uint public antiPlatformOverrideDays = 30;
     uint public assetOwner_flag;
     uint public HeliumContract_flag;
-    uint public endorsers_flag;
+    uint public endorserArray_flag;
 
     event ChangeAssetOwnerEvent(address indexed oldAssetOwner, address indexed newAssetOwner, uint256 timestamp);
     event ChangeEndorserCtrtEvent(address indexed oldEndorserCtrt, address indexed newEndorserCtrt, uint256 timestamp);
-    event AddEndorserEvent(address indexed newEndorser, uint256 timestamp);
+    event AddEndorserEvent(address indexed endorserArray, uint256 timestamp);
     event AssetOwnerVoteEvent(address indexed assetOwner, uint256 timestamp);
     event HeliumCtrtVoteEvent(address indexed addrHeliumContract, uint256 timestamp);
     event EndorserVoteEvent(address indexed endorserContractAddr, uint256 timestamp);
-    event AddLoginTime(uint indexed lastLoginTime);
-    event SetAntiPlatformOverrideDays(uint antiPlatformOverrideDays);
 
 
     modifier ckAssetOwner(){
@@ -71,11 +63,6 @@ contract MultiSig {
         return (HeliumITF(addrHeliumContract).checkCustomerService(msg.sender));
     }
 
-    function addLoginTime() external ckAssetOwner {
-        lastLoginTime = now;
-        emit AddLoginTime(lastLoginTime);
-    }
-
     // for assetOwner to vote
     function assetOwnerVote(uint256 serverTime) external ckAssetOwner {
         assetOwner_flag = 1;
@@ -94,64 +81,53 @@ contract MultiSig {
 
     // for this endorser contract to receive votes from other multiSig contracts
     function endorserVote(uint256 serverTime) external {
-        require(endorsers[1] == msg.sender || endorsers[2] == msg.sender || endorsers[3] == msg.sender, "sender must be one of the endorsers");
-        endorsers_flag = 1;
+        require(endorserArray[0] == msg.sender || endorserArray[1] == msg.sender || endorserArray[2] == msg.sender, "sender must be one of the endorsers");
+        endorserArray_flag = 1;
         emit EndorserVoteEvent(msg.sender, serverTime);
     }
 
-    function setAntiPlatformOverrideDays(uint _antiPlatformOverrideDays) public ckAssetOwner {
-        require(_antiPlatformOverrideDays >= antiPlatformOverrideDaysDefault, "minimum _antiPlatformOverrideDays is antiPlatformOverrideDaysDefault days");
-        antiPlatformOverrideDays = _antiPlatformOverrideDays;
-        emit SetAntiPlatformOverrideDays(_antiPlatformOverrideDays);
-    }
-
-    function isAblePlatformOverride() public view returns (bool) {
-        return(now >= lastLoginTime + antiPlatformOverrideDays * 1 days);
-    }
 
     // to calculate the sum of all vote flags
     function calculateVotes() public view returns (uint) {
-        return (assetOwner_flag + HeliumContract_flag + endorsers_flag);
+        return (assetOwner_flag + HeliumContract_flag + endorserArray_flag);
     }
 
-    function resetVoteStatus() public {
-        require(checkCustomerService() || checkAssetOwner(), "either the assetowner or the customer service rep can reset vote");
+    function resetVoteStatus() public ckCustomerService {
         assetOwner_flag = 0;
         HeliumContract_flag = 0;
-        endorsers_flag = 0;
+        endorserArray_flag = 0;
+    }
+
+    /** @dev When changing assetOwner EOA，two out of three parties must vote on pass */
+    function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external ckCustomerService{
+        require(calculateVotes() >= 2, "vote count must be >= 2");
+        address _oldAssetOwner = assetOwner;
+        assetOwner = _assetOwnerNew;
+        resetVoteStatus();
+        emit ChangeAssetOwnerEvent(_oldAssetOwner, _assetOwnerNew, serverTime);
+    }
+
+
+    function showEndorserArrayLength() public view returns(uint) {
+        return (endorserArray.length);
     }
 
     function addEndorser(address _newEndorser, uint256 serverTime) public ckAssetOwner{
         require(_newEndorser != assetOwner, "new endorser cannot be the assetOwner");
-        endorserCount = endorserCount.add(1);
-        require(endorsers[1] != _newEndorser && endorsers[2] != _newEndorser && endorsers[3] != _newEndorser, "new endorser cannot be duplicated");
-        require(endorserCount <= 3, "endorser count must be <= 3");
-        endorsers[endorserCount] = _newEndorser;
+        endorserArray.push(_newEndorser);
+        require(endorserArray.length <= 3, "endorser count must be <= 3");
         emit AddEndorserEvent(_newEndorser, serverTime);
     }
 
     function changeEndorser(address _oldEndorser, address _newEndorser, uint256 serverTime) public ckAssetOwner{
-        for(uint i = 1;  i <= endorserCount; i = i.add(1)){
-            if(endorsers[i] == _oldEndorser){
-                endorsers[i] = _newEndorser;
+        for(uint i = 0;  i < endorserArray.length; i = i.add(1)){
+            if(endorserArray[i] == _oldEndorser){
+                endorserArray[i] = _newEndorser;
                 emit ChangeEndorserCtrtEvent(_oldEndorser, _newEndorser, serverTime);
             }
         }
     }
 
-    /** @dev When changing assetOwner EOA，two out of three parties must vote on pass */
-    function changeAssetOwner(address _assetOwnerNew, uint256 serverTime) external {
-        if(msg.sender != address(0)){//assetOwner
-            require(checkCustomerService(),"only a customer service rep is allowed");
-            require(calculateVotes() >= 2 || isAblePlatformOverride(),"vote count must be >= 2");
-        }
-        address _oldAssetOwner = assetOwner;
-        assetOwner = _assetOwnerNew;
-        assetOwner_flag = 0;
-        HeliumContract_flag = 0;
-        endorsers_flag = 0;
-        emit ChangeAssetOwnerEvent(_oldAssetOwner, _assetOwnerNew, serverTime);
-    }
 
     function() external payable { revert("should not send any ether directly"); }
 }

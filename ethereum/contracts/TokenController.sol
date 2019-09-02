@@ -15,8 +15,8 @@ contract TokenController {
     bool public isTokenApproved;// true or false: check if the token is active
     address public addrHelium;
 
-    // check if the tokenState is in one of the following states: lockup, normal, or expired
-    enum TokenState{lockup, normal, expired}
+    // check if the tokenState is in one of the following states: inInitialLockUpPeriod, normal, or expired
+    enum TokenState{inInitialLockUpPeriod, normal, expired}
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
@@ -25,7 +25,7 @@ contract TokenController {
         TimeOfDeployment = _TimeOfDeployment;
         TimeUnlock = _TimeUnlock;
         TimeValid = _TimeValid;
-        tokenState = TokenState.lockup;
+        tokenState = TokenState.inInitialLockUpPeriod;
         isTokenApproved = true;
         addrHelium = _addrHelium;
     }
@@ -53,7 +53,7 @@ contract TokenController {
     function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
-    function checkPlatformSupervisorFromTCC() external view returns (bool){
+    function checkPlatformSupervisor() external view returns (bool){
         return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
@@ -71,10 +71,10 @@ contract TokenController {
           isTokenApproved_ = isTokenApproved;
     }
 
-    // to update the tokenState to be one of the three states: lockup, normal, expired
+    // to update the tokenState to be one of the three states: inInitialLockUpPeriod, normal, expired
     function updateState(uint timeCurrent) external onlyPlatformSupervisor ckTime(timeCurrent){
         if(timeCurrent < TimeUnlock){
-            tokenState = TokenState.lockup;
+            tokenState = TokenState.inInitialLockUpPeriod;
 
         } else if(timeCurrent >= TimeUnlock && timeCurrent < TimeValid){
             tokenState = TokenState.normal;

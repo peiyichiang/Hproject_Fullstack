@@ -6,13 +6,13 @@ var logger = require('morgan');
 var cors = require('cors');
 var session = require('express-session');
 var multer = require('multer');
-// var debugSQL = require('debug')('dev:mysql');
-// var timeout = require('connect-timeout'); //express v4
+var debugSQL = require('debug')('dev:mysql');
 
-//require("dotenv").config();
-const { SERVER_PORT, isTimeserverON, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
+require("dotenv").config();
 
-console.log('loading app.js modules...');
+const { isTestingMode } = require('./ethereum/contracts/zsetupData');
+
+console.log('loading /app.js modules');
 //智豪
 var indexRouter = require('./routes/TxRecord');
 var productRouter = require('./routes/Product');
@@ -24,7 +24,7 @@ var incomeManagementRouter = require('./routes/IncomeManagementAPI');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
-var paymentRouter = require('./routes/Payment');
+var paymentGWRouter = require('./routes/PaymentGW');
 var ContractsRouter = require('./routes/Contracts');
 // var usersRouter = require('./routes/users');
 
@@ -33,12 +33,6 @@ const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
 
 var app = express();
-// app.use(timeout(1200000));
-// app.use(haltOnTimedout);
-// function haltOnTimedout(req, res, next){
-//  if (!req.timedout) next();
-// }
-
 //智豪
 app.use(session({
     secret: 'NCCU Blockchain Hub',
@@ -98,7 +92,7 @@ app.post('/upload', cpUpload, function (req, res, next) {
 //有容
 app.use('/user', userRouter);
 app.use('/Order', orderRouter);
-app.use('/payment', paymentRouter);
+app.use('/paymentGW', paymentGWRouter);
 app.use('/Contracts', ContractsRouter);
 app.use('/incomeManagementAPI',incomeManagementRouter)
 
@@ -122,18 +116,16 @@ app.use(function (err, req, res, next) {
 });
 
 
-console.log(`\n------------------==timeserver: ${isTimeserverON}`);
-if(isTimeserverON){
+// const checkOverZero =(item) => item === 0;
+// if(whichTimeServerArray.every(checkOverZero)){
+if(isTestingMode){
+  console.log('\n------------------==timeserver turned OFF');
+  
+} else {
+  console.log('\n------------------==timeserver is ON');
   require('./timeserver/timeserverSource');
-  console.log(`  is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}
-  is_makeOrdersExpiredCFED: ${is_makeOrdersExpiredCFED}
-  is_updateExpiredOrders: ${is_updateExpiredOrders}
-  is_updateFundingStateFromDB: ${is_updateFundingStateFromDB}
-  is_updateTokenStateFromDB: ${is_updateTokenStateFromDB}
-  is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
-  `);
 }
-console.log(`[end of @ app.js] http://localhost:${SERVER_PORT}/Product/ProductList`);
+console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
 //http://localhost:3000/Product/ProductList
 
 
