@@ -1393,7 +1393,18 @@ const intergrationTestOfProduct = async() => {
   }
   let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid
   let acCFSD, acCFED, acTimeOfDeployment_CF;
+  let output = '';
 
+  var originalStderrWrite = process.stderr.write.bind(process.stderr);
+  
+  process.stderr.write = async (chunk, encoding, callback) => {
+    if (typeof chunk === 'string') {
+      output += chunk;
+    }
+  
+    return await originalStderrWrite(chunk, encoding, callback);
+  };
+  
   const _deployCrowdfundingContract_API = async () => {
     console.log('\n---------------------==deployCrowdfundingContract_API()');
     const isToDeploy = 1;
@@ -1415,17 +1426,23 @@ const intergrationTestOfProduct = async() => {
   
     const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
     console.log(`result_checkArguments: ${result_checkArguments}`);
-  
+
     if(result_checkArguments){
       console.log('result_checkArguments: true');
       if(isToDeploy === 1){
-        const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
+        const result_deployment = await deployCrowdfundingContract(argsCrowdFunding).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result_deployment: ${result_deployment}`);
         crowdFundingAddr = result_deployment.crowdFundingAddr
 
       } else {
         const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
-        const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
+        const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result: ${result}`);
 
       }
@@ -1433,6 +1450,10 @@ const intergrationTestOfProduct = async() => {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
 
   const _deployTokenControllerContract_API = async () => {
@@ -1442,8 +1463,12 @@ const intergrationTestOfProduct = async() => {
     const isToDeploy = 1;
     if(timeChoice === 1){
       acTimeOfDeployment_TokCtrl = await getLocalTime();
+      //if time is YYYYMMDDHH59
+      if(acTimeOfDeployment_TokCtrl % 100 == 59){
+        acTimeOfDeployment_TokCtrl += 40
+      }
       acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+1;
-      acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
+      acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000001;//2 months to expire
     } else {
       acTimeTokenUnlock = TimeTokenUnlock;
       acTimeTokenValid = TimeTokenValid;
@@ -1459,18 +1484,28 @@ const intergrationTestOfProduct = async() => {
       console.log('result_checkArguments: true');
       //process.exit(0);
       if(isToDeploy === 1){
-        const result_deployment = await deployTokenControllerContract(argsTokenController);
-      console.log(`result_deployment: ${result_deployment.tokenControllerAddr}`);
-      tokenControllerAddr = result_deployment.tokenControllerAddr
+        const result_deployment = await deployTokenControllerContract(argsTokenController).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
+        console.log(`result_deployment: ${result_deployment.tokenControllerAddr}`);
+        tokenControllerAddr = result_deployment.tokenControllerAddr
       } else {
         const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
-        const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
+        const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result: ${result}`);
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
 
   const _deployHCATContract_API = async () => {
@@ -1501,19 +1536,29 @@ const intergrationTestOfProduct = async() => {
       console.log('result_checkArguments is true');
       //process.exit(0);
       if(isToDeploy === 1){
-        const result_deployment = await deployHCATContract(argsHCAT721);
+        const result_deployment = await deployHCATContract(argsHCAT721).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result_deployment: ${result_deployment.HCAT_Addr}`);
         hcatAddr = result_deployment.HCAT_Addr
       
       } else {
         const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
-        const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
+        const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result: ${result}`);
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _deployIncomeManagerContract_API = async () => {
     console.log('\n---------------------==deployIncomeManagerContract_API()');
@@ -1534,7 +1579,10 @@ const intergrationTestOfProduct = async() => {
       console.log('result_checkArguments: true');
       //process.exit(0);
       if(isToDeploy === 1){
-        const result_deployment = await deployIncomeManagerContract(argsIncomeManager);
+        const result_deployment = await deployIncomeManagerContract(argsIncomeManager).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result_deployment: ${result_deployment}`);
         incomeManagerAddr = result_deployment.IncomeManager_Addr
       } else {
@@ -1546,6 +1594,10 @@ const intergrationTestOfProduct = async() => {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _addProduct = async() => {
     console.log('\n-------------==inside addProductRow section');
@@ -1562,6 +1614,10 @@ const intergrationTestOfProduct = async() => {
       console.error('\n[Error @ addProductRow()]'+ err);
       process.exit(1)
     });
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }  
 
   const _addCtrt = async() => {
@@ -1572,6 +1628,10 @@ const intergrationTestOfProduct = async() => {
       console.error('\n[Error @ addSmartContractRow()]'+ err);
       process.exit(1)
     });
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   } 
 
   const _deployProductManager = async() => {
@@ -1586,10 +1646,26 @@ const intergrationTestOfProduct = async() => {
     productManagerAddr = addrProductManager
   }
   const _addIncomeArrangement = async() => {
+    //time need to be fixed
+    if(acTimeTokenUnlock % 100 >= 59){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 57){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 55){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 53){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 51){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
@@ -1598,19 +1674,21 @@ const intergrationTestOfProduct = async() => {
       process.exit(1)
     });
     console.log('result', result);
-
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _addOrders_CFC_MintTokens_API = async () => {
     const paymentStatus = 'paidTest';
     const tokenSymbol =  nftSymbol;
   
     const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), maxTotalSupply);
-    console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`)
-    //process.exit(0);
+    console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`);
   
     const result = await addArrayOrdersIntoDB(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol).catch((err) => {
       console.error('\n[Error @ addArrayOrdersIntoDB()]'+ err);
-      process.exit(1)
+      process.exit(1);
 
     });
     console.log('addArrayOrdersIntoDB result:', result);
@@ -1618,6 +1696,9 @@ const intergrationTestOfProduct = async() => {
     let serverTime
     if(timeChoice === 1){
       serverTime = await getLocalTime() + 1;
+      if(serverTime % 100 >= 60){
+        serverTime += 40
+      }
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
@@ -1635,6 +1716,10 @@ const intergrationTestOfProduct = async() => {
       process.exit(1)
     });
     console.log(`is_preMint: ${is_preMint}, is_doAssetRecords: ${is_doAssetRecords}, is_addActualPaymentTime: ${is_addActualPaymentTime}, is_setFundingStateDB: ${is_setFundingStateDB}, is_sequentialMintSuper: ${is_sequentialMintSuper}`);
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _updateTOkenControllerState = async() => {
     let serverTime
@@ -1647,6 +1732,10 @@ const intergrationTestOfProduct = async() => {
       console.error('\n[Error @ updateTokenStateTCC()]'+ err);
       process.exit(1)
     })
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   await _deployCrowdfundingContract_API();
   await _deployTokenControllerContract_API();
@@ -1657,7 +1746,8 @@ const intergrationTestOfProduct = async() => {
   await _deployProductManager();
   await _addIncomeArrangement();
   await _addOrders_CFC_MintTokens_API();
-  await _updateTOkenControllerState()
+  await _updateTOkenControllerState();
+
   process.exit(0);
 
 }
