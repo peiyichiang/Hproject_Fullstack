@@ -1,0 +1,33 @@
+/**  */
+router.post('/HCAT721_AssetTokenContract/:tokenSymbol', async function (req, res, next) {
+  let tokenSymbol = req.params.tokenSymbol;
+  const result = await calculateLastPeriodProfit(tokenSymbol).catch((err) => {
+    console.log('[Error @ calculateLastPeriodProfit]', err);
+    res.send({
+      err: err,
+      status: false
+    });
+  });
+  console.log(`result: ${result}`);
+  if(result){
+    if(result[0] === null || result[1] === null){
+      res.send({
+        status: false
+      });
+    } else if(Array.isArray(result[0])){
+    res.send({
+      status: true,
+      emailArrayError: result[0],
+      amountArrayError: result[1]
+    });
+    } else {
+      res.send({
+        status: false
+      });
+    }
+  } else {
+    res.send({
+      status: false
+    });
+  }
+});

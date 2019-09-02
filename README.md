@@ -153,6 +153,7 @@ portForIncomingTime has the value defined inside timeServer/manager.js
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin
+http://localhost:3030/BackendUser/BackendUserLogin
 
 Backend Roles:
 Platform_Admin
