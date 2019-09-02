@@ -612,7 +612,7 @@ const checkDeploymentTCC = async(tokenControllerAddr, argsTokenController) => {
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
         }
-        console.log(`\n[Error message] ${mesg}`);
+        console.error(`\n[Error message] ${mesg}`);
         resolve(false);
   
       } else {
