@@ -6,4 +6,5 @@ before_script:
   - yarn run solc
 test:
   script:
+  - env TZ='Asia/Taipei' yarn run testmt -f 99
   - env TZ='Asia/Taipei' yarn run testmt -f 100

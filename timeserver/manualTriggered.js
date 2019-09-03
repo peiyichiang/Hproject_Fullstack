@@ -3,14 +3,14 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject
    } = require('../ethereum/contracts/zTestParameters');
 
 const { symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB  } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
@@ -1377,6 +1377,67 @@ const getTokenBalances_API = async () => {
 }
 
 //------------------------------==
+//yarn run testmt -f 99
+const intergrationTestOfRegistry = async() => {
+  let addrAssetbook;
+  let assetOwner, userID;
+  const _deployAssetbookContracts_API = async() => {
+    console.log('\n--------------==inside deployAssetbookContracts_API()');
+    const Web3 = require('web3');
+    let web3 = new Web3()
+    let eoaArray, addrHeliumContract, randomAccount;
+      randomAccount = web3.eth.accounts.create()
+      assetOwner = randomAccount.address;
+      eoaArray = [randomAccount.address];
+      addrHeliumContract = addrHelium;
+   
+    const {isGood, addrAssetBookArray} = await deployAssetbooks(eoaArray, addrHeliumContract).catch((err) => {
+      console.log(err)
+      process.exit(1)
+    });
+  
+    console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
+    addrAssetbook = addrAssetBookArray[0];
+    console.log(addrAssetbook);
+    const isAllGood = !(addrAssetBookArray.includes(undefined));
+    console.log('isAllGood:', isAllGood);
+  };
+  const _addUsersIntoDB_API = async() => {
+    console.log('\n-------------==inside addUsersIntoDB_API');
+    console.log(addrAssetbook);
+    let hold = addrAssetbook;
+    var faker = require('faker');
+    userID = 'T' + faker.random.number(999999999)
+    let user = await new userObject(faker.internet.email(), faker.random.words(), userID, assetOwner, "09" + faker.random.number(9999999), faker.name.firstName(), hold, 5, 0);
+
+    const result = await addUsersIntoDB([user]).catch((err) => {
+      console.log('\n[Error @ addUsersIntoDB()] '+ err);
+      process.exit(1);
+    });
+    console.log('result:', result);
+  };
+  const _addUsersToRegistryCtrt_API = async() => {
+    console.log('\n-------------==inside addUsersToRegistryCtrt_API');
+    const registryContractAddr = addrRegistry;
+    let userIDs = [userID];
+    let userAssetbooks = [addrAssetbook];
+    let investorLevels = [5];
+    console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
+  investorLevels: ${investorLevels}`);
+  
+    const {isGood, results} = await addUsersToRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
+      console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
+      process.exit(1);
+
+    });
+    console.log('isGood:', isGood, ', results:', results);
+  };
+  await _deployAssetbookContracts_API();
+  await _addUsersIntoDB_API();
+  await _addUsersToRegistryCtrt_API();
+  process.exit(0)
+}
+
 //yarn run testmt -f 100
 const intergrationTestOfProduct = async() => {
   function paddingLeft(str,lenght){
@@ -1391,10 +1452,10 @@ const intergrationTestOfProduct = async() => {
     return nowDate.getFullYear() + paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2) + paddingLeft(String(nowDate.getHours()), 2) + paddingLeft(String(nowDate.getMinutes()), 2)
   
   }
-  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid
+  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid;
   let acCFSD, acCFED, acTimeOfDeployment_CF;
   let output = '';
-
+  let nowTime = await getLocalTime();
   var originalStderrWrite = process.stderr.write.bind(process.stderr);
   
   process.stderr.write = async (chunk, encoding, callback) => {
@@ -1409,7 +1470,7 @@ const intergrationTestOfProduct = async() => {
     console.log('\n---------------------==deployCrowdfundingContract_API()');
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_CF = await getLocalTime();
+      acTimeOfDeployment_CF = nowTime;
       acCFSD = acTimeOfDeployment_CF+1;
       acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
     } else {
@@ -1462,7 +1523,7 @@ const intergrationTestOfProduct = async() => {
   
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_TokCtrl = await getLocalTime();
+      acTimeOfDeployment_TokCtrl = nowTime;
       //if time is YYYYMMDDHH59
       if(acTimeOfDeployment_TokCtrl % 100 == 59){
         acTimeOfDeployment_TokCtrl += 40
@@ -1514,7 +1575,7 @@ const intergrationTestOfProduct = async() => {
   
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_HCAT = await getLocalTime();
+      acTimeOfDeployment_HCAT = nowTime;
     } else {
       acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
     }
@@ -1565,7 +1626,7 @@ const intergrationTestOfProduct = async() => {
     let acTimeOfDeployment_IM;
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_IM = await getLocalTime();
+      acTimeOfDeployment_IM = nowTime;
     } else {
       acTimeOfDeployment_IM = TimeOfDeployment_IM;
     }
@@ -1695,7 +1756,7 @@ const intergrationTestOfProduct = async() => {
     
     let serverTime
     if(timeChoice === 1){
-      serverTime = await getLocalTime() + 1;
+      serverTime = nowTime + 1;
       if(serverTime % 100 >= 60){
         serverTime += 40
       }
@@ -1724,7 +1785,10 @@ const intergrationTestOfProduct = async() => {
   const _updateTOkenControllerState = async() => {
     let serverTime
     if(timeChoice === 1){
-      serverTime = await getLocalTime();
+      serverTime = nowTime + 1;
+      if(serverTime >= 60){
+        serverTime += 40;
+      }
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
@@ -2251,7 +2315,10 @@ if(argv3 === 0){
 } else if (argv3 === 95) {
   checkAssetbookArray_API();
 
-//yarn run testmt -f 100
+//yarn run testmt -f 99
+} else if(argv3 === 99){
+  intergrationTestOfRegistry();
+
 } else if(argv3 === 100){
   intergrationTestOfProduct();
 
