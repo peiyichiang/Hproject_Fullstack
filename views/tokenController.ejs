@@ -39,27 +39,6 @@
             value=''>
         </div>
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="">Email</span>
-            </div>
-            <input type="email" class="form-control" placeholder="email" aria-label="email" id="email" aria-describedby="email">
-        </div>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="">Assetbook</span>
-            </div>
-            <input type="text" class="form-control" placeholder="assetbook contract addr" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
-        </div>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="">Investor Index</span>
-            </div>
-            <input type="text" class="form-control" placeholder="investor index" aria-label="investorIndex" id="investorIndex" aria-describedby="investorIndex">
-        </div>
-
 
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
           <button type="button" id="getHTokenControllerDetails" class="btn btn-primary">Get TokenController Details</button>
@@ -124,21 +103,18 @@
       document.getElementById("alertInputs").innerText = messageTxt;
       //jQuery("#alertInputs").fadeOut("slow");
       $('.collapse').collapse();
-      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
+      $("#alertInputs");/*.fadeTo(10000, 500).slideUp(500, function() {
         $("#alertInputs").slideUp(500);
-      });
+      });*/
     }
 
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, email_input, assetbookAddr_input, investorIndex_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
+      let tokenSymbol_input, ctrtAddr_input, mesg, isGood, resultMesg = '', tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
 
       tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
       ctrtAddr_input = document.getElementById("tokenCtrtAddrCFC").value;
-      email_input = document.getElementById("email").value;
-      assetbookAddr_input = document.getElementById("assetbookAddr").value;
-      investorIndex_input = document.getElementById("investorIndex").value;
 
       const isTokenSymbolEmpty = isEmpty(tokenSymbol_input);
       const isTokenCtrtAddrCFC_empty = isEmpty(ctrtAddr_input);
@@ -195,7 +171,7 @@
 
         const isGivingDefaultCFC = 1;
         if(isGivingDefaultCFC === 1) {
-          ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
+          ctrtAddr = '0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9';
           mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
           showAlert(mesg);
@@ -204,7 +180,7 @@
           showAlert(mesg);
         }
       }
-      console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
+      console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
@@ -213,34 +189,8 @@
       }
       console.log(`-------------==`);
 
-      if(funcName === 'emailToQty' && isEmpty(email_input)){
-          email = 'achmed1923@gmail.com';
-          mesg = 'Email is found empty. Using default value: '+ email;
-          console.warn(mesg);
-          showAlert(mesg);
-        } else {
-          email = email_input;
-        }
 
-      if(funcName === 'ownerToQty' && isEmpty(assetbookAddr_input)){
-          assetbookAddr = '0xc297297Aa3437320CFd2CA0F988E4FC1B82E6A17';
-          mesg = 'Assetbook is found empty. Using default value: '+ assetbookAddr;
-          console.warn(mesg);
-          showAlert(mesg);
-      } else {
-          assetbookAddr = assetbookAddr_input;
-      }
-
-      if(funcName === 'idxToOwner' && isEmpty(investorIndex_input)){
-          investorIndex = '1';
-          mesg = 'investorIndex is found empty. Using default value: '+ investorIndex;
-          console.warn(mesg);
-          showAlert(mesg);
-        } else {
-          investorIndex = investorIndex_input;
-        }
-      
-      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email: ${email}, assetbookAddr: ${assetbookAddr}, investorIndex: ${investorIndex}`);
+      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
       return [isGood, tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex];
     }
 

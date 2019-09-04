@@ -11,7 +11,7 @@ const { getTimeServerTime, isEmpty, checkIntFromOne } = require('../timeserver/u
 
 const { doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, schCindex, addScheduleBatch, checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddScheduleBatch1, checkAddScheduleBatch2, removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
 
-const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit } = require('../timeserver/mysql.js');
+const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit, getAssetbookFromIdentityNumber } = require('../timeserver/mysql.js');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -775,9 +775,43 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
   });
   console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${ctrtAddr}`);
   res.send({
-    isGood: isGood,
+    isGoodCtrtAddr: isGood,
     ctrtAddr: ctrtAddr, 
     resultMesg: resultMesg
+  });
+});
+
+router.post('/getAssetbookFromEmail', async function (req, res, next) {
+  const email = req.body.email;
+  console.log(`email: ${email}`);
+  const [isGoodAssetbook, assetbookX, resultMesg] = await getAssetbookFromEmail(email).catch((err) => {
+    console.log('[Error @getAssetbookFromEmail]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+    return false;
+  });
+  console.log(`----------==API isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, resultMesg: ${resultMesg}`);
+  res.send({
+    isGoodAssetbook, assetbookX, resultMesg
+  });
+});
+
+router.post('/getAssetbookFromIdentityNumber', async function (req, res, next) {
+  const identityNumber = req.body.identityNumber;
+  console.log(`identityNumber: ${identityNumber}`);
+  const [isGoodAssetbook, assetbookX, resultMesg] = await getAssetbookFromIdentityNumber(identityNumber).catch((err) => {
+    console.log('[Error @getAssetbookFromIdentityNumber]:', err);
+    res.send({
+        err: err,
+        status: false
+    });
+    return false;
+  });
+  console.log(`----------==API isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, resultMesg: ${resultMesg}`);
+  res.send({
+    isGoodAssetbook, assetbookX, resultMesg
   });
 });
 
@@ -842,22 +876,23 @@ router.post('/crowdfunding/emailToQty', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const email = req.body.email;
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, email: ${email}`);
-    const assetbookX = await getAssetbookFromEmail(email);
-    if(isEmpty(assetbookX)){
-      console.log('assetbookX is empty:', assetbookX);
-      res.send({
-        err: 'assetbook or contract addr is invalid',
-        status: false
-      });
-      return false;
-    } else{
-      console.log('assetbookX:', assetbookX);
+    const [isGoodAssetbook, assetbookX, resultMesg] = await getAssetbookFromEmail(email).catch((err)=> {
+      console.log('[Error @getAssetbookFromEmail]:', err);
+    });
+    console.log(`-----==API isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, resultMesg: ${resultMesg}`)
+    if(isGoodAssetbook){
       const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
       const quantityOwned = await instCrowdfunding.methods.ownerToQty(assetbookX).call();
       console.log(`quantityOwned: ${quantityOwned}`);
       res.send({
           quantityOwned: quantityOwned
       });
+    } else{
+      res.send({
+        err: 'assetbook or contract addr is invalid',
+        status: false
+      });
+      return false;
     }
 });
 
@@ -1998,6 +2033,41 @@ router.post('/incomeManagerCtrt/idxToSchedule', async function (req, res, next) 
   const idxToSchedule = await instIncomeManager.methods.idxToSchedule(scheduleIndex).call();
   console.log(`idxToSchedule: ${JSON.stringify(idxToSchedule)}`);
   res.send({ idxToSchedule });
+});
+
+router.post('/incomeManagerCtrt/getIncomeSchedule', async function (req, res, next) {
+  const ctrtAddr = req.body.ctrtAddr;
+  const input = req.body.input;
+  console.log(`\nctrtAddr: ${ctrtAddr}, input: ${input}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const getIncomeSchedule = await instIncomeManager.methods.getIncomeSchedule(input).call();
+  console.log(`getIncomeSchedule: ${JSON.stringify(getIncomeSchedule)}`);
+  res.send({ getIncomeSchedule });
+});
+
+router.post('/incomeManagerCtrt/getIncomeScheduleList', async function (req, res, next) {
+  //const ctrtAddr = req.body.ctrtAddr;
+  //const input = req.body.input;
+  const {ctrtAddr, input, amount } = req.body;
+  console.log(`\nctrtAddr: ${ctrtAddr}, input: ${input}, amount: ${amount}`);
+  if(isEmpty(ctrtAddr)){
+    res.send({
+      err: 'ctrtAddr is invalid. '+ctrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instIncomeManager = new web3.eth.Contract(incomeManagerContract.abi, ctrtAddr);
+  const getIncomeScheduleList = await instIncomeManager.methods.getIncomeScheduleList(input, amount).call();
+  console.log(`getIncomeScheduleList: ${JSON.stringify(getIncomeScheduleList)}`);
+  res.send({ getIncomeScheduleList });
 });
 
 /**@dev productMAnager ------------------------------------------------------------------------------------- */

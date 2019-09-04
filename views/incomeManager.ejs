@@ -73,6 +73,8 @@
 
           <button type="button" id="dateToIdx" class="btn btn-primary">dateToIdx</button>
           <button type="button" id="idxToSchedule" class="btn btn-primary">idxToSchedule</button>
+          <button type="button" id="getIncomeSchedule" class="btn btn-primary">getIncomeSchedule</button>
+          <button type="button" id="getIncomeScheduleList" class="btn btn-primary">getIncomeScheduleList</button>
 
         </div>
 
@@ -84,10 +86,22 @@
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
         paymentCount: <span id="paymentCount"></span><br>
 
-        indexFromDate: <span id="indexFromDateM"></span><br>
-        idxToSchedule: <span id="idxToScheduleM"></span><br>
+        <br>
+        <h5>dateToIdx:</h5>
+        schDateTime: <span id="schDateTimeM"></span><br>
+        dateToIdx: <span id="dateToIdxM"></span><br>
+        <br>
+        <h5>idxToSchedule:</h5>
+        scheduleIndex: <span id="scheduleIndexM"></span><br>
+        actualPaymentAmount: <span id="actualPaymentAmountM"></span><br>
+        actualPaymentTime: <span id="actualPaymentTimeM"></span><br>
+        errorCode: <span id="errorCodeM"></span><br>
+        forecastedPayableAmount: <span id="forecastedPayableAmountM"></span><br>
+        forecastedPayableTime: <span id="forecastedPayableTimeM"></span><br>
+        isErrorResolved: <span id="isErrorResolvedM"></span><br>
         
         <br>
+        <h5>Asset</h5>
         Asset: <span id="idToAssetM"></span><br>
 
       </div>
@@ -95,7 +109,7 @@
   </div>
   <!-- Optional JavaScript
     /*
-    TimeOfDeployment, schCindex, paymentCount
+    schCindex, TimeOfDeployment, paymentCount
     dateToIdx(index), idxToSchedule(index)
     getSchIndex(schDateTime)
     getIncomeSchedule(schIndex)
@@ -132,7 +146,7 @@
       value === undefined ||
       value === null ||
       (typeof value === 'object' && Object.keys(value).length === 0) ||
-      (typeof value === 'string' && value.trim().length === 0);
+      (typeof value === 'string' && value.trim().length === 0) || (typeof value === 'number' && value < 1);
 
     const getHeliumCtrtAddr = async() => {
       console.log(`inside getHeliumCtrtAddr()...`);
@@ -146,28 +160,29 @@
       document.getElementById("alertInputs").innerText = messageTxt;
       //jQuery("#alertInputs").fadeOut("slow");
       $('.collapse').collapse();
-      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
+      $("#alertInputs");/*.fadeTo(10000, 500).slideUp(500, function() {
         $("#alertInputs").slideUp(500);
-      });
+      });*/
     }
-
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, scheduleIndex_input, schDateTime_input, amount_input, mesg, isGood, resultMesg, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount;
+      let tokenSymbol_input, ctrtAddr_input, scheduleIndex_input, schDateTime_input, amount_input, mesg, isGood, isGoodSch, resultMesg = '', tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount;
 
       tokenSymbol_input = document.getElementById("tokenSymbol").value;
 
       ctrtAddr_input = document.getElementById("ctrtAddr").value;
       scheduleIndex_input = document.getElementById("scheduleIndex").value;
       schDateTime_input = document.getElementById("schDateTime").value;
+      amount_input = document.getElementById("amount").value;
       
       const is_tokenSymbol_empty = isEmpty(tokenSymbol_input);
       const is_ctrtAddr_empty = isEmpty(ctrtAddr_input);
       const is_scheduleIndex_empty = isEmpty(scheduleIndex_input);
       const is_schDateTime_empty = isEmpty(schDateTime_input);
+      const is_amount_empty = isEmpty(amount_input);
 
-      console.log(`tokenSymbol_input: ${tokenSymbol_input}, \nctrtAddr_input: ${ctrtAddr_input}, \nscheduleIndex_input: ${scheduleIndex_input}, \nschDateTime_input: ${schDateTime_input}`);
+      console.log(`tokenSymbol_input: ${tokenSymbol_input}, \nctrtAddr_input: ${ctrtAddr_input}, \nscheduleIndex_input: ${scheduleIndex_input}, \nschDateTime_input: ${schDateTime_input}, \namount_input: ${amount_input}`);
     /*scheduleIndex     schDateTime
     dateToIdx(schDateTime), idxToSchedule(scheduleIndex)
     getSchIndex(schDateTime)
@@ -219,34 +234,104 @@
           showAlert(mesg);
         }
       }
-      console.log(`241----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
+      console.log(`234----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
         showAlert(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
+
       console.log(`-------------==`);
+      const scheduleIndex_input_num = parseInt(scheduleIndex_input);
+      const schDateTime_input_num = parseInt(schDateTime_input);
+      const amount_input_num = parseInt(amount_input);
+      console.log('scheduleIndex_input_num:', scheduleIndex_input_num, ', schDateTime_input_num:', schDateTime_input_num, ', amount_input_num:', amount_input_num );
 
-      if((funcName === 'dateToIdx' || funcName === 'getSchIndex') && is_schDateTime_empty){
-        schDateTime = 201908171200;
-        mesg = 'schDateTime is found empty. Using default value: '+ schDateTime;
-        console.warn(mesg);
-        showAlert(mesg);
+      if(!is_scheduleIndex_empty){
+        if(isNaN(scheduleIndex_input_num) || scheduleIndex_input_num < 1 || scheduleIndex_input_num >300){
+          mesg = 'scheduleIndex should not be out of range of 1 ~ 300';
+        } else {
+          isGoodSch = true;
+          scheduleIndex = scheduleIndex_input_num;
+        }
+
+      } else if(!is_schDateTime_empty){
+        if( isNaN(schDateTime_input_num) || schDateTime_input_num < 201909020900 || schDateTime_input_num > 204909020900){
+          mesg = 'schDateTime should not be out of range';
+        } else {
+          isGoodSch = true;
+          schDateTime = schDateTime_input_num;
+        }
       } else {
-        schDateTime = schDateTime_input;
+        mesg = 'At least scheduleIndex or schDateTime should be valid';
+        console.warn(mesg);
+
+        const isGivingDefault = 1;
+        if(isGivingDefault === 1) {
+          scheduleIndex = 1;
+          mesg = 'scheduleIndex and schDateTime values are empty. Using default value: scheduleIndex = '+scheduleIndex;
+          isGoodSch = true;
+          showAlert(mesg);
+        } else {
+          mesg = 'scheduleIndex and schDateTime values are empty';
+          showAlert(mesg);
+        }
+      }
+      console.log(`277----==isGoodSch: ${isGoodSch}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}`);
+      if(!isGoodSch){
+        console.warn(mesg+', resultMesg: '+resultMesg);
+        showAlert(mesg+', resultMesg: '+resultMesg);
+        return [isGoodSch, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, undefined];
       }
 
-      if((funcName === 'idxToSchedule' || funcName === 'getIncomeSchedule' || funcName === 'getIncomeScheduleList') && is_scheduleIndex_empty){
-        scheduleIndex = 1;
-        mesg = 'scheduleIndex is found empty. Using default value: '+ scheduleIndex;
-        console.warn(mesg);
-        showAlert(mesg);
-      } else {
-        scheduleIndex = scheduleIndex_input;
+      console.log(`-------------==check2`);
+        // || funcName === 'getIncomeSchedule' || funcName === 'getIncomeScheduleList'
+      if(funcName === 'idxToSchedule'){ 
+        if(is_scheduleIndex_empty){
+          scheduleIndex = 1;
+          mesg = 'scheduleIndex is found empty. Using default value: '+ scheduleIndex;
+          console.warn(mesg);
+          showAlert(mesg);
+        } else {
+          scheduleIndex = scheduleIndex_input;
+        }
       }
 
-      console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, amount: ${amount}`);
+      if(funcName === 'dateToIdx' || funcName === 'getSchIndex'){
+        if(is_schDateTime_empty){
+          schDateTime = 201908171200;
+          mesg = 'schDateTime is found empty. Using default value: '+ schDateTime;
+          console.warn(mesg);
+          showAlert(mesg);
+        } else {
+          schDateTime = schDateTime_input;
+        }
+      } 
+
+      console.log('amount_input_num', amount_input_num, ', is_amount_empty:', is_amount_empty);
+      let isGoodAmount;
+      if(funcName === 'getIncomeScheduleList'){
+        if(is_amount_empty){
+          amount = 1;
+          mesg = 'amount is found empty. Using default value: '+ amount;
+          isGood = true;
+          isGoodAmount = true;
+        } else if(isNaN(amount_input_num) || amount_input_num < 1 || amount_input_num >300){
+            mesg = 'amount should not be out of range of 1 ~ 300';
+        } else {
+          isGood = true;
+          isGoodAmount = true;
+          amount = amount_input_num;
+        }
+      }
+      if(!isGoodAmount){
+        console.warn(mesg);
+        showAlert(mesg);
+        return [isGoodAmount, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, amount_input_num];
+      }
+
+      console.log(`-------------==check3 \nisGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, amount: ${amount}`);
       return [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount];
     }
     /*scheduleIndex     schDateTime
@@ -294,10 +379,10 @@
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
       const jsonObj = await response.json();
       console.log('jsonObj', jsonObj);
-      document.getElementById("indexFromDateM").innerText = jsonObj['dateToIdx'];
+      document.getElementById("dateToIdxM").innerText = jsonObj['dateToIdx'];
+      document.getElementById("schDateTimeM").innerText = schDateTime;
     });
     /*
-     idxToSchedule(index)
     getSchIndex(schDateTime)
     getIncomeSchedule(schIndex)
     getIncomeScheduleList(schIndex, amount)
@@ -307,6 +392,25 @@
     checkAddForecastedScheduleBatch(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
     checkEditActualSchedule(schIndex)
     */
+    const showScheduleDetails = async(response, funcName, scheduleIndex) => {
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      const sch = jsonObj[funcName];
+      const actualPaymentAmount = sch['actualPaymentAmount'];
+      const actualPaymentTime = sch['actualPaymentTime'];
+      const errorCode = sch['errorCode'];
+      const forecastedPayableAmount = sch['forecastedPayableAmount'];
+      const forecastedPayableTime = sch['forecastedPayableTime'];
+      const isErrorResolved = sch['isErrorResolved'];
+      console.log(`actualPaymentAmount: ${actualPaymentAmount}, actualPaymentTime: ${actualPaymentTime}, errorCode: ${errorCode}, forecastedPayableAmount: ${forecastedPayableAmount}, forecastedPayableTime: ${forecastedPayableTime}, isErrorResolved: ${isErrorResolved}`);
+      document.getElementById("actualPaymentAmountM").innerText = actualPaymentAmount;
+      document.getElementById("actualPaymentTimeM").innerText = actualPaymentTime;
+      document.getElementById("errorCodeM").innerText = errorCode;
+      document.getElementById("forecastedPayableAmountM").innerText = forecastedPayableAmount;
+      document.getElementById("forecastedPayableTimeM").innerText = forecastedPayableTime;
+      document.getElementById("isErrorResolvedM").innerText = isErrorResolved;
+      document.getElementById("scheduleIndexM").innerText = scheduleIndex;
+    }
     $('#idxToSchedule').on('click',  async function (e) {
       console.log('inside idxToSchedule function... \ne.target:', e.target);
       const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('idxToSchedule');
@@ -322,18 +426,63 @@
         headers:{'Content-Type': 'application/json'}
       };
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      const sch = jsonObj['idxToSchedule'];
-      const actualPaymentAmount = sch['actualPaymentAmount'];
-      const actualPaymentTime = sch['actualPaymentTime'];
-      const errorCode = sch['errorCode'];
-      const forecastedPayableAmount = sch['forecastedPayableAmount'];
-      const forecastedPayableTime = sch['forecastedPayableTime'];
-      const isErrorResolved = sch['isErrorResolved'];
-      console.log(`actualPaymentAmount: ${actualPaymentAmount}, actualPaymentTime: ${actualPaymentTime}, errorCode: ${errorCode}, forecastedPayableAmount: ${forecastedPayableAmount}, forecastedPayableTime: ${forecastedPayableTime}, isErrorResolved: ${isErrorResolved}`);
-      document.getElementById("indexFromDateM").innerText = 3;
+      showScheduleDetails(response, 'idxToSchedule', scheduleIndex);
     });
+
+    $('#getIncomeSchedule').on('click',  async function (e) {
+      console.log('inside getIncomeSchedule function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getIncomeSchedule');
+      console.log(`scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, ctrtAddr: ${ctrtAddr}`);
+      const is_scheduleIndex_empty = isEmpty(scheduleIndex);
+      if(!isGood || (is_scheduleIndex_empty && isEmpty(schDateTime))) {
+        console.warn('isGood is false or inputs are empty!');
+        return false;
+      }
+      let input;
+      if(is_scheduleIndex_empty){
+        input = schDateTime;
+      } else {
+        input = scheduleIndex;
+      }
+      const url = BcApiBase+`incomeManagerCtrt/getIncomeSchedule`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/getIncomeSchedule/
+      const data = {ctrtAddr, input };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      showScheduleDetails(response, 'getIncomeSchedule', scheduleIndex);
+    });
+
+    $('#getIncomeScheduleList').on('click',  async function (e) {
+      console.log('inside getIncomeScheduleList function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getIncomeScheduleList');
+      console.log(`isGood: ${isGood}, scheduleIndex: ${scheduleIndex} ${typeof scheduleIndex}, schDateTime: ${schDateTime}, ctrtAddr: ${ctrtAddr}, amount: ${amount} ${typeof amount}`);
+      const is_scheduleIndex_empty = isEmpty(scheduleIndex);
+      if(!isGood || (is_scheduleIndex_empty && isEmpty(schDateTime)) || isEmpty(amount)) {
+        console.warn('isGood is false or inputs are empty!');
+        return false;
+      }
+      let input;
+      if(is_scheduleIndex_empty){
+        input = schDateTime;
+      } else {
+        input = scheduleIndex;
+      }
+      const url = BcApiBase+`incomeManagerCtrt/getIncomeScheduleList`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/getIncomeScheduleList/
+      const data = {ctrtAddr, input, amount };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      
+    });
+
   </script>
 
 </body>

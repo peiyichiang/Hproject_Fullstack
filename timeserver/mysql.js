@@ -303,14 +303,52 @@ const addUsersIntoDB = async(users) => {
 const getAssetbookFromEmail = async(email) => {
   return new Promise(async(resolve, reject) => {
     console.log('\n--------------==inside getAssetbookFromEmail()');
-    const queryStr3 = 'SELECT u_assetbookContractAddress FROM user WHERE u_email = ?';
-    const result1 = await mysqlPoolQueryB(queryStr3, [email]).catch((err) => {
+    const queryStr1 = 'SELECT u_assetbookContractAddress FROM user WHERE u_email = ?';
+    const result1 = await mysqlPoolQueryB(queryStr1, [email]).catch((err) => {
       console.log('\n[Error @ getAssetbookFromEmail]');
       reject(err);
       return false;
     });
-    const assetbookX = result1[0].u_assetbookContractAddress;
-    resolve(assetbookX);
+    if(result1.length === 0){
+      resolve([false, '', 'no assetbook for that email is found']);
+
+    } else if (result1.length > 1){
+      resolve([false, '', 'multiple assetbook addresses are found']);
+
+    } else {
+      const assetbookX = result1[0].u_assetbookContractAddress;
+      if(isEmpty(assetbookX) || assetbookX.length !== 42){
+        resolve([false, assetbookX, 'assetbook address is not valid']);
+      } else {
+        resolve([true, assetbookX, 'success']);
+      }
+    }
+  });
+}
+
+const getAssetbookFromIdentityNumber = async(identityNumber) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('\n--------------==inside getAssetbookFromIdentityNumber()');
+    const queryStr1 = 'SELECT u_assetbookContractAddress FROM user WHERE u_identityNumber = ?';
+    const result1 = await mysqlPoolQueryB(queryStr1, [identityNumber]).catch((err) => {
+      console.log('\n[Error @ getAssetbookFromIdentityNumber]');
+      reject(err);
+      return false;
+    });
+    if(result1.length === 0){
+      resolve([false, '', 'no assetbook for that identityNumber is found']);
+
+    } else if (result1.length > 1){
+      resolve([false, '', 'multiple assetbook addresses are found']);
+
+    } else {
+      const assetbookX = result1[0].u_assetbookContractAddress;
+      if(isEmpty(assetbookX) || assetbookX.length !== 42){
+        resolve([false, assetbookX, 'assetbook address is not valid']);
+      } else {
+        resolve([true, assetbookX, 'success']);
+      }
+    }
   });
 }
 
@@ -1392,5 +1430,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 module.exports = {
     mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj,
     addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB,
-    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB,getAssetbookFromEmail, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol
+    setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol
 }

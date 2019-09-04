@@ -23,7 +23,7 @@ var incomeManagementRouter = require('./routes/IncomeManagementAPI');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
-var paymentGWRouter = require('./routes/PaymentGW');
+var paymentRouter = require('./routes/Payment');
 var ContractsRouter = require('./routes/Contracts');
 // var usersRouter = require('./routes/users');
 
@@ -103,7 +103,7 @@ app.post('/upload', cpUpload, function (req, res, next) {
 //有容
 app.use('/user', userRouter);
 app.use('/Order', orderRouter);
-app.use('/paymentGW', paymentGWRouter);
+app.use('/payment', paymentRouter);
 app.use('/Contracts', ContractsRouter);
 app.use('/incomeManagementAPI',incomeManagementRouter)
 
@@ -138,7 +138,7 @@ if(isTimeserverON){
   is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
   `);
 } 
-console.log(`[end of @ app.js] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/Product/ProductList \n[Crowdfunding] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/crowdfunding \n[TokenController] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenController \n[TokenHCAT] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenHCAT \n[IncomeManager] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/IncomeManager`);
+console.log(`[end of @ app.js] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/Product/ProductList \n[Crowdfunding] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/crowdfunding \n[TokenController] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenController \n[TokenHCAT] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenHCAT \n[IncomeManager] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/IncomeManager \n[Assetbook] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/assetbook`);
 //http://localhost:3000/Product/ProductList
 
 

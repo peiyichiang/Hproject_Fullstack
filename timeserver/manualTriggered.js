@@ -3,16 +3,16 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject
    } = require('../ethereum/contracts/zTestParameters');
 
 const { symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB  } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
 const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
 
@@ -488,6 +488,58 @@ const addUserOneIntoDB_API = async() => {
   process.exit(0);
 };
 
+//yarn run testmt -f 59
+const addUsersToRegistryCtrt_API = async() => {
+  console.log('\n-------------==inside addUsersToRegistryCtrt_API');
+  let userIDs, userAssetbooks, investorLevels;
+
+  const method = 3;
+  const authLevel = 5;
+  const registryContractAddr = addrRegistry;
+
+  if(method === 1){
+    const assetbookChoice = 10;
+    userIDs = ["A500000010"];
+    userAssetbooks = [assetbookArray[assetbookChoice]];
+    investorLevels = [authLevel];
+
+  } else if(method === 2) {
+    userIDs = ["A500000003"];
+    userAssetbooks = [addrAssetBook3];
+    investorLevels = [authLevel];
+
+  } else if(method === 3) {
+    userIDs = ['A500000021', 'A500000022', 'A500000023'];
+    const addrAssetBook0 = "0x9cfb84eCC3E8990EEFF56FE6ED601A9b9deee4bA";
+    const addrAssetBook1 = "0x6679c0a52285B3005bab5c196edEe458eA0011c7";
+    const addrAssetBook2 = "0x73D88777C4e29B1ccf9F45964827dE2Eb5076d00";
+    const addrAssetBook3 = "0x4E669A79886b11a3BA98D10E6aDe0F94D09E3C8E";
+    const addrAssetBook4 = "0xDA542FBE8515c4784aC81A8ABF5c2C55e33df33d";
+    const addrAssetBook5 = "0xCAFe7aD86205b4b43c0B95a1B55bF8a54A153Ee2";
+    const addrAssetBook6 = "0x824A7d628A3D58d0068c6614CC6367f801B31CdA";
+    const addrAssetBook7 = "0x915eb0eFB735AF262832a8645129f6Ff26E70699";
+    const addrAssetBook8 = "0x2eB48E0B6350300b5082A6F388a56A679A12ad73";
+    const addrAssetBook9 = "0xb2223A54065351E36BF341d0a3d99095D575570F";
+    const addrAssetBook10 = "0xBF0b705c7d3051aC75F21350842f15D3C21b72Da";
+
+    userAssetbooks = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+    investorLevels = [authLevel, authLevel, authLevel];
+  }
+
+  console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
+investorLevels: ${investorLevels}`);
+
+  const {isGood, results} = await addUsersToRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
+    console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
+  });
+  console.log('isGood:', isGood, ', results:', results);
+  process.exit(0);
+};
+
+//yarn run testmt -f 60
+const xyz_API = async () => {
+
+}
 
 
 
@@ -1325,6 +1377,67 @@ const getTokenBalances_API = async () => {
 }
 
 //------------------------------==
+//yarn run testmt -f 99
+const intergrationTestOfRegistry = async() => {
+  let addrAssetbook;
+  let assetOwner, userID;
+  const _deployAssetbookContracts_API = async() => {
+    console.log('\n--------------==inside deployAssetbookContracts_API()');
+    const Web3 = require('web3');
+    let web3 = new Web3()
+    let eoaArray, addrHeliumContract, randomAccount;
+      randomAccount = web3.eth.accounts.create()
+      assetOwner = randomAccount.address;
+      eoaArray = [randomAccount.address];
+      addrHeliumContract = addrHelium;
+   
+    const {isGood, addrAssetBookArray} = await deployAssetbooks(eoaArray, addrHeliumContract).catch((err) => {
+      console.log(err)
+      process.exit(1)
+    });
+  
+    console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
+    addrAssetbook = addrAssetBookArray[0];
+    console.log(addrAssetbook);
+    const isAllGood = !(addrAssetBookArray.includes(undefined));
+    console.log('isAllGood:', isAllGood);
+  };
+  const _addUsersIntoDB_API = async() => {
+    console.log('\n-------------==inside addUsersIntoDB_API');
+    console.log(addrAssetbook);
+    let hold = addrAssetbook;
+    var faker = require('faker');
+    userID = 'T' + faker.random.number(999999999)
+    let user = await new userObject(faker.internet.email(), faker.random.words(), userID, assetOwner, "09" + faker.random.number(9999999), faker.name.firstName(), hold, 5, 0);
+
+    const result = await addUsersIntoDB([user]).catch((err) => {
+      console.log('\n[Error @ addUsersIntoDB()] '+ err);
+      process.exit(1);
+    });
+    console.log('result:', result);
+  };
+  const _addUsersToRegistryCtrt_API = async() => {
+    console.log('\n-------------==inside addUsersToRegistryCtrt_API');
+    const registryContractAddr = addrRegistry;
+    let userIDs = [userID];
+    let userAssetbooks = [addrAssetbook];
+    let investorLevels = [5];
+    console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
+  investorLevels: ${investorLevels}`);
+  
+    const {isGood, results} = await addUsersToRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
+      console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
+      process.exit(1);
+
+    });
+    console.log('isGood:', isGood, ', results:', results);
+  };
+  await _deployAssetbookContracts_API();
+  await _addUsersIntoDB_API();
+  await _addUsersToRegistryCtrt_API();
+  process.exit(0)
+}
+
 //yarn run testmt -f 100
 const intergrationTestOfProduct = async() => {
   function paddingLeft(str,lenght){
@@ -1339,14 +1452,25 @@ const intergrationTestOfProduct = async() => {
     return nowDate.getFullYear() + paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2) + paddingLeft(String(nowDate.getHours()), 2) + paddingLeft(String(nowDate.getMinutes()), 2)
   
   }
-  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid
+  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid;
   let acCFSD, acCFED, acTimeOfDeployment_CF;
-
+  let output = '';
+  let nowTime = await getLocalTime();
+  var originalStderrWrite = process.stderr.write.bind(process.stderr);
+  
+  process.stderr.write = async (chunk, encoding, callback) => {
+    if (typeof chunk === 'string') {
+      output += chunk;
+    }
+  
+    return await originalStderrWrite(chunk, encoding, callback);
+  };
+  
   const _deployCrowdfundingContract_API = async () => {
     console.log('\n---------------------==deployCrowdfundingContract_API()');
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_CF = await getLocalTime();
+      acTimeOfDeployment_CF = nowTime;
       acCFSD = acTimeOfDeployment_CF+1;
       acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
     } else {
@@ -1363,17 +1487,23 @@ const intergrationTestOfProduct = async() => {
   
     const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
     console.log(`result_checkArguments: ${result_checkArguments}`);
-  
+
     if(result_checkArguments){
       console.log('result_checkArguments: true');
       if(isToDeploy === 1){
-        const result_deployment = await deployCrowdfundingContract(argsCrowdFunding);
+        const result_deployment = await deployCrowdfundingContract(argsCrowdFunding).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result_deployment: ${result_deployment}`);
         crowdFundingAddr = result_deployment.crowdFundingAddr
 
       } else {
         const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
-        const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
+        const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result: ${result}`);
 
       }
@@ -1381,6 +1511,10 @@ const intergrationTestOfProduct = async() => {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
 
   const _deployTokenControllerContract_API = async () => {
@@ -1389,9 +1523,13 @@ const intergrationTestOfProduct = async() => {
   
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_TokCtrl = await getLocalTime();
+      acTimeOfDeployment_TokCtrl = nowTime;
+      //if time is YYYYMMDDHH59
+      if(acTimeOfDeployment_TokCtrl % 100 == 59){
+        acTimeOfDeployment_TokCtrl += 40
+      }
       acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+1;
-      acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000000;//2 months to expire
+      acTimeTokenValid = acTimeOfDeployment_TokCtrl+2000001;//2 months to expire
     } else {
       acTimeTokenUnlock = TimeTokenUnlock;
       acTimeTokenValid = TimeTokenValid;
@@ -1407,18 +1545,28 @@ const intergrationTestOfProduct = async() => {
       console.log('result_checkArguments: true');
       //process.exit(0);
       if(isToDeploy === 1){
-        const result_deployment = await deployTokenControllerContract(argsTokenController);
-      console.log(`result_deployment: ${result_deployment.tokenControllerAddr}`);
-      tokenControllerAddr = result_deployment.tokenControllerAddr
+        const result_deployment = await deployTokenControllerContract(argsTokenController).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
+        console.log(`result_deployment: ${result_deployment.tokenControllerAddr}`);
+        tokenControllerAddr = result_deployment.tokenControllerAddr
       } else {
         const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
-        const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
+        const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result: ${result}`);
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
 
   const _deployHCATContract_API = async () => {
@@ -1427,7 +1575,7 @@ const intergrationTestOfProduct = async() => {
   
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_HCAT = await getLocalTime();
+      acTimeOfDeployment_HCAT = nowTime;
     } else {
       acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
     }
@@ -1449,26 +1597,36 @@ const intergrationTestOfProduct = async() => {
       console.log('result_checkArguments is true');
       //process.exit(0);
       if(isToDeploy === 1){
-        const result_deployment = await deployHCATContract(argsHCAT721);
+        const result_deployment = await deployHCATContract(argsHCAT721).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result_deployment: ${result_deployment.HCAT_Addr}`);
         hcatAddr = result_deployment.HCAT_Addr
       
       } else {
         const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
-        const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
+        const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result: ${result}`);
       }
     } else {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _deployIncomeManagerContract_API = async () => {
     console.log('\n---------------------==deployIncomeManagerContract_API()');
     let acTimeOfDeployment_IM;
     const isToDeploy = 1;
     if(timeChoice === 1){
-      acTimeOfDeployment_IM = await getLocalTime();
+      acTimeOfDeployment_IM = nowTime;
     } else {
       acTimeOfDeployment_IM = TimeOfDeployment_IM;
     }
@@ -1482,7 +1640,10 @@ const intergrationTestOfProduct = async() => {
       console.log('result_checkArguments: true');
       //process.exit(0);
       if(isToDeploy === 1){
-        const result_deployment = await deployIncomeManagerContract(argsIncomeManager);
+        const result_deployment = await deployIncomeManagerContract(argsIncomeManager).catch((err) => {
+          console.log(err)
+          process.exit(1)
+        });
         console.log(`result_deployment: ${result_deployment}`);
         incomeManagerAddr = result_deployment.IncomeManager_Addr
       } else {
@@ -1494,6 +1655,10 @@ const intergrationTestOfProduct = async() => {
       console.error(`not to deploy due to incorrect argument values`);
       process.exit(1)
     }
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _addProduct = async() => {
     console.log('\n-------------==inside addProductRow section');
@@ -1510,6 +1675,10 @@ const intergrationTestOfProduct = async() => {
       console.error('\n[Error @ addProductRow()]'+ err);
       process.exit(1)
     });
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }  
 
   const _addCtrt = async() => {
@@ -1520,6 +1689,10 @@ const intergrationTestOfProduct = async() => {
       console.error('\n[Error @ addSmartContractRow()]'+ err);
       process.exit(1)
     });
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   } 
 
   const _deployProductManager = async() => {
@@ -1534,10 +1707,26 @@ const intergrationTestOfProduct = async() => {
     productManagerAddr = addrProductManager
   }
   const _addIncomeArrangement = async() => {
+    //time need to be fixed
+    if(acTimeTokenUnlock % 100 >= 59){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 57){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 55){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 53){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 51){
+      acTimeTokenUnlock += 40
+    }
     const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
@@ -1546,26 +1735,31 @@ const intergrationTestOfProduct = async() => {
       process.exit(1)
     });
     console.log('result', result);
-
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _addOrders_CFC_MintTokens_API = async () => {
     const paymentStatus = 'paidTest';
     const tokenSymbol =  nftSymbol;
   
     const [userIndexArray, tokenCountArray] = getInputArrays(getRndIntegerBothEnd(1, 10), maxTotalSupply);
-    console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`)
-    //process.exit(0);
+    console.log(`userIndexArray: ${userIndexArray}, \ntokenCountArray: ${tokenCountArray}, \n`);
   
     const result = await addArrayOrdersIntoDB(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol).catch((err) => {
       console.error('\n[Error @ addArrayOrdersIntoDB()]'+ err);
-      process.exit(1)
+      process.exit(1);
 
     });
     console.log('addArrayOrdersIntoDB result:', result);
     
     let serverTime
     if(timeChoice === 1){
-      serverTime = await getLocalTime() + 1;
+      serverTime = nowTime + 1;
+      if(serverTime % 100 >= 60){
+        serverTime += 40
+      }
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
@@ -1583,11 +1777,18 @@ const intergrationTestOfProduct = async() => {
       process.exit(1)
     });
     console.log(`is_preMint: ${is_preMint}, is_doAssetRecords: ${is_doAssetRecords}, is_addActualPaymentTime: ${is_addActualPaymentTime}, is_setFundingStateDB: ${is_setFundingStateDB}, is_sequentialMintSuper: ${is_sequentialMintSuper}`);
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   const _updateTOkenControllerState = async() => {
     let serverTime
     if(timeChoice === 1){
-      serverTime = await getLocalTime();
+      serverTime = nowTime + 1;
+      if(serverTime >= 60){
+        serverTime += 40;
+      }
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
@@ -1595,6 +1796,10 @@ const intergrationTestOfProduct = async() => {
       console.error('\n[Error @ updateTokenStateTCC()]'+ err);
       process.exit(1)
     })
+    process.stderr.write = originalStderrWrite;
+    if(output != ''){
+      process.exit(1)
+    } 
   }
   await _deployCrowdfundingContract_API();
   await _deployTokenControllerContract_API();
@@ -1605,7 +1810,8 @@ const intergrationTestOfProduct = async() => {
   await _deployProductManager();
   await _addIncomeArrangement();
   await _addOrders_CFC_MintTokens_API();
-  await _updateTOkenControllerState()
+  await _updateTOkenControllerState();
+
   process.exit(0);
 
 }
@@ -1982,6 +2188,12 @@ if(argv3 === 0){
 } else if (argv3 === 58) {
   addUserOneIntoDB_API();
 
+//yarn run testmt -f 59
+} else if (argv3 === 59) {
+  addUsersToRegistryCtrt_API();
+
+//yarn run testmt -f 60
+} else if (argv3 === 60) {
 
 //----------------------==
 //yarn run testmt -f 61
@@ -2103,7 +2315,10 @@ if(argv3 === 0){
 } else if (argv3 === 95) {
   checkAssetbookArray_API();
 
-//yarn run testmt -f 100
+//yarn run testmt -f 99
+} else if(argv3 === 99){
+  intergrationTestOfRegistry();
+
 } else if(argv3 === 100){
   intergrationTestOfProduct();
 

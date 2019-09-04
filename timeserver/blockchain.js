@@ -9,7 +9,8 @@ console.log('--------------------== blockchain.js...');
 
 const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 
-const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON, operationMode} = require('./envVariables');
+const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
+//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
 const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
 
@@ -17,16 +18,15 @@ const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, Inc
 
 const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs } = require('./mysql.js');
 
-const ethAddrChoice = 1;//0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
 
-const userIdentityNumberArray = [];
+const userIdArray = [];
 const investorLevelArray = [];
 const assetbookArray = [];
 userArray.forEach((user, idx) => {
   if (idx !== 0 ){
-    userIdentityNumberArray.push(user.identityNumber);
+    userIdArray.push(user.identityNumber);
     investorLevelArray.push(user.investorLevel);
     assetbookArray.push(user.addrAssetBook);
   }
@@ -38,23 +38,23 @@ const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-if(ethAddrChoice === 0){//reserved to API developer
+if(backendAddrChoice === 0){//reserved to API developer
   backendAddr = admin;
   backendAddrpkRaw = adminpkRaw;
 
-} else if(ethAddrChoice === 1){//reserved to Blockchain developer
+} else if(backendAddrChoice === 1){//reserved to Blockchain developer
   backendAddr = AssetOwner1;
   backendAddrpkRaw = AssetOwner1pkRaw;
 
-} else if(ethAddrChoice === 2){//reserved to Backend developer
+} else if(backendAddrChoice === 2){//reserved to Backend developer
   backendAddr = AssetOwner2;
   backendAddrpkRaw = AssetOwner2pkRaw;
 
-} else if(ethAddrChoice === 3){//
+} else if(backendAddrChoice === 3){//
   backendAddr = AssetOwner3;
   backendAddrpkRaw = AssetOwner3pkRaw;
 
-} else if(ethAddrChoice === 4){//reserved tp the timeserver
+} else if(backendAddrChoice === 4){//reserved tp the timeserver
   backendAddr = AssetOwner4;
   backendAddrpkRaw = AssetOwner4pkRaw;
 }
@@ -182,57 +182,7 @@ const deployRegistryContract = async(addrHeliumContract) => {
 }
 
 
-const addUsersToRegistryCtrt = async(registryContractAddr, userIDs, userAssetbooks, investorLevels) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\n----------------== addUsersToRegistryCtrt()');
-    let userM;
-    console.log('registryContractAddr', registryContractAddr);
-    const instRegistry = new web3.eth.Contract(Registry.abi, registryContractAddr);
 
-    if(userIDs.length !== userAssetbooks.length) {
-      console.log('userIDs and userAssetbooks must have the same length!');
-      process.exit(0);
-    }
-    await asyncForEach(userIDs, async (userId, idx) => {
-      console.log('\n--------==Check if this user has already been added into RegistryCtrt');
-      const checkArray = await instRegistry.methods.checkAddSetUser(userId, userAssetbooks[idx], investorLevels[idx]).call({from: admin});
-      /**
-          resultArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
-          //ckUidLength(uid)
-          resultArray[1] = bytes(uid).length > 0;
-          resultArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
-
-          //ckAssetbookValid(assetbookAddr)
-          resultArray[3] = assetbookAddr != address(0);
-          resultArray[4] = assetbookAddr.isContract();
-          resultArray[5] = uidToAssetbook[uid] == address(0);
-          resultArray[6] = authLevel > 0 && authLevel < 10;
-      */
-      console.log('checkArray', checkArray);
-
-      if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
-        if(checkArray[5]){
-          console.log(`\n--------==not added into RegistryCtrt yet... userId: ${userId}, idx: ${idx}`);
-          console.log('--------==AddUser():', idx)
-          const encodedData = instRegistry.methods.addUser(userId, userAssetbooks[idx], investorLevels[idx]).encodeABI();
-          let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryContractAddr, encodedData);
-          console.log('\nTxResult', TxResult);
-          console.log(`after addUser() on AssetOwner${idx+1}...`);
-      
-          userM = await instRegistry.methods.getUserFromUid(userId).call();
-          console.log('userM', userM);
-        } else {
-          console.log(`\nThis uid ${userId} has already been added. Skipping this uid...`);
-        }
-        resolve(true);
-      } else {
-        console.log('\nError detected');
-        reject(false);
-        return false;
-      }
-    });
-  });
-}
 
 //Set compliance regulatory rules
 const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) => {
@@ -246,6 +196,64 @@ const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPubli
     });
     console.log('\nTxResult', TxResult);
     resolve(result);
+  });
+}
+
+//-------------------==
+const deployMultiSigContract = async() => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\nDeploying MultiSig from eoaArray...');
+
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3deploy.version:', web3deploy.version);
+    const prefix = '0x';
+
+    const argsMultiSig1 = [AssetOwner1, addrHelium];
+    console.log('\nDeploying multiSig contracts...');
+    instMultiSig1 =  await new web3deploy.eth.Contract(MultiSig.abi)
+    .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
+    .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('MultiSig1 has been deployed');
+    if (instMultiSig1 === undefined) {
+      console.log('[Error] instMultiSig1 is NOT defined');
+      } else {console.log('[Good] instMultiSig1 is defined');}
+    instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    addrMultiSig1 = instMultiSig1.options.address;
+    console.log('addrMultiSig1:', addrMultiSig1);
+    console.log('\nwaiting for addrMultiSig2...');
+  });
+}
+
+const deployTesttract = async() => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\nDeploying testCtrt contracts...');
+    const HCAT721SerialNumber = 2020;
+    const argsTestCtrt = [HCAT721SerialNumber, addrHelium];
+    instTestCtrt =  await new web3deploy.eth.Contract(TestCtrt.abi)
+    .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
+    .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
+    .on('receipt', function (receipt) {
+      console.log('receipt:', receipt);
+    })
+    .on('error', function (error) {
+        console.log('error:', error.toString());
+    });
+
+    console.log('TestCtrt has been deployed');
+    if (instTestCtrt === undefined) {
+      console.log('[Error] instTestCtrt is NOT defined');
+      } else {console.log('[Good] instTestCtrt is defined');}
+    instTestCtrt.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+    console.log(`addrTestCtrt = ${instTestCtrt.options.address}`);
   });
 }
 
@@ -612,7 +620,7 @@ const checkDeploymentTCC = async(tokenControllerAddr, argsTokenController) => {
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
         }
-        console.log(`\n[Error message] ${mesg}`);
+        console.error(`\n[Error message] ${mesg}`);
         resolve(false);
   
       } else {
@@ -2084,6 +2092,70 @@ const makeOrdersExpiredCFED = async (serverTime) => {
 
 
 //----------------------------------==
+const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, authLevels) => {
+  return new Promise(async(resolve, reject) => {
+    console.log(`\n------------==inside addUsersToRegistryCtrt \nregistryCtrtAddr: ${registryCtrtAddr} \nuserIDs: ${userIDs}, \nassetbooks: ${assetbooks}, \nauthLevels: ${authLevels}`);
+    const results = []; let isGood;
+
+    if(userIDs.length !== assetbooks.length) {
+      reject('userIDs and assetbooks have different length');
+      return false;
+    } else if(userIDs.length !== authLevels.length) {
+      reject('userIDs and authLevels have different length');
+      return false;
+    }
+    const instRegistry = new web3.eth.Contract(Registry.abi, registryCtrtAddr);
+
+    await asyncForEach(userIDs, async (userId, idx) => {
+      console.log(`\n--------==Check if userId ${userId}`);
+      const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbooks[idx], authLevels[idx]).call({from: backendAddr});
+      /**
+          boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+          //ckUidLength(uid)
+          boolArray[1] = bytes(uid).length > 0;
+          boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
+  
+          //ckAssetbookValid(assetbookAddr)
+          boolArray[3] = assetbookAddr != address(0);
+          boolArray[4] = assetbookAddr.isContract();
+          boolArray[5] = uidToAssetbook[uid] == address(0);
+          boolArray[6] = authLevel > 0 && authLevel < 10;
+       */
+      console.log('checkArray:', checkArray);
+  
+      if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
+        if(checkArray[5]){
+          console.log(`\n--------==this userId has not been added into RegistryCtrt yet... \n--------==AddUser(): idx: ${idx}, userId: ${userId}, assetBookAddr: ${assetbooks[idx]}, authLevel: ${authLevels[idx]}`);
+          const encodedData = instRegistry.methods.addUser(userId, assetbooks[idx], authLevels[idx]).encodeABI();
+          let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryCtrtAddr, encodedData);
+          //console.log('\nTxResult', TxResult);
+          console.log(`after addUser() on userId: ${userId}...`);
+      
+          userM = await instRegistry.methods.getUserFromUid(userId).call();
+          console.log('userM', userM);
+          if (userM[0] === assetbooks[idx] && userM[1] === authLevels[idx].toString()) {
+            console.log(`\nChecked good: this uid ${userId} has already been added.`);
+            results.push(true);
+          } else {
+            results.push(false);
+          }
+        } else {
+          console.log(`this uid ${userId} has already been added. 
+Skipping this uid...`)
+        }
+      } else {
+        reject('Error @ checkAddSetUser(): userId: '+userId);
+        return [false, [undefined]];
+      }
+    });
+    if(results.includes(false)){
+      isGood = false;
+    } else {
+      isGood = true;
+    }
+    resolve({isGood, results});
+  });
+}
 
 
 // yarn run testts -a 2 -c 1
@@ -3511,7 +3583,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32,
   deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances
 }
