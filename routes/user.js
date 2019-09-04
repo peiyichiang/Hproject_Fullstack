@@ -666,14 +666,12 @@ router.post('/ForgetPassword', function (req, res, next) {
         }
         /* 新增申請的資料到忘記密碼的資料表 */
         else {
-
-
             mysqlPoolQuery(
                 `INSERT INTO  forget_pw 
-                             SET fp_investor_email = ? , 
-                                 fp_verification_code = ? , 
-                                 fp_application_date = ? , 
-                                 fp_isApproved = ?`,
+                 SET fp_investor_email = ? , 
+                     fp_verification_code = ? , 
+                     fp_application_date = ? , 
+                     fp_isApproved = ?`,
                 [email, verificationCode, timeNow, 0],
                 function (err, result) {
                     /* 新增申請資料失敗 */
@@ -1027,9 +1025,7 @@ router.get('/IsLoginPasswordCorrect', function (req, res, next) {
 
 router.post('/UpdateEOA', function (req, res, next) {
     console.log('------------------------==\n@user/UpdateEOA');
-    var mysqlPoolQuery = req.pool;
-    const email = req.body.email;
-    const EOA = req.body.EOA;
+    const mysqlPoolQuery = req.pool;
     const query = (queryString, keys) => {
         return new Promise((resolve, reject) => {
             mysqlPoolQuery(
@@ -1042,19 +1038,30 @@ router.post('/UpdateEOA', function (req, res, next) {
             );
         });
     };
+    const JWT = req.body.JWT;
 
-    const updateUserEOAQuery = `
-    UPDATE user 
-    SET    u_eth_add = ? ,
-           u_account_status = ?
-    WHERE  u_email = ?`;
-
-    query(updateUserEOAQuery, [EOA, 0, email])
-        .then(() => { res.status(200).json({ "message": "EOA更新成功" }) })
-        .catch((err) => {
-            res.status(400).send('查詢失敗：' + err);
-            console.error('query error : ' + err);
-        })
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            const updateUserEOAQuery = `
+      UPDATE user 
+      SET    u_eth_add = ? ,
+             u_account_status = ?
+      WHERE  u_email = ?`;
+            try {
+                const EOA = req.body.EOA;
+                await query(updateUserEOAQuery, [EOA, 0, decoded.u_email]);
+                res.status(200).json({ "message": "EOA更新成功" });
+            }
+            catch (err) {
+                res.status(400).send('EOA更新失敗');
+                console.error(err);
+            }
+        }
+    })
 });
 
 module.exports = router;

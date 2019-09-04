@@ -1353,7 +1353,7 @@ router.get('/testRayAPI', function (req, res, next) {
 });
 
 router.get('/LaunchedProductList', function (req, res) {
-    console.log('------------------------==\n@Product/ProductList');
+    console.log('------------------------==\n@Product/LaunchedProductList');
     let mysqlPoolQuery = req.pool;
     mysqlPoolQuery(
         `SELECT 
