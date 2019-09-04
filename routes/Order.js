@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 var async = require('async');
 const nodemailer = require('nodemailer');
 var router = express.Router();
+const fetch = require("node-fetch");
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
@@ -17,7 +18,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
  * 6.txnFinished: order has been added to the CrowdFunding contract 
  */
 //新增資料：接收資料的post http://localhost:3000/Order/AddOrder
-router.post('/AddOrder', function (req, res, next) {
+router.post('/AddOrder', async function (req, res, next) {
     console.log('------------------------==\n@Order/POST/AddOrder');
     const symbol = req.body.symbol;
     console.log('req.query', req.query, 'req.body', req.body);
@@ -31,15 +32,40 @@ router.post('/AddOrder', function (req, res, next) {
     const nationalIdLast5 = nationalId.toString().slice(-5);
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
-    const email = req.body.email;
+    const email = "kappaho@mail2.nccu.tw";//req.body.email;
     const tokenCount = req.body.tokenCount;
     const fundCount = req.body.fundCount
+    let userName;
 
     /* TODO */
-    const getBankVirtualAccount = () => {
-        return '822-03113250581281'
+    function getBankVirtualAccount() {
+        return new Promise((resolve, reject) => {
+            fetch('http://localhost:3030/Payment/virtualAccount', {
+                method: 'POST',
+                body: JSON.stringify({
+                    o_id: orderId,
+                    o_symbol: symbol,
+                    o_email: email,
+                    o_purchaseDate: currentDate,
+                    o_fundCount: fundCount
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': true,
+                    'Access-Control-Allow-Methods': 'POST'
+                }
+            }).then((response) => {
+                return response.json();
+            }).then((jsonData) => {
+                console.log(jsonData);
+                userName = jsonData.userName;
+                resolve(jsonData.virtualAccount);
+                
+            });
+        });
     }
-    const bankVirtualAccount = getBankVirtualAccount();
+    const bankVirtualAccount = await getBankVirtualAccount();
 
     var sql = {
         o_id: orderId,
@@ -79,10 +105,19 @@ router.post('/AddOrder', function (req, res, next) {
                 from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '', // Subject line
-                html: `<h2>下單成功</h2> <p>您好：我們已收到您的訂單<br>
-                訂單編號為:${orderId}<br>
-                您這次購買 ${symbol} 共 ${tokenCount} 片，共 ${fundCount} 元<br>
-                請付款至以下帳號：${bankVirtualAccount}
+                html: `<h2>下單成功</h2>
+                <p>
+                <p>親愛的 ${userName}:<br>
+                <p>您剛下了一張訂單，此次購買 ${symbol} 共 ${tokenCount} 片，總計 ${fundCount} 元<br>
+                <p>請參照以下指示完成您的付款。<br><br>
+                <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
+
+                <p>訂單編號: ${orderId}<br>
+                <p>購買時間: ${currentDate}<br>
+                <p>銀行代碼: 永豐銀行807
+                <p>轉帳帳號名: 銀鏈資產管理有限公司
+                <p>轉帳帳號: ${bankVirtualAccount}
+                <p>總金額: NT$${fundCount}
                 </p>`, // plain text body
             };
 
