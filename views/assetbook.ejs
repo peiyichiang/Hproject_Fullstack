@@ -22,30 +22,9 @@
       <strong>Success! </strong> Product have added to your wishlist.
     </div>
 
-    <div class="" id="mesgDiv" style="margin: 15px;">
-        <div class="card card-body d-none" id="mesg" style="background-color: #ffea00;"></div>
-      <!--
-      -->
-    </div>
-
     <div class="row">
       <div class="col">
         <h5><%= contractType %> Contract:</h5>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="" style="color: rgb(255, 255, 255); background-color: rgb(92, 184, 92); border-color: rgb(76, 174, 76);">Symbol</span>
-            </div>
-            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbol" aria-describedby="tokenSymbol">
-        </div>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="" style="color: rgb(255, 255, 255); background-color: rgb(92, 184, 92); border-color: rgb(76, 174, 76);">Contract</span>
-            </div>
-            <input type="text" class="form-control" placeholder="token contract addr" aria-label="ctrtAddr" id="ctrtAddr" aria-describedby="ctrtAddr"
-            value=''>
-        </div>
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
@@ -69,27 +48,6 @@
         </div>
 
         <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="">tokenId</span>
-            </div>
-            <input type="text" class="form-control" placeholder="tokenId" aria-label="tokenId" id="tokenId" aria-describedby="tokenId">
-        </div>
-
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="">Owner Index</span>
-          </div>
-          <input type="text" class="form-control" placeholder="Owner Index" aria-label="ownerIndex" id="ownerIndex" aria-describedby="ownerIndex">
-        </div>
-
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="">Start Index</span>
-          </div>
-          <input type="text" class="form-control" placeholder="Start Index" aria-label="startIndex" id="startIndex" aria-describedby="startIndex">
-        </div>
-
-        <div class="input-group mb-3">
           <div class="input-group-prepend">
             <span class="input-group-text" id="">Amount</span>
           </div>
@@ -105,25 +63,15 @@
 
 
         <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
-          <button type="button" id="getTokenContractDetails" class="btn btn-primary">Get HCAT Token Details</button>
+          <button type="button" id="getAssetbookDetails" class="btn btn-primary">Get Assetbook Details</button>
 
-          <button type="button" id="idToAsset" class="btn btn-primary">idToAsset (Get asset info from tokenId)</button>
-          <button type="button" id="isOwnerAdded" class="btn btn-primary">isOwnerAdded (Is this assetbook added into this contract?)</button>
-          <button type="button" id="idxToOwner" class="btn btn-primary">idxToOwner (Get assetbook address from assetbook index)</button>
-          <button type="button" id="ownerOf" class="btn btn-primary">ownerOf (Get assetbook address from token index)</button>
-          <button type="button" id="getOwnersByOwnerIndex" class="btn btn-primary">getOwnersByOwnerIndex (Get assetbook addresses from assetbook index and result amount. Give 0 and 0 for all owner assetbooks)</button>
           <button type="button" id="getAccount" class="btn btn-primary">getAccount (Get account details from assetbook address)</button>
-
-          <button type="button" id="balanceOf" class="btn btn-primary">balanceOf (Get token balance from assetbook address)</button>
-          <button type="button" id="getTokenIdByIndex" class="btn btn-primary">getTokenIdByIndex (get tokenId from its token index inside an user account)</button>
 
           <button type="button" id="getAccountIds" class="btn btn-primary">getAccountIds (Get all the tokenIds inside an account)</button>
           <button type="button" id="allowance" class="btn btn-primary">allowance (Get the allowance amount given from one account to another)</button>
           
           <button type="button" id="checkTokenApprove" class="btn btn-primary">checkTokenApprove (Check if this token Id has been approved)</button>
           <button type="button" id="tokenApprove" class="btn btn-primary">tokenApprove (approve an account as an operator acting as an representitive)</button>
-
-          <button type="button" id="ckStringLength" class="btn btn-primary">ckStringLength (check a string length)</button>
 
         </div>
 
@@ -133,21 +81,8 @@
         <h5>Result</h5>
         symbol: <span id="symbolM"></span><br>
         name: <span id="name"></span><br>
-        tokenId: <span id="tokenIdM"></span><br>
-        siteSizeInKW: <span id="siteSizeInKW"></span><br>
-        maxTotalSupply: <span id="maxTotalSupply"></span><br>
-        totalSupply: <span id="totalSupply"></span><br>
-        initialAssetPricing: <span id="initialAssetPricing"></span><br>
-        pricingCurrency: <span id="pricingCurrency"></span><br>
-        IRR20yrx100: <span id="IRR20yrx100"></span><br>
-        tokenURI: <span id="tokenURI"></span><br>
-        ownerCindex: <span id="ownerCindexM"></span><br>
-        TimeOfDeployment: <span id="TimeOfDeploymentM"></span><br>
         
         <br>
-        Asset: <span id="idToAssetM"></span><br>
-        isOwnerAdded: <span id="isOwnerAddedM"></span><br>
-        idxToOwner: <span id="idxToOwnerM"></span><br>
         ownerOf: <span id="ownerOfM"></span><br>
         getAccount: <span id="getAccountM"></span><br>
         balanceOf: <span id="balanceOfM"></span><br>
@@ -157,30 +92,6 @@
         tokenApprove: <span id="tokenApproveM"></span><br>
         ckStringLength: <span id="ckStringLengthM"></span><br>
 
-        getOwnersByOwnerIndex: <span id=""></span><br>
-        <table class="table table-striped table-sm">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Assetbook Addresses</th>
-            </tr>
-          </thead>
-          <tbody id='tbodyOwners'>
-          </tbody>
-        </table>
-
-        getAccountIds: <span id=""></span><br>
-        <table class="table table-striped table-sm">
-          <thead>
-            <tr>
-              <th scope="col">Account IDs</th>
-            </tr>
-          </thead>
-          <tbody id='tbodyAccountIds'>
-          </tbody>
-        </table>
-
-        error message: <span id="errorMessage"></span><br>
       </div>
     </div>
   </div>
@@ -197,7 +108,7 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
   <script>
-    // http://localhost:3030/ContractExplorer/tokenHCAT
+    // http://localhost:3030/ContractExplorer/assetbook
     // $(document).ready(function() {
     //   $("#alertInputs").hide();
     // });
@@ -222,31 +133,18 @@
     }
     
     const showAlert = (messageTxt) => {
-      let mesgFinal = '';
-      if(messageTxt.length > 0) {
-        if(messageTxt.substring(0,2) === ', ') {
-          console.log('>> removing first two char');
-          mesgFinal = messageTxt.slice(2);
-        } else {
-          mesgFinal = messageTxt;
-          console.log('>> not removing first two char');
-        }
-        console.log('mesgFinal:', mesgFinal);
-
-        document.getElementById("mesg").innerText = mesgFinal;
-        $("#mesg").removeClass('d-none');
-      } else {
-        document.getElementById("mesg").innerText = mesgFinal;
-        $("#mesg").addClass('d-none');
-      }
-      document.getElementById("errorMessage").innerText = mesgFinal;
-      
+      document.getElementById("alertInputs").innerText = messageTxt;
+      //jQuery("#alertInputs").fadeOut("slow");
+      $('.collapse').collapse();
+      $("#alertInputs");/*.fadeTo(10000, 500).slideUp(500, function() {
+        $("#alertInputs").slideUp(500);
+      });*/
     }
 
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg = '', isGood, isGoodCtrtAddr, isGoodAssetbook, assetbookX, resultMesg = '', tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount, identityNumber, email;
+      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg, isGoodCtrtAddr, isGoodAssetbook, assetbookX, resultMesg = '', tokenSymbol, ctrtAddr, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount, identityNumber, email;
 
       tokenSymbol_input = document.getElementById("tokenSymbol").value;
 
@@ -292,48 +190,47 @@
           console.log(`isGoodCtrtAddr: ${isGoodCtrtAddr}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
 
         } else {
-          mesg += ', tokenSymbol should have length of 8';
+          mesg = 'tokenSymbol should have length of 8';
         }
 
       } else if(!is_ctrtAddr_empty){
         if(ctrtAddr_input.length !== 42){
-          mesg += ', HCAT Token contract address should have length of 42';
+          mesg = 'HCAT Token contract address should have length of 42';
         } else if(ctrtAddr_input.substring(0, 2) !== '0x'){
-          mesg += ', HCAT Token contract address should start with 0x';
+          mesg = 'HCAT Token contract address should start with 0x';
         } else {
           isGoodCtrtAddr = true;
           ctrtAddr = ctrtAddr_input;
-          console.log(`ctrtAddr has been entered correctly`);
         }
       } else {
-        mesg += ', At least tokenSymbol or ctrtAddr should be valid';
+        mesg = 'At least tokenSymbol or ctrtAddr should be valid';
         console.warn(mesg);
 
         const isGivingDefault = 1;
         if(isGivingDefault === 1) {
           ctrtAddr = '0xA80c0A88e38aa61190A3Ad41bd3907774D291f87';
-          mesg += ', Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
+          mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGoodCtrtAddr = true;
+          showAlert(mesg);
         } else {
-          mesg += ', Token symbol and Token contract values are empty';
+          mesg = 'Token symbol and Token contract values are empty';
+          showAlert(mesg);
         }
       }
-      console.log(`check1----==isGoodCtrtAddr: ${isGoodCtrtAddr}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
+      console.log(`282----==isGoodCtrtAddr: ${isGoodCtrtAddr}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
-      //-----------------==finding assetbook
-      const is0x = assetbookAddr_input.substring(0, 2) === '0x';
-      console.log(`is_assetbookAddr_empty: ${is_assetbookAddr_empty}, is_identityNumber_empty: ${is_identityNumber_empty}, is_email_empty: ${is_email_empty} \n assetbookAddr_input.length: ${assetbookAddr_input.length}, email_input.substring(0, 2) === '0x': ${is0x}, ${assetbookAddr_input.substring(0, 2)}`);
       if(!is_assetbookAddr_empty){
         if(assetbookAddr_input.length === 42){
-          if(is0x){
+          if(email_input.substring(0, 2) === '0x'){
             isGoodAssetbook = true;
             assetbookAddr = assetbookAddr_input;
-            console.log(`assetbookAddr has been entered correctly: assetbookAddr = ${assetbookAddr}`);
           } else {
-            mesg += ', Assetbook contract address should start with 0x';
+            mesg = 'Assetbook contract address should start with 0x';
+            showAlert(mesg);
           }
         } else {
-          mesg += ', tokenSymbol should have length of 42';
+          mesg = 'tokenSymbol should have length of 42';
+          showAlert(mesg);
         }
       } else if(!is_identityNumber_empty){
         const url = BcApiBase+`getAssetbookFromIdentityNumber`;
@@ -345,7 +242,6 @@
           headers:{'Content-Type': 'application/json'}
         };
         const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
-
         const json = await response.json();
         console.log('json', json);
         ({isGoodAssetbook, assetbookX, resultMesg} = json);
@@ -354,7 +250,8 @@
           assetbookAddr = assetbookX;
           identityNumber = identityNumber_input;
         } else {
-          mesg += ', failed at getting assetbookAddr from the identity number: '+identityNumber_input;
+          mesg = 'failed at getting assetbookAddr from the identity number: '+identityNumber_input;
+          showAlert(mesg);
         }
 
       } else if(!is_email_empty){
@@ -375,27 +272,30 @@
           assetbookAddr = assetbookX;
           email = email_input;
         } else {
-          mesg += ', failed at getting assetbookAddr from the identity number: '+email_input;
+          mesg = 'failed at getting assetbookAddr from the identity number: '+email_input;
+          showAlert(mesg);
         }
 
 
       } else {
-        mesg += ', At least one of assetbookAddr, identityNumber, or email should be valid';
+        mesg = 'At least one of assetbookAddr, identityNumber, or email should be valid';
         console.warn(mesg);
 
         const isGivingDefault = 1;
         if(isGivingDefault === 1) {
           assetbookAddr = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
-          mesg += ', assetbookAddr is empty. Using default value: assetbookAddr = '+assetbookAddr;
+          mesg = 'Token symbol and Token contract values are empty. Using default value: assetbookAddr = '+assetbookAddr;
           isGoodAssetbook = true;
+          showAlert(mesg);
         } else {
-          mesg += ', assetbookAddr is empty';
+          mesg = 'Token symbol and Token contract values are empty';
+          showAlert(mesg);
         }
       }
       /*
       if( (funcName === 'isOwnerAdded' || funcName === 'getAccount' || funcName === 'balanceOf' || funcName === 'getTokenIdByIndex'|| funcName === 'getAccountIds' || funcName === 'allowance') && is_assetbookAddr_empty){
       }*/
-      console.log(`check2----==isGoodAssetbook: ${isGoodAssetbook}, tokenSymbol: ${tokenSymbol}, assetbookAddr: ${assetbookAddr}, \nresultMesg: ${resultMesg}`);
+      console.log(`345----==isGoodAssetbook: ${isGoodAssetbook}, tokenSymbol: ${tokenSymbol}, assetbookAddr: ${assetbookAddr}, \nresultMesg: ${resultMesg}`);
 
       if(!isGoodCtrtAddr){
         console.warn(mesg+', resultMesg: '+resultMesg);
@@ -406,8 +306,9 @@
 
       if((funcName === 'idToAsset' || funcName === 'ownerOf') && is_tokenId_empty){
         tokenId = 1;
-        mesg += ', tokenId is found empty. Using default value: '+ tokenId;
+        mesg = 'tokenId is found empty. Using default value: '+ tokenId;
         console.warn(mesg);
+        showAlert(mesg);
       } else {
         tokenId = tokenId_input;
       }
@@ -425,48 +326,41 @@ getAccountIds   allowance    checkTokenApprove    ckStringLength
 */
       if((funcName === 'idxToOwner') && is_ownerIndex_empty){
         ownerIndex = 1;
-        mesg += ', ownerIndex is found empty. Using default value: '+ ownerIndex;
+        mesg = 'ownerIndex is found empty. Using default value: '+ ownerIndex;
+        //if(mesg.substring(0, 2) === ', ') mesg.slice(2);
         console.warn(mesg);
+        showAlert(mesg);
       } else {
         ownerIndex = ownerIndex_input;
       }
 
       if((funcName === 'getOwnersByOwnerIndex' || funcName === 'getTokenIdByIndex' || funcName === 'getAccountIds') && is_startIndex_empty){
         startIndex = 0;
-        mesg += ', startIndex is found empty. Using default value: '+ startIndex;
+        mesg = 'startIndex is found empty. Using default value: '+ startIndex;
+        //if(mesg.substring(0, 2) === ', ') mesg.slice(2);
         console.warn(mesg);
+        showAlert(mesg);
       } else {
         startIndex = startIndex_input;
       }
 
-      if(is_amount_empty){
-        if((funcName === 'getAccountIds')){
-          amount = 10;
-          mesg += ', amount is found empty. Using default value: '+ amount;
-          console.warn(mesg);
-        } else if((funcName === 'getOwnersByOwnerIndex' || funcName === 'getAccountIds' || funcName === 'tokenApprove')){
-          amount = 0;
-          mesg += ', amount is found empty. Using default value: '+ amount;
-          console.warn(mesg);
-        } else {
-          amount = amount_input;
-        }
+      if((funcName === 'getOwnersByOwnerIndex' || funcName === 'getAccountIds' || funcName === 'tokenApprove') && is_amount_empty){
+        amount = 0;
+        mesg = 'amount is found empty. Using default value: '+ amount;
+        console.warn(mesg);
+        showAlert(mesg);
+      } else {
+        amount = amount_input;
       }
 
-      if((startIndex > 0 && amount <= 0) || (startIndex <= 0 && amount > 0) && funcName === 'getOwnersByOwnerIndex' ){
-        mesg += 'either both startIndex and amount are above zeros, or both are zeros';
-        console.warn(mesg);
-      }
-        
       if((funcName === 'allowance' || funcName === 'checkTokenApprove' || funcName === 'tokenApprove') && is_operatorAddr_empty){
         operatorAddr = '0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734';
-        mesg += ', operator is found empty. Using default value: '+ operatorAddr;
+        mesg = 'operator is found empty. Using default value: '+ operatorAddr;
         console.warn(mesg);
+        showAlert(mesg);
       } else {
         operatorAddr = operatorAddr_input;
       }
-      console.log(mesg);
-      showAlert(mesg);
 
       console.log(`----==isGoodCtrtAddr: ${isGoodCtrtAddr}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, \nisGoodAssetbook: ${isGoodAssetbook}, assetbookAddr: ${assetbookAddr}, operatorAddr: ${operatorAddr}, tokenId: ${tokenId}, ownerIndex: ${ownerIndex} startIndex: ${startIndex}, amount: ${amount}`);
       return [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount];
@@ -474,26 +368,30 @@ getAccountIds   allowance    checkTokenApprove    ckStringLength
 
 
 
-    $('#getTokenContractDetails').on('click',  async function (e) {
-      console.log('inside getTokenContractDetails function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getTokenContractDetails');
+    $('#getAssetbookDetails').on('click',  async function (e) {
+      console.log('inside getAssetbookDetails function... \ne.target:', e.target);
+
+      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getAssetbookDetails');
       //      console.log('result', result);
       if(!isGoodCtrtAddr || isEmpty(ctrtAddr)) return;
 
-      const url = BcApiBase+`tokenHCAT/getTokenContractDetails/${ctrtAddr}`;
-      // http://localhost:3030/Contracts/getTokenContractDetails/
+      const url = BcApiBase+`tokenHCAT/getAssetbookDetails/${ctrtAddr}`;
+      // http://localhost:3030/Contracts/getAssetbookDetails/
       const response = await fetch(url);
       const json = await response.json();
       console.log('after calling API');
-      const getTokenContractDetails = json['getTokenContractDetails'];
-      console.log('getTokenContractDetails:', getTokenContractDetails);
-      const tokenIdM = getTokenContractDetails['0'];
-      const siteSizeInKW = getTokenContractDetails['1'];
-      const maxTotalSupply = getTokenContractDetails['2'];
-      const totalSupply = getTokenContractDetails['3'];
-      const initialAssetPricing = getTokenContractDetails['4'];
+
+      const { endorserCount, checkCustomerService, isAblePlatformOverride, calculateVotes, assetCindex, lastLoginTime,antiPlatformOverrideDaysDefault, antiPlatformOverrideDays,assetOwner_flag, HeliumContract_flag, endorsers_flag, checkAssetOwner } = json;
+
+      const getAssetbookDetails = json['getAssetbookDetails'];
+      console.log('getAssetbookDetails:', getAssetbookDetails);
+      const tokenIdM = getAssetbookDetails['0'];
+      const siteSizeInKW = getAssetbookDetails['1'];
+      const maxTotalSupply = getAssetbookDetails['2'];
+      const totalSupply = getAssetbookDetails['3'];
+      const initialAssetPricing = getAssetbookDetails['4'];
       const pricingCurrency =  json['pricingCurrency'];
-      const IRR20yrx100 = getTokenContractDetails['6'];
+      const IRR20yrx100 = getAssetbookDetails['6'];
       const name = json['name'];
       const symbol = json['symbol'];
       const tokenURI = json['tokenURI'];
@@ -537,71 +435,10 @@ getAccountIds   allowance    checkTokenApprove    ckStringLength
       document.getElementById("idToAssetM").innerText = jsonObj['idToAsset'];
     });
 
-    $('#isOwnerAdded').on('click',  async function (e) {
-      console.log('inside isOwnerAdded function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('isOwnerAdded');
-      const ownerAddr = assetbookAddr;
-      console.log(`isGoodAssetbook: ${isGoodAssetbook}, ownerAddr: ${ownerAddr}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr || !isGoodAssetbook) return;
 
-      const url = BcApiBase+`tokenHCAT/isOwnerAdded`;
-      // http://localhost:3030/Contracts/tokenHCAT/isOwnerAdded/
-      const data = {ctrtAddr, ownerAddr };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("isOwnerAddedM").innerText = jsonObj['isOwnerAdded'];
-    });
-
-    $('#idxToOwner').on('click',  async function (e) {
-      console.log('inside idxToOwner function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('idxToOwner');
-      console.log(`ownerIndex: ${ownerIndex}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr) return;
-
-      const url = BcApiBase+`tokenHCAT/idxToOwner`;
-      // http://localhost:3030/Contracts/tokenHCAT/idxToOwner/
-      const data = {ctrtAddr, ownerIndex };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("idxToOwnerM").innerText = jsonObj['idxToOwner'];
-    });
-
-
-    $('#ownerOf').on('click',  async function (e) {
-      console.log('inside ownerOf function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('ownerOf');
-      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr) return;
-
-      const url = BcApiBase+`tokenHCAT/ownerOf`;
-      // http://localhost:3030/Contracts/tokenHCAT/ownerOf/
-      const data = {ctrtAddr, tokenId };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("ownerOfM").innerText = jsonObj['ownerOf'];
-    });
 
     $('#getOwnersByOwnerIndex').on('click',  async function (e) {
       console.log('inside getOwnersByOwnerIndex function... \ne.target:', e.target);
-      let mesg2 = '';
       const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getOwnersByOwnerIndex');
       console.log(`startIndex: ${startIndex}, amount: ${amount}, ctrtAddr: ${ctrtAddr}`);
       if(!isGoodCtrtAddr) return;
@@ -631,73 +468,18 @@ getAccountIds   allowance    checkTokenApprove    ckStringLength
         tbody.innerHTML = tbodyContent;
 
       } else {
-
+        mesg = 'either both startIndex and amount are above zeros, or both are zeros';
+        console.warn(mesg);
+        showAlert(mesg);
       }
     });
 
-    $('#getAccount').on('click',  async function (e) {
-      console.log('inside getAccount function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getAccount');
-      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr || !isGoodAssetbook) return;
-
-      const url = BcApiBase+`tokenHCAT/getAccount`;
-      // http://localhost:3030/Contracts/tokenHCAT/getAccount/
-      const data = {ctrtAddr, assetbookAddr };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("getAccountM").innerText = JSON.stringify(jsonObj['getAccount']);
-    });
-
-    $('#balanceOf').on('click',  async function (e) {
-      console.log('inside balanceOf function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('balanceOf');
-      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr || !isGoodAssetbook) return;
-
-      const url = BcApiBase+`tokenHCAT/balanceOf`;
-      // http://localhost:3030/Contracts/tokenHCAT/balanceOf/
-      const data = {ctrtAddr, assetbookAddr };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("balanceOfM").innerText = jsonObj['balanceOf'];
-    });
   /* idToAsset (get Owner Address from tokenId), isOwnerAdded
 idxToOwner   ownerCindex    ownerOf   getOwnersByOwnerIndex
 getAccount   balanceOf      getTokenIdByIndex
 getAccountIds   allowance    checkTokenApprove    ckStringLength
 */
-    $('#getTokenIdByIndex').on('click',  async function (e) {
-      console.log('inside getTokenIdByIndex function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getTokenIdByIndex');
-      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr || !isGoodAssetbook) return;
 
-      const url = BcApiBase+`tokenHCAT/getTokenIdByIndex`;
-      // http://localhost:3030/Contracts/tokenHCAT/getTokenIdByIndex/
-      const data = {ctrtAddr, assetbookAddr, startIndex };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("getTokenIdByIndexM").innerText = jsonObj['getTokenIdByIndex'];
-    });
 
     $('#getAccountIds').on('click',  async function (e) {
       console.log('inside getAccountIds function... \ne.target:', e.target);
@@ -740,25 +522,6 @@ getAccountIds   allowance    checkTokenApprove    ckStringLength
       tbody.innerHTML = tbodyContent;
     });
 
-    $('#allowance').on('click',  async function (e) {
-      console.log('inside allowance function... \ne.target:', e.target);
-      const [isGoodCtrtAddr, tokenSymbol, ctrtAddr, isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('allowance');
-      console.log(`tokenId: ${tokenId}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGoodCtrtAddr || !isGoodAssetbook) return;
-
-      const url = BcApiBase+`tokenHCAT/allowance`;
-      // http://localhost:3030/Contracts/tokenHCAT/allowance/
-      const data = {ctrtAddr, assetbookAddr, operatorAddr };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("allowanceM").innerText = jsonObj['allowance'];
-    });
 
     $('#checkTokenApprove').on('click',  async function (e) {
       console.log('inside checkTokenApprove function... \ne.target:', e.target);

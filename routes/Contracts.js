@@ -775,7 +775,7 @@ router.post('/getCtrtAddrFromTokenSymbol', async function (req, res, next) {
   });
   console.log(`\n${resultMesg}.\nisGood: ${isGood}, contract address found: ${ctrtAddr}`);
   res.send({
-    isGood: isGood,
+    isGoodCtrtAddr: isGood,
     ctrtAddr: ctrtAddr, 
     resultMesg: resultMesg
   });

@@ -19,4 +19,9 @@ router.get('/incomeManager', function (req, res, next) {
   res.render('incomeManager', {contractType: 'IncomeManager'});
 });
 
+router.get('/assetbook', function (req, res, next) {
+  res.render('assetbook', {contractType: 'Assetbook'});
+});
+
+
 module.exports = router;
