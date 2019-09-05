@@ -754,7 +754,7 @@ const calculateLastPeriodProfit = async(serverTime) => {
     const moving_ave_holding_cost = 13000;
 
     const [foundSymbols, foundHCAT721Addrs, acPaymentArray, maxAcPaymentTimeArray] = await getProfitSymbolAddresses(serverTime).catch((err) => {
-      console.log('\n[Error @ getProfitSymbolAddresses]');
+      console.error('\n[Error @ getProfitSymbolAddresses]');
       return false;
     });
     console.log('mysql434: foundSymbols:', foundSymbols, '\nfoundHCAT721Addrs:', foundHCAT721Addrs, '\nacPaymentArray:', acPaymentArray, '\nmaxAcPaymentTimeArray:', maxAcPaymentTimeArray);
@@ -765,6 +765,7 @@ const calculateLastPeriodProfit = async(serverTime) => {
       return false;
 
     } else if(acPaymentArray.length !== foundSymbols.length){
+      console.log(`${acPaymentArray.length},  ${foundSymbols.length}`);
       reject('[Error] acPaymentArray and foundSymbols are of different length');
       return false;
 
@@ -1345,7 +1346,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 
       const singleActualIncomePayment = acIncomePaymentArray[index];
       const incomePaymentArray = abBalArray.map(function(balance) {
-        return balance * singleActualIncomePayment;
+        return parseInt(balance) * singleActualIncomePayment;
       });
       incomePaymentArrayGroup.push(incomePaymentArray);
     }

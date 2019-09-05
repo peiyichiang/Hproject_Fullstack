@@ -130,7 +130,8 @@ const getProfitSymbolAddresses_API = async () => {
 const calculateLastPeriodProfit_API = async () => {
   console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
   const symbol = 'NCCU1704';
-  const result = await calculateLastPeriodProfit(symbol).catch((err) => {
+  let time = await getLocalTime()
+  const result = await calculateLastPeriodProfit(time).catch((err) => {
     console.log('[Error @ calculateLastPeriodProfit]', err);
   });
   console.log(`result: ${result}`);
@@ -1782,7 +1783,7 @@ const intergrationTestOfProduct = async() => {
       process.exit(1)
     } 
   }
-  const _updateTOkenControllerState = async() => {
+  const _updateTokenControllerState = async() => {
     let serverTime
     if(timeChoice === 1){
       serverTime = nowTime + 1;
@@ -1794,12 +1795,23 @@ const intergrationTestOfProduct = async() => {
     }
     let result = await updateTokenStateTCC(tokenControllerAddr, serverTime, nftSymbol).catch(err => {
       console.error('\n[Error @ updateTokenStateTCC()]'+ err);
-      process.exit(1)
+      process.exit(1);
     })
     process.stderr.write = originalStderrWrite;
     if(output != ''){
-      process.exit(1)
+      process.exit(1);
     } 
+  }
+  const _calculateLastPeriodProfit_API = async () => {
+    console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
+    let acAddAssetRecordTime = await getLocalTime() + 2;
+    if(acAddAssetRecordTime % 100 >= 60)
+      acAddAssetRecordTime += 100 - (acAddAssetRecordTime % 100);
+    const result = await calculateLastPeriodProfit(acAddAssetRecordTime).catch((err) => {
+      console.log('[Error @ calculateLastPeriodProfit]', err);
+      process.exit(1);
+    });
+    console.log(`result: ${result}`);
   }
   await _deployCrowdfundingContract_API();
   await _deployTokenControllerContract_API();
@@ -1810,7 +1822,8 @@ const intergrationTestOfProduct = async() => {
   await _deployProductManager();
   await _addIncomeArrangement();
   await _addOrders_CFC_MintTokens_API();
-  await _updateTOkenControllerState();
+  await _updateTokenControllerState();
+  //await _calculateLastPeriodProfit_API();
 
   process.exit(0);
 
@@ -2315,16 +2328,21 @@ if(argv3 === 0){
 } else if (argv3 === 95) {
   checkAssetbookArray_API();
 
+//yarn run testmt -f 98
+} else if(argv3 === 98){
+  intergrationTestOfRegistry();
+
 //yarn run testmt -f 99
 } else if(argv3 === 99){
   intergrationTestOfRegistry();
 
+//yarn run testmt -f 100
 } else if(argv3 === 100){
   intergrationTestOfProduct();
 
 //yarn run testmt -f 101
 } else if(argv3 === 101){
-  deleteAllRecordsBySymbol_API(symbol);
+  deleteAllRecordsBySymbol_API();
 
 } else if (argv3 === 103) {
   getSymbolFromCtrtAddr_API();
