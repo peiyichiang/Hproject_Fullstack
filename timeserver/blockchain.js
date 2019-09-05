@@ -2172,9 +2172,9 @@ Skipping this uid...`)
 const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   // check if serverTime > CFSD for each symbol...
   console.log('\n--------------==inside addAssetbooksIntoCFC() \nserverTime:',serverTime);
-
-  const queryStr1 = `SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "${paymentStatus}"`;// AND o_symbol ="AOOS1902"
-  const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
+  const {mysqlPoolQueryB } = require('./mysql.js');
+  const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = ?';
+  const results1 = await mysqlPoolQueryB(queryStr1, [paymentStatus]).catch((err) => {
     console.log('\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)]'+ err);
     return false;
   });
