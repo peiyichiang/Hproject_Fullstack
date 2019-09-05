@@ -55,13 +55,13 @@ if (arguLen == 3 && process.argv[2] === '--h') {
     process.exit(0);
   }
   if (arguLen >= 5) {
-    argv4 = parseInt(process.argv[4]);
+    argv4 = process.argv[4];
     if (arguLen >= 6) {
-      argv5 = parseInt(process.argv[5]);
+      argv5 = process.argv[5];
       if (arguLen >= 7) {
-        argv6 = parseInt(process.argv[6]);
+        argv6 = process.argv[6];
         if (arguLen >= 8) {
-          argv7 = parseInt(process.argv[7]);
+          argv7 = process.argv[7];
         }  
       }  
     }
@@ -129,7 +129,6 @@ const getProfitSymbolAddresses_API = async () => {
 // yarn run testmt -f 5
 const calculateLastPeriodProfit_API = async () => {
   console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
-  const symbol = 'NCCU1704';
   let time = await getLocalTime()
   const result = await calculateLastPeriodProfit(time).catch((err) => {
     console.log('[Error @ calculateLastPeriodProfit]', err);
@@ -1893,19 +1892,37 @@ const checkAssetbookArray_API = async() => {
   }
 }
 
-//yarn run testmt -f 101
-const deleteAllRecordsBySymbol_API = async() => {
+//yarn run testmt -f 101 MURP0904
+const deleteAllRecordsBySymbolCLI_API = async() => {
   let result, tokenSymbol;
   if(argv4){
     tokenSymbol = argv4;
     console.log('tokenSymbol:', tokenSymbol);
-    process.exit(0);
     result = await deleteAllRecordsBySymbol(tokenSymbol);
+    if(result){
+      console.log(`deleteAllRecordsBySymbol result: successfully done`);
+    } else {
+      console.log(`deleteAllRecordsBySymbol result: not finished`);
+    }
   } else {
     console.log('symbol argument is missing in the cli arguments');
   }
   process.exit(0);
 }
+//yarn run testmt -f 102 MS. 0829
+const deleteAllRecordsBySymbol_API = async() => {
+  let result, tokenSymbol;
+    tokenSymbol = 'MS. 0829';
+    console.log('tokenSymbol:', tokenSymbol);
+    result = await deleteAllRecordsBySymbol(tokenSymbol);
+    if(result){
+      console.log(`deleteAllRecordsBySymbol result: successfully done`);
+    } else {
+      console.log(`deleteAllRecordsBySymbol result: not finished`);
+    }
+  process.exit(0);
+}
+
 
 
 //yarn run testmt -f 103
@@ -1971,6 +1988,17 @@ const deleteAssetRecordRows_API = async () => {
   console.log(`tokenSymbol: ${tokenSymbol} , result: ${result}`);
   process.exit(0);
 }
+
+//yarn run testmt -f 147
+const getTxnInfoRowsBySymbol_API = async () => {
+  console.log('\n---------------------==getTxnInfoRowsBySymbol_API()');
+  const tokenSymbol = nftSymbol;
+  const result = await getTxnInfoRowsBySymbol(tokenSymbol);
+  console.log(`tokenSymbol: ${tokenSymbol}, result: ${result}`);
+  process.exit(0);
+}
+
+
 function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeriodEnd, annualEnd, wholecasePrincipalCalledBack, wholecaseBookValue, wholecaseForecastedAnnualIncome, wholecaseForecastedPayableIncome, wholecaseAccumulatedIncome, wholecaseIncomeReceivable, wholecaseTheoryValue, singlePrincipalCalledBack, singleForecastedAnnualIncome, singleForecastedPayableIncome, singleActualIncomePayment, singleAccumulatedIncomePaid, singleTokenMarketPrice, assetRecordStatus, ia_state, singleCalibrationActualIncome) {
   this.symbol = symbol;
   this.ia_time = ia_time;
@@ -2342,7 +2370,12 @@ if(argv3 === 0){
 
 //yarn run testmt -f 101
 } else if(argv3 === 101){
+  deleteAllRecordsBySymbolCLI_API();
+
+//yarn run testmt -f 102
+} else if(argv3 === 102){
   deleteAllRecordsBySymbol_API();
+
 
 } else if (argv3 === 103) {
   getSymbolFromCtrtAddr_API();
@@ -2366,4 +2399,7 @@ if(argv3 === 0){
 } else if (argv3 === 146) {
   deleteAssetRecordRows_API();
 
+//yarn run testmt -f 147
+} else if (argv3 === 147) {
+  getTxnInfoRowsBySymbol_API();
 }
