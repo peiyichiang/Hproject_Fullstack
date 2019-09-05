@@ -8,7 +8,7 @@ const log = console.log;
 const { DB_host, DB_user, DB_password, DB_name, DB_port } = require('./envVariables');
 
 const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
-
+const { getOwnerAddrAmountList } = require('./blockchain');
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray} = require('../ethereum/contracts/zsetupData');
 
 const { userArray } = require('../ethereum/contracts/zTestParameters');
@@ -779,11 +779,8 @@ const calculateLastPeriodProfit = async(serverTime) => {
           const singleActualIncomePayment = acPaymentArray[index];
           console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
 
-          const instHCAT721 = new web3.eth.Contract(HCAT721.abi, foundHCAT721Addrs[index]);
-          const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-          console.log(`\ntoAddressArray: ${toAddressArray}`);
+          const [toAddressArray, amountArray] = await getOwnerAddrAmountList(foundHCAT721Addrs[index], 0, 0);
 
-          const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
           console.log(`\namountArray: ${amountArray}`);
           const acquiredCostArray = amountArray.map((item) => {
             return parseInt(item) * pricing;
@@ -1329,10 +1326,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   await asyncForEach(addrHCAT_Array, async (tokenCtrtAddr, index) => {
     if(tokenCtrtAddr !== null || tokenCtrtAddr !== undefined || tokenCtrtAddr !== 'multiple contract addr' || tokenCtrtAddr !== 'Not on record'){
 
-      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-      const abAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-      const abBalArray = await instHCAT721.methods.balanceOfArray(abAddrArray).call();
-      console.log(`\nabAddrArray: ${abAddrArray} \nassetbookBalanceArray: ${abBalArray}`);
+      const [abAddrArray, abBalArray] = await getOwnerAddrAmountList(tokenCtrtAddr, 0, 0);
       abAddrArrayGroup.push(abAddrArray);
       abBalArrayGroup.push(abBalArray);
 
