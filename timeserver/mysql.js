@@ -1,14 +1,14 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
-
+const Web3 = require('web3');
 const chalk = require('chalk');
 const log = console.log;
 
-const { DB_host, DB_user, DB_password, DB_name, DB_port } = require('./envVariables');
+const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL } = require('./envVariables');
 
 const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
-const { getOwnerAddrAmountList } = require('./blockchain');
+
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray} = require('../ethereum/contracts/zsetupData');
 
 const { userArray } = require('../ethereum/contracts/zTestParameters');
@@ -22,6 +22,7 @@ userArray.forEach((user, idx) => {
     assetbookArray.push(user.addrAssetBook);
   }
 });
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 const serverTimeMin = 201905270900;
 
@@ -727,6 +728,18 @@ const getProfitSymbolAddresses = async(serverTime) => {
     // console.log('\nArray length @ lastPeriodProfit:', acPaymentArrayLen)
     console.log('acPaymentArray:', acPaymentArray);//[ [], [], [] ]
     resolve([foundSymbols, foundHCAT721Addrs, acPaymentArray, maxAcPaymentTimeArray]);
+  });
+}
+
+
+//----------------------------==
+const getOwnerAddrAmountList = async(tokenAddress, indexStart, indexAmount) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==inside getOwnerAddrAmountList()');    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenAddress);
+    const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(indexStart, indexAmount).call();
+    const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
+    console.log(`\ntoAddressArray: ${toAddressArray}, \namountArray: ${amountArray}`);
+    resolve([toAddressArray, amountArray]);
   });
 }
 
