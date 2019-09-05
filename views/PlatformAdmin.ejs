@@ -28,7 +28,9 @@
                     歡迎
                     <%= UserID %>
                 </span>
-
+                <li class="nav-item">
+                    <a class="nav-link" href="/BackendUser/AddBackendUser">新增帳號</a>
+                </li>
                 <li class="nav-item" id="SignOut">
                     <a class="nav-link" href="#">登出</a>
                 </li>
@@ -151,16 +153,24 @@
                         <%= FrontEnd_data[i].u_verify_status  %>
                     </td>
                     <td class="align-middle">
-                        <%if ((FrontEnd_data[i].u_assetbookContractAddress != null && FrontEnd_data[i].u_assetbookContractAddress !="") ) { %>
+                        <%if ((FrontEnd_data[i].u_review_status =="approved") ) { %>
                         <p>
                             approved
                         </p>
-                        <% }else if ((FrontEnd_data[i].u_eth_add != null && FrontEnd_data[i].u_eth_add !="")){ %>
+                        <% }else if ((FrontEnd_data[i].u_review_status=="unapproved")){ %>
                         <button type="button" style="width: 86px;" id="approve<%= i %>" class="btn btn-success"
                             name="Approve" value="Approve"
                             onclick="Approve('<%= FrontEnd_data[i].u_identityNumber %>','<%= FrontEnd_data[i].u_email %>','<%= FrontEnd_data[i].u_eth_add %>',this.id,'<%= FrontEnd_data[i].u_verify_status %>');">
                             Approve
                         </button>
+                        <br><br>
+                        <button type="button" style="width: 86px;" id="reject<%= i %>" class="btn btn-danger"
+                            name="Reject" value="Reject"
+                            onclick="Reject('<%= FrontEnd_data[i].u_email %>',this.id);">
+                            Reject
+                        </button>
+                        <% }else if ((FrontEnd_data[i].u_review_status=="rejected")){ %>
+                            rejected
                         <% } %>
                     </td>
                 </tr>
@@ -191,6 +201,18 @@
             }
         }
 
+        function Reject(email,buttonID){
+            alert(email);
+                // 加上等待狀態
+                document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
+                document.getElementById(buttonID).disabled = true;
+                $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'user/reviewStatus' %>", {
+                    reviewStatus: "rejected",
+                    email: email
+                }, function (result) {
+                    location.reload();
+                });
+        }
 
         function Approve(ID, email, ethAddr, buttonID, status) {
             console.log("status:" + status);
@@ -224,11 +246,12 @@
                             ethAddr: ethAddr,
                             email: email
                         }, function (result) {
-                            //var result = JSON.parse(resultJSON);
-                            console.log(result.status);
-                            if (result.status == true) {
+                            $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'user/reviewStatus' %>", {
+                                reviewStatus: "approved",
+                                email: email
+                            }, function (result) {
                                 location.reload();
-                            }
+                            });
                         });
                     }
                 });
