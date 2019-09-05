@@ -155,7 +155,8 @@ router.post('/AddUser', function (req, res, next) {
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
                 u_investorLevel: 1,
-                u_account_status: 0
+                u_account_status: 0,
+                u_review_status:'unapproved'
             };//Math.random().toString(36).substring(2, 15)
             passwordHash.passwordHash = hash
 
@@ -180,6 +181,22 @@ router.post('/AddUser', function (req, res, next) {
             });
         })
         .catch(err => console.error(err.message));
+});
+
+//設置reviewStatus
+router.post('/reviewStatus',function(req, res, next){
+    var mysqlPoolQuery = req.pool;
+    console.log(req.body.reviewStatus);
+    console.log(req.body.email);
+    sql={
+        u_review_status:req.body.reviewStatus
+    };
+    var qur = mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, req.body.email], function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        res.redirect('/BackendUser/backend_user');
+    });
 });
 
 //寄驗證信
