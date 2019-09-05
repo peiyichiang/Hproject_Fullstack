@@ -661,14 +661,14 @@ const getSymbolsONM = async() => {
     let mesg;
     const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")';
     const result2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
-      console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr2)]');
+      console.log('\n[Error @ getSymbolsONM > mysqlPoolQueryB(queryStr2)]');
       reject(err);
       return false;
     });
     const result2Len = result2.length;
-    console.log('\nArray length @ getProfitSymbolAddresses:', result2Len);
+    console.log('\nArray length @ getSymbolsONM:', result2Len);
     if(result2Len === 0 ){
-      mesg = '[Error @ getProfitSymbolAddresses > queryStr2';
+      mesg = '[Error @ getSymbolsONM > queryStr2';
       console.log('\n'+mesg);
       reject(mesg);
       return false;
