@@ -1,10 +1,11 @@
 image: node:10
 
 before_script:
-  - npm install
   - yarn install
   - yarn run solc
-test:
+test_user_registry:
   script:
   - env TZ='Asia/Taipei' yarn run testmt -f 99
+test_funding:
+  script:
   - env TZ='Asia/Taipei' yarn run testmt -f 100
