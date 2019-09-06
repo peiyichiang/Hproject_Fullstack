@@ -1106,7 +1106,7 @@ router.post('/LetUserUnapproved', function (req, res, next) {
         else {
             const letUserUnapprovedQuery = `
             UPDATE user 
-            SET    u_review_status = ? ,
+            SET    u_review_status = ?
             WHERE  u_email = ?`;
             try {
                 await query(letUserUnapprovedQuery, ['unapproved', decoded.u_email]);
