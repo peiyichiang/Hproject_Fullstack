@@ -108,6 +108,8 @@ yarn run testmt -f 43 ... invest in CFC
 yarn run testmt -f 44 ... check invest function
 yarn run testmt -f 47 ... invest in CFC in batch!!!
 
+yarn run testmt -f 101 symbolName ... to delete all records of a symbol
+
 //yarn run livechain -c 1 --f 0 ... checkDeployedContracts 
 yarn run livechain -c 1 --f 1 ... setupTest to verify initial conditions
 

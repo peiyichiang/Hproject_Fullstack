@@ -10,11 +10,11 @@ const { symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB  } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
-const { getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
+const { isEmpty, isNoneInteger, getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -119,21 +119,80 @@ const checkCustomerService_API = async () => {
   process.exit(0);
 }
 
-//yarn run testmt -f 4
-const getProfitSymbolAddresses_API = async () => {
-  const resultsAPI = await getProfitSymbolAddresses();
-  console.log('resultsAPI', resultsAPI);
+
+//--------------------------------==
+//--------------------------------==
+//yarn run testmt -f 25
+const checkIaAssetRecordStatus_API = async () => {
+  console.log('\n---------------------==checkIaAssetRecordStatus_API()');
+  const symbol = 'ALLI0905';
+  const actualPaymentTime = 201909051556;
+  const assetRecordStatus = await checkIaAssetRecordStatus(symbol, actualPaymentTime);
   process.exit(0);
 }
 
-// yarn run testmt -f 5
+
+//yarn run testmt -f 26
+const getMaxActualPaymentTime_API = async () => {
+  console.log('\n---------------------==getMaxActualPaymentTime_API()');
+  const symbol = 'AVEN1902';
+  const serverTime = 201909061200;
+  const maxActualPaymentTime = await getMaxActualPaymentTime(symbol, serverTime);
+  let mesg = '';
+  if(isNoneInteger(maxActualPaymentTime)){
+    mesg += 'maxActualPaymentTime is not valid';
+    console.log(`[Warning] ${mesg}, symbol: ${symbol}`);
+
+  } else {
+    console.log(`[Good] maxActualPaymentTime is valid: ${maxActualPaymentTime}`);
+  }
+  console.log('maxActualPaymentTime:', maxActualPaymentTime, ', Boolean:', Boolean(maxActualPaymentTime));
+  process.exit(0);
+}
+
+//yarn run testmt -f 27
+const getAcPayment_API = async() => {
+  const symbol = "ALLI0905";
+  const maxActualPaymentTime = "201909051556";
+  let mesg = '';
+  const acPayment = await getAcPayment(symbol, maxActualPaymentTime);
+  if(isNoneInteger(acPayment)){
+    mesg += 'acPayment is not an integer';
+    console.log(`[Warning] ${mesg}: ${acPayment}, symbol: ${symbol}`);
+  } else {
+    console.log(`[Good] acPayment is able to become an integer, symbol: ${symbol}`)
+  }
+  process.exit(0);
+}
+
+//yarn run testmt -f 28
+const getProfitSymbolAddresses_API = async () => {
+  const time = await getLocalTime();
+  const resultsAPI = await getProfitSymbolAddresses(time);
+  //console.log('getProfitSymbolAddresses_API result:', resultsAPI);
+  process.exit(0);
+}
+
+
+// yarn run testmt -f 29
 const calculateLastPeriodProfit_API = async () => {
   console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
-  let time = await getLocalTime()
+  const time = await getLocalTime();
   const result = await calculateLastPeriodProfit(time).catch((err) => {
     console.log('[Error @ calculateLastPeriodProfit]', err);
   });
-  console.log(`result: ${result}`);
+  console.log(`calculateLastPeriodProfit_API result: ${result}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 23
+const setAssetRecordStatus_API = async () => {
+  console.log('\n---------------------==setAssetRecordStatus_API()');
+  const assetRecordStatus = 1;
+  const symbol = 'CASP0905';
+  const actualPaymentTime = 201909051622;
+  const result = await setAssetRecordStatus(assetRecordStatus, symbol, actualPaymentTime);
+  console.log('result', result);
   process.exit(0);
 }
 
@@ -624,32 +683,8 @@ const breakdownArray_API = async () => {
   process.exit(0);
 }
 
-//yarn run testmt -f 25
-const setAssetRecordStatus_API = async () => {
-  console.log('\n---------------------==setAssetRecordStatus_API()');
-  const assetRecordStatus = '1';
-  const symbol = 'AVEN1902';
-  const actualPaymentTime = 201905281441+10;
-  const result = await setAssetRecordStatus(assetRecordStatus, symbol, actualPaymentTime);
-  console.log('result', result);
-  process.exit(0);
-}
 
-//yarn run testmt -f 26
-const getMaxActualPaymentTime_API = async () => {
-  console.log('\n---------------------==getMaxActualPaymentTime_API()');
-  const symbol = 'ACHM6666';
-  const serverTime = 201906271235;
-  const result = await getMaxActualPaymentTime(symbol, serverTime);
-  let resultBoolean;
-  if(result){
-    resultBoolean = true;
-  } else {
-    resultBoolean = false;
-  }
-  console.log('result:', result, ', resultBoolean:', resultBoolean);
-  process.exit(0);
-}
+
 
 //yarn run testmt -f 40
 const preMint_API = async () => {
@@ -2042,11 +2077,9 @@ if(argv3 === 0){
 
 //yarn run testmt -f 4
 } else if (argv3 === 4) {
-  getProfitSymbolAddresses_API();
 
 //yarn run testmt -f 5
 } else if (argv3 === 5) {
-  calculateLastPeriodProfit_API();
 
 //yarn run testmt -f 6
 } else if (argv3 === 6) {
@@ -2119,13 +2152,34 @@ if(argv3 === 0){
 
 
 //------------------==Income_arrangement
+//yarn run testmt -f 23
+} else if (argv3 === 23) {
+  setAssetRecordStatus_API();
+
+//yarn run testmt -f 24
+} else if (argv3 === 24) {
+  getMaxActualPaymentTime_API();
+
 //yarn run testmt -f 25
 } else if (argv3 === 25) {
-  setAssetRecordStatus_API();
+  checkIaAssetRecordStatus_API();
 
 //yarn run testmt -f 26
 } else if (argv3 === 26) {
   getMaxActualPaymentTime_API();
+
+//yarn run testmt -f 27
+} else if (argv3 === 27) {
+  getAcPayment_API();
+
+//yarn run testmt -f 28
+} else if (argv3 === 28) {
+  getProfitSymbolAddresses_API();
+
+//yarn run testmt -f 29
+} else if (argv3 === 29) {
+  calculateLastPeriodProfit_API();
+
 
 //------------------==Assetbook
 //resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr
@@ -2358,7 +2412,6 @@ if(argv3 === 0){
 
 //yarn run testmt -f 98
 } else if(argv3 === 98){
-  intergrationTestOfRegistry();
 
 //yarn run testmt -f 99
 } else if(argv3 === 99){
