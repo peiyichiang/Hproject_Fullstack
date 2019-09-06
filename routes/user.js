@@ -840,11 +840,9 @@ router.get('/IsAbleToApply', function (req, res, next) {
         .then((result) => {
             const isUserAbleToApply = result[0].u_account_status === 0;
             if (isUserAbleToApply) {
-                console.log('1')
                 res.status(200).json({ "message": "符合申請資格" });
             }
             else {
-                console.log('2')
                 res.status(400).send('您上筆申請的資料正在審閱中，請等待通知信');
                 console.error('query error : ' + err);
             }
