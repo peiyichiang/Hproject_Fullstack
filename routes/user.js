@@ -1118,6 +1118,49 @@ router.post('/LetUserUnapproved', function (req, res, next) {
     })
 });
 
+router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
+    console.log('------------------------==\n@user/NeedToReuploadMemberDocument');
+    const mysqlPoolQuery = req.pool;
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+    const JWT = req.query.JWT;
+
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            const getUserReviewStatusQuery = `
+            SELECT u_review_status
+            FROM   user
+            WHERE  u_email = ?`;
+            try {
+                let userReviewStatus = await query(getUserReviewStatusQuery, decoded.u_email);
+                if (userReviewStatus === 'unapproved') {
+                    res.status(200).json({ "message": "取得使用者審查狀態成功" });
+                } else {
+                    res.status(400).send('不需要補上傳身份文件');
+                }
+            }
+            catch (err) {
+                res.status(400).send('取得使用者審查狀態失敗');
+                console.error(err);
+            }
+        }
+    })
+});
+
 module.exports = router;
 /**
     function bcryptHash(pw) {
