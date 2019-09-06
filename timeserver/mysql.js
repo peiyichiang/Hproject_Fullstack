@@ -1,11 +1,11 @@
 var mysql = require("mysql");
 var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
-
+const Web3 = require('web3');
 const chalk = require('chalk');
 const log = console.log;
 
-const { DB_host, DB_user, DB_password, DB_name, DB_port } = require('./envVariables');
+const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL } = require('./envVariables');
 
 const { isEmpty, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
 
@@ -22,6 +22,7 @@ userArray.forEach((user, idx) => {
     assetbookArray.push(user.addrAssetBook);
   }
 });
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 const serverTimeMin = 201905270900;
 
@@ -102,8 +103,18 @@ const deleteTxnInfoRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    console.log(`result: ${result}`);
+    console.log(`deleteTxnInfoRows result: ${result}`);
     resolve(true);
+  });
+}
+const getTxnInfoRowsBySymbol = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'SELECT * FROM transaction_info WHERE t_tokenSYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB] '+ err);
+    });
+    console.log(`result: ${result}`);
+    resolve(!isEmpty(result));
   });
 }
 
@@ -186,8 +197,17 @@ const deleteProductRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    console.log(`result: ${result}`);
+    console.log(`deleteProductRows result: ${result}`);
     resolve(true);
+  });
+}
+const getProductRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'SELECT * FROM product WHERE p_SYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB] '+ err);
+    });
+    resolve(result);
   });
 }
 
@@ -220,11 +240,20 @@ const deleteSmartContractRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    console.log(`result: ${result}`);
+    console.log(`deleteSmartContractRows result: ${result}`);
     resolve(true);
   });
 }
 
+const getSmartContractRows = (tokenSymbol) => {
+  return new Promise(async(resolve, reject) => {
+    const queryStr1 = 'SELECT * FROM smart_contracts WHERE sc_symbol = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB] '+ err);
+    });
+    resolve(result);
+  });
+}
 
 const addUserRow = async (email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, bank_booklet) => {
   return new Promise(async(resolve, reject) => {
@@ -398,7 +427,7 @@ const deleteOrderRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    console.log(`result: ${result}`);
+    console.log(`deleteOrderRows result: ${result}`);
     resolve(true);
   });
 }
@@ -573,7 +602,7 @@ const deleteIncomeArrangementRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    console.log(`result: ${result}`);
+    console.log(`deleteIncomeArrangementRows result: ${result}`);
     resolve(true);
   });
 }
@@ -660,14 +689,14 @@ const getSymbolsONM = async() => {
     let mesg;
     const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")';
     const result2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
-      console.log('\n[Error @ getProfitSymbolAddresses > mysqlPoolQueryB(queryStr2)]');
+      console.log('\n[Error @ getSymbolsONM > mysqlPoolQueryB(queryStr2)]');
       reject(err);
       return false;
     });
     const result2Len = result2.length;
-    console.log('\nArray length @ getProfitSymbolAddresses:', result2Len);
+    console.log('\nArray length @ getSymbolsONM:', result2Len);
     if(result2Len === 0 ){
-      mesg = '[Error @ getProfitSymbolAddresses > queryStr2';
+      mesg = '[Error @ getSymbolsONM > queryStr2';
       console.log('\n'+mesg);
       reject(mesg);
       return false;
@@ -688,39 +717,41 @@ const getSymbolsONM = async() => {
 //yarn run testmt -f 4
 const getProfitSymbolAddresses = async(serverTime) => {
   return new Promise(async(resolve, reject) => {
-    let mesg = '';
     console.log('-----------==getProfitSymbolAddress, serverTime:', serverTime);
     const [foundSymbols, foundHCAT721Addrs] = await getSymbolsONM().catch((err) => {
       console.log('\n[Error @getSymbolsONM] err:', err);
       reject(err);
       return false;
     });
+    console.log(`foundSymbols: ${foundSymbols}`);
+    //console.log(`foundHCAT721Addrs: ${foundHCAT721Addrs}`);
 
-    //console.log('foundHCAT721Addrs', foundHCAT721Addrs);
     const queryActualPaymentTime = 'SELECT ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
 
     const acPaymentArray = [];
     const maxAcPaymentTimeArray = [];
-    let result3;
+
     await asyncForEach(foundSymbols, async (symbol, index) => {
       const maxActualPaymentTime = await getMaxActualPaymentTime(symbol, serverTime);
-      console.log('-----------==symbol:', symbol, ', serverTime:', serverTime, ', maxActualPaymentTime:', maxActualPaymentTime);
+      console.log(`symbol: ${symbol}, serverTime: ${serverTime}, maxActualPaymentTime: ${maxActualPaymentTime}`);
 
+      let singleActualIncomePayment;
       if(maxActualPaymentTime){
-        console.log('[Good] maxActualPaymentTime is found! maxActualPaymentTime =', maxActualPaymentTime);
-        result3 = await mysqlPoolQueryB(queryActualPaymentTime, [symbol, maxActualPaymentTime]).catch((err) => {
+        console.log(`[Good] maxActualPaymentTime is found! maxActualPaymentTime: ${maxActualPaymentTime}`);
+
+        singleActualIncomePayment = await mysqlPoolQueryB(queryActualPaymentTime, [symbol, maxActualPaymentTime]).catch((err) => {
           console.log('\n[Error @ mysqlPoolQueryB(queryActualPaymentTime)]');
           reject(err);
           return false;
         });
-        if(isEmpty(result3)){
+        if(isEmpty(singleActualIncomePayment)){
           console.log('[Warning] Actual Payment Time Array query returns nothing. symbol = '+symbol);
         }
   
       } else {
         console.log('[Warning] maxActualPaymentTime is not found!');
       }
-      acPaymentArray.push(result3);
+      acPaymentArray.push(singleActualIncomePayment);
       maxAcPaymentTimeArray.push(maxActualPaymentTime);
     });
     // const acPaymentArrayLen = acPaymentArray.length;
@@ -730,8 +761,21 @@ const getProfitSymbolAddresses = async(serverTime) => {
   });
 }
 
+
+//----------------------------==
+const getOwnerAddrAmountList = async(tokenAddress, indexStart, indexAmount) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n--------------==inside getOwnerAddrAmountList()');    const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenAddress);
+    const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(indexStart, indexAmount).call();
+    const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
+    console.log(`\ntoAddressArray: ${toAddressArray}, \namountArray: ${amountArray}`);
+    resolve([toAddressArray, amountArray]);
+  });
+}
+
 //----------------------------==AssetRecord in DB
 //For timeserver to trigger ... calculate periodic profit
+// yarn run testmt -f 5
 const calculateLastPeriodProfit = async(serverTime) => {
   return new Promise(async(resolve, reject) => {
     console.log('\n--------------==inside calculateLastPeriodProfit()');
@@ -741,10 +785,10 @@ const calculateLastPeriodProfit = async(serverTime) => {
     const moving_ave_holding_cost = 13000;
 
     const [foundSymbols, foundHCAT721Addrs, acPaymentArray, maxAcPaymentTimeArray] = await getProfitSymbolAddresses(serverTime).catch((err) => {
-      console.log('\n[Error @ getProfitSymbolAddresses]');
+      console.error('\n[Error @ getProfitSymbolAddresses]'+err);
       return false;
     });
-    console.log('mysql434: foundSymbols:', foundSymbols, '\nfoundHCAT721Addrs:', foundHCAT721Addrs, '\nacPaymentArray:', acPaymentArray, '\nmaxAcPaymentTimeArray:', maxAcPaymentTimeArray);
+    console.log(`[getProfitSymbolAddresses]: foundSymbols: ${foundSymbols}, \nfoundHCAT721Addrs: ${foundHCAT721Addrs}, \nacPaymentArray: ${acPaymentArray}, \nmaxAcPaymentTimeArray: #{maxAcPaymentTimeArray}`);
 
     const symbolsLength = foundSymbols.length;
     if(symbolsLength !== foundHCAT721Addrs.length){
@@ -752,6 +796,7 @@ const calculateLastPeriodProfit = async(serverTime) => {
       return false;
 
     } else if(acPaymentArray.length !== foundSymbols.length){
+      console.log(`${acPaymentArray.length},  ${foundSymbols.length}`);
       reject('[Error] acPaymentArray and foundSymbols are of different length');
       return false;
 
@@ -779,11 +824,8 @@ const calculateLastPeriodProfit = async(serverTime) => {
           const singleActualIncomePayment = acPaymentArray[index];
           console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nsingleActualIncomePayment: ${singleActualIncomePayment}`);
 
-          const instHCAT721 = new web3.eth.Contract(HCAT721.abi, foundHCAT721Addrs[index]);
-          const toAddressArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-          console.log(`\ntoAddressArray: ${toAddressArray}`);
+          const [toAddressArray, amountArray] = await getOwnerAddrAmountList(foundHCAT721Addrs[index], 0, 0);
 
-          const amountArray = await instHCAT721.methods.balanceOfArray(toAddressArray).call();
           console.log(`\namountArray: ${amountArray}`);
           const acquiredCostArray = amountArray.map((item) => {
             return parseInt(item) * pricing;
@@ -853,7 +895,7 @@ const deleteAssetRecordRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    console.log(`result: ${result}`);
+    console.log(`deleteAssetRecordRows result: ${result}`);
     resolve(true);
   });
 }
@@ -861,23 +903,29 @@ const deleteAssetRecordRows = (tokenSymbol) => {
 const deleteAllRecordsBySymbol = async (tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     const result1 = await deleteTxnInfoRows(tokenSymbol).catch((err) => {
-      reject(err);
-    });
+      reject(err); });
     const result2 = await deleteProductRows(tokenSymbol).catch((err) => {
-      reject(err);
-    });
-    const result3 = await deleteSmartContractRows(tokenSymbol).catch((err) => {
-      reject(err);
-    });
+      reject(err); });
+    const result3 = await deleteSmartContractRows(tokenSymbol).catch((err) => { reject(err); });
     const result4 = await deleteOrderRows(tokenSymbol).catch((err) => {
-      reject(err);
-    });
-    const result5 = await deleteIncomeArrangementRows(tokenSymbol).catch((err) => {
-      reject(err);
-    });
-    const result6 = await deleteAssetRecordRows(tokenSymbol).catch((err) => {
-      reject(err);
-    });
+      reject(err); });
+    const result5 = await deleteIncomeArrangementRows(tokenSymbol).catch((err) => { reject(err); });
+    const result6 = await deleteAssetRecordRows(tokenSymbol).catch((err) => { reject(err); });
+
+    const result_getProductRows = await getProductRows(tokenSymbol).catch((err) => { reject(err); });
+    if(isEmpty(result_getProductRows)){
+      console.log('\ngetProductRows: nothing is found');
+    } else {
+      console.log(`\ngetProductRows: ${result}`);
+    }
+    
+    const result_getSmartContractRows = await getSmartContractRows(tokenSymbol).catch((err) => { reject(err); });
+    if(isEmpty(result_getSmartContractRows)){
+      console.log('getSmartContractRows: nothing is found');
+    } else {
+      console.log(`getSmartContractRows: ${result}`);
+    }
+
     resolve(true);
   });
 }
@@ -1329,16 +1377,13 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   await asyncForEach(addrHCAT_Array, async (tokenCtrtAddr, index) => {
     if(tokenCtrtAddr !== null || tokenCtrtAddr !== undefined || tokenCtrtAddr !== 'multiple contract addr' || tokenCtrtAddr !== 'Not on record'){
 
-      const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-      const abAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
-      const abBalArray = await instHCAT721.methods.balanceOfArray(abAddrArray).call();
-      console.log(`\nabAddrArray: ${abAddrArray} \nassetbookBalanceArray: ${abBalArray}`);
+      const [abAddrArray, abBalArray] = await getOwnerAddrAmountList(tokenCtrtAddr, 0, 0);
       abAddrArrayGroup.push(abAddrArray);
       abBalArrayGroup.push(abBalArray);
 
       const singleActualIncomePayment = acIncomePaymentArray[index];
       const incomePaymentArray = abBalArray.map(function(balance) {
-        return balance * singleActualIncomePayment;
+        return parseInt(balance) * singleActualIncomePayment;
       });
       incomePaymentArrayGroup.push(incomePaymentArray);
     }

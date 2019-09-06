@@ -6,13 +6,12 @@ const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 console.log('--------------------== blockchain.js...');
-
 const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
 
-const { blockchainURL, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
+const { blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
-const { assetOwnerArray, assetOwnerpkRawArray, addrHelium,  userArray } = require('../ethereum/contracts/zTestParameters');
+const { assetOwnerArray, assetOwnerpkRawArray, userArray } = require('../ethereum/contracts/zTestParameters');
 
 const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
@@ -20,7 +19,7 @@ const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStat
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
-
+/*
 const userIdArray = [];
 const investorLevelArray = [];
 const assetbookArray = [];
@@ -30,13 +29,11 @@ userArray.forEach((user, idx) => {
     investorLevelArray.push(user.investorLevel);
     assetbookArray.push(user.addrAssetBook);
   }
-});
+});*/
+const [adminRepeated, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
+const [adminpkRawRepeated, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
-let backendAddr, backendAddrpkRaw;
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
-
-const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
-const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
 
 if(backendAddrChoice === 0){//reserved to API developer
   backendAddr = admin;
@@ -200,7 +197,7 @@ const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPubli
 }
 
 //-------------------==
-const deployMultiSigContract = async() => {
+const deployMultiSigContract = async(HeliumCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
     console.log('\nDeploying MultiSig from eoaArray...');
 
@@ -210,7 +207,7 @@ const deployMultiSigContract = async() => {
     console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
-    const argsMultiSig1 = [AssetOwner1, addrHelium];
+    const argsMultiSig1 = [backendAddr, HeliumCtrtAddr];
     console.log('\nDeploying multiSig contracts...');
     instMultiSig1 =  await new web3deploy.eth.Contract(MultiSig.abi)
     .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
@@ -233,11 +230,11 @@ const deployMultiSigContract = async() => {
   });
 }
 
-const deployTesttract = async() => {
+const deployTesttract = async(HeliumCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
     console.log('\nDeploying testCtrt contracts...');
     const HCAT721SerialNumber = 2020;
-    const argsTestCtrt = [HCAT721SerialNumber, addrHelium];
+    const argsTestCtrt = [HCAT721SerialNumber, HeliumCtrtAddr];
     instTestCtrt =  await new web3deploy.eth.Contract(TestCtrt.abi)
     .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
     .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
@@ -1163,8 +1160,8 @@ const getFundingStateCFC = async (crowdFundingAddr) => {
 const getHeliumAddrCFC = async (crowdFundingAddr) => {
   console.log('[getHeliumAddrCFC] crowdFundingAddr...');
   const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-  let addrHelium = await instCrowdFunding.methods.addrHelium().call();
-  console.log('addrHelium', addrHelium, ', crowdFundingAddr:', crowdFundingAddr);
+  let HeliumCtrtAddr = await instCrowdFunding.methods.addrHelium().call();
+  console.log('HeliumCtrtAddr', HeliumCtrtAddr, ', crowdFundingAddr:', crowdFundingAddr);
 }
 
 const updateFundingStateCFC = async (crowdFundingAddr, serverTime, symbol) => {
@@ -1186,10 +1183,10 @@ const updateFundingStateCFC = async (crowdFundingAddr, serverTime, symbol) => {
         const checkupdateState = serverTime > TimeOfDeployment;
         stateDescription = await instCrowdFunding.methods.stateDescription().call();
         const checkPlatformSupervisorFromCFC_M = await instCrowdFunding.methods.checkPlatformSupervisor().call({from: backendAddr});
-        let addrHelium = await instCrowdFunding.methods.addrHelium().call();
+        let HeliumCtrtAddr = await instCrowdFunding.methods.addrHelium().call();
 
         console.log('\n[Error @ signTx() updateState(serverTime)], checkupdateState:'+checkupdateState)
-        console.log(`symbol: ${symbol}, fundingState: ${fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}, checkPlatformSupervisorFromCFC_M: ${checkPlatformSupervisorFromCFC_M}, addrHelium: ${addrHelium}`);
+        console.log(`symbol: ${symbol}, fundingState: ${fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}, checkPlatformSupervisorFromCFC_M: ${checkPlatformSupervisorFromCFC_M}, HeliumCtrtAddr: ${HeliumCtrtAddr}`);
         reject('err:'+err);
         return undefined;
       });
@@ -1246,8 +1243,8 @@ const getTokenStateTCC = async (tokenControllerAddr) => {
 const getHeliumAddrTCC = async (tokenControllerAddr) => {
   console.log('[getHeliumAddrTCC] tokenControllerAddr...');
   const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
-  let addrHelium = await instTokenController.methods.addrHelium().call();
-  console.log('addrHelium', addrHelium, ', tokenControllerAddr:', tokenControllerAddr);
+  let HeliumCtrtAddr = await instTokenController.methods.addrHelium().call();
+  console.log('HeliumCtrtAddr', HeliumCtrtAddr, ', tokenControllerAddr:', tokenControllerAddr);
 }
 
 const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
@@ -1264,9 +1261,9 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
       console.log('about to execute updateState() in the TCC...');
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData).catch( async(err) => {
         const checkPlatformSupervisorFromTCC_M = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr});
-        let addrHelium = await instTokenController.methods.addrHelium().call();
+        let HeliumCtrtAddr = await instTokenController.methods.addrHelium().call();
 
-        console.log(`[Error @ signTx() updateState(serverTime) in TCC] \nsymbol: ${symbol}, tokenState: ${tokenState}, serverTime: ${serverTime}, checkPlatformSupervisorFromTCC_M: ${checkPlatformSupervisorFromTCC_M}, addrHelium: ${addrHelium}`);
+        console.log(`[Error @ signTx() updateState(serverTime) in TCC] \nsymbol: ${symbol}, tokenState: ${tokenState}, serverTime: ${serverTime}, checkPlatformSupervisorFromTCC_M: ${checkPlatformSupervisorFromTCC_M}, HeliumCtrtAddr: ${HeliumCtrtAddr}`);
         reject('err:'+ err);
         return undefined;
       });
@@ -1909,6 +1906,7 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
 
 
 
+
 const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pricing) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n--------------==inside doAssetRecords()');
@@ -2110,7 +2108,7 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
       console.log(`\n--------==Check if userId ${userId}`);
       const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbooks[idx], authLevels[idx]).call({from: backendAddr});
       /**
-          boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+          boolArray[0] = HeliumITF_Reg(HeliumCtrtAddr).checkCustomerService(msg.sender);
           //ckUidLength(uid)
           boolArray[1] = bytes(uid).length > 0;
           boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
@@ -2163,9 +2161,9 @@ Skipping this uid...`)
 const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   // check if serverTime > CFSD for each symbol...
   console.log('\n--------------==inside addAssetbooksIntoCFC() \nserverTime:',serverTime);
-
-  const queryStr1 = `SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = "${paymentStatus}"`;// AND o_symbol ="AOOS1902"
-  const results1 = await mysqlPoolQueryB(queryStr1, []).catch((err) => {
+  //const {mysqlPoolQueryB } = require('./mysql.js');
+  const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = ?';
+  const results1 = await mysqlPoolQueryB(queryStr1, [paymentStatus]).catch((err) => {
     console.log('\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)]'+ err);
     return false;
   });
@@ -2225,8 +2223,8 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       return false;
     } else {
       console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
-      const assetbookArray = [];
-      const assetbookArrayError = [];
+      const assetbookCtrtArray = [];
+      const assetbookCtrtArrayError = [];
       const emailArray = [];
       const emailArrayError = [];
       const tokenCountArray = [];
@@ -2242,21 +2240,21 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
             emailArrayError.push(item.o_email);
             tokenCountArrayError.push(parseInt(item.o_tokenCount));
             orderIdArrayError.push(item.o_id);
-            assetbookArrayError.push(item.u_assetbookContractAddress);
+            assetbookCtrtArrayError.push(item.u_assetbookContractAddress);
           } else {
             emailArray.push(item.o_email);
             tokenCountArray.push(parseInt(item.o_tokenCount));
             orderIdArray.push(item.o_id);
-            assetbookArray.push(item.u_assetbookContractAddress);
+            assetbookCtrtArray.push(item.u_assetbookContractAddress);
           }
         });
       }
       console.log(`\nemailArray: ${emailArray} \ntokenCountArray: ${tokenCountArray} \norderIdArray: ${orderIdArray} \nemailArrayError: ${emailArrayError} \ntokenCountArrayError: ${tokenCountArrayError} \norderIdArrayError: ${orderIdArrayError}`);
 
 
-      console.log('\n----------------==assetbookArray', assetbookArray);
-      if(assetbookArray.length !== emailArray.length){
-        console.log('[Error] assetbookArray and emailArray have different length')
+      console.log('\n----------------==assetbookCtrtArray', assetbookCtrtArray);
+      if(assetbookCtrtArray.length !== emailArray.length){
+        console.log('[Error] assetbookCtrtArray and emailArray have different length')
         checkOK = false;
         return false;//process.exit(0);
       }
@@ -2264,20 +2262,19 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       const investorListBf = await instCrowdFunding.methods.getInvestors(0, 0).call();
       console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]}, \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
 
-      const addressArray = [...assetbookArray];
-      const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
-        console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed inside asyncForEachAbCFC(). addressArray: ${addressArray}`);
+      const checkResult = await checkAssetbookArray(assetbookCtrtArray).catch(async(err) => {
+        console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed inside asyncForEachAbCFC(). assetbookCtrtArray: ${assetbookCtrtArray}`);
         checkOK = false;
         return false;
       });
       if(checkResult.includes(false)){
-        console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+        console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${assetbookCtrtArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
         checkOK = false;
         return false;
       } else {
         console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
       }
-      await asyncForEachAbCFC2(assetbookArray, async (addrAssetbook, index) => {
+      await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
         const amountToInvest = parseInt(tokenCountArray[index]);
         console.log(`\n----==[Good] For ${addrAssetbook}, found its amountToInvest ${amountToInvest}`);
 
@@ -3584,6 +3581,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32,
-  deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances
 }
