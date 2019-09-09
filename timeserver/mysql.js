@@ -632,8 +632,6 @@ const addIncomeArrangementRows = async(incomeArrangementArray) => {
       //console.log(`result: ${result}`);
       resultArray.push(result);
     });
-    const result = await updateIAassetRecordStatus(symbol);
-    console.log(`updateIAassetRecordStatus: $(result)`);
     resolve(resultArray);
   });
 }
