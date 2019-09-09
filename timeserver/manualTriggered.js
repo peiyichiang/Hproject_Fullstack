@@ -1746,23 +1746,23 @@ const intergrationTestOfProduct = async() => {
     if(acTimeTokenUnlock % 100 >= 59){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+1, acTimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 57){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+3, acTimeTokenUnlock+3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 55){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, acTimeTokenUnlock+5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 53){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, acTimeTokenUnlock+7, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 51){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, acTimeTokenUnlock+9, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
     const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
@@ -1857,7 +1857,7 @@ const intergrationTestOfProduct = async() => {
   await _addIncomeArrangement();
   await _addOrders_CFC_MintTokens_API();
   await _updateTokenControllerState();
-  //await _calculateLastPeriodProfit_API();
+  await _calculateLastPeriodProfit_API();
 
   process.exit(0);
 
