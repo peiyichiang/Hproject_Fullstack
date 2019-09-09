@@ -3,14 +3,13 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject
-   } = require('../ethereum/contracts/zTestParameters');
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject } = require('../ethereum/contracts/zTestParameters');
 
 const { symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB  } = require('./mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray  } = require('./mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
@@ -135,8 +134,8 @@ const checkIaAssetRecordStatus_API = async () => {
 //yarn run testmt -f 26
 const getMaxActualPaymentTime_API = async () => {
   console.log('\n---------------------==getMaxActualPaymentTime_API()');
-  const symbol = 'AVEN1902';
-  const serverTime = 201909061200;
+  const symbol = 'ROSA0902';
+  const serverTime = '201909091243';
   const maxActualPaymentTime = await getMaxActualPaymentTime(symbol, serverTime);
   let mesg = '';
   if(isNoneInteger(maxActualPaymentTime)){
@@ -144,7 +143,7 @@ const getMaxActualPaymentTime_API = async () => {
     console.log(`[Warning] ${mesg}, symbol: ${symbol}`);
 
   } else {
-    console.log(`[Good] maxActualPaymentTime is valid: ${maxActualPaymentTime}`);
+    console.log(`[Good] maxActualPaymentTime is valid: ${maxActualPaymentTime} ${typeof maxActualPaymentTime}`);
   }
   console.log('maxActualPaymentTime:', maxActualPaymentTime, ', Boolean:', Boolean(maxActualPaymentTime));
   process.exit(0);
@@ -152,7 +151,7 @@ const getMaxActualPaymentTime_API = async () => {
 
 //yarn run testmt -f 27
 const getAcPayment_API = async() => {
-  const symbol = "ALLI0905";
+  const symbol = "STEP0904";
   const maxActualPaymentTime = "201909051556";
   let mesg = '';
   const acPayment = await getAcPayment(symbol, maxActualPaymentTime);
@@ -160,7 +159,7 @@ const getAcPayment_API = async() => {
     mesg += 'acPayment is not an integer';
     console.log(`[Warning] ${mesg}: ${acPayment}, symbol: ${symbol}`);
   } else {
-    console.log(`[Good] acPayment is able to become an integer, symbol: ${symbol}`)
+    console.log(`[Good] acPayment is able to become an integer, symbol: ${symbol} ${typeof symbol}`);
   }
   process.exit(0);
 }
@@ -1944,7 +1943,8 @@ const deleteAllRecordsBySymbolCLI_API = async() => {
   }
   process.exit(0);
 }
-//yarn run testmt -f 102 MS. 0829
+
+//yarn run testmt -f 102 AVEN0829
 const deleteAllRecordsBySymbol_API = async() => {
   let result, tokenSymbol;
     tokenSymbol = 'MS. 0829';
@@ -1958,9 +1958,22 @@ const deleteAllRecordsBySymbol_API = async() => {
   process.exit(0);
 }
 
-
-
 //yarn run testmt -f 103
+const deleteAllRecordsBySymbolArray_API = async() => {
+    const symbolString = 'NCCU0725,NCCU0731,NCCU0805';
+    const symbolArray = symbolString.split(",");
+    console.log('symbolArray:', symbolArray);
+    const result = await deleteAllRecordsBySymbolArray(symbolArray);
+    if(result){
+      console.log(`deleteAllRecordsBySymbolArray result: successfully done`);
+    } else {
+      console.log(`deleteAllRecordsBySymbolArray result: not finished`);
+    }
+  process.exit(0);
+}
+
+
+//yarn run testmt -f 104
 const getSymbolFromCtrtAddr_API = async() => {
   console.log('\n---------------------==getSymbolFromCtrtAddr_API()');
   const ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
@@ -2429,8 +2442,12 @@ if(argv3 === 0){
 } else if(argv3 === 102){
   deleteAllRecordsBySymbol_API();
 
+//yarn run testmt -f 103
+} else if(argv3 === 103){
+  deleteAllRecordsBySymbolArray_API();
 
-} else if (argv3 === 103) {
+
+} else if (argv3 === 104) {
   getSymbolFromCtrtAddr_API();
 
 //yarn run testmt -f 141

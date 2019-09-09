@@ -749,14 +749,15 @@ const getMaxActualPaymentTime = async(symbol, serverTime) => {
         maxActualPaymentTime = 'null';
       } else {
         maxActualPaymentTime = result1b;
+        console.log(`check1.`);
       }
 
     } else {
       const result1ObjStr = JSON.stringify(result1);
+      maxActualPaymentTime = 'multiple maxActualPaymentTimes';
       console.log(`multiple maxActualPaymentTimes are found. \n${result1ObjStr}`);
-
     }
-    console.log('[end of getMaxActualPaymentTime()] maxActualPaymentTime:', maxActualPaymentTime);
+    console.log(`[end of getMaxActualPaymentTime()] maxActualPaymentTime: ${maxActualPaymentTime} ${typeof maxActualPaymentTime} \nsymbol: ${symbol}, serverTime: ${serverTime}`);
     resolve(maxActualPaymentTime);
   });
 }
@@ -765,6 +766,15 @@ const getMaxActualPaymentTime = async(symbol, serverTime) => {
 const getAcPayment = async(symbol, maxActualPaymentTime) => {
   return new Promise(async(resolve, reject) => {
     console.log('-------==getAcPayment');
+    let acPayment;
+
+    if(maxActualPaymentTime === '0'){
+      acPayment = -9;
+      console.log(`[end of getAcPayment()] symbol: ${symbol}, maxActualPaymentTime: ${maxActualPaymentTime}`);
+      resolve(acPayment);
+      return false;
+    }
+
     const query1 = 'SELECT ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
     // SELECT ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = "ALLI0905" AND ia_actualPaymentTime = "201909051556";
 
@@ -774,13 +784,15 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
       return false;
     });
 
-    let acPayment;
     if(result1 === null) {
+      console.log('result1 is null');
       acPayment = -3;
 
     } else if(result1.length === 0){
       console.log('acPayment was not found');
+
       const query2 = 'SELECT * FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
+
       const result2 = await mysqlPoolQueryB(query2, [symbol, maxActualPaymentTime]).catch((err) => {
         console.log('\n[Error @ getAcPayment()]');
         reject(err);
@@ -809,7 +821,7 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
 
     } else if(result1.length > 1){
       //const result1ObjStr = JSON.stringify(result1);
-      console.log(`multiple acPayments are found. result1: ${result1}`);
+      console.log(`multiple acPayments are found. result1: ${result1} \nsymbol: ${symbol}, maxActualPaymentTime: ${maxActualPaymentTime}`);
       acPayment = -4;
     }
     console.log('[end of getAcPayment()] acPayment:', acPayment);
@@ -830,40 +842,48 @@ const getProfitSymbolAddresses = async(serverTime) => {
     //console.log(`foundHCAT721Addrs: ${foundHCAT721Addrs}`);
 
     const acPaymentArray = [];
-    const maxAcPaymentTimeArray = [];
+    const maxActualPaymentTimeArray = [];
     const mesgArray = [];
-    const acPaymentArrayErr = [];
-    const maxAcPaymentTimeArrayErr = [];
-    const mesgArrayErr = [];
+    const acPaymentArrayWarn = [];
+    const maxActualPaymentTimeArrayWarn = [];
+    const mesgArrayWarn = [];
     const checkedSymbols = [];
-    const checkedSymbolsErr = [];
+    const checkedSymbolsWarn = [];
     const checkedTokenAddrs = [];
 
     await asyncForEach(foundSymbols, async (symbol, index) => {
       const maxActualPaymentTime = await getMaxActualPaymentTime(symbol, serverTime);
       
       let acPayment, mesg = '';
-      if(maxActualPaymentTime === 'null'){
+      if(maxActualPaymentTime === '0'){
+        acPayment = -10;
+        mesg += 'MAPT_0';
+
+      } else if(maxActualPaymentTime === 'null'){
         acPayment = -11;
-        mesg += 'maxActualPaymentTime null';
+        mesg += 'MAPT_null';
 
       } else if(maxActualPaymentTime === 'result_len_zero'){
         acPayment = -12;
-        mesg += 'maxActualPaymentTime: result_len_zero';
+        mesg += 'MAPT_result_len_zero';
 
       } else if(isNoneInteger(maxActualPaymentTime)){
         acPayment = -13;
-        mesg += 'maxActualPaymentTime is not valid';
+        mesg += 'MAPT_not_valid';
         console.log(`[Warning] ${mesg}, symbol: ${symbol}`);
   
       } else {
-        console.log(`[Good] maxActualPaymentTime is valid: ${maxActualPaymentTime}`);
+        console.log(`[Good] MAPT is valid: ${maxActualPaymentTime}`);
         //const assetRecordStatus = await checkIaAssetRecordStatus(symbol, maxActualPaymentTime);
 
         acPayment = await getAcPayment(symbol, maxActualPaymentTime);
         if(acPayment < 0 || acPayment === null || acPayment === undefined){
-          mesg += 'acPayment invalid';//-ve or null or undefined 
-          console.log(`[Warning] ${mesg}: ${acPayment}, symbol: ${symbol}`);
+          if(acPayment === -1) {
+            mesg += 'assetRecord already written';
+          } else {
+            mesg += 'acPayment_invalid';//-ve or null or undefined 
+          }
+          console.log(`[Warning] ${mesg}: ${acPayment} ${typeof acPayment}, symbol: ${symbol}`);
 
         } else {
           console.log(`[Good] acPayment is valid`);
@@ -872,16 +892,16 @@ const getProfitSymbolAddresses = async(serverTime) => {
       }
       //console.log(`symbol: ${symbol}, serverTime: ${serverTime},maxActualPaymentTime: ${maxActualPaymentTime}, acPayment: ${acPayment}`);
       if(mesg){
-        checkedSymbolsErr.push(symbol);
-        acPaymentArrayErr.push(acPayment);
-        maxAcPaymentTimeArrayErr.push(maxActualPaymentTime);
-        mesgArrayErr.push(mesg);
+        checkedSymbolsWarn.push(symbol);
+        acPaymentArrayWarn.push(acPayment);
+        maxActualPaymentTimeArrayWarn.push(maxActualPaymentTime);
+        mesgArrayWarn.push(mesg);
 
       } else {
         checkedSymbols.push(symbol);
         checkedTokenAddrs.push(foundHCAT721Addrs[index]);
         acPaymentArray.push(acPayment);
-        maxAcPaymentTimeArray.push(maxActualPaymentTime);
+        maxActualPaymentTimeArray.push(maxActualPaymentTime);
         mesgArray.push(mesg);
       }
     });
@@ -890,13 +910,13 @@ const getProfitSymbolAddresses = async(serverTime) => {
     console.log(`\n--------------==End of getProfitSymbolAddresses 
     \ncheckedSymbols: ${checkedSymbols}
     \nacPaymentArray: \n${acPaymentArray} 
-    \nmaxAcPaymentTimeArray: \n${maxAcPaymentTimeArray} 
+    \nmaxActualPaymentTimeArray: \n${maxActualPaymentTimeArray} 
 
-    \ncheckedSymbolsErr: ${checkedSymbolsErr}
-    \nacPaymentArrayErr: \n${acPaymentArrayErr} 
-    \nmaxAcPaymentTimeArrayErr: \n${maxAcPaymentTimeArrayErr} 
-    \nmesgArrayErr: \n${mesgArrayErr}`);
-    resolve([checkedSymbols, checkedTokenAddrs, acPaymentArray, maxAcPaymentTimeArray, mesgArray]);
+    \ncheckedSymbolsWarn: ${checkedSymbolsWarn}
+    \nacPaymentArrayWarn: \n${acPaymentArrayWarn} 
+    \nmaxActualPaymentTimeArrayWarn: \n${maxActualPaymentTimeArrayWarn} 
+    \nmesgArrayWarn: \n${mesgArrayWarn}`);
+    resolve([checkedSymbols, checkedTokenAddrs, acPaymentArray, maxActualPaymentTimeArray, mesgArray]);
   });//end of getProfitSymbolAddresses
 }
 
@@ -912,12 +932,12 @@ const calculateLastPeriodProfit = async(serverTime) => {
     const holding_costChanged = 0;
     const moving_ave_holding_cost = 13000;
 
-    const [checkedSymbols, checkedTokenAddrs, acPaymentArray, maxAcPaymentTimeArray, mesgArray] = await getProfitSymbolAddresses(serverTime).catch((err) => {
+    const [checkedSymbols, checkedTokenAddrs, acPaymentArray, maxActualPaymentTimeArray, mesgArray] = await getProfitSymbolAddresses(serverTime).catch((err) => {
       console.error('\n[Error @ getProfitSymbolAddresses]'+err);
       return false;
     });
     console.log(`\n----------==after getProfitSymbolAddresses()...`);
-    //console.log(`[getProfitSymbolAddresses]: checkedSymbols: ${checkedSymbols}, \nfoundHCAT721Addrs: ${checkedTokenAddrs}, \nacPaymentArray: ${acPaymentArray}, \nmaxAcPaymentTimeArray: #{maxAcPaymentTimeArray}`);
+    //console.log(`[getProfitSymbolAddresses]: checkedSymbols: ${checkedSymbols}, \nfoundHCAT721Addrs: ${checkedTokenAddrs}, \nacPaymentArray: ${acPaymentArray}, \nmaxActualPaymentTimeArray: #{maxActualPaymentTimeArray}`);
 
     const symbolsLength = checkedSymbols.length;
     if(symbolsLength !== checkedTokenAddrs.length){
@@ -953,7 +973,7 @@ const calculateLastPeriodProfit = async(serverTime) => {
             return false;
           }
 
-          const ar_time = maxAcPaymentTimeArray[index];
+          const ar_time = maxActualPaymentTimeArray[index];
           const acPayment = acPaymentArray[index];
           console.log(`symbol: ${symbol} \nar_time: ${ar_time} \nacPayment: ${acPayment}`);
 
@@ -1045,6 +1065,7 @@ const deleteAssetRecordRows = (tokenSymbol) => {
 
 const deleteAllRecordsBySymbol = async (tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
+    console.log('\n--------==inside deleteAllRecordsBySymbol');
     const result1 = await deleteTxnInfoRows(tokenSymbol).catch((err) => {
       reject(err); });
     const result2 = await deleteProductRows(tokenSymbol).catch((err) => {
@@ -1054,6 +1075,7 @@ const deleteAllRecordsBySymbol = async (tokenSymbol) => {
       reject(err); });
     const result5 = await deleteIncomeArrangementRows(tokenSymbol).catch((err) => { reject(err); });
     const result6 = await deleteAssetRecordRows(tokenSymbol).catch((err) => { reject(err); });
+    console.log(`check1 ... result1: ${result1}, result2: ${result2}, result3: ${result3}, result4: ${result4}, result5: ${result5}, result6: ${result6}`);
 
     const result_getProductRows = await getProductRows(tokenSymbol).catch((err) => { reject(err); });
     if(isEmpty(result_getProductRows)){
@@ -1061,7 +1083,7 @@ const deleteAllRecordsBySymbol = async (tokenSymbol) => {
     } else {
       console.log(`\ngetProductRows: ${result}`);
     }
-    
+    console.log('check2');
     const result_getSmartContractRows = await getSmartContractRows(tokenSymbol).catch((err) => { reject(err); });
 
     if(isEmpty(result_getSmartContractRows)){
@@ -1069,7 +1091,17 @@ const deleteAllRecordsBySymbol = async (tokenSymbol) => {
     } else {
       console.log(`getSmartContractRows: ${result}`);
     }
+    console.log(`result_getProductRows: ${result_getProductRows} \nresult_getSmartContractRows: ${result_getSmartContractRows}`);
+    resolve(true);
+  });
+}
 
+const deleteAllRecordsBySymbolArray = async (tokenSymbolArray) => {
+  return new Promise(async (resolve, reject) => {
+    tokenSymbolArray.forEach(async(symbol, idx) => {
+      const result = await deleteAllRecordsBySymbol(symbol);
+      console.log(`result_deleteAllRecordsBySymbol(): ${result}`);
+    });
     resolve(true);
   });
 }
@@ -1616,5 +1648,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
-    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus
+    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray
 }
