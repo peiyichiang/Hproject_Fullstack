@@ -1678,6 +1678,9 @@ const mintSequentialPerContract = async(symbol, serverTime, maxMintAmountPerRun)
       });
       console.log(`\nreturned values from doAssetRecords(): is_doAssetRecords: ${is_doAssetRecords}, mesg_doAssetRecords: ${mesg_doAssetRecords}, \nemailArrayError: ${emailArrayError}, \namountArrayError: ${amountArrayError}, \nis_addActualPaymentTime: ${is_addActualPaymentTime}, \nis_setFundingStateDB: ${is_setFundingStateDB}`);
   
+      const result = await updateIAassetRecordStatus(symbol);
+      console.log(`\nupdateIAassetRecordStatus_API result: ${result}`)
+
       //process.exit(0);
       //----------------==mint tokens
       const [is_sequentialMintSuper, isCorrectAmountArray, mesg_sequentialMintSuper] = await sequentialMintSuper(addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime).catch((err) => {
