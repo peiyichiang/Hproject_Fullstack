@@ -201,6 +201,88 @@ router.post('/assetbookContract', async function (req, res, next) {
         })
 });
 
+// http://localhost:3030/Contracts/assetbook/getAssetbookDetails
+router.get('/assetbook/getAssetbookDetails/:ctrtAddr', async function (req, res, next) {
+  const assetbookCtrtAddr = req.params.ctrtAddr;
+  console.log(`\nassetbookCtrtAddr: ${assetbookCtrtAddr}`);
+  if(isEmpty(assetbookCtrtAddr)){
+    res.send({
+      err: 'assetbookCtrtAddr is invalid. '+assetbookCtrtAddr,
+      status: false
+    });
+    return false;
+  }
+  const instAssetbook = new web3.eth.Contract(assetBookContract.abi, assetbookCtrtAddr);
+  const assetOwner = await instAssetbook.methods.assetOwner().call();
+  const endorserCount = await instAssetbook.methods.endorserCount().call();
+  const lastLoginTime = await instAssetbook.methods.lastLoginTime().call();
+  const antiPlatformOverrideDaysDefault = await instAssetbook.methods.antiPlatformOverrideDaysDefault().call();
+  const antiPlatformOverrideDays = await instAssetbook.methods.antiPlatformOverrideDays().call();
+  const assetOwner_flag = await instAssetbook.methods.assetOwner_flag().call();
+  const HeliumContract_flag = await instAssetbook.methods.HeliumContract_flag().call();
+  const endorsers_flag = await instAssetbook.methods.endorsers_flag().call();
+  const checkAssetOwner = await instAssetbook.methods.checkAssetOwner().call();
+  const checkCustomerService = await instAssetbook.methods.checkCustomerService().call();
+  const isAblePlatformOverride = await instAssetbook.methods.isAblePlatformOverride().call();
+  const assetCindex = await instAssetbook.methods.assetCindex().call();
+  const calculateVotes = await instAssetbook.methods.calculateVotes().call();
+
+  res.send({ assetOwner, endorserCount, lastLoginTime, antiPlatformOverrideDaysDefault, antiPlatformOverrideDays, assetOwner_flag, HeliumContract_flag, endorsers_flag, checkAssetOwner, checkCustomerService, isAblePlatformOverride, assetCindex, calculateVotes
+  });
+});
+
+router.post('/assetbook/endorsers', async function (req, res, next) {
+  const assetbookAddr = req.body.assetbookAddr;
+  const endorserIndex = req.body.endorserIndex;
+  console.log(`\nendorserIndex: ${endorserIndex}`);
+  if(isEmpty(endorserIndex)){
+    res.send({
+      err: 'endorserIndex is invalid. '+endorserIndex,
+      status: false
+    });
+    return false;
+  }
+  const instAssetbook = new web3.eth.Contract(assetBookContract.abi, assetbookAddr);
+  const endorserAddr = await instAssetbook.methods.endorsers(endorserIndex).call();
+
+  res.send({ endorserAddr });
+});
+
+router.post('/assetbook/checkIsContract', async function (req, res, next) {
+  const assetbookAddr = req.body.assetbookAddr;
+  const targetAddress = req.body.targetAddress;
+  console.log(`\ntargetAddress: ${targetAddress}`);
+  if(isEmpty(targetAddress)){
+    res.send({
+      err: 'targetAddress is invalid. '+targetAddress,
+      status: false
+    });
+    return false;
+  }
+  const instAssetbook = new web3.eth.Contract(assetBookContract.abi, assetbookAddr);
+  const isContract = await instAssetbook.methods.checkIsContract(targetAddress).call();
+
+  res.send({ isContract });
+});
+
+router.post('/assetbook/getAsset', async function (req, res, next) {
+  const assetbookAddr = req.body.assetbookAddr;
+  const assetIndex = req.body.assetIndex;
+  const tokenAddress = req.body.tokenAddress;
+  console.log(`\nassetbookAddr: ${assetbookAddr}, \nassetIndex: ${assetIndex}, tokenAddress: ${tokenAddress}`);
+  // if(isEmpty(tokenAddress && isEmpty(assetIndex))){
+  //   res.send({
+  //     err: 'assetIndex and tokenAddress are both invalid. '+tokenAddress,
+  //     status: false
+  //   });
+  //   return false;
+  // }
+  const instAssetbook = new web3.eth.Contract(assetBookContract.abi, assetbookAddr);
+  const assetInfo = await instAssetbook.methods.getAsset(assetIndex, tokenAddress).call();
+  const symbolStr = web3.utils.toAscii(assetInfo.symbol);
+  //console.log('>>', assetInfo.symbol, );
+  res.send({ assetInfo, symbolStr });
+});
 
 /**@dev CrowdFunding ------------------------------------------------------------------------------------- */
 /*deploy crowdFunding contract*/
