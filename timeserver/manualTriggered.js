@@ -13,7 +13,7 @@ const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calcul
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
-const { isEmpty, isNoneInteger, getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd} = require('./utilities');
+const { isEmpty, isNoneInteger, getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
 
 const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
 const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
@@ -1498,7 +1498,7 @@ const intergrationTestOfProduct = async() => {
   let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid;
   let acCFSD, acCFED, acTimeOfDeployment_CF;
   let output = '';
-  let nowTime = await getLocalTime();
+  let nowTime = 201909100800;
   var originalStderrWrite = process.stderr.write.bind(process.stderr);
   
   process.stderr.write = async (chunk, encoding, callback) => {
@@ -1521,9 +1521,9 @@ const intergrationTestOfProduct = async() => {
       acCFSD = CFSD;
       acCFED = CFED;
     }
-    acTimeOfDeployment_CF = await getLocalTime();
-    acCFSD = nowDateAddMinites(1)
-    acCFED = nowDateAddMinites(10)
+    acTimeOfDeployment_CF = nowTime;
+    acCFSD = nowTime + 1;
+    acCFED = nowTime + 10;
 
     console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacTimeOfDeployment_CF: ${acTimeOfDeployment_CF}, acCFSD: ${acCFSD}, acCFED: ${acCFED}`);
     const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium];
@@ -1708,7 +1708,7 @@ const intergrationTestOfProduct = async() => {
     const state = 'funding';
     let TimeReleaseDate;
     if(timeChoice === 1){
-      TimeReleaseDate = await getLocalTime();
+      TimeReleaseDate = nowTime;
     } else {
       TimeReleaseDate = TimeOfDeployment_HCAT;
     }
@@ -1754,23 +1754,23 @@ const intergrationTestOfProduct = async() => {
     if(acTimeTokenUnlock % 100 >= 59){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+1, acTimeTokenUnlock+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
-    if(acTimeTokenUnlock % 100 >= 57){
+    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, 201909100803, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+3, acTimeTokenUnlock+3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
-    if(acTimeTokenUnlock % 100 >= 55){
+    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, 201909100805, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+5, acTimeTokenUnlock+5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
-    if(acTimeTokenUnlock % 100 >= 53){
+    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, 201909100807, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+7, acTimeTokenUnlock+7, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
-    if(acTimeTokenUnlock % 100 >= 51){
+    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, 201909100809, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+9, acTimeTokenUnlock+9, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, 201909100811, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
     const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
@@ -1846,14 +1846,22 @@ const intergrationTestOfProduct = async() => {
   }
   const _calculateLastPeriodProfit_API = async () => {
     console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
-    let acAddAssetRecordTime = await getLocalTime() + 2;
-    if(acAddAssetRecordTime % 100 >= 60)
-      acAddAssetRecordTime += 100 - (acAddAssetRecordTime % 100);
-    const result = await calculateLastPeriodProfit(acAddAssetRecordTime).catch((err) => {
-      console.log('[Error @ calculateLastPeriodProfit]', err);
-      process.exit(1);
+    await asyncForEach([5, 7, 9, 11], async (item, idx) => {
+      
+      const result0 = await addActualPaymentTime(nowTime + item, nftSymbol, idx + 1).catch((err) => {
+        console.error('[Error @ addActualPaymentTime]', err);
+        process.exit(1);
+
+      })
+      console.log(`result: ${result0}`);
+
+      const result = await calculateLastPeriodProfit(nowTime + 20).catch((err) => {
+        console.log('[Error @ calculateLastPeriodProfit]', err);
+        process.exit(1);
+      });
+      console.log(`result: ${result}`);
+
     });
-    console.log(`result: ${result}`);
   }
   await _deployCrowdfundingContract_API();
   await _deployTokenControllerContract_API();

@@ -503,7 +503,7 @@ tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentSt
 }
 
 //-----------------------------==IncomeArrangement
-const addActualPaymentTime = (actualPaymentTime, symbol, payablePeriodEnd) => {
+const addActualPaymentTime = async(actualPaymentTime, symbol, payablePeriodEnd) => {
   return new Promise(async(resolve, reject) => {
     console.log('\n--------------==inside addActualPaymentTime(), actualPaymentTime:', actualPaymentTime);
     const queryStr = 'UPDATE income_arrangement SET ia_actualPaymentTime = ? WHERE ia_SYMBOL = ? AND ia_Payable_Period_End = ?';
@@ -512,7 +512,7 @@ const addActualPaymentTime = (actualPaymentTime, symbol, payablePeriodEnd) => {
       reject(err);
       return false;
     });
-    //console.log('result', result);
+    console.log('result', result);
     resolve(true);
   });
 }
