@@ -1498,7 +1498,7 @@ const intergrationTestOfProduct = async() => {
   let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid;
   let acCFSD, acCFED, acTimeOfDeployment_CF;
   let output = '';
-  let nowTime = await getLocalTime();
+  let nowTime = 201909100800;
   var originalStderrWrite = process.stderr.write.bind(process.stderr);
   
   process.stderr.write = async (chunk, encoding, callback) => {
@@ -1521,9 +1521,9 @@ const intergrationTestOfProduct = async() => {
       acCFSD = CFSD;
       acCFED = CFED;
     }
-    acTimeOfDeployment_CF = await getLocalTime();
-    acCFSD = nowDateAddMinites(1)
-    acCFED = nowDateAddMinites(10)
+    acTimeOfDeployment_CF = nowTime;
+    acCFSD = nowTime + 1;
+    acCFED = nowTime + 10;
 
     console.log(`nftSymbol: ${nftSymbol}, initialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, maxTotalSupply: ${maxTotalSupply} \nacTimeOfDeployment_CF: ${acTimeOfDeployment_CF}, acCFSD: ${acCFSD}, acCFED: ${acCFED}`);
     const argsCrowdFunding = [nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium];
@@ -1708,7 +1708,7 @@ const intergrationTestOfProduct = async() => {
     const state = 'funding';
     let TimeReleaseDate;
     if(timeChoice === 1){
-      TimeReleaseDate = await getLocalTime();
+      TimeReleaseDate = nowTime;
     } else {
       TimeReleaseDate = TimeOfDeployment_HCAT;
     }
@@ -1754,23 +1754,23 @@ const intergrationTestOfProduct = async() => {
     if(acTimeTokenUnlock % 100 >= 59){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+=1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, "ia_state_approved", 0);
+    const incomeArrangement1 = new incomeArrangementObject(nftSymbol, 201909100803, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+=2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement2 = new incomeArrangementObject(nftSymbol, 201909100805, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+=2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement3 = new incomeArrangementObject(nftSymbol, 201909100807, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+=2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement4 = new incomeArrangementObject(nftSymbol, 201909100809, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     if(acTimeTokenUnlock % 100 >= 58){
       acTimeTokenUnlock += 40
     }
-    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, acTimeTokenUnlock+=2, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
+    const incomeArrangement5 = new incomeArrangementObject(nftSymbol, 201909100811, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "ia_state_approved", 0);
     const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
     console.log('-----------------== add Income Arrangement rows from objects...');
     const result = await addIncomeArrangementRows(incomeArrangementArray).catch((err) => {
@@ -1846,16 +1846,16 @@ const intergrationTestOfProduct = async() => {
   }
   const _calculateLastPeriodProfit_API = async () => {
     console.log('\n------------------==inside calculateLastPeriodProfit_API()...');
-    await asyncForEach([1, 2, 3, 4], async (item, idx) => {
+    await asyncForEach([5, 7, 9, 11], async (item, idx) => {
       
-      const result0 = await addActualPaymentTime(acTimeTokenUnlock - 2 * (3 - idx), nftSymbol, item).catch((err) => {
+      const result0 = await addActualPaymentTime(nowTime + item, nftSymbol, idx + 1).catch((err) => {
         console.error('[Error @ addActualPaymentTime]', err);
         process.exit(1);
 
       })
       console.log(`result: ${result0}`);
 
-      const result = await calculateLastPeriodProfit(acTimeTokenUnlock).catch((err) => {
+      const result = await calculateLastPeriodProfit(nowTime + 20).catch((err) => {
         console.log('[Error @ calculateLastPeriodProfit]', err);
         process.exit(1);
       });
