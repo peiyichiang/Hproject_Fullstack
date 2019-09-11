@@ -32,7 +32,7 @@ router.post('/AddOrder', async function (req, res, next) {
     const nationalIdLast5 = nationalId.toString().slice(-5);
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
-    const email = "kappaho@mail2.nccu.tw";//req.body.email;
+    const email = req.body.email;
     const tokenCount = req.body.tokenCount;
     const fundCount = req.body.fundCount
     let userName;
