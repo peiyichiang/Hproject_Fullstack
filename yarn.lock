@@ -3132,6 +3132,11 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
+fs@0.0.1-security:
+  version "0.0.1-security"
+  resolved "https://registry.yarnpkg.com/fs/-/fs-0.0.1-security.tgz#8a7bd37186b6dddf3813f23858b57ecaaf5e41d4"
+  integrity sha1-invTcYa23d84E/I4WLV+yq9eQdQ=
+
 fsevents@^1.2.7:
   version "1.2.9"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-1.2.9.tgz#3f5ed66583ccd6f400b5a00db6f7e861363e388f"
@@ -3496,6 +3501,13 @@ https@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/https/-/https-1.0.0.tgz#3c37c7ae1a8eeb966904a2ad1e975a194b7ed3a4"
   integrity sha1-PDfHrhqO65ZpBKKtHpdaGUt+06Q=
+
+iconv-lite@*:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.5.0.tgz#59cdde0a2a297cc2aeb0c6445a195ee89f127550"
+  integrity sha512-NnEhI9hIEKHOzJ4f697DMz9IQEXr/MMJ5w64vN2/4Ai+wRnvV7SBrL0KLoRlwaKVghOc7LQ5YkPLuX146b6Ydw==
+  dependencies:
+    safer-buffer ">= 2.1.2 < 3"
 
 iconv-lite@0.4.23:
   version "0.4.23"
@@ -4195,6 +4207,18 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
+line-reader@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/line-reader/-/line-reader-0.4.0.tgz#17e44818da0ac335675ba300954f94ef670e66fd"
+  integrity sha1-F+RIGNoKwzVnW6MAlU+U72cOZv0=
+
+linereader@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/linereader/-/linereader-1.1.0.tgz#60180d65823214bc38868de5b1ec901dc88fa990"
+  integrity sha1-YBgNZYIyFLw4ho3lseyQHciPqZA=
+  dependencies:
+    iconv-lite "*"
+
 load-json-file@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"
@@ -4757,6 +4781,11 @@ node-fetch@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.1.2.tgz#ab884e8e7e57e38a944753cec706f788d1768bb5"
   integrity sha1-q4hOjn5X44qUR1POxwb3iNF2i7U=
+
+node-fetch@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
+  integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
 
 node-fetch@~1.7.1:
   version "1.7.3"

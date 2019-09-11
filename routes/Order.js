@@ -40,7 +40,7 @@ router.post('/AddOrder', async function (req, res, next) {
     /* TODO */
     function getBankVirtualAccount() {
         return new Promise((resolve, reject) => {
-            fetch('http://localhost:3030/Payment/virtualAccount', {
+            fetch(`${process.env.SERVER_PROTOCOL}://${process.env.SERVER_HOST}:3030/Payment/virtualAccount`, {
                 method: 'POST',
                 body: JSON.stringify({
                     o_id: orderId,
