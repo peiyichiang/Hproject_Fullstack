@@ -223,7 +223,7 @@
                 <td>
                     <%if (data[i].p_csvFIle != null && data[i].p_csvFIle !="") { %>
                     <a target="_blank"
-                        href=<a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_csvFIle.replace('public','')  %>">CSV</a>
+                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_csvFIle.replace('public','')  %>">CSV</a>
                     <% } %>
                 </td>
                 <td>
