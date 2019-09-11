@@ -259,7 +259,7 @@
     
     const showMessage = (messageTxt) => {
       let mesgFinal = '';
-      if(messageTxt.length > 0) {
+      if(messageTxt !== undefined && messageTxt.length > 0) {
         if(messageTxt.substring(0,2) === ', ') {
           console.log('>> removing first two char');
           mesgFinal = messageTxt.slice(2);
@@ -313,7 +313,10 @@
 
         const json = await response.json();
         console.log('json', json);
-        ({isGoodAssetbook, assetbookX, resultMesg} = json);
+        isGoodAssetbook = json.isGoodAssetbook;
+        assetbookX = json.assetbookX;
+        resultMesg = json.resultMesg;
+
         console.log(`----------==isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nresultMesg: ${resultMesg}`);
         if(isGoodAssetbook){
           assetbookAddr = assetbookX;
@@ -334,7 +337,10 @@
         const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
         const json = await response.json();
         console.log('json', json);
-        ({isGoodAssetbook, assetbookX, resultMesg} = json);
+        isGoodAssetbook = json.isGoodAssetbook;
+        assetbookX = json.assetbookX;
+        resultMesg = json.resultMesg;
+
         console.log(`----------==isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nresultMesg: ${resultMesg}`);
         if(isGoodAssetbook){
           assetbookAddr = assetbookX;
@@ -412,7 +418,10 @@
           const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
           const json = await response.json();
           console.log('json', json);
-          ({ isGoodCtrtAddr, ctrtAddr, resultMesg} = json);
+          isGoodCtrtAddr = json.isGoodAssetbook;
+          ctrtAddr = json.ctrtAddr;
+          resultMesg = json.resultMesg;
+
           console.log(`isGoodCtrtAddr: ${isGoodCtrtAddr}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
 
         } else {
@@ -444,7 +453,6 @@
       }
       console.log(`check1----==isGoodCtrtAddr: ${isGoodCtrtAddr}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
-
       /*
       if( (funcName === 'isOwnerAdded' || funcName === 'getAccount' || funcName === 'balanceOf' || funcName === 'getTokenIdByIndex'|| funcName === 'getAccountIds' || funcName === 'allowance') && is_assetbookAddr_empty){
       }*/
@@ -462,35 +470,56 @@
         console.warn(mesgAssetbook);
       }
 
-      if((funcName === 'idToAsset' || funcName === 'ownerOf') && is_tokenId_empty){
-        tokenId = 1;
-        mesg += ', tokenId is found empty. Using default value: '+ tokenId;
-        console.warn(mesg);
-      } else {
-        tokenId = tokenId_input;
+      if(funcName === 'idToAsset' || funcName === 'ownerOf'){
+        if(is_tokenId_empty){
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            tokenId = 1;
+            mesg += ', tokenId is found empty. Using default value: '+ tokenId;
+          } else {
+            mesg += ', tokenId is found empty.';
+          }
+        } else {
+          tokenId = tokenId_input;
+        }
       }
 
-
-      if((funcName === 'idxToOwner') && is_ownerIndex_empty){
-        ownerIndex = 1;
-        mesg += ', ownerIndex is found empty. Using default value: '+ ownerIndex;
-        console.warn(mesg);
-      } else {
-        ownerIndex = ownerIndex_input;
+      if(funcName === 'idxToOwner'){
+        if(is_ownerIndex_empty){
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            ownerIndex = 1;
+            mesg += ', ownerIndex is found empty. Using default value: '+ ownerIndex;
+          } else {
+            mesg += ', ownerIndex is found empty.';
+          }
+        } else {
+          ownerIndex = ownerIndex_input;
+        }
       }
 
-      if((funcName === 'getOwnersByOwnerIndex' || funcName === 'getAccountIds') && is_startIndex2_empty){
-        startIndex2 = 0;
-        mesg += ', startIndex2 is found empty. Using default value: '+ startIndex2;
-        console.warn(mesg);
+      if(funcName === 'getOwnersByOwnerIndex' || funcName === 'getAccountIds'){
+        if(is_startIndex2_empty){
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            startIndex2 = 0;
+            mesg += ', startIndex2 is found empty. Using default value: '+ startIndex2;
+          } else {
+            mesg += ', startIndex2 is found empty.';
+          }
       } else {
         startIndex2 = startIndex2_input;
       }
 
-      if((funcName === 'getTokenIdByIndex') && is_tokenIdAccountIndex_empty){//TokenId Account Index
-        tokenIdAccountIndex = 1;
-        mesg += ', tokenIdAccountIndex is found empty. Using default value: '+ tokenIdAccountIndex;
-        console.warn(mesg);
+      if(funcName === 'getTokenIdByIndex') {
+        if(is_tokenIdAccountIndex_empty){//TokenId Account Index
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            tokenIdAccountIndex = 1;
+            mesg += ', tokenIdAccountIndex is found empty. Using default value: '+ tokenIdAccountIndex;
+          } else {
+            mesg += ', tokenIdAccountIndex is found empty.';
+          }
       } else {
         tokenIdAccountIndex = parseInt(tokenIdAccountIndex_input);
       }
@@ -505,20 +534,28 @@
         mesg += mesgAssetbook;
 
         if(is_amount2_empty){
-          amount2 = 0; mesg += ', amount2 is found empty. Using default value: '+ amount2;
-          console.warn(mesg);
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            amount2 = 0; mesg += ', amount2 is found empty. Using default value: '+ amount2;
+          } else {
+            mesg += ', amount2 is found empty.';
+          }
         } else {
           amount2 = amount2_input;
         }
       }
 
-      if((funcName === 'getAccountIds')){
+      if(funcName === 'getAccountIds'){
         [isGoodAssetbook, assetbookAddr, mesgAssetbook] = await checkAssetbook(identityNumber_input, email_input, assetbookAddr_input);
         mesg += mesgAssetbook;
 
         if(is_amount1_empty){
-          amount1 = 10; mesg += ', amount1 is found empty. Using default value: '+ amount1;
-          console.warn(mesg);
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            amount1 = 10; mesg += ', amount1 is found empty. Using default value: '+ amount1;
+          } else {
+            mesg += ', amount1 is found empty.';
+          }
         } else {
           amount1 = amount1_input;
         }
@@ -530,13 +567,18 @@
         console.warn(mesg);
       }
         
-      if((funcName === 'allowance' || funcName === 'checkTokenApprove' || funcName === 'tokenApprove') && is_operatorAddr_empty){
-        [isGoodAssetbook, assetbookAddr, mesgAssetbook] = await checkAssetbook(identityNumber_input, email_input, assetbookAddr_input);
-        mesg += mesgAssetbook;
+      if(funcName === 'allowance' || funcName === 'checkTokenApprove' || funcName === 'tokenApprove') {
+        if(is_operatorAddr_empty){
+          [isGoodAssetbook, assetbookAddr, mesgAssetbook] = await checkAssetbook(identityNumber_input, email_input, assetbookAddr_input);
+          mesg += mesgAssetbook;
 
-        operatorAddr = '0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734';
-        mesg += ', operator is found empty. Using default value: '+ operatorAddr;
-        console.warn(mesg);
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            operatorAddr = '0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734';
+            mesg += ', operator is found empty. Using default value: '+ operatorAddr;
+          } else {
+            mesg += ', operator is found empty.';
+          }
       } else {
         operatorAddr = operatorAddr_input;
       }

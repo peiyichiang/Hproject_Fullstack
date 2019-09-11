@@ -173,6 +173,28 @@ router.get('/registryContract/users/:u_id', async function (req, res, next) {
     })
 });
 
+router.post('/registryContract/getUserFromUid/:uid', async function (req, res, next) {
+  const uid = req.body.uid;
+  const registryCtrtAddr = req.body.registryCtrtAddr;
+  console.log(`\nuid: ${uid}, registryCtrtAddr: ${registryCtrtAddr}`);
+  if(isEmpty(uid)){
+    res.send({
+      err: 'uid is invalid. '+uid,
+      status: false
+    });
+    return false;
+  }
+  const instAssetbook = new web3.eth.Contract(registryContract.abi, assetbookAddr);
+  const isContract = await instAssetbook.methods.getUserFromUid(uid).call();
+
+  res.send({ isContract });
+});
+
+
+
+
+
+
 
 /**@dev AssetBook ------------------------------------------------------------------------------------- */
 /*deploy assetbook contract*/
@@ -1004,7 +1026,7 @@ router.post('/crowdfunding/idxToOwner', async function (req, res, next) {
   const crowdfundingCtrtAddr = req.body.ctrtAddr;
   const index = parseInt(req.body.index);
   console.log(`\ncrowdfundingCtrtAddr: ${crowdfundingCtrtAddr}, index: ${index} ${typeof index}`);
-  if(index < 0 || isNaN(index)|| idEmpty(crowdfundingCtrtAddr)){
+  if(index < 0 || isNaN(index)|| isEmpty(crowdfundingCtrtAddr)){
     res.send({
       err: 'index or contract addr is invalid',
       status: false,

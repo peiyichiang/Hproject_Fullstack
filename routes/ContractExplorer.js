@@ -23,5 +23,8 @@ router.get('/assetbook', function (req, res, next) {
   res.render('assetbook', {contractType: 'Assetbook'});
 });
 
+router.get('/registry', function (req, res, next) {
+  res.render('registry', {contractType: 'Registry'});
+});
 
 module.exports = router;

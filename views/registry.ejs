@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+  <link rel="stylesheet" href="/css/ContractExplorer.css">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="">
+  <link rel="stylesheet" href="/css/ctrtInterfaceStyles.css">
+  <title>HeliumCryptic Smart Contract Explorer</title>
+</head>
+
+<body>
+  <div class="container" style="max-width: inherit; margin: 15px;">
+    <h2>HeliumCryptic Smart Contract Explorer</h2>
+
+    <div class="alert alert-warning alert-dismissible collapse"  id="alertInputs" role="alert">
+      <button type="button" class="close" data-dismiss="alert">x</button>
+      <strong>Success! </strong> Product have added to your wishlist.
+    </div>
+
+    <div class="" id="mesgDiv" style="margin: 15px;">
+      <div class="card card-body d-none" id="mesg" style="background-color: #ffea00;"></div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <h5><%= contractType %> Contract:</h5>
+        <!--
+           style="color: rgb(255, 255, 255); background-color: rgb(50, 118, 177); border-color: rgb(40, 94, 142);"
+        -->
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Must enter Registry Contract Address !">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Registry Contract Address</span>
+          </div>
+          <input type="text" class="form-control" placeholder="Registry Contract Address" aria-label="registryCtrtAddr" id="registryCtrtAddr" aria-describedby="registryCtrtAddr">
+        </div>
+
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Must enter either ID Number or Assetbook contract address!">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="">Owner Identity Number</span>
+            </div>
+            <input type="text" class="form-control" placeholder="owner identity number" aria-label="identityNumber" id="identityNumber" aria-describedby="identityNumber">
+        </div>
+        <button type="button" id="getUserFromUid" class="btn btn-primary">Get assetbook from uid</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
+
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Must enter either ID Number or Assetbook contract address!">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Owner Assetbook Address</span>
+          </div>
+          <input type="text" class="form-control" placeholder="assetbook address" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
+        </div>
+        <button type="button" id="getUserFromAssetbook" class="btn btn-primary">Get assetbook from uid</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
+
+
+        <!-- --------uidString--------------- -->
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Enter CountryCode 2 characters + User ID Number!">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">uidString</span>
+          </div>
+          <input type="text" class="form-control" placeholder="uidString" aria-label="uidString" id="uidString" aria-describedby="uidString">
+        </div>
+        <button type="button" id="checkIsContract" class="btn btn-primary">uidString</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
+
+        <!-- -------- restrictionIndex --------------- -->
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="enter restriction index">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Restriction Index</span>
+          </div>
+          <input type="text" class="form-control" placeholder="restriction index" aria-label="restrictionIndex" id="restrictionIndex" aria-describedby="restrictionIndex">
+        </div>
+
+        <button type="button" id="endorsers" class="btn btn-primary">Get Restriction Details from restriction index</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
+
+
+        <!-- -------- getAsset  ---------------------------- -->
+        <!-- -------- assetIndexToAddr check --------------- -->
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Enter a assetbook address!">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">assetbookAddr</span>
+          </div>
+          <input type="text" class="form-control" placeholder="assetbookAddr" aria-label="assetbookAddr" id="assetbookAddr3" aria-describedby="assetbookAddr">
+        </div>
+        
+        <button type="button" id="getAsset" class="btn btn-primary">Check asset details from token address</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
+
+
+        <!-- -------------------------------  -->
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Enter buyAmount">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">buyAmount</span>
+          </div>
+          <input type="text" class="form-control" placeholder="buyAmount" aria-label="buyAmount" id="buyAmount" aria-describedby="buyAmount">
+        </div>
+
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Enter balance">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">balance</span>
+          </div>
+          <input type="text" class="form-control" placeholder="balance" aria-label="balance" id="balance" aria-describedby="balance">
+        </div>
+
+        <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Enter fundingType">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">fundingType</span>
+          </div>
+          <input type="text" class="form-control" placeholder="fundingType" aria-label="fundingType" id="fundingType" aria-describedby="fundingType">
+        </div>
+
+
+
+      </div>
+
+      <div class="col">
+        <h5>Result</h5>
+        symbol: <span id="symbolM"></span><br>
+        name: <span id="name"></span><br>
+        
+        <br>
+        assetbookAddr: <span id="assetbookAddrM"></span><br>
+        assetOwner: <span id="assetOwnerM"></span><br>
+        endorserCount: <span id="endorserCountM"></span><br>
+        lastLoginTime: <span id="lastLoginTimeM"></span><br>
+        antiPlatformOverrideDaysDefault: <span id="antiPlatformOverrideDaysDefaultM"></span><br>
+        antiPlatformOverrideDays: <span id="antiPlatformOverrideDaysM"></span><br>
+        assetOwner_flag: <span id="assetOwner_flagM"></span><br>
+        HeliumContract_flag: <span id="HeliumContract_flagM"></span><br>
+        endorsers_flag: <span id="endorsers_flagM"></span><br>
+        checkAssetOwner: <span id="checkAssetOwnerM"></span><br>
+        checkCustomerService: <span id="checkCustomerServiceM"></span><br>
+        isAblePlatformOverride: <span id="isAblePlatformOverrideM"></span><br>
+        endorserAddr: <span id="endorserAddrM"></span><br>
+        isContract: <span id="isContractM"></span><br>
+
+        assetIndex_: <span id="assetIndex_"></span><br>
+        assetAddr_: <span id="assetAddr_"></span><br>
+        balance: <span id="balance"></span><br>
+        symbolStr: <span id="symbolStr"></span><br>
+
+        assetCindex: <span id="assetCindexM"></span><br>
+        calculateVotes: <span id="calculateVotesM"></span><br>
+
+        error message: <span id="errorMessageM"></span><br>
+      </div>
+    </div>
+  </div>
+  <!-- Optional JavaScript
+
+  -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <!--
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+  <script>
+    // http://localhost:3030/ContractExplorer/assetbook
+    // $(document).ready(function() {
+    //   $("#alertInputs").hide();
+    // });
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
+
+    const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
+    //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
+    const contractType = 'assetbook';
+    console.log('BcApiBase:', BcApiBase, ', contractType:', contractType);
+
+    const isEmpty = value => 
+      value === undefined ||
+      value === null ||
+      (typeof value === 'object' && Object.keys(value).length === 0) ||
+      (typeof value === 'string' && value.trim().length === 0);
+    
+    
+    const showMessage = (messageTxt) => {
+      let mesgFinal = '';
+      if(messageTxt !== undefined && messageTxt.length > 0) {
+        if(messageTxt.substring(0,2) === ', ') {
+          console.log('>> removing first two char');
+          mesgFinal = messageTxt.slice(2);
+        } else {
+          mesgFinal = messageTxt;
+          console.log('>> not removing first two char');
+        }
+        console.log('mesgFinal:', mesgFinal);
+
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").removeClass('d-none');
+      } else {
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").addClass('d-none');
+      }
+      document.getElementById("errorMessageM").innerText = mesgFinal;
+      
+    }
+
+    const addrZero = "0x0000000000000000000000000000000000000000";
+
+    const checkAssetbook = async(registryCtrtAddr_input, identityNumber_input, email_input, assetbookAddr_input) => {
+      let mesg = '', mesgAssetbook = '', mesgAPI, isGood_registryCtrtAddr;
+      const is_registryCtrtAddr_empty = isEmpty(registryCtrtAddr_input);
+      const is_identityNumber_empty = isEmpty(identityNumber_input);
+      const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
+      const has0x = assetbookAddr_input.substring(0, 2) === '0x';
+
+      console.log(`checkAssetbook[1] is_assetbookAddr_empty: ${is_assetbookAddr_empty}, is_identityNumber_empty: ${is_identityNumber_empty}, \n assetbookAddr_input.length: ${assetbookAddr_input.length}, does assetbookAddr_input have 0x: ${has0x}`);
+
+      if(!is_registryCtrtAddr_empty){
+        if(registryCtrtAddr_input.length === 42){
+          if(has0x){
+            isGood_registryCtrtAddr = true;
+            registryCtrtAddr = registryCtrtAddr_input;
+            console.log(`registryCtrtAddr has been entered correctly: registryCtrtAddr = ${registryCtrtAddr}`);
+          } else {
+            mesg += ', Registry contract address should start with 0x';
+          }
+        } else {
+          mesg += ', tokenSymbol should have length of 42';
+        }
+
+        const url = BcApiBase+`registryContract`;
+        console.log('about to get Registry ... url:', url);
+
+        const response = await fetch(url).catch(error => console.error('[Error]:', error));
+        const json = await response.json();
+        console.log('json', json);
+        
+        ({isGoodAssetbook, assetbookX, mesgAPI} = json);
+        console.log(`----------==\nFound assetbook from registryCtrtAddr \nisGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nmesgAPI: ${mesgAPI}`);
+        if(isGoodAssetbook){
+          registryCtrtAddr = assetbookX;
+          registryCtrtAddr = registryCtrtAddr_input;
+        } else {
+          mesg += ', failed at getting registryCtrtAddr from the identity number: '+registryCtrtAddr_input;
+        }
+      }
+
+      if(!is_assetbookAddr_empty){
+        if(assetbookAddr_input.length === 42){
+          if(has0x){
+            isGoodAssetbook = true;
+            assetbookAddr = assetbookAddr_input;
+            console.log(`assetbookAddr has been entered correctly: assetbookAddr = ${assetbookAddr}`);
+          } else {
+            mesg += ', Assetbook contract address should start with 0x';
+          }
+        } else {
+          mesg += ', tokenSymbol should have length of 42';
+        }
+      } else if(!is_identityNumber_empty){
+        const url = BcApiBase+`getAssetbookFromIdentityNumber`;
+        console.log('about to get assetbook ... url:', url);
+        const data = {identityNumber: identityNumber_input};
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
+
+        const json = await response.json();
+        console.log('json', json);
+        ({isGoodAssetbook, assetbookX, mesgAPI} = json);
+        console.log(`----------==\nFound assetbook from identityNumber \nisGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nmesgAPI: ${mesgAPI}`);
+        if(isGoodAssetbook){
+          assetbookAddr = assetbookX;
+          identityNumber = identityNumber_input;
+        } else {
+          mesg += ', failed at getting assetbookAddr from the identity number: '+identityNumber_input;
+        }
+
+      } else {
+        mesg += ', At least one of assetbookAddr, identityNumber, should be valid';
+        //console.warn(mesg);
+
+        const isGivingDefault = 1;
+        if(isGivingDefault === 1) {
+          assetbookAddr = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
+          mesg += ', assetbookAddr is empty. Using default value: assetbookAddr = '+assetbookAddr;
+          isGoodAssetbook = true;
+        } else {
+          mesg += ', assetbookAddr is empty';
+        }
+      }
+      if(mesg.substring(0,2) === ', ') {
+          console.log('>> removing first two char');
+          mesgAssetbook = mesg.slice(2);
+      }
+      return [registryCtrtAddr, isGoodAssetbook, assetbookAddr, mesgAssetbook];
+    }
+
+
+    const checkInputs = async(funcName) => {
+      console.log(`inside checkInputs()...`);
+      let tokenSymbol_input, ctrtAddr_input, ownerIndex_input, startIndex_input, amount_input, mesg = '', isGoodAssetbook, assetbookX, assetbookAddr, assetbookAddr_input, assetbookAddr2, assetbookAddr2_input,operatorAddr, tokenId, ownerIndex, startIndex, amount, identityNumber, email, endorserIndex_input;
+
+      
+      registryCtrtAddr_input = document.getElementById("registryCtrtAddr").value;
+      assetbookAddr_input = document.getElementById("assetbookAddr").value;
+      identityNumber_input = document.getElementById("identityNumber").value;
+      //assetbookAddr2_input = document.getElementById("assetbookAddr2").value;
+      //assetIndex_input = document.getElementById("assetIndex").value;
+
+      const is_identityNumber_empty = isEmpty(identityNumber_input);
+      const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
+      const is_assetbookAddr2_empty = isEmpty(assetbookAddr2_input);
+      //const is_assetIndex_empty = isEmpty(assetIndex_input);
+
+      console.log(`\nidentityNumber_input: ${identityNumber_input}, \nassetbookAddr_input: ${assetbookAddr_input}, \nassetbookAddr2_input: ${assetbookAddr2_input}`);
+
+      const email_input = '';
+      [registryCtrtAddr, isGoodAssetbook, assetbookAddr, mesgAssetbook] = await checkAssetbook(registryCtrtAddr_input, identityNumber_input, email_input, assetbookAddr_input);
+      console.warn(mesgAssetbook);
+
+      console.log(`----------==After checkAssetbook \nisGoodAssetbook: ${isGoodAssetbook}, assetbookAddr: ${assetbookAddr}}`);
+
+      if((funcName === 'getUserFromUid')){
+        if(is_identityNumber_empty){
+          identityNumber = 'R999777001';
+          mesg += ', identityNumber is found empty. Using default value: '+ identityNumber;
+          console.warn(mesg);
+        } else {
+          identityNumber = identityNumber_input;
+        }
+
+      } else if(funcName === 'getUserFromAssetbook'){
+        if(isGoodAssetbook){
+
+        } else {
+          assetbookAddr = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
+          mesg += ', assetbookAddr is found empty. Using default value: '+ assetbookAddr;
+          console.warn(mesg);
+        }
+
+      } else {
+        console.log('funcName is out of range!');
+      }
+      if(mesg) {showMessage(mesg);}
+
+      return [identityNumber, isGoodAssetbook, assetbookAddr];
+    }
+
+    
+
+    $('#getUserFromUid').on('click',  async function (e) {
+      console.log('inside getUserFromUid function... \ne.target:', e.target);
+      const [identityNumber, isGoodAssetbook, assetbookAddr] = await checkInputs('getUserFromUid');
+
+      const url = BcApiBase+`assetbook/getUserFromUid`;
+      // http://localhost:3030/Contracts/assetbook/getUserFromUid/
+      const data = { assetbookAddr};
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("endorserAddrM").innerText = jsonObj['endorserAddr'];
+    });
+
+    $('#checkIsContract').on('click',  async function (e) {
+      console.log('inside checkIsContract function... \ne.target:', e.target);
+      const [identityNumber, isGoodAssetbook, assetbookAddr] = await checkInputs('checkIsContract');
+
+      const url = BcApiBase+`assetbook/checkIsContract`;
+      // http://localhost:3030/Contracts/assetbook/checkIsContract/
+      const data = { assetbookAddr, targetAddress };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("isContractM").innerText = jsonObj['isContract'];
+    });
+    
+
+    $('#getAsset').on('click',  async function (e) {
+      console.log('inside getAsset function... \ne.target:', e.target);
+      const [identityNumber, isGoodAssetbook, assetbookAddr] = await checkInputs('getAsset');
+
+      const url = BcApiBase+`assetbook/getAsset`;
+      // http://localhost:3030/Contracts/assetbook/getAsset/
+      const data = { assetbookAddr, assetIndex, tokenAddress };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      const {assetIndex_, assetAddr_, symbol, balance} = jsonObj['assetInfo'];
+      const symbolStr = jsonObj.symbolStr.trim();
+      console.log(`assetIndex_: ${assetIndex_}, assetAddr_: ${assetAddr_}, symbol: ${symbol}, balance: ${balance}, symbolStr: ${symbolStr}`);
+
+      document.getElementById("assetIndex_").innerText = assetIndex_;
+      document.getElementById("assetAddr_").innerText = assetAddr_;
+      document.getElementById("balance").innerText = balance;
+      document.getElementById("symbolStr").innerText = symbolStr;
+
+    });
+  /* idToAsset (get Owner Address from tokenId), isOwnerAdded
+idxToOwner   ownerCindex    ownerOf   getOwnersByOwnerIndex
+getAccount   balanceOf      getTokenIdByIndex
+getAccountIds   allowance    checkTokenApprove    ckStringLength
+*/
+  </script>
+
+</body>
+
+</html>
+<!--
+  http://localhost:3030/ContractExplorer/assetbook
+
+-->

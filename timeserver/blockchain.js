@@ -1678,7 +1678,12 @@ const mintSequentialPerContract = async(symbol, serverTime, maxMintAmountPerRun)
       });
       console.log(`\nreturned values from doAssetRecords(): is_doAssetRecords: ${is_doAssetRecords}, mesg_doAssetRecords: ${mesg_doAssetRecords}, \nemailArrayError: ${emailArrayError}, \namountArrayError: ${amountArrayError}, \nis_addActualPaymentTime: ${is_addActualPaymentTime}, \nis_setFundingStateDB: ${is_setFundingStateDB}`);
   
-      const result = await updateIAassetRecordStatus(symbol);
+      const result = await updateIAassetRecordStatus(symbol).catch((err) => {
+        mesg = `[Error @ updateIAassetRecordStatus]: ${err}`;
+        console.error(mesg);
+        reject(mesg);
+        return false;
+      });
       console.log(`\nupdateIAassetRecordStatus_API result: ${result}`)
 
       //process.exit(0);

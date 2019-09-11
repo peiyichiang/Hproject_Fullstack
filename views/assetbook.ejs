@@ -29,24 +29,26 @@
     <div class="row">
       <div class="col">
         <h5><%= contractType %> Contract:</h5>
-
+        <!--
+           style="color: rgb(255, 255, 255); background-color: rgb(50, 118, 177); border-color: rgb(40, 94, 142);"
+        -->
         <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Must enter either ID Number or Email or Assetbook contract address!">
             <div class="input-group-prepend">
-              <span class="input-group-text" id="" style="color: rgb(255, 255, 255); background-color: rgb(50, 118, 177); border-color: rgb(40, 94, 142);">Owner Identity Number</span>
+              <span class="input-group-text" id="">Owner Identity Number</span>
             </div>
             <input type="text" class="form-control" placeholder="owner identity number" aria-label="identityNumber" id="identityNumber" aria-describedby="identityNumber">
         </div>
 
         <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Must enter either ID Number or Email or Assetbook contract address!">
           <div class="input-group-prepend">
-            <span class="input-group-text" id="" style="color: rgb(255, 255, 255); background-color: rgb(50, 118, 177); border-color: rgb(40, 94, 142);">Owner Email</span>
+            <span class="input-group-text" id="">Owner Email</span>
           </div>
           <input type="text" class="form-control" placeholder="owner email" aria-label="email" id="email" aria-describedby="email">
         </div>
 
         <div class="input-group mb-3" data-toggle="tooltip" data-placement="top" title="Must enter either ID Number or Email or Assetbook contract address!">
           <div class="input-group-prepend">
-            <span class="input-group-text" id="" style="color: rgb(255, 255, 255); background-color: rgb(50, 118, 177); border-color: rgb(40, 94, 142);">Owner Assetbook Address</span>
+            <span class="input-group-text" id="">Owner Assetbook Address</span>
           </div>
           <input type="text" class="form-control" placeholder="owner assetbook address" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
         </div>
@@ -113,18 +115,6 @@
         </div>
 
 
-        <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
-
-          <button type="button" id="getAccount" class="btn btn-primary">getAccount (Get account details from assetbook address)</button>
-
-          <button type="button" id="getAccountIds" class="btn btn-primary">getAccountIds (Get all the tokenIds inside an account)</button>
-          <button type="button" id="allowance" class="btn btn-primary">allowance (Get the allowance amount given from one account to another)</button>
-          
-          <button type="button" id="checkTokenApprove" class="btn btn-primary">checkTokenApprove (Check if this token Id has been approved)</button>
-          <button type="button" id="tokenApprove" class="btn btn-primary">tokenApprove (approve an account as an operator acting as an representitive)</button>
-
-        </div>
-
       </div>
 
       <div class="col">
@@ -133,6 +123,7 @@
         name: <span id="name"></span><br>
         
         <br>
+        assetbookAddr: <span id="assetbookAddrM"></span><br>
         assetOwner: <span id="assetOwnerM"></span><br>
         endorserCount: <span id="endorserCountM"></span><br>
         lastLoginTime: <span id="lastLoginTimeM"></span><br>
@@ -194,7 +185,7 @@
     
     const showMessage = (messageTxt) => {
       let mesgFinal = '';
-      if(messageTxt.length > 0) {
+      if(messageTxt !== undefined && messageTxt.length > 0) {
         if(messageTxt.substring(0,2) === ', ') {
           console.log('>> removing first two char');
           mesgFinal = messageTxt.slice(2);
@@ -223,7 +214,7 @@
       const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
       const has0x = assetbookAddr_input.substring(0, 2) === '0x';
 
-      console.log(`is_assetbookAddr_empty: ${is_assetbookAddr_empty}, is_identityNumber_empty: ${is_identityNumber_empty}, is_email_empty: ${is_email_empty} \n assetbookAddr_input.length: ${assetbookAddr_input.length}, does assetbookAddr_input have 0x: ${has0x}`);
+      console.log(`checkAssetbook[1] is_assetbookAddr_empty: ${is_assetbookAddr_empty}, is_identityNumber_empty: ${is_identityNumber_empty}, is_email_empty: ${is_email_empty} \n assetbookAddr_input.length: ${assetbookAddr_input.length}, does assetbookAddr_input have 0x: ${has0x}`);
 
       if(!is_assetbookAddr_empty){
         if(assetbookAddr_input.length === 42){
@@ -250,8 +241,11 @@
 
         const json = await response.json();
         console.log('json', json);
-        ({isGoodAssetbook, assetbookX, resultMesg} = json);
-        console.log(`----------==isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nresultMesg: ${resultMesg}`);
+        isGoodAssetbook = json.isGoodAssetbook;
+        assetbookX = json.assetbookX;
+        resultMesg = json.resultMesg;
+
+        console.log(`----------==\nFound assetbook from identityNumber \nisGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nresultMesg: ${resultMesg}`);
         if(isGoodAssetbook){
           assetbookAddr = assetbookX;
           identityNumber = identityNumber_input;
@@ -271,8 +265,11 @@
         const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
         const json = await response.json();
         console.log('json', json);
-        ({isGoodAssetbook, assetbookX, resultMesg} = json);
-        console.log(`----------==isGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nresultMesg: ${resultMesg}`);
+        isGoodAssetbook = json.isGoodAssetbook;
+        assetbookX = json.assetbookX;
+        resultMesg = json.resultMesg;
+
+        console.log(`----------==\nFound assetbook from email address \nisGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nresultMesg: ${resultMesg}`);
         if(isGoodAssetbook){
           assetbookAddr = assetbookX;
           email = email_input;
@@ -334,7 +331,7 @@
       [isGoodAssetbook, assetbookAddr, mesgAssetbook] = await checkAssetbook(identityNumber_input, email_input, assetbookAddr_input);
       console.warn(mesgAssetbook);
 
-      console.log(`----==isGoodAssetbook: ${isGoodAssetbook}, assetbookAddr: ${assetbookAddr}, \nresultMesg: ${resultMesg}`);
+      console.log(`----------==After checkAssetbook \nisGoodAssetbook: ${isGoodAssetbook}, assetbookAddr: ${assetbookAddr}, \nresultMesg: ${resultMesg}`);
 
       if((funcName === 'getAssetbookDetails')){
 
@@ -399,6 +396,7 @@
       console.log(`assetOwner: ${assetOwner}, \nendorserCount: ${endorserCount}, lastLoginTime: ${lastLoginTime}, antiPlatformOverrideDaysDefault: ${antiPlatformOverrideDaysDefault}, antiPlatformOverrideDays: ${antiPlatformOverrideDays}, assetOwner_flag: ${assetOwner_flag}, HeliumContract_flag: ${HeliumContract_flag}, endorsers_flag: ${endorsers_flag}, checkAssetOwner: ${checkAssetOwner}, checkCustomerService: ${checkCustomerService}, isAblePlatformOverride: ${isAblePlatformOverride}, assetCindex: ${assetCindex}, calculateVotes: ${calculateVotes}`);
       //const name = json['name'];
 
+      document.getElementById("assetbookAddrM").innerText = assetbookAddr;
       document.getElementById("assetOwnerM").innerText = assetOwner;
       document.getElementById("endorserCountM").innerText = endorserCount;
       document.getElementById("lastLoginTimeM").innerText = lastLoginTime;
