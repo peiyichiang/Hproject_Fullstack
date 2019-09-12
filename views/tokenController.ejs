@@ -20,6 +20,10 @@
       <strong>Success! </strong> Product have added to your wishlist.
     </div>
 
+    <div class="" id="mesgDiv" style="margin: 15px;">
+      <div class="card card-body d-none" id="mesg" style="background-color: #ffea00;"></div>
+    </div>
+
     <div class="row">
       <div class="col">
         <h5><%= contractType %> Contract:</h5>
@@ -57,6 +61,8 @@
         <br>
         isTokenApprovedOperational: <span id="isTokenApprovedOperational"></span><br>
         tokenState: <span id="tokenState"></span><br>
+        
+        error message: <span id="errorMessage"></span><br>
 
       </div>
     </div>
@@ -99,16 +105,27 @@
       return text;
     }
     
-    const showAlert = (messageTxt) => {
-      document.getElementById("alertInputs").innerText = messageTxt;
-      //jQuery("#alertInputs").fadeOut("slow");
-      $('.collapse').collapse();
-      $("#alertInputs");/*.fadeTo(10000, 500).slideUp(500, function() {
-        $("#alertInputs").slideUp(500);
-      });*/
+    const showMessage = (messageTxt) => {
+      let mesgFinal = '';
+      if(messageTxt !== undefined && messageTxt.length > 0) {
+        if(messageTxt.substring(0,2) === ', ') {
+          console.log('>> removing first two char');
+          mesgFinal = messageTxt.slice(2);
+        } else {
+          mesgFinal = messageTxt;
+          console.log('>> not removing first two char');
+        }
+        console.log('mesgFinal:', mesgFinal);
+
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").removeClass('d-none');
+      } else {
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").addClass('d-none');
+      }
+      document.getElementById("errorMessage").innerText = mesgFinal;
+      
     }
-
-
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
       let tokenSymbol_input, ctrtAddr_input, mesg, isGood, resultMesg = '', tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
@@ -132,7 +149,9 @@
           const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
           const json = await response.json();
           console.log('json', json);
-          ({ isGood, ctrtAddr, resultMesg} = json);
+          isGood = json.isGoodCtrtAddr;
+          ctrtAddr = json.ctrtAddr;
+          resultMesg = json.resultMesg;
           console.log(`isGood: ${isGood}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
 
         } else {
@@ -159,7 +178,6 @@
         //   const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
         //   const json = await response.json();
         //   console.log('json', json);
-        //   ({ isGood, symbol, resultMesg} = json);
         //   // const isGood = json['isGood'];
         //   // const 
         //   console.log(`isGood: ${isGood}, symbol: ${symbol}, \nresultMesg: ${resultMesg}`);
@@ -187,7 +205,7 @@
         showAlert(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
-      console.log(`-------------==`);
+      console.log(`-------------==\nmesg: ${mesg}`);
 
 
       console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);

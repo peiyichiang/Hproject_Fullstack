@@ -138,7 +138,10 @@ if(isTimeserverON){
   is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
   `);
 } 
-console.log(`[end of @ app.js] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/Product/ProductList \n[Crowdfunding] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/crowdfunding \n[TokenController] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenController \n[TokenHCAT] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/TokenHCAT \n[IncomeManager] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/IncomeManager \n[Assetbook] ${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}/ContractExplorer/assetbook`);
+
+const baseUrl = `${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}`;
+
+console.log(`[end of @ app.js] ${baseUrl}/Product/ProductList \n[Crowdfunding] ${baseUrl}/ContractExplorer/crowdfunding \n[TokenController] ${baseUrl}/ContractExplorer/TokenController \n[TokenHCAT] ${baseUrl}/ContractExplorer/TokenHCAT \n[IncomeManager] ${baseUrl}/ContractExplorer/IncomeManager \n[Assetbook] ${baseUrl}/ContractExplorer/assetbook \n[Registry] ${baseUrl}/ContractExplorer/registry`);
 //http://localhost:3000/Product/ProductList
 
 

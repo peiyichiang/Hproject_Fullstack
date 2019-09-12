@@ -37,6 +37,12 @@ const isEmpty = value =>
     (typeof value === 'object' && Object.keys(value).length === 0) ||
     (typeof value === 'string' && value.trim().length === 0);
 
+const isNoneInteger = value => 
+    value === undefined ||
+    value === null ||
+    (typeof value === 'object') ||
+    (typeof value === 'string' && isNaN(parseInt(value)));
+
 const isAllTruthy = myObj => myObj.every(function(i) { return i; });
 
 const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myObj[k] === true });//If you really want to check for true rather than just a truthy value
@@ -418,5 +424,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isAllTrueBool, getTimeServerTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }

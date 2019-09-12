@@ -20,6 +20,10 @@
       <strong>Success! </strong> Product have added to your wishlist.
     </div>
 
+    <div class="" id="mesgDiv" style="margin: 15px;">
+      <div class="card card-body d-none" id="mesg" style="background-color: #ffea00;"></div>
+    </div>
+
     <div class="row">
       <div class="col">
         <h5><%= contractType %> Contract:</h5>
@@ -38,7 +42,12 @@
             <input type="text" class="form-control" placeholder="token contract addr" aria-label="tokenCtrtAddr" id="tokenCtrtAddrCFC" aria-describedby="tokenCtrtAddrCFC"
             value=''>
         </div>
-        <!-- 0xD24272DBF4642a2550e852BF2f802E446c919Ba0 -->
+        <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
+          <button type="button" id="getCrowdfundingDetails" class="btn btn-primary">getCrowdfundingDetails ... Get crowdfunding contract details</button>
+          <button type="button" id="getInvestors" class="btn btn-primary">getInvestors ... Get investor addresses</button>
+        </div>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
+
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
@@ -46,6 +55,8 @@
             </div>
             <input type="email" class="form-control" placeholder="email" aria-label="email" id="email" aria-describedby="email">
         </div>
+        <button type="button" id="emailToQty" class="btn btn-primary">emailToQty ... Get token quantity from emails</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
@@ -53,6 +64,8 @@
             </div>
             <input type="text" class="form-control" placeholder="assetbook contract addr" aria-label="assetbookAddr" id="assetbookAddr" aria-describedby="assetbookAddr">
         </div>
+        <button type="button" id="ownerToQty" class="btn btn-primary">ownerToQty ... Get token quantity from owner addresses</button>
+        <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
@@ -60,28 +73,15 @@
             </div>
             <input type="text" class="form-control" placeholder="investor index" aria-label="investorIndex" id="investorIndex" aria-describedby="investorIndex">
         </div>
-
-
-        <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
-          <button type="button" id="getCrowdfundingDetails" class="btn btn-primary">getCrowdfundingDetails ... Get crowdfunding contract details</button>
-          <div></div>
-          <button type="button" id="getInvestors" class="btn btn-primary">getInvestors ... Get investor addresses</button>
-
-          <button type="button" id="emailToQty" class="btn btn-primary">emailToQty ... Get token quantity from emails</button>
-
-          <button type="button" id="ownerToQty" class="btn btn-primary">ownerToQty ... Get token quantity from owner addresses</button>
-
-          <button type="button" id="idxToOwner" class="btn btn-primary">idxToOwner ... Get owner address from investor index ... </button>
-
-        </div>
+        <button type="button" id="idxToOwner" class="btn btn-primary">idxToOwner ... Get owner address from investor index ... </button>
 
       </div>
 
       <div class="col">
         <h5>Result</h5>
+        tokenSymbol: <span id="tokenSymbol"></span><br>
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
         maxTokenQtyForEachInvestmentFund: <span id="maxTokenQtyForEachInvestmentFund"></span><br>
-        tokenSymbol: <span id="tokenSymbol"></span><br>
         pricingCurrency: <span id="pricingCurrency"></span><br>
         initialAssetPricing: <span id="initialAssetPricing"></span><br>
         maxTotalSupply: <span id="maxTotalSupply"></span><br>
@@ -103,6 +103,8 @@
         <br>
         quantityOwned: <span id="quantityOwned"></span><br>
         addrOwner: <span id="addrOwner"></span><br>
+
+        error message: <span id="errorMessage"></span><br>
 
       </div>
     </div>
@@ -143,13 +145,26 @@
       return text;
     }
     
-    const showAlert = (messageTxt) => {
-      document.getElementById("alertInputs").innerText = messageTxt;
-      //jQuery("#alertInputs").fadeOut("slow");
-      $('.collapse');/*.collapse();
-      $("#alertInputs").fadeTo(10000, 500).slideUp(500, function() {
-        $("#alertInputs").slideUp(500);
-      });*/
+    const showMessage = (messageTxt) => {
+      let mesgFinal = '';
+      if(messageTxt !== undefined && messageTxt.length > 0) {
+        if(messageTxt.substring(0,2) === ', ') {
+          console.log('>> removing first two char');
+          mesgFinal = messageTxt.slice(2);
+        } else {
+          mesgFinal = messageTxt;
+          console.log('>> not removing first two char');
+        }
+        console.log('mesgFinal:', mesgFinal);
+
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").removeClass('d-none');
+      } else {
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").addClass('d-none');
+      }
+      document.getElementById("errorMessage").innerText = mesgFinal;
+      
     }
 
 
@@ -179,7 +194,9 @@
           const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
           const json = await response.json();
           console.log('json', json);
-          ({ isGood, ctrtAddr, resultMesg} = json);
+          isGood = json.isGoodCtrtAddr;
+          ctrtAddr = json.ctrtAddr;
+          resultMesg = json.resultMesg;
           console.log(`isGood: ${isGood}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
 
         } else {
@@ -206,7 +223,6 @@
         //   const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
         //   const json = await response.json();
         //   console.log('json', json);
-        //   ({ isGood, symbol, resultMesg} = json);
         //   // const isGood = json['isGood'];
         //   // const 
         //   console.log(`isGood: ${isGood}, symbol: ${symbol}, \nresultMesg: ${resultMesg}`);
@@ -216,53 +232,70 @@
         mesg = 'At least tokenSymbol or tokenCtrtAddrCFC should be valid';
         console.warn(mesg);
 
-        const isGivingDefaultCFC = 1;
+        const isGivingDefaultCFC = 0;
         if(isGivingDefaultCFC === 1) {
           ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
           mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
-          showAlert(mesg);
+          showMessage(mesg);
         } else {
           mesg = 'Token symbol and Token contract values are empty';
-          showAlert(mesg);
+          showMessage(mesg);
         }
       }
-      console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
+      console.log(`----==checkInputs \nisGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
-        showAlert(mesg+', resultMesg: '+resultMesg);
+        showMessage(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
-      console.log(`-------------==`);
+      console.log(`-------------== \nmesg: ${mesg}`);
 
-      if(funcName === 'emailToQty' && isEmpty(email_input)){
-          email = 'achmed1923@gmail.com';
-          mesg = 'Email is found empty. Using default value: '+ email;
-          console.warn(mesg);
-          showAlert(mesg);
+      if(funcName === 'emailToQty') {
+        if(isEmpty(email_input)){
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            email = '000a1@gmail.com';
+            mesg = 'Email is found empty. Using default value: '+ email;
+          } else {
+            mesg = 'Email is found empty';
+          }
         } else {
           email = email_input;
         }
-
-      if(funcName === 'ownerToQty' && isEmpty(assetbookAddr_input)){
-          assetbookAddr = '0xc297297Aa3437320CFd2CA0F988E4FC1B82E6A17';
-          mesg = 'Assetbook is found empty. Using default value: '+ assetbookAddr;
-          console.warn(mesg);
-          showAlert(mesg);
-      } else {
-          assetbookAddr = assetbookAddr_input;
       }
 
-      if(funcName === 'idxToOwner' && isEmpty(investorIndex_input)){
-          investorIndex = '1';
-          mesg = 'investorIndex is found empty. Using default value: '+ investorIndex;
-          console.warn(mesg);
-          showAlert(mesg);
+      if(funcName === 'ownerToQty'){
+        if(isEmpty(assetbookAddr_input)){
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            assetbookAddr = '0xc297297Aa3437320CFd2CA0F988E4FC1B82E6A17';
+            mesg = 'Assetbook is found empty. Using default value: '+ assetbookAddr;
+          } else {
+            mesg = 'Assetbook is found empty.';
+          }
+        } else {
+          assetbookAddr = assetbookAddr_input;
+        }
+      }
+
+      if(funcName === 'idxToOwner'){
+        if(isEmpty(investorIndex_input)){
+          const isGivingDefaultValue = 0;
+          if(isGivingDefaultValue){
+            investorIndex = '1';
+            mesg = 'investorIndex is found empty. Using default value: '+ investorIndex;
+          } else {
+            mesg = 'investorIndex is found empty.';
+          }
         } else {
           investorIndex = investorIndex_input;
         }
-      
+      }
+      console.warn(mesg);
+      showMessage(mesg);
+
       console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email: ${email}, assetbookAddr: ${assetbookAddr}, investorIndex: ${investorIndex}`);
       return [isGood, tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex];
     }
