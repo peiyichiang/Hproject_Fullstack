@@ -61,7 +61,7 @@ router.post('/AddOrder', async function (req, res, next) {
                 console.log(jsonData);
                 userName = jsonData.userName;
                 resolve(jsonData.virtualAccount);
-                
+
             });
         });
     }
@@ -80,68 +80,75 @@ router.post('/AddOrder', async function (req, res, next) {
     };//random() to prevent duplicate NULL entry!
 
     console.log(sql);
-
-    mysqlPoolQuery('INSERT INTO order_list SET ?', sql, function (err, result) {
+    const JWT = req.body.JWT;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
         if (err) {
-            console.log(err);
-            res.status(400);
-            res.json({
-                "message": "訂單寫入資料庫失敗:\n" + err
-            });
-        } else {
-            var transporter = nodemailer.createTransport({
-                /* Helium */
-                host: 'server239.web-hosting.com',
-                port: 465,
-                secure: true, // use SSL
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-
-            // setup email data with unicode symbols
-            let mailOptions = {
-                from: ' <noreply@hcat.io>', // sender address
-                to: email, // list of receivers
-                subject: '', // Subject line
-                html: `<h2>下單成功</h2>
-                <p>
-                <p>親愛的 ${userName}:<br>
-                <p>您剛下了一張訂單，此次購買 ${symbol} 共 ${tokenCount} 片，總計 ${fundCount} 元<br>
-                <p>請參照以下指示完成您的付款。<br><br>
-                <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
-
-                <p>訂單編號: ${orderId}<br>
-                <p>購買時間: ${currentDate}<br>
-                <p>銀行代碼: 永豐銀行807
-                <p>轉帳帳號名: 銀鏈資產管理有限公司
-                <p>轉帳帳號: ${bankVirtualAccount}
-                <p>總金額: NT$${fundCount}
-                </p>`, // plain text body
-            };
-
-            // send mail with defined transport object
-            transporter.sendMail(mailOptions, (err, info) => {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            mysqlPoolQuery('INSERT INTO order_list SET ?', sql, function (err, result) {
                 if (err) {
-                    res.status(400)
+                    console.log(err);
+                    res.status(400);
                     res.json({
-                        "message": "驗證信寄送失敗：" + err
-                    })
-                }
-                else {
-                    res.status(200);
-                    res.json({
-                        "message": "訂單寫入資料庫成功 & 驗證信寄送成功",
+                        "message": "訂單寫入資料庫失敗:\n" + err
+                    });
+                } else {
+                    var transporter = nodemailer.createTransport({
+                        /* Helium */
+                        host: 'server239.web-hosting.com',
+                        port: 465,
+                        secure: true, // use SSL
+                        auth: {
+                            user: process.env.EMAIL_USER,
+                            pass: process.env.EMAIL_PASS
+                        }
+                    });
+
+                    // setup email data with unicode symbols
+                    let mailOptions = {
+                        from: ' <noreply@hcat.io>', // sender address
+                        to: email, // list of receivers
+                        subject: '', // Subject line
+                        html: `<h2>下單成功</h2>
+                        <p>
+                        <p>親愛的 ${userName}:<br>
+                        <p>您剛下了一張訂單，此次購買 ${symbol} 共 ${tokenCount} 片，總計 ${fundCount} 元<br>
+                        <p>請參照以下指示完成您的付款。<br><br>
+                        <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
+        
+                        <p>訂單編號: ${orderId}<br>
+                        <p>購買時間: ${currentDate}<br>
+                        <p>銀行代碼: 永豐銀行807
+                        <p>轉帳帳號名: 銀鏈資產管理有限公司
+                        <p>轉帳帳號: ${bankVirtualAccount}
+                        <p>總金額: NT$${fundCount}
+                        </p>`, // plain text body
+                    };
+
+                    // send mail with defined transport object
+                    transporter.sendMail(mailOptions, (err, info) => {
+                        if (err) {
+                            res.status(400)
+                            res.json({
+                                "message": "驗證信寄送失敗：" + err
+                            })
+                        }
+                        else {
+                            res.status(200);
+                            res.json({
+                                "message": "訂單寫入資料庫成功 & 驗證信寄送成功",
+                            });
+                        }
+                        // console.log('Message sent: %s', info.messageId);
+                        // Preview only available when sending through an Ethereal account
+                        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
                     });
                 }
-                // console.log('Message sent: %s', info.messageId);
-                // Preview only available when sending through an Ethereal account
-                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-
             });
         }
-    });
+    })
 });
 
 //SELECT SUM(o_tokenCount) AS total FROM `order` WHERE o_symbol = 'MYRR1701';
@@ -212,8 +219,8 @@ router.get('/OrdersByEmail', function (req, res, next) {
     let qstr1 = 'SELECT * FROM order_list WHERE o_email = ?';
     var mysqlPoolQuery = req.pool;
     console.log('req.query', req.query, 'req.body', req.body);
-    let status, email, qstrz;
-    email = req.query.email; status = req.query.status;
+    let status, qstrz;
+    status = req.query.status;
     if (status) {
         qstrz = qstr1 + ' AND (';
         for (var i = 0; i < status.length; i++) {
@@ -226,21 +233,31 @@ router.get('/OrdersByEmail', function (req, res, next) {
         qstrz = qstrz + ')'
     } else { qstrz = qstr1; }
     console.log(qstrz)
-    var qur = mysqlPoolQuery(qstrz, [email, status], function (err, result) {
+    const JWT = req.query.JWT;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
         if (err) {
-            console.log(err);
-            res.status(400);
-            res.json({
-                "message": "[Error] Failure :\n" + err
-            });
-        } else {
-            res.status(200);
-            res.json({
-                "message": "[Success] Success",
-                "result": result
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            const email = decoded.u_email;
+            mysqlPoolQuery(qstrz, [email, status], function (err, result) {
+                if (err) {
+                    console.log(err);
+                    res.status(400);
+                    res.json({
+                        "message": "[Error] Failure :\n" + err
+                    });
+                } else {
+                    res.status(200);
+                    res.json({
+                        "message": "[Success] Success",
+                        "result": result
+                    });
+                }
             });
         }
-    });
+    })
 });
 
 //http://localhost:3000/Order/OrdersByFromAddr
@@ -415,7 +432,6 @@ router.get('/SumTxnFinishedOrdersBySymbol', function (req, res, next) {
 });
 
 
-//http://localhost:3000/Order/SumReservedOrdersBySymbol
 router.get('/SumReservedOrdersBySymbol', function (req, res, next) {
     console.log('------------------------==\n@Order/SumReservedOrdersBySymbol');
     var mysqlPoolQuery = req.pool;
@@ -424,22 +440,31 @@ router.get('/SumReservedOrdersBySymbol', function (req, res, next) {
     if (req.body.symbol) {
         symbol = req.body.symbol;
     } else { symbol = req.query.symbol; }
-    var qur = mysqlPoolQuery(
-        'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol], function (err, result) {
-            if (err) {
-                console.log(err);
-                res.status(400);
-                res.json({
-                    "message": "[Error] Failure :\n" + err
+    const JWT = req.query.JWT;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            mysqlPoolQuery(
+                'SELECT SUM(o_tokenCount) AS total FROM order_list WHERE o_symbol = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol], function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(400);
+                        res.json({
+                            "message": "[Error] Failure :\n" + err
+                        });
+                    } else {
+                        res.status(200);
+                        res.json({
+                            "message": "[Success] Success",
+                            "result": result
+                        });
+                    }
                 });
-            } else {
-                res.status(200);
-                res.json({
-                    "message": "[Success] Success",
-                    "result": result
-                });
-            }
-        });
+        }
+    })
 });
 
 
@@ -466,70 +491,79 @@ router.get('/CheckOrderCompliance', function (req, res, next) {
     console.log('symbol', symbol, 'email', email, '\nauthLevel', authLevel, 'orderPayment', orderPayment, 'fundingType', fundingType);
     const fundingTypeArray = ['PublicOffering', 'PrivatePlacement', '1', '2'];//PO: 1, PP: 2
     const authLevelArray = ['1', '2', '3', '4', '5'];
+    const JWT = req.query.JWT;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            mysqlPoolQuery(
+                'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, result) {
+                    let orderBalanceTotal = parseInt(result[0].total);
+                    if (isNaN(orderBalanceTotal)) { orderBalanceTotal = 0; }
 
-    let qur = mysqlPoolQuery(
-        'SELECT SUM(o_fundCount) AS total FROM order_list WHERE o_symbol = ? AND o_email = ? AND (o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished")', [symbol, email], function (err, result) {
-            let orderBalanceTotal = parseInt(result[0].total);
-            if (isNaN(orderBalanceTotal)) { orderBalanceTotal = 0; }
+                    if (err) {
+                        console.log(err);
+                        res.status(400);
+                        res.json({ "message": "[Error] Failure :" + err });
 
-            if (err) {
-                console.log(err);
-                res.status(400);
-                res.json({ "message": "[Error] Failure :" + err });
+                    } else if (!authLevelArray.includes(authLevel)) {
+                        reason = 'authLevel is not not valid';
+                        errInput = authLevel;
+                        console.log(reason, authLevel);
+                        res.status(400);
+                        res.json({ "message": "[Error input]:" + reason + '...' + errInput });
 
-            } else if (!authLevelArray.includes(authLevel)) {
-                reason = 'authLevel is not not valid';
-                errInput = authLevel;
-                console.log(reason, authLevel);
-                res.status(400);
-                res.json({ "message": "[Error input]:" + reason + '...' + errInput });
+                    } else if (authLevel < 1 || authLevel > 5) {
+                        reason = 'authLevel is out of range';
+                        errInput = authLevel;
+                        console.log(reason, authLevel);
+                        res.status(400);
+                        res.json({ "message": "[Error input]:" + reason + '...' + errInput });
 
-            } else if (authLevel < 1 || authLevel > 5) {
-                reason = 'authLevel is out of range';
-                errInput = authLevel;
-                console.log(reason, authLevel);
-                res.status(400);
-                res.json({ "message": "[Error input]:" + reason + '...' + errInput });
+                    } else if (isNaN(orderPayment)) {
+                        reason = 'orderPayment should not be NaN';
+                        errInput = orderPayment;
+                        res.status(400);
+                        console.log(reason, authLevel);
+                        res.json({ "message": "[Error input]:" + reason + '...' + errInput });
 
-            } else if (isNaN(orderPayment)) {
-                reason = 'orderPayment should not be NaN';
-                errInput = orderPayment;
-                res.status(400);
-                console.log(reason, authLevel);
-                res.json({ "message": "[Error input]:" + reason + '...' + errInput });
+                    } else if (isNaN(orderBalanceTotal)) {
+                        reason = 'orderBalanceTotal should not be NaN';
+                        errInput = orderBalanceTotal;
+                        res.status(400);
+                        console.log(reason, authLevel);
+                        res.json({ "message": "[Error input]:" + reason + '...' + errInput });
 
-            } else if (isNaN(orderBalanceTotal)) {
-                reason = 'orderBalanceTotal should not be NaN';
-                errInput = orderBalanceTotal;
-                res.status(400);
-                console.log(reason, authLevel);
-                res.json({ "message": "[Error input]:" + reason + '...' + errInput });
+                    } else if (!fundingTypeArray.includes(fundingType)) {
+                        reason = 'fundingType is not valid';
+                        errInput = fundingType;
+                        console.log(reason, authLevel);
+                        res.status(400);
+                        res.json({ "message": "[Error input]:" + reason + '...' + errInput });
 
-            } else if (!fundingTypeArray.includes(fundingType)) {
-                reason = 'fundingType is not valid';
-                errInput = fundingType;
-                console.log(reason, authLevel);
-                res.status(400);
-                res.json({ "message": "[Error input]:" + reason + '...' + errInput });
+                    } else {
+                        const results1 = checkCompliance(authLevel, orderBalanceTotal, orderPayment, fundingType);
+                        if (results1) {
+                            res.status(200);
+                            console.log('\norderBalance', orderBalanceTotal);
+                            res.json({
+                                "message": "[Success] Success",
+                                "orderBalance": orderBalanceTotal
+                            });
 
-            } else {
-                const results1 = checkCompliance(authLevel, orderBalanceTotal, orderPayment, fundingType);
-                if (results1) {
-                    res.status(200);
-                    console.log('\norderBalance', orderBalanceTotal);
-                    res.json({
-                        "message": "[Success] Success",
-                        "orderBalance": orderBalanceTotal
-                    });
-
-                } else {
-                    reason = `does not pass compliance`;
-                    errInput = fundingType;
-                    console.log(reason, ', authLevel', authLevel);
-                    res.status(400).send('[Error input]:' + reason + '...' + errInput);
+                        } else {
+                            reason = `does not pass compliance`;
+                            errInput = fundingType;
+                            console.log(reason, ', authLevel', authLevel);
+                            res.status(400).send('[Error input]:' + reason + '...' + errInput);
+                        }
+                    }
                 }
-            }
-        });
+            );
+        }
+    })
 });
 
 
