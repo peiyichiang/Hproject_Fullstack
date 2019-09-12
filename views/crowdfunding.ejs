@@ -79,6 +79,14 @@
 
       <div class="col">
         <h5>Result</h5>
+        <a href="crowdfunding" >Crowdfunding</a> | 
+        <a href="tokenController" >tokenController</a> |
+        <a href="TokenHCAT" >TokenHCAT</a> |
+        <a href="IncomeManager" >IncomeManager</a> |
+        <a href="Assetbook" >Assetbook</a> |
+        <a href="Registry" >Registry</a> |
+        <a href="Settlement" >Settlement</a><br>
+
         tokenSymbol: <span id="tokenSymbol"></span><br>
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
         maxTokenQtyForEachInvestmentFund: <span id="maxTokenQtyForEachInvestmentFund"></span><br>
@@ -125,7 +133,21 @@
     // $(document).ready(function() {
     //   $("#alertInputs").hide();
     // });
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
 
+    
     const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
     //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
     const contractType = 'crowdfunding';
@@ -234,13 +256,11 @@
 
         const isGivingDefaultCFC = 0;
         if(isGivingDefaultCFC === 1) {
-          ctrtAddr = '0xD24272DBF4642a2550e852BF2f802E446c919Ba0';
+          ctrtAddr = ctrtAddrCFC;
           mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
-          showMessage(mesg);
         } else {
           mesg = 'Token symbol and Token contract values are empty';
-          showMessage(mesg);
         }
       }
       console.log(`----==checkInputs \nisGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, email_input: ${email_input}, assetbookAddr_input: ${assetbookAddr_input}, investorIndex_input: ${investorIndex_input}`);
@@ -254,9 +274,8 @@
 
       if(funcName === 'emailToQty') {
         if(isEmpty(email_input)){
-          const isGivingDefaultValue = 0;
           if(isGivingDefaultValue){
-            email = '000a1@gmail.com';
+            email = email1;
             mesg = 'Email is found empty. Using default value: '+ email;
           } else {
             mesg = 'Email is found empty';
@@ -268,9 +287,8 @@
 
       if(funcName === 'ownerToQty'){
         if(isEmpty(assetbookAddr_input)){
-          const isGivingDefaultValue = 0;
           if(isGivingDefaultValue){
-            assetbookAddr = '0xc297297Aa3437320CFd2CA0F988E4FC1B82E6A17';
+            assetbookAddr = assetbookAddr1;
             mesg = 'Assetbook is found empty. Using default value: '+ assetbookAddr;
           } else {
             mesg = 'Assetbook is found empty.';
@@ -282,7 +300,6 @@
 
       if(funcName === 'idxToOwner'){
         if(isEmpty(investorIndex_input)){
-          const isGivingDefaultValue = 0;
           if(isGivingDefaultValue){
             investorIndex = '1';
             mesg = 'investorIndex is found empty. Using default value: '+ investorIndex;
@@ -293,6 +310,7 @@
           investorIndex = investorIndex_input;
         }
       }
+      console.log(`-------------==`);
       console.warn(mesg);
       showMessage(mesg);
 

@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="/css/ContractExplorer.css">
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="">
-  <link rel="stylesheet" href="/css/ctrtInterfaceStyles.css">
+
   <title>HeliumCryptic Smart Contract Explorer</title>
 </head>
 
@@ -115,12 +114,18 @@
           <input type="text" class="form-control" placeholder="fundingType" aria-label="fundingType" id="fundingType" aria-describedby="fundingType">
         </div>
 
-
-
       </div>
 
       <div class="col">
         <h5>Result</h5>
+        <a href="crowdfunding" >Crowdfunding</a> | 
+        <a href="tokenController" >tokenController</a> |
+        <a href="TokenHCAT" >TokenHCAT</a> |
+        <a href="IncomeManager" >IncomeManager</a> |
+        <a href="Assetbook" >Assetbook</a> |
+        <a href="Registry" >Registry</a> |
+        <a href="Settlement" >Settlement</a><br>
+
         symbol: <span id="symbolM"></span><br>
         name: <span id="name"></span><br>
         
@@ -169,6 +174,17 @@
     // $(document).ready(function() {
     //   $("#alertInputs").hide();
     // });
+
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
     $(function () {
       $('[data-toggle="tooltip"]').tooltip()
     });
@@ -238,7 +254,10 @@
         const json = await response.json();
         console.log('json', json);
         
-        ({isGoodAssetbook, assetbookX, mesgAPI} = json);
+        isGoodAssetbook = json.isGoodAssetbook;
+        assetbookX = json.assetbookX;
+        mesgAPI = json.mesgAPI;
+
         console.log(`----------==\nFound assetbook from registryCtrtAddr \nisGoodAssetbook: ${isGoodAssetbook}, assetbookX: ${assetbookX}, \nmesgAPI: ${mesgAPI}`);
         if(isGoodAssetbook){
           registryCtrtAddr = assetbookX;
@@ -286,8 +305,8 @@
         mesg += ', At least one of assetbookAddr, identityNumber, should be valid';
         //console.warn(mesg);
 
-        const isGivingDefault = 1;
-        if(isGivingDefault === 1) {
+        const isGivingDefaultValue = 1;
+        if(isGivingDefaultValue === 1) {
           assetbookAddr = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
           mesg += ', assetbookAddr is empty. Using default value: assetbookAddr = '+assetbookAddr;
           isGoodAssetbook = true;
@@ -348,7 +367,9 @@
       } else {
         console.log('funcName is out of range!');
       }
-      if(mesg) {showMessage(mesg);}
+      console.log(`-------------==`);
+      console.warn(mesg);
+      showMessage(mesg);
 
       return [identityNumber, isGoodAssetbook, assetbookAddr];
     }

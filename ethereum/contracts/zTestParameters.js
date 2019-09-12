@@ -355,4 +355,46 @@ module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowd
 }
 /**
 email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb,
- */
+
+------------------==Contract Interfaces
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
+
+-----------==CFC
+ctrtAddrRGT = '0x067E900608Df20060d7597bc4EB1d08b9B1f0C3c';
+
+ctrtAddrCFC = '0x9827B4dC42f229851df543F5E06f58AD128978e8';
+ctrtAddrTTC = '0x2ae4a9f75B4A0CDD8835E3366112a3D0A1C2C115';
+ctrtAddrHCAT= '0xA7EA250589Ec8220A62Eb8b3dC3453B0c22A7D77';
+ctrtAddrIMC = '0xa1A703BFA21DeA8756E781ee5CA0A8352960c54C';
+
+email1 = '000a1@gmail.com';
+assetbookAddr1 = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
+identityNumber1 = '';
+operator1 = '0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734';
+
+assetbookAddr1 = '0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734';
+operator1 = '0x4819359B20ba011f7517aE804772C0f9d28eB762';
+
+
+-----------==
+
+-----------==
+-----------==
+-----------==
+-----------==
+-----------==
+-----------==
+-----------==
+-----------==
+-----------==
+-----------==
+*/

@@ -32,14 +32,14 @@
             <div class="input-group-prepend">
               <span class="input-group-text" id="">Symbol</span>
             </div>
-            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbolCFC" aria-describedby="tokenSymbolCFC">
+            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbol" aria-describedby="tokenSymbol">
         </div>
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
               <span class="input-group-text" id="">Contract</span>
             </div>
-            <input type="text" class="form-control" placeholder="token contract addr" aria-label="tokenCtrtAddr" id="tokenCtrtAddrCFC" aria-describedby="tokenCtrtAddrCFC"
+            <input type="text" class="form-control" placeholder="token contract addr" aria-label="tokenCtrtAddr" id="tokenCtrtAddr" aria-describedby="tokenCtrtAddr"
             value=''>
         </div>
 
@@ -52,6 +52,14 @@
 
       <div class="col">
         <h5>Result</h5>
+        <a href="crowdfunding" >Crowdfunding</a> | 
+        <a href="tokenController" >tokenController</a> |
+        <a href="TokenHCAT" >TokenHCAT</a> |
+        <a href="IncomeManager" >IncomeManager</a> |
+        <a href="Assetbook" >Assetbook</a> |
+        <a href="Registry" >Registry</a> |
+        <a href="Settlement" >Settlement</a><br>
+
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
         TimeUnlock: <span id="TimeUnlock"></span><br>
         TimeValid: <span id="TimeValid"></span><br>
@@ -85,6 +93,20 @@
     // $(document).ready(function() {
     //   $("#alertInputs").hide();
     // });
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
+        
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
 
     const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
     //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
@@ -130,11 +152,11 @@
       console.log(`inside checkInputs()...`);
       let tokenSymbol_input, ctrtAddr_input, mesg, isGood, resultMesg = '', tokenSymbol, ctrtAddr, email, assetbookAddr, investorIndex;
 
-      tokenSymbol_input = document.getElementById("tokenSymbolCFC").value;
-      ctrtAddr_input = document.getElementById("tokenCtrtAddrCFC").value;
+      tokenSymbol_input = document.getElementById("tokenSymbol").value;
+      ctrtAddr_input = document.getElementById("tokenCtrtAddr").value;
 
       const isTokenSymbolEmpty = isEmpty(tokenSymbol_input);
-      const isTokenCtrtAddrCFC_empty = isEmpty(ctrtAddr_input);
+      const istokenCtrtAddr_empty = isEmpty(ctrtAddr_input);
 
       if(!isTokenSymbolEmpty){
         if(tokenSymbol_input.length === 8){
@@ -158,7 +180,7 @@
           mesg = 'tokenSymbol should have length of 8';
         }
 
-      } else if(!isTokenCtrtAddrCFC_empty){
+      } else if(!istokenCtrtAddr_empty){
         if(ctrtAddr_input.length !== 42){
           mesg = 'TokenController contract address should have length of 42';
         } else if(ctrtAddr_input.substring(0, 2) !== '0x'){
@@ -184,28 +206,28 @@
         // }
         }
       } else {
-        mesg = 'At least tokenSymbol or tokenCtrtAddrCFC should be valid';
+        mesg = 'At least tokenSymbol or tokenCtrtAddr should be valid';
         console.warn(mesg);
 
-        const isGivingDefaultCFC = 1;
+        const isGivingDefaultCFC = 0;
         if(isGivingDefaultCFC === 1) {
-          ctrtAddr = '0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9';
+          ctrtAddr = ctrtAddrCFC;
           mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
-          showAlert(mesg);
         } else {
           mesg = 'Token symbol and Token contract values are empty';
-          showAlert(mesg);
         }
       }
       console.log(`226----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
-        showAlert(mesg+', resultMesg: '+resultMesg);
+        showMessage(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
-      console.log(`-------------==\nmesg: ${mesg}`);
+      console.log(`-------------==`);
+      console.warn(mesg);
+      showMessage(mesg);
 
 
       console.log(`----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);

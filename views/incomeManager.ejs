@@ -82,6 +82,14 @@
 
       <div class="col">
         <h5>Result</h5>
+        <a href="crowdfunding" >Crowdfunding</a> | 
+        <a href="tokenController" >tokenController</a> |
+        <a href="TokenHCAT" >TokenHCAT</a> |
+        <a href="IncomeManager" >IncomeManager</a> |
+        <a href="Assetbook" >Assetbook</a> |
+        <a href="Registry" >Registry</a> |
+        <a href="Settlement" >Settlement</a><br>
+
         schCindex: <span id="schCindex"></span><br>
         TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
         paymentCount: <span id="paymentCount"></span><br>
@@ -133,9 +141,20 @@
   <script>
     // http://localhost:3030/ContractExplorer/incomeManagerCtrt
 
-    // $(document).ready(function() {
-    //   $("#alertInputs").hide();
-    // });
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
+
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
 
     const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
     //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
@@ -239,22 +258,19 @@
         mesg = 'At least tokenSymbol or ctrtAddr should be valid';
         console.warn(mesg);
 
-        const isGivingDefault = 1;
-        if(isGivingDefault === 1) {
+        if(isGivingDefaultValue) {
           ctrtAddr = '0xCb5B388E9f4f7028547797a4C0C1844f9e04Cecd';
           mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
           isGood = true;
-          showAlert(mesg);
         } else {
           mesg = 'Token symbol and Token contract values are empty';
-          showAlert(mesg);
         }
       }
       console.log(`234----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
-        showAlert(mesg+', resultMesg: '+resultMesg);
+        showMessage(mesg+', resultMesg: '+resultMesg);
         return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
       }
 
@@ -283,21 +299,18 @@
         mesg = 'At least scheduleIndex or schDateTime should be valid';
         console.warn(mesg);
 
-        const isGivingDefault = 1;
-        if(isGivingDefault === 1) {
+        if(isGivingDefaultValue) {
           scheduleIndex = 1;
           mesg = 'scheduleIndex and schDateTime values are empty. Using default value: scheduleIndex = '+scheduleIndex;
           isGoodSch = true;
-          showAlert(mesg);
         } else {
           mesg = 'scheduleIndex and schDateTime values are empty';
-          showAlert(mesg);
         }
       }
       console.log(`277----==isGoodSch: ${isGoodSch}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}`);
       if(!isGoodSch){
         console.warn(mesg+', resultMesg: '+resultMesg);
-        showAlert(mesg+', resultMesg: '+resultMesg);
+        showMessage(mesg+', resultMesg: '+resultMesg);
         return [isGoodSch, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, undefined];
       }
 
@@ -307,8 +320,6 @@
         if(is_scheduleIndex_empty){
           scheduleIndex = 1;
           mesg = 'scheduleIndex is found empty. Using default value: '+ scheduleIndex;
-          console.warn(mesg);
-          showAlert(mesg);
         } else {
           scheduleIndex = scheduleIndex_input;
         }
@@ -318,8 +329,6 @@
         if(is_schDateTime_empty){
           schDateTime = 201908171200;
           mesg = 'schDateTime is found empty. Using default value: '+ schDateTime;
-          console.warn(mesg);
-          showAlert(mesg);
         } else {
           schDateTime = schDateTime_input;
         }
@@ -342,10 +351,11 @@
         }
       }
       if(!isGoodAmount){
-        console.warn(mesg);
-        showAlert(mesg);
         return [isGoodAmount, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, amount_input_num];
       }
+      console.log(`-------------==`);
+      console.warn(mesg);
+      showMessage(mesg);
 
       console.log(`-------------==check3 \nisGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, amount: ${amount}`);
       return [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount];
