@@ -84,6 +84,34 @@ const getAllIndexes = (arr, val) => {
   return indexes;
 }
 
+const getArraysFromCSV = (eoaPath) => {
+  const array = fs.readFileSync(eoaPath)
+      .toString() // convert Buffer to string
+      .split('\n') // split string to lines
+      .map(e => e.trim()) // remove white spaces for each line
+      .map(e => e.split(',').map(e => e.trim())); // split each line to array
+ 
+  console.log('array[-3]:', array[array.length-3]);
+  console.log('array[-2]:', array[array.length-2]);
+  console.log('array[-1]:', array[array.length-1]);
+
+  const filtered = array.filter((el) => {
+    return el.length !== 1;
+  });
+  console.log('filtered[-3]:', filtered[filtered.length-3]);
+  console.log('filtered[-2]:', filtered[filtered.length-2]);
+  console.log('filtered[-1]:', filtered[filtered.length-1]);
+
+  //console.log('as JSON:', JSON.stringify(data, '', 2)); // as json
+//   data.forEach((item, index)=> {
+//     //console.log(`\nitem: ${item}`);
+//     console.log(`\n------------==index: ${index}
+// EOA: ${item[1]} ${typeof item[1]}
+// pkey: ${item[3]} ${typeof item[3]}`);
+//   });
+  return filtered;
+}
+
 const reduceArrays = (toAddressArray, amountArray) => {
   const toAddressArrayOut = [...new Set(toAddressArray)];
   console.log('toAddressArrayOut', toAddressArrayOut);
@@ -424,5 +452,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }

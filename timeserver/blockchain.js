@@ -11,7 +11,7 @@ const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForE
 const { blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
-const { assetOwnerArray, assetOwnerpkRawArray, userArray } = require('../ethereum/contracts/zTestParameters');
+const { assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zTestParameters');
 
 const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
@@ -23,15 +23,7 @@ const timeIntervalUpdateExpiredOrders = 1000;
 const userIdArray = [];
 const investorLevelArray = [];
 const assetbookArray = [];
-userArray.forEach((user, idx) => {
-  if (idx !== 0 ){
-    userIdArray.push(user.identityNumber);
-    investorLevelArray.push(user.investorLevel);
-    assetbookArray.push(user.addrAssetBook);
-  }
-});*/
-const [adminRepeated, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
-const [adminpkRawRepeated, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
+;*/
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -40,20 +32,20 @@ if(backendAddrChoice === 0){//reserved to API developer
   backendAddrpkRaw = adminpkRaw;
 
 } else if(backendAddrChoice === 1){//reserved to Blockchain developer
-  backendAddr = AssetOwner1;
-  backendAddrpkRaw = AssetOwner1pkRaw;
+  backendAddr = assetOwnerArray[1];
+  backendAddrpkRaw = assetOwnerpkRawArray[1];
 
 } else if(backendAddrChoice === 2){//reserved to Backend developer
-  backendAddr = AssetOwner2;
-  backendAddrpkRaw = AssetOwner2pkRaw;
+  backendAddr = assetOwnerArray[2];
+  backendAddrpkRaw = assetOwnerpkRawArray[2];
 
 } else if(backendAddrChoice === 3){//
-  backendAddr = AssetOwner3;
-  backendAddrpkRaw = AssetOwner3pkRaw;
+  backendAddr = assetOwnerArray[3];
+  backendAddrpkRaw = assetOwnerpkRawArray[3];
 
 } else if(backendAddrChoice === 4){//reserved tp the timeserver
-  backendAddr = AssetOwner4;
-  backendAddrpkRaw = AssetOwner4pkRaw;
+  backendAddr = assetOwnerArray[4];
+  backendAddrpkRaw = assetOwnerpkRawArray[4];
 }
 console.log(`using backendAddr: ${backendAddr}`);
 

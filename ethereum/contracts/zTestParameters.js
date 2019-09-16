@@ -1,55 +1,18 @@
-const { symbolNumber, isTimeserverON, admin, adminpkRaw } = require('../../timeserver/envVariables');
-const { sLog } = require('../../timeserver/utilities');
+const { symbolNumber, isTimeserverON } = require('../../timeserver/envVariables');
+const { sLog, getArraysFromCSV } = require('../../timeserver/utilities');
 var faker = require('faker');
 var _ = require('lodash');
 
 sLog(`\n--------------------== zTestParameters.js`);
-const AssetOwner1 = '0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2';
-const AssetOwner1pkRaw = '0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca';
-const AssetOwner2 = '0x470Dea51542017db8D352b8B36B798a4B6d92c2E';
-const AssetOwner2pkRaw = '0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2';
-const AssetOwner3 = '0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61';
-const AssetOwner3pkRaw = '0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45';
-const AssetOwner4 = '0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E';
-const AssetOwner4pkRaw = '0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f';
-const AssetOwner5 = '0xa6cc621A179f01A719ee57dB4637A4A1f603A442';
-const AssetOwner5pkRaw = '0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a';
-
-const AssetOwner6 = '0x6Ae6Bd45E4F30fdFe487BC5940f092a69A72462B';
-const AssetOwner6pkRaw = '0x5df6762ff8e898f6ca718844d6be97852f5ea3e0b9f3b9af89cb9f8dd074a6db';
-const AssetOwner7 = '0x836434d111AC6893Ff4d6C7547870e6bb1D31B67';
-const AssetOwner7pkRaw = '0x85d930838529708da898206a9cc6c8fca172b398011ed414dab48bdb76fe4148';
-const AssetOwner8 = '0x52566ac53BD14B4519e063b6A16CC0d249FF8Fd2';
-const AssetOwner8pkRaw = '0x3bd92e02137d5678463a23cdff407e5af06ab6b7bfe1b8c8ac172b1ce19182a4';
-const AssetOwner9 = '0xe93c0A8845E8477ae460578d2D84d918aaCA37F7';
-const AssetOwner9pkRaw = '0x4717997c64e19cfbd4df771c3f8900232b8681c77162bf5de0f5e7dca115237d';
-const AssetOwner10 = '0x61D9068dA7B5dF1BBfb0a254Cb40C6739A52bd76';
-const AssetOwner10pkRaw = '0x7347b852ddbbb7c1c39e7ca381f4c30ce3cd8adb55a48f7f67310d0a8db3ae68';
-
-/*newly deployed assetbooks
-addrAssetBook0 = "0x9cfb84eCC3E8990EEFF56FE6ED601A9b9deee4bA";
-addrAssetBook1 = "0x6679c0a52285B3005bab5c196edEe458eA0011c7";
-addrAssetBook2 = "0x73D88777C4e29B1ccf9F45964827dE2Eb5076d00";
-addrAssetBook3 = "0x4E669A79886b11a3BA98D10E6aDe0F94D09E3C8E";
-addrAssetBook4 = "0xDA542FBE8515c4784aC81A8ABF5c2C55e33df33d";
-addrAssetBook5 = "0xCAFe7aD86205b4b43c0B95a1B55bF8a54A153Ee2";
-addrAssetBook6 = "0x824A7d628A3D58d0068c6614CC6367f801B31CdA";
-addrAssetBook7 = "0x915eb0eFB735AF262832a8645129f6Ff26E70699";
-addrAssetBook8 = "0x2eB48E0B6350300b5082A6F388a56A679A12ad73";
-addrAssetBook9 = "0xb2223A54065351E36BF341d0a3d99095D575570F";
-addrAssetBook10 = "0xBF0b705c7d3051aC75F21350842f15D3C21b72Da";
-*/
-
 //let addrIncomeManager, addrProductManager;
+let crowdFundingAddrArray = [], tokenControllerAddrArray = [], symbolArray = [], nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager;
 
-let crowdFundingAddrArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager;
+let addrHelium, addrRegistry, addrAssetBookArray;
+const assetOwnerArray = [], assetOwnerpkRawArray = [], assetbookArray = [], userArray = [];
 
+const EOA_List = getArraysFromCSV('./ethereum/contracts/EOA_List.csv');
+const Assetbooks = getArraysFromCSV('./ethereum/contracts/Assetbooks.csv');
 
-const assetOwnerArray = [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10];
-const assetOwnerpkRawArray = [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw];
-//AssetOwner1, AssetOwner1pkRaw    AssetOwner2, AssetOwner2pkRaw   AssetOwner3, AssetOwner3pkRaw
-
-let addrHelium, addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5, addrAssetBook6, addrAssetBook7, addrAssetBook8, addrAssetBook9, addrAssetBook10, addrAssetBook0, addrRegistry;
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
     cName = addproduct, adduser, addorder, im, addsctrt, addia, pm
@@ -60,26 +23,13 @@ if (chain === 1){
   addrRegistry =   "0x067E900608Df20060d7597bc4EB1d08b9B1f0C3c";
   //addrRegistry = "0x7FD747B276687A55f48d9ad91c11a43b07461E4c";new
   addrProductMgr = "0xDdF6fcc680e1D76A9710f06aAB91CCfC740EaDA2";
-
-  addrAssetBook0 = "0x33a00F47501a684593Fbdc51bE6086C3Bc8aCe83";
-  addrAssetBook1 = "0x19746ba6B0c85052fB24f4120c9072789d0f7301";
-  addrAssetBook2 = "0x7b8e3d6f83Ed2985585635E0274Fe3C7F068f734";
-  addrAssetBook3 = "0x60Dc809FD5eF50a4F1826339F2931eaeF5Ce8d72";
-  addrAssetBook4 = "0x1a51ae9f18819b177E590f2f3129E050E276Ab15";
-  addrAssetBook5 = "0x32dAa83f1c4449c6835297909FF4688C7d3f0A4b";
-  addrAssetBook6 = "0x82a1d59a0245a7Ee6cDb436C24994b7b6CC9b2CB";
-  addrAssetBook7 = "0xFbAE3234ec2E9cBA59B9E358B764DC24f025C3cc";
-  addrAssetBook8 = "0x4819359B20ba011f7517aE804772C0f9d28eB762";
-  addrAssetBook9 = "0x7c56b4EE6dF3701029C824944D7a6C2bf0efD38a";
-  addrAssetBook10 = "0x48BfFeCdbc8ac0851CFe2cBa31DA0826974B29b5";
+  //addrAssetBookArray = [...];
   
 } else if (chain === 2){
   //ganache chain
   addrHelium = "";
-  addrAssetBook1 ="";
-  addrAssetBook2 = "";
-  addrAssetBook3 = "";
   addrRegistry =   "";
+  //addrAssetBookArray = [...];
 }
 
 //fundingType= 1 PO, 2 PP
@@ -196,9 +146,6 @@ index 4: updateTCC(serverTime);//blockchain.js
 index 5: calculateLastPeriodProfit(serverTime);//blockchain.js
 */
 
-const symbolArray = [];
-crowdFundingAddrArray= [];
-tokenControllerAddrArray= [];
 
 productObjArray.forEach( (obj) => {
   symbolArray.push(obj.nftSymbol);
@@ -243,20 +190,35 @@ function userObject(email, password, identityNumber, eth_add, cellphone, name, a
   this.bank_booklet = Math.random().toString(36).substring(2, 15);
 }
 //email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, tokenOrderAmount
-const user0 = new userObject('000a0@gmail.com', 'user0pw', 'R999777000', admin, '093755500', 'Romeo0', addrAssetBook0, 5, 513);
-const user1 = new userObject('000a1@gmail.com', 'user1pw', 'R999777001', AssetOwner1, '093755501', 'Romeo1', addrAssetBook1, 5, 514);
-const user2 = new userObject('000a2@gmail.com', 'user2pw', 'R999777002', AssetOwner2, '093755502', 'Romeo2', addrAssetBook2, 5, 534);
-const user3 = new userObject('000a3@gmail.com', 'user3pw', 'R999777003', AssetOwner3, '093755503', 'Romeo3', addrAssetBook3, 5, 546);
-const user4 = new userObject('000a4@gmail.com', 'user4pw', 'R999777004', AssetOwner4, '093755504', 'Romeo4', addrAssetBook4, 5, 558);
-const user5 = new userObject('000a5@gmail.com', 'user5pw', 'R999777005', AssetOwner5, '093755505', 'Romeo5', addrAssetBook5, 5, 562);
-const user6 = new userObject('000a6@gmail.com', 'user6pw', 'R999777006', AssetOwner6, '093755506', 'Romeo6', addrAssetBook6, 5, 573);
 
-const user7 = new userObject('000a7@gmail.com', 'user7pw', 'R999777007', AssetOwner7, '093755507', 'Romeo7', addrAssetBook7, 5, 584);
-const user8 = new userObject('000a8@gmail.com', 'user8pw', 'R999777008', AssetOwner8, '093755508', 'Romeo8', addrAssetBook8, 5, 597);
-const user9 = new userObject('000a9@gmail.com', 'user9pw', 'R999777009', AssetOwner9, '093755509', 'Romeo9', addrAssetBook9, 5, 605);
-const user10 = new userObject('000a10@gmail.com', 'user10pw', 'R999777010', AssetOwner10, '093755510', 'Romeo10', addrAssetBook10, 5, 619);
+const authLevel = 5;
+const tokenAmtToBuyBase = 500;
+EOA_List.forEach((item, index)=> {
+  let fillingDigit;
+  if(index < 10){ fillingDigit = '0';
+  } else { fillingDigit = ''; }
 
-const userArray = [user0, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10];
+  //console.log(`\nitem: ${item}`);
+  const digits = fillingDigit+index;
+  const email = '000a'+digits+'@gmail.com';
+  const password = 'user'+digits+'pw';
+  const idNumber = 'R9997770'+digits;
+  const assetOwnerX = item[1];
+  const privateKeyX = item[3];
+  const phoneNum = '09375558'+digits;
+  const userName = 'Romeo'+digits;
+  const assetBookX = Assetbooks[index];
+  const tokenAmtToBuy = tokenAmtToBuyBase + index;
+
+  console.log(`\n  index: ${index}, EOA: ${assetOwnerX} ${typeof assetOwnerX} \n  pkey: ${privateKeyX} ${typeof privateKeyX}`);
+  assetOwnerArray.push(assetOwnerX);
+  assetOwnerpkRawArray.push(privateKeyX);
+
+  const userX = new userObject(email, password, idNumber, assetOwnerX, phoneNum, userName, assetBookX, authLevel, tokenAmtToBuy);
+  userArray.push(userX);
+  assetbookArray.push(assetBookX);
+});
+
 
 userNum = 9;
 const userObjN = userArray[userNum];
@@ -286,9 +248,9 @@ function assetRecordObject(investorEmail, symbol, ar_time, holdingAmount, Accumu
   this.AcquiredCost = AcquiredCost;
   this.MovingAverageofHoldingCost = MovingAverageofHoldingCost;
 }
-const assetRecord1 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
-const assetRecord2 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
-const assetRecord3 = new assetRecordObject('johndoe@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord1 = new assetRecordObject('john@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord2 = new assetRecordObject('john@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
+const assetRecord3 = new assetRecordObject('john@gmail.com', nftSymbol, TimeTokenUnlock+1, 17, 100, 13000, 0, 0, 13000, 13000);
 const assetRecordArray = [assetRecord1, assetRecord2, assetRecord3];
 
 
@@ -350,8 +312,7 @@ duration: ${duration}, fundingType: ${fundingType}
 `);
 
 
-module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject,
-  
+module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, assetbookArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject,
 }
 /**
 email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb,

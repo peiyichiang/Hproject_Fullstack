@@ -3,9 +3,9 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject } = require('../ethereum/contracts/zTestParameters');
+const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray } = require('../ethereum/contracts/zTestParameters');
 
-const { symbolNumber, isTimeserverON } = require('./envVariables');
+const { admin, adminpkRaw, symbolNumber, isTimeserverON } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
@@ -13,23 +13,26 @@ const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calcul
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
 
-const { isEmpty, isNoneInteger, getTimeServerTime, checkTargetAmounts, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
+const { isEmpty, isNoneInteger, getTimeServerTime, checkTargetAmounts, getArraysFromCSV, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
 
-const [admin, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, AssetOwner6, AssetOwner7, AssetOwner8, AssetOwner9, AssetOwner10] = assetOwnerArray;
-const [adminpkRaw, AssetOwner1pkRaw, AssetOwner2pkRaw, AssetOwner3pkRaw, AssetOwner4pkRaw, AssetOwner5pkRaw, AssetOwner6pkRaw, AssetOwner7pkRaw, AssetOwner8pkRaw, AssetOwner9pkRaw, AssetOwner10pkRaw] = assetOwnerpkRawArray;
+const AssetOwner1 = assetOwnerArray[1];
+const AssetOwner2 = assetOwnerArray[2];
+const AssetOwner3 = assetOwnerArray[3];
+const AssetOwner4 = assetOwnerArray[4];
+const AssetOwner5 = assetOwnerArray[5];
 
 let argv3, argv4, argv5, argv6, argv7;
 
-const userIdArray = [];
+/*const userIdArray = [];
 const investorLevelArray = [];
 const assetbookArray = [];
 userArray.forEach((user, idx) => {
   if (idx !== 0 ){
-    userIdArray.push(user.identityNumber);
-    investorLevelArray.push(user.investorLevel);
+    //userIdArray.push(user.identityNumber);
+    //investorLevelArray.push(user.investorLevel);
     assetbookArray.push(user.addrAssetBook);
   }
-});
+});*/
 
 const timeChoice = 1;
 
@@ -513,7 +516,7 @@ const deployAssetbookContracts_API = async() => {
   const choice = 2;//1 for one assetbook, 2 for multiple
   let eoaArray, addrHeliumContract;
   if(choice === 2){
-    eoaArray = assetOwnerArray;
+    eoaArray = assetOwnerArray.slice(0, 10);
     addrHeliumContract = addrHelium;
   } else {
     const assetownerOne = "";
@@ -2088,6 +2091,13 @@ function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeri
   this.singleCalibrationActualIncome = singleCalibrationActualIncome;
 }
 
+//yarn run testmt -f 150
+const getArraysFromCSV_API = async () => {
+  console.log('\n---------------------==getArraysFromCSV_API()');
+  //getArraysFromCSV();
+  process.exit(0);
+}
+
 //------------------------==
 // yarn run testmt -f 0
 if(argv3 === 0){
@@ -2492,4 +2502,10 @@ if(argv3 === 0){
 //yarn run testmt -f 147
 } else if (argv3 === 147) {
   getTxnInfoRowsBySymbol_API();
+
+//yarn run testmt -f 150
+} else if (argv3 === 150) {
+  getArraysFromCSV_API();
+
 }
+

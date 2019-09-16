@@ -33,7 +33,7 @@
     "express": "~4.16.0",
     "express-session": "^1.15.6",
     "faker": "^4.1.0",
-    "fs": "0.0.1-security",
+    "fs": "^0.0.1-security",
     "http-errors": "~1.6.2",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.4.0",

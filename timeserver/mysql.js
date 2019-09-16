@@ -12,13 +12,13 @@ const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, a
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray} = require('../ethereum/contracts/zsetupData');
 
 const { userArray } = require('../ethereum/contracts/zTestParameters');
-const userIdentityNumberArray = [];
-const investorLevelArray = [];
+// const userIdentityNumberArray = [];
+// const investorLevelArray = [];
 const assetbookArray = [];
 userArray.forEach((user, idx) => {
   if (idx !== 0 ){
-    userIdentityNumberArray.push(user.identityNumber);
-    investorLevelArray.push(user.investorLevel);
+    // userIdentityNumberArray.push(user.identityNumber);
+    // investorLevelArray.push(user.investorLevel);
     assetbookArray.push(user.addrAssetBook);
   }
 });
