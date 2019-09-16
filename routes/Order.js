@@ -139,6 +139,7 @@ router.post('/AddOrder', async function (req, res, next) {
                             res.status(200);
                             res.json({
                                 "message": "訂單寫入資料庫成功 & 驗證信寄送成功",
+                                "result": orderId
                             });
                         }
                         // console.log('Message sent: %s', info.messageId);
