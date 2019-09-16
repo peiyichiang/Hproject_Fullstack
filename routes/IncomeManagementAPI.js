@@ -58,12 +58,6 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
                     return array.concat(nextElement);
                 }, initArray)
 
-            incomeHistoryList.map(
-                incomeHistory => {
-                    incomeHistory.income = returnNumberWithCommas(incomeHistory.income)
-                    incomeHistory.acquiredCost = returnNumberWithCommas(incomeHistory.acquiredCost)
-                });
-
             res.status(200);
             res.json({
                 "message": "[Success] 資產歷史紀錄取得成功！",
@@ -172,16 +166,16 @@ router.get('/LatestAssetHistory', function (req, res, next) {
                         }
                     });
 
-                // let latestAssetHistoryArray = await query(queryString2, decoded.u_email);
-                // latestAssetHistoryArray.map(
-                //     latestAssetHistoryByToken => {
-                //         console.log(latestAssetHistoryByToken)
-                //         incomeArray.map((incomeObject) => {
-                //             console.log(incomeObject)
-                //             if (latestAssetHistoryByToken.symbol == incomeObject.symbol)
-                //                 latestAssetHistoryByToken.incomeTotal = returnNumberWithCommas(incomeObject.income)
-                //         });
-                //     });
+                let incomeArray = await query(queryString2, decoded.u_email);
+                latestAssetHistoryArray.map(
+                    latestAssetHistoryByToken => {
+                        console.log(latestAssetHistoryByToken)
+                        incomeArray.map((incomeObject) => {
+                            console.log(incomeObject)
+                            if (latestAssetHistoryByToken.symbol == incomeObject.symbol)
+                                latestAssetHistoryByToken.incomeTotal = incomeObject.income;
+                        });
+                    });
 
                 if (latestAssetHistoryArray.length > 0) {
                     res.status(200).json({
