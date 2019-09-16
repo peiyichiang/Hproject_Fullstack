@@ -871,11 +871,11 @@ const getProfitSymbolAddresses = async(serverTime) => {
       let acPayment, mesg = '';
       if(maxActualPaymentTime === '0'){
         acPayment = -10;
-        mesg += 'MAPT_0';
+        mesg += 'MAPT_0';//maxActualPaymentTime has not been given!
 
       } else if(maxActualPaymentTime === 'null'){
         acPayment = -11;
-        mesg += 'MAPT_null';
+        mesg += 'MAPT_null';//maxActualPaymentTime is not found because this period has not been completed
 
       } else if(maxActualPaymentTime === 'result_len_zero'){
         acPayment = -12;
@@ -883,7 +883,7 @@ const getProfitSymbolAddresses = async(serverTime) => {
 
       } else if(isNoneInteger(maxActualPaymentTime)){
         acPayment = -13;
-        mesg += 'MAPT_not_valid';
+        mesg += 'MAPT_not_valid';//incorrect data...
         console.log(`[Warning] ${mesg}, symbol: ${symbol}`);
   
       } else {
@@ -929,7 +929,7 @@ const getProfitSymbolAddresses = async(serverTime) => {
     \ncheckedSymbolsWarn: ${checkedSymbolsWarn}
     \nacPaymentArrayWarn: \n${acPaymentArrayWarn} 
     \nmaxActualPaymentTimeArrayWarn: \n${maxActualPaymentTimeArrayWarn} 
-    \nmesgArrayWarn: \n${mesgArrayWarn}`);
+    \nmesgArrayWarn: \n${mesgArrayWarn} \nmesg interpretation: \nMAPT_0: maxActualPaymentTime has not been given! \nMAPT_null: maxActualPaymentTime is not found because this period has not been completed \nMAPT_not_valid: maxActualPaymentTime has incorrect data...`);
     resolve([checkedSymbols, checkedTokenAddrs, acPaymentArray, maxActualPaymentTimeArray, mesgArray]);
   });//end of getProfitSymbolAddresses
 }

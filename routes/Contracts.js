@@ -225,8 +225,9 @@ router.post('/assetbookContract', async function (req, res, next) {
 
 // http://localhost:3030/Contracts/assetbook/getAssetbookDetails
 router.get('/assetbook/getAssetbookDetails/:ctrtAddr', async function (req, res, next) {
+  console.log(`inside getAssetbookDetails...`)
   const assetbookCtrtAddr = req.params.ctrtAddr;
-  console.log(`\nassetbookCtrtAddr: ${assetbookCtrtAddr}`);
+  console.log(`\nassetbookCtrtAddr: ${assetbookCtrtAddr} ${typeof {assetbookCtrtAddr}}`);
   if(isEmpty(assetbookCtrtAddr)){
     res.send({
       err: 'assetbookCtrtAddr is invalid. '+assetbookCtrtAddr,
@@ -259,7 +260,7 @@ router.post('/assetbook/endorsers', async function (req, res, next) {
   console.log(`\nendorserIndex: ${endorserIndex}`);
   if(isEmpty(endorserIndex)){
     res.send({
-      err: 'endorserIndex is invalid. '+endorserIndex,
+      err: 'endorserIndex is invalid',
       status: false
     });
     return false;
@@ -292,18 +293,18 @@ router.post('/assetbook/getAsset', async function (req, res, next) {
   const assetIndex = req.body.assetIndex;
   const tokenAddress = req.body.tokenAddress;
   console.log(`\nassetbookAddr: ${assetbookAddr}, \nassetIndex: ${assetIndex}, tokenAddress: ${tokenAddress}`);
-  // if(isEmpty(tokenAddress && isEmpty(assetIndex))){
-  //   res.send({
-  //     err: 'assetIndex and tokenAddress are both invalid. '+tokenAddress,
-  //     status: false
-  //   });
-  //   return false;
-  // }
+  if(isEmpty(tokenAddress || isEmpty(assetIndex))){
+    res.send({
+      err: 'assetIndex or/and tokenAddress is/are invalid',
+      status: false
+    });
+    return false;
+  }
   const instAssetbook = new web3.eth.Contract(assetBookContract.abi, assetbookAddr);
   const assetInfo = await instAssetbook.methods.getAsset(assetIndex, tokenAddress).call();
   const symbolStr = web3.utils.toAscii(assetInfo.symbol);
   //console.log('>>', assetInfo.symbol, );
-  res.send({ assetInfo, symbolStr });
+  res.send({ status: true, assetInfo, symbolStr });
 });
 
 /**@dev CrowdFunding ------------------------------------------------------------------------------------- */
@@ -1245,7 +1246,7 @@ router.post('/tokenHCAT/idxToOwner', async function (req, res, next) {
 router.post('/tokenHCAT/ownerOf', async function (req, res, next) {
   const ctrtAddr = req.body.ctrtAddr;
   const tokenId = req.body.tokenId;
-  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  console.log(`\ntokenId: ${tokenId}, tokenCtrtAddr: ${ctrtAddr}`);
   if(isEmpty(ctrtAddr)){
     res.send({
       err: 'ctrtAddr is invalid. '+ctrtAddr,
@@ -1314,7 +1315,7 @@ router.post('/tokenHCAT/balanceOf', async function (req, res, next) {
 router.post('/tokenHCAT/getTokenIdByIndex', async function (req, res, next) {
   const ctrtAddr = req.body.ctrtAddr;
   const assetbookAddr = req.body.assetbookAddr;
-  const startIndex = req.body.startIndex;
+  const tokenIdAccountIndex = req.body.tokenIdAccountIndex;
   console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
   if(isEmpty(ctrtAddr)){
     res.send({
@@ -1324,7 +1325,7 @@ router.post('/tokenHCAT/getTokenIdByIndex', async function (req, res, next) {
     return false;
   }
   const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
-  const getTokenIdByIndex = await instHCAT721.methods.getTokenIdByIndex(assetbookAddr, startIndex).call();
+  const getTokenIdByIndex = await instHCAT721.methods.getTokenIdByIndex(assetbookAddr, tokenIdAccountIndex).call();
   console.log(`getTokenIdByIndex: ${getTokenIdByIndex}`);
   res.send({ getTokenIdByIndex });
 });
@@ -1334,7 +1335,7 @@ router.post('/tokenHCAT/getAccountIds', async function (req, res, next) {
   const assetbookAddr = req.body.assetbookAddr;
   const startIndex = req.body.startIndex;
   const amount = req.body.amount;
-  console.log(`\ntokenCtrtAddr: ${ctrtAddr}`);
+  console.log(`\ntokenCtrtAddr: ${ctrtAddr}, assetbookAddr: ${assetbookAddr}, startIndex: ${startIndex}, amount: ${amount}`);
   if(isEmpty(ctrtAddr)){
     res.send({
       err: 'ctrtAddr is invalid. '+ctrtAddr,

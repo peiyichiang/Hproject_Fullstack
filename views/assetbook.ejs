@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="/css/ContractExplorer.css">
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="">
-  <link rel="stylesheet" href="/css/ctrtInterfaceStyles.css">
+
   <title>HeliumCryptic Smart Contract Explorer</title>
 </head>
 
@@ -94,7 +93,7 @@
           <input type="text" class="form-control" placeholder="tokenAddress" aria-label="tokenAddress" id="tokenAddress" aria-describedby="tokenAddress">
         </div>
         
-        <button type="button" id="getAsset" class="btn btn-primary">Check asset details from token address</button>
+        <button type="button" id="getAsset" class="btn btn-primary">getAsset: Check asset details from token address</button>
         <hr style="border-top: 5px solid rgba(0,0,0,0.3);" />
 
 
@@ -119,9 +118,14 @@
 
       <div class="col">
         <h5>Result</h5>
-        symbol: <span id="symbolM"></span><br>
-        name: <span id="name"></span><br>
-        
+        <a href="crowdfunding" >Crowdfunding</a> | 
+        <a href="tokenController" >tokenController</a> |
+        <a href="TokenHCAT" >TokenHCAT</a> |
+        <a href="IncomeManager" >IncomeManager</a> |
+        <a href="Assetbook" >Assetbook</a> |
+        <a href="Registry" >Registry</a> |
+        <a href="Settlement" >Settlement</a><br>
+
         <br>
         assetbookAddr: <span id="assetbookAddrM"></span><br>
         assetOwner: <span id="assetOwnerM"></span><br>
@@ -147,6 +151,7 @@
         calculateVotes: <span id="calculateVotesM"></span><br>
 
         error message: <span id="errorMessageM"></span><br>
+        error from console: <span id="errorConsole"></span><br>
       </div>
     </div>
   </div>
@@ -170,6 +175,16 @@
     $(function () {
       $('[data-toggle="tooltip"]').tooltip()
     });
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
 
     const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
     //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
@@ -208,7 +223,7 @@
     const addrZero = "0x0000000000000000000000000000000000000000";
 
     const checkAssetbook = async(identityNumber_input, email_input, assetbookAddr_input) => {
-      let mesg = '', mesgAssetbook = '';
+      let mesg = '', mesgAssetbook = '', isGoodAssetbook, assetbookAddr;
       const is_identityNumber_empty = isEmpty(identityNumber_input);
       const is_email_empty = isEmpty(email_input);
       const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
@@ -228,6 +243,7 @@
         } else {
           mesg += ', tokenSymbol should have length of 42';
         }
+
       } else if(!is_identityNumber_empty){
         const url = BcApiBase+`getAssetbookFromIdentityNumber`;
         console.log('about to get assetbook ... url:', url);
@@ -281,9 +297,8 @@
         mesg += ', At least one of assetbookAddr, identityNumber, or email should be valid';
         //console.warn(mesg);
 
-        const isGivingDefault = 1;
-        if(isGivingDefault === 1) {
-          assetbookAddr = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
+        if(isGivingDefaultValue) {
+          assetbookAddr = assetbookAddr1;
           mesg += ', assetbookAddr is empty. Using default value: assetbookAddr = '+assetbookAddr;
           isGoodAssetbook = true;
         } else {
@@ -300,19 +315,19 @@
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, assetbookAddr_input, operatorAddr_input, tokenId_input, ownerIndex_input, startIndex_input, amount_input, mesg, isGoodAssetbook, assetbookX, resultMesg = '', assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount, identityNumber, email, endorserIndex_input;
+      let tokenId_input, ownerIndex_input, startIndex_input, mesg, isGoodAssetbook, assetbookX, resultMesg = '', assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount, identityNumber, email, targetAddress;
 
-      assetbookAddr_input = document.getElementById("assetbookAddr").value;
-      identityNumber_input = document.getElementById("identityNumber").value;
-      email_input = document.getElementById("email").value;
+      const assetbookAddr_input = document.getElementById("assetbookAddr").value;
+      const identityNumber_input = document.getElementById("identityNumber").value;
+      const email_input = document.getElementById("email").value;
 
-      endorserIndex_input = document.getElementById("endorserIndex").value;
-      targetAddress_input = document.getElementById("targetAddress").value;
-      tokenAddress_input = document.getElementById("tokenAddress").value;
-      assetIndex_input = document.getElementById("assetIndex").value;
+      const endorserIndex_input = document.getElementById("endorserIndex").value;
+      const targetAddress_input = document.getElementById("targetAddress").value;
+      const tokenAddress_input = document.getElementById("tokenAddress").value;
+      const assetIndex_input = document.getElementById("assetIndex").value;
       
-      amount_input = document.getElementById("amount").value;
-      operatorAddr_input = document.getElementById("operatorAddr").value;
+      const amount_input = document.getElementById("amount").value;
+      const operatorAddr_input = document.getElementById("operatorAddr").value;
 
       const is_assetbookAddr_empty = isEmpty(assetbookAddr_input);
       const is_identityNumber_empty = isEmpty(identityNumber_input);
@@ -337,42 +352,55 @@
 
       } else if(funcName === 'endorsers'){
         if(is_endorserIndex_empty){
-          endorserIndex = 1;
-          mesgAssetbook += ', endorserIndex is found empty. Using default value: '+ endorserIndex;
-          console.warn(mesgAssetbook);
+          if(isGivingDefaultValue){
+            endorserIndex = 1;
+            mesgAssetbook += ', endorserIndex is found empty. Using default value: '+ endorserIndex;
+          } else {
+            mesgAssetbook += ', endorserIndex is found empty.';
+          }
         } else {
           endorserIndex = endorserIndex_input;
         }
       } else if(funcName === 'checkIsContract'){
         if(is_targetAddress_empty){
-          targetAddress = '0x19746ba6B0c85052fB24f4120c9072789d0f7301';
-          mesgAssetbook += ', targetAddress is found empty. Using default value: '+ targetAddress;
-          console.warn(mesgAssetbook);
+          if(isGivingDefaultValue){
+            targetAddress = assetbookAddr1;
+            mesgAssetbook += ', targetAddress is found empty. Using default value: '+ targetAddress;
+          } else {
+            mesgAssetbook += ', targetAddress is found empty.';
+          }
         } else {
           targetAddress = targetAddress_input;
         }
+        console.log('----==targetAddress:', targetAddress);
 
       } else if(funcName === 'getAsset'){
         if(is_tokenAddress_empty){
-          tokenAddress = '0xA80c0A88e38aa61190A3Ad41bd3907774D291f87';
-          mesgAssetbook += ', tokenAddress is found empty. Using default tokenAddress value: '+ tokenAddress;
-          console.warn(mesgAssetbook);
+          if(isGivingDefaultValue){
+            tokenAddress = ctrtAddrCFC;
+            mesgAssetbook += ', tokenAddress is found empty. Using default tokenAddress value: '+ tokenAddress;
+          } else {
+            mesgAssetbook += ', tokenAddress is found empty.';
+          }
         } else {
           tokenAddress = tokenAddress_input;
         }
         if(is_assetIndex_empty){
-          assetIndex = 0;
-          mesgAssetbook += ', assetIndex is found empty. Using default assetIndex value: '+ assetIndex;
-          console.warn(mesgAssetbook);
+          if(isGivingDefaultValue){
+            assetIndex = 0;
+            mesgAssetbook += ', assetIndex is found empty. Using default assetIndex value: '+ assetIndex;
+          } else {
+            mesgAssetbook += ', assetIndex is found empty.';
+          }
         } else {
           assetIndex   = assetIndex_input;
         }
-
-
       } else {
         console.log('funcName is out of range!');
       }
-      if(mesgAssetbook) {showMessage(mesgAssetbook);}
+      console.log(`-------------==`);
+      console.warn(mesgAssetbook);
+      showMessage(mesgAssetbook);
 
       return [isGoodAssetbook, assetbookAddr, endorserIndex, targetAddress, tokenAddress, assetIndex, amount, operatorAddr];
     }
@@ -382,34 +410,36 @@
     $('#getAssetbookDetails').on('click',  async function (e) {
       console.log('inside getAssetbookDetails function... \ne.target:', e.target);
 
-      const [isGoodAssetbook, assetbookAddr, operatorAddr, tokenId, ownerIndex, startIndex, amount] = await checkInputs('getAssetbookDetails');
+      const [isGoodAssetbook, assetbookAddr, endorserIndex, targetAddress, tokenAddress, assetIndex, amount, operatorAddr] = await checkInputs('getAssetbookDetails');
       //      console.log('result', result);
+      
+      if(!isEmpty(assetbookAddr)){
+        const url = BcApiBase+`assetbook/getAssetbookDetails/${assetbookAddr}`;
+        // http://localhost:3030/Contracts/getAssetbookDetails/
+        const response = await fetch(url);
+        const json = await response.json();
+        console.log('after calling API ... json: ${json}');
 
-      const url = BcApiBase+`assetbook/getAssetbookDetails/${assetbookAddr}`;
-      // http://localhost:3030/Contracts/getAssetbookDetails/
-      const response = await fetch(url);
-      const json = await response.json();
-      console.log('after calling API ... json: ${json}');
+        const { assetOwner, endorserCount, lastLoginTime, antiPlatformOverrideDaysDefault, antiPlatformOverrideDays, assetOwner_flag, HeliumContract_flag, endorsers_flag, checkAssetOwner, checkCustomerService, isAblePlatformOverride, assetCindex, calculateVotes } = json;
 
-      const { assetOwner, endorserCount, lastLoginTime, antiPlatformOverrideDaysDefault, antiPlatformOverrideDays, assetOwner_flag, HeliumContract_flag, endorsers_flag, checkAssetOwner, checkCustomerService, isAblePlatformOverride, assetCindex, calculateVotes } = json;
+        console.log(`assetOwner: ${assetOwner}, \nendorserCount: ${endorserCount}, lastLoginTime: ${lastLoginTime}, antiPlatformOverrideDaysDefault: ${antiPlatformOverrideDaysDefault}, antiPlatformOverrideDays: ${antiPlatformOverrideDays}, assetOwner_flag: ${assetOwner_flag}, HeliumContract_flag: ${HeliumContract_flag}, endorsers_flag: ${endorsers_flag}, checkAssetOwner: ${checkAssetOwner}, checkCustomerService: ${checkCustomerService}, isAblePlatformOverride: ${isAblePlatformOverride}, assetCindex: ${assetCindex}, calculateVotes: ${calculateVotes}`);
+        //const name = json['name'];
 
-      console.log(`assetOwner: ${assetOwner}, \nendorserCount: ${endorserCount}, lastLoginTime: ${lastLoginTime}, antiPlatformOverrideDaysDefault: ${antiPlatformOverrideDaysDefault}, antiPlatformOverrideDays: ${antiPlatformOverrideDays}, assetOwner_flag: ${assetOwner_flag}, HeliumContract_flag: ${HeliumContract_flag}, endorsers_flag: ${endorsers_flag}, checkAssetOwner: ${checkAssetOwner}, checkCustomerService: ${checkCustomerService}, isAblePlatformOverride: ${isAblePlatformOverride}, assetCindex: ${assetCindex}, calculateVotes: ${calculateVotes}`);
-      //const name = json['name'];
-
-      document.getElementById("assetbookAddrM").innerText = assetbookAddr;
-      document.getElementById("assetOwnerM").innerText = assetOwner;
-      document.getElementById("endorserCountM").innerText = endorserCount;
-      document.getElementById("lastLoginTimeM").innerText = lastLoginTime;
-      document.getElementById("antiPlatformOverrideDaysDefaultM").innerText = antiPlatformOverrideDaysDefault;
-      document.getElementById("antiPlatformOverrideDaysM").innerText = antiPlatformOverrideDays;
-      document.getElementById("assetOwner_flagM").innerText = assetOwner_flag;
-      document.getElementById("HeliumContract_flagM").innerText = HeliumContract_flag;
-      document.getElementById("endorsers_flagM").innerText = endorsers_flag;
-      document.getElementById("checkAssetOwnerM").innerText = checkAssetOwner;
-      document.getElementById("checkCustomerServiceM").innerText = checkCustomerService;
-      document.getElementById("isAblePlatformOverrideM").innerText = isAblePlatformOverride;
-      document.getElementById("assetCindexM").innerText = assetCindex;
-      document.getElementById("calculateVotesM").innerText = calculateVotes;
+        document.getElementById("assetbookAddrM").innerText = assetbookAddr;
+        document.getElementById("assetOwnerM").innerText = assetOwner;
+        document.getElementById("endorserCountM").innerText = endorserCount;
+        document.getElementById("lastLoginTimeM").innerText = lastLoginTime;
+        document.getElementById("antiPlatformOverrideDaysDefaultM").innerText = antiPlatformOverrideDaysDefault;
+        document.getElementById("antiPlatformOverrideDaysM").innerText = antiPlatformOverrideDays;
+        document.getElementById("assetOwner_flagM").innerText = assetOwner_flag;
+        document.getElementById("HeliumContract_flagM").innerText = HeliumContract_flag;
+        document.getElementById("endorsers_flagM").innerText = endorsers_flag;
+        document.getElementById("checkAssetOwnerM").innerText = checkAssetOwner;
+        document.getElementById("checkCustomerServiceM").innerText = checkCustomerService;
+        document.getElementById("isAblePlatformOverrideM").innerText = isAblePlatformOverride;
+        document.getElementById("assetCindexM").innerText = assetCindex;
+        document.getElementById("calculateVotesM").innerText = calculateVotes;
+      }
       //location.reload();
     });
 
@@ -417,42 +447,48 @@
       console.log('inside endorsers function... \ne.target:', e.target);
       const [isGoodAssetbook, assetbookAddr, endorserIndex, targetAddress, tokenAddress, assetIndex, amount, operatorAddr] = await checkInputs('endorsers');
 
-      const url = BcApiBase+`assetbook/endorsers`;
-      // http://localhost:3030/Contracts/assetbook/endorsers/
-      const data = { assetbookAddr, endorserIndex };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("endorserAddrM").innerText = jsonObj['endorserAddr'];
+      if(!isEmpty(assetbookAddr) && !isEmpty(endorserIndex)){
+        const url = BcApiBase+`assetbook/endorsers`;
+        // http://localhost:3030/Contracts/assetbook/endorsers/
+        const data = { assetbookAddr, endorserIndex };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+        document.getElementById("endorserAddrM").innerText = jsonObj['endorserAddr'];
+      }
     });
 
     $('#checkIsContract').on('click',  async function (e) {
       console.log('inside checkIsContract function... \ne.target:', e.target);
       const [isGoodAssetbook, assetbookAddr, endorserIndex, targetAddress, tokenAddress, assetIndex, amount, operatorAddr] = await checkInputs('checkIsContract');
+      console.log(`----==assetbookAddr: ${assetbookAddr}, targetAddress: ${targetAddress}`);
 
-      const url = BcApiBase+`assetbook/checkIsContract`;
-      // http://localhost:3030/Contracts/assetbook/checkIsContract/
-      const data = { assetbookAddr, targetAddress };
-      const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-      };
-      const response = await fetch(url, options).catch(error => console.error('Error:', error));
-      const jsonObj = await response.json();
-      console.log('jsonObj', jsonObj);
-      document.getElementById("isContractM").innerText = jsonObj['isContract'];
+      if(!isEmpty(assetbookAddr) && !isEmpty(targetAddress)){
+        const url = BcApiBase+`assetbook/checkIsContract`;
+        // http://localhost:3030/Contracts/assetbook/checkIsContract/
+        const data = { assetbookAddr, targetAddress };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+        document.getElementById("isContractM").innerText = jsonObj['isContract'];
+      }
     });
     
 
     $('#getAsset').on('click',  async function (e) {
       console.log('inside getAsset function... \ne.target:', e.target);
       const [isGoodAssetbook, assetbookAddr, endorserIndex, targetAddress, tokenAddress, assetIndex, amount, operatorAddr] = await checkInputs('getAsset');
+      console.log(`----==assetbookAddr: ${assetbookAddr}, assetIndex: ${assetIndex}, tokenAddress: ${tokenAddress}`);
 
       const url = BcApiBase+`assetbook/getAsset`;
       // http://localhost:3030/Contracts/assetbook/getAsset/
@@ -465,21 +501,27 @@
       const response = await fetch(url, options).catch(error => console.error('Error:', error));
       const jsonObj = await response.json();
       console.log('jsonObj', jsonObj);
-      const {assetIndex_, assetAddr_, symbol, balance} = jsonObj['assetInfo'];
-      const symbolStr = jsonObj.symbolStr.trim();
-      console.log(`assetIndex_: ${assetIndex_}, assetAddr_: ${assetAddr_}, symbol: ${symbol}, balance: ${balance}, symbolStr: ${symbolStr}`);
 
-      document.getElementById("assetIndex_").innerText = assetIndex_;
-      document.getElementById("assetAddr_").innerText = assetAddr_;
-      document.getElementById("balance").innerText = balance;
+      let assetIndex_Str, assetAddr_Str, symbolStr, balanceStr, errorConsole;
+      if(jsonObj.status){
+        const {assetIndex_, assetAddr_, symbol, balance} = jsonObj['assetInfo'];
+        const symbolStr = jsonObj.symbolStr.trim();
+        console.log(`assetIndex_: ${assetIndex_}, assetAddr_: ${assetAddr_}, symbol: ${symbol}, balance: ${balance}, symbolStr: ${symbolStr}`);
+        assetIndex_Str = assetIndex_;
+        assetAddr_Str  = assetAddr_;
+        symbolStr      = symbol;
+        balanceStr     = balance;
+        errorConsole   = '';
+      } else {
+        assetIndex_Str = 'API Failed';
+        errorConsole = '[API Failed] '+jsonObj.err;
+      }
+      document.getElementById("assetIndex_").innerText = assetIndex_Str;
+      document.getElementById("assetAddr_").innerText = assetAddr_Str;
       document.getElementById("symbolStr").innerText = symbolStr;
+      document.getElementById("balance").innerText = balanceStr;      document.getElementById("errorConsole").innerText = errorConsole;
 
     });
-  /* idToAsset (get Owner Address from tokenId), isOwnerAdded
-idxToOwner   ownerCindex    ownerOf   getOwnersByOwnerIndex
-getAccount   balanceOf      getTokenIdByIndex
-getAccountIds   allowance    checkTokenApprove    ckStringLength
-*/
   </script>
 
 </body>
