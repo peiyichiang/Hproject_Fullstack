@@ -593,6 +593,18 @@ const deployAssetbookContracts_API = async() => {
   });
   const isAllGood = !(addrAssetBookArray.includes(undefined));
   console.log('isAllGood:', isAllGood);
+
+  var file = fs.createWriteStream("./ethereum/contracts/Assetbooks.csv");
+  file.on('error', function(err) { /* error handling */ });
+  addrAssetBookArray.forEach(function(v) { file.write(v + '\n'); });
+  file.end();
+  /*fs.writeFile("./ethereum/contracts/Assetbooks.csv", JSON.stringify(addrAssetBookArray), function(err){
+    if(err){
+      console.error(err);
+    }
+    else
+      console.log("success");
+  });  */
   process.exit(0);
 };
 
