@@ -51,12 +51,12 @@ console.log(`using backendAddr: ${backendAddr}`);
 
 
 //-------------------==Helium Contract
-const addPlatformSupervisor = async(platformSupervisorNew, addrHeliumX) => {
+const addPlatformSupervisor = async(platformSupervisorNew, addrHeliumContract) => {
   return new Promise(async (resolve, reject) => {
     //console.log('--------------==adding additional PlatformSupervisor...');
-    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumContract);
     const encodedData= instHelium.methods.addPlatformSupervisor(platformSupervisorNew).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumX, encodedData).catch((err) => {
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumContract, encodedData).catch((err) => {
       reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
       return false;
     });
@@ -66,11 +66,11 @@ const addPlatformSupervisor = async(platformSupervisorNew, addrHeliumX) => {
   });
 }
 
-const addCustomerService = async(platformSupervisorNew, addrHeliumX) => {
+const addCustomerService = async(platformSupervisorNew, addrHeliumContract) => {
   return new Promise(async (resolve, reject) => {
-    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumContract);
     const encodedData= instHelium.methods.addCustomerService(platformSupervisorNew).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumX, encodedData).catch((err) => {
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, addrHeliumContract, encodedData).catch((err) => {
       reject('[Error @ signTx() addCustomerService()]'+ err);
       return false;
     });
@@ -80,17 +80,17 @@ const addCustomerService = async(platformSupervisorNew, addrHeliumX) => {
   });
 }
 
-const checkPlatformSupervisor = async(eoa, addrHeliumX) => {
+const checkPlatformSupervisor = async(eoa, addrHeliumContract) => {
   return new Promise(async (resolve, reject) => {
-    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumContract);
     const result= await instHelium.methods.checkPlatformSupervisor(eoa).call();
     resolve(result);
   });
 }
 
-const checkCustomerService = async(eoa, addrHeliumX) => {
+const checkCustomerService = async(eoa, addrHeliumContract) => {
   return new Promise(async (resolve, reject) => {
-    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumX);
+    const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumContract);
     const result= await instHelium.methods.checkCustomerService(eoa).call();
     resolve(result);
   });
@@ -100,7 +100,7 @@ const checkCustomerService = async(eoa, addrHeliumX) => {
 //----------------------==Helium Contract
 const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n----------------== inside deployHeliumContract()');
+    console.log(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nbackendAddrpkRaw: ${backendAddrpkRaw} \nblockchainURL: ${blockchainURL}`);
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
@@ -109,16 +109,21 @@ const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
 
     const argsHelium = [[eoa0, eoa1, eoa2, eoa3, eoa4]];
     console.log('\nDeploying Helium contract...');
-    instHelium =  await new web3deploy.eth.Contract(Helium.abi)
-    .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        reject('error:', error.toString());
-        return false;
-    });
+    let instHelium;
+    try{
+      instHelium =  await new web3deploy.eth.Contract(Helium.abi)
+      .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          reject('error:', error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
 
     console.log('Helium.sol has been deployed');
     if (instHelium === undefined) {
@@ -144,17 +149,22 @@ const deployRegistryContract = async(addrHeliumContract) => {
 
     console.log('\n----------------== deployRegistryContract()');
     const argsRegistry = [addrHeliumContract];
-    instRegistry =  await new web3deploy.eth.Contract(Registry.abi)
-    .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-        reject(error.toString());
-        return false;
-    });
+    let instRegistry;
+    try{
+      instRegistry =  await new web3deploy.eth.Contract(Registry.abi)
+      .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
 
     console.log('Registry.sol has been deployed');
     if (instRegistry === undefined) {
@@ -309,17 +319,22 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
     console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
-    const instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
-     .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
-     .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-     .on('receipt', function (receipt) {
-       console.log('receipt:', receipt);
-    })
-     .on('error', function (error) {
-         console.log('error:', error.toString());
-         reject(error.toString());
-         return false;
-    });
+    let instCrowdFunding;
+    try{
+      instCrowdFunding = await new web3deploy.eth.Contract(CrowdFunding.abi)
+      .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
     console.log('CrowdFunding.sol has been deployed');
   
     if (instCrowdFunding === undefined) {
@@ -528,17 +543,22 @@ const deployTokenControllerContract = async(argsTokenController) => {
     console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
-    const instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
-    .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-        reject(error.toString());
-        return false;
-    });
+    let instTokenController;
+    try{
+      instTokenController = await new web3deploy.eth.Contract(TokenController.abi)
+      .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
     console.log('TokenController.sol has been deployed');
 
     if (instTokenController === undefined) {
@@ -714,16 +734,21 @@ const deployHCATContract = async(argsHCAT721) => {
 
     console.log('\nDeploying HCAT721 contract...');
     console.log('check1 hcat');
-    const instHCAT721 = await new web3deploy.eth.Contract(HCAT721.abi)
-    .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    }).on('error', function (error) {
-        console.log('error:', error.toString());
-        reject(error.toString());
-        return false;
-    });
+    let instHCAT721;
+    try{
+      instHCAT721 = await new web3deploy.eth.Contract(HCAT721.abi)
+      .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      }).on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
     console.log('HCAT721.sol has been deployed');
     //.send({ from: backendAddr, gas: 9000000, gasPrice: '0' })
   
@@ -1034,17 +1059,22 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
     console.log('web3deploy.version:', web3deploy.version);
     const prefix = '0x';
 
-    const instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
-    .deploy({ data: prefix+IncomeManager.bytecode, arguments: argsIncomeManager })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-        reject(error.toString());
-        return false;
-    });
+    let instIncomeManager;
+    try{
+      instIncomeManager = await new web3deploy.eth.Contract(IncomeManager.abi)
+      .deploy({ data: prefix+IncomeManager.bytecode, arguments: argsIncomeManager })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
 
     console.log('IncomeManager.sol has been deployed');
     if (instIncomeManager === undefined) {
@@ -1080,17 +1110,23 @@ const deployProductManagerContract = async(addrHeliumContract) => {
     console.log('\n----------------== deployProductManagerContract()');
     const argsProductManager =[addrHeliumContract];
     console.log(argsProductManager)
-    instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
-    .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
-    .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-        reject(error.toString());
-        return false;
-    });
+
+    let instProductManager;
+    try{
+      instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
+      .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
 
     console.log('ProductManager.sol has been deployed');
     if (instProductManager === undefined) {
@@ -2105,7 +2141,7 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
     const instRegistry = new web3.eth.Contract(Registry.abi, registryCtrtAddr);
 
     await asyncForEach(userIDs, async (userId, idx) => {
-      console.log(`\n--------==Check if userId ${userId}`);
+      console.log(`\n--------==Check: ${userId} ${typeof userId} ${authLevels[idx]} ${typeof authLevels[idx]} \n${assetbooks[idx]} ${typeof assetbooks[idx]}`);
       const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbooks[idx], authLevels[idx]).call({from: backendAddr});
       /**
           boolArray[0] = HeliumITF_Reg(HeliumCtrtAddr).checkCustomerService(msg.sender);

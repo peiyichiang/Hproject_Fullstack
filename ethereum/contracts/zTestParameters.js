@@ -1,5 +1,5 @@
 const { symbolNumber, isTimeserverON } = require('../../timeserver/envVariables');
-const { sLog, getArraysFromCSV } = require('../../timeserver/utilities');
+const { sLog, getArraysFromCSV, getOneItemPerLineFromCSV } = require('../../timeserver/utilities');
 var faker = require('faker');
 var _ = require('lodash');
 
@@ -7,17 +7,17 @@ sLog(`\n--------------------== zTestParameters.js`);
 //let addrIncomeManager, addrProductManager;
 let crowdFundingAddrArray = [], tokenControllerAddrArray = [], symbolArray = [], nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager;
 
-let addrHelium, addrRegistry, addrAssetBookArray;
+let addrAssetBookArray;
 const assetOwnerArray = [], assetOwnerpkRawArray = [], assetbookArray = [], userArray = [];
 
-const [EOA_List, badEOAs] = getArraysFromCSV('./ethereum/contracts/EOA_List.csv');
+const [EOA_List, badEOAs] = getArraysFromCSV('./ethereum/contracts/EOA_List.csv', 4);
 if(badEOAs.length > 0){
   console.warn(`badEOAs are found: ${badEOAs}`);
 } else {
   console.log(`all EOAs are complete in parts`);
 }
 
-const [Assetbooks, badAssetbooks ] = getArraysFromCSV('./ethereum/contracts/Assetbooks.csv');
+const [Assetbooks, badAssetbooks ] = getOneItemPerLineFromCSV('./ethereum/contracts/Assetbooks.csv', 1);
 if(badAssetbooks.length > 0){
   console.warn(`badAssetbooks are found: ${badAssetbooks}`);
 } else {
@@ -28,20 +28,7 @@ if(badAssetbooks.length > 0){
     yarn run deploy -c 1 -s 1 -cName db
     cName = addproduct, adduser, addorder, im, addsctrt, addia, pm
  */
-const chain = 1;
-if (chain === 1){
-  addrHelium =     "0xEEB51B9B88824a491b076737EBdd40b3babaB3bB";
-  addrRegistry =   "0x067E900608Df20060d7597bc4EB1d08b9B1f0C3c";
-  //addrRegistry = "0x7FD747B276687A55f48d9ad91c11a43b07461E4c";new
-  addrProductMgr = "0xDdF6fcc680e1D76A9710f06aAB91CCfC740EaDA2";
-  //addrAssetBookArray = [...];
-  
-} else if (chain === 2){
-  //ganache chain
-  addrHelium = "";
-  addrRegistry =   "";
-  //addrAssetBookArray = [...];
-}
+
 
 //fundingType= 1 PO, 2 PP
 //Math.round(maxTotalSupply*quantityGoalPercentage);
@@ -314,8 +301,6 @@ nftSymbol: ${nftSymbol}, nftName: ${nftName}
 maxTotalSupply: ${maxTotalSupply}, quantityGoal: ${quantityGoal}
 siteSizeInKW: ${siteSizeInKW}, tokenURI: ${tokenURI}
 initialAssetPricing: ${initialAssetPricing}, pricingCurrency = ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}
-addrHelium: ${addrHelium}
-addrRegistry: ${addrRegistry}
 addrTokenController: ${addrTokenController}
 addrHCAT721:  ${addrHCAT721}
 
@@ -323,7 +308,7 @@ duration: ${duration}, fundingType: ${fundingType}
 `);
 
 
-module.exports = { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, assetbookArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject,
+module.exports = { productObjArray, symbolArray, crowdFundingAddrArray, assetbookArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject,
 }
 /**
 email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb,

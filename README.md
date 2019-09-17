@@ -77,7 +77,7 @@ yarn run testmt -f 54 ... deployHeliumContract_API
 yarn run testmt -f 55 ... deployRegistryContract_API
 yarn run testmt -f 56 ... deployAssetbookContracts_API
 yarn run testmt -f 57 ... addUsersIntoDB_API
-yarn run livechain -c 1 --f 21 ... addUsersToRegistryCtrt
+yarn run testmt -f 59 ... addUsersToRegistryCtrt
 
 ----==
 yarn run testmt -f 61 ... deployCrowdfundingContract_API

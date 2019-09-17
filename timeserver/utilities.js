@@ -84,7 +84,7 @@ const getAllIndexes = (arr, val) => {
   return indexes;
 }
 
-const getArraysFromCSV = (eoaPath) => {
+const getArraysFromCSV = (eoaPath, itemNumberPerLine) => {
   const array = fs.readFileSync(eoaPath)
       .toString() // convert Buffer to string
       .split('\n') // split string to lines
@@ -97,7 +97,7 @@ const getArraysFromCSV = (eoaPath) => {
 
   const good = [], bad = [];
   array.forEach((item, index)=> {
-    if(item.length === 4) {
+    if(item.length === itemNumberPerLine) {
       good.push(item);
     } else {
       bad.push(item);
@@ -119,6 +119,42 @@ const getArraysFromCSV = (eoaPath) => {
 //   });
   return [good, bad];
 }
+
+const getOneItemPerLineFromCSV = (eoaPath, itemNumberPerLine) => {
+  const array = fs.readFileSync(eoaPath)
+      .toString() // convert Buffer to string
+      .split('\n') // split string to lines
+      .map(e => e.trim()); // remove white spaces for each line
+ 
+  // console.log('array[-3]:', array[array.length-3]);
+  // console.log('array[-2]:', array[array.length-2]);
+  // console.log('array[-1]:', array[array.length-1]);
+
+  const good = [], bad = [];
+  array.forEach((item, index)=> {
+    if(item.length === itemNumberPerLine) {
+      good.push(item);
+    } else {
+      bad.push(item);
+    }
+  });
+  // const filtered = array.filter((el) => {
+  //   return el.length === 4;
+  // });
+  // console.log('filtered[-3]:', filtered[filtered.length-3]);
+  // console.log('filtered[-2]:', filtered[filtered.length-2]);
+  // console.log('filtered[-1]:', filtered[filtered.length-1]);
+
+  //console.log('as JSON:', JSON.stringify(data, '', 2)); // as json
+//   data.forEach((item, index)=> {
+//     //console.log(`\nitem: ${item}`);
+//     console.log(`\n------------==index: ${index}
+// EOA: ${item[1]} ${typeof item[1]}
+// pkey: ${item[3]} ${typeof item[3]}`);
+//   });
+  return [good, bad];
+}
+
 
 const reduceArrays = (toAddressArray, amountArray) => {
   const toAddressArrayOut = [...new Set(toAddressArray)];
@@ -460,5 +496,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, getOneItemPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }

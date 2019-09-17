@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice;
+let symbolNumber, operationMode, backendAddrChoice, addrHelium, addrRegistry, addrProductMgr;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -35,11 +35,18 @@ const SERVER_PROTOCOL = process.env.SERVER_PROTOCOL;
 
 //----------------------------==Database Settings
 const DB_host = process.env.DB_HOST;
+const DB_port = process.env.DB_PORT;
 const DB_user = process.env.DB_USER;
 const DB_password = process.env.DB_PASS;
 const DB_name = process.env.DB_NAME;
-const DB_port = process.env.DB_PORT;
 
+/*
+const DB_host2 = process.env.DB_HOST2;
+const DB_port2 = process.env.DB_PORT2;
+const DB_user2 = process.env.DB_USER2;
+const DB_password2 = process.env.DB_PASS2;
+const DB_name2 = process.env.DB_NAME2;
+*/
 //----------------------------==Blockchain Settings
 const blockchainChoice = process.env.BLOCKCHAIN_CHOICE;
 console.log('blockchainChoice:', blockchainChoice);
@@ -51,16 +58,26 @@ if(blockchainChoice === '1'){//POA
   gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
   admin = process.env.HELIUM_ADMIN;
   adminpkRaw =  process.env.HELIUM_ADMIN_PRIVATEKEY;
+  addrHelium =     "0x391DAce017a97273e1231c7072F6cd9dCD05e798";
+  addrRegistry =   "0xE733a43B95c9F20936fDb0690ea3f6360262FD46";
+  addrProductMgr = "";
+
   
 } else if(blockchainChoice === '2'){/*ganache*/
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
   gasLimitValue = 9000000;// for POW private chain
   gasPriceValue = 20000000000;//100000000000000000
+  addrHelium =     "";
+  addrRegistry =   "";
+  addrProductMgr = "";
 
 } else if(blockchainChoice === '3'){/*Infura HttpProvider Endpoint*/
   blockchainURL = process.env.BC_PROVIDER;
   gasLimitValue = 9000000;// for POW private chain
   gasPriceValue = 20000000000;//100000000000000000
+  addrHelium =     "";
+  addrRegistry =   "";
+  addrProductMgr = "";
 
 } else if(blockchainChoice === '4'){/*local ganache-cli
   ganache-cli -m "mnemonic words..." -l 9721975  -g 20000000000 */
@@ -69,8 +86,12 @@ if(blockchainChoice === '1'){//POA
   gasPriceValue = 20000000000;//100000000000000000
   admin = process.env.GANACHE_EOA0;
   adminpkRaw =  process.env.GANACHE_EOAPK0;
+  addrHelium =     "";
+  addrRegistry =   "";
+  addrProductMgr = "";
 }
 
+console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrProductMgr: ${addrProductMgr}`);
 
 
 //----------------------------==Timeserver Settings
@@ -95,4 +116,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { symbolNumber, operationMode, backendAddrChoice, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };
+module.exports = { addrHelium, addrRegistry, addrProductMgr, symbolNumber, operationMode, backendAddrChoice, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };

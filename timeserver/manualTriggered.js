@@ -3,9 +3,9 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray } = require('../ethereum/contracts/zTestParameters');
+const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray } = require('../ethereum/contracts/zTestParameters');
 
-const { admin, adminpkRaw, symbolNumber, isTimeserverON } = require('./envVariables');
+const { admin, adminpkRaw, symbolNumber, isTimeserverON, addrHelium, addrRegistry, addrProductMgr } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
@@ -490,11 +490,65 @@ const orderBalanceTotal_API = async () => {
 
 
 //-----------------------------==
+//yarn run testmt -f 99
+const deployAllContracts_API = async() => {
+  console.log('\n--------------==inside deployAllContracts_API()');
+
+  //---------------------==
+  console.log('\n--------== about to deploy Helium Contract');
+  const eoa0 = admin; const eoa1 = AssetOwner1; const eoa2 = AssetOwner2;
+  const eoa3 = AssetOwner3; const eoa4 = AssetOwner4;
+  const {isGoodHeliumCtrt, addrHeliumContract} = await deployHeliumContract(eoa0, eoa1, eoa2, eoa3, eoa4);
+  console.log(`\nreturned isGoodHeliumCtrt: ${isGoodHeliumCtrt}, addrHeliumContract: ${addrHeliumContract}`);
+
+  //---------------------==
+  console.log('\n--------== about to deploy Registry Contract');
+  const {isGoodRegistryCtrt, addrRegistryCtrt} = await deployRegistryContract(addrHeliumContract);
+  console.log(`\nreturned isGoodRegistryCtrt: ${isGoodRegistryCtrt}, addrRegistryCtrt: ${addrRegistryCtrt}`);
+
+
+  //---------------------==
+  console.log('\n--------== about to deploy assetbooks');
+  if(assetOwnerArray.length < 10) {
+    console.error('not enough assetOwnerArray length!');
+    process.exit(1);
+  }
+  const eoaArray = assetOwnerArray.slice(0, 10);
+  const {isGoodAssetbookCtrts, addrAssetBookArray} = await deployAssetbooks(eoaArray,addrHeliumContract);
+
+  console.log(`\nreturned isGoodAssetbookCtrts: ${isGoodAssetbookCtrts}, addrAssetBookArray:`);
+  addrAssetBookArray.forEach((item, idx) => {
+    console.log(`addrAssetBook${idx} = "${item}";`);
+  });
+  const isAllGood = !(addrAssetBookArray.includes(undefined));
+  console.log('isAllGood:', isAllGood);
+
+
+  //---------------------==
+  console.log('\n--------== about to deploy Helium Contract');
+  const method = 3;
+  const authLevel = 5;
+
+  const userIDs = [];
+  const userAssetbooks = [addrAssetBook1,addrAssetBook2,addrAssetBook3];
+  const investorLevels = [authLevel, authLevel, authLevel];
+
+  console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
+investorLevels: ${investorLevels}`);
+
+  const {isGoodAddAssetbooksToRegistry, results} = await addUsersToRegistryCtrt(addrRegistryCtrt, userIDs, userAssetbooks, investorLevels).catch((err) => {
+    console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
+  });
+  console.log('isGoodAddAssetbooksToRegistry:', isGoodAddAssetbooksToRegistry, ', results:', results);
+  process.exit(0);
+}
+
 //yarn run testmt -f 54
 const deployHeliumContract_API = async() => {
   console.log('\n--------------==inside deployHeliumContract_API()');
   const eoa0 = admin; const eoa1 = AssetOwner1; const eoa2 = AssetOwner2;
   const eoa3 = AssetOwner3; const eoa4 = AssetOwner4;
+  console.log(`admin:       ${admin} \nAssetOwner1: ${AssetOwner1} \nAssetOwner2: ${AssetOwner2} \nAssetOwner3: ${AssetOwner3} \nAssetOwner4: ${AssetOwner4}`)
   const {isGood, addrHeliumContract} = await deployHeliumContract(eoa0, eoa1, eoa2, eoa3, eoa4);
   console.log(`\nreturned isGood: ${isGood}, addrHeliumContract: ${addrHeliumContract}`);
   process.exit(0);
@@ -514,14 +568,14 @@ const deployRegistryContract_API = async() => {
 const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
   const choice = 2;//1 for one assetbook, 2 for multiple
+  const assetbookAmount = 3;
   let eoaArray, addrHeliumContract;
   if(assetOwnerArray.length < 10) {
     console.error('not enough assetOwnerArray length!');
     process.exit(1);
   }
   if(choice === 2){
-    eoaArray = assetOwnerArray.slice(0, 10);
-    addrHeliumContract = addrHelium;
+    eoaArray = assetOwnerArray.slice(0, assetbookAmount);
   } else {
     const assetownerOne = "";
     if(assetownerOne.trim().length === 0) {
@@ -530,11 +584,12 @@ const deployAssetbookContracts_API = async() => {
     }
     eoaArray = [assetownerOne];
   }
+  addrHeliumContract = addrHelium;
   const {isGood, addrAssetBookArray} = await deployAssetbooks(eoaArray,addrHeliumContract);
 
   console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
   addrAssetBookArray.forEach((item, idx) => {
-    console.log(`addrAssetBook${idx} = "${item}";`);
+    console.log(`EOA_{idx}: ${eoaArray[idx]} \naddrAssetBook${idx} = ${item}`);
   });
   const isAllGood = !(addrAssetBookArray.includes(undefined));
   console.log('isAllGood:', isAllGood);
@@ -544,7 +599,9 @@ const deployAssetbookContracts_API = async() => {
 //yarn run testmt -f 57
 const addUsersIntoDB_API = async() => {
   console.log('\n-------------==inside addUsersIntoDB_API');
-  const result = await addUsersIntoDB(userArray).catch((err) => {
+  const assetbookAmount = 3;
+  const userArrayPartial = userArray.slice(0, assetbookAmount);
+  const result = await addUsersIntoDB(userArrayPartial).catch((err) => {
     console.log('\n[Error @ addUsersIntoDB()] '+ err);
   });
   console.log('result:', result);
@@ -567,7 +624,7 @@ const addUsersToRegistryCtrt_API = async() => {
   console.log('\n-------------==inside addUsersToRegistryCtrt_API');
   let userIDs, userAssetbooks, investorLevels;
 
-  const method = 3;
+  const method = 4;
   const authLevel = 5;
   const registryContractAddr = addrRegistry;
 
@@ -584,24 +641,28 @@ const addUsersToRegistryCtrt_API = async() => {
 
   } else if(method === 3) {
     userIDs = ['A500000021', 'A500000022', 'A500000023'];
-    const addrAssetBook0 = "0x9cfb84eCC3E8990EEFF56FE6ED601A9b9deee4bA";
-    const addrAssetBook1 = "0x6679c0a52285B3005bab5c196edEe458eA0011c7";
-    const addrAssetBook2 = "0x73D88777C4e29B1ccf9F45964827dE2Eb5076d00";
-    const addrAssetBook3 = "0x4E669A79886b11a3BA98D10E6aDe0F94D09E3C8E";
-    const addrAssetBook4 = "0xDA542FBE8515c4784aC81A8ABF5c2C55e33df33d";
-    const addrAssetBook5 = "0xCAFe7aD86205b4b43c0B95a1B55bF8a54A153Ee2";
-    const addrAssetBook6 = "0x824A7d628A3D58d0068c6614CC6367f801B31CdA";
-    const addrAssetBook7 = "0x915eb0eFB735AF262832a8645129f6Ff26E70699";
-    const addrAssetBook8 = "0x2eB48E0B6350300b5082A6F388a56A679A12ad73";
-    const addrAssetBook9 = "0xb2223A54065351E36BF341d0a3d99095D575570F";
-    const addrAssetBook10 = "0xBF0b705c7d3051aC75F21350842f15D3C21b72Da";
 
     userAssetbooks = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
     investorLevels = [authLevel, authLevel, authLevel];
+
+  } else if(method === 4) {
+    const assetbookAmount = 3;
+    console.log('assetbookArray:', assetbookArray);
+    userAssetbooks = assetbookArray.slice(0, assetbookAmount);
+
+    userIDs = []; investorLevels = [];
+    for (let i = 0; i < assetbookAmount; i++) {
+      const userId = userArray[i].identityNumber;
+      const userLevel = userArray[i].investorLevel;
+      userIDs.push(userId);
+      investorLevels.push(userLevel);
+      console.log(`${userId} ${userLevel} ${userAssetbooks[i]}`);
+    }
   }
 
   console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
 investorLevels: ${investorLevels}`);
+process.exit(0);
 
   const {isGood, results} = await addUsersToRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
     console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
