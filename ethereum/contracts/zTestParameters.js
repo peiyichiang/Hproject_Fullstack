@@ -64,11 +64,11 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
 }
 
 //fundingType: PO: 1, PP: 2
-function paddingLeft(str,lenght){
-  if(str.length >= lenght)
+function paddingLeft(str, len){
+  if(str.length >= len)
     return str;
   else
-    return paddingLeft("0" +str,lenght);
+    return paddingLeft("0" +str,len);
 }
 
 function nowDateAddMinites(date ,min){
@@ -81,7 +81,7 @@ function nowDateAddMinites(date ,min){
 let nowDate = new Date()
 let productDate = paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2)
 var p_name = faker.name.findName()
-const productObj0MaxTotalSupply = Math.floor(Math.random()*500)+500
+const productObj0MaxTotalSupply = Math.floor(Math.random()*10000)+10000
 
 const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + productDate, p_name.substr(0, 20), (faker.address.streetAddress() + faker.address.city() + faker.address.country()).substr(0, 40), productObj0MaxTotalSupply, productObj0MaxTotalSupply - 100, 73310, Math.floor(Math.random()*100000) , "NTD", 530, 20, 2, "", "", "", "");
 

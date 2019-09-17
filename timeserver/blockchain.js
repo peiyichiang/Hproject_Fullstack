@@ -316,8 +316,8 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
        console.log('receipt:', receipt);
     })
      .on('error', function (error) {
-         console.log('error:', error.toString());
-         reject(error.toString());
+         console.error('error:', error.toString());
+         reject(error);
          return false;
     });
     console.log('CrowdFunding.sol has been deployed');
