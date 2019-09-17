@@ -8,7 +8,7 @@ if(isNaN(SYMBOLNUMBER)){
 } else {
   symbolNumber = parseInt(SYMBOLNUMBER);
 }
-console.log('symbolNumber', symbolNumber);
+console.log('symbolNumber:', symbolNumber);
 
 const OPERATIONMODE = parseInt(process.env.OPERATIONMODE);
 if(isNaN(OPERATIONMODE)){
@@ -16,7 +16,7 @@ if(isNaN(OPERATIONMODE)){
 } else {
   operationMode = parseInt(OPERATIONMODE);
 }
-console.log('operationMode', operationMode);
+console.log('operationMode:', operationMode);
 //9 for production with more strict time checking inside blockchain.js
 
 const BACKENDADDRCHOICE = parseInt(process.env.BACKENDADDRCHOICE);
@@ -25,7 +25,7 @@ if(isNaN(BACKENDADDRCHOICE)){
 } else {
   backendAddrChoice = parseInt(BACKENDADDRCHOICE);
 }
-console.log('backendAddrChoice', backendAddrChoice);
+console.log('backendAddrChoice:', backendAddrChoice);
 //process.exit(0);
 
 //----------------------------==Server Settings
@@ -42,12 +42,16 @@ const DB_port = process.env.DB_PORT;
 
 //----------------------------==Blockchain Settings
 const blockchainChoice = process.env.BLOCKCHAIN_CHOICE;
-let blockchainURL, gasLimitValue, gasPriceValue;
+console.log('blockchainChoice:', blockchainChoice);
+
+let blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
 if(blockchainChoice === '1'){//POA
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
   gasLimitValue = 9000000;//intrinsic gas too low
   gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
-
+  admin = process.env.HELIUM_ADMIN;
+  adminpkRaw =  process.env.HELIUM_ADMIN_PRIVATEKEY;
+  
 } else if(blockchainChoice === '2'){/*ganache*/
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
   gasLimitValue = 9000000;// for POW private chain
@@ -57,10 +61,16 @@ if(blockchainChoice === '1'){//POA
   blockchainURL = process.env.BC_PROVIDER;
   gasLimitValue = 9000000;// for POW private chain
   gasPriceValue = 20000000000;//100000000000000000
+
+} else if(blockchainChoice === '4'){/*local ganache-cli
+  ganache-cli -m "mnemonic words..." -l 9721975  -g 20000000000 */
+  blockchainURL = "http://"+process.env.BC_HOST_GANACHECLI+":"+process.env.BC_PORT_GANACHECLI;
+  gasLimitValue = 9721975;// for POW private chain
+  gasPriceValue = 20000000000;//100000000000000000
+  admin = process.env.GANACHE_EOA0;
+  adminpkRaw =  process.env.GANACHE_EOAPK0;
 }
 
-const admin = process.env.HELIUM_ADMIN;
-const adminpkRaw =  process.env.HELIUM_ADMIN_PRIVATEKEY;
 
 
 //----------------------------==Timeserver Settings

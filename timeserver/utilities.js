@@ -91,16 +91,24 @@ const getArraysFromCSV = (eoaPath) => {
       .map(e => e.trim()) // remove white spaces for each line
       .map(e => e.split(',').map(e => e.trim())); // split each line to array
  
-  console.log('array[-3]:', array[array.length-3]);
-  console.log('array[-2]:', array[array.length-2]);
-  console.log('array[-1]:', array[array.length-1]);
+  // console.log('array[-3]:', array[array.length-3]);
+  // console.log('array[-2]:', array[array.length-2]);
+  // console.log('array[-1]:', array[array.length-1]);
 
-  const filtered = array.filter((el) => {
-    return el.length !== 1;
+  const good = [], bad = [];
+  array.forEach((item, index)=> {
+    if(item.length === 4) {
+      good.push(item);
+    } else {
+      bad.push(item);
+    }
   });
-  console.log('filtered[-3]:', filtered[filtered.length-3]);
-  console.log('filtered[-2]:', filtered[filtered.length-2]);
-  console.log('filtered[-1]:', filtered[filtered.length-1]);
+  // const filtered = array.filter((el) => {
+  //   return el.length === 4;
+  // });
+  // console.log('filtered[-3]:', filtered[filtered.length-3]);
+  // console.log('filtered[-2]:', filtered[filtered.length-2]);
+  // console.log('filtered[-1]:', filtered[filtered.length-1]);
 
   //console.log('as JSON:', JSON.stringify(data, '', 2)); // as json
 //   data.forEach((item, index)=> {
@@ -109,7 +117,7 @@ const getArraysFromCSV = (eoaPath) => {
 // EOA: ${item[1]} ${typeof item[1]}
 // pkey: ${item[3]} ${typeof item[3]}`);
 //   });
-  return filtered;
+  return [good, bad];
 }
 
 const reduceArrays = (toAddressArray, amountArray) => {

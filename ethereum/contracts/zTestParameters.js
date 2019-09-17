@@ -10,8 +10,19 @@ let crowdFundingAddrArray = [], tokenControllerAddrArray = [], symbolArray = [],
 let addrHelium, addrRegistry, addrAssetBookArray;
 const assetOwnerArray = [], assetOwnerpkRawArray = [], assetbookArray = [], userArray = [];
 
-const EOA_List = getArraysFromCSV('./ethereum/contracts/EOA_List.csv');
-const Assetbooks = getArraysFromCSV('./ethereum/contracts/Assetbooks.csv');
+const [EOA_List, badEOAs] = getArraysFromCSV('./ethereum/contracts/EOA_List.csv');
+if(badEOAs.length > 0){
+  console.warn(`badEOAs are found: ${badEOAs}`);
+} else {
+  console.log(`all EOAs are complete in parts`);
+}
+
+const [Assetbooks, badAssetbooks ] = getArraysFromCSV('./ethereum/contracts/Assetbooks.csv');
+if(badAssetbooks.length > 0){
+  console.warn(`badAssetbooks are found: ${badAssetbooks}`);
+} else {
+  console.log(`all assetbooks are complete in parts`);
+}
 
 /** deployed contracts
     yarn run deploy -c 1 -s 1 -cName db
@@ -152,7 +163,7 @@ productObjArray.forEach( (obj) => {
   crowdFundingAddrArray.push(obj.addrCrowdFunding);
   tokenControllerAddrArray.push(obj.addrTokenController)
 });
-sLog(`const symbolArray = ${symbolArray}; \nconst crowdFundingAddrArray = ${crowdFundingAddrArray}; \nconst tokenControllerAddrArray = ${ tokenControllerAddrArray}\nsymbolNumber: ${symbolNumber}`);
+sLog(`\nconst symbolArray = ${symbolArray}; \nconst crowdFundingAddrArray = ${crowdFundingAddrArray}; \nconst tokenControllerAddrArray = ${ tokenControllerAddrArray}\nsymbolNumber: ${symbolNumber}`);
 
 const productObjN = productObjArray[symbolNumber];
 nftName = productObjN.nftName;
@@ -210,7 +221,7 @@ EOA_List.forEach((item, index)=> {
   const assetBookX = Assetbooks[index];
   const tokenAmtToBuy = tokenAmtToBuyBase + index;
 
-  console.log(`\n  index: ${index}, EOA: ${assetOwnerX} ${typeof assetOwnerX} \n  pkey: ${privateKeyX} ${typeof privateKeyX}`);
+  //console.log(`\n  index: ${index}, EOA: ${assetOwnerX} ${typeof assetOwnerX} \n  pkey: ${privateKeyX} ${typeof privateKeyX}`);
   assetOwnerArray.push(assetOwnerX);
   assetOwnerpkRawArray.push(privateKeyX);
 

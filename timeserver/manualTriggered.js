@@ -515,6 +515,10 @@ const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
   const choice = 2;//1 for one assetbook, 2 for multiple
   let eoaArray, addrHeliumContract;
+  if(assetOwnerArray.length < 10) {
+    console.error('not enough assetOwnerArray length!');
+    process.exit(1);
+  }
   if(choice === 2){
     eoaArray = assetOwnerArray.slice(0, 10);
     addrHeliumContract = addrHelium;

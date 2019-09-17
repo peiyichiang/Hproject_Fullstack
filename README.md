@@ -51,6 +51,17 @@ yarn run testim
 ### 6. Setup P.O.A. Blockchain
 ```pm2 -n ganache start "ganache-cli -p 8540 -h 0.0.0.0```
 
+OR
+```ganache-cli -m "defense tissue lecture abstract clown mammal around motor aware habit where teach" -l 9721975 -g 20000000000```
+
+then inside .env file:
+change env: BLOCKCHAIN_CHOICE=4
+add:
+BC_HOST_GANACHECLI=localhost
+BC_PORT_GANACHECLI=8545
+GANACHE_EOA0=0xa6cc621a179f01a719ee57db4637a4a1f603a442
+GANACHE_EOAPK0=0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
+
 ### 7. Deploy smart contracts
 Deploy contracts
 ```
