@@ -24,9 +24,11 @@ const sLog = str => {
 const checkEq = (value1, value2) => {
   if (value1 === value2) {
     console.log('checked ok');
+    return [true, ''];
   } else {
     console.log("\x1b[31m", '[Error] _' + value1 + '<vs>' + value2 + '_', typeof value1, typeof value2);
     const err = Error('checkEq failed');
+    return [false, err];
     //process.exit(1);
   }
 }
@@ -69,8 +71,8 @@ Date.prototype.myFormat = function () {
 
 
 const checkBoolTrueArray = (item) => item;
-const checkInt =(item) => Number.isInteger(item);
-const checkIntFromOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
+const isInt =(item) => Number.isInteger(item);
+const isIntAboveOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
 
 const arraySum = arr => arr.reduce((a,b) => a + b, 0);
 
@@ -120,38 +122,23 @@ const getArraysFromCSV = (eoaPath, itemNumberPerLine) => {
   return [good, bad];
 }
 
-const getOneItemPerLineFromCSV = (eoaPath, itemNumberPerLine) => {
+const getOneAddrPerLineFromCSV = (eoaPath) => {
   const array = fs.readFileSync(eoaPath)
       .toString() // convert Buffer to string
       .split('\n') // split string to lines
       .map(e => e.trim()); // remove white spaces for each line
  
-  // console.log('array[-3]:', array[array.length-3]);
-  // console.log('array[-2]:', array[array.length-2]);
-  // console.log('array[-1]:', array[array.length-1]);
-
+  //console.log('array:', array);
   const good = [], bad = [];
   array.forEach((item, index)=> {
-    if(item.length === itemNumberPerLine) {
+    if(item.substring(0,2) === '0x' && item.length === 42) {
+      console.log(`${index} ${item} ${typeof item}`);
       good.push(item);
     } else {
       bad.push(item);
     }
   });
-  // const filtered = array.filter((el) => {
-  //   return el.length === 4;
-  // });
-  // console.log('filtered[-3]:', filtered[filtered.length-3]);
-  // console.log('filtered[-2]:', filtered[filtered.length-2]);
-  // console.log('filtered[-1]:', filtered[filtered.length-1]);
 
-  //console.log('as JSON:', JSON.stringify(data, '', 2)); // as json
-//   data.forEach((item, index)=> {
-//     //console.log(`\nitem: ${item}`);
-//     console.log(`\n------------==index: ${index}
-// EOA: ${item[1]} ${typeof item[1]}
-// pkey: ${item[3]} ${typeof item[3]}`);
-//   });
   return [good, bad];
 }
 
@@ -496,5 +483,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, getOneItemPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, checkInt, checkIntFromOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }

@@ -62,16 +62,7 @@ BC_PORT_GANACHECLI=8545
 GANACHE_EOA0=0xa6cc621a179f01a719ee57db4637a4a1f603a442
 GANACHE_EOAPK0=0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
 
-### 7. Deploy smart contracts
-Deploy contracts
-```
-yarn run deploy --c 1 --ctrtName contractName
-```
-where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
-
-and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
-
-### 8. Test
+### 7. Deploy and Test smart contracts
 ---------------==Testing Flow
 yarn run testmt -f 54 ... deployHeliumContract_API
 yarn run testmt -f 55 ... deployRegistryContract_API
@@ -100,15 +91,17 @@ yarn run testmt -f 82 ... setTokenController
 yarn run testmt -f 79 ... getTokenContractDetails
 yarn run testmt -f 83 ... getTokenBalances_API
 
-yarn run testmt -f 49 ... mintSequentialPerCtrt_API 
+yarn run testmt -f 48 ... mintSequentialPerContract_CLI_API ***
 (OR ProductAdministration.ejs interface button press)
+
+yarn run testmt -f 85 ... addOrders_CFC_MintTokens_API
+yarn run testmt -f 5  ... calculateLastPeriodProfit_API
 
 -----------------==
 yarn run testmt -f 39 ... getDetailsCFC_API
 yarn run testmt -f 41 ... getCrowdfundingInvestors_API
 yarn run testmt -f 42 ... getCFC_Balances_API
 
-yarn run testmt -f 78 ... addPaidOrdersIntoDBnCFC
 yarn run testmt -f 788 .. addAssetbooksIntoCFC_API (like timeserver)
 
 yarn run testmt -f 75 ... addUserArrayOrdersIntoDB_API

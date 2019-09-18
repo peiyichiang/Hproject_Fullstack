@@ -6,12 +6,12 @@ const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 console.log('--------------------== blockchain.js...');
-const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, checkInt, checkIntFromOne, checkBoolTrueArray } = require('./utilities');
+const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
 
 const { blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
-const { assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zTestParameters');
+const { assetOwnerArray, assetOwnerpkRawArray } = require('../test_CI/zTestParameters');
 
 const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
 
@@ -133,7 +133,26 @@ const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
     instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     const addrHeliumContract = instHelium.options.address;
     console.log(`const addrHelium = ${addrHeliumContract}`);
-    const isGood = true;
+
+    //--------------==check
+    console.log('\ncheck results...');
+    const adminM = await instHelium.methods.Helium_Admin().call();
+    const chairmanM = await instHelium.methods.Helium_Chairman().call();
+    const directorM = await instHelium.methods.Helium_Director().call();
+    const managerM = await instHelium.methods.Helium_Manager().call();
+    const ownerM = await instHelium.methods.Helium_Owner().call();
+
+    let isGood;
+    const [isGood0, mesg0] = checkEq(adminM, eoa0);
+    const [isGood1, mesg1] = checkEq(chairmanM, eoa1);
+    const [isGood2, mesg2] = checkEq(directorM, eoa2);
+    const [isGood3, mesg3] = checkEq(managerM, eoa3);
+    const [isGood4, mesg4] = checkEq(ownerM, eoa4);
+    if(isGood0 && isGood1 && isGood2 && isGood3 && isGood4){
+      isGood = true;
+    } else {
+      isGood = false;
+    }
     resolve({isGood, addrHeliumContract});
   });
 }
@@ -301,7 +320,19 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
     addrAssetBookArray.forEach((item, idx) => {
       console.log(`addrAssetBook${idx} = "${item}"`);
     });
-    const isGood = 'to be checked';
+
+    let isGood;
+    const checkResult = await checkAssetbookArray(addrAssetBookArray).catch(async(err) => {
+      console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). \naddressArray: ${addressArray}`);
+      isGood = false;
+    });
+    if(checkResult.includes(false)){
+      console.log(`\ncheckResult has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+      isGood = false;
+    } else {
+      console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+      isGood = true;
+    }
     resolve({isGood, addrAssetBookArray});
   });
 }
@@ -856,6 +887,27 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
       const tokenId = await instHCAT721.methods.tokenId.call();
       const isPlatformSupervisor = await instHCAT721.methods.checkPlatformSupervisorFromHCAT.call({from: backendAddr});
       console.log(`checkHCATTokenCtrt()... nftsymbol: ${nftsymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
+      /**
+  checkEq(initialAssetPricingM, '' + initialAssetPricing);
+  checkEq(IRR20yrx100M, '' + IRR20yrx100);
+  checkEq(maxTotalSupplyM, '' + maxTotalSupply);
+  //checkEq(pricingCurrencyM, ''+pricingCurrency);
+  checkEq(siteSizeInKWM, '' + siteSizeInKW);
+  checkEq(tokenIdM_init, 0);
+  console.log('nftNameM', web3.utils.toAscii(nftNameM), 'nftsymbolM', web3.utils.toAscii(nftsymbolM), 'maxTotalSupplyM', maxTotalSupplyM, 'tokenURI', web3.utils.toAscii(tokenURI_M), 'pricingCurrencyM', web3.utils.toAscii(pricingCurrencyM));
+  //checkEq(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
+
+  console.log("\x1b[33m", '\nConfirm tokenId = ', tokenIdM, ', tokenIdM_init', tokenIdM_init);
+
+  let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
+  checkEq(supportsInterface0x80ac58cd, true);
+  let supportsInterface0x5b5e139f = await instHCAT721.methods.supportsInterface("0x5b5e139f").call();
+  checkEq(supportsInterface0x5b5e139f, true);
+  let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
+  checkEq(supportsInterface0x780e9d63, true);
+
+  console.log('setup has been completed');
+      */
       resolve([true, nftsymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
     } catch(err){
       console.log(`[Error] checkHCATTokenCtrt() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
@@ -1355,6 +1407,23 @@ const getTokenBalances = async(tokenCtrtAddr, assetbooks) => {
   });
 }
 
+const showAssetBookBalance_TokenId = async () => {
+  await asyncForEach(assetbookArray, async (assetbook, idx) => {
+    console.log(`\n--------==AssetOwner${idx+1}: AssetBook${idx+1} and HCAT721...`);
+    tokenIds = await instHCAT721.methods.getAccountIds(assetbook, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(assetbook).call();
+    console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+    accountM = await instHCAT721.methods.getAccount(assetbook).call();
+    console.log('HCAT getAccount():', accountM);
+
+    const instAssetBookX = new web3.eth.Contract(AssetBook.abi, assetbook);
+    assetbookXM = await instAssetBookX.methods.getAsset(0, addrHCAT721).call();
+    console.log(`AssetBook${idx}: ${assetbookXM}`);
+  });
+  console.log('showAssetBookBalance_TokenId() has been completed');
+  process.exit(0);
+}
+
 //disable promises so we dont wait for it
 const sequentialCheckBalances = async (addressArray, tokenCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
@@ -1380,11 +1449,11 @@ const sequentialCheckBalancesAfter = async (addressArray, amountArray, tokenCtrt
   return new Promise(async (resolve, reject) => {
     console.log('\n---------------==inside sequentialCheckBalancesAfter()');
     //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
-    if(!amountArray.every(checkInt)){
+    if(!amountArray.every(isInt)){
       reject('[error @ sequentialCheckBalancesAfter()] amountArray has non integer item');
       return false;
     }
-    if(!balanceArrayBefore.every(checkInt)){
+    if(!balanceArrayBefore.every(isInt)){
       console.log('[error @ sequentialCheckBalancesAfter()] balanceArrayBefore has non integer item. \nbalanceArrayBefore:', balanceArrayBefore);
       reject('[error @ sequentialCheckBalancesAfter()] balanceArrayBefore has non integer item.');
       return false;
@@ -1739,8 +1808,8 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
     console.log('\n----------------------==inside sequentialMintSuper()...');
     let mesg;
     //console.log(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
-    if(!amountArray.every(checkIntFromOne)){
-      mesg = 'failed at amountArray.every(checkIntFromOne)';
+    if(!amountArray.every(isIntAboveOne)){
+      mesg = 'failed at amountArray.every(isIntAboveOne)';
       console.log('amountArray has non integer or zero element');
       resolve([false, [], mesg]);
       return false;
@@ -2141,8 +2210,9 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
     const instRegistry = new web3.eth.Contract(Registry.abi, registryCtrtAddr);
 
     await asyncForEach(userIDs, async (userId, idx) => {
-      console.log(`\n--------==Check: ${userId} ${typeof userId} ${authLevels[idx]} ${typeof authLevels[idx]} \n${assetbooks[idx]} ${typeof assetbooks[idx]}`);
-      const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbooks[idx], authLevels[idx]).call({from: backendAddr});
+      const assetbookX = assetbooks[idx];
+      console.log(`\n--------==Check: ${userId} ${typeof userId} ${authLevels[idx]} ${typeof authLevels[idx]} \n${assetbookX} ${typeof assetbookX}`);
+      const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbookX, authLevels[idx]).call({from: backendAddr});
       /**
           boolArray[0] = HeliumITF_Reg(HeliumCtrtAddr).checkCustomerService(msg.sender);
           //ckUidLength(uid)
@@ -2159,15 +2229,15 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
   
       if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
         if(checkArray[5]){
-          console.log(`\n--------==this userId has not been added into RegistryCtrt yet... \n--------==AddUser(): idx: ${idx}, userId: ${userId}, assetBookAddr: ${assetbooks[idx]}, authLevel: ${authLevels[idx]}`);
-          const encodedData = instRegistry.methods.addUser(userId, assetbooks[idx], authLevels[idx]).encodeABI();
+          console.log(`\n--------==this userId has not been added into RegistryCtrt yet... \n--------==AddUser(): idx: ${idx}, userId: ${userId}, assetBookAddr: ${assetbookX}, authLevel: ${authLevels[idx]}`);
+          const encodedData = instRegistry.methods.addUser(userId, assetbookX, authLevels[idx]).encodeABI();
           let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryCtrtAddr, encodedData);
           //console.log('\nTxResult', TxResult);
           console.log(`after addUser() on userId: ${userId}...`);
       
           userM = await instRegistry.methods.getUserFromUid(userId).call();
           console.log('userM', userM);
-          if (userM[0] === assetbooks[idx] && userM[1] === authLevels[idx].toString()) {
+          if (userM[0] === assetbookX && userM[1] === authLevels[idx].toString()) {
             console.log(`\nChecked good: this uid ${userId} has already been added.`);
             results.push(true);
           } else {
@@ -2177,9 +2247,17 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
           console.log(`this uid ${userId} has already been added. 
 Skipping this uid...`)
         }
+      } else if(!checkArray[4]){
+        const isAssetbookGood = await checkAssetbook(assetbookX).catch(async(err) => {
+          console.log(`${err} \ncheckAssetbook() failed...`);
+          reject(false);
+          return false;
+        });
+        console.log('\nisAssetbookGood:', isAssetbookGood);
+
       } else {
         reject('Error @ checkAddSetUser(): userId: '+userId);
-        return [false, [undefined]];
+        return {isGood: false, results: [undefined]};
       }
     });
     if(results.includes(false)){
@@ -2404,8 +2482,16 @@ const checkAssetbook = async(addrAssetbookX) => {
       const assetOwnerM = await instAssetbook.methods.assetOwner().call();
       const lastLoginTimeM = await instAssetbook.methods.lastLoginTime().call();
       const assetCindexM = await instAssetbook.methods.assetCindex().call();
-      console.log(`checkAssetbook()... assetOwnerM: ${assetOwnerM}
-      lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
+      /**
+  assetbook1M = await instAssetBook1.methods.getAsset(0, addrHCAT721).call();
+  console.log('\nassetbook1M:', assetbook1M);
+  const amountInitAB1 = parseInt(assetbook1M[2]);
+  tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
+  balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
+  console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
+       */
+      console.log(`checkAssetbook()... \nassetOwnerM: ${assetOwnerM}
+lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
       resolve([true, assetOwnerM, lastLoginTimeM, assetCindexM]);
     } catch(err) {
       console.log(`[Error] checkAssetbook() failed at addrAssetbookX: ${err} ${addrAssetbookX} <===================================`);
@@ -2934,7 +3020,7 @@ const checkAddForecastedScheduleBatch = async (symbol, forecastedPayableTimes, f
       return false;
     }
 
-    if(!forecastedPayableTimes.every(checkInt) || !forecastedPayableAmounts.every(checkInt)){
+    if(!forecastedPayableTimes.every(isInt) || !forecastedPayableAmounts.every(isInt)){
       console.log('None number has been detected. \nforecastedPayableTimes:', forecastedPayableTimes, '\nforecastedPayableAmounts:', forecastedPayableAmounts);
       reject('None number has been detected');
       return false;
@@ -3366,6 +3452,7 @@ const changeAssetOwner = async(addrAssetBook, _assetOwnerNew, serverTime) => {
 console.log('\nTxResult', TxResult);
 */
 
+
 //----------==assetOwner to call his Assetbook contract. Not HCAT721 contract directly!!!
 const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime) => {
   return new Promise( async ( resolve, reject ) => {
@@ -3377,7 +3464,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
 
     const resultArray = result[0];
     let mesg = '';
-    if(amountArray.every(checkBoolTrueArray)){
+    if(resultArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
       resolve(mesg);
@@ -3443,19 +3530,18 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
 
     // const _fromAssetOwner = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
     // const _fromAssetOwnerpkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
+    const amount = parseInt(amountStr);
+    const price = parseInt(priceStr);
+    const serverTime = parseInt(serverTimeStr);
 
-
-    if (!Number.isInteger(amountStr) || !Number.isInteger(priceStr) || !Number.isInteger(serverTimeStr)){
+    if (isNaN(amount) || isNaN(price) || isNaN(serverTime)){
       mesg = 'input values should be integers';
       console.log(`mesg, amount: ${amountStr}, price: ${priceStr}, serverTime: ${serverTimeStr}`);
       reject(mesg);
       return false;
     }
 
-    const amount = parseInt(amountStr);
-    const price = parseInt(priceStr);
-    const serverTime = parseInt(serverTimeStr);
-    if(amountStr < 1 || price < 1 || serverTime < 201905281000){
+    if(amount < 1 || price < 1 || serverTime < 201905281000){
       mesg = 'input values should be > 0 or 201905281000';
       console.log(`mesg, amount: ${amount}, price: ${price}, serverTime: ${serverTime}`);
       reject(mesg);
@@ -3467,15 +3553,21 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
     const instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
     console.log('after contract instances');
 
-
     console.log('fromAssetbook', fromAssetbook);
     const balanceFromB4Str = await instHCAT721.methods.balanceOf(fromAssetbook).call();
     const balanceToB4Str = await instHCAT721.methods.balanceOf(toAssetbook).call();
     const balanceFromB4 = parseInt(balanceFromB4Str);
     const balanceToB4 = parseInt(balanceToB4Str);
-    console.log('balanceFromB4', balanceFromB4, 'balanceToB4', balanceToB4);
+    console.log(`\nbalanceFromB4: ${balanceFromB4}, balanceToB4: ${balanceToB4}`);
+
+    if(balanceFromB4 < amount){
+      mesg = `balanceFromB4: ${balanceFromB4} is not enough! amount: ${amount}`;
+      reject(mesg);
+      return false;
+    }
 
     //----------==assetOwner to call his Assetbook contract. Not HCAT721 contract directly!!!
+    console.log('\nsending tokens via safeTransferFromBatch()...');
     try {
       const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime).encodeABI();
 
@@ -3487,22 +3579,36 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
 
     } catch (error) {
       console.log("error:" + error);
-      const result = checkSafeTransferFromBatchFunction(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
+      const result = await checkSafeTransferFromBatchFunction(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
       //assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime
       reject(result);
       return false;
     }
 
-    const balanceFromAfter = await instHCAT721.methods.balanceOf(fromAssetbook).call();
-    const balanceToAfter = await instHCAT721.methods.balanceOf(toAssetbook).call();
-    console.log(`balanceFromB4: ${balanceFromB4}
+    const balanceFromAfterStr = await instHCAT721.methods.balanceOf(fromAssetbook).call();
+    const balanceToAfterStr = await instHCAT721.methods.balanceOf(toAssetbook).call();
+    const balanceFromAfter = parseInt(balanceFromAfterStr);
+    const balanceToAfter = parseInt(balanceToAfterStr);
+
+    const change_of_accountFrom = balanceFromAfter - balanceFromB4;
+    const change_of_accountTo = balanceToAfter - balanceToB4;
+
+    console.log(`\n-----------==Transaction has been finished
+    balanceFromB4: ${balanceFromB4}
     balanceFromAfter: ${balanceFromAfter}
 
     balanceToB4: ${balanceToB4}
     balanceToAfter:   ${balanceToAfter}
+
+    change_of_accountFrom: ${change_of_accountFrom}
+    change of accountTo: ${change_of_accountTo}
     `);
 
-    resolve(true);
+    if(change_of_accountFrom * -1 === amount && change_of_accountTo === amount) {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
     //call /HCAT721_AssetTokenContract/safeTransferFromBatch API to record txn info
   });
 }
@@ -3617,5 +3723,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens
 }

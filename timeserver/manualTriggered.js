@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 //--------------------==
-const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray } = require('../ethereum/contracts/zTestParameters');
+const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray } = require('../test_CI/zTestParameters');
 
 const { admin, adminpkRaw, symbolNumber, isTimeserverON, addrHelium, addrRegistry, addrProductMgr } = require('./envVariables');
 
@@ -11,9 +11,9 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus } = require('./mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC } = require('./blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens } = require('./blockchain.js');
 
-const { isEmpty, isNoneInteger, getTimeServerTime, checkTargetAmounts, getArraysFromCSV, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
+const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
 
 const AssetOwner1 = assetOwnerArray[1];
 const AssetOwner2 = assetOwnerArray[2];
@@ -23,17 +23,7 @@ const AssetOwner5 = assetOwnerArray[5];
 
 let argv3, argv4, argv5, argv6, argv7;
 
-/*const userIdArray = [];
-const investorLevelArray = [];
-const assetbookArray = [];
-userArray.forEach((user, idx) => {
-  if (idx !== 0 ){
-    //userIdArray.push(user.identityNumber);
-    //investorLevelArray.push(user.investorLevel);
-    assetbookArray.push(user.addrAssetBook);
-  }
-});*/
-
+const assetbookAmount = 10;
 const timeChoice = 1;
 
 // yarn run testmt -f F
@@ -568,7 +558,6 @@ const deployRegistryContract_API = async() => {
 const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
   const choice = 2;//1 for one assetbook, 2 for multiple
-  const assetbookAmount = 3;
   let eoaArray, addrHeliumContract;
   if(assetOwnerArray.length < 10) {
     console.error('not enough assetOwnerArray length!');
@@ -576,8 +565,9 @@ const deployAssetbookContracts_API = async() => {
   }
   if(choice === 2){
     eoaArray = assetOwnerArray.slice(0, assetbookAmount);
+
   } else {
-    const assetownerOne = "";
+    const assetownerOne = assetOwnerArray[0];
     if(assetownerOne.trim().length === 0) {
       console.log('assetownerOne cannot be empty');
       process.exit(0);
@@ -589,13 +579,21 @@ const deployAssetbookContracts_API = async() => {
 
   console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
   addrAssetBookArray.forEach((item, idx) => {
-    console.log(`EOA_{idx}: ${eoaArray[idx]} \naddrAssetBook${idx} = ${item}`);
+    console.log(`EOA_${idx}: ${eoaArray[idx]} \naddrAssetBook${idx} = ${item}`);
   });
-  const isAllGood = !(addrAssetBookArray.includes(undefined));
-  console.log('isAllGood:', isAllGood);
+  console.log('\n');
+  addrAssetBookArray.forEach((item, idx) => {
+    console.log(`${item}`);
+  })
 
-  var file = fs.createWriteStream("./ethereum/contracts/Assetbooks.csv");
-  file.on('error', function(err) { /* error handling */ });
+  const isAllGood = !(addrAssetBookArray.includes(undefined));
+  console.log('\nisAllGood:', isAllGood);
+
+  var file = fs.createWriteStream('./test_CI/Assetbooks.csv');
+  file.on('error', function(err) {
+    console.log('[Error @ writing into Assetbooks.csv:', err);
+  });
+
   addrAssetBookArray.forEach(function(v) { file.write(v + '\n'); });
   file.end();
   /*fs.writeFile("./ethereum/contracts/Assetbooks.csv", JSON.stringify(addrAssetBookArray), function(err){
@@ -611,7 +609,6 @@ const deployAssetbookContracts_API = async() => {
 //yarn run testmt -f 57
 const addUsersIntoDB_API = async() => {
   console.log('\n-------------==inside addUsersIntoDB_API');
-  const assetbookAmount = 3;
   const userArrayPartial = userArray.slice(0, assetbookAmount);
   const result = await addUsersIntoDB(userArrayPartial).catch((err) => {
     console.log('\n[Error @ addUsersIntoDB()] '+ err);
@@ -658,23 +655,22 @@ const addUsersToRegistryCtrt_API = async() => {
     investorLevels = [authLevel, authLevel, authLevel];
 
   } else if(method === 4) {
-    const assetbookAmount = 3;
-    console.log('assetbookArray:', assetbookArray);
+    const assetbookAmount = 10;
     userAssetbooks = assetbookArray.slice(0, assetbookAmount);
+    //console.log('assetbookArray:', assetbookArray);
+    console.log('userAssetbooks:', userAssetbooks);
 
     userIDs = []; investorLevels = [];
     for (let i = 0; i < assetbookAmount; i++) {
       const userId = userArray[i].identityNumber;
       const userLevel = userArray[i].investorLevel;
+      const userAssetbook = userAssetbooks[i];
       userIDs.push(userId);
       investorLevels.push(userLevel);
-      console.log(`${userId} ${userLevel} ${userAssetbooks[i]}`);
+      console.log(`${userId} ${userLevel} ${userAssetbook} ${typeof userAssetbook}`);
     }
   }
-
-  console.log(`\nuserIDs: ${userIDs}, \nuserAssetbooks: ${userAssetbooks}
-investorLevels: ${investorLevels}`);
-process.exit(0);
+  //process.exit(0);
 
   const {isGood, results} = await addUsersToRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
     console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
@@ -1105,6 +1101,121 @@ result: ${JSON.stringify(data2.result)}`);
   //process.exit(0);
 }// to invest in CFC: see livechain.js: yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 4334
 
+const sequentialMintSuperAPI = async () => {
+  console.log('\n-----------------------==sequentialMintSuperAPI()');
+  let amountArray, toAddressArray;
+  const choice = 7;
+  if(choice === 1){
+    amountArray = [20, 37, 41];//98
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+  } else if(choice === 2){
+    amountArray = [180, 370, 27];//5083
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
+  } else if(choice === 3){
+    amountArray = [1000, 1900, 2183];//5083
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
+  } else if(choice === 4){
+    amountArray = [2000, 3900, 4183];//10083
+    toAddressArray = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+
+  } else if(choice === 5){
+    amountArray = [69, 77, 81, 99, 104, 113, 128, 139, 147, 156];//1169
+    toAddressArray = [...assetbookArray];
+
+  } else if(choice === 6){
+    amountArray = [1231, 1776, 1974, 2025, 2038, 2386, 2731, 3132, 3416, 3612];//24321
+    toAddressArray = [...assetbookArray];
+
+  } else if(choice === 7){
+                //[ 1737, 1926, 2206, 2498, 2551, 2349, 2889, 3115, 3324, 3446 ]
+    amountArray = [2212, 2424, 2868, 2992,  3247, 3391, 3479, 3746, 3952, 3855 ];//24321
+    toAddressArray = [...assetbookArray];
+
+  }
+  // yarn run livechain -c 1 --f 31 for balances
+
+
+  const tokenCtrtAddr = addrHCAT721;
+  const fundingType = 2;//PO: 1, PP: 2
+  const pricing = 15000;
+  const maxMintAmountPerRun = 190;
+
+  const serverTime = TimeTokenUnlock-1;//201906271000;//297
+  //from blockchain.js
+  const [isFailed, isCorrectAmountArray, emailArrayError, amountArrayError, is_addAssetRecordRowArray, is_addActualPaymentTime, is_setFundingStateDB] = await sequentialMintSuper(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime, nftSymbol).catch((err) => {
+    console.log('[Error @ sequentialMintSuper]', err);
+  });
+  console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+
+  if (isFailed || isFailed === undefined || isFailed === null) {
+    mesg = '[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!';
+    console.log('\n'+mesg);
+
+  } else if(!is_addAssetRecordRowArray) {
+    mesg = '[Token minting Successful but addAssetRecordRowArray() Failed]';
+    console.log('\n'+mesg);
+
+  } else if (emailArrayError.length > 0 || amountArrayError.length > 0) {
+    mesg = `[Error] Token minting is successful, but addAssetRecordRowArray() returned emailArrayError and/or amountArrayError.\nemailArrayError: ${emailArrayError} \namountArrayError: ${amountArrayError}`;  
+    console.log('\n'+mesg);
+
+  } else if(!is_addActualPaymentTime) {
+    mesg = '[Token minting Successful but addActualPaymentTime() Failed]';
+    console.log('\n'+mesg);
+
+  } else if(!is_setFundingStateDB) {
+    mesg = '[Token minting Successful but setFundingStateDB() Failed]';
+    console.log('\n'+mesg);
+
+  } else {
+    mesg = '[Success] All token minting, addAssetRecordRowArray(), addActualPaymentTime(), and setFundingStateDB() have been completed successfully';
+    console.log('\n'+mesg);
+  }
+
+  /*
+  ownerCindexM = await instHCAT721.methods.ownerCindex().call();
+  console.log('\nownerCindexM', ownerCindexM);
+
+  const ownerAddrArray = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
+  console.log('\nownerAddrArray', ownerAddrArray);
+
+  await asyncForEach(toAddressArray, async (_to, index) => {
+    isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
+    console.log('\nisOwnerAdded', isOwnerAdded);
+    if (isOwnerAdded === true) {
+      console.log(`This assetbook has been added into ownerAddrList: ${_to}`);
+    } else {
+      console.log(`This assetbook has NOT been added into ownerAddrList: ${_to}`);
+      process.exit(1);
+    }
+    // idxToOwnerM = await instHCAT721.methods.idxToOwner(1).call();
+    // console.log('\nidxToOwnerM', idxToOwnerM);
+    // checkeq(idxToOwnerM, _to);
+  });*/
+
+  process.exit(0);
+}
+
+const sequentialMintSuperNoMintAPI = async () => {
+  console.log('\n-----------------------==sequentialMintSuperNoMintAPI()');
+  const toAddressArray =[addrAssetBook1, addrAssetBook2, addrAssetBook3];
+  const amountArray = [236, 312, 407];//236, 312 ... prev 250, 270, 0
+  const tokenCtrtAddr = addrHCAT721;
+  const fundingType = 2;//PO: 1, PP: 2
+  const pricing = 20000;
+
+  //from blockchain.js
+  const [isFailed, isCorrectAmountArray] = await sequentialMintSuperNoMint(toAddressArray, amountArray, tokenCtrtAddr, fundingType, pricing).catch((err) => {
+    console.log('[Error @ sequentialMintSuperNoMint]', err);
+  });
+  console.log(`[Outtermost] isFailed: ${isFailed}, isCorrectAmountArray: ${isCorrectAmountArray}`);
+  process.exit(0);
+}
+
+
+
 //yarn run testmt -f 50
 const resetAfterMintToken_API = async () => {
   console.log('-----------------== resetAfterMintToken_API()')
@@ -1187,6 +1298,7 @@ const deployCrowdfundingContract_API = async () => {
   const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
   console.log(`result_checkArguments: ${result_checkArguments}`);
 
+  //process.exit(0);
   if(result_checkArguments){
     console.log('result_checkArguments: true');
     if(isToDeploy === 1){
@@ -1484,7 +1596,6 @@ const setTokenController_API = async() => {
 }
 
 
-
 //yarn run testmt -f 83
 const getTokenBalances_API = async () => {
   console.log('\n---------------------==getTokenBalances_API()');
@@ -1499,6 +1610,75 @@ const getTokenBalances_API = async () => {
   process.exit(0);
 }
 
+
+//------------------------------==
+//yarn run testmt -f 120
+const checkSafeTransferFromBatchFunction_API = async () => {
+  console.log('\n---------------------==checkSafeTransferFromBatchFunction_API()');
+  // const assetIndex
+  // const result1 = await checkSafeTransferFromBatchFunction(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
+  // console.log(result1);
+  process.exit(0);
+}
+
+//yarn run testmt -f 121 3 2 12
+const transferTokens_API = async () => {
+  console.log('\n---------------------==transferTokens_API()');
+  const addrHCAT721 = '0xAC113edBef8F2692f5870F08db8AF3546d104bd9';
+  const fromAssetbookIndexStr = argv4;
+  const toAssetbookIndexStr = argv5;
+  const amountStr = argv6;
+  const priceStr = 15000;
+  console.log(`fromAssetbookIndexStr: ${argv4}, toAssetbookIndexStr: ${argv5}, amountStr: ${argv6}`);
+  //process.exit(0);
+
+  const userIdArray = [];
+  const investorLevelArray = [];
+  const assetbookArray = [];
+
+  const userArrayPartial = userArray.slice(0, assetbookAmount);
+  userArrayPartial.forEach((user, idx) => {
+    userIdArray.push(user.identityNumber);
+    investorLevelArray.push(user.investorLevel);
+    assetbookArray.push(user.addrAssetBook);
+  });
+
+  const fromAssetbookIndex = parseInt(fromAssetbookIndexStr);
+  const toAssetbookIndex   = parseInt(toAssetbookIndexStr);
+  const amount = parseInt(amountStr);
+  const price  = parseInt(priceStr);
+
+  if (fromAssetbookIndex === undefined || toAssetbookIndex === undefined || amount === undefined || price === undefined) {
+    console.log('fromAssetbookIndex, toAssetbookIndex, amount, or price is undefined');
+    process.exit(1);
+
+  } else if(fromAssetbookIndex > assetbookAmount || toAssetbookIndex > assetbookAmount){
+    console.log('fromAssetbookIndex or toAssetbookIndex should not be > assetbookAmount'); process.exit(0);
+
+  } else if (isIntAboveOne(fromAssetbookIndex) && isIntAboveOne(toAssetbookIndex) && isIntAboveOne(amount) && isIntAboveOne(price) ){
+    console.log('input values check1 passed');
+
+    const fromAssetbook = assetbookArray[fromAssetbookIndex];
+    const toAssetbook = assetbookArray[toAssetbookIndex];
+    const _fromAssetOwner = assetOwnerArray[fromAssetbookIndex];
+    const _fromAssetOwnerpkRaw = assetOwnerpkRawArray[fromAssetbookIndex];
+  
+    console.log(`_fromAssetOwner: ${_fromAssetOwner}, 
+    _fromAssetOwnerpkRaw: ${_fromAssetOwnerpkRaw} \naddrHCAT721: ${addrHCAT721} \namount: ${amount}, price: ${price}`);
+  
+    const result = await transferTokens(addrHCAT721, fromAssetbook, toAssetbook, amount, price, _fromAssetOwner, _fromAssetOwnerpkRaw).catch((err) => {
+      console.log('[Error @ transferTokens()]'+ err);
+      return false;
+    });
+    console.log(`result of transferTokens: ${result}`)
+  
+  }
+  process.exit(0);
+}
+
+
+
+//------------------------------==
 //------------------------------==
 //yarn run testmt -f 99
 const intergrationTestOfRegistry = async() => {
@@ -2012,16 +2192,35 @@ const checkAssetbookArray_API = async() => {
   console.log('\n---------------------==checkAssetbookArray_API()');
   const addressArray = [...assetbookArray, '0x5Fd93F8a4B023D837f0b04bb2836Daf535BfeFBF'];
   const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
-    console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). addressArray: ${addressArray}`);
+    console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). \naddressArray: ${addressArray}`);
     return false;
   });
   if(checkResult.includes(false)){
-    console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+    console.log(`\ncheckResult has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
     return false;
   } else {
     console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
   }
 }
+
+//yarn run testmt -f 96
+const checkAssetbook_API = async() => {
+  console.log('\n---------------------==checkAssetbook_API()');
+  const assetbookX = '0xE902F2Ee755FAE1dB29d1Ab91eF950c7f05Ab56A';
+  const checkResult = await checkAssetbook(assetbookX).catch(async(err) => {
+    console.log(`checkAssetbook() failed. ${err}, assetbookX: ${assetbookX}`);
+    return false;
+  });
+
+  console.log('\ncheckResult:', checkResult);
+  if(checkResult.includes(false)){
+    console.log(`\ncheckResult has at least one error item. \n \ncheckAssetbook() Result: ${checkResult}`);
+    return false;
+  } else {
+    console.log(`all input addresses has been checked good by checkAssetbook \ncheckResult: ${checkResult} `);
+  }
+}
+
 
 //yarn run testmt -f 101 MURP0904
 const deleteAllRecordsBySymbolCLI_API = async() => {
@@ -2175,6 +2374,33 @@ const getArraysFromCSV_API = async () => {
   process.exit(0);
 }
 
+
+
+//yarn run testmt -f 151
+const getOneAddrPerLineFromCSV_API = async () => {
+  console.log('\n---------------------==getArraysFromCSV_API()');
+
+  const [Assetbooks, badAssetbooks ] = getOneAddrPerLineFromCSV('./ethereum/contracts/Assetbooks.csv');
+  if(badAssetbooks.length > 0){
+    console.warn(`good assetbooks: ${Assetbooks} \nbadAssetbooks are found: ${badAssetbooks}`);
+  } else {
+    console.log(`all assetbooks are complete in parts: ${Assetbooks}`);
+  }
+  process.exit(0);
+}
+
+const breakdownArraysAPI = () => {
+  console.log('breakdownArraysAPI');
+  const acc1 = "0x1"; const acc2 = "0x2";
+  const acc3 = "0x3"; const acc4 = "0x4";
+  const amountArray = [236, 312, 173, 1000];
+  const toAddressArray =[acc1, acc2, acc3, acc4];
+  console.log('\n-----------------==\namountArray', amountArray, '\ntoAddressArray', toAddressArray);
+
+ const [amountArrayOut, toAddressArrayOut] = breakdownArrays(toAddressArray, amountArray);
+ console.log('\namountArrayOut out', amountArrayOut);
+ console.log('toAddressOut out', toAddressArrayOut);
+}
 //------------------------==
 // yarn run testmt -f 0
 if(argv3 === 0){
@@ -2527,6 +2753,10 @@ if(argv3 === 0){
 } else if (argv3 === 95) {
   checkAssetbookArray_API();
 
+//yarn run testmt -f 96
+} else if (argv3 === 96) {
+  checkAssetbook_API();
+
 //yarn run testmt -f 98
 } else if(argv3 === 98){
 
@@ -2557,6 +2787,14 @@ if(argv3 === 0){
 } else if(argv3 === 110){
   updateIAassetRecordStatus_API();
 
+//yarn run testmt -f 120
+} else if(argv3 === 120){
+  checkSafeTransferFromBatchFunction_API();
+
+//yarn run testmt -f 121
+} else if(argv3 === 121){
+  transferTokens_API();
+
 //yarn run testmt -f 141
 } else if (argv3 === 141) {
   deleteProductRows_API();
@@ -2584,5 +2822,10 @@ if(argv3 === 0){
 } else if (argv3 === 150) {
   getArraysFromCSV_API();
 
-}
+} else if (argv3 === 151) {
+  getOneAddrPerLineFromCSV_API();
 
+//yarn run testexp -c 201
+} else if(choice === 201){
+  breakdownArraysAPI();
+}

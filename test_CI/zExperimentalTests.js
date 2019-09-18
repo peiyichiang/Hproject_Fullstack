@@ -3,7 +3,6 @@ const moment = require('moment');
 const BigNumber = require('bignumber.js');
 
 const { addTxnInfoRowFromObj } = require('./mysql');
-const { breakdownArrays } = require('./blockchain.js');
 const { reduceArrays } = require('./utilities');
 
 const {  assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zsetupData');
@@ -185,21 +184,13 @@ console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArra
 
 
 //yarn run testexp -c 13
-const breakdownArraysAPI = () => {
-  console.log('breakdownArraysAPI');
-  const acc1 = "0x1"; const acc2 = "0x2";
-  const acc3 = "0x3"; const acc4 = "0x4";
-  const amountArray = [236, 312, 173, 1000];
-  const toAddressArray =[acc1, acc2, acc3, acc4];
-  console.log('\n-----------------==\namountArray', amountArray, '\ntoAddressArray', toAddressArray);
 
- const [amountArrayOut, toAddressArrayOut] = breakdownArrays(toAddressArray, amountArray);
- console.log('\namountArrayOut out', amountArrayOut);
- console.log('toAddressOut out', toAddressArrayOut);
-}
 
 const incomeFromHoldingDaysSection = async (args, period, periodIncome, prevTokenAmount) => {
   console.log('\n----------------==\ninside incomeFromHoldingDaysSection()...');
+  /*=> make income tables
+    Symbol, user, hold token amount, hold days, payable amount
+  */
 
   const incomeBN_out = await incomeFromHoldingDays(args, period, periodIncome, prevTokenAmount).catch((err) => console.log('[Error @ incomeFromHoldingDays()]', err));
   console.log('incomeBN_out', incomeBN_out);
@@ -353,13 +344,7 @@ if(choice < 9){
 } else if(choice === 11){
   //yarn run testexp -c 11
 
-
-  //yarn run testexp -c 13
-} else if(choice === 13){
-  breakdownArraysAPI();
 }
 
-/*=> make income tables
-  Symbol, user, hold token amount, hold days, payable amount
-*/
+
 

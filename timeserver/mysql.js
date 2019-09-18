@@ -11,7 +11,7 @@ const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, a
 
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray} = require('../ethereum/contracts/zsetupData');
 
-const { userArray } = require('../ethereum/contracts/zTestParameters');
+const { userArray } = require('../test_CI/zTestParameters');
 // const userIdentityNumberArray = [];
 // const investorLevelArray = [];
 const assetbookArray = [];
