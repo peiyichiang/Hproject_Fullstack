@@ -142,6 +142,10 @@ const getOneAddrPerLineFromCSV = (eoaPath) => {
   return [good, bad];
 }
 
+//-------------------------==
+
+
+
 
 const reduceArrays = (toAddressArray, amountArray) => {
   const toAddressArrayOut = [...new Set(toAddressArray)];

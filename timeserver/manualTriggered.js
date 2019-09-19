@@ -2401,6 +2401,45 @@ const breakdownArraysAPI = () => {
  console.log('\namountArrayOut out', amountArrayOut);
  console.log('toAddressOut out', toAddressArrayOut);
 }
+
+//yarn run testmt -f 203
+const extractTokenId_API = () => {
+
+  const indexToSend = 6;//2;//7
+
+  const array1 = [0, 0, 21, 53, 70, 14, 37, 42, 0, 0];
+  console.log('array1:', array1);
+  const tokenId_target = array1[indexToSend];
+  let idxStart = 2;
+  let idxEnd = 7;
+
+  console.log(`array1[idxStart]: ${array1[idxStart]}
+array1[idxEnd]: ${array1[idxEnd]} \ntokenId_target: ${tokenId_target}`);
+
+  if(tokenId_target === array1[idxStart]){
+    console.log('\ntokenId_target === array1[idxStart]');
+    array1[idxStart] = 0;
+    idxStart += 1;
+
+  } else if(tokenId_target === array1[idxEnd]) {
+    console.log('\ntokenId_target === array1[idxEnd]');
+    array1[idxEnd] = 0;
+    idxEnd -= 1;
+
+  } else {
+    console.log('\ntokenId_target should be in the middle');
+    for (let idx = idxStart+1; idx < idxEnd; idx++) {
+      if(array1[idx] === tokenId_target){
+        array1[idx] = array1[idxEnd];
+        array1[idxEnd] = 0;
+        idxEnd -= 1;
+      }
+    }
+  }
+  console.log(`array1[idxStart]: ${array1[idxStart]}
+array1[idxEnd]: ${array1[idxEnd]} \nidxStart: ${idxStart}, idxEnd: ${idxEnd} \narray1: ${array1}`);
+}
+
 //------------------------==
 // yarn run testmt -f 0
 if(argv3 === 0){
@@ -2822,10 +2861,16 @@ if(argv3 === 0){
 } else if (argv3 === 150) {
   getArraysFromCSV_API();
 
+//yarn run testmt -f 151
 } else if (argv3 === 151) {
   getOneAddrPerLineFromCSV_API();
 
-//yarn run testexp -c 201
-} else if(choice === 201){
+////yarn run testmt -c 201
+} else if(argv3 === 201){
   breakdownArraysAPI();
+
+  ////yarn run testmt -c 203
+} else if(argv3 === 203){
+  extractTokenId_API();
+
 }
