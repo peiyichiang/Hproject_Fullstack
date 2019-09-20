@@ -23,7 +23,6 @@ contract Helium {
     uint8 public MinimumVotesForMultiSig = 3;
 
     struct PermissionTable {
-        address platformEoA;
         uint permissionCode;
         bool permissionStatus;
     }
@@ -83,7 +82,6 @@ contract Helium {
         if(isAfterDeployment){
           require(msg.sender == Helium_Admin, "only admin can call this function");
         }
-        PermissionList[_eoa].platformEoA = _eoa;
         PermissionList[_eoa].permissionCode = 1;
         PermissionList[_eoa].permissionStatus = true;
     }
@@ -92,7 +90,6 @@ contract Helium {
         if(isAfterDeployment){
           require(msg.sender == Helium_Admin, "only admin can call this function");
         }
-        PermissionList[_eoa].platformEoA = _eoa;
         PermissionList[_eoa].permissionCode = 2;
         PermissionList[_eoa].permissionStatus = true;
     }

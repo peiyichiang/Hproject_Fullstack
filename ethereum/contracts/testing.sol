@@ -140,20 +140,12 @@ contract ERC721Testing {
 }
 
 contract ExtractTokenId {
+    using SafeMath for uint256;
     uint public count;
-
-    constructor() public {
-        owner = msg.sender;
-        accounts[owner].idxStart = 2;
-        accounts[owner].idxEnd = 7;
-
-        accounts[owner].indexToId[2] = 21;
-        accounts[owner].indexToId[3] = 53;
-        accounts[owner].indexToId[4] = 70;
-        accounts[owner].indexToId[5] = 14;
-        accounts[owner].indexToId[6] = 37;
-        accounts[owner].indexToId[7] = 42;
-
+    address public owner;
+    mapping(uint => Asset) public idToAsset;//NFT ID to token assets
+    struct Asset {
+        address owner;
     }
 
     mapping(address => Account) internal accounts;//accounts[user]
@@ -166,31 +158,37 @@ contract ExtractTokenId {
         //each operator has given quota to send certain account's N amount of tokens
     }
 
-    function getTokenIds() view public returns () {
-        uint amount_ = accounts[owner].idxEnd - accounts[owner].idxStart + 1;
-        for(uint i = accounts[owner].idxStart; i < amount_; i = i.add(1)) {
-            arrayOut[i] = accounts[user].indexToId[i.add(indexStart_)];
-        }
-        
+    constructor() public {
+        owner = msg.sender;
+        accounts[owner].idxStart = 2;
+        accounts[owner].idxEnd = 7;
+
+        accounts[owner].indexToId[2] = 21;
+        accounts[owner].indexToId[3] = 53;
+        accounts[owner].indexToId[4] = 70;
+        accounts[owner].indexToId[5] = 14;
+        accounts[owner].indexToId[6] = 37;
+        accounts[owner].indexToId[7] = 42;
     }
-    
-    function sendTokenById(address from, address _to, uint tokenId) view public {
+
+
+    function sendTokenById(address from, address _to, uint tokenId) public {
         //accounts[from].indexToId[index]
         //array1[idx] => accounts[from].indexToId[idx]
         uint idxEndF = accounts[from].idxEnd;
         uint idxStartF = accounts[from].idxStart;
 
-        if(tokenId === accounts[from].indexToId[idxStartF]){
+        if(tokenId == accounts[from].indexToId[idxStartF]){
           delete accounts[from].indexToId[idxStartF];
           idxStartF = idxStartF.add(1);
 
-        } else if(tokenId === accounts[from].indexToId[idxEndF]) {
+        } else if(tokenId == accounts[from].indexToId[idxEndF]) {
           delete accounts[from].indexToId[idxEndF];
           idxEndF = idxEndF.sub(1);
 
         } else {
             for(uint idx = idxStartF.add(1); idx < idxEndF; idx = idx.add(1)) {
-                if(accounts[from].indexToId[idx] === tokenId){
+                if(accounts[from].indexToId[idx] == tokenId){
                   accounts[from].indexToId[idx] = accounts[from].indexToId[idxEndF];
                   delete accounts[from].indexToId[idxEndF];
                   idxEndF = idxEndF.sub(1);
@@ -201,7 +199,7 @@ contract ExtractTokenId {
         idToAsset[tokenId].owner = _to;
 
         uint idxEndT = accounts[_to].idxEnd;
-        uint idxStartT = accounts[_to].idxStart;
+        //uint idxStartT = accounts[_to].idxStart;
         accounts[_to].idxEnd = idxEndT.add(1);
         accounts[_to].indexToId[idxEndT.add(1)] = tokenId;
     }

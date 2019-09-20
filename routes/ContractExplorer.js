@@ -27,4 +27,8 @@ router.get('/registry', function (req, res, next) {
   res.render('registry', {contractType: 'Registry'});
 });
 
+router.get('/helium', function (req, res, next) {
+  res.render('helium', {contractType: 'Helium'});
+});
+
 module.exports = router;
