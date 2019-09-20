@@ -122,12 +122,10 @@ router.post('/AddUser', function (req, res, next) {
     const qstr1 = 'INSERT INTO  user SET ?';
     var mysqlPoolQuery = req.pool;
 
-    console.log('req.query', req.query, 'req.body', req.body);
     let user;
     if (req.body.email) {
         user = req.body;
     } else { user = req.query; }//Object.keys(user).length === 0 && user.constructor === Object
-    console.log('user', user);
 
     const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
     //Generate a salt and hash on separate function calls.
@@ -136,12 +134,10 @@ router.post('/AddUser', function (req, res, next) {
     bcrypt
         .genSalt(saltRounds)
         .then(salt => {
-            console.log(`Salt: ${salt}`);
             user.salt = salt;
             return bcrypt.hash(user.password, salt);
         })
         .then(hash => {
-            console.log(`Password Hash: ${hash}`);
             let userNew = {
                 u_email: user.email,
                 u_salt: user.salt,
@@ -156,21 +152,18 @@ router.post('/AddUser', function (req, res, next) {
                 u_name: user.name,
                 u_investorLevel: 1,
                 u_account_status: 0,
-                u_review_status:'unapproved'
+                u_review_status: 'unapproved'
             };//Math.random().toString(36).substring(2, 15)
             passwordHash.passwordHash = hash
 
-            console.log(userNew);
             var qur = mysqlPoolQuery(qstr1, userNew, function (err, result) {
                 if (err) {
-                    console.log(err);
                     res.status(400);
                     res.json({
                         "message": "[Error] Failure :\n" + err,
                         "success": false,
                     });
                 } else {
-                    console.log("[Success] /AddUser");
                     res.status(200);
                     res.json({
                         "message": "[Success] Success",
@@ -184,12 +177,12 @@ router.post('/AddUser', function (req, res, next) {
 });
 
 //設置reviewStatus
-router.post('/reviewStatus',function(req, res, next){
+router.post('/reviewStatus', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     console.log(req.body.reviewStatus);
     console.log(req.body.email);
-    sql={
-        u_review_status:req.body.reviewStatus
+    sql = {
+        u_review_status: req.body.reviewStatus
     };
     var qur = mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, req.body.email], function (err, rows) {
         if (err) {
@@ -239,8 +232,7 @@ router.post('/send_email', function (req, res) {
             })
         }
         // console.log('Message sent: %s', info.messageId);
-        // Preview only available when sending through an Ethereal account
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
     });
 })
@@ -330,7 +322,6 @@ router.get('/UserByEmail', function (req, res, next) {
     console.log('------------------------==\n@User/User');
     let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
     var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
     let email, password;
     if (req.body.email) {
         email = req.body.email; password = req.body.password;
@@ -383,7 +374,6 @@ router.get('/UserByCellphone', function (req, res, next) {
     console.log('------------------------==\n@User/UserByCellphone');
     let qstr1 = 'SELECT * FROM  user WHERE u_cellphone = ?';
     var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
     let cellphone, password;
     if (req.body.cellphone) {
         cellphone = req.body.cellphone; password = req.body.password;
@@ -434,7 +424,6 @@ router.get('/UserByUserId', function (req, res, next) {
     console.log('------------------------==\n@User/UserByUserId');
     let qstr1 = 'SELECT * FROM  user WHERE u_identityNumber = ?';
     var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
     let status, userId, qstrz;
     if (req.body.userId) {
         userId = req.body.userId;
@@ -775,36 +764,36 @@ router.post('/VerifyVerificationCode', function (req, res, next) {
                      ORDER  BY fp_application_date DESC
                      LIMIT  0,1
                     `, email, function (err, result) {
-                        /* 查詢失敗 */
-                        if (err) {
-                            res.status(400).send('查詢失敗：' + err);
-                            console.error('query error : ' + err);
-                        }
-                        /* 無申請紀錄 */
-                        else if (result.length == 0) {
-                            res.status(404).send('無申請紀錄');
-                            console.error('applications record not found : ' + email);
+                    /* 查詢失敗 */
+                    if (err) {
+                        res.status(400).send('查詢失敗：' + err);
+                        console.error('query error : ' + err);
+                    }
+                    /* 無申請紀錄 */
+                    else if (result.length == 0) {
+                        res.status(404).send('無申請紀錄');
+                        console.error('applications record not found : ' + email);
+                    }
+                    else {
+                        const tenMinutesAfterFP_application_date = getTenMinutesAfter_FP_application_date(result[0].fp_application_date);
+                        /* 驗證碼已過期 */
+                        if (timeNow > tenMinutesAfterFP_application_date) {
+                            res.status(400).send('驗證碼已過期，請重新申請');
+                            console.error('verification code is expired : ' + email);
                         }
                         else {
-                            const tenMinutesAfterFP_application_date = getTenMinutesAfter_FP_application_date(result[0].fp_application_date);
-                            /* 驗證碼已過期 */
-                            if (timeNow > tenMinutesAfterFP_application_date) {
-                                res.status(400).send('驗證碼已過期，請重新申請');
-                                console.error('verification code is expired : ' + email);
+                            /* 驗證碼錯誤 */
+                            if (verificationCode != result[0].fp_verification_code) {
+                                res.status(400).send('驗證碼錯誤，請檢查後再試');
+                                console.error('wrong verification code : ' + email);
                             }
                             else {
-                                /* 驗證碼錯誤 */
-                                if (verificationCode != result[0].fp_verification_code) {
-                                    res.status(400).send('驗證碼錯誤，請檢查後再試');
-                                    console.error('wrong verification code : ' + email);
-                                }
-                                else {
 
-                                    res.status(200).json({ "message": "驗證通過" });
-                                }
+                                res.status(200).json({ "message": "驗證通過" });
                             }
                         }
-                    });
+                    }
+                });
             }
             else { res.status(200).json({ "message": "您上筆申請的資料正在審閱中，請等待通知信" }); }
         })
@@ -973,6 +962,23 @@ router.post('/ApplyForResettingPassword', function (req, res, next) {
             SET    u_account_status = ? 
             WHERE  u_email = ?`
             return query(updateAccountStatusQuery, [accountStatus, email])
+        })
+        .then(() => {
+            const getOriginalEOAQuery = `
+            SELECT u_eth_add 
+            FROM   user
+            WHERE  u_email = ?`
+            return query(getOriginalEOAQuery, email)
+        })
+        .then((result) => {
+            const originalEOA = result[0].u_eth_add
+            const insertOriginalEOAQuery = `
+            UPDATE forget_pw 
+            SET    fp_original_EOA = ?
+            WHERE  fp_investor_email = ?
+            ORDER BY fp_application_date DESC 
+            LIMIT 1`
+            return query(insertOriginalEOAQuery, [originalEOA, email])
         })
         .then(() => {
             isForgetPassword ?
