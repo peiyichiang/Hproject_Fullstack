@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 archives/
 ethereum/contracts/build/
-#ethereum/contracts/zTestParameters.js
 .vscode/
 time.txt
 
@@ -97,12 +96,3 @@ typings/
 #DynamoDB Local files 
 .dynamodb/ 
 
-
-public/uploadImgs/
-public/images/
-public/media/
-
-#https ca
-*.crt
-*.key
-*.ca-bundle

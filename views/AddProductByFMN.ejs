@@ -9,7 +9,7 @@
     <!-- <link rel="stylesheet" href="/css/AddProductByFMN_.css"> -->
     <link rel="stylesheet" href="">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
 
 <body>
@@ -30,60 +30,60 @@
                   </ul>
                 </div>
     </nav>
-    <!-- <span style="color:red;">&nbsp(必填)</span> -->
+
     <!-- 新增產品表單 -->
     <div class="wrap" style="width:50%;height:100%;margin:0 auto;margin-top:60px;margin-bottom:60px;border:1px solid #dbdbdb;border-radius: 25px;padding:20px;">
         <form name="addform" id="addProductForm" action="/Product/AddProductByFMN" method="post" accept-charset="utf-8">
             <div class="form-row">
               <div class="form-group col-md-4">
                 <label for="p_SYMBOL">產品代號</label>
-                <input type="text" class="form-control" name="p_SYMBOL" id="p_SYMBOL" placeholder="ex:NCCU19" required>
+                <input type="text" class="form-control" name="p_SYMBOL" id="p_SYMBOL" placeholder="ex:NCCU19">
               </div>
               <div class="form-group col-md-4">
                     <label for="p_name">產品名稱</label>
-                    <input type="text" class="form-control" name="p_name" id="p_name" placeholder="ex:政大一號" required>
+                    <input type="text" class="form-control" name="p_name" id="p_name" placeholder="ex:政大一號">
                </div>
                <div class="form-group col-md-4">
                     <label for="p_location">產品所在地</label>
-                    <input type="text" class="form-control" name="p_location" id="p_location" placeholder="ex:台北" required>
+                    <input type="text" class="form-control" name="p_location" id="p_location" placeholder="ex:台北">
                </div>
             </div>
             <div class="form-row">
                     <div class="form-group col-md-4">
                       <label for="p_pricing">產品定價</label>
-                      <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500" required>
+                      <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500">
                     </div>
                     <div class="form-group col-md-4">
                           <label for="p_duration">專案年期</label>
-                          <input type="text" class="form-control" name="p_duration" id="p_duration" placeholder="ex:10" required>
+                          <input type="text" class="form-control" name="p_duration" id="p_duration" placeholder="ex:10">
                      </div>
                      <div class="form-group col-md-4">
                           <label for="p_currency">幣別</label>
-                          <input type="text" class="form-control" name="p_currency" id="p_currency" placeholder="ex:NTD" required>
+                          <input type="text" class="form-control" name="p_currency" id="p_currency" placeholder="ex:NTD">
                      </div>
             </div>
             <div class="form-row">
                     <div class="form-group col-md-4">
                       <label for="p_irr">預期報酬率(%)</label>
-                      <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8" required>
+                      <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8">
                     </div>
                     <div class="form-group col-md-4">
                           <label for="p_releasedate">產品發行日</label>
-                          <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM" required>
+                          <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM">
                      </div>
                      <div class="form-group col-md-4">
                           <label for="p_validdate">產品到期日</label>
-                          <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" required>
+                          <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM">
                      </div>
             </div>
             <div class="form-row">
                     <div class="form-group col-md-4">
                       <label for="p_size">專案規模(kw)</label>
-                      <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:200" required>
+                      <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:200">
                     </div>
                     <div class="form-group col-md-4">
                           <label for="p_totalrelease">產品總發行量(個)</label>
-                          <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:330" required>
+                          <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:330">
                      </div>
                      <div class="form-group col-md-4">
                       <label for="p_fundingType">募款類型</label>
@@ -97,37 +97,35 @@
                      </div>
             </div>
             <div class="form-row">
-                     <div class="form-group col-md-4">
-                      <label for="p_isNewCase">舊案/新案</label>
-                        <br>
-                        <label>
-                          <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1" checked>舊案
-                        </label>
-                        <label>
-                          <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2">新案
-                        </label>
-                     </div>
-                     <div class="form-group col-md-4">
+                    <!-- <div class="form-group col-md-4">
+                      <label for="p_FAY">預估平均年收益/label>
+                      <input type="text" class="form-control" name="p_FAY" id="p_FAY" placeholder="ex:4.8">
+                    </div>
+                    <div class="form-group col-md-4">
+                          <label for="p_FTRT">預估回收金額</label>
+                          <input type="text" class="form-control" name="p_FTRT" id="p_FTRT" placeholder="ex:15327">
+                     </div> -->
+                     <div class="form-group col-md-6">
                           <label for="p_RPT">收益總期數</label>
-                          <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:80" required>
+                          <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:80">
                      </div>
-                     <div class="form-group col-md-4">
+                     <div class="form-group col-md-6">
                       <label for="p_FRP">預估回收年限(年數/月數)</label>
-                      <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:20/10" required>
+                      <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:20/10">
                     </div>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-4">
                   <label for="p_fundingGoal">專案募資目標(個)</label>
-                  <input type="text" class="form-control" name="p_fundingGoal" id="p_fundingGoal" placeholder="ex:800" required>
+                  <input type="text" class="form-control" name="p_fundingGoal" id="p_fundingGoal" placeholder="ex:800">
                 </div>
                 <div class="form-group col-md-4">
                   <label for="p_HCAT721uri">專案於公鏈或政府官方文件</label>
-                  <input type="text" class="form-control" name="p_HCAT721uri" id="p_HCAT721uri" placeholder="" required>
+                  <input type="text" class="form-control" name="p_HCAT721uri" id="p_HCAT721uri" placeholder="">
                 </div>
                 <div class="form-group col-md-4">
                   <label for="p_EPCname">EPC名稱</label>
-                  <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="" required>
+                  <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="">
                 </div>
             </div>
             <!-- <div class="form-row">
@@ -143,61 +141,40 @@
             <div class="form-row">
               <div class="form-group col-md-4">
                   <label for="p_PSD">專案開始日期</label>
-                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM" required>
+                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-4">
                 <label for="p_CFSD">募資起始日</label>
-                <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM" required>
+                <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-4">
                     <label for="p_CFED">募資截止日</label>
-                    <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM" required>
+                    <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM">
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="p_TaiPowerApprovalDate">台電並聯作業日期</label>
-                <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDDHHMM" required>
+                <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-6">
                     <label for="p_BOEApprovalDate">能源局同意備案日期</label>
-                    <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDDHHMM" required>
+                    <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDDHHMM">
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="p_PVTrialOperationDate">併聯試運轉日期</label>
-                <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDDHHMM" required>
+                <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDDHHMM">
               </div>
               <div class="form-group col-md-6">
                     <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
-                    <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDDHHMM" required>
+                    <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDDHHMM">
                </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group col-md-4">
-                  <label for="p_ContractOut">工程發包日期</label>
-                  <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDDHHMM" required>
-              </div>
-              <div class="form-group col-md-4">
-                <label for="p_CaseConstruction">案場建置完成日期</label>
-                <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDDHHMM" required>
-              </div>
-              <div class="form-group col-md-4">
-                    <label for="p_ElectricityBilling">電費計費開始日期</label>
-                    <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDDHHMM" required>
-               </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group col-md-12">
-                <label for="p_Copywriting">產品文案</label>
-                <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;" maxlength="50" required></textarea>
-              </div>
             </div>
             <!-- 以下為隱藏欄位，為上傳文件的網址 -->
             <input type="text" name="p_icon" id="p_icon" hidden>
             <input type="text" name="p_assetdocs" id="p_assetdocs" hidden>
-            <input type="text" name="p_assetdocsHash" id="p_assetdocsHash" hidden>
             <input type="text" name="p_csvFIle" id="p_csvFIle" hidden>
             <input type="text" name="p_Image1" id="p_Image1" hidden>
             <input type="text" name="p_Image2" id="p_Image2" hidden>
@@ -215,7 +192,7 @@
             <div class="form-row">
                     <div class="form-group col-md-4">
                             <label for="file">購售電合約</label>
-                            <input type="file" class="form-control" name="file" id="file" />
+                            <input type="file" class="form-control" name="file" id="file">
                     </div>
                     <div class="form-group col-md-4">
                             <label for="icon">產品icon</label>
@@ -275,15 +252,14 @@
               </div>
             </div>
         </form>
-        <button type="button" id="addBtn" class="btn btn-primary" required>新增產品</button>
+        <button type="button" id="addBtn" class="btn btn-primary">新增產品</button>
     </div>
 
 
+    
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="/js/web3.js"></script>
-    <!-- <script src="/js/PDFtoImage.js"></script> -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="/js/AddProductByFMN.js"></script>
 </body>
 

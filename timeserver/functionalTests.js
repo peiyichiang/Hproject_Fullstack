@@ -3,16 +3,17 @@ const moment = require('moment');
 const BigNumber = require('bignumber.js');
 
 const { addTxnInfoRowFromObj } = require('./mysql');
+const { breakdownArrays } = require('./blockchain.js');
 const { reduceArrays } = require('./utilities');
 
 const {  assetOwnerArray, assetOwnerpkRawArray } = require('../ethereum/contracts/zsetupData');
 
 let choice, txnInfoRow, txnInfoObj;
-// yarn run testexp -c C
+// yarn run testfn -c C
 const arguLen = process.argv.length;
 console.log('arguLen', arguLen, 'process.argv', process.argv);
 if (arguLen == 3 && process.argv[2] === '--h') {
-  console.log("\x1b[32m", '$ yarn run testexp -c C');
+  console.log("\x1b[32m", '$ yarn run testfn -c C');
   console.log("\x1b[32m", 'C = 1: incomeFromHoldingDaysSection()');
   console.log("\x1b[32m", 'C = 2: addTxnInfoRowSection()');
   process.exit(0);
@@ -183,14 +184,22 @@ console.log('toAddressArrayOut', toAddressArrayOut, 'amountArrayOut', amountArra
 
 
 
-//yarn run testexp -c 13
+//yarn run testfn -c 13
+const breakdownArraysAPI = () => {
+  console.log('breakdownArraysAPI');
+  const acc1 = "0x1"; const acc2 = "0x2";
+  const acc3 = "0x3"; const acc4 = "0x4";
+  const amountArray = [236, 312, 173, 1000];
+  const toAddressArray =[acc1, acc2, acc3, acc4];
+  console.log('\n-----------------==\namountArray', amountArray, '\ntoAddressArray', toAddressArray);
 
+ const [amountArrayOut, toAddressArrayOut] = breakdownArrays(toAddressArray, amountArray);
+ console.log('\namountArrayOut out', amountArrayOut);
+ console.log('toAddressOut out', toAddressArrayOut);
+}
 
 const incomeFromHoldingDaysSection = async (args, period, periodIncome, prevTokenAmount) => {
   console.log('\n----------------==\ninside incomeFromHoldingDaysSection()...');
-  /*=> make income tables
-    Symbol, user, hold token amount, hold days, payable amount
-  */
 
   const incomeBN_out = await incomeFromHoldingDays(args, period, periodIncome, prevTokenAmount).catch((err) => console.log('[Error @ incomeFromHoldingDays()]', err));
   console.log('incomeBN_out', incomeBN_out);
@@ -287,7 +296,7 @@ const sequentialRunFn = async () => {
   return [isFailed, isCorrectAmountArray];
 }
 
-//yarn run testexp c- 10
+//yarn run testfn c- 10
 const sequentialRunFnAPI = async () => {
   const [isFailed, isCorrectAmountArray] = await sequentialRunFn().catch((err) => {
     console.log('[Error @ sequentialRunSuperFn]', err);
@@ -319,7 +328,7 @@ if(holdingDaysArray.length !== txTimeArray.length){
   return;
 }
 if(choice < 9){
-  //yarn run testexp -c 0
+  //yarn run testfn -c 0
   //args = ["nonArray", symbol, addrAssetbook ];
   console.log('\n---------------------==\nto calculate income: symbol=', symbolArrayT[choice], ', assetbook=', assetbookArrayT[choice]);
   const args = ["nonArray", symbolArrayT[choice], assetbookArrayT[choice]];
@@ -338,13 +347,19 @@ if(choice < 9){
   */
 
 } else if(choice === 10){
-  //yarn run testexp -c 10
+  //yarn run testfn -c 10
   sequentialRunFnAPI();
 
 } else if(choice === 11){
-  //yarn run testexp -c 11
+  //yarn run testfn -c 11
 
+
+  //yarn run testfn -c 13
+} else if(choice === 13){
+  breakdownArraysAPI();
 }
 
-
+/*=> make income tables
+  Symbol, user, hold token amount, hold days, payable amount
+*/
 
