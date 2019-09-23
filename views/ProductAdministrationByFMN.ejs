@@ -150,17 +150,18 @@
                                 </td>
                                 <td>
                                     <%if (dataDraft[i].p_assetdocs != null && dataDraft[i].p_assetdocs != "") { %>
-                                        <a target="_blank" href="http://127.0.0.1:3030/<%= dataDraft[i].p_assetdocs.replace('public','')  %>">doc</a>
+                                        <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + dataDraft[i].p_assetdocs.replace('public','')  %>">doc</a>
                                     <% } %>
                                 </td>
                                 <td>
                                     <%if (dataDraft[i].p_icon != null && dataDraft[i].p_icon != "") { %>
-                                        <img src="http://127.0.0.1:3030/<%= dataDraft[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + dataDraft[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
                                     <% } %>
                                 </td>
                                 <td>
+                                    <!-- <%=  process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' %> -->
                                     <%if (dataDraft[i].p_csvFIle != null && dataDraft[i].p_csvFIle != "") { %>
-                                        <a target="_blank" href="http://127.0.0.1:3030/<%= dataDraft[i].p_csvFIle.replace('public','')  %>">CSV File</a>
+                                        <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + dataDraft[i].p_csvFIle.replace('public','')  %>">CSV File</a>
                                     <% } %>
                                 </td>
                                 <td>
@@ -289,17 +290,17 @@
                     </td> -->
                     <td>
                         <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                            <a target="_blank" href="http://127.0.0.1:3030/<%= data[i].p_assetdocs.replace('public','')  %>">doc</a>
+                            <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_assetdocs.replace('public','')  %>">doc</a>
                         <% } %>
                     </td>
                     <td>
                         <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                            <img src="http://127.0.0.1:3030/<%= data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
+                            <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
                         <% } %>
                     </td>
                     <td>
                         <%if (data[i].p_csvFIle != null && data[i].p_csvFIle != "") { %>
-                            <a target="_blank" href="http://127.0.0.1:3030/<%= data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
+                            <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
                         <% } %>
                     </td>
                     <!-- onclick="Edit('<%= data[i].id  %>');" -->

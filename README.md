@@ -51,14 +51,72 @@ yarn run testim
 ### 6. Setup P.O.A. Blockchain
 ```pm2 -n ganache start "ganache-cli -p 8540 -h 0.0.0.0```
 
-### 7. Deploy smart contracts
-Deploy contracts
-```
-yarn run deploy --c 1 --ctrtName contractName
-```
-where chain can be 1 for POA private chain, 2 for POW private chain, 3 for POW Infura Rinkeby chain,
+OR
+```ganache-cli -m "defense tissue lecture abstract clown mammal around motor aware habit where teach" -l 9721975 -g 20000000000```
 
-and contractName can be either platform, multisig, assetbook, registry, tokencontroller, erc721splc, or crowdfunding.
+then inside .env file:
+change env: BLOCKCHAIN_CHOICE=4
+add:
+BC_HOST_GANACHECLI=localhost
+BC_PORT_GANACHECLI=8545
+GANACHE_EOA0=0xa6cc621a179f01a719ee57db4637a4a1f603a442
+GANACHE_EOAPK0=0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
+
+### 7. Deploy and Test smart contracts
+---------------==Testing Flow
+yarn run testmt -f 54 ... deployHeliumContract_API
+yarn run testmt -f 55 ... deployRegistryContract_API
+yarn run testmt -f 56 ... deployAssetbookContracts_API
+yarn run testmt -f 57 ... addUsersIntoDB_API
+yarn run testmt -f 59 ... addUsersToRegistryCtrt
+
+----==
+yarn run testmt -f 61 ... deployCrowdfundingContract_API
+yarn run testmt -f 64 ... deployTokenControllerContract_API
+yarn run testmt -f 67 ... deployHCATContract_API
+yarn run testmt -f 70 ... deployIncomeManagerContract_API
+yarn run testmt -f 71 ... deployProductManagerContract_API
+yarn run testmt -f 72 ... addSmartContractRow_API
+yarn run testmt -f 74 ... addIncomeArrangementRows_API
+
+yarn run testmt -f 73 ... addProductRowFromSymbol_API
+yarn run testmt -f 100 .. intergrationTestOfProduct
+----==
+yarn run testmt -f 39 ... getDetailsCFC_API
+yarn run testmt -f 42 ... getCFC_Balances_API
+yarn run testmt -f 78 ... addPaidOrdersIntoDBnCFC
+----==
+----== >>> doAssetRecordsCaller() and API
+yarn run testmt -f 82 ... setTokenController
+yarn run testmt -f 79 ... getTokenContractDetails
+yarn run testmt -f 83 ... getTokenBalances_API
+
+yarn run testmt -f 48 ... mintSequentialPerContract_CLI_API ***
+(OR ProductAdministration.ejs interface button press)
+
+yarn run testmt -f 85 ... addOrders_CFC_MintTokens_API
+yarn run testmt -f 5  ... calculateLastPeriodProfit_API
+
+-----------------==
+yarn run testmt -f 39 ... getDetailsCFC_API
+yarn run testmt -f 41 ... getCrowdfundingInvestors_API
+yarn run testmt -f 42 ... getCFC_Balances_API
+
+yarn run testmt -f 788 .. addAssetbooksIntoCFC_API (like timeserver)
+
+yarn run testmt -f 75 ... addUserArrayOrdersIntoDB_API
+yarn run testmt -f 76 ... addOrderIntoDB_API
+yarn run testmt -f 77 ... addArrayOrdersIntoDB_API
+
+yarn run testmt -f 43 ... invest in CFC
+yarn run testmt -f 44 ... check invest function
+yarn run testmt -f 47 ... invest in CFC in batch!!!
+
+yarn run testmt -f 101 symbolName ... to delete all records of a symbol
+
+//yarn run livechain -c 1 --f 0 ... checkDeployedContracts 
+yarn run livechain -c 1 --f 1 ... setupTest to verify initial conditions
+
 
 
 ### 8. Test deployed smart contracts
@@ -153,6 +211,7 @@ portForIncomingTime has the value defined inside timeServer/manager.js
 
 Backend User Login:
 http://140.119.101.130:3000/BackendUser/BackendUserLogin
+http://localhost:3030/BackendUser/BackendUserLogin
 
 Backend Roles:
 Platform_Admin

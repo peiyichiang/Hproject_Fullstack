@@ -36,8 +36,8 @@ contract CrowdFunding {
     uint public maxTotalSupply; //total allowed token quantity for crowdfunding sales
     uint public quantityGoal; //sales minimum goal for sold token quantity
     uint public quantitySold; //accumulated quantity of sold tokens
-    uint public CFSD2; //crowdfunding start date in yyyymmddhhmm format
-    uint public CFED2; //crowdfunding end date in yyyymmddhhmm format
+    uint public CFSD; //crowdfunding start date in yyyymmddhhmm format
+    uint public CFED; //crowdfunding end date in yyyymmddhhmm format
     uint public fundingType;
     address public addrRegistry;
 
@@ -47,7 +47,7 @@ contract CrowdFunding {
 
     uint public fundingCindex;//last submitted index and total count of all invested funds
 
-    //fundingClosed: maxTotalSupply is reached or CFED2 is reached with quantitySold > quantityGoal
+    //fundingClosed: maxTotalSupply is reached or CFED is reached with quantitySold > quantityGoal
     //已結案(提前售完/到期並達標)、募款失敗(到期但未達標)
     // the fundingState can be one of the following states: initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated
     enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
@@ -64,8 +64,8 @@ contract CrowdFunding {
         string memory _pricingCurrency,// NTD or USD or RMB ...
         uint _maxTotalSupply,
         uint _quantityGoal,
-        uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
-        uint _CFED2,//CrowdFunding End Date
+        uint _CFSD,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED,//CrowdFunding End Date
         uint _TimeOfDeployment,
         address _addrHelium
         //,
@@ -83,10 +83,10 @@ contract CrowdFunding {
         maxTotalSupply = _maxTotalSupply;//專案總量
         quantityGoal = _quantityGoal;
 
-        //require(_CFSD2 < _CFED2, "CFSD2 should be lesser than CFED2");
-        //require(TimeOfDeployment < _CFSD2, "TimeOfDeployment should be < CFSD2");
-        CFSD2 = _CFSD2;
-        CFED2 = _CFED2;// yyyymmddhhmm
+        //require(_CFSD < _CFED, "CFSD should be lesser than CFED");
+        //require(TimeOfDeployment < _CFSD, "TimeOfDeployment should be < CFSD");
+        CFSD = _CFSD;
+        CFED = _CFED;// yyyymmddhhmm
         fundingState = FundingState.initial;//init the project state
         stateDescription = "initial";
         TimeOfDeployment = _TimeOfDeployment;
@@ -100,8 +100,8 @@ contract CrowdFunding {
         string memory _tokenSymbol, uint _initialAssetPricing,
         string memory _pricingCurrency,// NTD or USD or RMB ...
         uint _maxTotalSupply, uint _quantityGoal,
-        uint _CFSD2,//CrowdFunding Start Date. time format yyyymmddhhmm
-        uint _CFED2,//CrowdFunding End Date
+        uint _CFSD,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED,//CrowdFunding End Date
         uint _TimeOfDeployment, address _addrHelium
 
       ) public view returns(bool[] memory boolArray) {
@@ -109,18 +109,48 @@ contract CrowdFunding {
         boolArray[0] = _initialAssetPricing > 0;
         boolArray[1] = _maxTotalSupply >= _quantityGoal;
         boolArray[2] = _TimeOfDeployment > 201905281400;
-        boolArray[3] = _CFSD2 > _TimeOfDeployment;
-        boolArray[4] = _CFED2 > _CFSD2;
+        boolArray[3] = _CFSD > _TimeOfDeployment;
+        boolArray[4] = _CFED > _CFSD;
         boolArray[5] = ckStringLength(_tokenSymbol, 8, 32);
         boolArray[6] = ckStringLength(_pricingCurrency, 3, 32);
         boolArray[7] = _addrHelium.isContract();
+    }
+
+    function changeCFED(uint _CFED) public onlyPlatformSupervisor {
+        CFED = _CFED;
+    }
+    function changeCFSD(uint _CFSD) public onlyPlatformSupervisor {
+        CFSD = _CFSD;
+    }
+
+    function changeInitialConditions(
+        string memory _tokenSymbol,
+        uint _initialAssetPricing,
+        string memory _pricingCurrency,
+        uint _maxTotalSupply,
+        uint _quantityGoal,
+        uint _CFSD,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED,//CrowdFunding End Date
+        uint _TimeOfDeployment,
+        address _addrHelium
+        ) public onlyPlatformSupervisor {
+        tokenSymbol = _tokenSymbol;
+        initialAssetPricing = _initialAssetPricing;
+        pricingCurrency = _pricingCurrency;
+        maxTotalSupply = _maxTotalSupply;//專案總量
+        quantityGoal = _quantityGoal;
+
+        CFSD = _CFSD;
+        CFED = _CFED;// yyyymmddhhmm
+        TimeOfDeployment = _TimeOfDeployment;
+        addrHelium = _addrHelium;
     }
 
     function getContractDetails() public view returns(
         uint TimeOfDeployment_, uint maxTokenQtyForEachInvestmentFund_,
         string memory tokenSymbol_, string memory pricingCurrency_,
         uint initialAssetPricing_, uint maxTotalSupply_,
-        uint quantityGoal_, uint quantitySold_, uint CFSD2_, uint CFED2_) {
+        uint quantityGoal_, uint quantitySold_, uint CFSD_, uint CFED_) {
         TimeOfDeployment_ = TimeOfDeployment;
         maxTokenQtyForEachInvestmentFund_ = maxTokenQtyForEachInvestmentFund;
         tokenSymbol_ = tokenSymbol;
@@ -129,18 +159,18 @@ contract CrowdFunding {
         maxTotalSupply_ = maxTotalSupply;
         quantityGoal_ = quantityGoal;
         quantitySold_ = quantitySold;
-        CFSD2_ = CFSD2;
-        CFED2_ = CFED2;
+        CFSD_ = CFSD;
+        CFED_ = CFED;
     }
 
-    function checkPlatformSupervisor() public view returns (bool){
+    function checkPlatformSupervisorFromCFC() public view returns (bool){
         return (HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     function setHeliumAddr(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
+        require(HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         _;
     }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
@@ -153,10 +183,10 @@ contract CrowdFunding {
             stateDescription = "fundingClosed: sold out";
 
         } else if(quantitySold >= quantityGoal){
-            if (serverTime >= CFED2){
+            if (serverTime >= CFED){
                 fundingState = FundingState.fundingClosed;
                 stateDescription = "fundingClosed: goal reached but not sold out";
-            } else if (serverTime >= CFSD2){
+            } else if (serverTime >= CFSD){
                 fundingState = FundingState.fundingGoalReached;
                 stateDescription = "fundingGoalReached: still funding and has reached goal";
             } else {
@@ -165,10 +195,10 @@ contract CrowdFunding {
             }
 
         } else {
-            if (serverTime >= CFED2){
+            if (serverTime >= CFED){
                 fundingState = FundingState.fundingNotClosed;
                 stateDescription = "fundingNotClosed: ended with goal not reached";
-            } else if (serverTime >= CFSD2){
+            } else if (serverTime >= CFSD){
                 fundingState = FundingState.funding;
                 stateDescription = "funding: with goal not reached yet";
             } else {
@@ -188,28 +218,28 @@ contract CrowdFunding {
         emit UpdateState(tokenSymbol, quantitySold, serverTime, fundingState, "pauseFunding");
     }
 
-    function checkResumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external view returns(bool[] memory boolArray){
+    function checkResumeFunding(uint _CFED, uint _maxTotalSupply, uint serverTime) external view returns(bool[] memory boolArray){
         boolArray = new bool[](5);
         boolArray[0] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
-        boolArray[1] = serverTime > CFSD2;
-        boolArray[2] = _CFED2 > CFSD2;
-        boolArray[3] = _CFED2 > serverTime;
+        boolArray[1] = serverTime > CFSD;
+        boolArray[2] = _CFED > CFSD;
+        boolArray[3] = _CFED > serverTime;
         boolArray[4] = _maxTotalSupply >= quantitySold;
     }
     // to resume crowdfunding and also reset the crowdfunding end day and maxTotalSupply values
-    event ResumeFunding(string indexed _tokenSymbol, uint _CFED2, uint _maxTotalSupply);
-    function resumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external onlyPlatformSupervisor {
+    event ResumeFunding(string indexed _tokenSymbol, uint _CFED, uint _maxTotalSupply);
+    function resumeFunding(uint _CFED, uint _maxTotalSupply, uint serverTime) external onlyPlatformSupervisor {
 
-        require(serverTime > CFSD2, "serverTime should be > CFSD2");
-        if(_CFED2 == 0 && _maxTotalSupply == 0) {
-            emit ResumeFunding(tokenSymbol, CFED2, maxTotalSupply);
+        require(serverTime > CFSD, "serverTime should be > CFSD");
+        if(_CFED == 0 && _maxTotalSupply == 0) {
+            emit ResumeFunding(tokenSymbol, CFED, maxTotalSupply);
         } else {
-            require(_CFED2 > CFSD2, "_CFED2 should be greater than CDSD2");
-            require(_CFED2 > serverTime, "_CFED2 should be greater than serverTime");
+            require(_CFED > CFSD, "_CFED should be greater than CDSD2");
+            require(_CFED > serverTime, "_CFED should be greater than serverTime");
             require(_maxTotalSupply >= quantitySold, "_maxTotalSupply should be greater than quantitySold");
-            CFED2 = _CFED2;
+            CFED = _CFED;
             maxTotalSupply = _maxTotalSupply;
-            emit ResumeFunding(tokenSymbol, _CFED2, _maxTotalSupply);
+            emit ResumeFunding(tokenSymbol, _CFED, _maxTotalSupply);
         }
         updateState(serverTime);
     }
@@ -240,10 +270,10 @@ contract CrowdFunding {
 
     function checkInvestFunction(address _addrAssetbook, uint _quantityToInvest, uint serverTime) external view returns(
       bool[] memory boolArray) {
-        boolArray = new bool[](8);
+        boolArray = new bool[](9);
 
-        boolArray[0] = serverTime >= CFSD2;
-        boolArray[1] = serverTime < CFED2;
+        boolArray[0] = serverTime >= CFSD;
+        boolArray[1] = serverTime < CFED;
         boolArray[2] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
         boolArray[3] = _addrAssetbook.isContract();
         boolArray[4] = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
@@ -252,6 +282,9 @@ contract CrowdFunding {
         boolArray[5] = _quantityToInvest > 0;
         boolArray[6] = quantitySold.add(_quantityToInvest) <= maxTotalSupply;
         boolArray[7] = serverTime > TimeOfDeployment;
+        boolArray[8] = fundingState == FundingState.initial ||
+            fundingState == FundingState.funding ||
+            fundingState == FundingState.fundingGoalReached;
 
         //uint balance = AssetTokenITF_CF(addrHCAT721).balanceOf(_addrAssetbook);//addrHCAT721 does not exist yet...
         //return RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
@@ -265,7 +298,7 @@ contract CrowdFunding {
         bool[2] result = RegistryITF_CF(addrRegistry).isFundingApproved(_addrAssetbook, _quantityToInvest.mul(initialAssetPricing), balance.mul(initialAssetPricing), fundingType);
         require(result[0] && result[1], "[Legal Compliance failed] @ Registry:isFundingApproved() failed");
         */
-        if(serverTime >= CFSD2 && fundingState == FundingState.initial){
+        if(serverTime >= CFSD && fundingState == FundingState.initial){
             fundingState = FundingState.funding;
         }
         require(

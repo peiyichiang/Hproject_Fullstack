@@ -103,19 +103,31 @@
                  </div>
         </div>
         <div class="form-row">
-                <!-- <div class="form-group col-md-4">
-                <label for="p_FAY">預估平均年收益</th></label>
-                <input type="text" class="form-control" name="p_FAY" id="p_FAY" placeholder="ex:4.8" value="<%=data[0].p_FAY %>">
+                <div class="form-group col-md-4">
+                  <label for="p_isNewCase">舊案/新案</label>
+                    <br>
+                    <%if (data[0].p_isNewCase =="1") { %>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1" checked>舊案
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2">新案
+                      </label>
+                    <% } %>
+                    <%if (data[0].p_isNewCase =="2") { %>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1">舊案
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2" checked>新案
+                      </label>
+                    <% } %>
                 </div>
                 <div class="form-group col-md-4">
-                    <label for="p_FTRT">預估回收金額</label>
-                    <input type="text" class="form-control" name="p_FTRT" id="p_FTRT" placeholder="ex:15,327" value="<%=data[0].p_FTRT %>">
-                </div> -->
-                <div class="form-group col-md-6">
                     <label for="p_RPT">收益總期數</label>
                     <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:80" value="<%=data[0].p_RPT %>">
                 </div>
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-4">
                   <label for="p_FRP">預估回收年限(年數/月數)</label>
                   <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:20/10" value="<%=data[0].p_FRP %>">
                   </div>
@@ -178,10 +190,36 @@
                       <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_PVOnGridDate %>">
                  </div>
         </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+              <label for="p_ContractOut">工程發包日期</label>
+              <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_ContractOut %>">
+          </div>
+          <div class="form-group col-md-4">
+            <label for="p_CaseConstruction">案場建置完成日期</label>
+            <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_CaseConstruction %>">
+          </div>
+          <div class="form-group col-md-4">
+                <label for="p_ElectricityBilling">電費計費開始日期</label>
+                <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_ElectricityBilling %>">
+           </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-12">
+            <label for="p_Copywriting">產品文案</label>
+            <br>
+            <!-- <input type="text" class="form-control" name="p_Copywriting" id="p_Copywriting"> -->
+            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;" maxlength="50"><%=data[0].p_Copywriting %></textarea>
+          </div>
+        </div>
         <div class="form-row" hidden>
                 <div class="form-group col-md-4">
-                <label for="p_assetdocs">購售電合約</label>
-                <input type="text" class="form-control" name="p_assetdocs" id="p_assetdocs" value="<%=data[0].p_assetdocs %>" readonly>
+                  <label for="p_assetdocs">購售電合約</label>
+                  <input type="text" class="form-control" name="p_assetdocs" id="p_assetdocs" value="<%=data[0].p_assetdocs %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="p_assetdocs">購售電合約Hash</label>
+                  <input type="text" class="form-control" name="p_assetdocsHash" id="p_assetdocsHash">
                 </div>
                 <div class="form-group col-md-4">
                     <label for="p_icon">產品icon</label>
@@ -248,22 +286,21 @@
                             <label for="file">購售電合約</label>
                             <input type="file" class="form-control" name="file" id="file">
                             <%if (data[0].p_assetdocs != null && data[0].p_assetdocs != "") { %>
-                                <!-- <a target="_blank" href="http://127.0.0.1:3000/<%= data[0].p_assetdocs.replace('public','')  %>" style="font-size: 24px;">doc</a> -->
-                                <iframe src="http://127.0.0.1:3030/<%= data[0].p_assetdocs.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_assetdocs.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
                             <% } %>
                     </div>
                     <div class="form-group col-md-4">
                             <label for="icon">產品icon</label>
                             <input type="file" class="form-control" name="icon" id="icon">
                             <%if (data[0].p_icon != null && data[0].p_icon != "") { %>
-                                <img src="http://127.0.0.1:3030/<%= data[0].p_icon.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                                <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_icon.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                             <% } %>
                     </div>
                     <div class="form-group col-md-4">
                       <label for="csvFIle">CSV文件</label>
                       <input type="file" class="form-control" name="csvFIle" id="csvFIle">
                       <%if (data[0].p_csvFIle != null && data[0].p_csvFIle != "") { %>
-                          <a href="http://127.0.0.1:3030/<%= data[0].p_csvFIle.replace('public','')  %>">CSV File</a>
+                          <a href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_csvFIle.replace('public','')  %>">CSV File</a>
                       <% } %>
                     </div>
             </div>
@@ -272,21 +309,21 @@
                 <label for="image1">案場圖片1</label>
                 <input type="file" class="form-control" name="image1" id="image1">
                 <%if (data[0].p_Image1 != null && data[0].p_Image1 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image1.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image1.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
               <div class="form-group col-md-4">
                 <label for="image2">案場圖片2</label>
                 <input type="file" class="form-control" name="image2" id="image2">
                 <%if (data[0].p_Image2 != null && data[0].p_Image2 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image2.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image2.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
               <div class="form-group col-md-4">
                 <label for="image3">案場圖片3</label>
                 <input type="file" class="form-control" name="image3" id="image3">
                 <%if (data[0].p_Image3 != null && data[0].p_Image3 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image3.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image3.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
             </div>
@@ -295,21 +332,21 @@
                 <label for="image4">案場圖片4</label>
                 <input type="file" class="form-control" name="image4" id="image4">
                 <%if (data[0].p_Image4 != null && data[0].p_Image4 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image4.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image4.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
               <div class="form-group col-md-4">
                 <label for="image5">案場圖片5</label>
                 <input type="file" class="form-control" name="image5" id="image5">
                 <%if (data[0].p_Image5 != null && data[0].p_Image5 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image5.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image5.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
               <div class="form-group col-md-4">
                 <label for="image6">案場圖片6</label>
                 <input type="file" class="form-control" name="image6" id="image6">
                 <%if (data[0].p_Image6 != null && data[0].p_Image6 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image6.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image6.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
             </div>
@@ -318,21 +355,21 @@
                 <label for="image7">案場圖片7</label>
                 <input type="file" class="form-control" name="image7" id="image7">
                 <%if (data[0].p_Image7 != null && data[0].p_Image7 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image7.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image7.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
               <div class="form-group col-md-4">
                 <label for="image8">案場圖片8</label>
                 <input type="file" class="form-control" name="image8" id="image8">
                 <%if (data[0].p_Image8 != null && data[0].p_Image8 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image8.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image8.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
               <div class="form-group col-md-4">
                 <label for="image9">案場圖片9</label>
                 <input type="file" class="form-control" name="image9" id="image9">
                 <%if (data[0].p_Image9 != null && data[0].p_Image9 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image9.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image9.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
             </div>
@@ -341,7 +378,7 @@
                 <label for="image10">案場圖片10</label>
                 <input type="file" class="form-control" name="image10" id="image10">
                 <%if (data[0].p_Image10 != null && data[0].p_Image10 != "") { %>
-                    <img src="http://127.0.0.1:3030/<%= data[0].p_Image10.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image10.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
                 <% } %>
               </div>
             </div>
@@ -354,6 +391,7 @@
 <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="/js/web3.js"></script>
 <script src="/js/EditProductByFMN.js"></script>
 </body>
 </html>

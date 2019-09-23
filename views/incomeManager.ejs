@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+  <link rel="stylesheet" href="/css/ContractExplorer.css">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <title>HeliumCryptic Smart Contract Explorer</title>
+</head>
+
+<body>
+  <div class="container" style="max-width: inherit; margin: 15px;">
+    <h2>HeliumCryptic Smart Contract Explorer</h2>
+
+    <div class="alert alert-warning alert-dismissible collapse"  id="alertInputs" role="alert">
+      <button type="button" class="close" data-dismiss="alert">x</button>
+      <strong>Success! </strong> Product have added to your wishlist.
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <h5><%= contractType %> Contract:</h5>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="">Symbol</span>
+            </div>
+            <input type="text" class="form-control" placeholder="token symbol" aria-label="tokenSymbol" id="tokenSymbol" aria-describedby="tokenSymbol">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="">Contract</span>
+            </div>
+            <input type="text" class="form-control" placeholder="token contract addr" aria-label="ctrtAddr" id="ctrtAddr" aria-describedby="ctrtAddr"
+            value=''>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="">scheduleIndex</span>
+            </div>
+            <input type="text" class="form-control" placeholder="scheduleIndex" aria-label="scheduleIndex" id="scheduleIndex" aria-describedby="scheduleIndex">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">schedule Date Time</span>
+          </div>
+          <input type="text" class="form-control" placeholder="schDateTime" aria-label="schDateTime" id="schDateTime" aria-describedby="schDateTime">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Start Index</span>
+          </div>
+          <input type="text" class="form-control" placeholder="Start Index" aria-label="startIndex" id="startIndex" aria-describedby="startIndex">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">Amount</span>
+          </div>
+          <input type="text" class="form-control" placeholder="Amount" aria-label="amount" id="amount" aria-describedby="amount">
+        </div>
+
+
+        <div class="btn-toolbar button-wrapper" role="toolbar" aria-label="Toolbar with button groups">
+          <button type="button" id="getContractDetails" class="btn btn-primary">Get Income Manager Contract Details</button>
+
+          <button type="button" id="dateToIdx" class="btn btn-primary">dateToIdx</button>
+          <button type="button" id="idxToSchedule" class="btn btn-primary">idxToSchedule</button>
+          <button type="button" id="getIncomeSchedule" class="btn btn-primary">getIncomeSchedule</button>
+          <button type="button" id="getIncomeScheduleList" class="btn btn-primary">getIncomeScheduleList</button>
+
+        </div>
+
+      </div>
+
+      <div class="col">
+        <h5>Result</h5>
+        <a href="crowdfunding" >Crowdfunding</a> | 
+        <a href="tokenController" >tokenController</a> |
+        <a href="TokenHCAT" >TokenHCAT</a> |
+        <a href="IncomeManager" >IncomeManager</a> |
+        <a href="Assetbook" >Assetbook</a> |
+        <a href="Registry" >Registry</a> |
+        <a href="Helium" >Helium</a> |
+        <a href="Settlement" >Settlement</a>
+        
+        <br>
+        schCindex: <span id="schCindex"></span><br>
+        TimeOfDeployment: <span id="TimeOfDeployment"></span><br>
+        paymentCount: <span id="paymentCount"></span><br>
+
+        <br>
+        <h5>dateToIdx:</h5>
+        schDateTime: <span id="schDateTimeM"></span><br>
+        dateToIdx: <span id="dateToIdxM"></span><br>
+        <br>
+        <h5>idxToSchedule:</h5>
+        scheduleIndex: <span id="scheduleIndexM"></span><br>
+        actualPaymentAmount: <span id="actualPaymentAmountM"></span><br>
+        actualPaymentTime: <span id="actualPaymentTimeM"></span><br>
+        errorCode: <span id="errorCodeM"></span><br>
+        forecastedPayableAmount: <span id="forecastedPayableAmountM"></span><br>
+        forecastedPayableTime: <span id="forecastedPayableTimeM"></span><br>
+        isErrorResolved: <span id="isErrorResolvedM"></span><br>
+        
+        <br>
+        <h5>Asset</h5>
+        Asset: <span id="idToAssetM"></span><br>
+
+      </div>
+    </div>
+  </div>
+  <!-- Optional JavaScript
+    /*
+    schCindex, TimeOfDeployment, paymentCount
+    dateToIdx(index), idxToSchedule(index)
+    getSchIndex(schDateTime)
+    getIncomeSchedule(schIndex)
+    getIncomeScheduleList(schIndex, amount)
+
+    checkAddForecastedScheduleBatch1(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
+    checkAddForecastedScheduleBatch2(uint[] forecastedPayableTimes)
+    checkAddForecastedScheduleBatch(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
+    checkEditActualSchedule(schIndex)
+    */
+  -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <!--
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+  <script>
+    // http://localhost:3030/ContractExplorer/incomeManagerCtrt
+
+    const isGivingDefaultValue = 0;
+    const ctrtAddrRGT = '';
+    const ctrtAddrCFC = '';
+    const ctrtAddrTTC = '';
+    const ctrtAddrHCAT = '';
+    const ctrtAddrIMC = '';
+    const email1 = '';
+    const assetbookAddr1 = '';
+    const identityNumber1 = '';
+    const operator1 = '';
+
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
+
+    const BcApiBase = "<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/Contracts/' %>";
+    //const BcApiBase = 'http://${SERVER_HOST}:${SERVER_PORT}/Contracts/';
+    const contractType = 'incomeManagerCtrt';
+    console.log('BcApiBase:', BcApiBase, ', contractType:', contractType);
+
+    const isEmpty = value => 
+      value === undefined ||
+      value === null ||
+      (typeof value === 'object' && Object.keys(value).length === 0) ||
+      (typeof value === 'string' && value.trim().length === 0) || (typeof value === 'number' && value < 1);
+
+    const getHeliumCtrtAddr = async() => {
+      console.log(`inside getHeliumCtrtAddr()...`);
+      const url = BcApiBase+`heliumContract`;
+      const response = await fetch(url);
+      const text = await response.text();
+      return text;
+    }
+    
+    const showMessage = (messageTxt) => {
+      let mesgFinal = '';
+      if(messageTxt !== undefined && messageTxt.length > 0) {
+        if(messageTxt.substring(0,2) === ', ') {
+          console.log('>> removing first two char');
+          mesgFinal = messageTxt.slice(2);
+        } else {
+          mesgFinal = messageTxt;
+          console.log('>> not removing first two char');
+        }
+        console.log('mesgFinal:', mesgFinal);
+
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").removeClass('d-none');
+      } else {
+        document.getElementById("mesg").innerText = mesgFinal;
+        $("#mesg").addClass('d-none');
+      }
+      document.getElementById("errorMessageM").innerText = mesgFinal;
+      
+    }
+
+    const checkInputs = async(funcName) => {
+      console.log(`inside checkInputs()...`);
+      let tokenSymbol_input, ctrtAddr_input, scheduleIndex_input, schDateTime_input, amount_input, mesg, isGood, isGoodSch, resultMesg = '', tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount;
+
+      tokenSymbol_input = document.getElementById("tokenSymbol").value;
+
+      ctrtAddr_input = document.getElementById("ctrtAddr").value;
+      scheduleIndex_input = document.getElementById("scheduleIndex").value;
+      schDateTime_input = document.getElementById("schDateTime").value;
+      amount_input = document.getElementById("amount").value;
+      
+      const is_tokenSymbol_empty = isEmpty(tokenSymbol_input);
+      const is_ctrtAddr_empty = isEmpty(ctrtAddr_input);
+      const is_scheduleIndex_empty = isEmpty(scheduleIndex_input);
+      const is_schDateTime_empty = isEmpty(schDateTime_input);
+      const is_amount_empty = isEmpty(amount_input);
+
+      console.log(`tokenSymbol_input: ${tokenSymbol_input}, \nctrtAddr_input: ${ctrtAddr_input}, \nscheduleIndex_input: ${scheduleIndex_input}, \nschDateTime_input: ${schDateTime_input}, \namount_input: ${amount_input}`);
+    /*scheduleIndex     schDateTime
+    dateToIdx(schDateTime), idxToSchedule(scheduleIndex)
+    getSchIndex(schDateTime)
+    getIncomeSchedule(scheduleIndex)
+    getIncomeScheduleList(scheduleIndex, amount)
+    */
+
+      if(!is_tokenSymbol_empty){
+        if(tokenSymbol_input.length === 8){
+          const url = BcApiBase+`getCtrtAddrFromTokenSymbol`;
+          console.log('about to find contract address ... url:',url);
+          const data = {tokenSymbol: tokenSymbol_input, ctrtType: 'incomemanager'};
+          const options = {
+            method: 'POST', // or 'PUT'
+            body: JSON.stringify(data), // data can be `string` or {object}!
+            headers:{'Content-Type': 'application/json'}
+          };
+          const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
+          const json = await response.json();
+          console.log('json', json);
+          isGood = json.isGoodAssetbook;
+          ctrtAddr = json.ctrtAddr;
+          resultMesg = json.resultMesg;
+
+          console.log(`isGood: ${isGood}, ctrtAddr: ${ctrtAddr}, \nresultMesg: ${resultMesg}`);
+
+        } else {
+          mesg = 'tokenSymbol should have length of 8';
+        }
+
+      } else if(!is_ctrtAddr_empty){
+        if(ctrtAddr_input.length !== 42){
+          mesg = 'HCAT Token contract address should have length of 42';
+        } else if(ctrtAddr_input.substring(0, 2) !== '0x'){
+          mesg = 'HCAT Token contract address should start with 0x';
+        } else {
+          isGood = true;
+          ctrtAddr = ctrtAddr_input;
+        }
+      } else {
+        mesg = 'At least tokenSymbol or ctrtAddr should be valid';
+        console.warn(mesg);
+
+        if(isGivingDefaultValue) {
+          ctrtAddr = '0xCb5B388E9f4f7028547797a4C0C1844f9e04Cecd';
+          mesg = 'Token symbol and Token contract values are empty. Using default value: ctrtAddr = '+ctrtAddr;
+          isGood = true;
+        } else {
+          mesg = 'Token symbol and Token contract values are empty';
+        }
+      }
+      console.log(`234----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
+
+      if(!isGood){
+        console.warn(mesg+', resultMesg: '+resultMesg);
+        showMessage(mesg+', resultMesg: '+resultMesg);
+        return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
+      }
+
+      console.log(`-------------==`);
+      const scheduleIndex_input_num = parseInt(scheduleIndex_input);
+      const schDateTime_input_num = parseInt(schDateTime_input);
+      const amount_input_num = parseInt(amount_input);
+      console.log('scheduleIndex_input_num:', scheduleIndex_input_num, ', schDateTime_input_num:', schDateTime_input_num, ', amount_input_num:', amount_input_num );
+
+      if(!is_scheduleIndex_empty){
+        if(isNaN(scheduleIndex_input_num) || scheduleIndex_input_num < 1 || scheduleIndex_input_num >300){
+          mesg = 'scheduleIndex should not be out of range of 1 ~ 300';
+        } else {
+          isGoodSch = true;
+          scheduleIndex = scheduleIndex_input_num;
+        }
+
+      } else if(!is_schDateTime_empty){
+        if( isNaN(schDateTime_input_num) || schDateTime_input_num < 201909020900 || schDateTime_input_num > 204909020900){
+          mesg = 'schDateTime should not be out of range';
+        } else {
+          isGoodSch = true;
+          schDateTime = schDateTime_input_num;
+        }
+      } else {
+        mesg = 'At least scheduleIndex or schDateTime should be valid';
+        console.warn(mesg);
+
+        if(isGivingDefaultValue) {
+          scheduleIndex = 1;
+          mesg = 'scheduleIndex and schDateTime values are empty. Using default value: scheduleIndex = '+scheduleIndex;
+          isGoodSch = true;
+        } else {
+          mesg = 'scheduleIndex and schDateTime values are empty';
+        }
+      }
+      console.log(`277----==isGoodSch: ${isGoodSch}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}`);
+      if(!isGoodSch){
+        console.warn(mesg+', resultMesg: '+resultMesg);
+        showMessage(mesg+', resultMesg: '+resultMesg);
+        return [isGoodSch, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, undefined];
+      }
+
+      console.log(`-------------==check2`);
+        // || funcName === 'getIncomeSchedule' || funcName === 'getIncomeScheduleList'
+      if(funcName === 'idxToSchedule'){ 
+        if(is_scheduleIndex_empty){
+          scheduleIndex = 1;
+          mesg = 'scheduleIndex is found empty. Using default value: '+ scheduleIndex;
+        } else {
+          scheduleIndex = scheduleIndex_input;
+        }
+      }
+
+      if(funcName === 'dateToIdx' || funcName === 'getSchIndex'){
+        if(is_schDateTime_empty){
+          schDateTime = 201908171200;
+          mesg = 'schDateTime is found empty. Using default value: '+ schDateTime;
+        } else {
+          schDateTime = schDateTime_input;
+        }
+      } 
+
+      console.log('amount_input_num', amount_input_num, ', is_amount_empty:', is_amount_empty);
+      let isGoodAmount;
+      if(funcName === 'getIncomeScheduleList'){
+        if(is_amount_empty){
+          amount = 1;
+          mesg = 'amount is found empty. Using default value: '+ amount;
+          isGood = true;
+          isGoodAmount = true;
+        } else if(isNaN(amount_input_num) || amount_input_num < 1 || amount_input_num >300){
+            mesg = 'amount should not be out of range of 1 ~ 300';
+        } else {
+          isGood = true;
+          isGoodAmount = true;
+          amount = amount_input_num;
+        }
+      }
+      if(!isGoodAmount){
+        return [isGoodAmount, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, amount_input_num];
+      }
+      console.log(`-------------==`);
+      console.warn(mesg);
+      showMessage(mesg);
+
+      console.log(`-------------==check3 \nisGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}, scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, amount: ${amount}`);
+      return [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount];
+    }
+    /*scheduleIndex     schDateTime
+    dateToIdx(schDateTime), idxToSchedule(scheduleIndex)
+    getSchIndex(schDateTime)
+    getIncomeSchedule(scheduleIndex)
+    getIncomeScheduleList(scheduleIndex, amount)
+    */
+
+    $('#getContractDetails').on('click',  async function (e) {
+      console.log('inside getContractDetails function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getContractDetails');
+      if(!isGood || isEmpty(ctrtAddr)) return;
+
+      const url = BcApiBase+`incomeManagerCtrt/getContractDetails/${ctrtAddr}`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/getContractDetails/ctrt
+      const response = await fetch(url);
+      const json = await response.json();
+      console.log('after calling API');
+      const schCindex = json['schCindex'];
+      const TimeOfDeployment = json['TimeOfDeployment'];
+      const paymentCount = json['paymentCount'];
+
+      document.getElementById("paymentCount").innerText = paymentCount;
+      document.getElementById("TimeOfDeployment").innerText = TimeOfDeployment;
+      document.getElementById("schCindex").innerText = schCindex;
+      //location.reload();
+    });
+
+
+    $('#dateToIdx').on('click',  async function (e) {
+      console.log('inside dateToIdx function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('dateToIdx');
+      console.log(`scheduleIndex: ${scheduleIndex}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`incomeManagerCtrt/dateToIdx`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/dateToIdx/
+      const data = {ctrtAddr, scheduleIndex, schDateTime };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      document.getElementById("dateToIdxM").innerText = jsonObj['dateToIdx'];
+      document.getElementById("schDateTimeM").innerText = schDateTime;
+    });
+    /*
+    getSchIndex(schDateTime)
+    getIncomeSchedule(schIndex)
+    getIncomeScheduleList(schIndex, amount)
+
+    checkAddForecastedScheduleBatch1(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
+    checkAddForecastedScheduleBatch2(uint[] forecastedPayableTimes)
+    checkAddForecastedScheduleBatch(uint[] forecastedPayableTimes, uint[] forecastedPayableAmounts)
+    checkEditActualSchedule(schIndex)
+    */
+    const showScheduleDetails = async(response, funcName, scheduleIndex) => {
+      const jsonObj = await response.json();
+      console.log('jsonObj', jsonObj);
+      const sch = jsonObj[funcName];
+      const actualPaymentAmount = sch['actualPaymentAmount'];
+      const actualPaymentTime = sch['actualPaymentTime'];
+      const errorCode = sch['errorCode'];
+      const forecastedPayableAmount = sch['forecastedPayableAmount'];
+      const forecastedPayableTime = sch['forecastedPayableTime'];
+      const isErrorResolved = sch['isErrorResolved'];
+      console.log(`actualPaymentAmount: ${actualPaymentAmount}, actualPaymentTime: ${actualPaymentTime}, errorCode: ${errorCode}, forecastedPayableAmount: ${forecastedPayableAmount}, forecastedPayableTime: ${forecastedPayableTime}, isErrorResolved: ${isErrorResolved}`);
+      document.getElementById("actualPaymentAmountM").innerText = actualPaymentAmount;
+      document.getElementById("actualPaymentTimeM").innerText = actualPaymentTime;
+      document.getElementById("errorCodeM").innerText = errorCode;
+      document.getElementById("forecastedPayableAmountM").innerText = forecastedPayableAmount;
+      document.getElementById("forecastedPayableTimeM").innerText = forecastedPayableTime;
+      document.getElementById("isErrorResolvedM").innerText = isErrorResolved;
+      document.getElementById("scheduleIndexM").innerText = scheduleIndex;
+    }
+    $('#idxToSchedule').on('click',  async function (e) {
+      console.log('inside idxToSchedule function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('idxToSchedule');
+      console.log(`scheduleIndex: ${scheduleIndex}, ctrtAddr: ${ctrtAddr}`);
+      if(!isGood) return;
+
+      const url = BcApiBase+`incomeManagerCtrt/idxToSchedule`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/idxToSchedule/
+      const data = {ctrtAddr, scheduleIndex, schDateTime };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      showScheduleDetails(response, 'idxToSchedule', scheduleIndex);
+    });
+
+    $('#getIncomeSchedule').on('click',  async function (e) {
+      console.log('inside getIncomeSchedule function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getIncomeSchedule');
+      console.log(`scheduleIndex: ${scheduleIndex}, schDateTime: ${schDateTime}, ctrtAddr: ${ctrtAddr}`);
+      const is_scheduleIndex_empty = isEmpty(scheduleIndex);
+      if(!isGood || (is_scheduleIndex_empty && isEmpty(schDateTime))) {
+        console.warn('isGood is false or inputs are empty!');
+        return false;
+      }
+      let input;
+      if(is_scheduleIndex_empty){
+        input = schDateTime;
+      } else {
+        input = scheduleIndex;
+      }
+      const url = BcApiBase+`incomeManagerCtrt/getIncomeSchedule`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/getIncomeSchedule/
+      const data = {ctrtAddr, input };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      showScheduleDetails(response, 'getIncomeSchedule', scheduleIndex);
+    });
+
+    $('#getIncomeScheduleList').on('click',  async function (e) {
+      console.log('inside getIncomeScheduleList function... \ne.target:', e.target);
+      const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getIncomeScheduleList');
+      console.log(`isGood: ${isGood}, scheduleIndex: ${scheduleIndex} ${typeof scheduleIndex}, schDateTime: ${schDateTime}, ctrtAddr: ${ctrtAddr}, amount: ${amount} ${typeof amount}`);
+      const is_scheduleIndex_empty = isEmpty(scheduleIndex);
+      if(!isGood || (is_scheduleIndex_empty && isEmpty(schDateTime)) || isEmpty(amount)) {
+        console.warn('isGood is false or inputs are empty!');
+        return false;
+      }
+      let input;
+      if(is_scheduleIndex_empty){
+        input = schDateTime;
+      } else {
+        input = scheduleIndex;
+      }
+      const url = BcApiBase+`incomeManagerCtrt/getIncomeScheduleList`;
+      // http://localhost:3030/Contracts/incomeManagerCtrt/getIncomeScheduleList/
+      const data = {ctrtAddr, input, amount };
+      const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+      };
+      const response = await fetch(url, options).catch(error => console.error('Error:', error));
+      
+    });
+
+  </script>
+
+</body>
+
+</html>
+<!--
+  http://localhost:3030/ContractExplorer/incomeManagerCtrt
+
+-->

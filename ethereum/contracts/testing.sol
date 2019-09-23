@@ -139,6 +139,72 @@ contract ERC721Testing {
     }
 }
 
+contract ExtractTokenId {
+    using SafeMath for uint256;
+    uint public count;
+    address public owner;
+    mapping(uint => Asset) public idToAsset;//NFT ID to token assets
+    struct Asset {
+        address owner;
+    }
+
+    mapping(address => Account) internal accounts;//accounts[user]
+    struct Account {
+        uint idxStart;
+        uint idxEnd;
+        mapping (uint => uint) indexToId;
+        //account index to _tokenId: accounts[user].indexToId[index] //For First In First Out(FIFO) transfer rule
+        mapping (address => uint) allowed;
+        //each operator has given quota to send certain account's N amount of tokens
+    }
+
+    constructor() public {
+        owner = msg.sender;
+        accounts[owner].idxStart = 2;
+        accounts[owner].idxEnd = 7;
+
+        accounts[owner].indexToId[2] = 21;
+        accounts[owner].indexToId[3] = 53;
+        accounts[owner].indexToId[4] = 70;
+        accounts[owner].indexToId[5] = 14;
+        accounts[owner].indexToId[6] = 37;
+        accounts[owner].indexToId[7] = 42;
+    }
+
+
+    function sendTokenById(address from, address _to, uint tokenId) public {
+        //accounts[from].indexToId[index]
+        //array1[idx] => accounts[from].indexToId[idx]
+        uint idxEndF = accounts[from].idxEnd;
+        uint idxStartF = accounts[from].idxStart;
+
+        if(tokenId == accounts[from].indexToId[idxStartF]){
+          delete accounts[from].indexToId[idxStartF];
+          idxStartF = idxStartF.add(1);
+
+        } else if(tokenId == accounts[from].indexToId[idxEndF]) {
+          delete accounts[from].indexToId[idxEndF];
+          idxEndF = idxEndF.sub(1);
+
+        } else {
+            for(uint idx = idxStartF.add(1); idx < idxEndF; idx = idx.add(1)) {
+                if(accounts[from].indexToId[idx] == tokenId){
+                  accounts[from].indexToId[idx] = accounts[from].indexToId[idxEndF];
+                  delete accounts[from].indexToId[idxEndF];
+                  idxEndF = idxEndF.sub(1);
+                }
+            }
+        }
+
+        idToAsset[tokenId].owner = _to;
+
+        uint idxEndT = accounts[_to].idxEnd;
+        //uint idxStartT = accounts[_to].idxStart;
+        accounts[_to].idxEnd = idxEndT.add(1);
+        accounts[_to].indexToId[idxEndT.add(1)] = tokenId;
+    }
+
+}
 
 contract CrowdFundingTesting {
     using SafeMath for uint256;

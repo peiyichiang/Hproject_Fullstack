@@ -19,16 +19,18 @@ contract IncomeManagerCtrt {
     mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
     
     // cash flow: FMX -> platform -> investors
-    // records of parameters stored in each schedule
+    // forecasted: rough estimate, given when csv is uploaded by FM
+    // actual: actual here does not mean actual, but it means accurate estimated information
     struct Schedule {
-        uint forecastedPayableTime;//the date to send income, used as mapping key
-        uint forecastedPayableAmount;//given by FMXA, sending income from platform to investors
-        uint actualPaymentTime;//the date when the platform actually sent payment
-        uint actualPaymentAmount;//the amount the platform paid the asset owner
-        bool isApproved;//by ProductSupervisor
+        uint forecastedPayableTime;//used as mapping key
+        uint forecastedPayableAmount;
+        uint actualPaymentTime;
+        uint actualPaymentAmount;
         uint8 errorCode;//0 to 255
         bool isErrorResolved;//default = true
+        //bool isPaid;
     }
+    uint public paymentCount;
 
     // "0xca35b7d915458ef540ade6068dfe2f44e8fa733c", "0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", 201902191745
     constructor(address _tokenCtrt, address _addrHelium, uint _TimeOfDeployment) public {
@@ -43,13 +45,12 @@ contract IncomeManagerCtrt {
         boolArray[0] = _tokenCtrt.isContract();
         boolArray[1] = _addrHelium.isContract();
         boolArray[2] = _TimeOfDeployment > 201905281400;
-
     }
 
-    function checkPlatformSupervisor() external view returns (bool){
+    function checkPlatformSupervisorFromIMC() external view returns (bool){
         return (HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender));
     }
-    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
+    function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor {
         addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor(){
@@ -57,14 +58,27 @@ contract IncomeManagerCtrt {
         _;
     }
 
-    //check if the inputTime has income schedule that is ready to be released
-    function isScheduleGoodForRelease(uint inputTime) external view returns (bool) {
-        Schedule memory icSch = idxToSchedule[dateToIdx[inputTime]];
-        return (icSch.isApproved && icSch.forecastedPayableTime > TimeOfDeployment && icSch.forecastedPayableAmount > 0 && icSch.actualPaymentTime == 0 && icSch.actualPaymentAmount == 0);
+    function getSchIndex(uint schDateTime) public view returns (uint rsIndex) {
+        require(schDateTime != 0, "schDateTime cannot be 0");
+        rsIndex = dateToIdx[schDateTime];
     }
 
-    event AddSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
-    function addSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
+    function addPaymentCount() external onlyPlatformSupervisor {
+        paymentCount = paymentCount.add(1);
+        if(paymentCount == 1){
+            require(idxToSchedule[paymentCount].actualPaymentTime > 0, "1st schedule actual payment time should exist");
+            require(idxToSchedule[paymentCount].actualPaymentAmount > 0, "1st schedule actual payment amount should exist");
+
+        } else {
+            require(idxToSchedule[paymentCount].actualPaymentTime > 0, "this schedule actual payment time should exist");
+            require(idxToSchedule[paymentCount].actualPaymentTime > idxToSchedule[paymentCount-1].actualPaymentTime, "this schedule actual payment time should be greater than last schedule actual payment time");
+        }
+        require(idxToSchedule[paymentCount].actualPaymentAmount > 0, "this schedule actual payment amount should exist");
+    }
+
+
+    event AddForecastedSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
+    function addForecastedSchedule(uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
         require(forecastedPayableTime > TimeOfDeployment, "forecastedPayableTime has to be in the format of yyyymmddhhmm");
         schCindex = schCindex.add(1);
         require(idxToSchedule[schCindex.sub(1)].forecastedPayableTime < forecastedPayableTime, "previous forecastedPayableTime should be < forecastedPayableTime[idx]");
@@ -72,16 +86,17 @@ contract IncomeManagerCtrt {
         idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTime;
         idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmount;
         dateToIdx[forecastedPayableTime] = schCindex;
-        emit AddSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
+        emit AddForecastedSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
     }
 
-    function checkAddScheduleBatch1(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool isLength, bool gtzero, bool isPS) {
+    function checkAddForecastedScheduleBatch1(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool isSameLength, bool isLengthGreaterThanZero, bool isPlatformSupervisor) {
         uint length = forecastedPayableTimes.length;
-        isLength = length == forecastedPayableAmounts.length;
-        gtzero = length > 0;
-        isPS = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
+        isSameLength = length == forecastedPayableAmounts.length;
+        isLengthGreaterThanZero = length > 0;
+        isPlatformSupervisor = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
     }
-    function checkAddScheduleBatch2(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray2) {
+
+    function checkAddForecastedScheduleBatch2(uint[] calldata forecastedPayableTimes) external view returns(bool[] memory boolArray2) {
         uint length = forecastedPayableTimes.length;
         boolArray2 = new bool[](length);
 
@@ -94,7 +109,7 @@ contract IncomeManagerCtrt {
             }
         }
     }
-    function checkAddScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray, bool[] memory boolArray2) {
+    function checkAddForecastedScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external view returns(bool[] memory boolArray, bool[] memory boolArray2) {
         uint length = forecastedPayableTimes.length;
         boolArray = new bool[](3);
         boolArray2 = new bool[](length);
@@ -113,7 +128,7 @@ contract IncomeManagerCtrt {
         }
     }
 
-    function addScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external onlyPlatformSupervisor {
+    function addForecastedScheduleBatch(uint[] calldata forecastedPayableTimes, uint[] calldata forecastedPayableAmounts) external onlyPlatformSupervisor {
         uint length = forecastedPayableTimes.length;
         require(length == forecastedPayableAmounts.length, "forecastedPayableTimes must be of the same size of forecastedPayableAmounts");
         require(length > 0, "input array length must > 0");
@@ -129,12 +144,12 @@ contract IncomeManagerCtrt {
             idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTimes[idx];
             idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmounts[idx];
             dateToIdx[forecastedPayableTimes[idx]] = schCindex;
-            emit AddSchedule(schCindex, forecastedPayableTimes[idx], forecastedPayableAmounts[idx]);
+            emit AddForecastedSchedule(schCindex, forecastedPayableTimes[idx], forecastedPayableAmounts[idx]);
         }
     }
 
-    function checkEditIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external view returns(bool[] memory boolArray) {
-        boolArray = new bool[](3);
+    function checkEditActualSchedule(uint _schIndex) external view returns(bool[] memory boolArray) {
+        boolArray = new bool[](1);
         uint schIndex;
         if(_schIndex > TimeOfDeployment){
             schIndex = getSchIndex(_schIndex);
@@ -142,33 +157,28 @@ contract IncomeManagerCtrt {
             schIndex = _schIndex;
         }
         boolArray[0] = HeliumITF_IM(addrHelium).checkPlatformSupervisor(msg.sender);
-        boolArray[1] = idxToSchedule[schIndex].actualPaymentTime == 0;
-        boolArray[2] = idxToSchedule[schIndex].actualPaymentAmount == 0;
     }
 
-    event EditIncomeSchedule(uint indexed schIndex, uint indexed forecastedPayableTime, uint forecastedPayableAmount);
-    function editIncomeSchedule(uint _schIndex, uint forecastedPayableTime, uint forecastedPayableAmount) external onlyPlatformSupervisor {
+    event EditActualSchedule(uint indexed schIndex, uint indexed actualPaymentTime, uint actualPaymentAmount);
+    function editActualSchedule(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount) external onlyPlatformSupervisor {
         uint schIndex;
         if(_schIndex > TimeOfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
         }
+        require(schIndex > 0, "schIndex should be > 0");
+        require(actualPaymentTime > 0, "actualPaymentTime should be > 0");
+        require(actualPaymentAmount > 0, "actualPaymentAmount should be > 0");
+        require(schIndex > paymentCount, "schIndex should be greater than paymentCount");
 
-        uint forecastedPayableTimeOld = idxToSchedule[schIndex].forecastedPayableTime;
-        delete dateToIdx[forecastedPayableTimeOld];
-        
-        require(idxToSchedule[schIndex].actualPaymentTime == 0 && idxToSchedule[schIndex].actualPaymentAmount == 0, "cannot edit already paid schedule");
-
-        idxToSchedule[schIndex].forecastedPayableTime = forecastedPayableTime;
-        idxToSchedule[schIndex].forecastedPayableAmount = forecastedPayableAmount;
-        idxToSchedule[schIndex].isApproved = false;
-
-        emit EditIncomeSchedule(schCindex, forecastedPayableTime, forecastedPayableAmount);
+        idxToSchedule[schIndex].actualPaymentTime = actualPaymentTime;
+        idxToSchedule[schIndex].actualPaymentAmount = actualPaymentAmount;
+        emit EditActualSchedule(schCindex, actualPaymentTime, actualPaymentAmount);
     }
 
 
-    function getIncomeSchedule(uint _schIndex) external view returns (uint forecastedPayableTime, uint forecastedPayableAmount, uint actualPaymentTime, uint actualPaymentAmount, bool isApproved, uint8 errorCode, bool isErrorResolved) {
+    function getIncomeSchedule(uint _schIndex) external view returns (uint forecastedPayableTime, uint forecastedPayableAmount, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode, bool isErrorResolved) {
         uint schIndex;
         if(_schIndex > TimeOfDeployment){
             schIndex = getSchIndex(_schIndex);
@@ -182,12 +192,12 @@ contract IncomeManagerCtrt {
         forecastedPayableAmount = icSch.forecastedPayableAmount;
         actualPaymentTime = icSch.actualPaymentTime;
         actualPaymentAmount = icSch.actualPaymentAmount;
-        isApproved = icSch.isApproved;
         errorCode = icSch.errorCode;
         isErrorResolved = icSch.isErrorResolved;
+        //isPaid = icSch.isPaid;
     }
 
-    function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, bool[] memory isApprovedArray, uint8[] memory errorCodes, bool[] memory isErrorResolveda) {
+    function getIncomeScheduleList(uint _schIndex, uint amount) external view returns (uint[] memory forecastedPayableTimes, uint[] memory forecastedPayableAmounts, uint[] memory actualPaymentTimes, uint[] memory actualPaymentAmounts, uint8[] memory errorCodes, bool[] memory isErrorResolvedList) {
 
         uint schIndex;
         if(_schIndex > TimeOfDeployment){
@@ -216,9 +226,8 @@ contract IncomeManagerCtrt {
         actualPaymentTimes = new uint[](amount_);
         actualPaymentAmounts = new uint[](amount_);
 
-        isApprovedArray = new bool[](amount_);
         errorCodes = new uint8[](amount_);
-        isErrorResolveda = new bool[](amount_);
+        isErrorResolvedList = new bool[](amount_);
 
         for(uint i = 0; i < amount_; i = i.add(1)){
             Schedule memory icSch = idxToSchedule[i.add(indexStart_)];
@@ -227,89 +236,48 @@ contract IncomeManagerCtrt {
             actualPaymentTimes[i] = icSch.actualPaymentTime;
             actualPaymentAmounts[i] = icSch.actualPaymentAmount;
 
-            isApprovedArray[i] = icSch.isApproved;
             errorCodes[i] = icSch.errorCode;
-            isErrorResolveda[i] = icSch.isErrorResolved;
+            isErrorResolvedList[i] = icSch.isErrorResolved;
         }
-
     }
+    /**
+        uint forecastedPayableTime;//used as mapping key
+        uint forecastedPayableAmount;
+        uint actualPaymentTime;
+        uint actualPaymentAmount;
+        uint8 errorCode;//0 to 255
+        bool isErrorResolved;//default = true
+        //bool isPaid;
+    */
 
-    function getSchIndex(uint schTime) public view returns (uint rsIndex) {
-        require(schTime != 0, "schTime cannot be 0");
-        rsIndex = dateToIdx[schTime];
-    }
-
-    function removeIncomeSchedule(uint _schIndex) external onlyPlatformSupervisor {
+    function setErrResolution(uint _schIndex, bool isErrorResolved, uint8 errorCode) external onlyPlatformSupervisor {
         uint schIndex;
         if(_schIndex > TimeOfDeployment){
             schIndex = getSchIndex(_schIndex);
         } else {
             schIndex = _schIndex;
         }
-        require(idxToSchedule[schIndex].actualPaymentTime == 0 || idxToSchedule[schIndex].actualPaymentAmount == 0, "Cannot remove already paid schedule!");
-        delete idxToSchedule[schIndex].forecastedPayableTime;
-        delete idxToSchedule[schIndex].forecastedPayableAmount;
-        delete idxToSchedule[schIndex].isApproved;
-        emit RemoveIncomeSchedule(schIndex);
+        idxToSchedule[schIndex].isErrorResolved = isErrorResolved;
+        idxToSchedule[schIndex].errorCode = errorCode;
     }
-    event RemoveIncomeSchedule(uint indexed schIndex);
-
-
-    /*設定isApproved */
-    function imApprove(uint _schIndex, bool boolValue) external onlyPlatformSupervisor {
-        uint schIndex;
-        if(_schIndex > TimeOfDeployment){
-            schIndex = getSchIndex(_schIndex);
-        } else {
-            schIndex = _schIndex;
-        }
-        idxToSchedule[schIndex].isApproved = boolValue;
-    }
-
-
-    /**設定 isIncomePaid，如果有錯誤發生，設定errorCode */
-    function setPaymentReleaseResults(uint _schIndex, uint actualPaymentTime, uint actualPaymentAmount, uint8 errorCode) external onlyPlatformSupervisor {
-
-        uint schIndex;
-        if(_schIndex > TimeOfDeployment){
-            schIndex = getSchIndex(_schIndex);
-        } else {
-            schIndex = _schIndex;
-        }
-
-        require(idxToSchedule[schIndex].isApproved, "such schedule must have been approved first");
-        idxToSchedule[schIndex].actualPaymentTime = actualPaymentTime;
-        idxToSchedule[schIndex].actualPaymentAmount = actualPaymentAmount;
-
-        if (errorCode != 0) {
-            idxToSchedule[schIndex].errorCode = errorCode;
-        }
-        emit SetPaymentReleaseResults(actualPaymentTime, actualPaymentAmount, errorCode);
-    }
-    event SetPaymentReleaseResults(uint indexed actualPaymentTime, uint actualPaymentAmount, uint8 errorCode);
-
-    /**設定isErrorResolved */
-    function setErrResolution(uint _schIndex, bool boolValue) external onlyPlatformSupervisor {
-        uint schIndex;
-        if(_schIndex > TimeOfDeployment){
-            schIndex = getSchIndex(_schIndex);
-        } else {
-            schIndex = _schIndex;
-        }
-        idxToSchedule[schIndex].isErrorResolved = boolValue;
-    }
-
     //function() external payable { revert("should not send any ether directly"); }
 
 }
-library AddressUtils {
-    function isContract(address _addr) internal view returns (bool) {
-        uint256 size;
-        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
-        return size > 0;
-    }
-}
-    // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] actualPaymentTimes, uint[] actualPaymentAmounts, bool[] isApprovedArray, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolveda) {
+    // function removeIncomeSchedule(uint _schIndex) external onlyPlatformSupervisor {
+    //     uint schIndex;
+    //     if(_schIndex > TimeOfDeployment){
+    //         schIndex = getSchIndex(_schIndex);
+    //     } else {
+    //         schIndex = _schIndex;
+    //     }
+    //     require(idxToSchedule[schIndex].actualPaymentTime == 0 || idxToSchedule[schIndex].actualPaymentAmount == 0, "Cannot remove already paid schedule!");
+    //     delete idxToSchedule[schIndex].forecastedPayableTime;
+    //     delete idxToSchedule[schIndex].forecastedPayableAmount;
+    //     emit RemoveIncomeSchedule(schIndex);
+    // }
+    // event RemoveIncomeSchedule(uint indexed schIndex);
+
+    // function getIncomeScheduleListSpecific(uint[] calldata indices) external view returns (uint[] actualPaymentTimes, uint[] actualPaymentAmounts, bool[] isIncomePaida, uint8[] errorCodes, bool[] isErrorResolvedList) {
 
     //     Schedule[] memory schedule;
     //     for(uint i = 0; i < indices.length; i = i.add(1)) {
@@ -320,3 +288,11 @@ library AddressUtils {
     //     }
     //     return schedule;
     // }
+    
+library AddressUtils {
+    function isContract(address _addr) internal view returns (bool) {
+        uint256 size;
+        assembly { size := extcodesize(_addr) } // solium-disable-line security/no-inline-assembly
+        return size > 0;
+    }
+}

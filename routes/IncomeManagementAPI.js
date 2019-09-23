@@ -7,6 +7,9 @@ function returnNumberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+/* sign with default (HMAC SHA256) */
+const jwt = require('jsonwebtoken')
+
 /* getIncomeHistoryBySymbol */
 router.get('/AssetHistoryListBySymbol', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
@@ -26,10 +29,13 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
 
     let queryString = `
     SELECT  ar_personal_income AS income, 
-			ar_User_Acquired_Cost AS acquiredCost,
+            ar_User_Acquired_Cost AS acquiredCost,
+            SUBSTRING(ar_Time, 1, 4) AS periodYear,
+            SUBSTRING(ar_Time, 5, 2) AS periodMonth,
+            SUBSTRING(ar_Time, 7, 2) AS periodDate,
             ia_Payable_Period_End AS payablePeriodEnd 
-    FROM    htoken.investor_assetRecord  AS T1
-    INNER JOIN htoken.income_arrangement AS T2
+    FROM    investor_assetRecord  AS T1
+    INNER JOIN income_arrangement AS T2
           ON T1.ar_Time = T2.ia_actualPaymentTime
           AND T1.ar_tokenSYMBOL = T2.ia_SYMBOL 
     WHERE ar_tokenSYMBOL = ? && ar_investorEmail = ?
@@ -40,6 +46,7 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
             let initArray = []
             initArray.push(incomeHistoryList[0])
 
+            /* 計算各期累積收益 */
             incomeHistoryList.reduce(
                 (array, nextElement) => {
                     const index = array.length - 1
@@ -50,11 +57,7 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
                     }
                     return array.concat(nextElement);
                 }, initArray)
-            incomeHistoryList.map(
-                incomeHistory => {
-                    incomeHistory.income = returnNumberWithCommas(incomeHistory.income)
-                    incomeHistory.acquiredCost = returnNumberWithCommas(incomeHistory.acquiredCost)
-                });
+
             res.status(200);
             res.json({
                 "message": "[Success] 資產歷史紀錄取得成功！",
@@ -70,12 +73,9 @@ router.get('/AssetHistoryListBySymbol', function (req, res, next) {
         })
 });
 
-/* getLatestAssetHistory(userEmailAddress)
- * return:[latestAssetHistory]
- */
-router.get('/LatestAssetHistory', async function (req, res, next) {
+router.get('/LatestAssetHistory', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
-    let userEmailAddress = req.query.userEmailAddress
+    const JWT = req.query.JWT;
     const query = (queryString, keys) => {
         return new Promise((resolve, reject) => {
             mysqlPoolQuery(
@@ -89,105 +89,108 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
         });
     };
 
-    let queryString1 = `
-    SELECT ar_tokenSYMBOL AS symbol,
-           ar_Holding_Amount_in_the_end_of_Period AS holdingAmount, 
-           ar_User_Acquired_Cost AS acquiredCostTotal,
-           ar_investorEmail AS ar_investorEmail,
-           ar_Time AS time,
-           ia_single_Actual_Income_Payment_in_the_Period AS incomeOfLatestPeriod,
-           ia_Payable_Period_End AS payablePeriodEnd,
-           p_name AS name,
-           p_Image1 AS imageURL,
-           payablePeriodTotal
-           
-    FROM (
-    SELECT ar_investorEmail AS userEmailAddress,
-           ar_tokenSYMBOL AS symbol,
-           MAX(ar_Time) AS time
-    FROM htoken.investor_assetRecord
-    GROUP BY userEmailAddress,
-             symbol
-    ) AS T1
-    
-    INNER JOIN htoken.investor_assetRecord AS T2
-    ON T1.userEmailAddress = T2.ar_investorEmail AND 
-       T1.symbol = T2.ar_tokenSYMBOL AND
-       T1.time = T2.ar_Time
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            let queryString1 = `
+            SELECT ar_tokenSYMBOL AS symbol,
+                ar_Holding_Amount_in_the_end_of_Period AS holdingAmount, 
+                ar_User_Acquired_Cost AS acquiredCostTotal,
+                ar_investorEmail AS ar_investorEmail,
+                ar_Time AS time,
+                ar_personal_income AS personalIncome,
+                ia_Payable_Period_End AS payablePeriodEnd,
+                p_name AS name,
+                p_Image1 AS imageURL,
+                p_icon AS iconURL,
+                payablePeriodTotal
+                
+            FROM (
+            SELECT ar_investorEmail AS userEmailAddress,
+                ar_tokenSYMBOL AS symbol,
+                MAX(ar_Time) AS time
+            FROM investor_assetRecord
+            GROUP BY userEmailAddress,
+                    symbol
+            ) AS T1
+            
+            INNER JOIN investor_assetRecord AS T2
+            ON T1.userEmailAddress = T2.ar_investorEmail AND 
+            T1.symbol = T2.ar_tokenSYMBOL AND
+            T1.time = T2.ar_Time
 
-    INNER JOIN htoken.income_arrangement AS T3
-    ON T1.symbol = T3.ia_SYMBOL AND
-       T1.time = T3.ia_actualPaymentTime
+            INNER JOIN income_arrangement AS T3
+            ON T1.symbol = T3.ia_SYMBOL AND
+            T1.time = T3.ia_actualPaymentTime
 
-    INNER JOIN htoken.product AS T4
-    ON T1.symbol = T3.ia_SYMBOL AND
-       T1.symbol = T4.p_SYMBOL
+            INNER JOIN product AS T4
+            ON T1.symbol = T3.ia_SYMBOL AND
+            T1.symbol = T4.p_SYMBOL
 
-    INNER JOIN
-    (SELECT ia_SYMBOL ,COUNT(*) -1 AS payablePeriodTotal
-    FROM htoken.income_arrangement 
-    GROUP BY ia_SYMBOL
-    ) AS T5
-    ON T1.symbol = T5.ia_SYMBOL
-    
-	WHERE ar_investorEmail = ?
-    ;`
+            INNER JOIN
+            (SELECT ia_SYMBOL ,COUNT(*) -1 AS payablePeriodTotal
+            FROM income_arrangement 
+            GROUP BY ia_SYMBOL
+            ) AS T5
+            ON T1.symbol = T5.ia_SYMBOL
+            
+            WHERE ar_investorEmail = ?
+            ;`
 
-    let queryString2 = `
-    SELECT  ar_tokenSYMBOL AS symbol,
-			SUM(ar_personal_income) AS income
-    FROM    htoken.investor_assetRecord
-    WHERE   ar_investorEmail = ?
-    GROUP   BY ar_investorEmail , symbol
-    `
-    let latestAssetHistoryArray = []
-    query(queryString1, userEmailAddress)
-        .then((_latestAssetHistoryArray) => {
-            latestAssetHistoryArray = _latestAssetHistoryArray
-            latestAssetHistoryArray.map(
-                latestAssetHistoryByToken => {
-                    latestAssetHistoryByToken.acquiredCostTotal = returnNumberWithCommas(latestAssetHistoryByToken.acquiredCostTotal)
-                    latestAssetHistoryByToken.incomeOfLatestPeriod = returnNumberWithCommas(latestAssetHistoryByToken.incomeOfLatestPeriod)
-                    latestAssetHistoryByToken.periodInYear = latestAssetHistoryByToken.time.substr(0, 4)
-                    latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.time.substr(4, 2)
-                    if (latestAssetHistoryByToken.periodInMonth.substr(0, 1) == 0) {
-                        latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.periodInMonth.substr(1, 1)
-                    }
-                    latestAssetHistoryByToken.periodInDate = latestAssetHistoryByToken.time.substr(6, 2)
-                    if (latestAssetHistoryByToken.periodInDate.substr(0, 1) == 0) {
-                        latestAssetHistoryByToken.periodInDate = latestAssetHistoryByToken.periodInDate.substr(1, 1)
-                    }
-                });
-            /* 算出此帳號各 symbol 的累積收益 */
-            return query(queryString2, userEmailAddress)
-        })
-        .then((incomeArray) => {
-            latestAssetHistoryArray.map(
-                latestAssetHistoryByToken => {
-                    incomeArray.map((incomeObject) => {
-                        if (latestAssetHistoryByToken.symbol == incomeObject.symbol)
-                            latestAssetHistoryByToken.incomeTotal = returnNumberWithCommas(incomeObject.income)
-                    })
-                });
-            res.status(200);
-            if (latestAssetHistoryArray.length > 0) {
-                res.json({
-                    "message": "[Success] 我的資產取得成功！",
-                    "result": latestAssetHistoryArray
-                });
-            } else {
-                res.json({
-                    "message": "[Success] 我的資產取得成功: 找不到資產"
-                });
+            let queryString2 = `
+            SELECT  ar_tokenSYMBOL AS symbol,
+                    SUM(ar_personal_income) AS income
+            FROM    investor_assetRecord
+            WHERE   ar_investorEmail = ?
+            GROUP   BY ar_investorEmail , symbol
+            `
+
+            try {
+                let latestAssetHistoryArray = await query(queryString1, decoded.u_email);
+                
+                latestAssetHistoryArray.map(
+                    latestAssetHistoryByToken => {
+                        // latestAssetHistoryByToken.acquiredCostTotal = returnNumberWithCommas(latestAssetHistoryByToken.acquiredCostTotal)
+                        // latestAssetHistoryByToken.personalIncome = returnNumberWithCommas(latestAssetHistoryByToken.personalIncome)
+                        latestAssetHistoryByToken.periodInYear = latestAssetHistoryByToken.time.substr(0, 4)
+                        latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.time.substr(4, 2)
+                        if (latestAssetHistoryByToken.periodInMonth.substr(0, 1) == 0) {
+                            latestAssetHistoryByToken.periodInMonth = latestAssetHistoryByToken.periodInMonth.substr(1, 1)
+                        }
+                        latestAssetHistoryByToken.periodInDate = latestAssetHistoryByToken.time.substr(6, 2)
+                        if (latestAssetHistoryByToken.periodInDate.substr(0, 1) == 0) {
+                            latestAssetHistoryByToken.periodInDate = latestAssetHistoryByToken.periodInDate.substr(1, 1)
+                        }
+                    });
+
+                let incomeArray = await query(queryString2, decoded.u_email);
+                latestAssetHistoryArray.map(
+                    latestAssetHistoryByToken => {
+                        console.log(latestAssetHistoryByToken)
+                        incomeArray.map((incomeObject) => {
+                            console.log(incomeObject)
+                            if (latestAssetHistoryByToken.symbol == incomeObject.symbol)
+                                latestAssetHistoryByToken.incomeTotal = incomeObject.income;
+                        });
+                    });
+
+                if (latestAssetHistoryArray.length > 0) {
+                    res.status(200).json({
+                        "message": "我的資產取得成功",
+                        "result": latestAssetHistoryArray
+                    });
+                } else {
+                    res.status(404).send('找不到資產我的資產');
+                }
+            } catch (err) {
+                res.status(400).send('我的資產取得失敗');
+                console.error(err);
             }
-        })
-        .catch((err) => {
-            console.log(err);
-            res.status(400);
-            res.json({
-                "message": "[Error] 我的資產取得失敗: " + err
-            });
-        })
+        }
+    })
 });
 
 /* 取得此帳號單一token的最新一期結算資料 */
@@ -203,12 +206,12 @@ router.get('/LatestAssetHistory', async function (req, res, next) {
 //            ar_User_Acquired_Cost AS acquiredCostTotal,
 //            ar_Time AS time,
 //            ia_Payable_Period_End AS payablePeriodEnd,
-//            ia_single_Actual_Income_Payment_in_the_Period AS incomeOfLatestPeriod
-//     FROM htoken.investor_assetRecord AS AR
-//     INNER JOIN htoken.income_arrangement AS IA ON AR.ar_Time = IA.ia_time
+//            ar_personal_income AS personalIncome
+//     FROM investor_assetRecord AS AR
+//     INNER JOIN income_arrangement AS IA ON AR.ar_Time = IA.ia_time
 //     WHERE ar_tokenSYMBOL = ? &&
 //           ar_ownerAssetbookAddr = ? &&  
-//           ar_Time = (SELECT MAX(ar_Time) FROM htoken.investor_assetRecord)
+//           ar_Time = (SELECT MAX(ar_Time) FROM investor_assetRecord)
 //     `;
 //     const query = (queryString, keys) => {
 //         return new Promise((resolve, reject) => {

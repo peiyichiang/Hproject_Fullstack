@@ -6,13 +6,12 @@ var logger = require('morgan');
 var cors = require('cors');
 var session = require('express-session');
 var multer = require('multer');
-var debugSQL = require('debug')('dev:mysql');
+// var debugSQL = require('debug')('dev:mysql');
 
-require("dotenv").config();
+//require("dotenv").config();
+const { SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, isTimeserverON, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
 
-const { isTestingMode } = require('./ethereum/contracts/zsetupData');
-
-console.log('loading /app.js modules');
+console.log('loading app.js modules...');
 //智豪
 var indexRouter = require('./routes/TxRecord');
 var productRouter = require('./routes/Product');
@@ -24,15 +23,24 @@ var incomeManagementRouter = require('./routes/IncomeManagementAPI');
 //Chih-Hao
 var orderRouter = require('./routes/Order');
 //冠毅
-var paymentGWRouter = require('./routes/PaymentGW');
+var paymentRouter = require('./routes/Payment');
 var ContractsRouter = require('./routes/Contracts');
 // var usersRouter = require('./routes/users');
+
+//Ray
+var contractExplorerRouter = require('./routes/ContractExplorer');
 
 // DataBase
 const { mysqlPoolQuery } = require('./timeserver/mysql.js');
 
 
 var app = express();
+// app.use(timeout(1200000));
+// app.use(haltOnTimedout);
+// function haltOnTimedout(req, res, next){
+//  if (!req.timedout) next();
+// }
+
 //智豪
 app.use(session({
     secret: 'NCCU Blockchain Hub',
@@ -63,6 +71,9 @@ app.use('/', indexRouter);
 app.use('/Product', productRouter);
 app.use('/BackendUser', backendUserRouter);
 
+//Ray
+app.use('/ContractExplorer', contractExplorerRouter);
+
 //＊＊＊＊＊＊＊＊＊＊＊＊＊＊上傳文件＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 //配置diskStorage來控制文檔存儲的位置以及文檔名字等
 var storage = multer.diskStorage({
@@ -92,7 +103,7 @@ app.post('/upload', cpUpload, function (req, res, next) {
 //有容
 app.use('/user', userRouter);
 app.use('/Order', orderRouter);
-app.use('/paymentGW', paymentGWRouter);
+app.use('/payment', paymentRouter);
 app.use('/Contracts', ContractsRouter);
 app.use('/incomeManagementAPI',incomeManagementRouter)
 
@@ -116,16 +127,21 @@ app.use(function (err, req, res, next) {
 });
 
 
-// const checkOverZero =(item) => item === 0;
-// if(whichTimeServerArray.every(checkOverZero)){
-if(isTestingMode){
-  console.log('\n------------------==timeserver turned OFF');
-  
-} else {
-  console.log('\n------------------==timeserver is ON');
+console.log(`\n--------------------== app.js: timeserver ${isTimeserverON}`);
+if(isTimeserverON){
   require('./timeserver/timeserverSource');
-}
-console.log(`[end of @ app.js] http://localhost:${process.env.PORT}/Product/ProductList`);
+  console.log(`  is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}
+  is_makeOrdersExpiredCFED: ${is_makeOrdersExpiredCFED}
+  is_updateExpiredOrders: ${is_updateExpiredOrders}
+  is_updateFundingStateFromDB: ${is_updateFundingStateFromDB}
+  is_updateTokenStateFromDB: ${is_updateTokenStateFromDB}
+  is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
+  `);
+} 
+
+const baseUrl = `${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}`;
+
+console.log(`[end of @ app.js] ${baseUrl}/Product/ProductList \n[Crowdfunding] ${baseUrl}/ContractExplorer/crowdfunding \n[TokenController] ${baseUrl}/ContractExplorer/TokenController \n[TokenHCAT] ${baseUrl}/ContractExplorer/TokenHCAT \n[IncomeManager] ${baseUrl}/ContractExplorer/IncomeManager \n[Assetbook] ${baseUrl}/ContractExplorer/assetbook \n[Registry] ${baseUrl}/ContractExplorer/registry \n[Helium] ${baseUrl}/ContractExplorer/helium`);
 //http://localhost:3000/Product/ProductList
 
 

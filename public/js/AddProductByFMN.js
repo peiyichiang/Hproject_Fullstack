@@ -1,13 +1,47 @@
 var addBtn=document.getElementById('addBtn');
 
 addBtn.addEventListener('click',function(){
-    // document.getElementById("addProductForm").submit();
-    // document.getElementById("FileForm").submit();
+    var empty_=0;
 
-    // 將token ID傳到uplod API，文件命名用
-    // $("#tokenID").val($("#p_SYMBOL").val());
-    //上傳圖片
-    UploadImage();
+    // 判斷這些欄位 有沒有填寫
+    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_HCAT721uri","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","file","icon","csvFIle"]; 
+    for(var i=0;i<fieldArray.length;i++){
+        ele=document.getElementById(fieldArray[i]);
+        // ele.previousElementSibling.innerHTML.length<42 是用來判斷 是不是已經加了<必填>
+        if(ele.value==""){
+            empty_++;
+        }
+        if(ele.value=="" && ele.previousElementSibling.innerHTML.length<42){
+            ele.previousElementSibling.innerHTML+="<span style='color:red;'>&nbsp(必填)</span>";
+        }else if(ele.value!="" && ele.previousElementSibling.innerHTML.length>42){
+            ele.previousElementSibling.innerHTML=ele.previousElementSibling.innerHTML.substr(0,ele.previousElementSibling.innerHTML.length-42);
+        }
+    }
+ 
+    // 判斷textArea(p_Copywriting)有沒有填寫
+    String.prototype.trim = function() {
+        return this.replace(/^\s+|\s+$/g,"");
+      }
+    ele=document.getElementById("p_Copywriting");
+ 
+    if(ele.value==""){
+        empty_++;
+    }
+    if(ele.value.trim()=="" && ele.previousElementSibling.innerHTML.length<42){
+        ele.previousElementSibling.innerHTML+="<span style='color:red;'>&nbsp(必填)</span>";
+    }else if(ele.value.trim()!=""){
+        ele.previousElementSibling.innerHTML=ele.previousElementSibling.innerHTML.substr(0,ele.previousElementSibling.innerHTML.length-42);
+    }
+
+    if(empty_>0){
+        window.scrollTo(0, 0);
+    }else{
+        // 將token ID傳到uplod API，文件命名用
+        // $("#tokenID").val($("#p_SYMBOL").val());
+        //上傳圖片
+        UploadImage();
+    }
+
 });
 
 function UploadImage(){
@@ -92,3 +126,28 @@ function UploadImage(){
         }
     });
 }
+
+// 計算文件SHA3
+let web3Object = new Web3()
+
+// 用選擇的方式讀取文件Hash(Inquire.html用)
+$("#file").on('change', function() {
+    // alert("選擇文件！");
+        var reader1 = new FileReader(); //define a Reader
+        var file = $("#file")[0].files[0]; //get the File object 
+        if (!file) {
+            alert("no file selected");
+            return;
+        } //check if user selected a file
+
+    reader1.onloadend = function (evt) {
+        //計算hash
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            alert(web3Object.utils.sha3(evt.target.result));
+            $("#p_assetdocsHash").val(web3Object.utils.sha3(evt.target.result));
+        }
+
+    }
+
+    reader1.readAsDataURL(file);
+});

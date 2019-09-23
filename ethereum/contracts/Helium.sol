@@ -7,7 +7,7 @@ interface HeliumITF_Helium{
 }
 
 contract Helium {
-
+    bool public isAfterDeployment;
     address public Helium_Admin;
     address public Helium_Chairman;
     address public Helium_Director;
@@ -23,7 +23,6 @@ contract Helium {
     uint8 public MinimumVotesForMultiSig = 3;
 
     struct PermissionTable {
-        address platformEoA;
         uint permissionCode;
         bool permissionStatus;
     }
@@ -38,7 +37,14 @@ contract Helium {
         Helium_Director = management[2];
         Helium_Manager = management[3];
         Helium_Owner = management[4];
+        
+        addPlatformSupervisor(management[0]);
+        addPlatformSupervisor(management[1]);
+        addPlatformSupervisor(management[2]);
 
+        addCustomerService(management[3]);
+        addCustomerService(management[4]);
+        isAfterDeployment = true;
         /*
         managementList[Helium_Admin] = true;
         require(managementList[Helium_Chairman] == false, "Helium_Chairman is already part of the management");
@@ -72,14 +78,18 @@ contract Helium {
     }
 
     //Helium
-    function addCustomerService (address _eoa) public onlyAdmin {
-        PermissionList[_eoa].platformEoA = _eoa;
+    function addCustomerService(address _eoa) public {
+        if(isAfterDeployment){
+          require(msg.sender == Helium_Admin, "only admin can call this function");
+        }
         PermissionList[_eoa].permissionCode = 1;
         PermissionList[_eoa].permissionStatus = true;
     }
     
-    function addPlatformSupervisor (address _eoa) public onlyAdmin {
-        PermissionList[_eoa].platformEoA = _eoa;
+    function addPlatformSupervisor(address _eoa) public {
+        if(isAfterDeployment){
+          require(msg.sender == Helium_Admin, "only admin can call this function");
+        }
         PermissionList[_eoa].permissionCode = 2;
         PermissionList[_eoa].permissionStatus = true;
     }
