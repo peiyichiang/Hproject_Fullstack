@@ -837,7 +837,6 @@ router.get('/IsAbleToApply', function (req, res, next) {
             }
         })
         .catch((err) => {
-            console.log('3')
             res.status(400).send('查詢失敗：' + err);
             console.error('query error : ' + err);
         })
