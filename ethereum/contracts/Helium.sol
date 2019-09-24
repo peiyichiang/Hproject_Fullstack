@@ -26,10 +26,10 @@ contract Helium {
         uint permissionCode;
         bool permissionStatus;
     }
-    
+
     mapping(address => PermissionTable) public PermissionList;
     mapping(address => bool) public managementList;
-    
+
     constructor(address[] memory management) public {
         require(management.length > 4, "management.length should be > 4");
         Helium_Admin = management[0];
@@ -37,7 +37,7 @@ contract Helium {
         Helium_Director = management[2];
         Helium_Manager = management[3];
         Helium_Owner = management[4];
-        
+
         addPlatformSupervisor(management[0]);
         addPlatformSupervisor(management[1]);
         addPlatformSupervisor(management[2]);
@@ -62,11 +62,13 @@ contract Helium {
     }
     //"only Admin or Customer Service can call this function"
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService){
-        _isCustomerService = (_eoa == Helium_Admin || (PermissionList[_eoa].permissionCode == 1 && PermissionList[_eoa].permissionStatus == true));
+        _isCustomerService = (_eoa == Helium_Admin ||
+        (PermissionList[_eoa].permissionCode == 1 && PermissionList[_eoa].permissionStatus == true));
     }
     //"only Admin or Supervisor can call this function"
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor){
-        _isPlatformSupervisor = (_eoa == Helium_Admin || (PermissionList[_eoa].permissionCode == 2 && PermissionList[_eoa].permissionStatus == true));
+        _isPlatformSupervisor = (_eoa == Helium_Admin ||
+        (PermissionList[_eoa].permissionCode == 2 && PermissionList[_eoa].permissionStatus == true));
     }
     function checkAdmin(address _eoa) external view returns(bool _isAdmin) {
         _isAdmin = (_eoa == Helium_Admin);
@@ -80,38 +82,41 @@ contract Helium {
     //Helium
     function addCustomerService(address _eoa) public {
         if(isAfterDeployment){
-          require(msg.sender == Helium_Admin, "only admin can call this function");
+            require(msg.sender == Helium_Admin, "only admin can call this function");
         }
         PermissionList[_eoa].permissionCode = 1;
         PermissionList[_eoa].permissionStatus = true;
     }
-    
+
     function addPlatformSupervisor(address _eoa) public {
         if(isAfterDeployment){
-          require(msg.sender == Helium_Admin, "only admin can call this function");
+            require(msg.sender == Helium_Admin, "only admin can call this function");
         }
         PermissionList[_eoa].permissionCode = 2;
         PermissionList[_eoa].permissionStatus = true;
     }
-    
+
     function changePermissionToCS(address _eoa) public onlyAdmin {
         PermissionList[_eoa].permissionCode = 1;
     }
-    
+
     function changePermissionToPS(address _eoa) public onlyAdmin {
         PermissionList[_eoa].permissionCode = 2;
     }
-    
+
     function removePermission(address _eoa) public onlyAdmin{
         PermissionList[_eoa].permissionStatus = false;
     }
 
     function showPermissionCode(address _eoa) public view returns(uint _permissionCode){
-        require(msg.sender == Helium_Admin || PermissionList[msg.sender].permissionCode == 1 || PermissionList[msg.sender].permissionCode == 2, "Only Platform Role can call this function");
+        require(
+            msg.sender == Helium_Admin ||
+        PermissionList[msg.sender].permissionCode == 1 || PermissionList[msg.sender].permissionCode == 2,
+            "Only Platform Role can call this function");
         return PermissionList[_eoa].permissionCode;
     }
 
-    //Vote to change EOAs 
+    //Vote to change EOAs
     function HeliumOwnerApprove(bool boolValue) external {
         require(msg.sender == Helium_Owner, "restricted to owner");
         if (boolValue){
@@ -152,7 +157,10 @@ contract Helium {
     }
 
     function isVotedApproved() public view returns (bool isVotedApproved_){
-        isVotedApproved_ = (Helium_OwnerVote + Helium_ChairmanVote + Helium_DirectorVote + Helium_ManagerVote + Helium_AdminVote >= MinimumVotesForMultiSig);
+        isVotedApproved_= Helium_OwnerVote +
+        Helium_ChairmanVote +
+        Helium_DirectorVote + Helium_ManagerVote + Helium_AdminVote
+        >= MinimumVotesForMultiSig;
     }
     event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
 

@@ -6,8 +6,8 @@ import "./SafeMath.sol";
 interface HeliumITF_CF{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
-interface ERC721TokenReceiverITF_CF {
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
+interface HCATTokenReceiver_Interface_CF {
+    function HCAT_TokenReceiver(address _eoa, address _from, uint256 _tokenId) external pure returns(bytes4);
 }
 interface AssetTokenITF_CF {
     function balanceOf(address user) external view returns (uint balance);
@@ -53,7 +53,7 @@ contract CrowdFunding {
     enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
     FundingState public fundingState;
     string public stateDescription;
-    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
+    bytes4 constant HCAT_TOKEN_RECEIVER_HASH = 0x18b6fc3b;
 
     /*  at initialization, setup the owner
     "TKOS1901", 18000, "NTD", 900, 890, 201905211800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7"
@@ -276,8 +276,8 @@ contract CrowdFunding {
         boolArray[1] = serverTime < CFED;
         boolArray[2] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
         boolArray[3] = _addrAssetbook.isContract();
-        boolArray[4] = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
-            msg.sender, msg.sender, 1, "") == MAGIC_ON_ERC721_RECEIVED;
+        boolArray[4] = HCATTokenReceiver_Interface_CF(_addrAssetbook).HCAT_TokenReceiver(
+            msg.sender, address(this), 1) == HCAT_TOKEN_RECEIVER_HASH;
 
         boolArray[5] = _quantityToInvest > 0;
         boolArray[6] = quantitySold.add(_quantityToInvest) <= maxTotalSupply;
@@ -307,9 +307,9 @@ contract CrowdFunding {
             "funding is terminated or not started yet");
 
         if (_addrAssetbook.isContract()) {
-            bytes4 retval = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
-                msg.sender, msg.sender, 1, "");// assume tokenId = 1;
-            require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
+            bytes4 retval = HCATTokenReceiver_Interface_CF(_addrAssetbook).HCAT_TokenReceiver(
+                msg.sender, address(this), 1);// assume tokenId = 1;
+            require(retval == HCAT_TOKEN_RECEIVER_HASH, "retval should be HCAT_TOKEN_RECEIVER_HASH");
         } else {
             require(false,"_addrAssetbook address should contain a contract");
         }

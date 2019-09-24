@@ -22,6 +22,11 @@ interface HeliumITF{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
 }
 
+interface Settlement_interface{
+    function settlementTokenReceiver(address _eoa, address _from, uint256 tokenId) external pure returns(bytes4);
+    function sendTokenFromSettlement(address _from, address _to, uint tokenId) external;
+}
+
 contract MultiSig {
     using SafeMath for uint256;
     using AddressUtils for address;
@@ -231,7 +236,9 @@ contract AssetBook is MultiSig {
 
     function getAssetBatch(uint indexStart, uint amount) 
         external view returns(uint[] memory assetIndexArray, address[] memory assetAddresses, bytes32[] memory assetSymbols, uint[] memory assetBalances) {
-        uint indexStart_; uint amount_; address assetAddr;
+        uint indexStart_;
+        uint amount_;
+        address assetAddr;
         if(indexStart == 0 && amount == 0) {
             indexStart_ = 1;
             amount_ = assetCindex;
@@ -276,7 +283,8 @@ contract AssetBook is MultiSig {
     */
     function getAssetAddresses(uint indexStart, uint amount) 
         external view returns(address[] memory assetAddresses) {
-        uint indexStart_; uint amount_;
+        uint indexStart_;
+        uint amount_;
         if(indexStart == 0 && amount == 0) {
             indexStart_ = 1;
             amount_ = assetCindex;
@@ -304,9 +312,9 @@ contract AssetBook is MultiSig {
         with exchange price of `price`, with the server time being `serverTime`
         Note: the token IDs are chosen according to First In First Out principle
     */
-    function checkSafeTransferFromBatch(uint assetIndex, address assetAddr, 
-        address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray, bool, bool) {
-        address assetAddr_; address from_;
+    function checkSafeTransferFromBatch(uint assetIndex, address assetAddr, address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray, bool, bool) {
+        address assetAddr_;
+        address from_;
         if(assetIndex > 0) {
             assetAddr_ = assetIndexToAddr[assetIndex];
         } else {
@@ -322,7 +330,8 @@ contract AssetBook is MultiSig {
     }
 
     function safeTransferFromBatch(uint assetIndex, address assetAddr, address _from, address _to, uint amount,  uint price, uint serverTime) public ckAssetOwner {
-        address assetAddr_; address from_;
+        address assetAddr_;
+        address from_;
         if(assetIndex > 0) {
             assetAddr_ = assetIndexToAddr[assetIndex];
         } else {
@@ -352,19 +361,19 @@ contract AssetBook is MultiSig {
     }
 
 
-    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
+    bytes4 constant HCAT_TOKEN_RECEIVER_HASH = 0x18b6fc3b;
+    // Equals to `bytes4(keccak256(abi.encodePacked("HCAT_TokenReceiver(address,address,uint256)")))`
     /* $notice Handle the receipt of an NFT
      $dev The ERC721 smart contract calls this function on the recipient
       after a `transfer`. This function MAY throw to revert and reject the
       transfer. Return of other than the magic value MUST result in the
       transaction being reverted.
     */
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4) {
-        require(_operator != address(0), 'operator address should not be zero');
-        require(_from != address(0), 'from address should not be zero');// _from address is contract address if minting tokens
-        require(_tokenId > 0, 'tokenId should be greater than zero');
-        
-        return MAGIC_ON_ERC721_RECEIVED;
+    function HCAT_TokenReceiver(address _eoa, address _from, uint256 _tokenId) external pure returns(bytes4) {
+        require(_eoa != address(0), "operator address should not be zero");
+        require(_from != address(0), "from address should not be zero");// _from address is contract address if minting tokens
+        require(_tokenId > 0, "tokenId should be greater than zero");
+        return HCAT_TOKEN_RECEIVER_HASH;
     }
 
     //function() external payable { revert("should not send any ether directly"); }

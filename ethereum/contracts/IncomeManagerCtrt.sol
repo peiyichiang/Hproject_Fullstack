@@ -14,10 +14,11 @@ contract IncomeManagerCtrt {
     uint public TimeOfDeployment;// the minimum dataTime allowed
     address public addrHelium;
 
-    uint public schCindex;//last submitted index and total count of current schedules, and also the index count. It starts from 1 to 80. SPLC life time has a total of 80 schedules
+    uint public schCindex;//last submitted index and total count of current schedules, and also the index count.
+    //It starts from 1 to 80. SPLC life time has a total of 80 schedules
     mapping(uint256 => uint256) public dateToIdx;//date to schedule index
     mapping(uint256 => Schedule) public idxToSchedule;//schedule index to Schedule
-    
+
     // cash flow: FMX -> platform -> investors
     // forecasted: rough estimate, given when csv is uploaded by FM
     // actual: actual here does not mean actual, but it means accurate estimated information
@@ -136,10 +137,10 @@ contract IncomeManagerCtrt {
         for(uint idx = 0; idx < length; idx = idx.add(1)){
             schCindex = schCindex.add(1);
             if (idx == 0) {
-              require(forecastedPayableTimes[0] > TimeOfDeployment, "forecastedPayableTime[0] has to be > TimeOfDeployment");
+                require(forecastedPayableTimes[0] > TimeOfDeployment, "forecastedPayableTime[0] has to be > TimeOfDeployment");
 
             } else if (idx > 0) {
-              require(forecastedPayableTimes[idx] > forecastedPayableTimes[idx.sub(1)], "forecastedPayableTime[idx] should be > forecastedPayableTime[idx.sub(1)]");
+                require(forecastedPayableTimes[idx] > forecastedPayableTimes[idx.sub(1)], "forecastedPayableTime[idx] should be > forecastedPayableTime[idx.sub(1)]");
             }
             idxToSchedule[schCindex].forecastedPayableTime = forecastedPayableTimes[idx];
             idxToSchedule[schCindex].forecastedPayableAmount = forecastedPayableAmounts[idx];
@@ -206,7 +207,8 @@ contract IncomeManagerCtrt {
             schIndex = _schIndex;
         }
 
-        uint amount_; uint indexStart_;
+        uint amount_;
+        uint indexStart_;
         if(schIndex == 0) {//all get all schedules
             indexStart_ = 1;
             amount_ = schCindex;

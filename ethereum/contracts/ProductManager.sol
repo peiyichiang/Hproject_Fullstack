@@ -9,7 +9,8 @@ interface HeliumITF{
 contract ProductManager {
     using SafeMath for uint256;
     address public addrHelium;
-    
+    mapping (address => bool) public isSettlementContract;
+
     uint public groupCindex;
     mapping(bytes32 => CtrtGroup) public symbolToCtrtGroup;
     mapping(uint => bytes32) public idxToSymbol;
@@ -25,6 +26,13 @@ contract ProductManager {
         addrHelium = _addrHelium;
     }
 
+    // function isSettlementContractFunction(address _addrSettlement) external view returns (bool) {
+    //     return isSettlementContract[_addrSettlement];
+    // }
+    function setAddrSettlement(address _addrSettlement, bool boolValue) external onlyAdmin{
+        isSettlementContract[_addrSettlement] = boolValue;
+    }
+
     function setAddrHelium(address _addrHelium) external onlyAdmin{
         addrHelium = _addrHelium;
     }
@@ -36,8 +44,9 @@ contract ProductManager {
         return (HeliumITF(addrHelium).checkAdmin(msg.sender));
     }
 
-    function addNewCtrtGroup(bytes32 symbol,
-        address addrCrowdFundingCtrt, address addrTokenControllerCtrt,
+    function addNewCtrtGroup(
+        bytes32 symbol, address addrCrowdFundingCtrt,
+        address addrTokenControllerCtrt,
         address addrTokenCtrt, address addrIncomeManagerCtrt)
         external onlyAdmin {
         groupCindex = groupCindex.add(1);
@@ -45,7 +54,10 @@ contract ProductManager {
         symbolToCtrtGroup[symbol] = CtrtGroup(groupCindex, addrCrowdFundingCtrt, addrTokenControllerCtrt, addrTokenCtrt, addrIncomeManagerCtrt);
     }
 
-    function getCtrtGroup(bytes32 symbol) view external returns(uint groupIndex, address addrCrowdFundingCtrt, address addrTokenControllerCtrt, address addrTokenCtrt, address addrIncomeManagerCtrt){
+    function getCtrtGroup(bytes32 symbol) external view
+    returns(uint groupIndex, address addrCrowdFundingCtrt,
+    address addrTokenControllerCtrt, address addrTokenCtrt,
+    address addrIncomeManagerCtrt){
         CtrtGroup memory ctrtGroup = symbolToCtrtGroup[symbol];
         return (ctrtGroup.index, ctrtGroup.CrowdFundingCtrt, ctrtGroup.TokenControllerCtrt, ctrtGroup.TokenCtrt, ctrtGroup.IncomeManagerCtrt);
     }
