@@ -73,6 +73,25 @@ router.get('/heliumContract', function (req, res, next) {
     res.send(heliumContractAddr);
 });
 
+router.post('/heliumContract/isAfterDeployment', async function (req, res, next) {
+  const addrHelium = req.body.addrHelium;
+  console.log('inside isAfterDeployment', addrHelium);
+  const instHelium = new web3.eth.Contract(heliumContract.abi, addrHelium);
+  const result = await instHelium.methods.isAfterDeployment().call();
+  res.send({ result });
+});
+
+router.post('/heliumContract/PermissionList', async function (req, res, next) {
+  const addrHelium = req.body.addrHelium;
+  const addrInput = req.body.addrInput;
+  console.log(`inside PermissionList... \naddrHelium: ${addrHelium}\naddrInput: ${addrInput}`);
+  const instHelium = new web3.eth.Contract(heliumContract.abi, addrHelium);
+  const result = await instHelium.methods.PermissionList(addrInput).call();
+  res.send({ result });
+});
+
+
+
 
 /**@dev Registry ------------------------------------------------------------------------------------- */
 /*deploy registry contract*/
@@ -170,7 +189,7 @@ router.get('/registryContract/users/:u_id', async function (req, res, next) {
 
     res.send({
         userInfo: userInfo
-    })
+    });
 });
 
 router.post('/registryContract/getUserFromUid/:uid', async function (req, res, next) {

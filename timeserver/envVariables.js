@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, addrHelium, addrRegistry, addrProductMgr;
+let symbolNumber, operationMode, backendAddrChoice, addrHelium, addrRegistry, addrProductMgr, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -51,18 +51,17 @@ const DB_name2 = process.env.DB_NAME2;
 const blockchainChoice = process.env.BLOCKCHAIN_CHOICE;
 console.log('blockchainChoice:', blockchainChoice);
 
-let blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
 if(blockchainChoice === '1'){//POA
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
   gasLimitValue = 9000000;//intrinsic gas too low
   gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
   admin = process.env.HELIUM_ADMIN;
   adminpkRaw =  process.env.HELIUM_ADMIN_PRIVATEKEY;
-  addrHelium =     "0x391DAce017a97273e1231c7072F6cd9dCD05e798";
-  addrRegistry =   "0xE733a43B95c9F20936fDb0690ea3f6360262FD46";
-  addrProductMgr = "";
-
   
+  addrHelium =     process.env.HELIUMCONTRACTADDR;
+  addrRegistry =   process.env.REGISTRYCONTRACTADDR;
+  addrProductMgr = process.env.PRODUCTMANAGERCONTRACTADDR;
+
 } else if(blockchainChoice === '2'){/*ganache*/
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
   gasLimitValue = 9000000;// for POW private chain
@@ -90,6 +89,8 @@ if(blockchainChoice === '1'){//POA
   addrRegistry =   "";
   addrProductMgr = "";
 }
+
+//Helium_Chairman = process.env.HELIUM_CHAIRMAN, process.env.HELIUM_DIRECTOR, process.env.HELIUM_MANAGER, process.env.HELIUM_OWNER
 
 console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrProductMgr: ${addrProductMgr}`);
 
