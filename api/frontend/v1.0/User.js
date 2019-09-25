@@ -131,7 +131,7 @@ router.post('/AddUser', function (req, res, next) {
                 u_identityNumber: user.ID,
                 u_imagef: user.imageURLF,
                 u_imageb: user.imageURLB,
-                u_bankBooklet: user.bankBooklet,
+                u_bankBooklet: user.bankAccount,
                 u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phoneNumber,
@@ -871,6 +871,89 @@ router.post('/UpdateEOA', function (req, res, next) {
             }
             catch (err) {
                 res.status(400).send('EOA更新失敗');
+                console.error(err);
+            }
+        }
+    })
+});
+
+
+router.post('/LetUserUnapproved', function (req, res, next) {
+    console.log('------------------------==\n@user/LetUserUnapproved');
+    const mysqlPoolQuery = req.pool;
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+    const JWT = req.body.JWT;
+
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            const letUserUnapprovedQuery = `
+            UPDATE user 
+            SET    u_review_status = ?
+            WHERE  u_email = ?`;
+            try {
+                await query(letUserUnapprovedQuery, ['unapproved', decoded.u_email]);
+                res.status(200).json({ "message": "重設使用者審查狀態成功" });
+            }
+            catch (err) {
+                res.status(400).send('重設使用者審查狀態失敗');
+                console.error(err);
+            }
+        }
+    })
+});
+
+router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
+    console.log('------------------------==\n@user/NeedToReuploadMemberDocument');
+    const mysqlPoolQuery = req.pool;
+    const query = (queryString, keys) => {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery(
+                queryString,
+                keys,
+                (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result);
+                }
+            );
+        });
+    };
+    const JWT = req.query.JWT;
+
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            const getUserReviewStatusQuery = `
+            SELECT u_review_status
+            FROM   user
+            WHERE  u_email = ?`;
+            try {
+                let userReviewStatus = await query(getUserReviewStatusQuery, decoded.u_email);
+                if (userReviewStatus === 'unapproved') {
+                    res.status(200).json({ "message": "取得使用者審查狀態成功" });
+                } else {
+                    res.status(400).send('不需要補上傳身份文件');
+                }
+            }
+            catch (err) {
+                res.status(400).send('取得使用者審查狀態失敗');
                 console.error(err);
             }
         }

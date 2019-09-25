@@ -79,10 +79,10 @@ router.post('/AddOrder', async function (req, res, next) {
                     let mailOptions = {
                         from: ' <noreply@hcat.io>', // sender address
                         to: email, // list of receivers
-                        subject: '', // Subject line
+                        subject: 'HCAT下單成功', // Subject line
                         html: `<h2>下單成功</h2>
                         <p>
-                        <p>親愛的 ${userName}:<br>
+                        <p>親愛的您好:<br>
                         <p>您剛下了一張訂單，此次購買 ${symbol} 共 ${tokenCount} 片，總計 ${fundCount} 元<br>
                         <p>請參照以下指示完成您的付款。<br><br>
                         <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
