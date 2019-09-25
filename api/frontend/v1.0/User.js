@@ -946,7 +946,7 @@ router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
             WHERE  u_email = ?`;
             try {
                 let userReviewStatus = await query(getUserReviewStatusQuery, decoded.u_email);
-                if (userReviewStatus === 'unapproved') {
+                if (userReviewStatus[0].u_review_status === 'unapproved') {
                     res.status(200).json({ "message": "取得使用者審查狀態成功" });
                 } else {
                     res.status(400).send('不需要補上傳身份文件');
