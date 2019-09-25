@@ -2,15 +2,8 @@ var express = require('express');
 var router = express.Router();
 const path = require('path');
 const bcrypt = require('bcrypt');
-
-var Web3 = require("web3");
-
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
-/* email sender */
 const nodemailer = require('nodemailer');
-
-/* sign with default (HMAC SHA256) */
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
 /* images management */
 var multer = require('multer');
@@ -40,11 +33,6 @@ const getTimeNow = () => {
     return year + month + day + hour + minute;
 }
 
-// const path = require('path');
-// const fs = require('fs');
-// const solc = require('solc');
-
-//http://140.119.101.130:3000/user/UserLogin
 router.get('/UserLogin', function (req, res, next) {
     console.log('------------------------==\n@User/UserLogin');
     var mysqlPoolQuery = req.pool;
@@ -115,8 +103,6 @@ router.get('/UserLogin', function (req, res, next) {
     });
 });
 
-//-----------------------==
-//http://140.119.101.130:3000/user/AddUser
 router.post('/AddUser', function (req, res, next) {
     console.log('------------------------==\n@user/AddUser');
     const qstr1 = 'INSERT INTO  user SET ?';
@@ -176,23 +162,6 @@ router.post('/AddUser', function (req, res, next) {
         .catch(err => console.error(err.message));
 });
 
-//設置reviewStatus
-router.post('/reviewStatus', function (req, res, next) {
-    var mysqlPoolQuery = req.pool;
-    console.log(req.body.reviewStatus);
-    console.log(req.body.email);
-    sql = {
-        u_review_status: req.body.reviewStatus
-    };
-    var qur = mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, req.body.email], function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        res.redirect('/BackendUser/backend_user');
-    });
-});
-
-//寄驗證信
 router.post('/send_email', function (req, res) {
     let email = req.body.email
     let passwordHash = req.body.passwordHash
@@ -213,7 +182,7 @@ router.post('/send_email', function (req, res) {
         from: ' <noreply@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: `請點以下連結以完成驗證： ${process.env.SERVER_PROTOCOL}://hcat.io:${process.env.SERVER_PORT}/user/verify_email?hash=` + passwordHash, // plain text body
+        text: `請點以下連結以完成驗證： ${process.env.SERVER_PROTOCOL}://hcat.io:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=` + passwordHash, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
@@ -235,9 +204,8 @@ router.post('/send_email', function (req, res) {
         // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
     });
-})
+});
 
-//驗證信連結
 router.get('/verify_email', function (req, res) {
     var passwordHash = req.query.hash
 
@@ -254,6 +222,7 @@ router.get('/verify_email', function (req, res) {
         /* code = 304? */
     });
 });
+
 
 router.post('/Image', uploadImages.single('image'), function (req, res) {
     let mysqlPoolQuery = req.pool;
@@ -315,9 +284,8 @@ router.post('/Image', uploadImages.single('image'), function (req, res) {
         default:
             console.log('applicationType is not found');
     }
-})
+});
 
-//http://140.119.101.130:3000/user/UserByEmail
 router.get('/UserByEmail', function (req, res, next) {
     console.log('------------------------==\n@User/User');
     let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
@@ -369,7 +337,6 @@ router.get('/UserByEmail', function (req, res, next) {
     });
 });
 
-//http://140.119.101.130:3000/user/UserByCellphone
 router.get('/UserByCellphone', function (req, res, next) {
     console.log('------------------------==\n@User/UserByCellphone');
     let qstr1 = 'SELECT * FROM  user WHERE u_cellphone = ?';
@@ -418,8 +385,6 @@ router.get('/UserByCellphone', function (req, res, next) {
     });
 });
 
-
-//http://140.119.101.130:3000/user/UserByUserId
 router.get('/UserByUserId', function (req, res, next) {
     console.log('------------------------==\n@User/UserByUserId');
     let qstr1 = 'SELECT * FROM  user WHERE u_identityNumber = ?';
@@ -469,178 +434,6 @@ router.get('/UserByUserId', function (req, res, next) {
         }
     });
 });
-
-// 獲取Endorser
-router.get('/GetEndorser', function (req, res, next) {
-    var token = req.query.JWT_Token;
-    if (token) {
-        // 驗證JWT token
-        jwt.verify(token, "privatekey", function (err, decoded) {
-            if (err) {
-                //JWT token驗證失敗
-                console.log("＊:JWT token驗證失敗");
-                console.log(err);
-                res.json({
-                    "message": "JWT token is invalid.",
-                    "success": false
-                });
-                return;
-            } else {
-                //JWT token驗證成功
-                console.log("＊JWT Content:" + decoded.u_email);
-                //查詢Endorser Email  
-                let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('SELECT u_endorser1,u_endorser2,u_endorser3 FROM  user WHERE u_email = ?', decoded.u_email, function (err, result) {
-                    if (err) {
-                        console.log("查詢endorser失敗:" + err);
-                        console.log(err);
-                        res.status(400);
-                        res.json({
-                            "message": "[Error] Failure :\n" + err,
-                            "success": false,
-                        });
-                    }
-                    else {
-                        console.log("查詢endorser成功:");
-                        res.status(200);
-                        res.json({
-                            "message": "[Success] Success",
-                            "result": result,
-                            "success": true,
-                        });
-                    }
-                });
-            }
-        })
-    } else {
-        //不存在JWT token
-        console.log("＊:不存在JWT token");
-        res.json({
-            "message": "No JWT Token.Please login.",
-            "success": false
-        });
-        return;
-    }
-
-});
-
-// 編輯Endorser
-router.post('/EditEndorser', function (req, res, next) {
-    // console.log('------------------------==\n@user/EditEndorser');
-    // console.log(req.body.EndorserEmail1);
-    // console.log(req.body.EndorserEmail2);
-    // console.log(req.body.EndorserEmail3);
-    // console.log("＊＊＊＊" + req.body.userEmail);
-
-    userEmail = req.body.userEmail;
-    EndorserEmail1 = req.body.EndorserEmail1;
-    EndorserEmail2 = req.body.EndorserEmail2;
-    EndorserEmail3 = req.body.EndorserEmail3;
-
-    var mysqlPoolQuery = req.pool;
-    const queryUserByEmail = email => {
-        return new Promise((resolve, reject) => {
-            // 如果使用者有填寫Endorser Email
-            if (email != "" && email != null) {
-                mysqlPoolQuery(
-                    'SELECT * FROM  user WHERE u_email = ? ;',
-                    email,
-                    (err, result, fields) => {
-                        //   console.log(result);
-                        if (err) reject(err);
-                        else resolve(result);
-                    }
-                );
-                // 如果使用者沒填寫
-            } else {
-                // 隨便傳回一個長度為2的字串，代表使用者沒填寫
-                resolve("11");
-            }
-        });
-    };
-
-    // 用來保存搜尋結果，1代表Endorser Email存在資料庫，0代表不存在，2代表使用者沒填寫
-    var data = [];
-    // 檢查EndorserEmail1是否存在資料庫，存在則寫入該使用者的EndorserEmail1
-    queryUserByEmail(EndorserEmail1)
-        .then(results => {
-            //   console.log(results.length);
-            data.push(results.length);
-
-            //假如EndorserEmail1存在資料庫
-            if (results.length == 1 || results.length == 2) {
-                //寫入該使用者的EndorserEmail
-                //假如使用者沒填寫，就清空該endorser email
-                let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('UPDATE  user SET u_endorser1 = ? WHERE u_email = ?', [EndorserEmail1, userEmail], function (err) {
-                    if (err) {
-                        console.log("寫入EndorserEmail1失敗:" + err);
-                    }
-                    else {
-                        console.log("寫入EndorserEmail1成功:");
-                    }
-                });
-            }
-
-            return queryUserByEmail(EndorserEmail2);
-        })
-        .then(results => {
-            // console.log(results.length);
-            data.push(results.length);
-
-            //假如EndorserEmail2存在資料庫
-            if (results.length == 1 || results.length == 2) {
-                //寫入該使用者的EndorserEmail
-                //假如使用者沒填寫，就清空該endorser email
-                let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('UPDATE  user SET u_endorser2 = ? WHERE u_email = ?', [EndorserEmail2, userEmail], function (err) {
-                    if (err) {
-                        console.log("寫入EndorserEmail2失敗:" + err);
-                    }
-                    else {
-                        console.log("寫入EndorserEmail2成功:");
-                    }
-                });
-            }
-
-            return queryUserByEmail(EndorserEmail3);
-        })
-        .then(results => {
-            // console.log(results.length);
-            data.push(results.length);
-
-            //假如EndorserEmail3存在資料庫
-            if (results.length == 1 || results.length == 2) {
-                //寫入該使用者的EndorserEmail
-                //假如使用者沒填寫，就清空該endorser email
-                let mysqlPoolQuery = req.pool;
-                let query = mysqlPoolQuery('UPDATE  user SET u_endorser3 = ? WHERE u_email = ?', [EndorserEmail3, userEmail], function (err) {
-                    if (err) {
-                        console.log("寫入EndorserEmail3失敗:" + err);
-                    }
-                    else {
-                        console.log("寫入EndorserEmail3成功:");
-                    }
-                });
-            }
-
-            res.status(200);
-            res.json({
-                "message": "[Success] Success",
-                "result": data,
-                "success": true,
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(400);
-            res.json({
-                "message": "[Error] Failure :\n" + err,
-                "success": false,
-            });
-        });
-});
-
 
 router.post('/ForgetPassword', function (req, res, next) {
     console.log('------------------------==\n@user/ForgetPassword');
@@ -1084,6 +877,7 @@ router.post('/UpdateEOA', function (req, res, next) {
     })
 });
 
+
 router.post('/LetUserUnapproved', function (req, res, next) {
     console.log('------------------------==\n@user/LetUserUnapproved');
     const mysqlPoolQuery = req.pool;
@@ -1152,7 +946,7 @@ router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
             WHERE  u_email = ?`;
             try {
                 let userReviewStatus = await query(getUserReviewStatusQuery, decoded.u_email);
-                if (userReviewStatus === 'unapproved') {
+                if (userReviewStatus[0].u_review_status === 'unapproved') {
                     res.status(200).json({ "message": "取得使用者審查狀態成功" });
                 } else {
                     res.status(400).send('不需要補上傳身份文件');
@@ -1167,20 +961,3 @@ router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
 });
 
 module.exports = router;
-/**
-    function bcryptHash(pw) {
-        const bcrypt = require('bcrypt');
-        const saltRounds = 10;//DON"T SET THIS TOO BIG!!!
-        const myPlaintextPassword = '1111';
-        const someOtherPlaintextPassword = '1112';
-
-        bcrypt
-        .hash(pw, saltRounds)
-        .then(hash => {
-            console.log(`Hash: ${hash}`);
-            return hash;
-            // Store hash in your password DB.
-        })
-        .catch(err => console.error('[Error@bcryptHash]',err.message));
-    }
- */
