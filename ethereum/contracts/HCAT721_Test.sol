@@ -7,7 +7,7 @@ interface HeliumITF_Test{
 
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x18b6fc3b.*/
 interface ERC721TokenReceiverITF_Test {
-    function HCAT_TokenReceiver(address _eoa, address _from, uint256 _tokenId) external pure returns(bytes4);
+    function tokenReceiver(address _from, address _to, uint256 _tokenId) external pure returns(bytes4);
 }
 
 //supportsInterface[0x01ffc9a7] will be true, must not set element 0xffffffff to true!!!!!
@@ -68,8 +68,8 @@ contract HCAT721_AssetToken_Test is SupportsInterface {//ERC721ITF_Test,
     bytes32 public symbol;//abbreviated name for issued tokens
     bytes32 public tokenURI;//location that stores additional token specific information
 
-    bytes4 constant HCAT_TOKEN_RECEIVER_HASH = 0x18b6fc3b;
-    // Equals to `bytes4(keccak256("HCAT_TokenReceiver(address,address,uint256)"))` ... which can be also obtained as `IERC721Receiver(0).HCAT_TokenReceiver.selector`
+    bytes4 constant TOKEN_RECEIVER_HASH = 0x79830ac6;
+    // Equals to `bytes4(keccak256("tokenReceiver(address,address,uint256)"))` ... which can be also obtained as `IERC721Receiver(0).tokenReceiver.selector`
 
     /** Contract code size over limit of 24576 bytes.
     "NCCU site No.1(2018)", "NCCU1801", 300, 800, 17000, "NTD", 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
@@ -248,10 +248,10 @@ contract HCAT721_AssetToken_Test is SupportsInterface {//ERC721ITF_Test,
     function ReqCheck_isContract(address _to) public view returns(bool doesAddrHasCtrt, bool isToAddrCompatible) {
         doesAddrHasCtrt = _to.isContract();
         if (_to.isContract()) {//also checks for none zero address
-            bytes4 retval = ERC721TokenReceiverITF_Test(_to).HCAT_TokenReceiver(
+            bytes4 retval = ERC721TokenReceiverITF_Test(_to).tokenReceiver(
                 msg.sender, address(this), 1);
-            //require(retval == HCAT_TOKEN_RECEIVER_HASH, "retval should be HCAT_TOKEN_RECEIVER_HASH");
-            isToAddrCompatible = (retval == HCAT_TOKEN_RECEIVER_HASH);
+            //require(retval == TOKEN_RECEIVER_HASH, "retval should be TOKEN_RECEIVER_HASH");
+            isToAddrCompatible = (retval == TOKEN_RECEIVER_HASH);
         }
     }
 
@@ -263,9 +263,9 @@ contract HCAT721_AssetToken_Test is SupportsInterface {//ERC721ITF_Test,
             require(RegistryITF_Test(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType), "[Registry Compliance] isFundingApproved() failed");
 
             if (_to.isContract()) {//also checks for none zero address
-                bytes4 retval = ERC721TokenReceiverITF_Test(_to).HCAT_TokenReceiver(
+                bytes4 retval = ERC721TokenReceiverITF_Test(_to).tokenReceiver(
                     msg.sender, address(this), 1);
-                require(retval == HCAT_TOKEN_RECEIVER_HASH, "retval should be HCAT_TOKEN_RECEIVER_HASH");
+                require(retval == TOKEN_RECEIVER_HASH, "retval should be TOKEN_RECEIVER_HASH");
             }
         }
 
@@ -319,9 +319,9 @@ contract HCAT721_AssetToken_Test is SupportsInterface {//ERC721ITF_Test,
 
         if(isNormalModeEnabled){
             if (_to.isContract()) {
-                bytes4 retval = ERC721TokenReceiverITF_Test(_to).HCAT_TokenReceiver(
+                bytes4 retval = ERC721TokenReceiverITF_Test(_to).tokenReceiver(
                     msg.sender, _from, 1);
-                require(retval == HCAT_TOKEN_RECEIVER_HASH, "retval should be HCAT_TOKEN_RECEIVER_HASH");
+                require(retval == TOKEN_RECEIVER_HASH, "retval should be TOKEN_RECEIVER_HASH");
             }
 
             require(TokenControllerITF_Test(addrTokenController).isTokenApprovedOperational(),'token cannot be transferred due to either unlock period or after valid date');

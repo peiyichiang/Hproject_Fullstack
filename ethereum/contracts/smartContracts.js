@@ -128,7 +128,7 @@ const checkSafeTransferFromBatch = async(assetIndex, addrHCAT721, fromAssetbook,
       } else if(!boolArray[1]){
         mesg += ', toAddr has no contract';
       } else if(!boolArray[2]){
-        mesg += ', toAddr has no HCAT_TokenReceiver()';
+        mesg += ', toAddr has no tokenReceiver()';
       } else if(!boolArray[3]){
         mesg += ', amount =< 0';
       } else if(!boolArray[4]){

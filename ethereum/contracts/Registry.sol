@@ -3,7 +3,7 @@ pragma solidity ^0.5.4;
 //deploy parameters: none
 import "./SafeMath.sol";
 
-interface HeliumITF_Reg{
+interface Helium_Interface_RGC{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
 }
 
@@ -68,6 +68,14 @@ contract Registry {
         boolArray[0] = _addrHelium.isContract();
         boolArray[1] = bytes(currencyType).length > 2;
     }
+    function getRegistryDetails() public view returns(
+        uint userCindex_, string memory currencyType_,
+        bool isAfterDeployment_, address addrHelium_) {
+        userCindex_ = userCindex;
+        currencyType_ = currencyType;
+        isAfterDeployment_ = isAfterDeployment;
+        addrHelium_ = addrHelium;
+    }
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
 1 Natural person: 0, 0; UnLTD, UnLTD;
@@ -78,14 +86,14 @@ authLevel & STO investor classification on purchase amount and holding balance r
 */
 
     modifier onlyCustomerService() {
-        require(HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+        require(Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         _;
     }
     function setAddrHelium(address _addrHelium) external onlyCustomerService{
         addrHelium = _addrHelium;
     }
     function checkCustomerServiceFromReg() external view returns (bool){
-        return (HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender));
+        return (Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender));
     }
 
 
@@ -117,7 +125,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     /**@dev add user with his user Id(uid), asset contract address(assetbookAddr) */
     function checkAddSetUser(string calldata uid, address assetbookAddr, uint authLevel) external view returns(bool[] memory boolArray) {
         boolArray = new bool[](7);
-        boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+        boolArray[0] = Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender);
         //ckUidLength(uid)
         boolArray[1] = bytes(uid).length > 0;
         boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
@@ -214,7 +222,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
         uint maxBalancePublic, uint maxBuyAmountPrivate,
         uint maxBalancePrivate) public {
         if(isAfterDeployment) {
-            require(HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+            require(Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         }
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;

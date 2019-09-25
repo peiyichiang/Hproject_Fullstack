@@ -6,23 +6,10 @@ interface Helium_Interface_HCAT{
 }
 
 /*An application MUST implement the wallet interface if it will accept safe transfers. $dev Note: the ERC-165 identifier for this interface is 0x18b6fc3b.*/
-interface HCATTokenReceiver_Interface {
-    function HCAT_TokenReceiver(address _eoa, address _from, uint256 _tokenId) external pure returns(bytes4);
+interface TokenReceiver_Interface {
+    function tokenReceiver(address _from, address _to, uint256 _tokenId) external pure returns(bytes4);
 }
 
-//supportsInterface[0x01ffc9a7] will be true, must not set element 0xffffffff to true!!!!!
-interface ERC165ITF {
-  function supportsInterface(bytes4 _interfaceID) external view returns (bool);
-}
-contract SupportsInterface is ERC165ITF {
-    mapping(bytes4 => bool) internal supportedInterfaces;
-    constructor() public {
-        supportedInterfaces[0x01ffc9a7] = true; // ERC165ITF, must not set element 0xffffffff to true!!!!!
-    }
-    function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
-        return supportedInterfaces[_interfaceID];
-    }
-}
 
 //Registry_Interface_HCAT(addrRegistry).isAddrApproved(_to);
 interface Registry_Interface_HCAT {
@@ -31,19 +18,16 @@ interface Registry_Interface_HCAT {
         address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance);
 }
 interface ProductManager_Interface_HCAT {
-    function isSettlementContract(address _addrSettlement) external view returns (bool);
-}//ProductManager_Interface_HCAT(addrProductManager).isSettlementContract[_from]
+    function isSettlementApproved(address _addrSettlement) external view returns (bool);
+}//ProductManager_Interface_HCAT(addrProductManager).isSettlementApproved[_from]
 
-interface Settlement_Interface_HCAT {
-    function settlementTokenReceiver(address _eoa, address _from, uint256 _tokenId) external pure returns(bytes4);
-}
-interface TokenControllerITF {
+interface TokenController_Interface_HCAT {
     function isTokenApprovedOperational() external view returns (bool);
 }
 
 
 //------------------------HCAT721: Helium Cryptic Asset Token
-contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
+contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
     using SafeMath for uint256;
     using AddressUtils for address;
     address public addrHelium;
@@ -84,11 +68,6 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
     address public addrProductManager;
     address public addrSettlement;
 
-    bytes4 constant HCAT_TOKEN_RECEIVER_HASH = 0x18b6fc3b;
-    // Equals to `bytes4(keccak256(abi.encodePacked("HCAT_TokenReceiver(address,address,uint256)")))` ... which can be also obtained as `IERC721Receiver(0).HCAT_TokenReceiver.selector`
-    bytes4 constant SETTLEMENT_HASH = 0x713ad5d8;
-    // Equals to `bytes4(keccak256(abi.encodePacked("settlementTokenReceiver(address,address,uint256)")))`
-
 
     /** Contract code size over limit of 24576 bytes.
     0x0348538441, 0x0348538441, 300, 5000, 19000, 0x0348538441, 470, "0x0dcd2f752394c41875e259e00bb44fd505297caf",
@@ -113,9 +92,6 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         addrTokenController = _addrTokenController;
         addrHelium = _addrHelium;
         TimeOfDeployment = _TimeOfDeployment;
-        supportedInterfaces[0x80ac58cd] = true;// ERC721ITF
-        supportedInterfaces[0x5b5e139f] = true;// ERC721Metadata
-        supportedInterfaces[0x780e9d63] = true;// ERC721Enumerable
     }
     function checkDeploymentConditions(
         bytes32 _nftName, bytes32 _nftSymbol,
@@ -318,8 +294,8 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         uintArray = new uint[](3);
 
         boolArray[0] = _to.isContract();
-        boolArray[1] = HCATTokenReceiver_Interface(_to).HCAT_TokenReceiver(
-        msg.sender, address(this), 1) == HCAT_TOKEN_RECEIVER_HASH;
+        boolArray[1] = TokenReceiver_Interface(_to).tokenReceiver(
+        msg.sender, address(this), 1) == TOKEN_RECEIVER_HASH;
         boolArray[2] = amount > 0;
         boolArray[3] = price > 0;
         boolArray[4] = fundingType > 0;
@@ -337,9 +313,10 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
     function mintSerialNFT(address _to, uint amount, uint price, uint fundingType, uint serverTime) public onlyPlatformSupervisor{
 
-        checkToAddress(msg.sender, address(this), _to);
+        checkToAddressRequire(address(this), _to, 1);
 
         require(Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
+
         (bool isOkBuyAmount, bool isOkBalanceNew,
         , ,) = Registry_Interface_HCAT(addrRegistry).isFundingApproved(_to, amount.mul(price), balanceOf(_to).mul(price), fundingType);
 
@@ -383,23 +360,59 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
 
 
     //---------------------------==Transfer
+    bytes4 constant TOKEN_RECEIVER_HASH = 0x79830ac6;
+    // Equals to `bytes4(keccak256(abi.encodePacked("tokenReceiver(address,address,uint256)")))` ... which can be also obtained as `IERC721Receiver(0).tokenReceiver.selector`
+
+
+    //checkToAddress(_from, _to, _tokenId);
+    function checkToAddress(address _from, address _to, uint256 _tokenId)
+    public view returns(bool isFromToDiff, bool isToHavingCtrt, bool isTokenReceiverHash, bool isTokenOperational){
+        isFromToDiff = _from != _to;
+        isToHavingCtrt = _to.isContract();
+
+        if (isToHavingCtrt) {//also checks for none zero address
+            bytes4 returnedHash = TokenReceiver_Interface(_to).tokenReceiver(
+                _from, _to, _tokenId);
+            isTokenReceiverHash = returnedHash == TOKEN_RECEIVER_HASH;
+        }
+        isTokenOperational = TokenController_Interface_HCAT(addrTokenController).isTokenApprovedOperational();
+    }
+    function checkToAddressRequire(address _from, address _to, uint256 _tokenId)
+    public {
+        (bool isFromToDiff, bool isToHavingCtrt, bool isTokenReceiverHash, bool isTokenOperational) = checkToAddress(_from, _to, _tokenId);
+        require(isFromToDiff, "_from should not be equal to _to");
+        require(isToHavingCtrt, "_to should contain a contract");
+        require(isTokenReceiverHash, "returnedHash should be TOKEN_RECEIVER_HASH");
+        require(isTokenOperational, "either in unlock period or after valid date");
+    }
+    function getFirstFromAddrTokenId(
+        address _from) public view returns(uint tokenId_) {
+        uint idxStartFrom = accounts[_from].idxStart;
+        tokenId_ = accounts[_from].indexToId[idxStartFrom];
+    }
     function checkSafeTransferFromBatch(
-        address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray) {
+        address _from, address _to, uint amount, uint price, uint serverTime) public view returns(bool[] memory boolArray) {
         boolArray = new bool[](12);
 
+        uint firstFromAddrTokenId = getFirstFromAddrTokenId(_from);
+
+        (bool isFromToDiff, bool isToHavingCtrt, bool isTokenReceiverHash,
+        bool isTokenOperational) = checkToAddress(_from,_to, firstFromAddrTokenId);
+
         boolArray[0] = _from.isContract();
-        boolArray[1] = _to.isContract();
-        boolArray[2] = HCATTokenReceiver_Interface(_to).HCAT_TokenReceiver(
-        msg.sender, _from, 1) == HCAT_TOKEN_RECEIVER_HASH;
+        boolArray[1] = isToHavingCtrt;
+        boolArray[2] = isTokenReceiverHash;
         boolArray[3] = amount > 0;
         boolArray[4] = price > 0;
-        boolArray[5] = _from != _to;
+        boolArray[5] = isFromToDiff;
         boolArray[6] = serverTime > TimeOfDeployment;
-        boolArray[7] = TokenControllerITF(addrTokenController).isTokenApprovedOperational();
+        boolArray[7] = isTokenOperational;
         boolArray[8] = Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_to);
         boolArray[9] = Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_from);
         boolArray[10] = balanceOf(_from) >= amount;
-        boolArray[11] = accounts[_from].allowed[msg.sender] >= amount;
+
+        address tokenOwner = idToAsset[firstFromAddrTokenId].owner;
+        boolArray[11] = (tokenOwner == msg.sender || accounts[_from].allowed[msg.sender] >= amount);
 
         /*
         uint allowedAmount = accounts[_from].allowed[msg.sender];
@@ -417,7 +430,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             } else if (allowedAmount > 0){
                 allowedAmount = allowedAmount.sub(1);
             } else {
-                revert("msg.sender is not tokenOwner, or a token caller does not have enough allowed amount");
+                revert("msg.sender or allowance is not valid");//msg.sender is not tokenOwner, or a token caller does not have enough allowed amount
             }
             // require(
             // tokenOwner == msg.sender ||
@@ -431,66 +444,37 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         }*/
     }
 
-    //checkToAddress(_eoa, _from, _to);
-    function checkToAddress(address _eoa, address _from, address _to) public view {
-        require(_from != _to, "_from should not be equal to _to");
-        if (_to.isContract()) {//also checks for none zero address
-            bytes4 retval = HCATTokenReceiver_Interface(_to).HCAT_TokenReceiver(
-                _eoa, _from, 1);
-            require(retval == HCAT_TOKEN_RECEIVER_HASH, "retval should be HCAT_TOKEN_RECEIVER_HASH");
-        }
 
-        require(
-            TokenControllerITF(addrTokenController).isTokenApprovedOperational(),
-            "token cannot be transferred due to either unlock period or after valid date");
+
+    function checkSendTokenToSettlementById(
+        address _from, address _to, uint _tokenId) external view returns(bool[] memory boolArray) {
+        boolArray = new bool[](12);
+
+        boolArray[0] = _from.isContract();
+        boolArray[1] = _to.isContract();
+        boolArray[2] = TokenReceiver_Interface(_to).tokenReceiver(
+        msg.sender, _from, 1) == TOKEN_RECEIVER_HASH;
+        boolArray[5] = _from != _to;
+        boolArray[7] = TokenController_Interface_HCAT(addrTokenController).isTokenApprovedOperational();
+        boolArray[8] = Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_to);
+        boolArray[9] = Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_from);
+        boolArray[10] = balanceOf(_from) >= amount;
+
+        uint idxFrom = accounts[_from].idxStart;
+        uint tokenId_ = accounts[_from].indexToId[idxFrom];
+        address tokenOwner = idToAsset[tokenId_].owner;
+        boolArray[11] = (tokenOwner == msg.sender || accounts[_from].allowed[msg.sender] >= amount);
     }
-
-    event ReceiveTokenFromSettlement(address _to, uint _tokenId);
-    function receiveTokenFromSettlement(address _from, address _to, uint _tokenId) external {
-
-        checkToAddress(msg.sender, _from, _to);
-
-        //Legal Compliance
-        require(ProductManager_Interface_HCAT(addrProductManager).isSettlementContract(_from), "_from is not in compliance");
-
-        require(Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
-
-
-        require(idToAsset[_tokenId].owner == _from, "tokenOwner should be _from");
-
-        uint idxEndTo = accounts[_to].idxEnd;
-        //uint idxStartT = accounts[_to].idxStart;
-        accounts[_to].idxEnd = idxEndTo.add(1);
-        accounts[_to].indexToId[idxEndTo.add(1)] = _tokenId;
-
-        if(!isOwnerAdded[_to]){
-            ownerCindex = ownerCindex.add(1);
-            idxToOwner[ownerCindex] = _to;
-            isOwnerAdded[_to] = true;
-        }
-        idToAsset[_tokenId].owner = _to;
-        emit ReceiveTokenFromSettlement(_to, _tokenId);
-    }
-
 
     event SendTokenToSettlementById(address _from, address _to, uint _tokenId);
-    function sendTokenToSettlementById(address _from, address _to, uint _tokenId) public {
+    function sendTokenToSettlementById(address _from, address _to, uint _tokenId) external {
 
-        require(_from != _to, "_from should not be equal to _to");
-
-        if (_to.isContract()) {//also checks for none zero address
-            bytes4 retval = Settlement_Interface_HCAT(_to).settlementTokenReceiver(msg.sender, _from, _tokenId);
-            require(retval == SETTLEMENT_HASH, "retval should be SETTLEMENT_HASH");
-        }
-        /*require(
-            TokenControllerITF(addrTokenController).isTokenApprovedOperational(),
-            "token cannot be transferred due to either unlock period or after valid date");
-        */
+        checkToAddressRequire(_from, _to, _tokenId);
 
         //Legal Compliance
         require(Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_from), "_from is not in compliance");
 
-        require(ProductManager_Interface_HCAT(addrProductManager).isSettlementContract(_to), "_to is not in compliance");
+        require(ProductManager_Interface_HCAT(addrProductManager).isSettlementApproved(_to), "_to is not isSettlementApproved");
 
         require(idToAsset[tokenId].owner == _from, "tokenOwner should be _from");
 
@@ -523,6 +507,34 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         //DB saves tokenIds
     }
 
+    event SendTokenFromSettlement(address _from, address _to, uint _tokenId);
+    function sendTokenFromSettlement(address _from, address _to, uint _tokenId) external {
+
+        checkToAddressRequire(_from, _to, _tokenId);
+
+        //Legal Compliance
+        require(ProductManager_Interface_HCAT(addrProductManager).isSettlementApproved(_from), "_from is not isSettlementApproved");
+
+        require(Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
+
+
+        require(idToAsset[_tokenId].owner == _from, "tokenOwner should be _from");
+
+        uint idxEndTo = accounts[_to].idxEnd;
+        //uint idxStartT = accounts[_to].idxStart;
+        accounts[_to].idxEnd = idxEndTo.add(1);
+        accounts[_to].indexToId[idxEndTo.add(1)] = _tokenId;
+
+        if(!isOwnerAdded[_to]){
+            ownerCindex = ownerCindex.add(1);
+            idxToOwner[ownerCindex] = _to;
+            isOwnerAdded[_to] = true;
+        }
+        idToAsset[_tokenId].owner = _to;
+        emit SendTokenFromSettlement(_from, _to, _tokenId);
+    }
+
+
     function setAddrProductManager(address _addrProductManager) external onlyPlatformSupervisor{
         addrProductManager = _addrProductManager;
     }
@@ -538,7 +550,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
         require(amount > 0, "amount should be > 0");
         require(price > 0, "price should be > 0");
 
-        checkToAddress(msg.sender, _from, _to);
+        checkToAddressRequire(_from, _to, 1);
 
         //Legal Compliance
         require(Registry_Interface_HCAT(addrRegistry).isAssetbookApproved(_to), "_to is not in compliance");
@@ -599,7 +611,7 @@ contract HCAT721_AssetToken is SupportsInterface {//ERC721ITF,
             } else if (allowedAmount > 0){
                 allowedAmount = allowedAmount.sub(1);
             } else {
-                revert("msg.sender is not valid");//tokenOwner, or a token caller does not have enough allowed amount
+                revert("msg.sender or allowance is not valid");//msg.sender is not tokenOwner, or a token caller does not have enough allowed amount
             }
             // require(
             // tokenOwner == msg.sender ||

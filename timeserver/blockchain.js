@@ -465,19 +465,32 @@ const checkDeploymentCFC = async(crowdFundingAddr, argsCrowdFunding) => {
 
       if(boolArray.includes(false)){
         console.log('[Failed] Some/one check(s) have/has failed checkDeploymentConditions()');
+        const boolArray2 = await instCrowdFunding.methods.getCrowdfundingDetails().call();
+        if(boolArray2.length !== 11){
+          console.error('getCrowdfundingDetails boolArray2.length is not valid');
+          reject(false);
+          return false;
+        }
+        const TimeOfDeployment = boolArray2[0];
+        const maxTokenQtyForEachInvestmentFund = boolArray2[1];
+        const tokenSymbol = boolArray2[2];
+        const pricingCurrency = boolArray2[3];
+        const initialAssetPricing = boolArray2[4];
+        const maxTotalSupply = boolArray2[5];
+        const quantityGoal = boolArray2[6];
+        const quantitySold = boolArray2[7];
+        const CFSD = boolArray2[8];
+        const CFED = boolArray2[9];
+        const addrHelium = boolArray2[10];
 
-        const initialAssetPricing = await instCrowdFunding.methods.initialAssetPricing().call();
-        const maxTotalSupply = await instCrowdFunding.methods.maxTotalSupply().call();
-        const quantityGoal = await instCrowdFunding.methods.quantityGoal().call();
-        const TimeOfDeployment = await instCrowdFunding.methods.TimeOfDeployment().call();
-        const CFSD = await instCrowdFunding.methods.CFSD().call();
-        const CFED = await instCrowdFunding.methods.CFED().call();
-        const tokenSymbol = await instCrowdFunding.methods.tokenSymbol().call();
-        const pricingCurrency = await instCrowdFunding.methods.pricingCurrency().call();
-        const addrHelium = await instCrowdFunding.methods.addrHelium().call();
+        console.log(`\n===>>> TimeOfDeployment: ${TimeOfDeployment}, maxTokenQtyForEachInvestmentFund: ${maxTokenQtyForEachInvestmentFund}, tokenSymbol: ${tokenSymbol}, pricingCurrency: ${pricingCurrency}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, quantityGoal: ${quantityGoal}, quantitySold: ${quantitySold}, CFSD: ${CFSD}, CFED: ${CFED}, addrHelium: ${addrHelium}`);
 
-        console.log(`\n===>>> initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, quantityGoal: ${quantityGoal}, TimeOfDeployment: ${TimeOfDeployment}, CFSD: ${CFSD}, CFED: ${CFED}, tokenSymbol: ${tokenSymbol}, pricingCurrency: ${pricingCurrency}, addrHelium: ${addrHelium}`);
-
+        if(boolArray.length !== 8){
+          console.error('checkDeploymentConditions boolArray.length is not valid');
+          reject(false);
+          return false;
+        }
+ 
         let mesg = '';
         if(!boolArray[0]){
           mesg += ', [0] initialAssetPricing has to be > 0';
@@ -644,6 +657,12 @@ const checkDeploymentTCC = async(tokenControllerAddr, argsTokenController) => {
 
         console.log(`\n===>>> TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
 
+        if(boolArray.length !== 4){
+          console.error('checkDeploymentConditions boolArray.length is not valid');
+          reject(false);
+          return false;
+        }
+  
         let mesg = '';
         if(!boolArray[0]){
           mesg += ', [0] TimeOfDeployment should be > 201905281400';
@@ -820,6 +839,12 @@ const checkDeploymentHCAT = async(tokenCtrtAddr, argsHCAT721) => {
 
         console.log(`\n===>>> TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
 
+        if(boolArray.length !== 12){
+          console.error('checkDeploymentConditions boolArray.length is not valid');
+          reject(false);
+          return false;
+        }
+  
         let mesg = '';
         if(!boolArray[0]){
           mesg += ', [0] tokenName should not be empty';
@@ -922,18 +947,23 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
     console.log('\n--------==inside getTokenContractDetails()');
     try{
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
-      const tokenContractDetails = await instHCAT721.methods.getTokenContractDetails().call();
-      //console.log('tokenContractDetails:', tokenContractDetails);
-      const tokenId = tokenContractDetails[0];
-      const siteSizeInKW = tokenContractDetails[1];
-      const maxTotalSupply = tokenContractDetails[2];
-      const totalSupply = tokenContractDetails[3];
-      const initialAssetPricing = tokenContractDetails[4];
-      const pricingCurrency = web3.utils.toAscii(tokenContractDetails[5]);
-      const IRR20yrx100 = tokenContractDetails[6];
-      const name = web3.utils.toAscii(tokenContractDetails[7]);
-      const tokenSymbol = web3.utils.toAscii(tokenContractDetails[8]);
-      const tokenURI = web3.utils.toAscii(tokenContractDetails[9]);
+      const boolArray = await instHCAT721.methods.getTokenContractDetails().call();
+      //console.log('tokenContractDetails:', boolArray);
+      if(boolArray.length !== 10){
+        console.error('getTokenContractDetails boolArray.length is not valid');
+        reject(false);
+        return false;
+      }
+      const tokenId = boolArray[0];
+      const siteSizeInKW = boolArray[1];
+      const maxTotalSupply = boolArray[2];
+      const totalSupply = boolArray[3];
+      const initialAssetPricing = boolArray[4];
+      const pricingCurrency = web3.utils.toAscii(boolArray[5]);
+      const IRR20yrx100 = boolArray[6];
+      const name = web3.utils.toAscii(boolArray[7]);
+      const tokenSymbol = web3.utils.toAscii(boolArray[8]);
+      const tokenURI = web3.utils.toAscii(boolArray[9]);
 
       console.log(`getTokenContractDetails()... tokenSymbol: ${tokenSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}`);
       resolve([tokenSymbol, siteSizeInKW, maxTotalSupply, pricingCurrency, IRR20yrx100]);
@@ -983,14 +1013,19 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
     console.log(`---------------==\nsetTokenController()`);
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
-    tokenControllerDetail = await instTokenController.methods.getHTokenControllerDetails().call();
-    timeAtDeployment = tokenControllerDetail[0];
-    TimeUnlockM = tokenControllerDetail[1];
-    TimeValidM = tokenControllerDetail[2];
-    isLockedForRelease = tokenControllerDetail[3];
-    isTokenApproved = tokenControllerDetail[4];
+    boolArray = await instTokenController.methods.getHTokenControllerDetails().call();
+    if(boolArray.length !== 5){
+      console.error('getHTokenControllerDetails boolArray.length is not valid');
+      reject(false);
+      return false;
+    }
+    timeAtDeployment = boolArray[0];
+    TimeUnlockM = boolArray[1];
+    TimeValidM = boolArray[2];
+    isLockedForRelease = boolArray[3];
+    isTokenApproved = boolArray[4];
     console.log('\ntimeAtDeployment:', timeAtDeployment, ', TimeUnlockM:', TimeUnlockM, ', TimeValidM:', TimeValidM, ', isLockedForRelease:', isLockedForRelease, ', isTokenApproved:', isTokenApproved);
-    console.log('\ntokenControllerDetail:', tokenControllerDetail);
+    console.log('\ntokenControllerDetail:', boolArray);
 
     console.log('tokenControllerCtrtAddr:', tokenControllerCtrtAddr);
     let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
@@ -1138,9 +1173,14 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
       const IncomeManager_Addr = instIncomeManager.options.address
       console.log(`const addrIncomeManager = ${IncomeManager_Addr}`);
   
-      const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
-      console.log('checkDeploymentConditions():', result);
-      const isGood = !(result.includes(false));
+      const boolArray = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
+      console.log('checkDeploymentConditions():', boolArray);
+      if(boolArray.length !== 3){
+        console.error('checkDeploymentConditions boolArray.length is not valid');
+        reject(false);
+        return false;
+      }
+      const isGood = !(boolArray.includes(false));
       if(isGood){
         console.log('[Failed] Some/one check(s) have/has failed');
       } else {
@@ -1201,6 +1241,7 @@ const checkDeploymentIncomeManager = async(IncomeManager_Addr, argsIncomeManager
     const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, IncomeManager_Addr);
     const result = await instIncomeManager.methods.checkDeploymentConditions(...argsIncomeManager).call();
     console.log('checkDeploymentConditions():', result);
+
     if(result.includes(false)){
       console.log('[Failed] Some/one check(s) have/has failed');
       resolve(false);
@@ -1495,7 +1536,7 @@ const sequentialCheckBalancesAfter = async (addressArray, amountArray, tokenCtrt
 
 const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, serverTime) => {
   return new Promise( async ( resolve, reject ) => {
-    const isAssetbookGood = await checkAssetbook(toAddress).catch(async(err) => {
+    const isAssetbookGood = await tokenReceiver(toAddress).catch(async(err) => {
       console.log(`${err} \ncheckAssetbook() failed...`);
       reject(false);
       return false;
@@ -1506,6 +1547,12 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
       console.log('\nresult', result);
       const uintArray = result[1];
       const boolArray = result[0];
+
+      if(boolArray.length !== 11){
+        console.error('[Error] checkMintSerialNFT boolArray.length is not valid');
+        reject(false);
+        return false;
+      }
 
       let mesg = '';
       if(boolArray.every(checkBoolTrueArray)){
@@ -1543,6 +1590,9 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
         } 
         if(!boolArray[9]){
           mesg += ', [9] Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
+        }
+        if(!boolArray[10]){
+          mesg += ', [10] Registry.isAssetbookApproved false';
         }
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
@@ -2212,7 +2262,7 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
     await asyncForEach(userIDs, async (userId, idx) => {
       const assetbookX = assetbooks[idx];
       console.log(`\n--------==Check: ${userId} ${typeof userId} ${authLevels[idx]} ${typeof authLevels[idx]} \n${assetbookX} ${typeof assetbookX}`);
-      const checkArray = await instRegistry.methods.checkAddSetUser(userId, assetbookX, authLevels[idx]).call({from: backendAddr});
+      const boolArray = await instRegistry.methods.checkAddSetUser(userId, assetbookX, authLevels[idx]).call({from: backendAddr});
       /**
           boolArray[0] = HeliumITF_Reg(HeliumCtrtAddr).checkCustomerService(msg.sender);
           //ckUidLength(uid)
@@ -2225,10 +2275,14 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
           boolArray[5] = uidToAssetbook[uid] == address(0);
           boolArray[6] = authLevel > 0 && authLevel < 10;
        */
-      console.log('checkArray:', checkArray);
-  
-      if(checkArray[0] && checkArray[1] && checkArray[2] && checkArray[3] && checkArray[4] && checkArray[6]){
-        if(checkArray[5]){
+      console.log('boolArray:', boolArray);
+      if(boolArray.length !== 7){
+        console.error('checkAddSetUser boolArray.length is not valid');
+        reject(false);
+        return false;
+      }
+      if(boolArray[0] && boolArray[1] && boolArray[2] && boolArray[3] && boolArray[4] && boolArray[6]){
+        if(boolArray[5]){
           console.log(`\n--------==this userId has not been added into RegistryCtrt yet... \n--------==AddUser(): idx: ${idx}, userId: ${userId}, assetBookAddr: ${assetbookX}, authLevel: ${authLevels[idx]}`);
           const encodedData = instRegistry.methods.addUser(userId, assetbookX, authLevels[idx]).encodeABI();
           let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryCtrtAddr, encodedData);
@@ -2247,8 +2301,8 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
           console.log(`this uid ${userId} has already been added. 
 Skipping this uid...`)
         }
-      } else if(!checkArray[4]){
-        const isAssetbookGood = await checkAssetbook(assetbookX).catch(async(err) => {
+      } else if(!boolArray[4]){
+        const isAssetbookGood = await tokenReceiver(assetbookX).catch(async(err) => {
           console.log(`${err} \ncheckAssetbook() failed...`);
           reject(false);
           return false;
@@ -2474,9 +2528,9 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
 }
 
 
-const checkAssetbook = async(addrAssetbookX) => {
+const tokenReceiver = async(addrAssetbookX) => {
   return new Promise( async ( resolve, reject ) => {
-    console.log('-----------==inside checkAssetbook()');
+    console.log('-----------==inside tokenReceiver()');
     try{
       const instAssetbook = new web3.eth.Contract(AssetBook.abi, addrAssetbookX);
       const assetOwnerM = await instAssetbook.methods.assetOwner().call();
@@ -2490,11 +2544,11 @@ const checkAssetbook = async(addrAssetbookX) => {
   balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
   console.log('tokenIds from HCAT721 =', tokenIds, ', balanceXM =', balanceXM);
        */
-      console.log(`checkAssetbook()... \nassetOwnerM: ${assetOwnerM}
+      console.log(`tokenReceiver()... \nassetOwnerM: ${assetOwnerM}
 lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
       resolve([true, assetOwnerM, lastLoginTimeM, assetCindexM]);
     } catch(err) {
-      console.log(`[Error] checkAssetbook() failed at addrAssetbookX: ${err} ${addrAssetbookX} <===================================`);
+      console.log(`[Error] tokenReceiver() failed at addrAssetbookX: ${err} ${addrAssetbookX} <===================================`);
       resolve([false, undefined, undefined, undefined]);
     }
   });
@@ -2504,8 +2558,8 @@ const checkAssetbookArray = async(addrAssetbookArray) => {
     console.log('-----------==inside checkAssetbookArray()');
     const checkResult = [];
     await asyncForEach(addrAssetbookArray, async(addrAssetbookX,index) => {
-      const [isGood, assetOwnerM, lastLoginTimeM, assetCindexM] = await checkAssetbook(addrAssetbookX).catch(async(err) => {
-        console.log(`checkAssetbook result: ${err}, checkAssetbookArray() > checkAssetbook() failed at addrAssetbookX: ${addrAssetbookX}`);
+      const [isGood, assetOwnerM, lastLoginTimeM, assetCindexM] = await tokenReceiver(addrAssetbookX).catch(async(err) => {
+        console.log(`tokenReceiver result: ${err}, checkAssetbookArray() > tokenReceiver() failed at addrAssetbookX: ${addrAssetbookX}`);
       });
       if(isGood){
         checkResult.push(isGood)
@@ -2538,43 +2592,48 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
     console.log('Please manually check if above data is correct.\nIf yes, then the crowdfunding contract is good');
     
     console.log('\ncheckInvest2');
-    const isAssetbookGood = await checkAssetbook(addrAssetbook).catch(async(err) => {
+    const isAssetbookGood = await tokenReceiver(addrAssetbook).catch(async(err) => {
       console.log(`${err} \ncheckAssetbook() failed...`);
       reject(false);
       return false;
     });
     if(isAssetbookGood){
       console.log(`tokenSymbol: ${tokenSymbol}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, fundingType: ${fundingType}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
-      const resultArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
-      console.log('\ncheckInvestFunction resultArray:', resultArray);
-    
+      const boolArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr });
+      console.log('\ncheckInvestFunction boolArray:', boolArray);
+
+      if(boolArray.length !== 9){
+        console.error('checkInvest boolArray.length is not valid');
+        reject(false);
+        return false;
+      }
       let mesg = 'found error: ', CFSD_M, CFED_M;
-      if(resultArray.includes(false)){
-        if(!resultArray[0]){
+      if(boolArray.includes(false)){
+        if(!boolArray[0]){
           mesg += ', [0] serverTime '+serverTime+' should be >= CFSD '+CFSD;
         }
-        if(!resultArray[1]){
+        if(!boolArray[1]){
           mesg += ', [1] serverTime '+serverTime+' should be < CFED '+CFED;
         }
-        if(!resultArray[2]){
+        if(!boolArray[2]){
           mesg += ', [2] sender should be a PlatformSupervisor';
         }
-        if(!resultArray[3]){
+        if(!boolArray[3]){
           mesg += ', [3] addrAssetbook should be a contract';
         }
-        if(!resultArray[4]){
+        if(!boolArray[4]){
           mesg += ', [4] addrAssetbook should pass onERC721Received()';
         }
-        if(!resultArray[5]){
+        if(!boolArray[5]){
           mesg += ', [5] quantityToInvest should be > 0';
         }
-        if(!resultArray[6]){
+        if(!boolArray[6]){
           mesg += ', [6] quantityToInvest should be <= maxTotalSupply';
         }
-        if(!resultArray[7]){
+        if(!boolArray[7]){
           mesg += ', [7] serverTime should be > TimeOfDeployment';
         }
-        if(!resultArray[8]){
+        if(!boolArray[8]){
           mesg += ', [8] fundingState should be either initial, funding, or fundingGoalReached';
         }
         if(mesg.substring(0,2) === ', '){
@@ -2589,7 +2648,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
         resolve(true);
       }
     } else {
-      console.log(`checkAssetbook() returned false`);
+      console.log(`tokenReceiver() returned false`);
       resolve(false);
     }
   });
@@ -2819,6 +2878,30 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
 
 //---------------------------==Income Manager contract 
 //---------------------------==
+const getIncomeManagerDetails = async(addrIncomeManager) => {
+  return new Promise( async ( resolve, reject ) => {
+    console.log('\n-------==getIncomeManagerDetails()');
+    const instIncomeManager = new web3.eth.Contract(IncomeManager.abi, addrIncomeManager);
+    const boolArray = await instIncomeManager.methods.getIncomeManagerDetails().call();
+
+    if(boolArray.length !== 5){
+      console.error('getIncomeManagerDetails boolArray.length is not valid');
+      reject([undefined, undefined, undefined, undefined, undefined]);
+      return false;
+    }
+    //console.log('getIncomeManagerDetails:', getIncomeManagerDetails);
+    const addrTokenCtrt = result[0];
+    const addrHelium = result[1];
+    const TimeOfDeployment = result[2];
+    const schCindex = result[3];
+    const paymentCount = result[4];
+
+    console.log(`getIncomeManagerDetails()... addrTokenCtrt: ${addrTokenCtrt}, addrHelium: ${addrHelium}, TimeOfDeployment: ${TimeOfDeployment}, schCindex: ${schCindex}, paymentCount: ${paymentCount}`);
+    resolve([addrTokenCtrt, addrHelium, TimeOfDeployment, schCindex, paymentCount]);
+  });
+}
+
+
 const get_schCindex = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     //console.log('\n-------------==inside get_schCindex()');
@@ -3309,25 +3392,29 @@ const checkIsContract = async(addrAssetBook, assetAddr) => {
 
 
 const getAssetbookDetails = async(addrAssetBook) => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise( async ( resolve, reject ) => {
     console.log('\n-------==getAssetbookDetails()');
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
-    const result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    result[0] = await instAssetBook.methods.assetOwner().call();
-    result[1] = await instAssetBook.methods.addrHeliumContract().call();
-    result[2] = await instAssetBook.methods.lastLoginTime().call();
-    result[3] = await instAssetBook.methods.antiPlatformOverrideDays().call();
-    result[4] = await instAssetBook.methods.checkAssetOwner().call();
-    result[5] = await instAssetBook.methods.checkCustomerService().call({from: backendAddr});
+    const boolArray = await instAssetBook.methods.getAssetbookDetails().call();
+    if(boolArray.length !== 10){
+      console.error('checkInvest boolArray.length is not valid');
+      reject([undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
+      return false;
+    }
+    //console.log('getAssetbookDetails:', getAssetbookDetails);
+    const assetOwner = result[0];
+    const addrHeliumContract = result[1];
+    const lastLoginTime = result[2];
+    const antiPlatformOverrideDays = result[3];
+    const assetOwner_flag = result[4];
+    const HeliumContract_flag = result[5];
+    const endorsers_flag = result[6];
+    const endorserCount = result[7];
+    const calculateVotes = result[8];
+    const isAblePlatformOverride = result[9];
 
-    result[6] = await instAssetBook.methods.assetOwner_flag().call();
-    result[7] = await instAssetBook.methods.HeliumContract_flag().call();
-    result[8] = await instAssetBook.methods.endorsers_flag().call();
-    result[9] = await instAssetBook.methods.calculateVotes().call();
-    result[10] = await instAssetBook.methods.endorserCount().call();
-    result[11] = await instAssetBook.methods.isAblePlatformOverride().call();
-    console.log('\nresult:', result);
-    resolve(result);
+    console.log(`getAssetbookDetails()... assetOwner: ${assetOwner}, addrHeliumContract: ${addrHeliumContract}, lastLoginTime: ${lastLoginTime}, antiPlatformOverrideDays: ${antiPlatformOverrideDays}, assetOwner_flag: ${assetOwner_flag}, HeliumContract_flag: ${HeliumContract_flag}, endorsers_flag: ${endorsers_flag}, endorserCount: ${endorserCount}, calculateVotes: ${calculateVotes}, isAblePlatformOverride: ${isAblePlatformOverride}`);
+    resolve([assetOwner, addrHeliumContract, lastLoginTime, antiPlatformOverrideDays, assetOwner_flag, HeliumContract_flag, endorsers_flag, endorserCount, calculateVotes, isAblePlatformOverride]);
   });
 }
 
@@ -3462,38 +3549,43 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
     const result = await instAssetBookFrom.methods.checkSafeTransferFromBatch(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime).call({from: _fromAssetOwner});
     console.log('\ncheckSafeTransferFromBatch result', result);
 
-    const resultArray = result[0];
+    const boolArray = result[0];
+    if(boolArray.length !== 12){
+      console.error('checkSafeTransferFromBatchFunction boolArray.length is not valid');
+      reject(false);
+      return false;
+    }
     let mesg = '';
-    if(resultArray.every(checkBoolTrueArray)){
+    if(boolArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
       resolve(mesg);
 
     } else {
-      if(!resultArray[0]){
+      if(!boolArray[0]){
         mesg += ', fromAddr has no contract';
-      } else if(!resultArray[1]){
+      } else if(!boolArray[1]){
         mesg += ', toAddr has no contract';
-      } else if(!resultArray[2]){
+      } else if(!boolArray[2]){
         mesg += ', toAddr has no onERC721Received()';
-      } else if(!resultArray[3]){
+      } else if(!boolArray[3]){
         mesg += ', amount =< 0';
-      } else if(!resultArray[4]){
+      } else if(!boolArray[4]){
         mesg += ', price =< 0';
-      } else if(!resultArray[5]){
+      } else if(!boolArray[5]){
         mesg += ', fromAddr is the same as toAddr';
-      } else if(!resultArray[6]){
+      } else if(!boolArray[6]){
         mesg += ', serverTime <= TimeOfDeployment';
-      } else if(!resultArray[7]){
+      } else if(!boolArray[7]){
         mesg += ', TokenController not approved/not operational';
-      } else if(!resultArray[8]){
+      } else if(!boolArray[8]){
         mesg += ', Registry has not approved toAddr';
-      } else if(!resultArray[9]){
+      } else if(!boolArray[9]){
         mesg += ', Registry has not approved fromAddr';
-      } else if(!resultArray[10]){
+      } else if(!boolArray[10]){
         mesg += ', balance of fromAddr is not enough to send tokens';
-      } else if(!resultArray[11]){
-        mesg += ', allowed amount from _from to caller is not enough to send tokens';
+      } else if(!boolArray[11]){
+        mesg += ', msg.sender is not tokenOwner or allowed amount given to msg.sender is not enough';
       } else if(!result[1]){
         mesg += ', assetAddr does not have contract';
       } else if(!result[2]){
@@ -3723,5 +3815,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens
 }
