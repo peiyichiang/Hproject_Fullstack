@@ -10,7 +10,7 @@ var multer = require('multer');
 const Storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const imageLocation = req.body.imageLocation;
-        cb(null, '../../../public/images/' + imageLocation);
+        cb(null, './public/images/' + imageLocation);
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname);
@@ -182,7 +182,7 @@ router.post('/send_email', function (req, res) {
         from: ' <noreply@hcat.io>', // sender address
         to: email, // list of receivers
         subject: '帳號註冊驗證信', // Subject line
-        text: `請點以下連結以完成驗證： ${process.env.SERVER_PROTOCOL}://hcat.io:${process.env.SERVER_PORT}/user/verify_email?hash=` + passwordHash, // plain text body
+        text: `請點以下連結以完成驗證： ${process.env.SERVER_PROTOCOL}://hcat.io:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=` + passwordHash, // plain text body
         // html: '<b>Hello world?</b>' // html body
     };
 
