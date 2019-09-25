@@ -105,10 +105,9 @@ app.use('/user', userRouter);
 app.use('/Order', orderRouter);
 app.use('/payment', paymentRouter);
 app.use('/Contracts', ContractsRouter);
-app.use('/incomeManagementAPI',incomeManagementRouter)
-
-
-// app.use('/users', usersRouter);
+app.use('/incomeManagementAPI', incomeManagementRouter);
+var frontendRouter = require('./api/frontend')
+app.use('/frontendAPI', frontendRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
