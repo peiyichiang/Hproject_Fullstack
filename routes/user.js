@@ -145,7 +145,7 @@ router.post('/AddUser', function (req, res, next) {
                 u_identityNumber: user.ID,
                 u_imagef: user.imageURLF,
                 u_imageb: user.imageURLB,
-                u_bankBooklet: user.bankBooklet,
+                u_bankBooklet: user.bankAccount,
                 u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
                 u_cellphone: user.phoneNumber,
