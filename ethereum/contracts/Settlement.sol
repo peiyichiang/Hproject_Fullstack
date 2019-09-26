@@ -18,7 +18,24 @@ interface ProductManager_Interface_SMC{
     function isSettlementApproved(address _addrSettlement) external view returns(bool);
 }// ProductManager_Interface_SMC(addrProductManager).isSettlementApproved[_to]
 
+interface HCAT721_Interface_SMC {
+    function balanceOf(address _owner) external view returns (uint256);
+    function ownerOf(uint256 _tokenId) external view returns (address);
+    function getAccountIds(address user, uint idxS, uint idxE) external;
 
+    function allowance(address user, address operator) external view returns (uint remaining);
+    function tokenApprove(address operator, uint amount) external;
+
+    function name() external view returns (bytes32 _name);
+    function symbol() external view returns (bytes32 _symbol);
+    function getTokenOwners(uint idStart, uint idCount) external view returns(address[] memory);
+    function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
+    function checkSafeTransferFromBatch(
+        address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray);
+
+    function sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
+    function sendTokenFromSettlement(address _from, address _to, uint _tokenId) external;
+}
 
 contract Settlement {
     using SafeMath for uint256;
@@ -44,12 +61,8 @@ contract Settlement {
         boolArray[1] = _addrProductManager.isContract();
         boolArray[2] = _addrHelium.isContract();
     }
-    function getSettlementDetails() public view returns(
-        address addrRegistry_,
-        address addrProductManager_, address addrHelium_) {
-        addrRegistry_ = addrRegistry;
-        addrProductManager_ = addrProductManager;
-        addrHelium_ = addrHelium;
+    function getSettlementDetails() public view returns(address, address, address) {
+        return (addrRegistry, addrProductManager, addrHelium);
     }
 
     bytes4 constant TOKEN_RECEIVER_HASH = 0x79830ac6;
@@ -61,7 +74,8 @@ contract Settlement {
         return TOKEN_RECEIVER_HASH;
     }
 
-    function sendTokenFromSettlement(address _from, address _to, uint tokenId) external {
+    function sendTokenFromSettlement(address _from, address _to, uint _tokenId, address assetAddr_) external {
+        HCAT721_Interface_SMC(assetAddr_).sendTokenFromSettlement(_from, _to, _tokenId);
     }
 }
 

@@ -36,33 +36,34 @@ contract Helium {
         if(management.length > 0){
             Helium_Admin = management[0];
             addPlatformSupervisor(Helium_Admin);
-            isAddrAddedArray[0] = isAddrAddedMapping[Helium_Admin];
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Admin]);
             isAddrAddedMapping[Helium_Admin] = true;
         }
         if(management.length > 1){
             Helium_Chairman = management[1];
             addPlatformSupervisor(Helium_Chairman);
-            isAddrAddedArray[1] = isAddrAddedMapping[Helium_Chairman];
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Chairman]);
             isAddrAddedMapping[Helium_Chairman] = true;
         }
         if(management.length > 2){
             Helium_Director = management[2];
             addPlatformSupervisor(Helium_Director);
-            isAddrAddedArray[2] = isAddrAddedMapping[Helium_Director];
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Director]);
             isAddrAddedMapping[Helium_Director] = true;
         }
         if(management.length > 3){
             Helium_Manager = management[3];
             addCustomerService(Helium_Manager);
-            isAddrAddedArray[3] = isAddrAddedMapping[Helium_Manager];
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Manager]);
             isAddrAddedMapping[Helium_Manager] = true;
         }
         if(management.length > 4){
             Helium_Owner = management[4];
             addCustomerService(Helium_Owner);
-            isAddrAddedArray[4] = isAddrAddedMapping[Helium_Owner];
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Owner]);
             isAddrAddedMapping[Helium_Owner] = true;
         }
+
         isAfterDeployment = true;
     }
     function checkDeploymentConditions(

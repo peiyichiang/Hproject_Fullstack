@@ -6,11 +6,8 @@ import "./SafeMath.sol";
 interface Helium_Interface_CFC{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
-interface HCATTokenReceiver_Interface_CFC {
+interface TokenReceiver_Interface_CFC {
     function tokenReceiver(address _from, address _to, uint256 _tokenId) external pure returns(bytes4);
-}
-interface AssetTokenITF_CFC {
-    function balanceOf(address user) external view returns (uint balance);
 }
 
 contract CrowdFunding {
@@ -171,7 +168,9 @@ contract CrowdFunding {
         addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor() {
-        require(Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        require(
+            Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender),
+            "only PlatformSupervisor is allowed to call this function");
         _;
     }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
@@ -277,7 +276,7 @@ contract CrowdFunding {
         boolArray[1] = serverTime < CFED;
         boolArray[2] = Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender);
         boolArray[3] = _addrAssetbook.isContract();
-        boolArray[4] = HCATTokenReceiver_Interface_CFC(_addrAssetbook).tokenReceiver(
+        boolArray[4] = TokenReceiver_Interface_CFC(_addrAssetbook).tokenReceiver(
             msg.sender, address(this), 1) == TOKEN_RECEIVER_HASH;
 
         boolArray[5] = _quantityToInvest > 0;
@@ -308,7 +307,7 @@ contract CrowdFunding {
             "funding is terminated or not started yet");
 
         if (_addrAssetbook.isContract()) {
-            bytes4 retval = HCATTokenReceiver_Interface_CFC(_addrAssetbook).tokenReceiver(
+            bytes4 retval = TokenReceiver_Interface_CFC(_addrAssetbook).tokenReceiver(
                 msg.sender, address(this), 1);// assume tokenId = 1;
             require(retval == TOKEN_RECEIVER_HASH, "retval should be TOKEN_RECEIVER_HASH");
         } else {

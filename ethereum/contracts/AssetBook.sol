@@ -367,8 +367,9 @@ contract AssetBook is MultiSig {
 
         (address assetAddr_,address from_) = checkInputs(assetIndex, assetAddr, _from);
 
-        HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
-        hcat721.safeTransferFromBatch(from_, _to, amount, price, serverTime);
+        HCAT721_Interface_ABC(assetAddr_).safeTransferFromBatch(from_, _to, amount, price, serverTime);
+        // HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
+        // hcat721.safeTransferFromBatch(from_, _to, amount, price, serverTime);
     }
 
 
@@ -381,17 +382,6 @@ contract AssetBook is MultiSig {
 
         HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
         hcat721.sendTokenToSettlementById(from_, _to, _tokenId);
-    }
-
-    //sendTokenFromSettlement(address _from, address _to, uint _tokenId) external;
-    function sendTokenFromSettlement(
-        uint assetIndex, address assetAddr,
-        address _from, address _to, uint _tokenId) external ckAssetOwner {
-
-        (address assetAddr_,address from_) = checkInputs(assetIndex, assetAddr, _from);
-
-        HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
-        hcat721.sendTokenFromSettlement(from_, _to, _tokenId);
     }
 
 
