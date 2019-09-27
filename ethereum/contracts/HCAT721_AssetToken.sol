@@ -275,12 +275,12 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
     }
     modifier onlyPlatformSupervisor() {
         require(
-            isPlatformSupervisor(), "only PlatformSupervisor is allowed to call this function");
+            isPlatformSupervisor(), "only PlatformSupervisor is allowed");
         _;
     }
     function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
         require(
-            isPlatformSupervisor(), "only PlatformSupervisor is allowed to call this function");
+            isPlatformSupervisor(), "only PlatformSupervisor is allowed");
         addrHelium = _addrHelium;
     }
 
@@ -404,8 +404,8 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
         uint idxStartFrom = accounts[_from].idxStart;
         tokenId_ = accounts[_from].indexToId[idxStartFrom];
     }
-    function isMsgSenderGood(uint _tokenId, address _from) public view returns(bool) {
-        return (idToAsset[_tokenId].owner == msg.sender && msg.sender == _from);
+    function isMsgSenderGood(uint _tokenId, address _from) public view returns(bool, address, address) {
+        return (idToAsset[_tokenId].owner == msg.sender && msg.sender == _from, idToAsset[_tokenId].owner, msg.sender);
     }// msg.sender 3rd party??
 // boolArray[11] = (idToAsset[firstFromAddrTokenId].owner == msg.sender || accounts[_from].allowed[msg.sender] >= amount);
 
@@ -429,14 +429,15 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
         boolArray[6] = isProductMgrApproved(_to);
         boolArray[7] = isMsgSenderGood(_tokenId, _from);// msg.sender 3rd party??
     }*/
-
+/*
+    // testing sending end and middle Ids to Settlement
     event SendTokenToSettlementById(address _from, address _to, uint _tokenId);
-    function sendTokenToSettlementById(address _from, address _to, uint _tokenId, address addrSettlement) external {
-
+    function sendTokenToSettlementById(address _from, address _to, uint _tokenId) external {
+        (bool isValid, , ) = isMsgSenderGood(_tokenId, _from);
         checkToAddressRequire(_from, _to, _tokenId, true);
         require(isRegistryApproved(_from), "_from is not in compliance");
         require(isProductMgrApproved(_to), "_to is not isSettlementApproved");
-        require(isMsgSenderGood(_tokenId, _from), "sender is not valid");
+        require(isValid, "sender is not valid");
         //require(idToAsset[_tokenId].owner == _from,"tokenOwner should be _from");
         // msg.sender can be 3rd party
 
@@ -447,34 +448,79 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
 
         if(_tokenId == accounts[_from].indexToId[idxStartFrom]){
             delete accounts[_from].indexToId[idxStartFrom];
-            idxStartFrom = idxStartFrom.add(1);
+            accounts[_from].idxStart = idxStartFrom.add(1);
 
         } else if(_tokenId == accounts[_from].indexToId[idxEndFrom]) {
             delete accounts[_from].indexToId[idxEndFrom];
-            idxEndFrom = idxEndFrom.sub(1);
+            accounts[_from].idxEnd = idxEndFrom.sub(1);
 
         } else {
             for(uint idx = idxStartFrom.add(1); idx < idxEndFrom; idx = idx.add(1)) {
                 if(accounts[_from].indexToId[idx] == _tokenId){
                     accounts[_from].indexToId[idx] = accounts[_from].indexToId[idxEndFrom];
                     delete accounts[_from].indexToId[idxEndFrom];
-                    idxEndFrom = idxEndFrom.sub(1);
+                    accounts[_from].idxEnd = idxEndFrom.sub(1);
                 }
             }
         }
-        idToAsset[_tokenId].owner = addrSettlement;
-        // if(balanceOf(_from) == 0){
-        // }
+        idToAsset[_tokenId].owner = _to;//addrSettlement
         emit SendTokenToSettlementById(_from, _to, _tokenId);
-        //DB saves tokenIds
+    }*/
+
+    event SendTokenToSettlementByAmount(address _from, address _to, uint amount);
+    function sendTokenToSettlementByAmount(address _from, address _to, uint amount) external {
+        checkToAddressRequire(_from, _to, 1, true);
+        require(isRegistryApproved(_from), "_from is not in compliance");
+        require(isProductMgrApproved(_to), "_to is not isSettlementApproved");
+        //require(idToAsset[_tokenId].owner == _from,"tokenOwner should be _from");
+        // msg.sender can be 3rd party
+
+        uint[] memory idxX = new uint[](2);
+        idxX[0] = accounts[_from].idxStart;//idxStartF = idxX[0]
+        idxX[1] = accounts[_from].idxEnd;// idxEndF = idxX[1]
+        require(idxX[0] <= idxX[1], "not enough asset to transfer: balance = 0");
+        require(idxX[1].sub(idxX[0]).add(1) >= amount, "not enough asset to transfer: balance < amount");
+
+        //uint allowedAmount = accounts[_from].allowed[msg.sender];
+        for(uint i = 0; i < amount; i = i.add(1)) {
+            //inside _from account
+            uint idxFrom = i.add(idxX[0]);
+            uint tokenId_ = accounts[_from].indexToId[idxFrom];
+            delete accounts[_from].indexToId[idxFrom];
+
+            (bool isValid, , ) = isMsgSenderGood(tokenId_, _from);
+            require(isValid, "sender is not valid");
+            // require(
+            // tokenOwner == msg.sender ||
+            // idToAsset[tokenId_].approvedAddr == msg.sender ||
+            // allowedAmount > amount,
+            // "msg.sender should be tokenOwner, an approved, or a token operator has enough allowed amount");
+
+            idToAsset[tokenId_].owner = _to;
+        }
+/**
+        if(allowedAmount < accounts[_from].allowed[msg.sender]){
+            accounts[_from].allowed[msg.sender] = allowedAmount;
+        }
+ */
+        //fix _from account
+        if (idxX[1] == idxX[0].add(amount).sub(1)) {
+            accounts[_from].idxStart = 1;
+            accounts[_from].idxEnd = 0;
+        } else {
+            accounts[_from].idxStart = idxX[0].add(amount);
+        }
+        emit SendTokenToSettlementByAmount(_from, _to, amount);
     }
 
-    event SendTokenFromSettlement(address _from, address _to, uint _tokenId);
-    function sendTokenFromSettlement(address _from, address _to, uint _tokenId) external {
+    event SendTokenFromSettlementById(address _from, address _to, uint _tokenId);
+    function sendTokenFromSettlementById(address _from, address _to, uint _tokenId) external {
         checkToAddressRequire(_from, _to, _tokenId, true);
+        (bool isValid, , ) = isMsgSenderGood(_tokenId, _from);
+
         require(isProductMgrApproved(_from), "_from is not isSettlementApproved");
         require(isRegistryApproved(_to), "_to is not in compliance");
-        require(isMsgSenderGood(_tokenId, _from), "sender is not valid");
+        require(isValid, "sender is not valid");
         //require(idToAsset[_tokenId].owner == _from,"tokenOwner should be _from");
 
         uint idxEndTo = accounts[_to].idxEnd;
@@ -488,7 +534,7 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
             isOwnerAdded[_to] = true;
         }
         idToAsset[_tokenId].owner = _to;
-        emit SendTokenFromSettlement(_from, _to, _tokenId);
+        emit SendTokenFromSettlementById(_from, _to, _tokenId);
     }
 
 
@@ -520,8 +566,7 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
         boolArray[11] = (idToAsset[firstFromAddrTokenId].owner == msg.sender || accounts[_from].allowed[msg.sender] >= amount);
     }
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external {
-        //require(_from != address(0), "_to should not be 0x0");//replaced by registry check
-        //require(_to != address(0), "_to should not be 0x0");//replaced by registry check
+        //_from and _to != address(0) replaced by registry check
         require(amount > 0, "amount should be > 0");
         require(price > 0, "price should be > 0");
         require(serverTime > TimeOfDeployment, "serverTime is not valid");

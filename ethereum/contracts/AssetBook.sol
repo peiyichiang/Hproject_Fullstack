@@ -16,9 +16,10 @@ interface HCAT721_Interface_ABC {
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
     function checkSafeTransferFromBatch(
         address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray);
-
-    function sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
-    function sendTokenFromSettlement(address _from, address _to, uint _tokenId) external;
+    function getFirstFromAddrTokenId(address _from) external view returns(uint tokenId_);
+    function sendTokenToSettlementByAmount(address _from, address _to, uint amount) external;
+    //function sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
+    function sendTokenFromSettlementById(address _from, address _to, uint _tokenId) external;
 }
 
 interface Helium_Interface_ABC{
@@ -368,21 +369,30 @@ contract AssetBook is MultiSig {
         (address assetAddr_,address from_) = checkInputs(assetIndex, assetAddr, _from);
 
         HCAT721_Interface_ABC(assetAddr_).safeTransferFromBatch(from_, _to, amount, price, serverTime);
-        // HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
-        // hcat721.safeTransferFromBatch(from_, _to, amount, price, serverTime);
     }
 
+    function getFirstFromAddrTokenId(
+        uint assetIndex, address assetAddr, address _from) external view returns(uint tokenId_){
 
-    //sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
-    function sendTokenToSettlementById(
+        (address assetAddr_, ) = checkInputs(assetIndex, assetAddr, _from);
+        tokenId_ = HCAT721_Interface_ABC(assetAddr_).getFirstFromAddrTokenId(address(this));
+    }
+
+    function sendTokenToSettlementByAmount(
         uint assetIndex, address assetAddr,
         address _from, address _to, uint _tokenId) external ckAssetOwner {
 
         (address assetAddr_,address from_) = checkInputs(assetIndex, assetAddr, _from);
-
-        HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
-        hcat721.sendTokenToSettlementById(from_, _to, _tokenId);
+        HCAT721_Interface_ABC(assetAddr_).sendTokenToSettlementByAmount(from_, _to, _tokenId);
     }
+    //sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
+    // function sendTokenToSettlementById(
+    //     uint assetIndex, address assetAddr,
+    //     address _from, address _to, uint _tokenId) external ckAssetOwner {
+
+    //     (address assetAddr_,address from_) = checkInputs(assetIndex, assetAddr, _from);
+    //     HCAT721_Interface_ABC(assetAddr_).sendTokenToSettlementById(from_, _to, _tokenId);
+    // }
 
 
     function assetbookApprove(uint assetIndex, address assetAddr, address operator, uint amount) external ckAssetOwner {
@@ -393,9 +403,10 @@ contract AssetBook is MultiSig {
             assetAddr_ = assetAddr;
         }
         require(assetAddr_.isContract(), "assetAddr has to contain a contract");
-
-        HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
-        hcat721.tokenApprove(operator, amount);
+        
+        HCAT721_Interface_ABC(assetAddr_).tokenApprove(operator, amount);
+        // HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
+        // hcat721.tokenApprove(operator, amount);
     }
 
 

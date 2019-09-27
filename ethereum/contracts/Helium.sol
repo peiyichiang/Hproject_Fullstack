@@ -88,8 +88,8 @@ contract Helium {
         _isPlatformSupervisor = (_eoa == Helium_Admin ||
         (PermissionList[_eoa].permissionCode == 2 && PermissionList[_eoa].permissionStatus == true));
     }
-    function checkAdmin(address _eoa) external view returns(bool _isAdmin) {
-        _isAdmin = (_eoa == Helium_Admin);
+    function checkAdmin(address _eoa) external view returns(bool) {
+        return (_eoa == Helium_Admin);
     }
 
     modifier onlyAdmin(){

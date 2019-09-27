@@ -5,6 +5,7 @@ deploy parameters: none
 import "./SafeMath.sol";
 interface Helium_Interface_PMC{
     function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
 contract ProductManager {
     using AddressUtils for address;
@@ -47,18 +48,21 @@ contract ProductManager {
         addrHelium = _addrHelium;
     }
     modifier onlyAdmin() {
-        require(Helium_Interface_PMC(addrHelium).checkAdmin(msg.sender), "only  Helium_Admin is allowed to call this function");
+        require(checkAdmin(), "only Helium_Admin is allowed");
         _;
     }
-    function checkAdminFromPMC() external view returns (bool){
+    function checkAdmin() public view returns (bool){
         return (Helium_Interface_PMC(addrHelium).checkAdmin(msg.sender));
+    }
+    function checkPlatformSupervisor() public view returns (bool){
+        return (Helium_Interface_PMC(addrHelium).checkPlatformSupervisor(msg.sender));
     }
 
     function addNewCtrtGroup(
         bytes32 symbol, address addrCrowdFundingCtrt,
         address addrTokenControllerCtrt,
         address addrTokenCtrt, address addrIncomeManagerCtrt)
-        external onlyAdmin {
+        external onlyAdmin{
         groupCindex = groupCindex.add(1);
         idxToSymbol[groupCindex] = symbol;
         symbolToCtrtGroup[symbol] = CtrtGroup(addrCrowdFundingCtrt, addrTokenControllerCtrt, addrTokenCtrt, addrIncomeManagerCtrt);

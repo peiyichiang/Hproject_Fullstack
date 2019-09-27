@@ -236,7 +236,7 @@ let instIncomeManager, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
 let instSettlement, addrSettlement;
 
-let accounts, error, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, platformSupervisor, operator;
+let accounts, error, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, platformSupervisor, operator, result;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
 
@@ -1023,10 +1023,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
-      _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock-1;
+      _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock-1;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-      .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] sending tokenId 1 from assetbook1 to assetbook2 failed: serverTime should be > TimeTokenUnlock', serverTime, TimeTokenUnlock, err.toString().substr(0, 190));
@@ -1049,10 +1049,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     assert.equal(tokenStateM, 1);
 
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
     console.log('\nCheck AssetBook2 after txn...');
@@ -1086,12 +1086,12 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     //------------------------==
     //-----------------==Check AssetBook2
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 15000;
-    _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
 
     await instAssetBook1.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(0, _assetAddr, amount, _to, _serverTime)
 
 
@@ -1118,10 +1118,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
     tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
@@ -1150,10 +1150,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 7; price = 21000;
-    _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook1 sending tokens via safeTransferFromBatch()...');
     await instAssetBook1.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
@@ -1205,17 +1205,82 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     const settlementDetails = await instSettlement.methods.getSettlementDetails().call();
     console.log('\nsettlementDetails:', settlementDetails);
 
-    console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
-    _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
-    console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
-    await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    await instProductManager.methods.setAddrSettlement(addrSettlement, true).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    const isSettlementApproved = await instProductManager.methods.isSettlementApproved(addrSettlement).call();
+    console.log('\nisSettlementApproved:', isSettlementApproved);
+
+    let tokenId1st = await instAssetBook2.methods.getFirstFromAddrTokenId(0, _assetAddr, _from).call();
+    console.log('\ntokenId1st:', tokenId1st);
+
+    //process.exit(0);
+
+    console.log('\n----------------==sendTokenToSettlementByAmount from Assetbook2');
+    _from = addrAssetBook2; _to = addrSettlement; amount = 3;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    const prevTokenIds = tokenIds;
+    console.log('AssetBook2 sending '+amount+' tokens via sendTokenToSettlementByAmount()...');
+    await instAssetBook2.methods.sendTokenToSettlementByAmount(0, _assetAddr, _from, _to, amount).send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('\ntokenIds from _from Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+
+    console.log('\naddrSettlement:', addrSettlement, '\nchecking transferred token Ids...');
+    for(let i = 0; i < amount; i++) {
+      const tokenIdByIndex = prevTokenIds[i];
+      tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdByIndex).call();
+      console.log('\ntokenId: '+tokenIdByIndex, tokenOwnerM);
+      assert.equal(tokenOwnerM, _to);
+    }
+    /*
+    console.log('\n----------------==sendTokenToSettlementById from Assetbook2');
+    _from = addrAssetBook2; _to = addrSettlement;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    console.log('AssetBook2 sending tokens via sendTokenToSettlementById()...');
+    await instAssetBook2.methods.sendTokenToSettlementById(0, _assetAddr, _from, _to, tokenId1st)
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('\ntokenIds from _from Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+
+    tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId1st).call();
+    console.log('HCAT tokenId = '+tokenId1st, tokenOwnerM, '\naddrSettlement:', addrSettlement);
+    assert.equal(tokenOwnerM, _to);
+    */
+
+    //CANNOT use getAccountIds or balanceOf on Settlement because Settlement DOES NOT HAVE Id in mapping by design!!!
+    // tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    // balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    // console.log('\ntokenIds from _to addrSettlement =', tokenIds, ', balanceXM =', balanceXM);
+
+    console.log('\n----------------==sendTokenFromSettlementById to Assetbook2');
+    _from = addrSettlement; _to = addrAssetBook2; _tokenId = prevTokenIds[0];
+    _fromEOA = chairman; serverTime = TimeTokenUnlock+1;
+    console.log('AssetBook2 sending tokens via sendTokenToSettlementById()...');
+
+    console.log('_tokenId:', _tokenId, '\n_from:', _from, '\n_to:', _to, '\n_fromEOA:', _fromEOA);
+
+    result = await instSettlement.methods.checkSendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).call();
+    console.log('result of checkSendTokenFromSettlementById:', result);
+    //process.exit(0);
+
+    await instSettlement.methods.sendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    console.log('\ntokenIds from _to Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+
+    tokenOwnerM = await instHCAT721.methods.ownerOf(_tokenId).call();
+    console.log('HCAT tokenId: '+tokenId1st, tokenOwnerM, '\n_to:', _to);
+    assert.equal(tokenOwnerM, _to);
+
     process.exit(0);
 
+    //--------------------------------==
     console.log('\n--------------------------==Approval Functions');
-    _from = addrAssetBook2; _fromAssetOwner = AssetOwner2; amount = 3; 
+    _from = addrAssetBook2; _fromEOA = AssetOwner2; amount = 3; 
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
@@ -1223,7 +1288,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\ntokenApprove()... amount =', amount);
     await instAssetBook2.methods.assetbookApprove(0, _assetAddr, operator, amount)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
     assert.equal(result, amount);
@@ -1231,7 +1296,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\n----------------==Send token in batch: amount = '+amount+'  from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instHCAT721.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
     .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1270,7 +1335,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('\n------------==Send tokens with not enough allowance');
     error = false;
     try {
-      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromAssetOwner = AssetOwner2; 
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromEOA = AssetOwner2; 
       serverTime = TimeTokenUnlock+1;
       await instHCAT721.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
       .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1305,10 +1370,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
-      _fromAssetOwner = AssetOwner2;
+      _fromEOA = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-      .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {

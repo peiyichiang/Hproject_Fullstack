@@ -3,6 +3,10 @@ pragma solidity ^0.5.4;
 deploy parameters: none
 */
 import "./SafeMath.sol";
+interface Helium_Interface_SMC{
+    function checkAdmin(address _eoa) external view returns(bool _isAdmin);
+    function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
+}
 
 interface HCAT_TokenReceiver_Interface_SMC {
     function tokenReceiver(address _from, address _to, uint256 _tokenId) external pure returns(bytes4);
@@ -32,9 +36,10 @@ interface HCAT721_Interface_SMC {
     function safeTransferFromBatch(address _from, address _to, uint amount, uint price, uint serverTime) external;
     function checkSafeTransferFromBatch(
         address _from, address _to, uint amount, uint price, uint serverTime) external view returns(bool[] memory boolArray);
-
+    function getFirstFromAddrTokenId(address _from) external view returns(uint tokenId_);
     function sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
-    function sendTokenFromSettlement(address _from, address _to, uint _tokenId) external;
+    function sendTokenFromSettlementById(address _from, address _to, uint _tokenId) external;
+    function isMsgSenderGood(uint _tokenId, address _from) external view returns(bool, address, address);
 }
 
 contract Settlement {
@@ -74,9 +79,38 @@ contract Settlement {
         return TOKEN_RECEIVER_HASH;
     }
 
-    function sendTokenFromSettlement(address _from, address _to, uint _tokenId, address assetAddr_) external {
-        HCAT721_Interface_SMC(assetAddr_).sendTokenFromSettlement(_from, _to, _tokenId);
+    function sendTokenFromSettlementById(address _from, address _to, uint _tokenId, address assetAddr_) external {
+        require(checkPlatformSupervisor(), "only platformSupervisor is allowed");
+        address from_;
+        if(_from == address(0)){
+            from_ = address(this);
+        } else {
+            from_ = _from;
+        }
+        require(_to != address(0), "_to should not be zero");
+        require(_tokenId > 0, "tokenId should be greater than zero");
+
+        HCAT721_Interface_SMC(assetAddr_).sendTokenFromSettlementById(from_, _to, _tokenId);
     }
+
+    function checkSendTokenFromSettlementById(address _from, address _to, uint _tokenId, address assetAddr_)
+    external view returns(bool, address, address) {
+        require(_to != address(0), "_to should not be zero");
+        (bool isValid, address tokenIdOwner, address msgSender) = HCAT721_Interface_SMC(assetAddr_).isMsgSenderGood(_tokenId, _from);
+        return (isValid, tokenIdOwner, msgSender);
+    }
+
+    function checkAdmin() public view returns (bool){
+        return (Helium_Interface_SMC(addrHelium).checkAdmin(msg.sender));
+    }
+    function checkPlatformSupervisor() public view returns (bool){
+        return (Helium_Interface_SMC(addrHelium).checkPlatformSupervisor(msg.sender));
+    }
+    modifier onlyAdmin() {
+        require(checkAdmin(), "only Helium_Admin is allowed");
+        _;
+    }
+
 }
 
 //--------------------==
