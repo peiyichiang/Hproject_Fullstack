@@ -1,12 +1,12 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, addrHelium, addrRegistry, addrProductMgr, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
+let symbolNumber, operationMode, backendAddrChoice, isToDeploy, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
   symbolNumber = 1;
 } else {
-  symbolNumber = parseInt(SYMBOLNUMBER);
+  symbolNumber = SYMBOLNUMBER;
 }
 console.log('symbolNumber:', symbolNumber);
 
@@ -14,7 +14,7 @@ const OPERATIONMODE = parseInt(process.env.OPERATIONMODE);
 if(isNaN(OPERATIONMODE)){
   operationMode = 1;
 } else {
-  operationMode = parseInt(OPERATIONMODE);
+  operationMode = OPERATIONMODE;
 }
 console.log('operationMode:', operationMode);
 //9 for production with more strict time checking inside blockchain.js
@@ -23,9 +23,26 @@ const BACKENDADDRCHOICE = parseInt(process.env.BACKENDADDRCHOICE);
 if(isNaN(BACKENDADDRCHOICE)){
   backendAddrChoice = 0;
 } else {
-  backendAddrChoice = parseInt(BACKENDADDRCHOICE);
+  backendAddrChoice = BACKENDADDRCHOICE;
 }
 console.log('backendAddrChoice:', backendAddrChoice);
+
+const IS_TO_DEPLOY = parseInt(process.env.IS_TO_DEPLOY);
+if(isNaN(IS_TO_DEPLOY)){
+  isToDeploy = 1;
+} else {
+  isToDeploy = IS_TO_DEPLOY;
+}
+console.log('isToDeploy:', isToDeploy);
+
+const ASSETBOOKAMOUNT = parseInt(process.env.ASSETBOOKAMOUNT);
+if(isNaN(ASSETBOOKAMOUNT)){
+  assetbookAmount = 10;
+} else {
+  assetbookAmount = ASSETBOOKAMOUNT;
+}
+console.log('assetbookAmount:', assetbookAmount);
+
 //process.exit(0);
 
 //----------------------------==Server Settings
@@ -57,10 +74,10 @@ if(blockchainChoice === '1'){//POA
   gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
   admin = process.env.HELIUM_ADMIN;
   adminpkRaw =  process.env.HELIUM_ADMIN_PRIVATEKEY;
-  
+
   addrHelium =     process.env.HELIUMCONTRACTADDR;
   addrRegistry =   process.env.REGISTRYCONTRACTADDR;
-  addrProductMgr = process.env.PRODUCTMANAGERCONTRACTADDR;
+  addrProductManager = process.env.PRODUCTMANAGERCONTRACTADDR;
 
 } else if(blockchainChoice === '2'){/*ganache*/
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT_GANACHE;
@@ -68,7 +85,7 @@ if(blockchainChoice === '1'){//POA
   gasPriceValue = 20000000000;//100000000000000000
   addrHelium =     "";
   addrRegistry =   "";
-  addrProductMgr = "";
+  addrProductManager = "";
 
 } else if(blockchainChoice === '3'){/*Infura HttpProvider Endpoint*/
   blockchainURL = process.env.BC_PROVIDER;
@@ -76,7 +93,7 @@ if(blockchainChoice === '1'){//POA
   gasPriceValue = 20000000000;//100000000000000000
   addrHelium =     "";
   addrRegistry =   "";
-  addrProductMgr = "";
+  addrProductManager = "";
 
 } else if(blockchainChoice === '4'){/*local ganache-cli
   ganache-cli -m "mnemonic words..." -l 9721975  -g 20000000000 */
@@ -87,12 +104,12 @@ if(blockchainChoice === '1'){//POA
   adminpkRaw =  process.env.GANACHE_EOAPK0;
   addrHelium =     "";
   addrRegistry =   "";
-  addrProductMgr = "";
+  addrProductManager = "";
 }
 
 //Helium_Chairman = process.env.HELIUM_CHAIRMAN, process.env.HELIUM_DIRECTOR, process.env.HELIUM_MANAGER, process.env.HELIUM_OWNER
 
-console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrProductMgr: ${addrProductMgr}`);
+console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrProductManager: ${addrProductManager}`);
 
 
 //----------------------------==Timeserver Settings
@@ -117,4 +134,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductMgr, symbolNumber, operationMode, backendAddrChoice, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };

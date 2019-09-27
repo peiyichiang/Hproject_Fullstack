@@ -4,10 +4,8 @@ var faker = require('faker');
 var _ = require('lodash');
 
 sLog(`\n--------------------== zTestParameters.js`);
-//let addrIncomeManager, addrProductManager;
-let crowdFundingAddrArray = [], tokenControllerAddrArray = [], symbolArray = [], nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager;
+let crowdFundingAddrArray = [], tokenControllerAddrArray = [], symbolArray = [], nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager, addrAssetBookArray;
 
-let addrAssetBookArray;
 const assetOwnerArray = [], assetOwnerpkRawArray = [], assetbookArray = [], userArray = [];
 
 const [EOA_List, badEOAs] = getArraysFromCSV('./test_CI/EOA_List.csv', 4);
@@ -74,16 +72,17 @@ const productObj0MaxTotalSupply = Math.floor(Math.random()*10000)+10000
 const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + productDate, p_name.substr(0, 20), (faker.address.streetAddress() + faker.address.city() + faker.address.country()).substr(0, 40), productObj0MaxTotalSupply, productObj0MaxTotalSupply - 100, 73310, Math.floor(Math.random()*100000) , "NTD", 530, 20, 2, "", "", "", "");
 
 
-//function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
-//const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "0xF811f727da052379D8cbfBF1188E290B32ff9f99", "0x9812d0eBcd89d8491Bca80000c147f739B9Cef73", "0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A", "");
+//const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "", "", "", "");
 
-const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0xaCab94A5d3650873F85E16Abadfb15AFf87fe65C", "0x67b96f80AfE5C74fb366ae4A4e1A88813a940Fc9", "0xA80c0A88e38aa61190A3Ad41bd3907774D291f87", "0xCb5B388E9f4f7028547797a4C0C1844f9e04Cecd");
+//function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+
+const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0x7ACF7Fe7D252f23EeA9007930a9C736d306C1837", "0x5ECb06CC131aA91675d7F9C6b4b805A7cbb28940", "0x9a1A3539B6fFC957c18Ba5eC6F1d462212aB2991", "0xD8CcdefAca69eBE2437811E9ed9BFD1198018B08");
 
 const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
 
 const productObj3 = new productObject("AURA1904", "Uranus1904", "Uranus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 500, 20, 2, "", "", "", "");
 
-const productObj4 = new productObject("ANEP1905", "Neptune1905", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "0x5Fd93F8a4B023D837f0b04bb2836Daf535BfeFBF", "0x3a7BeC42Da08Ad2bDe31D03489925ab44C7D9f4E", "0x152CB125DA1d0bd8B71f441fEdb8e22dc1189F0f", "0x176332F32818e7a2DcD9802d465f96d602476751");
+const productObj4 = new productObject("ANEP1905", "Neptune1905", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
 const productObj5 = new productObject("AOOT1907", "AOOT1907", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
 
@@ -170,8 +169,6 @@ addrHCAT721 = productObjN.addrHCAT721;
 addrCrowdFunding = productObjN.addrCrowdFunding;
 addrIncomeManager = productObjN.addrIncomeManager;
 
-addrProductManager= '';
-
 tokenURI = nftSymbol+"/uri";
 
 function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, tokenOrderAmount) {
@@ -219,7 +216,7 @@ EOA_List.forEach((item, index)=> {
 });
 
 
-userNum = 9;
+userNum = 1;
 const userObjN = userArray[userNum];
 const email = userObjN.email;
 const password = userObjN.password;

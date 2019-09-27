@@ -285,26 +285,6 @@ if (ProductManager === undefined){
   //console.log(ProductManager);
 }
 
-const TestCtrt = require('./build/TestCtrt.json');
-if (TestCtrt === undefined){
-  console.log('[Error] TestCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-} else {
-  sLog('[Good] TestCtrt is defined');
-  if (TestCtrt.abi === undefined){
-    console.log('[Error] TestCtrt.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    sLog('[Good] TestCtrt.abi is defined');
-      //console.log('TestCtrt.abi:', TestCtrt.abi);
-  }
-  if (TestCtrt.bytecode === undefined || TestCtrt.bytecode.length < 10){
-    console.log('[Error] TestCtrt.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
-  } else {
-    sLog('[Good] TestCtrt.bytecode is defined');
-      //console.log('TestCtrt.bytecode:', TestCtrt.bytecode);
-  }
-  //console.log(TestCtrt);
-}
-
 
 
 //---------------------------==Winston Logger
@@ -348,5 +328,5 @@ const wlogger = winston.loggers.get('format1');
 
 
 module.exports = { COMPLIANCE_LEVELS, checkCompliance,
-  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, TestCtrt, wlogger,  excludedSymbols, excludedSymbolsIA, 
+  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, 
 }

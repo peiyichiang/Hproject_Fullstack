@@ -8,7 +8,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 console.log('--------------------== blockchain.js...');
 const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
 
-const { blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
+const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
 const { assetOwnerArray, assetOwnerpkRawArray } = require('../test_CI/zTestParameters');
@@ -19,6 +19,7 @@ const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStat
 
 const timeIntervalOfNewBlocks = 13000;
 const timeIntervalUpdateExpiredOrders = 1000;
+const prefix = '0x';
 /*
 const userIdArray = [];
 const investorLevelArray = [];
@@ -105,7 +106,6 @@ const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     const argsHelium = [[eoa0, eoa1, eoa2, eoa3, eoa4]];
     console.log('\nDeploying Helium contract...');
@@ -164,7 +164,6 @@ const deployRegistryContract = async(addrHeliumContract) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     console.log('\n----------------== deployRegistryContract()');
     const argsRegistry = [addrHeliumContract];
@@ -199,7 +198,49 @@ const deployRegistryContract = async(addrHeliumContract) => {
   });
 }
 
+const deployProductManagerContract = async(addrHeliumContract) => {
+  return new Promise(async (resolve, reject) => {
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    console.log('web3deploy.version:', web3deploy.version);
 
+    console.log('\n----------------== deployProductManagerContract()');
+    const argsProductManager =[addrHeliumContract];
+    console.log(argsProductManager)
+
+    let instProductManager;
+    try{
+      instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
+      .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        console.log('receipt:', receipt);
+      })
+      .on('error', function (error) {
+          console.log('error:', error.toString());
+          reject(error.toString());
+          return false;
+      });
+    } catch(err){
+      console.log('err:', err);
+    }
+
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      reject('[Error] instProductManager is NOT defined');
+      return false;
+
+    } else {
+      console.log('[Good] instProductManager is defined');
+      instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const addrProductManager = instProductManager.options.address
+      console.log(`\nconst addrProductManager = ${addrProductManager}`);
+      const isGood = true;
+      resolve({isGood, addrProductManager});
+    }
+  });
+}
 
 
 //Set compliance regulatory rules
@@ -218,39 +259,6 @@ const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPubli
 }
 
 //-------------------==
-const deployMultiSigContract = async(HeliumCtrtAddr) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\nDeploying MultiSig from eoaArray...');
-
-    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
-    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
-    const web3deploy = new Web3(provider);
-    console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
-
-    const argsMultiSig1 = [backendAddr, HeliumCtrtAddr];
-    console.log('\nDeploying multiSig contracts...');
-    instMultiSig1 =  await new web3deploy.eth.Contract(MultiSig.abi)
-    .deploy({ data: prefix+MultiSig.bytecode, arguments: argsMultiSig1 })
-    .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
-    .on('receipt', function (receipt) {
-      console.log('receipt:', receipt);
-    })
-    .on('error', function (error) {
-        console.log('error:', error.toString());
-    });
-
-    console.log('MultiSig1 has been deployed');
-    if (instMultiSig1 === undefined) {
-      console.log('[Error] instMultiSig1 is NOT defined');
-      } else {console.log('[Good] instMultiSig1 is defined');}
-    instMultiSig1.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    addrMultiSig1 = instMultiSig1.options.address;
-    console.log('addrMultiSig1:', addrMultiSig1);
-    console.log('\nwaiting for addrMultiSig2...');
-  });
-}
-
 const deployTesttract = async(HeliumCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
     console.log('\nDeploying testCtrt contracts...');
@@ -285,7 +293,6 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     const addrAssetBookArray = [];
     await asyncForEach(eoaArray, async (item, idx) => {
@@ -348,7 +355,6 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     let instCrowdFunding;
     try{
@@ -585,7 +591,6 @@ const deployTokenControllerContract = async(argsTokenController) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     let instTokenController;
     try{
@@ -697,9 +702,9 @@ const checkArgumentsHCAT = async(argsHCAT721) => {
   return new Promise(async (resolve, reject) => {
     const [nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
       initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-      addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT] = argsHCAT721;
+      addrRegistry, addrProductManager, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT] = argsHCAT721;
     let mesg = '';
-    console.log(`nftSymbol_bytes32: ${nftSymbol_bytes32}, nftName_bytes32: ${nftName_bytes32}, tokenURI_bytes32: ${tokenURI_bytes32}`);
+    console.log(`\ninside checkArgumentsHCAT: \nnftSymbol_bytes32: ${nftSymbol_bytes32}, nftName_bytes32: ${nftName_bytes32}, tokenURI_bytes32: ${tokenURI_bytes32}`);
     if(nftSymbol_bytes32.substring(0, 3) === '0x0'){
       mesg += ', [0] nftSymbol_bytes32 should not be empty';
     } 
@@ -772,6 +777,7 @@ const fromBytes32ToAscii = async(bytes32String) => {
   });
 }
 
+// -f 67
 const deployHCATContract = async(argsHCAT721) => {
   return new Promise(async (resolve, reject) => {
     /**https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
@@ -780,7 +786,6 @@ const deployHCATContract = async(argsHCAT721) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     console.log('\nDeploying HCAT721 contract...');
     console.log('check1 hcat');
@@ -831,6 +836,7 @@ const checkDeploymentHCAT = async(tokenCtrtAddr, argsHCAT721) => {
       console.log(`\ncheckHCAT_Ctrt() returns true...`);
 
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+      console.log('check21');
       const boolArray = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
       console.log('checkDeploymentConditions():', boolArray);
 
@@ -872,17 +878,20 @@ const checkDeploymentHCAT = async(tokenCtrtAddr, argsHCAT721) => {
           mesg += ', [7] addrRegistry should have a contract';
         } 
         if(!boolArray[8]){
-          mesg += ', [8] addrTokenController should have a contract';
+          mesg += ', [8] addrProductManager should have a contract';
         } 
         if(!boolArray[9]){
-          mesg += ', [9] addrHelium should have a contract';
+          mesg += ', [9] addrTokenController should have a contract';
+        } 
+        if(!boolArray[10]){
+          mesg += ', [10] addrHelium should have a contract';
         } 
 
-        if(!boolArray[10]){
-          mesg += ', [10] tokenURI should not be empty';
-        } 
         if(!boolArray[11]){
-          mesg += ', [11] TimeOfDeployment should be > 201905281400';
+          mesg += ', [11] tokenURI should not be empty';
+        } 
+        if(!boolArray[12]){
+          mesg += ', [12] TimeOfDeployment should be > 201905281400';
         } 
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
@@ -903,14 +912,17 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
   return new Promise( async ( resolve, reject ) => {
     try{
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
+      console.log('check1');
       const nftsymbolM_b32 = await instHCAT721.methods.symbol().call();
       const nftsymbol = web3.utils.toAscii(nftsymbolM_b32);
       const maxTotalSupply = await instHCAT721.methods.maxTotalSupply().call();
       const initialAssetPricing = await instHCAT721.methods.initialAssetPricing().call();
+      console.log('check2');
+
       const TimeOfDeployment = await instHCAT721.methods.TimeOfDeployment().call();
 
-      const tokenId = await instHCAT721.methods.tokenId.call();
-      const isPlatformSupervisor = await instHCAT721.methods.checkPlatformSupervisorFromHCAT.call({from: backendAddr});
+      const tokenId = await instHCAT721.methods.tokenId().call();
+      const isPlatformSupervisor = await instHCAT721.methods.isPlatformSupervisor().call({from: backendAddr});
       console.log(`checkHCATTokenCtrt()... nftsymbol: ${nftsymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, TimeOfDeployment: ${TimeOfDeployment}, tokenId: ${tokenId}, isPlatformSupervisor: ${isPlatformSupervisor}`);
       /**
   checkEq(initialAssetPricingM, '' + initialAssetPricing);
@@ -923,19 +935,11 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
   //checkEq(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
   console.log("\x1b[33m", '\nConfirm tokenId = ', tokenIdM, ', tokenIdM_init', tokenIdM_init);
-
-  let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
-  checkEq(supportsInterface0x80ac58cd, true);
-  let supportsInterface0x5b5e139f = await instHCAT721.methods.supportsInterface("0x5b5e139f").call();
-  checkEq(supportsInterface0x5b5e139f, true);
-  let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
-  checkEq(supportsInterface0x780e9d63, true);
-
   console.log('setup has been completed');
       */
       resolve([true, nftsymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
     } catch(err){
-      console.log(`[Error] checkHCATTokenCtrt() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
+      console.log(`[Error] checkHCATTokenCtrt() failed at tokenCtrtAddr: ${tokenCtrtAddr} <=================================== \n${err}`);
       resolve([false, undefined, undefined, undefined, undefined, undefined, undefined]);
     }
   });
@@ -1144,7 +1148,6 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
 
     let instIncomeManager;
     try{
@@ -1177,64 +1180,20 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
       console.log('checkDeploymentConditions():', boolArray);
       if(boolArray.length !== 3){
         console.error('checkDeploymentConditions boolArray.length is not valid');
-        reject(false);
+        reject({isGood: undefined, IncomeManager_Addr: undefined});
         return false;
       }
       const isGood = !(boolArray.includes(false));
       if(isGood){
-        console.log('[Failed] Some/one check(s) have/has failed');
-      } else {
         console.log('[Success] all checks have passed');
+      } else {
+        console.log('[Failed] Some/one check(s) have/has failed');
       }
       resolve({isGood, IncomeManager_Addr});
     }
   });
 }
 
-const deployProductManagerContract = async(addrHeliumContract) => {
-  return new Promise(async (resolve, reject) => {
-    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
-    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
-    const web3deploy = new Web3(provider);
-    console.log('web3deploy.version:', web3deploy.version);
-    const prefix = '0x';
-
-    console.log('\n----------------== deployProductManagerContract()');
-    const argsProductManager =[addrHeliumContract];
-    console.log(argsProductManager)
-
-    let instProductManager;
-    try{
-      instProductManager = await new web3deploy.eth.Contract(ProductManager.abi)
-      .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      })
-      .on('error', function (error) {
-          console.log('error:', error.toString());
-          reject(error.toString());
-          return false;
-      });
-    } catch(err){
-      console.log('err:', err);
-    }
-
-    console.log('ProductManager.sol has been deployed');
-    if (instProductManager === undefined) {
-      reject('[Error] instProductManager is NOT defined');
-      return false;
-
-    } else {
-      console.log('[Good] instProductManager is defined');
-      instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-      const addrProductManager = instProductManager.options.address
-      console.log(`\nconst addrProductManager = ${addrProductManager}`);
-      const isGood = true;
-      resolve({isGood, addrProductManager});
-    }
-  });
-}
 
 const checkDeploymentIncomeManager = async(IncomeManager_Addr, argsIncomeManager) => {
   return new Promise(async (resolve, reject) => {
@@ -1565,7 +1524,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
           mesg += ', [0] toAddress has no contract';
         } 
         if(!boolArray[1]){
-          mesg += ', [1] toAddress has no onERC721Received()';
+          mesg += ', [1] toAddress has no tokenReceiver()';
         } 
         if(!boolArray[2]){
           mesg += ', [2] amount <= 0';
@@ -2622,7 +2581,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
           mesg += ', [3] addrAssetbook should be a contract';
         }
         if(!boolArray[4]){
-          mesg += ', [4] addrAssetbook should pass onERC721Received()';
+          mesg += ', [4] addrAssetbook should pass tokenReceiver()';
         }
         if(!boolArray[5]){
           mesg += ', [5] quantityToInvest should be > 0';
@@ -3567,7 +3526,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
       } else if(!boolArray[1]){
         mesg += ', toAddr has no contract';
       } else if(!boolArray[2]){
-        mesg += ', toAddr has no onERC721Received()';
+        mesg += ', toAddr has no tokenReceiver()';
       } else if(!boolArray[3]){
         mesg += ', amount =< 0';
       } else if(!boolArray[4]){

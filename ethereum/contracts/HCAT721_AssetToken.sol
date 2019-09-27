@@ -97,11 +97,11 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
     function checkDeploymentConditions(
         bytes32 _nftName, bytes32 _nftSymbol,
         uint _siteSizeInKW, uint _maxTotalSupply, uint _initialAssetPricing,
-        bytes32 _pricingCurrency, uint _IRR20yrx100,
-        address _addrRegistry, address _addrTokenController,
+        bytes32 _pricingCurrency, uint _IRR20yrx100, address _addrRegistry,
+        address _addrProductManager, address _addrTokenController,
         bytes32 _tokenURI, address _addrHelium, uint _TimeOfDeployment
       ) public view returns(bool[] memory boolArray) {
-        boolArray = new bool[](12);
+        boolArray = new bool[](13);
         boolArray[0] = _nftName[0] != 0;
         boolArray[1] = _nftSymbol[0] != 0;
         boolArray[2] = _siteSizeInKW > 0;
@@ -111,10 +111,11 @@ contract HCAT721_AssetToken {//SupportsInterface, ERC721ITF,
 
         boolArray[6] = _IRR20yrx100 > 1;
         boolArray[7] = _addrRegistry.isContract();
-        boolArray[8] = _addrTokenController.isContract();
-        boolArray[9] = _addrHelium.isContract();
-        boolArray[10] = _tokenURI[0] != 0;
-        boolArray[11] = _TimeOfDeployment > 201905281400;
+        boolArray[8] = _addrProductManager.isContract();
+        boolArray[9] = _addrTokenController.isContract();
+        boolArray[10] = _addrHelium.isContract();
+        boolArray[11] = _tokenURI[0] != 0;
+        boolArray[12] = _TimeOfDeployment > 201909271700;
     }
 
     function getTokenContractDetails() external view returns (

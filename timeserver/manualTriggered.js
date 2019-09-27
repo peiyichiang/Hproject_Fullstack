@@ -5,7 +5,7 @@ const fs = require('fs');
 //--------------------==
 const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray } = require('../test_CI/zTestParameters');
 
-const { admin, adminpkRaw, symbolNumber, isTimeserverON, addrHelium, addrRegistry, addrProductMgr } = require('./envVariables');
+const { admin, adminpkRaw, symbolNumber, isTimeserverON, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount } = require('./envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
@@ -15,6 +15,7 @@ const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, chec
 
 const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
 
+const AssetOwner0 = assetOwnerArray[0];
 const AssetOwner1 = assetOwnerArray[1];
 const AssetOwner2 = assetOwnerArray[2];
 const AssetOwner3 = assetOwnerArray[3];
@@ -23,7 +24,6 @@ const AssetOwner5 = assetOwnerArray[5];
 
 let argv3, argv4, argv5, argv6, argv7;
 
-const assetbookAmount = 10;
 const timeChoice = 1;
 
 // yarn run testmt -f F
@@ -65,7 +65,7 @@ if (arguLen == 3 && process.argv[2] === '--h') {
 // yarn run testmt -f F -a argv5 -b argv6 -c argv6
 
 // yarn run testmt -f 0
-const newplatformSupervisor = AssetOwner1;
+const newplatformSupervisor = AssetOwner0;
 const newCustomerService = AssetOwner3;
 const addPlatformSupervisor_API = async () => {
   console.log('\n------------------==inside addPlatformSupervisor_API()...');
@@ -486,9 +486,7 @@ const deployAllContracts_API = async() => {
 
   //---------------------==
   console.log('\n--------== about to deploy Helium Contract');
-  const eoa0 = admin; const eoa1 = AssetOwner1; const eoa2 = AssetOwner2;
-  const eoa3 = AssetOwner3; const eoa4 = AssetOwner4;
-  const {isGoodHeliumCtrt, addrHeliumContract} = await deployHeliumContract(eoa0, eoa1, eoa2, eoa3, eoa4);
+  const {isGoodHeliumCtrt, addrHeliumContract} = await deployHeliumContract(admin, AssetOwner0, AssetOwner1, AssetOwner2, AssetOwner3);
   console.log(`\nreturned isGoodHeliumCtrt: ${isGoodHeliumCtrt}, addrHeliumContract: ${addrHeliumContract}`);
 
   //---------------------==
@@ -533,23 +531,35 @@ investorLevels: ${investorLevels}`);
   process.exit(0);
 }
 
-//yarn run testmt -f 54
+//--------------------------==Deployment
+//yarn run testmt -f 53
 const deployHeliumContract_API = async() => {
   console.log('\n--------------==inside deployHeliumContract_API()');
-  const eoa0 = admin; const eoa1 = AssetOwner1; const eoa2 = AssetOwner2;
-  const eoa3 = AssetOwner3; const eoa4 = AssetOwner4;
-  console.log(`admin:       ${admin} \nAssetOwner1: ${AssetOwner1} \nAssetOwner2: ${AssetOwner2} \nAssetOwner3: ${AssetOwner3} \nAssetOwner4: ${AssetOwner4}`)
-  const {isGood, addrHeliumContract} = await deployHeliumContract(eoa0, eoa1, eoa2, eoa3, eoa4);
-  console.log(`\nreturned isGood: ${isGood}, addrHeliumContract: ${addrHeliumContract}`);
+  console.log(`admin:       ${admin} \nAssetOwner0: ${AssetOwner0} \nAssetOwner1: ${AssetOwner1} \nAssetOwner2: ${AssetOwner2} \nAssetOwner3: ${AssetOwner3}`)
+  const {isGood, addrHeliumContract} = await deployHeliumContract(admin, AssetOwner0, AssetOwner1, AssetOwner2, AssetOwner3);
+  console.log(`\nreturned isGood: ${isGood} \naddrHeliumContract: ${addrHeliumContract}`);
+  process.exit(0);
+};
+
+//yarn run testmt -f 54
+const deployRegistryContract_API = async() => {
+  console.log('\n--------------==inside deployRegistryContract_API()');
+  const addrHeliumContract = addrHelium;
+  console.log('addrHeliumContract:', addrHeliumContract);
+  const {isGood, addrRegistryCtrt} = await deployRegistryContract(addrHeliumContract);
+  console.log(`\nreturned isGood: ${isGood} \naddrRegistryCtrt: ${addrRegistryCtrt}`);
   process.exit(0);
 };
 
 //yarn run testmt -f 55
-const deployRegistryContract_API = async() => {
-  console.log('\n--------------==inside deployRegistryContract_API()');
+const deployProductManagerContract_API = async() => {
+  console.log('\n--------------==inside deployProductManagerContract_API()');
   const addrHeliumContract = addrHelium;
-  const {isGood, addrRegistryCtrt} = await deployRegistryContract(addrHeliumContract);
-  console.log(`\nreturned isGood: ${isGood}, addrRegistryCtrt: ${addrRegistryCtrt}`);
+  console.log('addrHeliumContract:', addrHeliumContract);
+  const {isGood, addrProductManager} = await deployProductManagerContract(addrHeliumContract).catch((err) => {
+    console.log('\n[Error]'+ err);
+  });
+  console.log(`result_deployment: ${isGood} \naddrProductManager: ${addrProductManager}`);
   process.exit(0);
 };
 
@@ -558,7 +568,9 @@ const deployRegistryContract_API = async() => {
 const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
   const choice = 2;//1 for one assetbook, 2 for multiple
-  let eoaArray, addrHeliumContract;
+  let eoaArray;
+  const addrHeliumContract = addrHelium;
+
   if(assetOwnerArray.length < 10) {
     console.error('not enough assetOwnerArray length!');
     process.exit(1);
@@ -574,7 +586,6 @@ const deployAssetbookContracts_API = async() => {
     }
     eoaArray = [assetownerOne];
   }
-  addrHeliumContract = addrHelium;
   const {isGood, addrAssetBookArray} = await deployAssetbooks(eoaArray,addrHeliumContract);
 
   console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
@@ -655,7 +666,6 @@ const addUsersToRegistryCtrt_API = async() => {
     investorLevels = [authLevel, authLevel, authLevel];
 
   } else if(method === 4) {
-    const assetbookAmount = 10;
     userAssetbooks = assetbookArray.slice(0, assetbookAmount);
     //console.log('assetbookArray:', assetbookArray);
     console.log('userAssetbooks:', userAssetbooks);
@@ -1270,18 +1280,11 @@ const writeStreamToTxtFile_API = async () => {
 }
 
 //----------------------------==Deploy contracts
-//yarn run testmt -f 60
-const checkArgumentsCFC_API = async () => {
-  console.log('\n---------------------==checkArgumentsCFC_API()');
-  const result_checkArguments = await checkArgumentsCFC(argsCrowdFunding);
-  console.log(`result_checkArguments: ${result_checkArguments}`);
-}
 
 //yarn run testmt -f 61
 const deployCrowdfundingContract_API = async () => {
   console.log('\n---------------------==deployCrowdfundingContract_API()');
   let acCFSD, acCFED, acTimeOfDeployment_CF;
-  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_CF = await getLocalTime();
     acCFSD = acTimeOfDeployment_CF+1;
@@ -1301,13 +1304,13 @@ const deployCrowdfundingContract_API = async () => {
   //process.exit(0);
   if(result_checkArguments){
     console.log('result_checkArguments: true');
-    if(isToDeploy === 1){
+    if(isToDeploy){
       const {isGood, crowdFundingAddr} = await deployCrowdfundingContract(argsCrowdFunding).catch((err) => {
         console.log('\n[Error]'+ err);
       });
-      console.log(`result_deployment: isGood: ${isGood}, crowdFundingAddr: ${crowdFundingAddr}`);
+      console.log(`result_deployment: isGood: ${isGood} \ncrowdFundingAddr: ${crowdFundingAddr}`);
     } else {
-      const crowdFundingAddr = '0xF811f727da052379D8cbfBF1188E290B32ff9f99';
+      const crowdFundingAddr = addrCrowdFunding;
       const result = await checkDeploymentCFC(crowdFundingAddr, argsCrowdFunding);
       console.log(`result: ${result}`);
     }
@@ -1324,7 +1327,6 @@ const deployTokenControllerContract_API = async () => {
   console.log('\n---------------------==deployTokenControllerContract_API()');
   let acTimeTokenUnlock, acTimeTokenValid, TimeOfDeployment_TokCtrl;
 
-  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_TokCtrl = await getLocalTime();
     acTimeTokenUnlock = acTimeOfDeployment_TokCtrl+2;//2 sec to unlock
@@ -1343,13 +1345,13 @@ const deployTokenControllerContract_API = async () => {
   if(result_checkArguments){
     console.log('result_checkArguments: true');
     //process.exit(0);
-    if(isToDeploy === 1){
+    if(isToDeploy){
       const {isGood, tokenControllerAddr} = await deployTokenControllerContract(argsTokenController).catch((err) => {
         console.log('\n[Error]'+ err);
       });
-      console.log(`result_deployment: isGood: ${isGood}, tokenControllerAddr: ${tokenControllerAddr}`);
+      console.log(`result_deployment: isGood: ${isGood} \ntokenControllerAddr: ${tokenControllerAddr}`);
     } else {
-      const tokenControllerAddr = '0x9812d0eBcd89d8491Bca80000c147f739B9Cef73';
+      const tokenControllerAddr = addrTokenController;
       const result = await checkDeploymentTCC(tokenControllerAddr, argsTokenController);
       console.log(`result: ${result}`);
     }
@@ -1364,7 +1366,6 @@ const deployHCATContract_API = async () => {
   console.log('\n---------------------==deployHCATContract_API()');
   let acTimeOfDeployment_HCAT;
 
-  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_HCAT = await getLocalTime();
   } else {
@@ -1378,7 +1379,7 @@ const deployHCATContract_API = async () => {
   const argsHCAT721 = [
   nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
   initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-  addrRegistry, addrTokenController, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
+  addrRegistry, addrProductManager, addrTokenController, tokenURI_bytes32, addrHelium, acTimeOfDeployment_HCAT];
   console.log(`nftName: ${nftName}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply} \ninitialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}, tokenURI: ${tokenURI}`);
 
   const result_checkArguments = await checkArgumentsHCAT(argsHCAT721);
@@ -1387,12 +1388,13 @@ const deployHCATContract_API = async () => {
   if(result_checkArguments){
     console.log('result_checkArguments is true');
     //process.exit(0);
-    if(isToDeploy === 1){
+    if(isToDeploy){
       const {isGood, HCAT_Addr} = await deployHCATContract(argsHCAT721).catch((err) => { console.log('\n[Error]'+ err); });
-      console.log(`result_deployment: isGood: ${isGood}, HCAT_Addr: ${HCAT_Addr}`);
+      console.log(`result_deployment: isGood: ${isGood} \nHCAT_Addr: ${HCAT_Addr}`);
     
     } else {
-      const HCAT_Addr = '0x57B7c9837cFc7fC2f0510d16cc52D2F0Dc10276A';
+      const HCAT_Addr = addrHCAT721;
+      console.log('HCAT_Addr:', HCAT_Addr);
       const result = await checkDeploymentHCAT(HCAT_Addr, argsHCAT721);
       console.log(`result: ${result}`);
     }
@@ -1406,7 +1408,6 @@ const deployHCATContract_API = async () => {
 const deployIncomeManagerContract_API = async () => {
   console.log('\n---------------------==deployIncomeManagerContract_API()');
   let acTimeOfDeployment_IM;
-  const isToDeploy = 1;
   if(timeChoice === 1){
     acTimeOfDeployment_IM = await getLocalTime();
   } else {
@@ -1421,14 +1422,14 @@ const deployIncomeManagerContract_API = async () => {
   if(result_checkArguments){
     console.log('result_checkArguments: true');
     //process.exit(0);
-    if(isToDeploy === 1){
+    if(isToDeploy){
       const {isGood, IncomeManager_Addr} = await deployIncomeManagerContract(argsIncomeManager).catch((err) => {
         console.log('\n[Error]'+ err);
       });
-      console.log(`result_deployment: ${isGood}, IncomeManager_Addr: ${IncomeManager_Addr}`);
+      console.log(`result_deployment: ${isGood} \nIncomeManager_Addr: ${IncomeManager_Addr}`);
       
     } else {
-      const IncomeManager_Addr = '';
+      const IncomeManager_Addr = addrIncomeManager;
       const result = await checkDeploymentIncomeManager(IncomeManager_Addr, argsIncomeManager);
       console.log(`result: ${result}`);
     }
@@ -1438,17 +1439,7 @@ const deployIncomeManagerContract_API = async () => {
   process.exit(0);
 }
 
-//yarn run testmt -f 71
-const deployProductManagerContract_API = async() => {
-  console.log('\n--------------==inside deployProductManagerContract_API()');
-  const addrHCATContract = addrHCAT721;
-  const addrHeliumContract = addrHelium;
-  const {isGood, addrProductManager} = await deployProductManagerContract(addrHeliumContract).catch((err) => {
-    console.log('\n[Error]'+ err);
-  });
-  console.log(`result_deployment: ${isGood}, addrProductManager: ${addrProductManager}`);
-  process.exit(0);
-};
+
 
 //yarn run testmt -f 73
 const addProductRowFromSymbol_API = async() => {
@@ -1771,8 +1762,7 @@ const intergrationTestOfProduct = async() => {
   
   const _deployCrowdfundingContract_API = async () => {
     console.log('\n---------------------==deployCrowdfundingContract_API()');
-    const isToDeploy = 1;
-    if(timeChoice === 1){
+      if(timeChoice === 1){
       acTimeOfDeployment_CF = nowTime;
       acCFSD = acTimeOfDeployment_CF+1;
       acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
@@ -1793,7 +1783,7 @@ const intergrationTestOfProduct = async() => {
 
     if(result_checkArguments){
       console.log('result_checkArguments: true');
-      if(isToDeploy === 1){
+      if(isToDeploy){
         const result_deployment = await deployCrowdfundingContract(argsCrowdFunding).catch((err) => {
           console.log(err)
           process.exit(1)
@@ -1824,8 +1814,7 @@ const intergrationTestOfProduct = async() => {
     console.log('\n---------------------==deployTokenControllerContract_API()');
     let TimeOfDeployment_TokCtrl;
   
-    const isToDeploy = 1;
-    if(timeChoice === 1){
+      if(timeChoice === 1){
       acTimeOfDeployment_TokCtrl = nowTime;
       //if time is YYYYMMDDHH59
       if(acTimeOfDeployment_TokCtrl % 100 == 59){
@@ -1847,7 +1836,7 @@ const intergrationTestOfProduct = async() => {
     if(result_checkArguments){
       console.log('result_checkArguments: true');
       //process.exit(0);
-      if(isToDeploy === 1){
+      if(isToDeploy){
         const result_deployment = await deployTokenControllerContract(argsTokenController).catch((err) => {
           console.log(err)
           process.exit(1)
@@ -1876,8 +1865,7 @@ const intergrationTestOfProduct = async() => {
     console.log('\n---------------------==deployHCATContract_API()');
     let acTimeOfDeployment_HCAT;
   
-    const isToDeploy = 1;
-    if(timeChoice === 1){
+      if(timeChoice === 1){
       acTimeOfDeployment_HCAT = nowTime;
     } else {
       acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
@@ -1899,7 +1887,7 @@ const intergrationTestOfProduct = async() => {
     if(result_checkArguments){
       console.log('result_checkArguments is true');
       //process.exit(0);
-      if(isToDeploy === 1){
+      if(isToDeploy){
         const result_deployment = await deployHCATContract(argsHCAT721).catch((err) => {
           console.log(err)
           process.exit(1)
@@ -1927,8 +1915,7 @@ const intergrationTestOfProduct = async() => {
   const _deployIncomeManagerContract_API = async () => {
     console.log('\n---------------------==deployIncomeManagerContract_API()');
     let acTimeOfDeployment_IM;
-    const isToDeploy = 1;
-    if(timeChoice === 1){
+      if(timeChoice === 1){
       acTimeOfDeployment_IM = nowTime;
     } else {
       acTimeOfDeployment_IM = TimeOfDeployment_IM;
@@ -1942,7 +1929,7 @@ const intergrationTestOfProduct = async() => {
     if(result_checkArguments){
       console.log('result_checkArguments: true');
       //process.exit(0);
-      if(isToDeploy === 1){
+      if(isToDeploy){
         const result_deployment = await deployIncomeManagerContract(argsIncomeManager).catch((err) => {
           console.log(err)
           process.exit(1)
@@ -2634,23 +2621,21 @@ if(argv3 === 0){
 } else if (argv3 === 50) {
   resetAfterMintToken_API();
 
-//yarn run testmt -f 51
-} else if (argv3 === 51) {
-  writeFileToTxtFile_API();
-
-//yarn run testmt -f 52
-} else if (argv3 === 52) {
-  writeStreamToTxtFile_API();
 
 
-//----------------------==Deploy Registry contract
+
+//----------------------==Deploy System contracts
+//yarn run testmt -f 53
+} else if (argv3 === 53) {
+  deployHeliumContract_API();
+
 //yarn run testmt -f 54
 } else if (argv3 === 54) {
-  deployHeliumContract_API();
+  deployRegistryContract_API();
 
 //yarn run testmt -f 55
 } else if (argv3 === 55) {
-  deployRegistryContract_API();
+  deployProductManagerContract_API();
 
 //----------------------==Add Assetbooks
 //yarn run testmt -f 56
@@ -2668,6 +2653,7 @@ if(argv3 === 0){
 //yarn run testmt -f 59
 } else if (argv3 === 59) {
   addUsersToRegistryCtrt_API();
+
 
 //yarn run testmt -f 60
 } else if (argv3 === 60) {
@@ -2695,7 +2681,6 @@ if(argv3 === 0){
 
 //yarn run testmt -f 71
 } else if (argv3 === 71) {
-  deployProductManagerContract_API();
 
 //yarn run testmt -f 72
 } else if (argv3 === 72) {
@@ -2864,6 +2849,14 @@ if(argv3 === 0){
 //yarn run testmt -f 151
 } else if (argv3 === 151) {
   getOneAddrPerLineFromCSV_API();
+
+//yarn run testmt -f 152
+} else if (argv3 === 152) {
+  writeFileToTxtFile_API();
+
+//yarn run testmt -f 153
+} else if (argv3 === 153) {
+  writeStreamToTxtFile_API();
 
 ////yarn run testmt -c 201
 } else if(argv3 === 201){

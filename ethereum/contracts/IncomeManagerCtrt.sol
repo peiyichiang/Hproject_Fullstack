@@ -42,10 +42,10 @@ contract IncomeManagerCtrt {
     function checkDeploymentConditions(
         address _addrTokenCtrt, address _addrHelium, uint _TimeOfDeployment
       ) public view returns(bool[] memory boolArray) {
-        boolArray = new bool[](4);
+        boolArray = new bool[](3);
         boolArray[0] = _addrTokenCtrt.isContract();
         boolArray[1] = _addrHelium.isContract();
-        boolArray[2] = _TimeOfDeployment > 201905281400;
+        boolArray[2] = _TimeOfDeployment > 201909271700;
     }
     function getIncomeManagerDetails() external view returns (
         address addrTokenCtrt_, address addrHelium_, uint TimeOfDeployment_,

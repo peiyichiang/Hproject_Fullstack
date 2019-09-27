@@ -380,10 +380,10 @@ contract AssetBook is MultiSig {
 
     function sendTokenToSettlementByAmount(
         uint assetIndex, address assetAddr,
-        address _from, address _to, uint _tokenId) external ckAssetOwner {
+        address _from, address _to, uint amount) external ckAssetOwner {
 
         (address assetAddr_,address from_) = checkInputs(assetIndex, assetAddr, _from);
-        HCAT721_Interface_ABC(assetAddr_).sendTokenToSettlementByAmount(from_, _to, _tokenId);
+        HCAT721_Interface_ABC(assetAddr_).sendTokenToSettlementByAmount(from_, _to, amount);
     }
     //sendTokenToSettlementById(address _from, address _to, uint _tokenId) external;
     // function sendTokenToSettlementById(
@@ -403,7 +403,7 @@ contract AssetBook is MultiSig {
             assetAddr_ = assetAddr;
         }
         require(assetAddr_.isContract(), "assetAddr has to contain a contract");
-        
+
         HCAT721_Interface_ABC(assetAddr_).tokenApprove(operator, amount);
         // HCAT721_Interface_ABC hcat721 = HCAT721_Interface_ABC(address(uint160(assetAddr_)));
         // hcat721.tokenApprove(operator, amount);
