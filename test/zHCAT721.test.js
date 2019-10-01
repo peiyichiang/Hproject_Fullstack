@@ -321,10 +321,32 @@ beforeEach( async function() {
         console.log('AssetOwner2',  AssetOwner2, balanceAO2);
     }
     
-
-    console.log('\nDeploying Helium contract...');
-    //JSON.parse() is not needed because the abi and bytecode are already objects
     console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
+
+    console.log('\nDeploying Helium contract... \n-----------------==with duplicated member inside managementTeam');
+    const managementTeamErr = [admin, chairman, director, manager, admin];
+
+    const argsHelium1 = [managementTeamErr];
+    instHelium =  await new web3.eth.Contract(Helium.abi)
+    .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium1 })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('Helium.sol has been deployed');
+
+    let checkDeploymentConditions = await instHelium.methods.checkDeploymentConditions().call();
+    console.log('checkDeploymentConditions:', checkDeploymentConditions);
+    const isAnyError = checkDeploymentConditions['2'].includes(true);
+
+    if(isAnyError){
+      console.log('[Success] only all different members inside managementTeam can deploy Helium contract');
+
+    } else {
+      console.log('[Error]');
+      process.exit(0);
+    }
+
+
+    console.log('\nDeploying Helium contract... \n-----------------==with all unique members inside managementTeam');
+    //JSON.parse() is not needed because the abi and bytecode are already objects
     const argsHelium = [managementTeam];
     console.log('\nDeploying Helium contract...');
     instHelium =  await new web3.eth.Contract(Helium.abi)
@@ -1226,7 +1248,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
     console.log('\ntokenIds from _from Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
 
-    console.log('\naddrSettlement:', addrSettlement, '\nchecking transferred token Ids...');
+    console.log('\naddrSettlement:', addrSettlement, '\nchecking transferred token Ids... \nprevTokenIds:', prevTokenIds);
     for(let i = 0; i < amount; i++) {
       const tokenIdByIndex = prevTokenIds[i];
       tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdByIndex).call();
@@ -1256,26 +1278,28 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     // console.log('\ntokenIds from _to addrSettlement =', tokenIds, ', balanceXM =', balanceXM);
 
     console.log('\n----------------==sendTokenFromSettlementById to Assetbook2');
-    _from = addrSettlement; _to = addrAssetBook2; _tokenId = prevTokenIds[0];
-    _fromEOA = chairman; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via sendTokenToSettlementById()...');
+    _from = addrSettlement; _to = addrAssetBook2;
+    _fromEOA = chairman; serverTime = TimeTokenUnlock+1;
+    console.log('\n_from:', _from, '\n_to:', _to, '\n_fromEOA:', _fromEOA);
 
-    console.log('_tokenId:', _tokenId, '\n_from:', _from, '\n_to:', _to, '\n_fromEOA:', _fromEOA);
-
-    result = await instSettlement.methods.checkSendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).call();
-    console.log('result of checkSendTokenFromSettlementById:', result);
-    //process.exit(0);
-
-    await instSettlement.methods.sendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
-    
-    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
-    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
-    console.log('\ntokenIds from _to Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
-
-    tokenOwnerM = await instHCAT721.methods.ownerOf(_tokenId).call();
-    console.log('HCAT tokenId: '+tokenId1st, tokenOwnerM, '\n_to:', _to);
-    assert.equal(tokenOwnerM, _to);
-
+    for(let i = 0; i < amount; i++) {
+      _tokenId = prevTokenIds[i];
+      console.log('\n_tokenId:', _tokenId);
+      result = await instSettlement.methods.checkSendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).call();
+      console.log('result of checkSendTokenFromSettlementById:', result);
+      //process.exit(0);
+  
+      await instSettlement.methods.sendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
+      
+      tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+      balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+      console.log('tokenIds from _to Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+  
+      tokenOwnerM = await instHCAT721.methods.ownerOf(_tokenId).call();
+      console.log('HCAT tokenId: '+_tokenId,', ', tokenOwnerM, '\n_to:', _to);
+      assert.equal(tokenOwnerM, _to);
+    }
     process.exit(0);
 
     //--------------------------------==
@@ -1730,19 +1754,74 @@ describe('Tests on HeliumCtrt', () => {
   it('HeliumCtrt functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==testing HeliumCtrt');
-    bool1 = await instHelium.methods.checkCustomerService().call({from: admin});
+    bool1 = await instHelium.methods.checkCustomerService(admin).call();
     console.log('checkCustomerService(admin):', bool1);
     assert.equal(bool1, true);
 
-    bool1 = await instHelium.methods.checkCustomerService().call({from: AssetOwner1});
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.equal(bool1, false);
 
-    await instHelium.methods.addCustomerService(AssetOwner1)
-    .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instHelium.methods.checkCustomerService().call({from: AssetOwner1});
+    await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.equal(bool1, true);
+
+    //----------------==
+    //  admin, chairman, director, manager, owner
+    adminM = await instHelium.methods.Helium_Admin().call();
+    console.log('Helium_Admin():', adminM);
+    assert.equal(adminM, admin);
+
+    chairmanM = await instHelium.methods.Helium_Chairman().call();
+    console.log('Helium_Chairman():', chairmanM);
+    assert.equal(chairmanM, chairman);
+
+    directorM = await instHelium.methods.Helium_Director().call();
+    console.log('Helium_Director():', directorM);
+    assert.equal(directorM, director);
+
+    managerM = await instHelium.methods.Helium_Manager().call();
+    console.log('Helium_Manager():', managerM);
+    assert.equal(managerM, manager);
+
+    ownerM = await instHelium.methods.Helium_Owner().call();
+    console.log('Helium_Owner():', ownerM);
+    assert.equal(ownerM, owner);
+
+    //--------------==
+    AdminVoteM = await instHelium.methods.Helium_AdminVote().call();
+    console.log('Helium_AdminVote():', AdminVoteM);
+    assert.equal(AdminVoteM, 0);
+
+    ChairmanVoteM = await instHelium.methods.Helium_ChairmanVote().call();
+    console.log('Helium_ChairmanVote():', ChairmanVoteM);
+    assert.equal(ChairmanVoteM, 0);
+
+    DirectorVoteM = await instHelium.methods.Helium_DirectorVote().call();
+    console.log('Helium_DirectorVote():', DirectorVoteM);
+    assert.equal(DirectorVoteM, 0);
+
+    ManagerVoteM = await instHelium.methods.Helium_ManagerVote().call();
+    console.log('Helium_ManagerVote():', ManagerVoteM);
+    assert.equal(ManagerVoteM, 0);
+
+    OwnerVoteM = await instHelium.methods.Helium_OwnerVote().call();
+    console.log('Helium_OwnerVote():', OwnerVoteM);
+    assert.equal(OwnerVoteM, 0);
+
+    //--------------==
+    MinimumVotesForMultiSig = await instHelium.methods.MinimumVotesForMultiSig().call();
+    console.log('MinimumVotesForMultiSig():', MinimumVotesForMultiSig);
+    assert.equal(MinimumVotesForMultiSig, 3);
+
+    locked = await instHelium.methods.locked().call();
+    console.log('locked():', locked);
+    assert.equal(locked, false);
+
+    //--------------==
+
+
   });
 });
 

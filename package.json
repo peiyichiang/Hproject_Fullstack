@@ -14,7 +14,8 @@
     "mocf": "mocha --grep CrowdFundingCtrt",
     "mohcat": "mocha --grep HCAT721Ctrt",
     "moim": "mocha --grep IncomeManagerCtrt",
-    "mopm": "mocha --grep ProductManagerCtrt"
+    "mopm": "mocha --grep ProductManagerCtrt",
+    "mohelium": "mocha --grep HeliumCtrt"
   },
   "dependencies": {
     "amqplib": "^0.5.3",

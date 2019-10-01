@@ -21,6 +21,9 @@ contract Helium {
     uint8 public Helium_AdminVote;
 
     uint8 public MinimumVotesForMultiSig = 3;
+    uint public mgrlength;
+    uint public minMgrlength = 5;
+    bool public doMgrsHaveDuplicate;
     bool public locked;// to prevent re-entry attack
 
     struct PermissionTable {
@@ -33,43 +36,46 @@ contract Helium {
     bool[] public isAddrAddedArray;// = new bool[](5);
 
     constructor(address[] memory management) public {
-        if(management.length > 0){
+        mgrlength = management.length;
+        if(mgrlength > 0){
             Helium_Admin = management[0];
             addPlatformSupervisor(Helium_Admin);
             isAddrAddedArray.push(isAddrAddedMapping[Helium_Admin]);
             isAddrAddedMapping[Helium_Admin] = true;
         }
-        if(management.length > 1){
+        if(mgrlength > 1){
             Helium_Chairman = management[1];
             addPlatformSupervisor(Helium_Chairman);
             isAddrAddedArray.push(isAddrAddedMapping[Helium_Chairman]);
             isAddrAddedMapping[Helium_Chairman] = true;
         }
-        if(management.length > 2){
+        if(mgrlength > 2){
             Helium_Director = management[2];
             addPlatformSupervisor(Helium_Director);
             isAddrAddedArray.push(isAddrAddedMapping[Helium_Director]);
             isAddrAddedMapping[Helium_Director] = true;
         }
-        if(management.length > 3){
+        if(mgrlength > 3){
             Helium_Manager = management[3];
             addCustomerService(Helium_Manager);
             isAddrAddedArray.push(isAddrAddedMapping[Helium_Manager]);
             isAddrAddedMapping[Helium_Manager] = true;
         }
-        if(management.length > 4){
+        if(mgrlength > 4){
             Helium_Owner = management[4];
             addCustomerService(Helium_Owner);
             isAddrAddedArray.push(isAddrAddedMapping[Helium_Owner]);
             isAddrAddedMapping[Helium_Owner] = true;
         }
 
+        for(uint i = 0; i < mgrlength; i = i+1) {
+            doMgrsHaveDuplicate = doMgrsHaveDuplicate || isAddrAddedArray[i];
+        }
         isAfterDeployment = true;
     }
-    function checkDeploymentConditions(
-        address[] memory management
-      ) public view returns(bool, bool[] memory) {
-        return (management.length > 4, isAddrAddedArray);
+    function checkDeploymentConditions()
+    public view returns(bool, bool, bool[] memory) {
+        return (mgrlength > minMgrlength-1, doMgrsHaveDuplicate, isAddrAddedArray);
     }
     function getHeliumDetails() public view returns(
         address, address, address, address, address,

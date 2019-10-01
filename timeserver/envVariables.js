@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, isToDeploy, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
+let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
