@@ -1746,10 +1746,10 @@ const intergrationTestOfProduct = async() => {
     return nowDate.getFullYear() + paddingLeft(String(nowDate.getMonth()+1), 2) + paddingLeft(String(nowDate.getDate()), 2) + paddingLeft(String(nowDate.getHours()), 2) + paddingLeft(String(nowDate.getMinutes()), 2)
   
   }
-  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, productManagerAddr, acTimeTokenUnlock, acTimeTokenValid;
+  let crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr, acTimeTokenUnlock, acTimeTokenValid;
   let acCFSD, acCFED, acTimeOfDeployment_CF;
   let output = '';
-  let nowTime = 201909100800;
+  let nowTime = 201910010800;
   var originalStderrWrite = process.stderr.write.bind(process.stderr);
   
   process.stderr.write = async (chunk, encoding, callback) => {
@@ -1865,7 +1865,7 @@ const intergrationTestOfProduct = async() => {
     console.log('\n---------------------==deployHCATContract_API()');
     let acTimeOfDeployment_HCAT;
   
-      if(timeChoice === 1){
+    if(timeChoice === 1){
       acTimeOfDeployment_HCAT = nowTime;
     } else {
       acTimeOfDeployment_HCAT = TimeOfDeployment_HCAT;
@@ -1878,7 +1878,7 @@ const intergrationTestOfProduct = async() => {
     const argsHCAT721 = [
     nftName_bytes32, nftSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, tokenControllerAddr, tokenURI_bytes32, addrHelium,acTimeOfDeployment_HCAT];
+    addrRegistry, addrProductManager, tokenControllerAddr, tokenURI_bytes32, addrHelium, acTimeOfDeployment_HCAT];
     console.log(`nftName: ${nftName}, nftSymbol: ${nftSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply} \ninitialAssetPricing: ${initialAssetPricing}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}, tokenURI: ${tokenURI}`);
   
     const result_checkArguments = await checkArgumentsHCAT(argsHCAT721);
@@ -1984,18 +1984,6 @@ const intergrationTestOfProduct = async() => {
       process.exit(1)
     } 
   } 
-
-  const _deployProductManager = async() => {
-    console.log('\n--------------==inside deployProductManagerContract_API()');
-    const addrHCATContract = hcatAddr;
-    const addrHeliumContract = addrHelium;
-    const addrProductManager = await deployProductManagerContract(addrHCATContract, addrHeliumContract).catch((err) => {
-      console.log(err)
-      process.exit(1)
-    });
-    console.log('\nreturned addrProductManager:', addrProductManager);
-    productManagerAddr = addrProductManager
-  }
   const _addIncomeArrangement = async() => {
     //time need to be fixed
     if(acTimeTokenUnlock % 100 >= 59){
@@ -2046,13 +2034,15 @@ const intergrationTestOfProduct = async() => {
     
     let serverTime
     if(timeChoice === 1){
-      serverTime = nowTime + 1;
+      serverTime = nowTime + 2;
       if(serverTime % 100 >= 60){
         serverTime += 40
       }
     } else {
       serverTime = TimeOfDeployment_HCAT;
     }
+    console.log("severtime:!!!!!!!!!!!!!!!!!")
+    console.log(serverTime);
     if (await addAssetbooksIntoCFC(serverTime, "paidTest") != true ){
       process.exit(1)
     }
@@ -2116,7 +2106,6 @@ const intergrationTestOfProduct = async() => {
   await _deployIncomeManagerContract_API();
   await _addProduct();
   await _addCtrt();
-  await _deployProductManager();
   await _addIncomeArrangement();
   await _addOrders_CFC_MintTokens_API();
   await _updateTokenControllerState();
