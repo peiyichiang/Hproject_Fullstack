@@ -78,7 +78,8 @@ router.get('/UserLogin', function (req, res, next) {
                                     u_account_status: result[0].u_account_status,
                                 }
                                 time = { expiresIn: 1800 };
-                                token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
+                                // token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
+                                token = jwt.sign(data, process.env.JWT_PRIVATEKEY);
 
                                 res.status(200).json({
                                     "message": "密碼正確",
@@ -149,6 +150,7 @@ router.post('/AddUser', function (req, res, next) {
                         "message": "[Error] Failure :\n" + err,
                         "success": false,
                     });
+                    console.error(err)
                 } else {
                     res.status(200);
                     res.json({
@@ -193,6 +195,7 @@ router.post('/send_email', function (req, res) {
             res.json({
                 "message": "驗證信寄送失敗：" + err
             })
+            console.error(err);
         }
         else {
             res.status(200);
@@ -683,7 +686,8 @@ router.get('/UpdateUserInformation', function (req, res, next) {
                 u_account_status: result[0].u_account_status
             }
             time = { expiresIn: 1800 };
-            token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
+            // token = jwt.sign(data, process.env.JWT_PRIVATEKEY, time);
+            token = jwt.sign(data, process.env.JWT_PRIVATEKEY);
 
             res.status(200);
             res.json({
