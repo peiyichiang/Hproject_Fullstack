@@ -30,6 +30,8 @@ router.post('/AddOrder', function (req, res, next) {
     console.log('orderId', orderId, 'nationalId', nationalId, 'nationalIdLast5', nationalIdLast5);
     const email = req.body.email;
 
+    const bankVirtualAccount = await getBankVirtualAccount(orderId, symbol, email, currentDate, fundCount);
+
     var sql = {
         o_id: orderId,
         o_symbol: symbol,
@@ -57,7 +59,163 @@ router.post('/AddOrder', function (req, res, next) {
                 "result": result
             });
         }
-    });
+    })
+    /* TODO */
+    function getBankVirtualAccount(orderId, symbol, email, currentDate, fundCount) {
+        return new Promise(async (resolve, reject) => {
+            /**專案代號(3) 身分證字號(6) 太陽日(4) 檢查碼(1) */
+            let o_id = orderId;
+            console.log(req.body);
+
+            // SELECT table: product in: p_SYMBOL out: p_fundmanager
+            // SELECT table: backend_user in: m_id out: m_bankcode
+            // SELECT table: user in: u_email out:u_identityNumber, u_name
+            let mysqlPoolQuery = req.pool;
+            // let DBresult = await getInfoFromOrder_list(mysqlPoolQuery, o_id);
+            console.log("o_symbol:" + symbol);
+            let amountToPaid = fundCount;
+            let purchaseDate = currentDate;
+            let fundmanager = await getFundmanager(mysqlPoolQuery, symbol);
+            let bankcode = await getBankcode(mysqlPoolQuery, fundmanager);
+            console.log(email);
+            let userId = await getUserId(mysqlPoolQuery, email);
+            let userName = await getUserName(mysqlPoolQuery, email);
+
+
+            // 計算太陽日
+            let expiredSolarDay = await countExpiredSolarDay(purchaseDate);
+
+            // 計算檢查碼
+            let virtualAccount_13digits = bankcode + userId.slice(4) + expiredSolarDay;
+            console.log(virtualAccount_13digits);
+            let amountToPaid_11digits = lpad(amountToPaid, 11);
+            console.log(amountToPaid_11digits);
+            let checkCode = await calculateCheckCode(virtualAccount_13digits, amountToPaid_11digits);
+
+            //產生14碼虛擬帳號
+            let virtualAccount = bankcode + o_id.slice(-3) + userId.slice(7) + expiredSolarDay + checkCode;
+
+
+            //todo 將訂單資訊與虛擬帳號綁定 UPDATE table: order_list in: o_bankvirtualaccount
+            // await bindOrder(mysqlPoolQuery, o_id, virtualAccount);
+
+            resolve(virtualAccount);
+        })
+    }
+
+    function getFundmanager(mysqlPoolQuery, p_SYMBOL) {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery('SELECT p_fundmanager  FROM product WHERE p_SYMBOL = ?', [p_SYMBOL], function (err, DBresult, rows) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                else {
+                    console.log(DBresult);
+                    console.log(p_SYMBOL);
+                    console.log(p_SYMBOL);
+                    console.log(DBresult);
+                    console.log(DBresult);
+                    console.log(DBresult);
+
+                    resolve(DBresult[0].p_fundmanager);
+                }
+            });
+        })
+    }
+    function getBankcode(mysqlPoolQuery, m_id) {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery('SELECT m_bankcode  FROM backend_user WHERE m_id = ?', [m_id], function (err, DBresult, rows) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                else {
+                    console.log(DBresult);
+                    resolve(DBresult[0].m_bankcode);
+                }
+            });
+        })
+    }
+    function getUserId(mysqlPoolQuery, u_email) {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery('SELECT u_identityNumber  FROM user WHERE u_email = ?', [u_email], function (err, DBresult, rows) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                else {
+                    console.log(DBresult);
+                    resolve(DBresult[0].u_identityNumber);
+                }
+            });
+        })
+    }
+    function getUserName(mysqlPoolQuery, email) {
+        return new Promise((resolve, reject) => {
+            mysqlPoolQuery('SELECT u_name  FROM user WHERE u_email = ?', [email], function (err, DBresult, rows) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                else {
+                    // console.log(DBresult);
+                    resolve(DBresult[0].u_name);
+                }
+            });
+        })
+    }
+    function countExpiredSolarDay(purchaseDate) {
+        return new Promise((resolve, reject) => {
+            let purchaseDay = purchaseDate.slice(0, 8);
+
+            let year = parseInt(purchaseDate.slice(0, 4));
+            let month = parseInt(purchaseDate.slice(4, 6));
+            let day = parseInt(purchaseDate.slice(6, 8));
+            console.log(year);
+            console.log(month);
+            console.log(day);
+
+            let purchase_days_passed = countDays_passed(new Date(year, month - 1, day));
+            console.log(purchase_days_passed);
+            let expired_days_passed = purchase_days_passed + 3;
+            console.log(lpad(expired_days_passed, 3));
+
+            let solarDay = purchaseDay.slice(3, 4) + lpad(expired_days_passed, 3);
+            resolve(solarDay)
+        })
+    }
+
+    //計算今年的第幾天
+    function countDays_passed(date) {
+        var current = new Date(date.getTime());
+        var previous = new Date(date.getFullYear(), 0, 1);
+
+        return Math.ceil((current - previous + 1) / 86400000);
+    }
+
+    //補足位數
+    function lpad(value, padding) {
+        var zeroes = new Array(padding + 1).join("0");
+        return (zeroes + value).slice(-padding);
+    }
+
+    function calculateCheckCode(v_13digits, m_11digits) {
+        let value1 = 0;
+        let weightingarray1 = [9, 8, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5];
+        for (i = 0; i < 13; i++) {
+            value1 += parseInt(v_13digits[i]) * parseInt(weightingarray1[i]);
+        }
+        console.log(value1);
+        let value2 = 0;
+        let weightingarray2 = [9, 8, 7, 6, 5, 4, 3, 2, 1, 2, 3];
+        for (i = 0; i < 11; i++) {
+            value2 += parseInt(m_11digits[i]) * parseInt(weightingarray2[i]);
+        }
+        console.log(value2);
+        let checkCode = (value1 + value2) % 10;
+        return checkCode;
+    }
 });
 
 //SELECT SUM(o_tokenCount) AS total FROM htoken.`order` WHERE o_symbol = 'MYRR1701';
