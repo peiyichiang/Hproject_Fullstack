@@ -503,27 +503,42 @@ if (ProductManager === undefined){
 }
 
 
-module.exports = {
-  addrHelium, addrRegistry, productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, managementTeam, symNum,
-  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, isTestingMode,
-  CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, whichTimeServerArray,
-  argsCrowdFunding, argsTokenController, argsHCAT721, argsIncomeManager,
-  TestCtrt, Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, 
-  email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, imagef, imageb, excludedSymbols, excludedSymbolsIA
-}
-  /**
-  From KuanYi:
-  "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB";
-  "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C";
- 
-  https://iancoleman.io/bip39
-  m/44'/60'/0'/0/0 	0xa6cc621A179f01A719ee57dB4637A4A1f603A442 	0x02afa51468bfb825ddfa794b360f42c016da3dba10df065a11650b63799befed45 	0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
-
   m/44'/60'/0'/0/1 	0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2 	0x025e0eaf152f741fc91f437d0b6dfdaf96c076ad98010a0d60ba0490c05a46bbdd 	0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca
 
-  m/44'/60'/0'/0/2 	0x470Dea51542017db8D352b8B36B798a4B6d92c2E 	0x0384a124835b166c5b3fceec66c861959843eeccb92e18de938be272328692d33f 	0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2
-
-  m/44'/60'/0'/0/3 	0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61 	0x034d315e0adb4a832b692b51478feb1b81e761b9834aaf35f83cd23c43239027ed 	0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45
+//---------------------------==Winston Logger
+const loglevel = 'warn';//to show/hide logs.
+//value = silly, debug, verbose, info, warn, and error
+//console.log => wlogger.verbose, wlogger.warn, wlogger.error
 
   m/44'/60'/0'/0/4 	0x1706c33b3Ead4AbFE0962d573eB8DF70aB64608E 	0x0231900ed8b38e4c23ede6c151bf794418da573c9f63a1235d8823ab229ed251e3 	0x9767cc10e5c9ceaa945323f26aac029afbf5bb5a641d717466ca44a18dca916f
   */
+
+//add file and console wloggers to the winston instance
+winston.loggers.add('format1', {
+  format: logFormat,
+  transports: [
+    new winstonDailyRotateFile({
+      filename: './logs/custom-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'warn',
+    }),
+    new winston.transports.Console({
+      level: loglevel,
+    }),
+  ],
+});
+
+const wlogger = winston.loggers.get('format1');
+// wlogger.silly('Trace message, Winston!');
+// wlogger.debug('Debug message, Winston!');
+// wlogger.verbose('A bit more info, Winston!');
+// wlogger.info('Hello, Winston!');
+// wlogger.warn('Heads up, Winston!');
+// wlogger.error('Danger, Winston!');
+
+//---------------------------==
+
+
+module.exports = { COMPLIANCE_LEVELS, checkCompliance,
+  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, 
+}
