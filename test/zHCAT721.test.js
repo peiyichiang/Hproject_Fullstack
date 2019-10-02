@@ -10,7 +10,7 @@ const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
 
-let provider, web3, gasLimitValue, gasPriceValue, prefix = '', tokenIds, assetbookXM, balanceXM;
+let provider, web3, gasLimitValue, gasPriceValue, prefix = '0x', tokenIds, assetbookXM, balanceXM;
 const options = { gasLimit: 9000000 };
 gasLimitValue = '9000000';
 gasPriceValue = '20000000000';
@@ -38,17 +38,17 @@ console.log('Load contract json file compiled from sol file');
 
 const Helium = require('../ethereum/contracts/build/Helium.json');
 if (Helium === undefined){
-  console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] Helium is defined');
   if (Helium.abi === undefined){
-    console.log('[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] Helium.abi is defined');
       //console.log('Helium.abi:', Helium.abi);
   }
   if (Helium.bytecode === undefined || Helium.bytecode.length < 10){
-    console.log('[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] Helium.bytecode is defined');
       //console.log('Helium.bytecode:', Helium.bytecode);
@@ -59,17 +59,17 @@ if (Helium === undefined){
 
 const AssetBook = require('../ethereum/contracts/build/AssetBook.json');
 if (AssetBook === undefined){
-  console.log('[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] AssetBook is defined');
   if (AssetBook.abi === undefined){
-    console.log('[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] AssetBook.abi is defined');
       //console.log('AssetBook.abi:', AssetBook.abi);
   }
   if (AssetBook.bytecode === undefined || AssetBook.bytecode.length < 10){
-    console.log('[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] AssetBook.bytecode is defined');
       //console.log('AssetBook.bytecode:', AssetBook.bytecode);
@@ -81,17 +81,17 @@ if (AssetBook === undefined){
 
 const Registry = require('../ethereum/contracts/build/Registry.json');
 if (Registry === undefined){
-  console.log('[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] Registry is defined');
   if (Registry.abi === undefined){
-    console.log('[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] Registry.abi is defined');
       //console.log('Registry.abi:', Registry.abi);
   }
   if (Registry.bytecode === undefined || Registry.bytecode.length < 10){
-    console.log('[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] Registry.bytecode is defined');
       //console.log('Registry.bytecode:', Registry.bytecode);
@@ -101,17 +101,17 @@ if (Registry === undefined){
 
 const TokenController = require('../ethereum/contracts/build/TokenController.json');
 if (TokenController === undefined){
-  console.log('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] TokenController is defined');
   if (TokenController.abi === undefined){
-    console.log('[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] TokenController.abi is defined');
       //console.log('TokenController.abi:', TokenController.abi);
   }
   if (TokenController.bytecode === undefined || TokenController.bytecode.length < 10){
-    console.log('[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] TokenController.bytecode is defined');
       //console.log('TokenController.bytecode:', TokenController.bytecode);
@@ -121,17 +121,17 @@ if (TokenController === undefined){
 
 const HCAT721 = require('../ethereum/contracts/build/HCAT721_AssetToken.json');
 if (HCAT721 === undefined){
-  console.log('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] HCAT721 is defined');
   if (HCAT721.abi === undefined){
-    console.log('[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] HCAT721.abi is defined');
       //console.log('HCAT721.abi:', HCAT721.abi);
   }
   if (HCAT721.bytecode === undefined || HCAT721.bytecode.length < 10){
-    console.log('[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] HCAT721.bytecode is defined');
       //console.log('HCAT721.bytecode:', HCAT721.bytecode);
@@ -142,17 +142,17 @@ if (HCAT721 === undefined){
 
 const CrowdFunding = require('../ethereum/contracts/build/CrowdFunding.json');
 if (CrowdFunding === undefined){
-  console.log('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] CrowdFunding is defined');
   if (CrowdFunding.abi === undefined){
-    console.log('[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] CrowdFunding.abi is defined');
       //console.log('CrowdFunding.abi:', CrowdFunding.abi);
   }
   if (CrowdFunding.bytecode === undefined || CrowdFunding.bytecode.length < 10){
-    console.log('[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] CrowdFunding.bytecode is defined');
       //console.log('CrowdFunding.bytecode:', CrowdFunding.bytecode);
@@ -163,17 +163,17 @@ if (CrowdFunding === undefined){
 //----------------==Income Manager Related...
 const IncomeManagerCtrt = require('../ethereum/contracts/build/IncomeManagerCtrt.json');
 if (IncomeManagerCtrt === undefined){
-  console.log('[Error] IncomeManagerCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] IncomeManagerCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] IncomeManagerCtrt is defined');
   if (IncomeManagerCtrt.abi === undefined){
-    console.log('[Error] IncomeManagerCtrt.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] IncomeManagerCtrt.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] IncomeManagerCtrt.abi is defined');
       //console.log('IncomeManagerCtrt.abi:', IncomeManagerCtrt.abi);
   }
   if (IncomeManagerCtrt.bytecode === undefined || IncomeManagerCtrt.bytecode.length < 10){
-    console.log('[Error] IncomeManagerCtrt.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] IncomeManagerCtrt.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] IncomeManagerCtrt.bytecode is defined');
       //console.log('IncomeManagerCtrt.bytecode:', IncomeManagerCtrt.bytecode);
@@ -183,17 +183,17 @@ if (IncomeManagerCtrt === undefined){
 
 const ProductManager = require('../ethereum/contracts/build/ProductManager.json');
 if (ProductManager === undefined){
-  console.log('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  console.error('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
   console.log('[Good] ProductManager is defined');
   if (ProductManager.abi === undefined){
-    console.log('[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] ProductManager.abi is defined');
       //console.log('ProductManager.abi:', ProductManager.abi);
   }
   if (ProductManager.bytecode === undefined || ProductManager.bytecode.length < 10){
-    console.log('[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    console.error('[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
   } else {
     console.log('[Good] ProductManager.bytecode is defined');
       //console.log('ProductManager.bytecode:', ProductManager.bytecode);
@@ -201,6 +201,25 @@ if (ProductManager === undefined){
   //console.log(ProductManager);
 }
 
+const Settlement = require('../ethereum/contracts/build/Settlement.json');
+if (Settlement === undefined){
+  console.error('[Error] Settlement is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+} else {
+  console.log('[Good] Settlement is defined');
+  if (Settlement.abi === undefined){
+    console.error('[Error] Settlement.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Settlement.abi is defined');
+      //console.log('Settlement.abi:', Settlement.abi);
+  }
+  if (Settlement.bytecode === undefined || Settlement.bytecode.length < 10){
+    console.error('[Error] Settlement.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+  } else {
+    console.log('[Good] Settlement.bytecode is defined');
+      //console.log('Settlement.bytecode:', Settlement.bytecode);
+  }
+  //console.log(Settlement);
+}
 
 //Mocha starts > BeforeEach: Deploy a new contract
 // > it: Manipulate the contract > it: make an assertion > repeat
@@ -215,8 +234,9 @@ let instHCAT721, addrHCAT721;
 let instCrowdFunding, addrCrowdFunding;
 let instIncomeManager, addrIncomeManagerCtrt;
 let instProductManager, addrProductManager;
+let instSettlement, addrSettlement;
 
-let accounts, error, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, platformSupervisor, operator;
+let accounts, error, AssetOwner1, AssetOwner2, AssetOwner3, AssetOwner4, AssetOwner5, platformSupervisor, operator, result;
 let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
 
@@ -301,10 +321,32 @@ beforeEach( async function() {
         console.log('AssetOwner2',  AssetOwner2, balanceAO2);
     }
     
-
-    console.log('\nDeploying Helium contract...');
-    //JSON.parse() is not needed because the abi and bytecode are already objects
     console.log('gasLimit', gasLimitValue, 'gasPrice', gasPriceValue);
+
+    console.log('\nDeploying Helium contract... \n-----------------==with duplicated member inside managementTeam');
+    const managementTeamErr = [admin, chairman, director, manager, admin];
+
+    const argsHelium1 = [managementTeamErr];
+    instHelium =  await new web3.eth.Contract(Helium.abi)
+    .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium1 })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('Helium.sol has been deployed');
+
+    let checkDeploymentConditions = await instHelium.methods.checkDeploymentConditions().call();
+    console.log('checkDeploymentConditions:', checkDeploymentConditions);
+    const isAnyError = checkDeploymentConditions['2'].includes(true);
+
+    if(isAnyError){
+      console.log('[Success] only all different members inside managementTeam can deploy Helium contract');
+
+    } else {
+      console.log('[Error]');
+      process.exit(0);
+    }
+
+
+    console.log('\nDeploying Helium contract... \n-----------------==with all unique members inside managementTeam');
+    //JSON.parse() is not needed because the abi and bytecode are already objects
     const argsHelium = [managementTeam];
     console.log('\nDeploying Helium contract...');
     instHelium =  await new web3.eth.Contract(Helium.abi)
@@ -313,7 +355,7 @@ beforeEach( async function() {
     //.then(console.log);
     console.log('Helium.sol has been deployed');
     if (instHelium === undefined) {
-      console.log('[Error] instHelium is NOT defined');
+      console.error('[Error] instHelium is NOT defined');
       } else {console.log('[Good] instHelium is defined');}
     instHelium.setProvider(provider);
     addrHeliumCtrt = instHelium.options.address;
@@ -326,37 +368,40 @@ beforeEach( async function() {
 
     //Deploying AssetBook contract... 
     console.log('\nDeploying AssetBook contracts...');
+    console.log('\nDeploying AssetBook1...');
     instAssetBook1 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook1 })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook1 === undefined) {
-      console.log('[Error] instAssetBook1 is NOT defined');
+      console.error('[Error] instAssetBook1 is NOT defined');
       } else {console.log('[Good] instAssetBook1 is defined');}
     instAssetBook1.setProvider(provider);
     addrAssetBook1 = instAssetBook1.options.address;
     console.log('addrAssetBook1:', addrAssetBook1);
 
+    console.log('\nDeploying AssetBook2...');
     instAssetBook2 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook2 })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook2 === undefined) {
-      console.log('[Error] instAssetBook2 is NOT defined');
+      console.error('[Error] instAssetBook2 is NOT defined');
       } else {console.log('[Good] instAssetBook2 is defined');}
     instAssetBook2.setProvider(provider);
     addrAssetBook2 = instAssetBook2.options.address;
     console.log('addrAssetBook2:', addrAssetBook2);
 
+    console.log('\nDeploying AssetBook3...');
     instAssetBook3 =  await new web3.eth.Contract(AssetBook.abi)
     .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook3 })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     //.then(console.log);
     console.log('AssetBook.sol has been deployed');
     if (instAssetBook3 === undefined) {
-      console.log('[Error] instAssetBook3 is NOT defined');
+      console.error('[Error] instAssetBook3 is NOT defined');
       } else {console.log('[Good] instAssetBook3 is defined');}
     instAssetBook3.setProvider(provider);
     addrAssetBook3 = instAssetBook3.options.address;
@@ -371,7 +416,7 @@ beforeEach( async function() {
     //.then(console.log);
     console.log('Registry.sol has been deployed');
     if (instRegistry === undefined) {
-      console.log('[Error] instRegistry is NOT defined');
+      console.error('[Error] instRegistry is NOT defined');
       } else {console.log('[Good] instRegistry is defined');}
     instRegistry.setProvider(provider);
     addrRegistry = instRegistry.options.address;
@@ -386,23 +431,37 @@ beforeEach( async function() {
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('TokenController.sol has been deployed');
     if (instTokenController === undefined) {
-      console.log('[Error] instTokenController is NOT defined');
+      console.error('[Error] instTokenController is NOT defined');
       } else {console.log('[Good] instTokenController is defined');}
     instTokenController.setProvider(provider);
     addrTokenController = instTokenController.options.address;
     console.log('addrTokenController:', addrTokenController);
 
+    //---------=ProductManagerCtrt related contracts
+    console.log('\ninside productManager test...');
+    const argsProductManager = [addrHeliumCtrt];
+    instProductManager = await new web3.eth.Contract(ProductManager.abi)
+    .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('ProductManager.sol has been deployed');
+    if (instProductManager === undefined) {
+      console.error('[Error] instProductManager is NOT defined');
+      } else {console.log('[Good] instProductManager is defined');}
+    instProductManager.setProvider(provider);
+    addrProductManager = instProductManager.options.address;
+    console.log('addrProductManager:', addrProductManager);
+
     const argsHCAT721 = [
     tokenName_bytes32, tokenSymbol_bytes32, siteSizeInKW, maxTotalSupply, 
     initialAssetPricing, pricingCurrency_bytes32, IRR20yrx100,
-    addrRegistry, addrTokenController, tokenURI_bytes32, addrHeliumCtrt, TimeOfDeployment_HCAT];
+    addrRegistry, addrProductManager, addrTokenController, tokenURI_bytes32, addrHeliumCtrt, TimeOfDeployment_HCAT];
     console.log('\nDeploying HCAT721 contract...');
     instHCAT721 = await new web3.eth.Contract(HCAT721.abi)
     .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('HCAT721.sol has been deployed');
     if (instHCAT721 === undefined) {
-      console.log('[Error] instHCAT721 is NOT defined');
+      console.error('[Error] instHCAT721 is NOT defined');
       } else {console.log('[Good] instHCAT721 is defined');}
     instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     addrHCAT721 = instHCAT721.options.address;
@@ -415,7 +474,7 @@ beforeEach( async function() {
       .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('CrowdFunding.sol has been deployed');
     if (instCrowdFunding === undefined) {
-      console.log('[Error] instCrowdFunding is NOT defined');
+      console.error('[Error] instCrowdFunding is NOT defined');
       } else {console.log('[Good] instCrowdFunding is defined');}
     instCrowdFunding.setProvider(provider);
     addrCrowdFunding = instCrowdFunding.options.address;
@@ -430,11 +489,26 @@ beforeEach( async function() {
     .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('\nIncomeManagerCtrt.sol has been deployed');
     if (instIncomeManager === undefined) {
-      console.log('[Error] instIncomeManager is NOT defined');
+      console.error('[Error] instIncomeManager is NOT defined');
       } else {console.log('[Good] instIncomeManager is defined');}
     instIncomeManager.setProvider(provider);
     addrIncomeManagerCtrt = instIncomeManager.options.address;
     console.log('addrIncomeManagerCtrt:', addrIncomeManagerCtrt);
+
+
+    //---------=Settlement
+    console.log('\nDeploying Settlement contract...');
+    const argsSettlement =[addrRegistry, addrProductManager, addrHeliumCtrt];
+    instSettlement = await new web3.eth.Contract(Settlement.abi)
+    .deploy({ data: Settlement.bytecode, arguments: argsSettlement })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log('\nSettlement.sol has been deployed');
+    if (instSettlement === undefined) {
+      console.error('[Error] instSettlement is NOT defined');
+      } else {console.log('[Good] instSettlement is defined');}
+    instSettlement.setProvider(provider);
+    addrSettlement = instSettlement.options.address;
+    console.log('addrSettlement:', addrSettlement);
 
     console.log('--------==BeforeEach is finished');
 });
@@ -497,7 +571,10 @@ describe('Tests on HCAT721Ctrt', () => {
     assert.ok(addrTokenController);
     assert.ok(addrHCAT721);
     assert.ok(addrCrowdFunding);
+    assert.ok(addrProductManager);
+    assert.ok(addrSettlement);
     console.log('Deployment Check: Good');
+    //process.exit(0);
 
     let _assetAddr = addrHCAT721;
     if(false) {
@@ -621,14 +698,14 @@ describe('Tests on HCAT721Ctrt', () => {
     let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
     assert.equal(isTokenApprovedOperational, false);
 
-
+/*
     let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
     assert.equal(supportsInterface0x80ac58cd, true);
     let supportsInterface0x5b5e139f = await instHCAT721.methods.supportsInterface("0x5b5e139f").call();
     assert.equal(supportsInterface0x5b5e139f, true);
     let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
     assert.equal(supportsInterface0x780e9d63, true);
-
+*/
 
     //----------------==Setup Assetbook
     console.log('\n------------==Setup Assetbook 1 & 2');
@@ -686,9 +763,9 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('HCAT tokenId = '+tokenId, tokenOwnerM);
     assert.equal(tokenOwnerM, _to);
 
-    //HCAT721: check getAccountIds(owner, 0, 0), balanceOf(owner); getIdToAsset(tokenId)
-    tokenInfo = await instHCAT721.methods.getIdToAsset(tokenId).call();
-    console.log('HCAT getIdToAsset(): tokenId = '+tokenId+':', tokenInfo);
+    //HCAT721: check getAccountIds(owner, 0, 0), balanceOf(owner); ownerOf(tokenId)
+    tokenInfo = await instHCAT721.methods.ownerOf(tokenId).call();
+    console.log('HCAT ownerOf(): tokenId = '+tokenId+':', tokenInfo);
     assert.equal(tokenInfo, addrAssetBook1);
 
     accountM = await instHCAT721.methods.getAccount(_to).call();
@@ -739,17 +816,17 @@ describe('Tests on HCAT721Ctrt', () => {
     tokenOwnerM = await instHCAT721.methods.ownerOf(4).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instHCAT721.methods.getIdToAsset(2).call();
-    console.log('\nHCAT721: getIdToAsset() of tokenId = 2:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.ownerOf(2).call();
+    console.log('\nHCAT721: ownerOf() of tokenId = 2:', tokenInfo);
     assert.equal(tokenInfo, addrAssetBook1);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
     //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(3).call();
-    console.log('\nHCAT721: getIdToAsset() of tokenId = 3:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.ownerOf(3).call();
+    console.log('\nHCAT721: ownerOf() of tokenId = 3:', tokenInfo);
 
-    tokenInfo = await instHCAT721.methods.getIdToAsset(4).call();
-    console.log('\nHCAT721: getIdToAsset() of tokenId = 4:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.ownerOf(4).call();
+    console.log('\nHCAT721: ownerOf() of tokenId = 4:', tokenInfo);
 
     assetbookXM = await instAssetBook1.methods.getAsset(0,assetAddr).call();
     //symbol, uint balance, bool isInitialized
@@ -776,7 +853,7 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('\nidxToOwnerM', idxToOwnerM);
     assert.equal(idxToOwnerM, _to);
 
-    //HCAT721: check accountIdsAll(owner), balanceOf(owner); getIdToAsset(tokenId)
+    //HCAT721: check accountIdsAll(owner), balanceOf(owner); ownerOf(tokenId)
     //-----------------==Mint Token Batch
     console.log('\n\n------------==Mint Token in Batch: tokenId = 5, 6, 7 to AssetBook2');
     _to = addrAssetBook2; amount = 3; serverTime = TimeTokenUnlock-1
@@ -800,14 +877,14 @@ describe('Tests on HCAT721Ctrt', () => {
     tokenOwnerM = await instHCAT721.methods.ownerOf(7).call();
     assert.equal(tokenOwnerM, _to);
 
-    tokenInfo = await instHCAT721.methods.getIdToAsset(5).call();
-    console.log('HCAT721: getIdToAsset() of tokenId = 5:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.ownerOf(5).call();
+    console.log('HCAT721: ownerOf() of tokenId = 5:', tokenInfo);
 
-    tokenInfo = await instHCAT721.methods.getIdToAsset(6).call();
-    console.log('HCAT721: getIdToAsset() of tokenId = 6:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.ownerOf(6).call();
+    console.log('HCAT721: ownerOf() of tokenId = 6:', tokenInfo);
 
-    tokenInfo = await instHCAT721.methods.getIdToAsset(7).call();
-    console.log('HCAT721: getIdToAsset() of tokenId = 7:', tokenInfo);
+    tokenInfo = await instHCAT721.methods.ownerOf(7).call();
+    console.log('HCAT721: ownerOf() of tokenId = 7:', tokenInfo);
 
 
     assetbookXM = await instAssetBook2.methods.getAsset(0,assetAddr).call();
@@ -968,10 +1045,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
-      _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock-1;
+      _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock-1;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-      .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
       console.log('[Success] sending tokenId 1 from assetbook1 to assetbook2 failed: serverTime should be > TimeTokenUnlock', serverTime, TimeTokenUnlock, err.toString().substr(0, 190));
@@ -994,10 +1071,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     assert.equal(tokenStateM, 1);
 
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(address _assetAddr, uint amount, address _to, uint price) 
 
     console.log('\nCheck AssetBook2 after txn...');
@@ -1031,12 +1108,12 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     //------------------------==
     //-----------------==Check AssetBook2
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 5; price = 15000;
-    _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('\n\n\n----------------==Send tokens in batch: amount =', amount, ' from AssetBook1 to AssetBook2');
     console.log('sending tokens via safeTransferFromBatch()...');
 
     await instAssetBook1.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     //safeTransferFromBatch(0, _assetAddr, amount, _to, _serverTime)
 
 
@@ -1063,10 +1140,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 7; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook2 after txn...');
     tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
@@ -1095,29 +1172,29 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
     _from = addrAssetBook1; _to = addrAssetBook2; amount = 7; price = 21000;
-    _fromAssetOwner = AssetOwner1; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner1; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook1 sending tokens via safeTransferFromBatch()...');
     await instAssetBook1.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
-    tokenInfo = await instHCAT721.methods.getIdToAsset(1).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(1).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(2).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(2).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(3).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(3).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(4).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(4).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(5).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(5).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(6).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(6).call();
     assert.equal(tokenInfo, _to);
-    tokenInfo = await instHCAT721.methods.getIdToAsset(7).call();
+    tokenInfo = await instHCAT721.methods.ownerOf(7).call();
     assert.equal(tokenInfo, _to);
 
-    //console.log('HCAT getIdToAsset(): tokenId = '+amount+':', tokenInfo);
+    //console.log('HCAT ownerOf(): tokenId = '+amount+':', tokenInfo);
     // assert.equal(tokenInfo[1], initialAssetPricing);
     // assert.equal(tokenInfo[2], addrZero);
 
@@ -1145,8 +1222,89 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     assert.equal(assetbookXM[3], 7);
 
 
-    console.log('\n----------------==Approval Functions');
-    _from = addrAssetBook2; _fromAssetOwner = AssetOwner2; amount = 3; 
+    console.log('\n--------------------------==Settlement Functions');
+
+    const settlementDetails = await instSettlement.methods.getSettlementDetails().call();
+    console.log('\nsettlementDetails:', settlementDetails);
+
+    await instProductManager.methods.setAddrSettlement(addrSettlement, true).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    const isSettlementApproved = await instProductManager.methods.isSettlementApproved(addrSettlement).call();
+    console.log('\nisSettlementApproved:', isSettlementApproved);
+
+    let tokenId1st = await instAssetBook2.methods.getFirstFromAddrTokenId(0, _assetAddr, _from).call();
+    console.log('\ntokenId1st:', tokenId1st);
+
+    //process.exit(0);
+
+    console.log('\n----------------==sendTokenToSettlementByAmount from Assetbook2');
+    _from = addrAssetBook2; _to = addrSettlement; amount = 3;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    const prevTokenIds = tokenIds;
+    console.log('AssetBook2 sending '+amount+' tokens via sendTokenToSettlementByAmount()...');
+    await instAssetBook2.methods.sendTokenToSettlementByAmount(0, _assetAddr, _from, _to, amount).send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('\ntokenIds from _from Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+
+    console.log('\naddrSettlement:', addrSettlement, '\nchecking transferred token Ids... \nprevTokenIds:', prevTokenIds);
+    for(let i = 0; i < amount; i++) {
+      const tokenIdByIndex = prevTokenIds[i];
+      tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdByIndex).call();
+      console.log('\ntokenId: '+tokenIdByIndex, tokenOwnerM);
+      assert.equal(tokenOwnerM, _to);
+    }
+    /*
+    console.log('\n----------------==sendTokenToSettlementById from Assetbook2');
+    _from = addrAssetBook2; _to = addrSettlement;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    console.log('AssetBook2 sending tokens via sendTokenToSettlementById()...');
+    await instAssetBook2.methods.sendTokenToSettlementById(0, _assetAddr, _from, _to, tokenId1st)
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
+    
+    tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
+    balanceXM = await instHCAT721.methods.balanceOf(_from).call();
+    console.log('\ntokenIds from _from Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+
+    tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId1st).call();
+    console.log('HCAT tokenId = '+tokenId1st, tokenOwnerM, '\naddrSettlement:', addrSettlement);
+    assert.equal(tokenOwnerM, _to);
+    */
+
+    //CANNOT use getAccountIds or balanceOf on Settlement because Settlement DOES NOT HAVE Id in mapping by design!!!
+    // tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    // balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    // console.log('\ntokenIds from _to addrSettlement =', tokenIds, ', balanceXM =', balanceXM);
+
+    console.log('\n----------------==sendTokenFromSettlementById to Assetbook2');
+    console.log('AssetBook2 sending tokens via sendTokenToSettlementById()...');
+    _from = addrSettlement; _to = addrAssetBook2;
+    _fromEOA = chairman; serverTime = TimeTokenUnlock+1;
+    console.log('\n_from:', _from, '\n_to:', _to, '\n_fromEOA:', _fromEOA);
+
+    for(let i = 0; i < amount; i++) {
+      _tokenId = prevTokenIds[i];
+      console.log('\n_tokenId:', _tokenId);
+      result = await instSettlement.methods.checkSendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).call();
+      console.log('result of checkSendTokenFromSettlementById:', result);
+      //process.exit(0);
+  
+      await instSettlement.methods.sendTokenFromSettlementById(_from, _to, _tokenId, _assetAddr).send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
+      
+      tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+      balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+      console.log('tokenIds from _to Assetbook2 =', tokenIds, ', balanceXM =', balanceXM);
+  
+      tokenOwnerM = await instHCAT721.methods.ownerOf(_tokenId).call();
+      console.log('HCAT tokenId: '+_tokenId,', ', tokenOwnerM, '\n_to:', _to);
+      assert.equal(tokenOwnerM, _to);
+    }
+    process.exit(0);
+
+    //--------------------------------==
+    console.log('\n--------------------------==Approval Functions');
+    _from = addrAssetBook2; _fromEOA = AssetOwner2; amount = 3; 
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
@@ -1154,7 +1312,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\ntokenApprove()... amount =', amount);
     await instAssetBook2.methods.assetbookApprove(0, _assetAddr, operator, amount)
-    .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
     assert.equal(result, amount);
@@ -1162,7 +1320,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     console.log('\n----------------==Send token in batch: amount = '+amount+'  from AssetBook2 to AssetBook1');
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000;
-    _fromAssetOwner = AssetOwner2; serverTime = TimeTokenUnlock+1;
+    _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
     console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
     await instHCAT721.methods.safeTransferFromBatch(_from, _to, amount, price, serverTime)
     .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1201,7 +1359,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('\n------------==Send tokens with not enough allowance');
     error = false;
     try {
-      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromAssetOwner = AssetOwner2; 
+      _from = addrAssetBook2; _to = addrAssetBook1; amount = 3; price = 19000; _fromEOA = AssetOwner2; 
       serverTime = TimeTokenUnlock+1;
       await instHCAT721.methods.safeTransferFromBatch(_from, _to, 1, price, serverTime)
       .send({value: '0', from: operator, gas: gasLimitValue, gasPrice: gasPriceValue });
@@ -1236,10 +1394,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     error = false;
     try {
       _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
-      _fromAssetOwner = AssetOwner2;
+      _fromEOA = AssetOwner2;
       console.log('AssetBook2 sending tokens via safeTransferFromBatch()...');
       await instAssetBook2.methods.safeTransferFromBatch(0, _assetAddr, addrZero, _to, amount, price, serverTime)
-      .send({value: '0', from: _fromAssetOwner, gas: gasLimitValue, gasPrice: gasPriceValue });
+      .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
 
       error = true;
     } catch (err) {
@@ -1249,7 +1407,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     if (error) {assert(false);}
 
 
-  });//.then(done)
+  });
 
 });
 
@@ -1596,19 +1754,74 @@ describe('Tests on HeliumCtrt', () => {
   it('HeliumCtrt functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==testing HeliumCtrt');
-    bool1 = await instHelium.methods.checkCustomerService().call({from: admin});
+    bool1 = await instHelium.methods.checkCustomerService(admin).call();
     console.log('checkCustomerService(admin):', bool1);
     assert.equal(bool1, true);
 
-    bool1 = await instHelium.methods.checkCustomerService().call({from: AssetOwner1});
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.equal(bool1, false);
 
-    await instHelium.methods.addCustomerService(AssetOwner1)
-    .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instHelium.methods.checkCustomerService().call({from: AssetOwner1});
+    await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.equal(bool1, true);
+
+    //----------------==
+    //  admin, chairman, director, manager, owner
+    adminM = await instHelium.methods.Helium_Admin().call();
+    console.log('Helium_Admin():', adminM);
+    assert.equal(adminM, admin);
+
+    chairmanM = await instHelium.methods.Helium_Chairman().call();
+    console.log('Helium_Chairman():', chairmanM);
+    assert.equal(chairmanM, chairman);
+
+    directorM = await instHelium.methods.Helium_Director().call();
+    console.log('Helium_Director():', directorM);
+    assert.equal(directorM, director);
+
+    managerM = await instHelium.methods.Helium_Manager().call();
+    console.log('Helium_Manager():', managerM);
+    assert.equal(managerM, manager);
+
+    ownerM = await instHelium.methods.Helium_Owner().call();
+    console.log('Helium_Owner():', ownerM);
+    assert.equal(ownerM, owner);
+
+    //--------------==
+    AdminVoteM = await instHelium.methods.Helium_AdminVote().call();
+    console.log('Helium_AdminVote():', AdminVoteM);
+    assert.equal(AdminVoteM, 0);
+
+    ChairmanVoteM = await instHelium.methods.Helium_ChairmanVote().call();
+    console.log('Helium_ChairmanVote():', ChairmanVoteM);
+    assert.equal(ChairmanVoteM, 0);
+
+    DirectorVoteM = await instHelium.methods.Helium_DirectorVote().call();
+    console.log('Helium_DirectorVote():', DirectorVoteM);
+    assert.equal(DirectorVoteM, 0);
+
+    ManagerVoteM = await instHelium.methods.Helium_ManagerVote().call();
+    console.log('Helium_ManagerVote():', ManagerVoteM);
+    assert.equal(ManagerVoteM, 0);
+
+    OwnerVoteM = await instHelium.methods.Helium_OwnerVote().call();
+    console.log('Helium_OwnerVote():', OwnerVoteM);
+    assert.equal(OwnerVoteM, 0);
+
+    //--------------==
+    MinimumVotesForMultiSig = await instHelium.methods.MinimumVotesForMultiSig().call();
+    console.log('MinimumVotesForMultiSig():', MinimumVotesForMultiSig);
+    assert.equal(MinimumVotesForMultiSig, 3);
+
+    locked = await instHelium.methods.locked().call();
+    console.log('locked():', locked);
+    assert.equal(locked, false);
+
+    //--------------==
+
+
   });
 });
 
@@ -1884,19 +2097,6 @@ describe('Tests on IncomeManagerCtrt', () => {
 describe('Tests on ProductManagerCtrt', () => {
 
   it('ProductManagerCtrt functions test', async function() {
-    console.log('\ninside productManager test...');
-    const argsProductManager = [addrHeliumCtrt];
-
-    instProductManager = await new web3.eth.Contract(ProductManager.abi)
-    .deploy({ data: ProductManager.bytecode, arguments: argsProductManager })
-    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log('ProductManager.sol has been deployed');
-    if (instProductManager === undefined) {
-      console.log('[Error] instProductManager is NOT defined');
-      } else {console.log('[Good] instProductManager is defined');}
-    instProductManager.setProvider(provider);
-    addrProductManager = instProductManager.options.address;
-    console.log('addrProductManager:', addrProductManager);
 
     console.log('\n------------==Check CrowdFunding parameters');
 

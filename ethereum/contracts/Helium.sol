@@ -1,10 +1,10 @@
 pragma solidity ^0.5.4;
-
-interface HeliumITF_Helium{
+/*
+interface Helium_Interface_CtrtX{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
     function checkAdmin(address _eoa) external view returns(bool _isAdmin);
-}
+}*/
 
 contract Helium {
     bool public isAfterDeployment;
@@ -21,55 +21,81 @@ contract Helium {
     uint8 public Helium_AdminVote;
 
     uint8 public MinimumVotesForMultiSig = 3;
+    uint public mgrlength;
+    uint public minMgrlength = 5;
+    bool public doMgrsHaveDuplicate;
+    bool public locked;// to prevent re-entry attack
 
     struct PermissionTable {
         uint permissionCode;
         bool permissionStatus;
     }
-    
+
     mapping(address => PermissionTable) public PermissionList;
-    mapping(address => bool) public managementList;
-    
+    mapping(address => bool) public isAddrAddedMapping;
+    bool[] public isAddrAddedArray;// = new bool[](5);
+
     constructor(address[] memory management) public {
-        require(management.length > 4, "management.length should be > 4");
-        Helium_Admin = management[0];
-        Helium_Chairman = management[1];
-        Helium_Director = management[2];
-        Helium_Manager = management[3];
-        Helium_Owner = management[4];
-        
-        addPlatformSupervisor(management[0]);
-        addPlatformSupervisor(management[1]);
-        addPlatformSupervisor(management[2]);
+        mgrlength = management.length;
+        if(mgrlength > 0){
+            Helium_Admin = management[0];
+            addPlatformSupervisor(Helium_Admin);
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Admin]);
+            isAddrAddedMapping[Helium_Admin] = true;
+        }
+        if(mgrlength > 1){
+            Helium_Chairman = management[1];
+            addPlatformSupervisor(Helium_Chairman);
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Chairman]);
+            isAddrAddedMapping[Helium_Chairman] = true;
+        }
+        if(mgrlength > 2){
+            Helium_Director = management[2];
+            addPlatformSupervisor(Helium_Director);
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Director]);
+            isAddrAddedMapping[Helium_Director] = true;
+        }
+        if(mgrlength > 3){
+            Helium_Manager = management[3];
+            addCustomerService(Helium_Manager);
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Manager]);
+            isAddrAddedMapping[Helium_Manager] = true;
+        }
+        if(mgrlength > 4){
+            Helium_Owner = management[4];
+            addCustomerService(Helium_Owner);
+            isAddrAddedArray.push(isAddrAddedMapping[Helium_Owner]);
+            isAddrAddedMapping[Helium_Owner] = true;
+        }
 
-        addCustomerService(management[3]);
-        addCustomerService(management[4]);
+        for(uint i = 0; i < mgrlength; i = i+1) {
+            doMgrsHaveDuplicate = doMgrsHaveDuplicate || isAddrAddedArray[i];
+        }
         isAfterDeployment = true;
-        /*
-        managementList[Helium_Admin] = true;
-        require(managementList[Helium_Chairman] == false, "Helium_Chairman is already part of the management");
-        managementList[Helium_Chairman] = true;
-
-        require(managementList[Helium_Director] == false, "Helium_Director is already part of the management");
-        managementList[Helium_Director] = true;
-
-        require(managementList[Helium_Manager] == false, "Helium_Manager is already part of the management");
-        managementList[Helium_Manager] = true;
-
-        require(managementList[Helium_Owner] == false, "Helium_Owner is already part of the management");
-        managementList[Helium_Owner] = true;
-        */
     }
+    function checkDeploymentConditions()
+    public view returns(bool, bool, bool[] memory) {
+        return (mgrlength > minMgrlength-1, doMgrsHaveDuplicate, isAddrAddedArray);
+    }
+    function getHeliumDetails() public view returns(
+        address, address, address, address, address,
+        bool, bool, uint8, uint8, uint8, uint8, uint8, uint8) {
+        return (Helium_Admin, Helium_Chairman, Helium_Director, Helium_Manager,Helium_Owner, isAfterDeployment, locked,
+        Helium_OwnerVote, Helium_ChairmanVote, Helium_DirectorVote, Helium_ManagerVote, Helium_AdminVote, MinimumVotesForMultiSig);
+    }
+
     //"only Admin or Customer Service can call this function"
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService){
-        _isCustomerService = (_eoa == Helium_Admin || (PermissionList[_eoa].permissionCode == 1 && PermissionList[_eoa].permissionStatus == true));
+        _isCustomerService = (_eoa == Helium_Admin ||
+        (PermissionList[_eoa].permissionCode == 1 && PermissionList[_eoa].permissionStatus == true));
     }
     //"only Admin or Supervisor can call this function"
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor){
-        _isPlatformSupervisor = (_eoa == Helium_Admin || (PermissionList[_eoa].permissionCode == 2 && PermissionList[_eoa].permissionStatus == true));
+        _isPlatformSupervisor = (_eoa == Helium_Admin ||
+        (PermissionList[_eoa].permissionCode == 2 && PermissionList[_eoa].permissionStatus == true));
     }
-    function checkAdmin(address _eoa) external view returns(bool _isAdmin) {
-        _isAdmin = (_eoa == Helium_Admin);
+    function checkAdmin(address _eoa) external view returns(bool) {
+        return (_eoa == Helium_Admin);
     }
 
     modifier onlyAdmin(){
@@ -80,38 +106,41 @@ contract Helium {
     //Helium
     function addCustomerService(address _eoa) public {
         if(isAfterDeployment){
-          require(msg.sender == Helium_Admin, "only admin can call this function");
+            require(msg.sender == Helium_Admin, "only admin can call this function");
         }
         PermissionList[_eoa].permissionCode = 1;
         PermissionList[_eoa].permissionStatus = true;
     }
-    
+
     function addPlatformSupervisor(address _eoa) public {
         if(isAfterDeployment){
-          require(msg.sender == Helium_Admin, "only admin can call this function");
+            require(msg.sender == Helium_Admin, "only admin can call this function");
         }
         PermissionList[_eoa].permissionCode = 2;
         PermissionList[_eoa].permissionStatus = true;
     }
-    
+
     function changePermissionToCS(address _eoa) public onlyAdmin {
         PermissionList[_eoa].permissionCode = 1;
     }
-    
+
     function changePermissionToPS(address _eoa) public onlyAdmin {
         PermissionList[_eoa].permissionCode = 2;
     }
-    
+
     function removePermission(address _eoa) public onlyAdmin{
         PermissionList[_eoa].permissionStatus = false;
     }
 
     function showPermissionCode(address _eoa) public view returns(uint _permissionCode){
-        require(msg.sender == Helium_Admin || PermissionList[msg.sender].permissionCode == 1 || PermissionList[msg.sender].permissionCode == 2, "Only Platform Role can call this function");
+        require(
+            msg.sender == Helium_Admin ||
+        PermissionList[msg.sender].permissionCode == 1 || PermissionList[msg.sender].permissionCode == 2,
+            "Only Platform Role can call this function");
         return PermissionList[_eoa].permissionCode;
     }
 
-    //Vote to change EOAs 
+    //Vote to change EOAs
     function HeliumOwnerApprove(bool boolValue) external {
         require(msg.sender == Helium_Owner, "restricted to owner");
         if (boolValue){
@@ -152,11 +181,13 @@ contract Helium {
     }
 
     function isVotedApproved() public view returns (bool isVotedApproved_){
-        isVotedApproved_ = (Helium_OwnerVote + Helium_ChairmanVote + Helium_DirectorVote + Helium_ManagerVote + Helium_AdminVote >= MinimumVotesForMultiSig);
+        isVotedApproved_= Helium_OwnerVote +
+        Helium_ChairmanVote +
+        Helium_DirectorVote + Helium_ManagerVote + Helium_AdminVote
+        >= MinimumVotesForMultiSig;
     }
     event SetManagement(address indexed addrOld, address indexed addrNew, uint personIdx);
 
-    bool public locked;// initialized as false
     function setManagement(uint8 managementIdx, address addrNew, uint8 itg) external {
         require(!locked, "noReentrancy failed");
         locked = true;

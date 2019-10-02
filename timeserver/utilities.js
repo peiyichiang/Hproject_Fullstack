@@ -185,7 +185,6 @@ const arraysSortedEqual = (array1, array2) => {
 const getRndIntegerBothEnd = ((min, max) => {
   return Math.floor(Math.random() * (max - min + 1) ) + min;
 });
-const getUsrIdx = () => getRndIntegerBothEnd(1, 10);// 1 ~ 10
 
 const getInvestQty = () => getRndIntegerBothEnd(500,1000);
 
@@ -204,9 +203,9 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   let usrIdx;
   for (let idx = 0; idx < arraylength; idx++) {
     do{
-      usrIdx = getUsrIdx();
+      usrIdx = getRndIntegerBothEnd(0, 9);
     }while(userIndexArray.includes(usrIdx))
-
+    //console.log('usrIdx:', usrIdx);
     const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
 
     if(idx === arraylength-1 && remainingQty > 0){
@@ -214,7 +213,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
       tokenCountArray.push(remainingQty);
       
     } else {
-      let tokenCountHold = getRndIntegerBothEnd(1, remainingQty)
+      let tokenCountHold = getRndIntegerBothEnd(1, remainingQty * 0.5);
       if(tokenCountHold < 1 || remainingQty < 1 ){
         continue
       }

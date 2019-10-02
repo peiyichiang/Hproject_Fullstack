@@ -3,7 +3,7 @@ pragma solidity ^0.5.4;
 //deploy parameters: none
 import "./SafeMath.sol";
 
-interface HeliumITF_Reg{
+interface Helium_Interface_RGC{
     function checkCustomerService(address _eoa) external view returns(bool _isCustomerService);
 }
 
@@ -18,7 +18,8 @@ contract Registry {
     event SetAssetbookAddr(string uid, address assetbookAddr, uint timeCurrent);
     event SetExtOwnedAddr(string uid, address assetbookAddr, uint authLevel, uint timeCurrent);
 
-    event SetRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate);//amount in fiat
+    event SetRestrictions(
+    uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate);//amount in fiat
 
     /**@dev 資料結構 */
     //extOwnedAddr ... get it from Assetbook
@@ -36,12 +37,12 @@ contract Registry {
     mapping (uint => Restriction) public restrictions;//uint classNum
     //restrictions[classification] .mpaPF .mhbPF .mpaPP .mhbPP
     struct Restriction{
-      uint maxBuyAmountPublic;//max Buy Amount in fiat.. Public Funding;
-      uint maxBalancePublic;//max Holding Balance in fiat .. Public Funding;
-      //uint maxSellAmountPublic;//max Sell Amount in fiat .. Public Funding;
-      uint maxBuyAmountPrivate;//max Buy Amount in fiat .. Private Placement;
-      uint maxBalancePrivate;//max Holding Balance in fiat .. Private Placement;
-      //uint maxSellAmountPrivate;//max Sell Amount in fiat .. Private Placement;
+        uint maxBuyAmountPublic;//max Buy Amount in fiat.. Public Funding;
+        uint maxBalancePublic;//max Holding Balance in fiat .. Public Funding;
+        //uint maxSellAmountPublic;//max Sell Amount in fiat .. Public Funding;
+        uint maxBuyAmountPrivate;//max Buy Amount in fiat .. Private Placement;
+        uint maxBalancePrivate;//max Holding Balance in fiat .. Private Placement;
+        //uint maxSellAmountPrivate;//max Sell Amount in fiat .. Private Placement;
     }
     string public currencyType;
     uint public uintMax = 2**256 - 1;
@@ -51,7 +52,8 @@ contract Registry {
     constructor(address _addrHelium) public {
         addrHelium = _addrHelium;
         currencyType = "NTD";
-        //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate); 
+        //setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint
+        //maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate);
         setRestrictions(1, 0, 0, uintMax, uintMax);
         setRestrictions(2, uintMax, uintMax, uintMax, uintMax);
         setRestrictions(3, uintMax, uintMax, uintMax, uintMax);
@@ -66,24 +68,32 @@ contract Registry {
         boolArray[0] = _addrHelium.isContract();
         boolArray[1] = bytes(currencyType).length > 2;
     }
+    function getRegistryDetails() public view returns(
+        uint userCindex_, string memory currencyType_,
+        bool isAfterDeployment_, address addrHelium_) {
+        userCindex_ = userCindex;
+        currencyType_ = currencyType;
+        isAfterDeployment_ = isAfterDeployment;
+        addrHelium_ = addrHelium;
+    }
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
 1 Natural person: 0, 0; UnLTD, UnLTD;
-2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
-3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
-4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD;
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD;
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD;
 5 Natural person of Professional investor: 100k, 100k; UnLTD, UnLTD;
 */
-    
+
     modifier onlyCustomerService() {
-        require(HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+        require(Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         _;
     }
     function setAddrHelium(address _addrHelium) external onlyCustomerService{
         addrHelium = _addrHelium;
     }
     function checkCustomerServiceFromReg() external view returns (bool){
-        return (HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender));
+        return (Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender));
     }
 
 
@@ -115,7 +125,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     /**@dev add user with his user Id(uid), asset contract address(assetbookAddr) */
     function checkAddSetUser(string calldata uid, address assetbookAddr, uint authLevel) external view returns(bool[] memory boolArray) {
         boolArray = new bool[](7);
-        boolArray[0] = HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender);
+        boolArray[0] = Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender);
         //ckUidLength(uid)
         boolArray[1] = bytes(uid).length > 0;
         boolArray[2] = bytes(uid).length <= 32;//compatible to bytes32 format, too
@@ -141,7 +151,8 @@ authLevel & STO investor classification on purchase amount and holding balance r
     }
 
     /**@dev set existing user’s information: this uid, assetbookAddr, authLevel */
-    function setUser(string calldata uid, address assetbookAddr, uint authLevel) external ckUidLength(uid) ckAssetbookValid(assetbookAddr) uidToAssetbookExists(uid) onlyCustomerService{
+    function setUser(string calldata uid, address assetbookAddr, uint authLevel)
+    external ckUidLength(uid) ckAssetbookValid(assetbookAddr) uidToAssetbookExists(uid) onlyCustomerService{
 
         uidToAssetbook[uid] = assetbookAddr;
         assetbookToUser[assetbookAddr].uid = uid;
@@ -155,7 +166,8 @@ authLevel & STO investor classification on purchase amount and holding balance r
         authLevel = assetbookToUser[assetbookAddr].authLevel;
     }
     /**@dev get user’s information via user’s Id or uid*/
-    function getUserFromAssetbook(address assetbookAddr) public view ckAssetbookValid(assetbookAddr) returns (string memory uid, uint authLevel) {
+    function getUserFromAssetbook(address assetbookAddr) public view
+    ckAssetbookValid(assetbookAddr) returns (string memory uid, uint authLevel) {
         uid = assetbookToUser[assetbookAddr].uid;
         authLevel = assetbookToUser[assetbookAddr].authLevel;
     }
@@ -166,7 +178,7 @@ authLevel & STO investor classification on purchase amount and holding balance r
     }
 
     /**@dev check if the user with uid is approved */
-    function isUidApproved(string memory uid) public view 
+    function isUidApproved(string memory uid) public view
         ckUidLength(uid) uidToAssetbookExists(uid) returns (bool) {
         return (assetbookToUser[uidToAssetbook[uid]].authLevel > 0);
     }
@@ -178,7 +190,8 @@ authLevel & STO investor classification on purchase amount and holding balance r
 
 
     /**@dev check if asset contract address & buyAmount & balance are approved, by finding its uid then checking the uid’s info */
-    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType) external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance) {
+    function isFundingApproved(address assetbookAddr, uint buyAmount, uint balance, uint fundingType)
+        external view returns (bool isOkBuyAmount, bool isOkBalanceNew, uint authLevel, uint maxBuyAmount, uint maxBalance) {
       //amount and balance are in token qty* price
         authLevel = assetbookToUser[assetbookAddr].authLevel;
         uint balanceNew = balance.add(buyAmount);
@@ -196,17 +209,20 @@ authLevel & STO investor classification on purchase amount and holding balance r
             isOkBalanceNew = maxBalance >= balanceNew;
 
         } else {
-            maxBuyAmount =        90000;
-            maxBalance   = 900000000000;
+            maxBuyAmount = 90000;
+            maxBalance = 900000000000;
             isOkBuyAmount = maxBuyAmount >= buyAmount;
             isOkBalanceNew = maxBalance >= balanceNew;
         }
     }
 
     /**@dev get regulation's restrictions, amount and balance in fiat */
-    function setRestrictions(uint authLevel, uint maxBuyAmountPublic, uint maxBalancePublic, uint maxBuyAmountPrivate, uint maxBalancePrivate) public {
+    function setRestrictions(
+        uint authLevel, uint maxBuyAmountPublic,
+        uint maxBalancePublic, uint maxBuyAmountPrivate,
+        uint maxBalancePrivate) public {
         if(isAfterDeployment) {
-            require(HeliumITF_Reg(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
+            require(Helium_Interface_RGC(addrHelium).checkCustomerService(msg.sender), "only customerService is allowed to call this function");
         }
         restrictions[authLevel].maxBuyAmountPublic = maxBuyAmountPublic;
         restrictions[authLevel].maxBalancePublic = maxBalancePublic;
@@ -255,9 +271,9 @@ authLevel & STO investor classification on purchase amount and holding balance r
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering(P.O.) and private placement(P.P.), for each symbol; currency = NTD
 1 Natural person: 0, 0; UnLTD, UnLTD;
-2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
-3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD; 
-4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD; 
+2 Professional institutional investor: UnLTD, UnLTD; UnLTD, UnLTD;
+3 High Networth investment legal person: UnLTD, UnLTD; UnLTD, UnLTD;
+4 Legal person or fund of a professional investor: UnLTD, UnLTD; UnLTD, UnLTD;
 5 Natural person of Professional investor: 10k, 10k; UnLTD, UnLTD;
 */
 

@@ -234,6 +234,18 @@ const addSmartContractRow = async (tokenSymbol, addrCrowdFunding, addrHCAT721, m
   });
 }
 
+const add3SmartContractsBySymbol = async (tokenSymbol, addrHCAT721,  addrIncomeManager, addrTokenController) => {
+  return new Promise(async(resolve, reject) => {
+    console.log('inside add3SmartContractsBySymbol()...');
+    const queryStr1 = 'UPDATE smart_contracts SET sc_erc721Controller = ?, sc_erc721address = ?, sc_incomeManagementaddress = ? WHERE sc_symbol = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [addrTokenController, addrHCAT721, addrIncomeManager, tokenSymbol]).catch((err) => {
+      reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
+    });
+    console.log(`result: ${result}`);
+    resolve(true);
+  });
+}
+
 const deleteSmartContractRows = (tokenSymbol) => {
   return new Promise(async(resolve, reject) => {
     const queryStr1 = 'DELETE FROM smart_contracts WHERE sc_symbol = ?';
@@ -1662,5 +1674,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
-    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus
+    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus
 }
