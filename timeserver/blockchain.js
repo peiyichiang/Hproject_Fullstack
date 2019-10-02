@@ -99,6 +99,60 @@ const checkCustomerService = async(eoa, addrHeliumContract) => {
 
 
 //----------------------==Helium Contract
+const checkArgumentsHelium = async(argsHelium) => {
+  return new Promise(async (resolve, reject) => {
+    const [managementTeam] = argsHelium;
+    const distinctArray = [...new Set(managementTeam)];
+    let mesg = '';
+    if(managementTeam.length < 5){
+      mesg += ', managementTeam length has to be >= 5';
+    }
+    if(distinctArray.length < 5){
+      mesg += ', duplicated EOA is found';
+    }
+
+    if(mesg.substring(0,2) === ', '){
+      mesg = mesg.substring(2);
+    }
+    console.log('\n==>>>mesg:', mesg);
+    if(mesg.length > 0){
+      resolve(false);
+    } else {
+      resolve(true);
+    }
+  });
+}
+
+const checkHeliumCtrt = async(addrHeliumContract, managementTeam) => {
+  return new Promise( async ( resolve, reject ) => {
+
+      console.log('\n-----------==inside checkHeliumCtrt()...');
+      const instHelium = new web3.eth.Contract(Helium.abi, addrHeliumContract);
+      const HeliumDetails = await instHelium.methods.getHeliumDetails().call();
+      console.log('HeliumDetails:', HeliumDetails);
+      const distinctArray = [...new Set(managementTeam)];
+
+      const [isGood0, mesg0] = checkEq(HeliumDetails[0], managementTeam[0]);
+      const [isGood1, mesg1] = checkEq(HeliumDetails[1], managementTeam[1]);
+      const [isGood2, mesg2] = checkEq(HeliumDetails[2], managementTeam[2]);
+      const [isGood3, mesg3] = checkEq(HeliumDetails[3], managementTeam[3]);
+      const [isGood4, mesg4] = checkEq(HeliumDetails[4], managementTeam[4]);
+
+      if(distinctArray.length < 5){
+        console.log('[Error] duplicated EOA is found');
+        resolve(false);
+
+      } else if(isGood0 && isGood1 && isGood2 && isGood3 && isGood4){
+        console.log('[Good] All managementTeam members are unique, and are all confirmed to be the expected addresses');
+        resolve(true);
+
+      } else {
+        console.log('[WARNING] management teams are not the expected ones');
+        resolve(false);
+      }
+  });
+}
+
 const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
   return new Promise(async (resolve, reject) => {
     console.log(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nbackendAddrpkRaw: ${backendAddrpkRaw} \nblockchainURL: ${blockchainURL}`);
@@ -107,53 +161,55 @@ const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
 
-    const argsHelium = [[eoa0, eoa1, eoa2, eoa3, eoa4]];
-    console.log('\nDeploying Helium contract...');
-    let instHelium;
-    try{
-      instHelium =  await new web3deploy.eth.Contract(Helium.abi)
-      .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
-      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
-      .on('receipt', function (receipt) {
-        console.log('receipt:', receipt);
-      })
-      .on('error', function (error) {
-          reject('error:', error.toString());
-          return false;
-      });
-    } catch(err){
-      console.log('err:', err);
-    }
+    const managementTeam = [eoa0, eoa1, eoa2, eoa3, eoa4];
+    const argsHelium = [managementTeam];
+    const isGoodArgument = await checkArgumentsHelium(argsHelium);
 
-    console.log('Helium.sol has been deployed');
-    if (instHelium === undefined) {
-      reject('[Error] instHelium is NOT defined');
-      return false;
-    } else {console.log('[Good] instHelium is defined');}
-    instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
-    const addrHeliumContract = instHelium.options.address;
-    console.log(`const addrHelium = ${addrHeliumContract}`);
+    if(isGoodArgument){
+      console.log('\nDeploying Helium contract...');
+      let instHelium;
+      try{
+        instHelium =  await new web3deploy.eth.Contract(Helium.abi)
+        .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
+        .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+        .on('receipt', function (receipt) {
+          console.log('receipt:', receipt);
+        })
+        .on('error', function (error) {
+            reject('error:', error.toString());
+            return false;
+        });
+      } catch(err){
+        console.log('err:', err);
+      }
+  
+      console.log('Helium.sol has been deployed');
+      if (instHelium === undefined) {
+        reject('[Error] instHelium is NOT defined');
+        return false;
+      } else {
+        console.log('[Good] instHelium is defined');
+  
+        instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+        const addrHeliumContract = instHelium.options.address;
+        console.log(`\nconst addrHelium= ${addrHeliumContract}`);
 
-    //--------------==check
-    console.log('\ncheck results...');
-    const adminM = await instHelium.methods.Helium_Admin().call();
-    const chairmanM = await instHelium.methods.Helium_Chairman().call();
-    const directorM = await instHelium.methods.Helium_Director().call();
-    const managerM = await instHelium.methods.Helium_Manager().call();
-    const ownerM = await instHelium.methods.Helium_Owner().call();
-
-    let isGood;
-    const [isGood0, mesg0] = checkEq(adminM, eoa0);
-    const [isGood1, mesg1] = checkEq(chairmanM, eoa1);
-    const [isGood2, mesg2] = checkEq(directorM, eoa2);
-    const [isGood3, mesg3] = checkEq(managerM, eoa3);
-    const [isGood4, mesg4] = checkEq(ownerM, eoa4);
-    if(isGood0 && isGood1 && isGood2 && isGood3 && isGood4){
-      isGood = true;
+        const deploymentConditions = await instHelium.methods.checkDeploymentConditions().call();
+        console.log('deploymentConditions:', deploymentConditions);
+        const isAnyErrorAtDeployment = deploymentConditions['2'].includes(true);
+        if(isAnyErrorAtDeployment){
+          console.log('[Warning] duplicated management team member is found');
+          resolve({isGood: false, addrHeliumContract});
+        } else {
+          const isGood= await checkHeliumCtrt(addrHeliumContract, managementTeam);
+          console.log('checkHeliumCtrt result:', isGood);
+          resolve({isGood, addrHeliumContract});
+        }
+      }
     } else {
-      isGood = false;
+      console.log('isGoodArgument is false');
+      resolve({isGood: false, addrHeliumContract: undefined});
     }
-    resolve({isGood, addrHeliumContract});
   });
 }
 
@@ -952,12 +1008,12 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
     try{
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
       const boolArray = await instHCAT721.methods.getTokenContractDetails().call();
-      //console.log('tokenContractDetails:', boolArray);
-      if(boolArray.length !== 10){
-        console.error('getTokenContractDetails boolArray.length is not valid');
-        reject(false);
-        return false;
-      }
+      console.log('tokenContractDetails:', boolArray);
+      // if(boolArray.length !== 10){
+      //   console.error(`getTokenContractDetails boolArray.length ${boolArray.length} is not valid`);
+      //   reject(false);
+      //   return false;
+      // }
       const tokenId = boolArray[0];
       const siteSizeInKW = boolArray[1];
       const maxTotalSupply = boolArray[2];
@@ -1018,11 +1074,13 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
     console.log(`---------------==\nsetTokenController()`);
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
     boolArray = await instTokenController.methods.getHTokenControllerDetails().call();
-    if(boolArray.length !== 5){
-      console.error('getHTokenControllerDetails boolArray.length is not valid');
-      reject(false);
-      return false;
-    }
+    console.log('boolArray:', boolArray);
+    // if(boolArray.length !== 5){
+    //   console.error('getHTokenControllerDetails boolArray.length is not valid');
+    //   reject(false);
+    //   return false;
+    // }
+
     timeAtDeployment = boolArray[0];
     TimeUnlockM = boolArray[1];
     TimeValidM = boolArray[2];
@@ -1896,7 +1954,7 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
 
     const is_sequentialMintSuper = !(isCorrectAmountArray.includes(false));
     if (is_sequentialMintSuper) {
-      mesg = '[Success] All token minting have been completed successfully';
+      mesg = '[Success] All token minting has been completed successfully';
     } else {
       mesg = `[Failed] Some/All minting actions have failed. Check isCorrectAmountArray!`;
     }
@@ -2476,13 +2534,13 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     //console.log('TxResult', TxResult);
     const balanceAfterInvesting = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
     const quantitySoldMAf = await instCrowdFunding.methods.quantitySold().call();
-    const isMintingSuccessful = (balanceAfterInvesting-balanceB4Investing) === amountToInvest;
-    console.log(`balanceAfterInvesting: ${balanceAfterInvesting}, quantitySoldMAf: ${quantitySoldMAf} \nisMintingSuccessful: ${isMintingSuccessful}`);
+    const isInvestingSuccessful = (balanceAfterInvesting-balanceB4Investing) === amountToInvest;
+    console.log(`balanceAfterInvesting: ${balanceAfterInvesting}, quantitySoldMAf: ${quantitySoldMAf} \nisInvestingSuccessful: ${isInvestingSuccessful}`);
 
     const remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('remainingTokenQtyM:', remainingTokenQtyM);
   
-    resolve([isMintingSuccessful, TxResult.transactionHash]);
+    resolve([isInvestingSuccessful, TxResult.transactionHash]);
   });
 }
 
@@ -2557,8 +2615,9 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
       return false;
     });
     if(isAssetbookGood){
-      console.log(`tokenSymbol: ${tokenSymbol}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, fundingType: ${fundingType}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
+      console.log(`\n-----------==assetbook is checked good \ntokenSymbol: ${tokenSymbol}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, fundingType: ${fundingType}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
       console.log(`${addrAssetbook}:${ typeof addrAssetbook}, ${amountToInvest} : ${typeof amountToInvest}, ${serverTime} : ${typeof serverTime}`);
+
       const boolArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr }).catch((err) =>{
         console.error(err);
       });
@@ -2638,25 +2697,25 @@ const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountT
 
 const getDetailsCFC = async(crowdFundingAddr) => {
   return new Promise(async(resolve, reject) => {
-    console.log('----------------==getDetailsCFC. crowdFundingAddr=', crowdFundingAddr);
+    console.log('----------------==getDetailsCFC \ncrowdFundingAddr:', crowdFundingAddr);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
-    console.log('tokenSymbolM', tokenSymbolM);
+    console.log('tokenSymbolM:', tokenSymbolM);
 
     initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
-    console.log('initialAssetPricingM', initialAssetPricingM);
+    console.log('initialAssetPricingM:', initialAssetPricingM);
 
     maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
-    console.log('maxTotalSupplyM', maxTotalSupplyM);
+    console.log('maxTotalSupplyM:', maxTotalSupplyM);
 
     quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
-    console.log('quantityGoalM', quantityGoalM);
+    console.log('quantityGoalM:', quantityGoalM);
 
     CFSDM = await instCrowdFunding.methods.CFSD().call();
-    console.log('CFSDM', CFSDM);
+    console.log('CFSDM:', CFSDM);
 
     CFEDM = await instCrowdFunding.methods.CFED().call();
-    console.log('CFEDM', CFEDM);
+    console.log('CFEDM:', CFEDM);
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('\nstateDescriptionM:', stateDescriptionM);

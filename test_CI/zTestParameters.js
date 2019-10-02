@@ -76,15 +76,15 @@ const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + produc
 
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
 
-const productObj1 = new productObject("AVEN1902", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0x7ACF7Fe7D252f23EeA9007930a9C736d306C1837", "0x5ECb06CC131aA91675d7F9C6b4b805A7cbb28940", "0x9a1A3539B6fFC957c18Ba5eC6F1d462212aB2991", "0xD8CcdefAca69eBE2437811E9ed9BFD1198018B08");
+const productObj1 = new productObject("AVEN1901", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0xF16AA558B34E3C7e37e2896C2a11a8808E20c4aF", "", "", "");
 
-const productObj2 = new productObject("AJUP1903", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
+const productObj2 = new productObject("AJUP1902", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
 
-const productObj3 = new productObject("AURA1904", "Uranus1904", "Uranus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 500, 20, 2, "", "", "", "");
+const productObj3 = new productObject("AURA1903", "Uranus1904", "Uranus base 0001", 1000, 900, 7331, 15000, "NTD", 500, 20, 2, "0x0360dB66E7656683F77661b8A02708AdD6721356", "0x277dF373352B926588d8BfC19171c57Ab895fd35", "0x45c53EE395a4656e193cfd6a3043F48A2aB498b2", "0xB1ec2EB8040C3b374f5d7a785143a39666C527c6");
 
-const productObj4 = new productObject("ANEP1905", "Neptune1905", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj4 = new productObject("ANEP1904", "Neptune1905", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj5 = new productObject("AOOT1907", "AOOT1907", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj5 = new productObject("AOOT1905", "AOOT1907", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
 
 const productObj6 = new productObject("ASAT1906", "Satarn1906", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
@@ -97,6 +97,8 @@ const productObj9 = new productObject("AHOB1909", "HOBBLE1909", "Neptune base 00
 const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
+
+//const getLocalTime_API = async () => await getLocalTime();
 
 
 // const currentTime = await timer.getTimeServerTime();
