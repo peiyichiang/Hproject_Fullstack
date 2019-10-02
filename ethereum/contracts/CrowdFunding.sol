@@ -3,14 +3,11 @@ pragma solidity ^0.5.4;
 
 
 import "./SafeMath.sol";
-interface HeliumITF_CF{
+interface Helium_Interface_CFC{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
-interface ERC721TokenReceiverITF_CF {
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns(bytes4);
-}
-interface AssetTokenITF_CF {
-    function balanceOf(address user) external view returns (uint balance);
+interface TokenReceiver_Interface_CFC {
+    function tokenReceiver(address _from, address _to, uint256 _tokenId) external pure returns(bytes4);
 }
 
 contract CrowdFunding {
@@ -53,7 +50,7 @@ contract CrowdFunding {
     enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
     FundingState public fundingState;
     string public stateDescription;
-    bytes4 constant MAGIC_ON_ERC721_RECEIVED = 0x150b7a02;
+    bytes4 constant TOKEN_RECEIVER_HASH = 0x79830ac6;
 
     /*  at initialization, setup the owner
     "TKOS1901", 18000, "NTD", 900, 890, 201905211800, 201905211810, 201905211710, "0xbf94fAE6B7381CeEbCF13f13079b82E487f0Faa7"
@@ -116,11 +113,41 @@ contract CrowdFunding {
         boolArray[7] = _addrHelium.isContract();
     }
 
-    function getContractDetails() public view returns(
+    function changeCFED(uint _CFED) public onlyPlatformSupervisor {
+        CFED = _CFED;
+    }
+    function changeCFSD(uint _CFSD) public onlyPlatformSupervisor {
+        CFSD = _CFSD;
+    }
+/*
+    function changeInitialConditions(
+        string memory _tokenSymbol,
+        uint _initialAssetPricing,
+        string memory _pricingCurrency,
+        uint _maxTotalSupply,
+        uint _quantityGoal,
+        uint _CFSD,//CrowdFunding Start Date. time format yyyymmddhhmm
+        uint _CFED,//CrowdFunding End Date
+        uint _TimeOfDeployment,
+        address _addrHelium
+        ) public onlyPlatformSupervisor {
+        tokenSymbol = _tokenSymbol;
+        initialAssetPricing = _initialAssetPricing;
+        pricingCurrency = _pricingCurrency;
+        maxTotalSupply = _maxTotalSupply;//專案總量
+        quantityGoal = _quantityGoal;
+
+        CFSD = _CFSD;
+        CFED = _CFED;// yyyymmddhhmm
+        TimeOfDeployment = _TimeOfDeployment;
+        addrHelium = _addrHelium;
+    }*/
+
+    function getCrowdfundingDetails() public view returns(
         uint TimeOfDeployment_, uint maxTokenQtyForEachInvestmentFund_,
         string memory tokenSymbol_, string memory pricingCurrency_,
         uint initialAssetPricing_, uint maxTotalSupply_,
-        uint quantityGoal_, uint quantitySold_, uint CFSD2_, uint CFED2_) {
+        uint quantityGoal_, uint quantitySold_, uint CFSD_, uint CFED_, address addrHelium_) {
         TimeOfDeployment_ = TimeOfDeployment;
         maxTokenQtyForEachInvestmentFund_ = maxTokenQtyForEachInvestmentFund;
         tokenSymbol_ = tokenSymbol;
@@ -129,18 +156,21 @@ contract CrowdFunding {
         maxTotalSupply_ = maxTotalSupply;
         quantityGoal_ = quantityGoal;
         quantitySold_ = quantitySold;
-        CFSD2_ = CFSD2;
-        CFED2_ = CFED2;
+        CFSD_ = CFSD;
+        CFED_ = CFED;
+        addrHelium_ = addrHelium;
     }
 
-    function checkPlatformSupervisor() public view returns (bool){
-        return (HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender));
+    function checkPlatformSupervisorFromCFC() public view returns (bool){
+        return (Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     function setHeliumAddr(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender), "only checkPlatformSupervisor is allowed to call this function");
+        require(
+            Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender),
+            "only PlatformSupervisor is allowed to call this function");
         _;
     }
     /* checks if the investment token amount goal or crowdfunding time limit has been reached. If so, ends the campaign accordingly. Or it will show other states, for example: initial... */
@@ -190,10 +220,10 @@ contract CrowdFunding {
 
     function checkResumeFunding(uint _CFED2, uint _maxTotalSupply, uint serverTime) external view returns(bool[] memory boolArray){
         boolArray = new bool[](5);
-        boolArray[0] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
-        boolArray[1] = serverTime > CFSD2;
-        boolArray[2] = _CFED2 > CFSD2;
-        boolArray[3] = _CFED2 > serverTime;
+        boolArray[0] = Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender);
+        boolArray[1] = serverTime > CFSD;
+        boolArray[2] = _CFED > CFSD;
+        boolArray[3] = _CFED > serverTime;
         boolArray[4] = _maxTotalSupply >= quantitySold;
     }
     // to resume crowdfunding and also reset the crowdfunding end day and maxTotalSupply values
@@ -242,12 +272,12 @@ contract CrowdFunding {
       bool[] memory boolArray) {
         boolArray = new bool[](8);
 
-        boolArray[0] = serverTime >= CFSD2;
-        boolArray[1] = serverTime < CFED2;
-        boolArray[2] = HeliumITF_CF(addrHelium).checkPlatformSupervisor(msg.sender);
+        boolArray[0] = serverTime >= CFSD;
+        boolArray[1] = serverTime < CFED;
+        boolArray[2] = Helium_Interface_CFC(addrHelium).checkPlatformSupervisor(msg.sender);
         boolArray[3] = _addrAssetbook.isContract();
-        boolArray[4] = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
-            msg.sender, msg.sender, 1, "") == MAGIC_ON_ERC721_RECEIVED;
+        boolArray[4] = TokenReceiver_Interface_CFC(_addrAssetbook).tokenReceiver(
+            msg.sender, address(this), 1) == TOKEN_RECEIVER_HASH;
 
         boolArray[5] = _quantityToInvest > 0;
         boolArray[6] = quantitySold.add(_quantityToInvest) <= maxTotalSupply;
@@ -274,9 +304,9 @@ contract CrowdFunding {
             "funding is terminated or not started yet");
 
         if (_addrAssetbook.isContract()) {
-            bytes4 retval = ERC721TokenReceiverITF_CF(_addrAssetbook).onERC721Received(
-                msg.sender, msg.sender, 1, "");// assume tokenId = 1;
-            require(retval == MAGIC_ON_ERC721_RECEIVED, "retval should be MAGIC_ON_ERC721_RECEIVED");
+            bytes4 retval = TokenReceiver_Interface_CFC(_addrAssetbook).tokenReceiver(
+                msg.sender, address(this), 1);// assume tokenId = 1;
+            require(retval == TOKEN_RECEIVER_HASH, "retval should be TOKEN_RECEIVER_HASH");
         } else {
             require(false,"_addrAssetbook address should contain a contract");
         }

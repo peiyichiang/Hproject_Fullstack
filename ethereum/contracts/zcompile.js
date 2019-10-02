@@ -19,7 +19,7 @@ fs.ensureDirSync(buildPath);//if the build folder does not exist, make it existi
 // });
 
 console.log('check1: Set which Solidity files to compile...');
-const fileList = ['SafeMath', 'Ownable', 'AssetBook', 'Registry', 'HCAT721_AssetToken', 'TokenController', 'CrowdFunding', 'IncomeManagerCtrt', 'ProductManager', 'Helium', 'testing'];//HCAT721_Test
+const fileList = ['SafeMath', 'Ownable', 'AssetBook', 'Registry', 'HCAT721_AssetToken', 'TokenController', 'CrowdFunding', 'IncomeManagerCtrt', 'ProductManager', 'Helium', 'Settlement'];//HCAT721_Test
 /**
  * DO NOT USE IMPORT, USE INTERFACE INSTEAD, TO PREVENT COMPILED CONTRACTS OVERRIDE!!!
  */
@@ -64,7 +64,7 @@ for (let idx in fileList) {
   // Note: You have to pass the input in with JSON.stringify now.
   const compiledSol = JSON.parse(solc.compile(JSON.stringify(source), findImports));
   if(compiledSol.errors) {
-    compiledSol.errors.forEach(err => console.log(err.formattedMessage));
+    compiledSol.errors.forEach(err => console.error(err.formattedMessage));
   }
   // Note: This changed slightly since I'm using JSON.parse above.
   console.log('compiledSol', compiledSol);
@@ -86,14 +86,22 @@ for (let idx in fileList) {
     //console.log('ctrt', ctrt);
     
     const abi = ctrt.abi;// Note: This is now called 'abi' and not 'interface'
-    if (abi === undefined || abi === '') {
-      console.log('[Error] abi is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix <======================================');
+    if (abi === undefined || abi.length === 0) {
+      if(ctrtName === 'AddressUtils' || ctrtName === 'SafeMath'){
+        console.log(`[Good] ${ctrtName} produces empty abi`);
+      } else {
+        console.error('[Error] abi is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix <======================================');
+      }
     } else {console.log('[Good] '+ctrtName+' abi is found');}
     //console.log('abi', abi);
     
     const bytecode = ctrt.evm.bytecode.object;
-    if (bytecode === undefined || bytecode === '') {
-      console.log('[Error] bytecode is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix <======================================');
+    if (bytecode === undefined || bytecode.length === 0) {
+      if(ctrtName.includes('Interface')){
+        console.log('[Good] Interface produces empty bytecode');
+      } else {
+        console.error('[Error] bytecode is undefined or empty -> Check if you can deploy it in a Ethereum VM ... can use Remix <======================================');
+      }
     } else {console.log('[Good] '+ctrtName+' bytecode is found');}
     
     console.log('writing to abi and bytecode files');
@@ -179,11 +187,11 @@ for (let idx in ctrtNameArray) {
       return;
     } else {console.log('\n[Good] ctrtName is correct');}
 
-    if (compiledCtrtsFile2[compiledSolName].interface === ''){
+    if (compiledCtrtsFile2[compiledSolName].interface.length === 0){
       //TypeError: Cannot read property 'interface' of undefined => check ctrtName
       console.log('\n[Error]  interface2 is an empty string -> Check if you can deploy it in a Ethereum VM ... can use Remix');
     } else {console.log('[Good] interface2 is found');}
-    if (compiledCtrtsFile2[compiledSolName].bytecode === ''){
+    if (compiledCtrtsFile2[compiledSolName].bytecode.length === 0){
       console.log('\n[Error]  bytecode2 is an empty string -> Check if you can deploy it in a Ethereum VM ... can use Remix');
     } else {console.log('[Good] bytecode2 is found');}
 }

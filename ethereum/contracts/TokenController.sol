@@ -1,6 +1,6 @@
 pragma solidity ^0.5.4;
 
-interface HeliumITF{
+interface Helium_Interface_TCC{
     function checkPlatformSupervisor(address _eoa) external view returns(bool _isPlatformSupervisor);
 }
 
@@ -20,7 +20,7 @@ contract TokenController {
     TokenState public tokenState;
 
     // 201902190900, 201902190901, 201902190902, 201902191745
-    constructor(uint _TimeOfDeployment, 
+    constructor(uint _TimeOfDeployment,
       uint _TimeUnlock, uint _TimeValid, address _addrHelium) public {
         TimeOfDeployment = _TimeOfDeployment;
         TimeUnlock = _TimeUnlock;
@@ -40,6 +40,15 @@ contract TokenController {
         boolArray[2] = _TimeValid > _TimeUnlock;
         boolArray[3] = _addrHelium.isContract();
     }
+    // to give variable values including TimeOfDeployment, TimeUnlock, TimeValid, isLockedForRelease
+    function getHTokenControllerDetails() public view returns (
+        uint TimeOfDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_, bool isTokenApproved_) {
+        TimeOfDeployment_ = TimeOfDeployment;
+        TimeUnlock_ = TimeUnlock;
+        TimeValid_ = TimeValid;
+        isLockedForRelease_ = isLockedForRelease;
+        isTokenApproved_ = isTokenApproved;
+    }
 
     modifier ckTime(uint _time) {
         require(_time > TimeOfDeployment, "_time should be > TimeOfDeployment or not in the format of yyyymmddhhmm");
@@ -47,29 +56,20 @@ contract TokenController {
     }
 
     modifier onlyPlatformSupervisor() {
-        require(HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
+        require(Helium_Interface_TCC(addrHelium).checkPlatformSupervisor(msg.sender), "only PlatformSupervisor is allowed to call this function");
         _;
     }
     function setAddrHelium(address _addrHelium) external onlyPlatformSupervisor{
         addrHelium = _addrHelium;
     }
-    function checkPlatformSupervisor() external view returns (bool){
-        return (HeliumITF(addrHelium).checkPlatformSupervisor(msg.sender));
+    function checkPlatformSupervisorFromTCC() external view returns (bool){
+        return (Helium_Interface_TCC(addrHelium).checkPlatformSupervisor(msg.sender));
     }
     // to check if the HCAT721 token is in good normal state, which is between the Lockup period end time and the invalid time, and isTokenApproved is to check if this token is still approved for trading
     function isTokenApprovedOperational() external view returns (bool){
         return (tokenState == TokenState.normal && isTokenApproved);
     }
 
-    // to give variable values including TimeOfDeployment, TimeUnlock, TimeValid, isLockedForRelease
-    function getHTokenControllerDetails() public view returns (
-        uint TimeOfDeployment_, uint TimeUnlock_, uint TimeValid_, bool isLockedForRelease_, bool isTokenApproved_) {
-          TimeOfDeployment_ = TimeOfDeployment;
-          TimeUnlock_ = TimeUnlock;
-          TimeValid_ = TimeValid;
-          isLockedForRelease_ = isLockedForRelease;
-          isTokenApproved_ = isTokenApproved;
-    }
 
     // to update the tokenState to be one of the three states: inInitialLockUpPeriod, normal, expired
     function updateState(uint timeCurrent) external onlyPlatformSupervisor ckTime(timeCurrent){
@@ -81,7 +81,7 @@ contract TokenController {
 
         } else {//timeCurrent >= TimeValid
             tokenState = TokenState.expired;
-        }       
+        }
     }
 
     //To extend validTime value
