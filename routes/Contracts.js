@@ -784,7 +784,7 @@ router.post('/crowdFundingContract/:tokenSymbol/closeFunding', async function (r
 
     await HCAT721.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, tokenControllerAddr, tokenURIBytes32, heliumContractAddr, currentTime]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, productManagerContractAddr, tokenControllerAddr, tokenURIBytes32, heliumContractAddr, currentTime]
     })
         .send({
             from: backendAddr,
@@ -1469,7 +1469,7 @@ router.post('/HCAT721_AssetTokenContract/:nftSymbol', async function (req, res, 
 
     ERC721SPLC.deploy({
         data: HCAT721_AssetTokenContract.bytecode,
-        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, addrERC721SPLC_ControllerITF, tokenURIBytes32, heliumContractAddr, currentTime]
+        arguments: [nftNameBytes32, nftSymbolBytes32, siteSizeInKW, maxTotalSupply, initialAssetPricing, pricingCurrencyBytes32, IRR20yrx100, registryContractAddr, productManagerContractAddr, addrERC721SPLC_ControllerITF, tokenURIBytes32, heliumContractAddr, currentTime]
     })
         .send({
             from: backendAddr,
