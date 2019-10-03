@@ -11,11 +11,12 @@
     "testexp": "node timeserver/zExperimentalTests.js",
     "testmt": "node timeserver/manualTriggered.js",
     "moall": "mocha",
+    "mohe": "mocha --grep HeliumCtrt",
+    "mopm": "mocha --grep ProductManagerCtrt",
+    "moab": "mocha --grep AssetBookCtrt",
     "mocf": "mocha --grep CrowdFundingCtrt",
     "mohcat": "mocha --grep HCAT721Ctrt",
-    "moim": "mocha --grep IncomeManagerCtrt",
-    "mopm": "mocha --grep ProductManagerCtrt",
-    "mohelium": "mocha --grep HeliumCtrt"
+    "moim": "mocha --grep IncomeManagerCtrt"
   },
   "dependencies": {
     "amqplib": "^0.5.3",

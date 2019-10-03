@@ -1424,7 +1424,7 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('assetOwnerM:', assetOwnerM);
     assert.equal(assetOwnerM, AssetOwner1);
 
-    addrHeliumContractM = await instAssetBook1.methods.addrHeliumContract().call();
+    addrHeliumContractM= await instAssetBook1.methods.addrHeliumContract().call();
     console.log('addrHeliumContractM:', addrHeliumContractM);
     assert.equal(addrHeliumContractM, addrHeliumCtrt);
 
@@ -1754,18 +1754,6 @@ describe('Tests on HeliumCtrt', () => {
   it('HeliumCtrt functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==testing HeliumCtrt');
-    bool1 = await instHelium.methods.checkCustomerService(admin).call();
-    console.log('checkCustomerService(admin):', bool1);
-    assert.equal(bool1, true);
-
-    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
-    console.log('checkCustomerService(AssetOwner1):', bool1);
-    assert.equal(bool1, false);
-
-    await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
-    console.log('checkCustomerService(AssetOwner1):', bool1);
-    assert.equal(bool1, true);
 
     //----------------==
     //  admin, chairman, director, manager, owner
@@ -1815,12 +1803,31 @@ describe('Tests on HeliumCtrt', () => {
     console.log('MinimumVotesForMultiSig():', MinimumVotesForMultiSig);
     assert.equal(MinimumVotesForMultiSig, 3);
 
+    depConditions = await instHelium.methods.checkDeploymentConditions().call();
+    console.log('depConditions():', depConditions);
+    assert.equal(depConditions['0'], true);
+    assert.equal(depConditions['1'], false);
+
+    getHeliumDetails = await instHelium.methods.getHeliumDetails().call();
+    console.log('getHeliumDetails():', getHeliumDetails);
+
     locked = await instHelium.methods.locked().call();
     console.log('locked():', locked);
     assert.equal(locked, false);
 
     //--------------==
+    bool1 = await instHelium.methods.checkCustomerService(admin).call();
+    console.log('checkCustomerService(admin):', bool1);
+    assert.equal(bool1, true);
 
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
+    console.log('checkCustomerService(AssetOwner1):', bool1);
+    assert.equal(bool1, false);
+
+    await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
+    console.log('checkCustomerService(AssetOwner1):', bool1);
+    assert.equal(bool1, true);
 
   });
 });

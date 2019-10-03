@@ -153,15 +153,15 @@ const checkHeliumCtrt = async(addrHeliumContract, managementTeam) => {
   });
 }
 
-const deployHeliumContract = async(eoa0, eoa1, eoa2, eoa3, eoa4) => {
+const deployHeliumContract = async(managementTeam) => {
   return new Promise(async (resolve, reject) => {
-    console.log(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nbackendAddrpkRaw: ${backendAddrpkRaw} \nblockchainURL: ${blockchainURL}`);
+    console.log(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nblockchainURL: ${blockchainURL}`);
+    //  \nbackendAddrpkRaw: ${backendAddrpkRaw} 
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
     console.log('web3deploy.version:', web3deploy.version);
 
-    const managementTeam = [eoa0, eoa1, eoa2, eoa3, eoa4];
     const argsHelium = [managementTeam];
     const isGoodArgument = await checkArgumentsHelium(argsHelium);
 

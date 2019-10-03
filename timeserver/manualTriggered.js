@@ -15,6 +15,8 @@ const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, chec
 
 const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('./utilities');
 
+const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
+
 const AssetOwner0 = assetOwnerArray[0];
 const AssetOwner1 = assetOwnerArray[1];
 const AssetOwner2 = assetOwnerArray[2];
@@ -486,7 +488,9 @@ const deployAllContracts_API = async() => {
 
   //---------------------==
   console.log('\n--------== about to deploy Helium Contract');
-  const {isGoodHeliumCtrt, addrHeliumContract} = await deployHeliumContract(admin, AssetOwner0, AssetOwner1, AssetOwner2, AssetOwner3);
+  const managementTeam = [process.env.HELIUM_ADMIN, process.env.HELIUM_CHAIRMAN, process.env.HELIUM_DIRECTOR, process.env.HELIUM_MANAGER, process.env.HELIUM_OWNER];
+
+  const {isGoodHeliumCtrt, addrHeliumContract} = await deployHeliumContract(managementTeam);
   console.log(`\nreturned isGoodHeliumCtrt: ${isGoodHeliumCtrt}, addrHeliumContract: ${addrHeliumContract}`);
 
   //---------------------==
@@ -536,7 +540,8 @@ investorLevels: ${investorLevels}`);
 const deployHeliumContract_API = async() => {
   console.log('\n--------------==inside deployHeliumContract_API()');
   console.log(`admin:       ${admin} \nAssetOwner0: ${AssetOwner0} \nAssetOwner1: ${AssetOwner1} \nAssetOwner2: ${AssetOwner2} \nAssetOwner3: ${AssetOwner3}`)
-  const {isGood, addrHeliumContract} = await deployHeliumContract(admin, AssetOwner0, AssetOwner1, AssetOwner2, AssetOwner3);
+  const managementTeam = [process.env.HELIUM_ADMIN, process.env.HELIUM_CHAIRMAN, process.env.HELIUM_DIRECTOR, process.env.HELIUM_MANAGER, process.env.HELIUM_OWNER];
+  const {isGood, addrHeliumContract} = await deployHeliumContract(managementTeam);
   console.log(`\nreturned isGood: ${isGood} \naddrHeliumContract: ${addrHeliumContract}`);
   process.exit(0);
 };
@@ -567,16 +572,29 @@ const deployProductManagerContract_API = async() => {
 //yarn run testmt -f 56
 const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
-  const choice = 2;//1 for one assetbook, 2 for multiple
-  let eoaArray;
+  const choice = 1;//1: normal, 2 for specific addresses, 3 for just one
+  let eoaArray, eoapkArray;
   const addrHeliumContract = addrHelium;
 
   if(assetOwnerArray.length < 10) {
     console.error('not enough assetOwnerArray length!');
     process.exit(1);
   }
-  if(choice === 2){
+
+  if(choice === 1){
     eoaArray = assetOwnerArray.slice(0, assetbookAmount);
+
+  } else if(choice === 2){
+    const eoa1 = '0x19ab366e28a53db44bda156a3cbf055c4a807244';
+    const eoa1pk = '0xef33e5ae9441ad643fe0194e0e96505fa66646aefe25be8dbca208df800ea701';
+    const eoa2 = '0x82f1063f316bd260b222764b8b3ccb74cb59b6eb';
+    const eoa2pk = '0xc038bd499de1d5ca13390ce4573cfade55cdd79e835b091190f26decaa03d813';
+    const eoa3 = '0xbb257ad047b2ee2544ca56b1a7915e2ae218c997';
+    const eoa3pk = '0x81b93a442e5f03011d7baa8a8641ec8deb8d188e442d76f980c7e9c6ad2180de';
+    const eoa4 = '0x92832a12a6526de8663988569aecd9d6071b4306';
+    const eoa4pk = '0x7bfd108fab791991e9848dd1f3305f460d6063cef9c0d7097deb2fee117bd38e';
+    eoaArray = [eoa1, eoa2, eoa3, eoa4];
+    eoapkArray = [eoa1pk, eoa2pk, eoa3pk, eoa4pk];
 
   } else {
     const assetownerOne = assetOwnerArray[0];
@@ -600,6 +618,7 @@ const deployAssetbookContracts_API = async() => {
   const isAllGood = !(addrAssetBookArray.includes(undefined));
   console.log('\nisAllGood:', isAllGood);
 
+  /*
   var file = fs.createWriteStream('./test_CI/Assetbooks.csv');
   file.on('error', function(err) {
     console.log('[Error @ writing into Assetbooks.csv:', err);
@@ -607,6 +626,7 @@ const deployAssetbookContracts_API = async() => {
 
   addrAssetBookArray.forEach(function(v) { file.write(v + '\n'); });
   file.end();
+  */
   /*fs.writeFile("./ethereum/contracts/Assetbooks.csv", JSON.stringify(addrAssetBookArray), function(err){
     if(err){
       console.error(err);
@@ -2440,6 +2460,36 @@ array1[idxEnd]: ${array1[idxEnd]} \ntokenId_target: ${tokenId_target}`);
 array1[idxEnd]: ${array1[idxEnd]} \nidxStart: ${idxStart}, idxEnd: ${idxEnd} \narray1: ${array1}`);
 }
 
+//yarn run testmt -f 204
+const deployTest1_API = async() => {
+  console.log('\n--------------==inside deployCtrt1_API()');
+  const {isGood, addrTest1} = await deployCtrt1().catch((err) => {
+    console.log('\n[Error]'+ err);
+  });
+  console.log(`result_deployment: ${isGood} \naddrTest1: ${addrTest1}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 205
+const Test1ReadValues_API = async() => {
+  console.log('\n--------------==inside Test1ReadValues_API()');
+  const results = await Test1ReadValues().catch((err) => {
+    console.log('\n[Error]'+ err);
+  });
+  process.exit(0);
+}
+
+//yarn run testmt -f 206
+const Test1GetAccountDetail_API = async() => {
+  console.log('\n--------------==inside Test1ReadValues_API()');
+  const results = await Test1GetAccountDetail().catch((err) => {
+    console.log('\n[Error]'+ err);
+  });
+  process.exit(0);
+}
+
+
+
 //------------------------==
 // yarn run testmt -f 0
 if(argv3 === 0){
@@ -2885,4 +2935,15 @@ if(argv3 === 0){
 } else if(argv3 === 203){
   extractTokenId_API();
 
+  ////yarn run testmt -c 204
+} else if(argv3 === 204){
+  deployTest1_API();
+
+  ////yarn run testmt -c 205
+} else if(argv3 === 205){
+  Test1ReadValues_API();
+
+  ////yarn run testmt -c 206
+} else if(argv3 === 206){
+  Test1GetAccountDetail_API();
 }
