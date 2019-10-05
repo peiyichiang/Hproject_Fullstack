@@ -4,18 +4,19 @@
   "private": true,
   "scripts": {
     "solc": "cd ethereum/contracts && node zcompile.js",
-    "ci": "node timeserver/manualTriggered.js -f 100",
+    "ci": "node test_CI/manualTriggered.js -f 100",
     "livechain": "node ethereum/contracts/zlivechain.js",
     "start": "nodemon ./bin/www",
-    "testts": "node timeserver/timeserverTest.js",
-    "testexp": "node timeserver/zExperimentalTests.js",
-    "testmt": "node timeserver/manualTriggered.js",
+    "testts": "node test_CI/timeserverTest.js",
+    "testexp": "node test_CI/zExperimentalTests.js",
+    "testmt": "node test_CI/manualTriggered.js",
     "moall": "mocha",
+    "mohe": "mocha --grep HeliumCtrt",
+    "mopm": "mocha --grep ProductManagerCtrt",
+    "moab": "mocha --grep AssetBookCtrt",
     "mocf": "mocha --grep CrowdFundingCtrt",
     "mohcat": "mocha --grep HCAT721Ctrt",
-    "moim": "mocha --grep IncomeManagerCtrt",
-    "mopm": "mocha --grep ProductManagerCtrt",
-    "mohelium": "mocha --grep HeliumCtrt"
+    "moim": "mocha --grep IncomeManagerCtrt"
   },
   "dependencies": {
     "amqplib": "^0.5.3",

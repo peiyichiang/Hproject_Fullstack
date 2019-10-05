@@ -951,18 +951,10 @@ router.get('/crowdfunding/getCrowdfundingDetails/:ctrtAddr', async function (req
     });
     return false;
   }
-    const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
-    const crowdfundingCtrtDetails = await instCrowdfunding.methods.getContractDetails().call();
-    console.log(`crowdfundingCtrtDetails: ${crowdfundingCtrtDetails}`);
-
-    const fundingCindex = await instCrowdfunding.methods.fundingCindex().call();
-    const fundingState = await instCrowdfunding.methods.fundingState().call();
-    const stateDescription = await instCrowdfunding.methods.stateDescription().call();
-
-    res.send({
-        crowdfundingCtrtDetails: crowdfundingCtrtDetails,
-        fundingDetails: [fundingCindex, fundingState, stateDescription]
-    });
+  const instCrowdfunding = new web3.eth.Contract(crowdFundingContract.abi, crowdfundingCtrtAddr);
+  const cfcDetails = await instCrowdfunding.methods.getCrowdfundingDetails().call();
+  console.log(`cfcDetails: ${cfcDetails}`);
+  res.send({ cfcDetails });
 });
 
 

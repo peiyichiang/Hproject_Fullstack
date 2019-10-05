@@ -15,27 +15,45 @@ consider turn timeserver or part of it on...
 const isTimeserverON = true;
 const useFullTimeServer = true;
 
-deploy contracts by ethereum/contracts/zdeploy.js
-$ yarn run deploy -c 1 -s 1 -cName cName
-cName = helium, assetbook, registry, cf, tokc, hcat, addproduct, adduser, addorder, im, addsctrt, addia, pm
-copy and paste the contract addresses into zsetupData.js
+----==setup basic system and users
+yarn run testmt -f x
+ 53 ... deployHeliumContract_API -> paste it into .env
+ 54 ... deployRegistryContract_API -> paste it into .env
+ 55 ... deployProductManagerContract_API -> paste it into .env
 
+ 56 ... deployAssetbookContracts_API -> paste results into Assetbooks.csv
+>> delete existing test users
+ 57 ... addUsersIntoDB_API
+ 59 ... addUsersToRegistryCtrt
 
-operate on contracts by ethereum/contracts/zlivechain.js
-checkDeployedContracts: yarn run livechain -c 1 --f 0
-addUserArray: yarn run livechain -c 1 --f 21
-setupTest:   yarn run livechain -c 1 --f 1
-getTokenController:  yarn run livechain -c 1 --f 2
-showAssetBookBalance_TokenId:  yarn run livechain -c 1 --f 3
-showAssetBookBalancesBigAmount: yarn run livechain -c 1 --f 31
-showAssetInfo: yarn run livechain -c 1 --f 4
+----==every new product
+ 61 ... deployCrowdfundingContract_API -> paste into zTestParameter
 
-investCrowdContract: 
-notice toAssetbookNumStr: 1 for assetBook1...
-Check CFC details:  yarn run livechain -c 1 --f 8 -s 0 -t 1 -a 1
-Set CFC to funding: yarn run livechain -c 1 --f 8 -s 1 -t 1 -a 1
-Check all balances: yarn run livechain -c 1 --f 8 -s 3 -t 1 -a 1
-Invest/buy:         yarn run livechain -c 1 --f 8 -s 4 -t 1 -a 1079
+ 65 ... investTokensToCloseCFC_API
+        buy tokens in CFC => sold out => fundingClosed
+// 78 ... addPaidOrdersIntoDBnCFC ... don't do as we use timeServer functions
 
-Inside timeserver/manualTriggered.js
-mintSequentialPerCtrt_API: yarn run testmt -f 43
+ 66 ... deployTokenControllerContract_API
+ 67 ... deployHCATContract_API
+ 69 ... deployIncomeManagerContract_API
+ 70 ... add3SmartContractsBySymbol_API
+ 71 ... addIncomeArrangementRows_API
+ 72 ... addProductRowFromSymbol_API
+----==
+ 39 ... getDetailsCFC_API
+ 42 ... getCFC_Balances_API
+----==
+ 82 ... setTokenController
+ 79 ... getTokenContractDetails
+ 83 ... getTokenBalances_API
+
+ 86 ... mintSequentialPerContract_CLI_API ***
+(OR ProductAdministration.ejs interface button press)
+
+ 85 ... addOrders_CFC_MintTokens_API
+
+ 5  ... calculateLastPeriodProfit_API
+
+ 121 3 2 12 ... transferTokens_API
+
+ 100 .. intergrationTestOfProduct

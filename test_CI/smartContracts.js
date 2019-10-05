@@ -427,11 +427,10 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
           .then(nonce => {
 
               let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');
-              console.log(userPrivateKey);
               let txParams = {
                   nonce: web3.utils.toHex(nonce),
-                  gas: 9000000,
-                  gasPrice: 0,
+                  gas: gasLimitValue,//9000000,
+                  gasPrice: gasPriceValue,//0,
                   //gasPrice: web3js.utils.toHex(20 * 1e9),
                   //gasLimit: web3.utils.toHex(3400000),
                   to: contractAddr,
@@ -448,22 +447,22 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
               web3.eth.sendSignedTransaction(rawTx)
                   .on('transactionHash', hash => {
-                      console.log(hash);
+                      //console.log(hash);
                   })
                   .on('confirmation', (confirmationNumber, receipt) => {
-                      // console.log('confirmation', confirmationNumber);
+                      // //console.log('confirmation', confirmationNumber);
                   })
                   .on('receipt', function (receipt) {
-                      console.log(receipt);
+                      //console.log(receipt);
                       resolve(receipt)
                   })
                   .on('error', function (err) {
-                      console.log(err);
+                      //console.log(err);
                       reject(err);
-                  })
-          })
+                  });
+          });
 
-  })
+  });
 }
 
 module.exports = { transferTokens, checkSafeTransferFromBatch, addLoginTime, checkIsContract, assetOwnerVote, setHeliumAddr, endorserVote, setAntiSystemOverrideDays, resetVoteStatus, changeAssetOwner, getAssetbookDetails, addEndorser, changeEndorser }

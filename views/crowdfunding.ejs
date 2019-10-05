@@ -332,18 +332,30 @@
       const response = await fetch(url);
       const json = await response.json();
 
-      const crowdfundingCtrtDetails = json['crowdfundingCtrtDetails'];
-      console.log('crowdfundingCtrtDetails:', crowdfundingCtrtDetails);
-      const TimeOfDeployment = crowdfundingCtrtDetails['0'];
-      const maxTokenQtyForEachInvestmentFund = crowdfundingCtrtDetails['1'];
-      const tokenSymbol = crowdfundingCtrtDetails['2'];
-      const pricingCurrency = crowdfundingCtrtDetails['3'];
-      const initialAssetPricing = crowdfundingCtrtDetails['4'];
-      const maxTotalSupply = crowdfundingCtrtDetails['5'];
-      const quantityGoal = crowdfundingCtrtDetails['6'];
-      const quantitySold = crowdfundingCtrtDetails['7'];
-      const CFSD = crowdfundingCtrtDetails['8'];
-      const CFED = crowdfundingCtrtDetails['9'];
+      const cfcDetails = json['cfcDetails'];
+      console.log('cfcDetails:', cfcDetails);
+      const uintArray = cfcDetails[0];
+      const TimeOfDeployment = uintArray[0];
+      const maxTokenQtyForEachInvestmentFund = uintArray[1];
+      const initialAssetPricing = uintArray[2];
+      const maxTotalSupply = uintArray[3];
+      const quantityGoal = uintArray[4];
+      const quantitySold = uintArray[5];
+      const CFSD = uintArray[6];
+      const CFED = uintArray[7];
+      const fundingCindex = uintArray[8];
+
+      const tokenSymbol = cfcDetails[1];
+      const pricingCurrency = cfcDetails[2];
+      const stateDescription = cfcDetails[3];
+
+      const fundingState = cfcDetails[4];
+      const addrHelium = cfcDetails[5];
+
+      console.log(`\n------------==checkCrowdfundingCtrt()... 
+TimeOfDeployment: ${TimeOfDeployment}, maxTokenQtyForEachInvestmentFund: ${maxTokenQtyForEachInvestmentFund}, tokenSymbol: ${tokenSymbol}, pricingCurrency: ${pricingCurrency}
+initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply},quantityGoal: ${quantityGoal}, quantitySold: ${quantitySold}, CFSD: ${CFSD}, CFED: ${CFED}, fundingCindex: ${fundingCindex}
+fundingState: ${fundingState}, stateDescription: ${stateDescription}`);
       const remainingQty = parseInt(maxTotalSupply) - parseInt(quantitySold);
 
       document.getElementById("TimeOfDeployment").innerText = TimeOfDeployment;
@@ -357,17 +369,10 @@
       document.getElementById("remainingQty").innerText = remainingQty;
       document.getElementById("CFSD").innerText = CFSD;
       document.getElementById("CFED").innerText = CFED;
-      //location.reload();
-
-      const fundingDetails = json['fundingDetails'];
-      console.log('fundingDetails:', fundingDetails);
-      const fundingCindex = fundingDetails['0'];
-      const fundingState = fundingDetails['1'];
-      const stateDescription = fundingDetails['2'];
-
       document.getElementById("fundingCindex").innerText = fundingCindex;
       document.getElementById("fundingState").innerText = fundingState;
       document.getElementById("stateDescription").innerText = stateDescription;
+      //location.reload();
     });
 
 

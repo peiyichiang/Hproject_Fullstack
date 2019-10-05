@@ -144,21 +144,10 @@ contract CrowdFunding {
     }*/
 
     function getCrowdfundingDetails() public view returns(
-        uint TimeOfDeployment_, uint maxTokenQtyForEachInvestmentFund_,
-        string memory tokenSymbol_, string memory pricingCurrency_,
-        uint initialAssetPricing_, uint maxTotalSupply_,
-        uint quantityGoal_, uint quantitySold_, uint CFSD_, uint CFED_, address addrHelium_) {
-        TimeOfDeployment_ = TimeOfDeployment;
-        maxTokenQtyForEachInvestmentFund_ = maxTokenQtyForEachInvestmentFund;
-        tokenSymbol_ = tokenSymbol;
-        pricingCurrency_ = pricingCurrency;
-        initialAssetPricing_ = initialAssetPricing;
-        maxTotalSupply_ = maxTotalSupply;
-        quantityGoal_ = quantityGoal;
-        quantitySold_ = quantitySold;
-        CFSD_ = CFSD;
-        CFED_ = CFED;
-        addrHelium_ = addrHelium;
+        uint[9] memory, string memory, string memory, string memory, FundingState, address) {
+        return ([
+            TimeOfDeployment, maxTokenQtyForEachInvestmentFund,
+            initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex], tokenSymbol, pricingCurrency, stateDescription, fundingState, addrHelium);
     }
 
     function checkPlatformSupervisorFromCFC() public view returns (bool){
