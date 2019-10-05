@@ -8,7 +8,7 @@ var m_passwordhash=document.getElementById('m_passwordhash');
 //監聽註冊按鈕
 register.addEventListener('click',function(){
 	// 判斷email是否正確
-	if(is.email(document.getElementById("m_id").value)){
+	// if(is.email(document.getElementById("m_id").value)){
 		//判斷密碼是否相同
 		if(m_password_1.value=="" || m_password_2.value==""){
 			alert("密碼不可為空");
@@ -25,7 +25,7 @@ register.addEventListener('click',function(){
 			// alert(m_passwordhash.value);
 			document.getElementById("addform").submit();
 		}
-	}
+	// }
     
 });
 
