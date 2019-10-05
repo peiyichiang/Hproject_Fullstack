@@ -406,7 +406,7 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
 //yarn run testmt -f 61
 const deployCrowdfundingContract = async(argsCrowdFunding) => {
   return new Promise(async (resolve, reject) => {
-  
+
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
@@ -489,30 +489,48 @@ const checkArgumentsCFC = async(argsCrowdFunding) => {
   });
 }
 
+
 const checkCrowdfundingCtrt = async(crowdFundingAddr) => {
   return new Promise( async ( resolve, reject ) => {
     try{
       const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-      const tokenSymbol = await instCrowdFunding.methods.tokenSymbol().call();
-      const initialAssetPricing = await instCrowdFunding.methods.initialAssetPricing().call();
-      const maxTotalSupply = await instCrowdFunding.methods.maxTotalSupply().call();
-      const fundingType = await instCrowdFunding.methods.fundingType().call();
-      const CFSD = await instCrowdFunding.methods.CFSD().call();
-      const CFED = await instCrowdFunding.methods.CFED().call();
-      const stateDescription = await instCrowdFunding.methods.stateDescription().call();
+      const cfcDetails = await instCrowdFunding.methods.getCrowdfundingDetails().call();
+      const uintArray = cfcDetails[0];
+      const TimeOfDeployment = uintArray[0];
+      const maxTokenQtyForEachInvestmentFund = uintArray[1];
+      const initialAssetPricing = uintArray[2];
+      const maxTotalSupply = uintArray[3];
+      const quantityGoal = uintArray[4];
+      const quantitySold = uintArray[5];
+      const CFSD = uintArray[6];
+      const CFED = uintArray[7];
+      const fundingCindex = uintArray[8];
 
-      console.log(`\ncheckCrowdfundingCtrt()... tokenSymbol: ${tokenSymbol}, maxTotalSupply: ${maxTotalSupply}, initialAssetPricing: ${initialAssetPricing}, fundingType: ${fundingType}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
-      resolve([true, tokenSymbol, initialAssetPricing, maxTotalSupply, fundingType, CFSD, CFED, stateDescription]);
+      const tokenSymbol = cfcDetails[1];
+      const pricingCurrency = cfcDetails[2];
+      const stateDescription = cfcDetails[3];
+
+      const fundingState = cfcDetails[4];
+      const addrHelium = cfcDetails[5];
+
+      console.log(`\n------------==checkCrowdfundingCtrt()... 
+TimeOfDeployment: ${TimeOfDeployment}, maxTokenQtyForEachInvestmentFund: ${maxTokenQtyForEachInvestmentFund}, tokenSymbol: ${tokenSymbol}, pricingCurrency: ${pricingCurrency}
+initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply},quantityGoal: ${quantityGoal}, quantitySold: ${quantitySold}, CFSD: ${CFSD}, CFED: ${CFED}, fundingCindex: ${fundingCindex}
+fundingState: ${fundingState}, stateDescription: ${stateDescription}
+addrHelium: ${addrHelium}`);
+      resolve([true, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingState, stateDescription, addrHelium]);
     } catch(err) {
       console.log(`[Error] checkCrowdfundingCtrt() failed at crowdFundingAddr: ${crowdFundingAddr} <===================================`);
-      resolve([false, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
+      resolve([false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
     }
   });
 }
 
 const checkDeploymentCFC = async(crowdFundingAddr, argsCrowdFunding) => {
   return new Promise(async (resolve, reject) => {
-    const [is_checkCrowdfunding, tokenSymbol, initialAssetPricing, maxTotalSupply, fundingType, CFSD, CFED, stateDescription] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
+    const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+
+    const [is_checkCrowdfunding, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium] = await checkCrowdfundingCtrt(crowdFundingAddr).catch((err) => {
       console.log(`${err} \ncheckCrowdfundingCtrt() failed...`);
       reject(false);
       return false;
@@ -521,31 +539,11 @@ const checkDeploymentCFC = async(crowdFundingAddr, argsCrowdFunding) => {
     if(is_checkCrowdfunding){
       console.log(`\ncheckCrowdfundingCtrt() returns true...`);
 
-      const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
       const boolArray = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
       console.log('checkDeploymentConditions():', boolArray);
 
       if(boolArray.includes(false)){
         console.log('[Failed] Some/one check(s) have/has failed checkDeploymentConditions()');
-        const boolArray2 = await instCrowdFunding.methods.getCrowdfundingDetails().call();
-        if(boolArray2.length !== 11){
-          console.error('getCrowdfundingDetails boolArray2.length is not valid');
-          reject(false);
-          return false;
-        }
-        const TimeOfDeployment = boolArray2[0];
-        const maxTokenQtyForEachInvestmentFund = boolArray2[1];
-        const tokenSymbol = boolArray2[2];
-        const pricingCurrency = boolArray2[3];
-        const initialAssetPricing = boolArray2[4];
-        const maxTotalSupply = boolArray2[5];
-        const quantityGoal = boolArray2[6];
-        const quantitySold = boolArray2[7];
-        const CFSD = boolArray2[8];
-        const CFED = boolArray2[9];
-        const addrHelium = boolArray2[10];
-
-        console.log(`\n===>>> TimeOfDeployment: ${TimeOfDeployment}, maxTokenQtyForEachInvestmentFund: ${maxTokenQtyForEachInvestmentFund}, tokenSymbol: ${tokenSymbol}, pricingCurrency: ${pricingCurrency}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, quantityGoal: ${quantityGoal}, quantitySold: ${quantitySold}, CFSD: ${CFSD}, CFED: ${CFED}, addrHelium: ${addrHelium}`);
 
         if(boolArray.length !== 8){
           console.error('checkDeploymentConditions boolArray.length is not valid');
@@ -2385,18 +2383,19 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       checkOK = false;
       return undefined;
     });
-    console.log(`\n${resultMesg}.`);
+    console.log(`\n${resultMesg}`);
     if(isGood){
-      console.log(`\n------==[Good] Found crowdsaleaddresses from symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
+      console.log(`\n------==[Good] Found crowdfunding addresses \nsymbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
     } else {
-      console.error(`[Error] at blockchain.js 2008. symbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
+      console.error(`[Error] at blockchain.js -> asyncForEachAbCFC: \nsymbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr} \nresultMesg: ${resultMesg}`);
       checkOK = false;
       return false;
     }
-    
+
     // Gives arrays of assetbooks, emails, and tokencounts for symbol x and payment status of y
     const queryStr3 = `SELECT User.u_assetbookContractAddress, OrderList.o_email, OrderList.o_tokenCount, OrderList.o_id FROM user User, order_list OrderList WHERE User.u_email = OrderList.o_email AND OrderList.o_paymentStatus = "${paymentStatus}" AND OrderList.o_symbol = ?`;
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
+
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
       console.log('\n[Error @ mysqlPoolQueryB(queryStr3)]'+ err);
       checkOK = false;
@@ -2437,7 +2436,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       console.log(`\nemailArray: ${emailArray} \ntokenCountArray: ${tokenCountArray} \norderIdArray: ${orderIdArray} \nemailArrayError: ${emailArrayError} \ntokenCountArrayError: ${tokenCountArrayError} \norderIdArrayError: ${orderIdArrayError}`);
 
 
-      console.log('\n----------------==assetbookCtrtArray', assetbookCtrtArray);
+      console.log(`\n----------------==assetbookCtrtArray \n${assetbookCtrtArray}`);
       if(assetbookCtrtArray.length !== emailArray.length){
         console.log('[Error] assetbookCtrtArray and emailArray have different length')
         checkOK = false;
@@ -2448,7 +2447,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]}, \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
 
       const checkResult = await checkAssetbookArray(assetbookCtrtArray).catch(async(err) => {
-        console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed inside asyncForEachAbCFC(). assetbookCtrtArray: ${assetbookCtrtArray}`);
+        console.log(`checkAssetbookArray() \nresult: ${err} \ncheckAssetbookArray() failed inside asyncForEachAbCFC(). \nassetbookCtrtArray: ${assetbookCtrtArray}`);
         checkOK = false;
         return false;
       });
@@ -2459,6 +2458,9 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       } else {
         console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
       }
+
+      const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
+
       await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
         const amountToInvest = parseInt(tokenCountArray[index]);
         console.log(`\n----==[Good] For ${addrAssetbook}, found its amountToInvest ${amountToInvest}`);
@@ -2479,13 +2481,25 @@ crowdFundingAddr: ${crowdFundingAddr}`);
 
         isInvestSuccessArray.push(isInvestSuccess);
         txnHashArray.push(txnHash);
+
+        //----------==
+        const orderId = orderIdArray[index];
+        const email = emailArray[index];
+        const results5 = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
+          console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
+          checkOK = false;
+        });
+        //console.log('\nresults5', results5);
+        log(chalk.green(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
       });
+
       console.log(`\nisInvestSuccessArray: ${isInvestSuccessArray}
 txnHashArray: ${txnHashArray}`);
 
       const investorListAf = await instCrowdFunding.methods.getInvestors(0, 0).call();
       console.log(`\nAfter calling investTokens() for \nassetbookArrayAf: ${investorListAf[0]}, \ninvestedTokenQtyArrayAf: ${investorListAf[1]}`);
 
+      /*
       if(orderIdArray.length === txnHashArray.length){
         const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
         await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
@@ -2500,7 +2514,7 @@ txnHashArray: ${txnHashArray}`);
         log(chalk.red(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
         orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
         checkOK = false;
-      }
+      }*/
 
     }
   //process.exit(0);
@@ -2606,7 +2620,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
       resolve(false);
       return false;
     }
-    console.log('Please manually check if above data is correct.\nIf yes, then the crowdfunding contract is good');
+    console.log('Please manually check if above data is correct according to the actual crowdfunding data.\nIf yes, then the crowdfunding contract is good');
     
     console.log('\ncheckInvest2');
     const isAssetbookGood = await tokenReceiver(addrAssetbook).catch(async(err) => {
@@ -2649,7 +2663,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
           mesg += ', [5] quantityToInvest should be > 0';
         }
         if(!boolArray[6]){
-          mesg += ', [6] quantityToInvest should be <= maxTotalSupply';
+          mesg += ', [6] quantityToInvest + quantitySold should be <= maxTotalSupply';
         }
         if(!boolArray[7]){
           mesg += ', [7] serverTime should be > TimeOfDeployment';
