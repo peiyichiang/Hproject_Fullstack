@@ -15,7 +15,7 @@ const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, chec
 
 const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getLocalTime, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
 
-const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
+//const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
 
 const AssetOwner0 = assetOwnerArray[0];
 const AssetOwner1 = assetOwnerArray[1];

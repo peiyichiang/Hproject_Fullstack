@@ -12,6 +12,7 @@
     "testmt": "node test_CI/manualTriggered.js",
     "moall": "mocha",
     "mohe": "mocha --grep HeliumCtrt",
+    "moreg": "mocha --grep RegistryCtrt",
     "mopm": "mocha --grep ProductManagerCtrt",
     "moab": "mocha --grep AssetBookCtrt",
     "mocf": "mocha --grep CrowdFundingCtrt",

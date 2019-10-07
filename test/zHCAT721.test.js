@@ -515,7 +515,7 @@ beforeEach( async function() {
 
 
 console.log('\n----------------==');
-describe('Tests on HCAT721Ctrt', () => {
+describe('Test HCAT721Ctrt', () => {
   //this.timeout(2500);
   /*it('check HCAT721 deployment test', async () => {
     //!!!!!!!!! New contract instance for EVERY it() => Different contract addresses!!!
@@ -582,33 +582,33 @@ describe('Tests on HCAT721Ctrt', () => {
       console.log('addrMultiSig1', addrMultiSig1);
       console.log('addrMultiSig2', addrMultiSig2);
       let assetOwnerM1 = await instMultiSig1.methods.getAssetOwner().call();
-      assert.equal(assetOwnerM1, AssetOwner1);
+      assert.strictEqual(assetOwnerM1, AssetOwner1);
       let assetOwnerM2 = await instMultiSig2.methods.getAssetOwner().call();
-      assert.equal(assetOwnerM2, AssetOwner2);
+      assert.strictEqual(assetOwnerM2, AssetOwner2);
 
       console.log('\nCheck getPlatformContractAddr()');
       let platformM1 = await instMultiSig1.methods.getPlatformContractAddr().call();
-      assert.equal(platformM1, addrHeliumCtrt);
+      assert.strictEqual(platformM1, addrHeliumCtrt);
       let platformM2 = await instMultiSig2.methods.getPlatformContractAddr().call();
-      assert.equal(platformM2, addrHeliumCtrt);
+      assert.strictEqual(platformM2, addrHeliumCtrt);
     }
 
     console.log('\n------------==Check Helium contract');
     adminM = await instHelium.methods.Helium_Admin().call();
-    assert.equal(adminM, admin);
+    assert.strictEqual(adminM, admin);
     console.log('check1')
 
     chairmanM = await instHelium.methods.Helium_Chairman().call();
-    assert.equal(chairmanM, chairman);
+    assert.strictEqual(chairmanM, chairman);
 
     directorM = await instHelium.methods.Helium_Director().call();
-    assert.equal(directorM, director);
+    assert.strictEqual(directorM, director);
 
     managerM = await instHelium.methods.Helium_Manager().call();
-    assert.equal(managerM, manager);
+    assert.strictEqual(managerM, manager);
 
     ownerM = await instHelium.methods.Helium_Owner().call();
-    assert.equal(ownerM, owner);
+    assert.strictEqual(ownerM, owner);
     console.log('Helium contract all checked good');
 
 
@@ -641,8 +641,8 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('Registry: getUserFromUid()');
     let user1M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('user1M', user1M);
-    assert.equal(user1M[0], assetbookAddr);
-    assert.equal(user1M[1], authLevel);
+    assert.strictEqual(user1M[0], assetbookAddr);
+    assert.strictEqual(user1M[1], authLevel+'');
 
     uid = "A500000002"; assetbookAddr = addrAssetBook2; authLevel = 5;
     await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
@@ -650,8 +650,8 @@ describe('Tests on HCAT721Ctrt', () => {
 
     let user2M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('\nuser2M', user2M);
-    assert.equal(user2M[0], assetbookAddr);
-    assert.equal(user2M[1], authLevel);
+    assert.strictEqual(user2M[0], assetbookAddr);
+    assert.strictEqual(user2M[1], authLevel+'');
 
     uid = "A500000003"; assetbookAddr = addrAssetBook3; authLevel = 5;
     await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
@@ -660,8 +660,8 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('Registry: getUserFromUid()');
     let user3M = await instRegistry.methods.getUserFromUid(uid).call();
     console.log('user3M', user3M);
-    assert.equal(user3M[0], assetbookAddr);
-    assert.equal(user3M[1], authLevel);
+    assert.strictEqual(user3M[0], assetbookAddr);
+    assert.strictEqual(user3M[1], authLevel+'');
 
     //----------------==
     console.log('\n------------==Check HCAT721 parameters');
@@ -683,34 +683,34 @@ describe('Tests on HCAT721Ctrt', () => {
     tokenURI_M = await instHCAT721.methods.tokenURI().call();
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    //assert.equal(tokenNameM_b32, tokenName_bytes32);
-    //assert.equal(tokenSymbolM_b32, tokenSymbol_bytes32);
+    //assert.strictEqual(tokenNameM_b32, tokenName_bytes32);
+    //assert.strictEqual(tokenSymbolM_b32, tokenSymbol_bytes32);
     console.log("\nCheck tokenName", tokenNameM, tokenName, "\ntokenSymbol", tokenSymbolM, tokenSymbol, "pricingCurrency", web3.utils.toAscii(pricingCurrencyM), pricingCurrency);
-    assert.equal(initialAssetPricingM, initialAssetPricing);
-    assert.equal(IRR20yrx100M, IRR20yrx100);
-    assert.equal(maxTotalSupplyM, maxTotalSupply);
-    //assert.equal(pricingCurrencyM, pricingCurrency);
-    assert.equal(siteSizeInKWM, siteSizeInKW);
-    assert.equal(tokenIdM, 0);
+    assert.strictEqual(initialAssetPricingM, initialAssetPricing+'');
+    assert.strictEqual(IRR20yrx100M, IRR20yrx100+'');
+    assert.strictEqual(maxTotalSupplyM, maxTotalSupply+'');
+    //assert.strictEqual(pricingCurrencyM, pricingCurrency);
+    assert.strictEqual(siteSizeInKWM, siteSizeInKW+'');
+    assert.strictEqual(tokenIdM, '0');
     console.log('tokenURI', web3.utils.toAscii(tokenURI_M), tokenURI);
-    //assert.equal(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
+    //assert.strictEqual(web3.utils.toAscii(tokenURI_M).toString(), tokenURI);
 
     let isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
-    assert.equal(isTokenApprovedOperational, false);
+    assert.strictEqual(isTokenApprovedOperational, false);
 
 /*
     let supportsInterface0x80ac58cd = await instHCAT721.methods.supportsInterface("0x80ac58cd").call();
-    assert.equal(supportsInterface0x80ac58cd, true);
+    assert.strictEqual(supportsInterface0x80ac58cd, true);
     let supportsInterface0x5b5e139f = await instHCAT721.methods.supportsInterface("0x5b5e139f").call();
-    assert.equal(supportsInterface0x5b5e139f, true);
+    assert.strictEqual(supportsInterface0x5b5e139f, true);
     let supportsInterface0x780e9d63 = await instHCAT721.methods.supportsInterface("0x780e9d63").call();
-    assert.equal(supportsInterface0x780e9d63, true);
+    assert.strictEqual(supportsInterface0x780e9d63, true);
 */
 
     //----------------==Setup Assetbook
     console.log('\n------------==Setup Assetbook 1 & 2');
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    assert.equal(tokenIdM, 0);
+    assert.strictEqual(tokenIdM, '0');
 
     const uriBase = "https://heliumcryptic.com/nccu0";
     uriStr = uriBase+"1";
@@ -757,16 +757,16 @@ describe('Tests on HCAT721Ctrt', () => {
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
     console.log('check tokenId = ', tokenIdM);
-    assert.equal(tokenIdM, tokenId);
+    assert.strictEqual(tokenIdM, tokenId+'');
 
     tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId).call();
     console.log('HCAT tokenId = '+tokenId, tokenOwnerM);
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
 
     //HCAT721: check getAccountIds(owner, 0, 0), balanceOf(owner); ownerOf(tokenId)
     tokenInfo = await instHCAT721.methods.ownerOf(tokenId).call();
     console.log('HCAT ownerOf(): tokenId = '+tokenId+':', tokenInfo);
-    assert.equal(tokenInfo, addrAssetBook1);
+    assert.strictEqual(tokenInfo, addrAssetBook1);
 
     accountM = await instHCAT721.methods.getAccount(_to).call();
     console.log('\nHCAT accountM', accountM);
@@ -776,21 +776,21 @@ describe('Tests on HCAT721Ctrt', () => {
 
     ownerCindexM = await instHCAT721.methods.ownerCindex().call();
     console.log('\nownerCindexM', ownerCindexM);
-    assert.equal(ownerCindexM, '1');
+    assert.strictEqual(ownerCindexM, '1');
 
     isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
     console.log('\nisOwnerAdded', isOwnerAdded);
-    assert.equal(isOwnerAdded, true);
+    assert.strictEqual(isOwnerAdded, true);
 
     idxToOwnerM = await instHCAT721.methods.idxToOwner(1).call();
     console.log('\nidxToOwnerM', idxToOwnerM);
-    assert.equal(idxToOwnerM, _to);
+    assert.strictEqual(idxToOwnerM, _to);
 
 
     //-----------------==Mint Token Batch
     console.log('\n------------==Mint Token in Batch: tokenId = 2, 3, 4 to AssetBook1');
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    assert.equal(tokenIdM, 1);
+    assert.strictEqual(tokenIdM, '1');
 
     _to = addrAssetBook1; amount = 3; serverTime = TimeTokenUnlock-1
     //let _tos = [_to, _to, _to];
@@ -806,22 +806,22 @@ describe('Tests on HCAT721Ctrt', () => {
     //function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    assert.equal(tokenIdM, 4);
+    assert.strictEqual(tokenIdM, '4');
 
     console.log('HCAT ownerOf(tokenId)...')
     tokenOwnerM = await instHCAT721.methods.ownerOf(2).call();
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
     tokenOwnerM = await instHCAT721.methods.ownerOf(3).call();
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
     tokenOwnerM = await instHCAT721.methods.ownerOf(4).call();
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
 
     tokenInfo = await instHCAT721.methods.ownerOf(2).call();
     console.log('\nHCAT721: ownerOf() of tokenId = 2:', tokenInfo);
-    assert.equal(tokenInfo, addrAssetBook1);
+    assert.strictEqual(tokenInfo, addrAssetBook1);
 
     console.log('\ngetToken: tokenId = 2, 3, 4');
-    //assert.equal(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
+    //assert.strictEqual(web3.utils.toAscii(tokenInfo[3]), _uriStrs[2]);
     tokenInfo = await instHCAT721.methods.ownerOf(3).call();
     console.log('\nHCAT721: ownerOf() of tokenId = 3:', tokenInfo);
 
@@ -833,7 +833,7 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('\nassetbook1 getAsset():', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 4);
+    assert.strictEqual(assetbookXM[3], '4');
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook1, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook1).call();
@@ -843,15 +843,15 @@ describe('Tests on HCAT721Ctrt', () => {
 
     ownerCindexM = await instHCAT721.methods.ownerCindex().call();
     console.log('\nownerCindexM', ownerCindexM);
-    assert.equal(ownerCindexM, '1');
+    assert.strictEqual(ownerCindexM, '1');
 
     isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
     console.log('\nisOwnerAdded', isOwnerAdded);
-    assert.equal(isOwnerAdded, true);
+    assert.strictEqual(isOwnerAdded, true);
 
     idxToOwnerM = await instHCAT721.methods.idxToOwner(1).call();
     console.log('\nidxToOwnerM', idxToOwnerM);
-    assert.equal(idxToOwnerM, _to);
+    assert.strictEqual(idxToOwnerM, _to);
 
     //HCAT721: check accountIdsAll(owner), balanceOf(owner); ownerOf(tokenId)
     //-----------------==Mint Token Batch
@@ -868,14 +868,14 @@ describe('Tests on HCAT721Ctrt', () => {
       value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });//function mintSerialNFTBatch(address[] calldata _tos, bytes32[] calldata _uris)
 
     tokenIdM = await instHCAT721.methods.tokenId().call();
-    assert.equal(tokenIdM, 7);
+    assert.strictEqual(tokenIdM, '7');
 
     tokenOwnerM = await instHCAT721.methods.ownerOf(5).call();
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
     tokenOwnerM = await instHCAT721.methods.ownerOf(6).call();
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
     tokenOwnerM = await instHCAT721.methods.ownerOf(7).call();
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
 
     tokenInfo = await instHCAT721.methods.ownerOf(5).call();
     console.log('HCAT721: ownerOf() of tokenId = 5:', tokenInfo);
@@ -891,7 +891,7 @@ describe('Tests on HCAT721Ctrt', () => {
     console.log('\nassetbook2:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], amount);
+    assert.strictEqual(assetbookXM[3], amount+'');
 
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook2, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook2).call();
@@ -901,21 +901,21 @@ describe('Tests on HCAT721Ctrt', () => {
 
     ownerCindexM = await instHCAT721.methods.ownerCindex().call();
     console.log('\nownerCindexM', ownerCindexM);
-    assert.equal(ownerCindexM, '2');
+    assert.strictEqual(ownerCindexM, '2');
 
     isOwnerAdded = await instHCAT721.methods.isOwnerAdded(_to).call();
     console.log('\nisOwnerAdded', isOwnerAdded);
-    assert.equal(isOwnerAdded, true);
+    assert.strictEqual(isOwnerAdded, true);
 
     idxToOwnerM = await instHCAT721.methods.idxToOwner(2).call();
     console.log('\nidxToOwnerM', idxToOwnerM);
-    assert.equal(idxToOwnerM, _to);
+    assert.strictEqual(idxToOwnerM, _to);
 
     const ownerAddrsM1 = await instHCAT721.methods.getOwnersByOwnerIndex(0, 0).call();
     console.log('\nownerAddrsM1', ownerAddrsM1);
-    assert.equal(ownerAddrsM1.length, 2);
-    assert.equal(ownerAddrsM1[0], addrAssetBook1);
-    assert.equal(ownerAddrsM1[1], addrAssetBook2);
+    assert.strictEqual(ownerAddrsM1.length, 2);
+    assert.strictEqual(ownerAddrsM1[0], addrAssetBook1);
+    assert.strictEqual(ownerAddrsM1[1], addrAssetBook2);
 
 
 
@@ -1021,7 +1021,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('TimeOfDeployment_TokCtrl', TimeOfDeployment_TokCtrlM, ', TimeTokenUnlock', TimeTokenUnlockM, ', TimeTokenValid', TimeTokenValidM, ', isLockedForReleaseM', isLockedForReleaseM, ', isTokenApprovedM', isTokenApprovedM);
 
     isSenderAllowed = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: admin});
-    assert.equal(isSenderAllowed, true);
+    assert.strictEqual(isSenderAllowed, true);
     console.log('checkPlatformSupervisor() is confirmed working');
 
 
@@ -1034,11 +1034,11 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     //enum TokenState{underLockupPeriod, operational, expired}
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
-    assert.equal(tokenStateM, 0);
+    assert.strictEqual(tokenStateM, '0');
 
     bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
     console.log('isTokenApprovedOperational()', bool1);
-    assert.equal(bool1, false);
+    assert.strictEqual(bool1, false);
 
 
 
@@ -1065,10 +1065,10 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instTokenController.methods.isTokenApprovedOperational().call(); 
     console.log('isTokenApprovedOperational()', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
-    assert.equal(tokenStateM, 1);
+    assert.strictEqual(tokenStateM, '1');
 
     _from = addrAssetBook2; _to = addrAssetBook1; amount = 1; price = 15000;
     _fromEOA = AssetOwner2; serverTime = TimeTokenUnlock+1;
@@ -1088,7 +1088,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook2:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 2);
+    assert.strictEqual(assetbookXM[3], '2');
 
 
     tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
@@ -1100,7 +1100,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook1:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 5);
+    assert.strictEqual(assetbookXM[3], '5');
 
 
 
@@ -1155,7 +1155,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook2:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 0);
+    assert.strictEqual(assetbookXM[3], '0');
 
 
     tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
@@ -1167,7 +1167,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook1:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 7);
+    assert.strictEqual(assetbookXM[3], '7');
 
 
     console.log('\n----------------==Send token in batch: amount = 7 from AssetBook1 to AssetBook2');
@@ -1180,23 +1180,23 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('\nCheck AssetBook1 after txn...');
     //for(i=0, i< amount, i++) {    }
     tokenInfo = await instHCAT721.methods.ownerOf(1).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
     tokenInfo = await instHCAT721.methods.ownerOf(2).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
     tokenInfo = await instHCAT721.methods.ownerOf(3).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
     tokenInfo = await instHCAT721.methods.ownerOf(4).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
     tokenInfo = await instHCAT721.methods.ownerOf(5).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
     tokenInfo = await instHCAT721.methods.ownerOf(6).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
     tokenInfo = await instHCAT721.methods.ownerOf(7).call();
-    assert.equal(tokenInfo, _to);
+    assert.strictEqual(tokenInfo, _to);
 
     //console.log('HCAT ownerOf(): tokenId = '+amount+':', tokenInfo);
-    // assert.equal(tokenInfo[1], initialAssetPricing);
-    // assert.equal(tokenInfo[2], addrZero);
+    // assert.strictEqual(tokenInfo[1], initialAssetPricing+'');
+    // assert.strictEqual(tokenInfo[2], addrZero);
 
     tokenIds = await instHCAT721.methods.getAccountIds(_from, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(_from).call();
@@ -1207,7 +1207,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook1:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 0);
+    assert.strictEqual(assetbookXM[3], '0');
 
 
     tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
@@ -1219,7 +1219,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook2:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 7);
+    assert.strictEqual(assetbookXM[3], '7');
 
 
     console.log('\n--------------------------==Settlement Functions');
@@ -1253,7 +1253,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
       const tokenIdByIndex = prevTokenIds[i];
       tokenOwnerM = await instHCAT721.methods.ownerOf(tokenIdByIndex).call();
       console.log('\ntokenId: '+tokenIdByIndex, tokenOwnerM);
-      assert.equal(tokenOwnerM, _to);
+      assert.strictEqual(tokenOwnerM, _to);
     }
     /*
     console.log('\n----------------==sendTokenToSettlementById from Assetbook2');
@@ -1269,7 +1269,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     tokenOwnerM = await instHCAT721.methods.ownerOf(tokenId1st).call();
     console.log('HCAT tokenId = '+tokenId1st, tokenOwnerM, '\naddrSettlement:', addrSettlement);
-    assert.equal(tokenOwnerM, _to);
+    assert.strictEqual(tokenOwnerM, _to);
     */
 
     //CANNOT use getAccountIds or balanceOf on Settlement because Settlement DOES NOT HAVE Id in mapping by design!!!
@@ -1298,7 +1298,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
   
       tokenOwnerM = await instHCAT721.methods.ownerOf(_tokenId).call();
       console.log('HCAT tokenId: '+_tokenId,', ', tokenOwnerM, '\n_to:', _to);
-      assert.equal(tokenOwnerM, _to);
+      assert.strictEqual(tokenOwnerM, _to);
     }
     process.exit(0);
 
@@ -1308,14 +1308,14 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
-    assert.equal(result, 0);
+    assert.strictEqual(result, '0');
 
     console.log('\ntokenApprove()... amount =', amount);
     await instAssetBook2.methods.assetbookApprove(0, _assetAddr, operator, amount)
     .send({value: '0', from: _fromEOA, gas: gasLimitValue, gasPrice: gasPriceValue });
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
-    assert.equal(result, amount);
+    assert.strictEqual(result, amount+'');
 
 
     console.log('\n----------------==Send token in batch: amount = '+amount+'  from AssetBook2 to AssetBook1');
@@ -1335,7 +1335,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook2:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 4);
+    assert.strictEqual(assetbookXM[3], '4');
 
 
     console.log('\nCheck AssetBook1 after txn...');
@@ -1348,11 +1348,11 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     console.log('AssetBook1:', assetbookXM);
     tokenSymbolM = web3.utils.toAscii(assetbookXM[2]);
     console.log('check tokenSymbolM', tokenSymbolM, tokenSymbol);
-    assert.equal(assetbookXM[3], 3);
+    assert.strictEqual(assetbookXM[3], '3');
 
     result = await instHCAT721.methods.allowance(_from, operator).call();
     console.log('allowance() AssetBook2 to operator:', result);
-    assert.equal(result, 0);
+    assert.strictEqual(result, '0');
 
 
     //----------------==Send tokens with not enough allowance
@@ -1382,11 +1382,11 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     //enum TokenState{underLockupPeriod, operational, expired}
     tokenStateM = await instTokenController.methods.tokenState().call();
     console.log('tokenStateM', tokenStateM);
-    assert.equal(tokenStateM, 2);
+    assert.strictEqual(tokenStateM, '2');
     
     bool1 = await instTokenController.methods.isTokenApprovedOperational().call();
     console.log('isTokenApprovedOperational()', bool1);
-    assert.equal(bool1, false);
+    assert.strictEqual(bool1, false);
 
 
 
@@ -1413,7 +1413,7 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
 
 
 //--------------------------------==
-describe('Tests on AssetBookCtrt', () => {
+describe('Test AssetBookCtrt', () => {
   it('AssetBook functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==getAssetbookDetails()');
@@ -1422,23 +1422,23 @@ describe('Tests on AssetBookCtrt', () => {
 
     assetOwnerM = await instAssetBook1.methods.assetOwner().call();
     console.log('assetOwnerM:', assetOwnerM);
-    assert.equal(assetOwnerM, AssetOwner1);
+    assert.strictEqual(assetOwnerM, AssetOwner1);
 
     addrHeliumContractM= await instAssetBook1.methods.addrHeliumContract().call();
     console.log('addrHeliumContractM:', addrHeliumContractM);
-    assert.equal(addrHeliumContractM, addrHeliumCtrt);
+    assert.strictEqual(addrHeliumContractM, addrHeliumCtrt);
 
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM:', assetOwner_flagM);
-    assert.equal(assetOwner_flagM, '0');
+    assert.strictEqual(assetOwner_flagM, '0');
 
     HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
     console.log('HeliumContract_flagM:', HeliumContract_flagM);
-    assert.equal(HeliumContract_flagM, '0');
+    assert.strictEqual(HeliumContract_flagM, '0');
 
     endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
     console.log('endorsers_flagM:', endorsers_flagM);
-    assert.equal(endorsers_flagM, '0');
+    assert.strictEqual(endorsers_flagM, '0');
 
     console.log('\n----------------==initial condition is the same as if the user has not logged in for a long time ... check if the Platform can override');
     // checkNowTimeM = await instAssetBook1.methods.checkNowTime().call();
@@ -1449,29 +1449,29 @@ describe('Tests on AssetBookCtrt', () => {
 
     bool1 = await instAssetBook1.methods.isAblePlatformOverride().call();
     console.log('isAblePlatformOverride:', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM after calculateVotes():', assetOwner_flagM);
-    assert.equal(assetOwner_flagM, '0');
+    assert.strictEqual(assetOwner_flagM, '0');
 
     HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
     console.log('HeliumContract_flagM after calculateVotes():',HeliumContract_flagM);
-    assert.equal(HeliumContract_flagM, '0');
+    assert.strictEqual(HeliumContract_flagM, '0');
     
     endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
     console.log('endorsers_flagM after calculateVotes():', endorsers_flagM);
-    assert.equal(endorsers_flagM, '0');
+    assert.strictEqual(endorsers_flagM, '0');
 
 
     console.log('\n----------------==check adding customerService role...');
     bool1 = await instAssetBook1.methods.checkCustomerService().call({from: admin});
     console.log('checkCustomerService(admin):', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
     bool1 = await instAssetBook1.methods.checkCustomerService().call({from: AssetOwner2});
     console.log('checkCustomerService(AssetOwner2):', bool1);
-    assert.equal(bool1, false);
+    assert.strictEqual(bool1, false);
 
     error = false;
     try {
@@ -1489,24 +1489,24 @@ describe('Tests on AssetBookCtrt', () => {
     .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instAssetBook1.methods.checkCustomerService().call({from: AssetOwner2});
     console.log('checkCustomerService(AssetOwner2):', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
 
     console.log('\n----------------==Change asset owner when Platform override is allowed...');
     bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner1});
     console.log('is AssetOwner1 the asset owner?', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
     await instAssetBook1.methods.changeAssetOwner(AssetOwner5, serverTime)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     assetOwnerM = await instAssetBook1.methods.assetOwner().call();
     console.log('assetOwnerM:', assetOwnerM);
-    assert.equal(assetOwnerM, AssetOwner5);
+    assert.strictEqual(assetOwnerM, AssetOwner5);
 
     bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner5});
     console.log('is AssetOwner5 the new asset owner?', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
 
     console.log('\n----------------==after addLoginTime()');
@@ -1520,11 +1520,11 @@ describe('Tests on AssetBookCtrt', () => {
 
     bool1 = await instAssetBook1.methods.isAblePlatformOverride().call();
     console.log('isAblePlatformOverride:', bool1)
-    assert.equal(bool1, false);
+    assert.strictEqual(bool1, false);
 
     calculateVotesM = await instAssetBook1.methods.calculateVotes().call();
     console.log('calculateVotesM:', calculateVotesM);
-    assert.equal(calculateVotesM, '0');
+    assert.strictEqual(calculateVotesM, '0');
 
     error = false;
     try {
@@ -1543,7 +1543,7 @@ describe('Tests on AssetBookCtrt', () => {
     console.log('\n----------------==check adding endorser roles...');
     arraylength = await instAssetBook1.methods.endorserCount().call();
     console.log('endorserCount():', arraylength);
-    assert.equal(arraylength, 0);
+    assert.strictEqual(arraylength, '0');
 
     error = false;
     try {
@@ -1562,12 +1562,12 @@ describe('Tests on AssetBookCtrt', () => {
 
     arraylength = await instAssetBook1.methods.endorserCount().call();
     console.log('endorserCount():', arraylength);
-    assert.equal(arraylength, 1);
+    assert.strictEqual(arraylength, '1');
 
     endorser = await instAssetBook1.methods.endorsers(1).call();
     //if array requires index input, but if that index maps to an undefined value, it fails
     console.log('endorser:', endorser);
-    assert.equal(endorser, AssetOwner3);
+    assert.strictEqual(endorser, AssetOwner3);
 
     console.log('\nadding AssetOwner4 as the 2nd endorser ...');
     await instAssetBook1.methods.addEndorser(AssetOwner4, serverTime)
@@ -1591,7 +1591,7 @@ describe('Tests on AssetBookCtrt', () => {
 
     arraylength = await instAssetBook1.methods.endorserCount().call();
     console.log('total amount of endorsers:', arraylength);
-    assert.equal(arraylength, 3);
+    assert.strictEqual(arraylength, '3');
 
     error = false;
     try {
@@ -1609,7 +1609,7 @@ describe('Tests on AssetBookCtrt', () => {
     .send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
     endorser = await instAssetBook1.methods.endorsers(3).call();
     console.log('\n[Success]: AssetOwner2 has replaced AssetOwner1 as the new endorser', endorser);
-    assert.equal(endorser, AssetOwner2);
+    assert.strictEqual(endorser, AssetOwner2);
 
 
 
@@ -1617,7 +1617,7 @@ describe('Tests on AssetBookCtrt', () => {
     await instAssetBook1.methods.assetOwnerVote(serverTime).send({value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue });
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM:', assetOwner_flagM);
-    assert.equal(assetOwner_flagM, '1');
+    assert.strictEqual(assetOwner_flagM, '1');
 
     error = false;
     try {
@@ -1647,7 +1647,7 @@ describe('Tests on AssetBookCtrt', () => {
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     assetOwner_flagM = await instAssetBook1.methods.assetOwner_flag().call();
     console.log('assetOwner_flagM after reset:', assetOwner_flagM);
-    assert.equal(assetOwner_flagM, '0');
+    assert.strictEqual(assetOwner_flagM, '0');
 
 
     console.log('\n----------------==change assetOwner by voting');
@@ -1656,7 +1656,7 @@ describe('Tests on AssetBookCtrt', () => {
 
     bool1 = await instAssetBook1.methods.isAblePlatformOverride().call();
     console.log('isAblePlatformOverride:', bool1);
-    assert.equal(bool1, false);
+    assert.strictEqual(bool1, false);
 
     error = false;
     try {
@@ -1686,14 +1686,14 @@ describe('Tests on AssetBookCtrt', () => {
     .send({value: '0', from: AssetOwner4, gas: gasLimitValue, gasPrice: gasPriceValue });
     endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
     console.log('endorsers_flagM from AssetOwner4:', endorsers_flagM);
-    assert.equal(endorsers_flagM, '1');
+    assert.strictEqual(endorsers_flagM, '1');
 
     console.log('\nLet Platform vote, too.');
     await instAssetBook1.methods.HeliumContractVote(serverTime)
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
     console.log('HeliumContract_flagM:', HeliumContract_flagM);
-    assert.equal(HeliumContract_flagM, '1');
+    assert.strictEqual(HeliumContract_flagM, '1');
     // const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
     // await waitFor(2000);
 
@@ -1703,22 +1703,22 @@ describe('Tests on AssetBookCtrt', () => {
 
     bool1 = await instAssetBook1.methods.checkAssetOwner().call({from: AssetOwner1});
     console.log('is AssetOwner1 the new asset owner?', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
     endorsers_flagM = await instAssetBook1.methods.endorsers_flag().call();
     console.log('endorsers_flagM after changing the assetOwner:', endorsers_flagM);
-    assert.equal(endorsers_flagM, '0');
+    assert.strictEqual(endorsers_flagM, '0');
 
     HeliumContract_flagM = await instAssetBook1.methods.HeliumContract_flag().call();
     console.log('HeliumContract_flagM after changing the assetOwner:', HeliumContract_flagM);
-    assert.equal(HeliumContract_flagM, '0');
+    assert.strictEqual(HeliumContract_flagM, '0');
 
     // await instAssetBook1.methods.changeAssetOwner(AssetOwner1, serverTime)
     // .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
 
     // assetOwnerM = await instAssetBook1.methods.assetOwner().call();
     // console.log('assetOwnerM:', assetOwnerM);
-    // assert.equal(assetOwnerM, AssetOwner1);
+    // assert.strictEqual(assetOwnerM, AssetOwner1);
     // console.log('[Success] assetowner can change owner address by himself');
 
 
@@ -1742,7 +1742,7 @@ describe('Tests on AssetBookCtrt', () => {
     .send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
     addrHeliumContractM = await instAssetBook1.methods.addrHeliumContract().call();
     console.log('addrHeliumContractM after changing it:', addrHeliumContractM);
-    assert.equal(addrHeliumContractM, AssetOwner2);
+    assert.strictEqual(addrHeliumContractM, AssetOwner2);
     console.log('[Success] Helium address has been changed by a customer service rep');
 
 
@@ -1750,91 +1750,95 @@ describe('Tests on AssetBookCtrt', () => {
 });
 
 //--------------------------------==
-describe('Tests on HeliumCtrt', () => {
+describe('Test HeliumCtrt', () => {
   it('HeliumCtrt functions test', async function()  {
     this.timeout(9500);
     console.log('\n------------==testing HeliumCtrt');
 
     //----------------==
+    const isAfterDeployment = await instHelium.methods.isAfterDeployment().call();
+    console.log('isAfterDeployment():', isAfterDeployment);
+    assert.strictEqual(isAfterDeployment, true);
+
     //  admin, chairman, director, manager, owner
     adminM = await instHelium.methods.Helium_Admin().call();
     console.log('Helium_Admin():', adminM);
-    assert.equal(adminM, admin);
+    assert.strictEqual(adminM, admin);
 
     chairmanM = await instHelium.methods.Helium_Chairman().call();
     console.log('Helium_Chairman():', chairmanM);
-    assert.equal(chairmanM, chairman);
+    assert.strictEqual(chairmanM, chairman);
 
     directorM = await instHelium.methods.Helium_Director().call();
     console.log('Helium_Director():', directorM);
-    assert.equal(directorM, director);
+    assert.strictEqual(directorM, director);
 
     managerM = await instHelium.methods.Helium_Manager().call();
     console.log('Helium_Manager():', managerM);
-    assert.equal(managerM, manager);
+    assert.strictEqual(managerM, manager);
 
     ownerM = await instHelium.methods.Helium_Owner().call();
     console.log('Helium_Owner():', ownerM);
-    assert.equal(ownerM, owner);
+    assert.strictEqual(ownerM, owner);
 
     //--------------==
     AdminVoteM = await instHelium.methods.Helium_AdminVote().call();
-    console.log('Helium_AdminVote():', AdminVoteM);
-    assert.equal(AdminVoteM, 0);
+    console.log('Helium_AdminVote():', AdminVoteM, typeof AdminVoteM);
+    assert.strictEqual(AdminVoteM, '0');
 
     ChairmanVoteM = await instHelium.methods.Helium_ChairmanVote().call();
     console.log('Helium_ChairmanVote():', ChairmanVoteM);
-    assert.equal(ChairmanVoteM, 0);
+    assert.strictEqual(ChairmanVoteM, '0');
 
     DirectorVoteM = await instHelium.methods.Helium_DirectorVote().call();
     console.log('Helium_DirectorVote():', DirectorVoteM);
-    assert.equal(DirectorVoteM, 0);
+    assert.strictEqual(DirectorVoteM, '0');
 
     ManagerVoteM = await instHelium.methods.Helium_ManagerVote().call();
     console.log('Helium_ManagerVote():', ManagerVoteM);
-    assert.equal(ManagerVoteM, 0);
+    assert.strictEqual(ManagerVoteM, '0');
 
     OwnerVoteM = await instHelium.methods.Helium_OwnerVote().call();
     console.log('Helium_OwnerVote():', OwnerVoteM);
-    assert.equal(OwnerVoteM, 0);
+    assert.strictEqual(OwnerVoteM, '0');
 
     //--------------==
     MinimumVotesForMultiSig = await instHelium.methods.MinimumVotesForMultiSig().call();
-    console.log('MinimumVotesForMultiSig():', MinimumVotesForMultiSig);
-    assert.equal(MinimumVotesForMultiSig, 3);
+    console.log('MinimumVotesForMultiSig():', MinimumVotesForMultiSig, typeof MinimumVotesForMultiSig);
+    assert.strictEqual(MinimumVotesForMultiSig, '3');
 
     depConditions = await instHelium.methods.checkDeploymentConditions().call();
     console.log('depConditions():', depConditions);
-    assert.equal(depConditions['0'], true);
-    assert.equal(depConditions['1'], false);
+    assert.strictEqual(depConditions['0'], true);
+    assert.strictEqual(depConditions['1'], false);
 
     getHeliumDetails = await instHelium.methods.getHeliumDetails().call();
     console.log('getHeliumDetails():', getHeliumDetails);
 
     locked = await instHelium.methods.locked().call();
     console.log('locked():', locked);
-    assert.equal(locked, false);
+    assert.strictEqual(locked, false);
 
     //--------------==
     bool1 = await instHelium.methods.checkCustomerService(admin).call();
     console.log('checkCustomerService(admin):', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
     bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
-    assert.equal(bool1, false);
+    assert.strictEqual(bool1, false);
 
     await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
-    assert.equal(bool1, true);
+    assert.strictEqual(bool1, true);
 
   });
 });
 
 
 //--------------------------------==
-describe('Tests on IncomeManagerCtrt', () => {
+describe('Test IncomeManagerCtrt', () => {
   
   it('IncomeManagerCtrt functions test', async function() {
     this.timeout(9500);
@@ -1848,16 +1852,16 @@ describe('Tests on IncomeManagerCtrt', () => {
     schIndex = 0;
     result = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('getIncomeSchedule('+schIndex+'):', result);
-    assert.equal(result[0], '0');
-    assert.equal(result[1], '0');
-    assert.equal(result[2], '0');
-    assert.equal(result[3], '0');
-    assert.equal(result[4], '0');
-    assert.equal(result[5], '0');
+    assert.strictEqual(result[0], '0');
+    assert.strictEqual(result[1], '0');
+    assert.strictEqual(result[2], '0');
+    assert.strictEqual(result[3], '0');
+    assert.strictEqual(result[4], '0');
+    assert.strictEqual(result[5], false);
 
     console.log('\n--------==Add a new pair of forecastedPayableTime, forecastedPayableAmount');
     schIndex = 1;
@@ -1870,20 +1874,20 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('\nafter adding a new schedule...');
     result = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('new getIncomeSchedule():', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], 0);
-    assert.equal(result[3], 0);
-    assert.equal(result[4], false);
-    assert.equal(result[5], 0);
+    assert.strictEqual(result[0], forecastedPayableTime+'');
+    assert.strictEqual(result[1], forecastedPayableAmount+'');
+    assert.strictEqual(result[2], '0');
+    assert.strictEqual(result[3], '0');
+    assert.strictEqual(result[4], '0');
+    assert.strictEqual(result[5], false);
 
 
     //-----------------------==add 1 more pair
@@ -1897,28 +1901,28 @@ describe('Tests on IncomeManagerCtrt', () => {
     console.log('\n--------==after adding a new schedule...');
     result = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex(forecastedPayableTime):', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('new getIncomeSchedule():', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], 0);
-    assert.equal(result[3], 0);
-    assert.equal(result[4], false);
-    assert.equal(result[5], 0);
+    assert.strictEqual(result[0], forecastedPayableTime+'');
+    assert.strictEqual(result[1], forecastedPayableAmount+'');
+    assert.strictEqual(result[2], '0');
+    assert.strictEqual(result[3], '0');
+    assert.strictEqual(result[4], '0');
+    assert.strictEqual(result[5], false);
 
     result = await instIncomeManager.methods.getSchIndex(forecastedPayableTime).call();
     console.log('getSchIndex:', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     result = await instIncomeManager.methods.schCindex().call();
     console.log('schCindex:', result);
-    assert.equal(result, schIndex);
+    assert.strictEqual(result, schIndex+'');
 
     //-----------------------==add 3 more pairs
     console.log('\n--------==Add 3 more pairs of forecastedPayableTime, forecastedPayableAmount');
@@ -1928,24 +1932,24 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     schCindex = await instIncomeManager.methods.schCindex().call();
     console.log('new schCindex:', schCindex, typeof schCindex);
-    assert.equal(schCindex, '5');
+    assert.strictEqual(schCindex, '5');
 
     console.log('forecastedPayableTimes', forecastedPayableTimes,'\nforecastedPayableAmounts', forecastedPayableAmounts);
     for(let i = 3; i <= forecastedPayableTimes.length; i++) {
       result = await instIncomeManager.methods.getIncomeSchedule(i).call(); 
       console.log('\ngetIncomeSchedule(index='+i+'):', result);
-      assert.equal(result[0], forecastedPayableTimes[i-1].toString());
-      assert.equal(result[1], forecastedPayableAmounts[i-1].toString());
-      assert.equal(result[2], 0);
-      assert.equal(result[3], 0);
-      assert.equal(result[4], false);
-      assert.equal(result[5], 0);
+      assert.strictEqual(result[0], forecastedPayableTimes[i-1].toString());
+      assert.strictEqual(result[1], forecastedPayableAmounts[i-1].toString());
+      assert.strictEqual(result[2], '0');
+      assert.strictEqual(result[3], '0');
+      assert.strictEqual(result[4], '0');
+      assert.strictEqual(result[5], false);
     }
 
     console.log('\n-----------------==Test addPayment() and editActualSchedule()');
     paymentCount = await instIncomeManager.methods.paymentCount().call();
     console.log('paymentCount:', paymentCount, typeof paymentCount);
-    assert.equal(paymentCount, '0');
+    assert.strictEqual(paymentCount, '0');
 
     error = false;
     try {
@@ -1971,19 +1975,19 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], actualPaymentTime);
-    assert.equal(result[3], actualPaymentAmount);
-    assert.equal(result[4], '0');
-    assert.equal(result[5], false);
+    assert.strictEqual(result[0], forecastedPayableTime+'');
+    assert.strictEqual(result[1], forecastedPayableAmount+'');
+    assert.strictEqual(result[2], actualPaymentTime+'');
+    assert.strictEqual(result[3], actualPaymentAmount+'');
+    assert.strictEqual(result[4], '0');
+    assert.strictEqual(result[5], false);
 
     console.log('\n--------==addPaymentCount()');
     await instIncomeManager.methods.addPaymentCount()
     .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     paymentCount = await instIncomeManager.methods.paymentCount().call();
     console.log('paymentCount:', paymentCount, typeof paymentCount);
-    assert.equal(paymentCount, '1');
+    assert.strictEqual(paymentCount, '1');
     console.log('Successfully added paymentCount after entering 1st actual payment time & amount');
 
 
@@ -2011,19 +2015,19 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], actualPaymentTime);
-    assert.equal(result[3], actualPaymentAmount);
-    assert.equal(result[4], '0');
-    assert.equal(result[5], false);
+    assert.strictEqual(result[0], forecastedPayableTime+'');
+    assert.strictEqual(result[1], forecastedPayableAmount+'');
+    assert.strictEqual(result[2], actualPaymentTime+'');
+    assert.strictEqual(result[3], actualPaymentAmount+'');
+    assert.strictEqual(result[4], '0');
+    assert.strictEqual(result[5], false);
 
     console.log('\n--------==addPaymentCount()');
     await instIncomeManager.methods.addPaymentCount()
     .send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     paymentCount = await instIncomeManager.methods.paymentCount().call();
     console.log('paymentCount:', paymentCount, typeof paymentCount);
-    assert.equal(paymentCount, '2');
+    assert.strictEqual(paymentCount, '2');
     console.log('Successfully added paymentCount after entering 2nd actual payment time & amount');
 
 
@@ -2058,12 +2062,12 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], actualPaymentTime);
-    assert.equal(result[3], actualPaymentAmount);
-    assert.equal(result[4], '0');
-    assert.equal(result[5], false);
+    assert.strictEqual(result[0], forecastedPayableTime+'');
+    assert.strictEqual(result[1], forecastedPayableAmount+'');
+    assert.strictEqual(result[2], actualPaymentTime+'');
+    assert.strictEqual(result[3], actualPaymentAmount+'');
+    assert.strictEqual(result[4], '0');
+    assert.strictEqual(result[5], false);
     console.log('\nSuccess: can editActualSchedule('+schIndex+') way ahead');
 
     console.log('\n--------==getIncomeScheduleList(indexStart = 0; amount = 0;)');
@@ -2079,14 +2083,12 @@ describe('Tests on IncomeManagerCtrt', () => {
 
     result = await instIncomeManager.methods.getIncomeSchedule(schIndex).call(); 
     console.log('\n--------==setErrResolution()', result);
-    assert.equal(result[0], forecastedPayableTime);
-    assert.equal(result[1], forecastedPayableAmount);
-    assert.equal(result[2], actualPaymentTime);
-    assert.equal(result[3], actualPaymentAmount);
-    assert.equal(result[4], _errorCode);
-    assert.equal(result[5], _isErrorResolved);
-
-
+    assert.strictEqual(result[0], forecastedPayableTime+'');
+    assert.strictEqual(result[1], forecastedPayableAmount+'');
+    assert.strictEqual(result[2], actualPaymentTime+'');
+    assert.strictEqual(result[3], actualPaymentAmount+'');
+    assert.strictEqual(result[4], _errorCode+'');
+    assert.strictEqual(result[5], _isErrorResolved);
 
 
     console.log('\n--------==getIncomeScheduleList(indexStart = 1; amount = 0;)');
@@ -2099,9 +2101,16 @@ describe('Tests on IncomeManagerCtrt', () => {
 });
 
 
+//-----------------------------------------==Registry
+describe('Test RegistryCtrt', () => {
+
+  it('RegistryCtrt functions test', async function() {
+
+  });
+});
 
 //-----------------------------------------==Product Manager
-describe('Tests on ProductManagerCtrt', () => {
+describe('Test ProductManagerCtrt', () => {
 
   it('ProductManagerCtrt functions test', async function() {
 
@@ -2109,7 +2118,7 @@ describe('Tests on ProductManagerCtrt', () => {
 
     let groupCindexM = await instProductManager.methods.groupCindex().call();
     console.log('\groupCindexM', groupCindexM);
-    assert.equal(groupCindexM, 0);
+    assert.strictEqual(groupCindexM, '0');
 
     let symbol = "Taipei101";
     let symbol_b32 = web3.utils.fromAscii(symbol);
@@ -2118,11 +2127,11 @@ describe('Tests on ProductManagerCtrt', () => {
 
     let ctrtGroup = await instProductManager.methods.getCtrtGroup(symbol_b32).call();
     console.log('\ctrtGroup', ctrtGroup);
-    //assert.equal(ctrtGroup, symbol_b32);
+    //assert.strictEqual(ctrtGroup, symbol_b32);
 
     groupCindexM = await instProductManager.methods.groupCindex().call();
     console.log('\groupCindexM', groupCindexM);
-    assert.equal(groupCindexM, 1);
+    assert.strictEqual(groupCindexM, '1');
 
 
     let symbolM = await instProductManager.methods.idxToSymbol(1).call();
@@ -2132,7 +2141,7 @@ describe('Tests on ProductManagerCtrt', () => {
 });
 
 //-----------------------------------------==
-describe('Tests on CrowdFundingCtrt', () => {
+describe('Test CrowdFundingCtrt', () => {
 
   it('CrowdFunding functions test', async function() {
     this.timeout(9500);
@@ -2144,30 +2153,30 @@ describe('Tests on CrowdFundingCtrt', () => {
     let tokenSymbolB32M = await instCrowdFunding.methods.tokenSymbol().call();
     tokenSymbolM = web3.utils.toAscii(tokenSymbolB32M);
     console.log('\ncheck tokenSymbolM', tokenSymbolM, tokenSymbol);
-    //assert.equal(tokenSymbolM, tokenSymbol_bytes32);
+    //assert.strictEqual(tokenSymbolM, tokenSymbol_bytes32);
 
     console.log('initialAssetPricing', initialAssetPricing);
     let initialAssetPricingM = await instCrowdFunding.methods.initialAssetPricing().call();
     console.log('initialAssetPricingM', initialAssetPricingM);
-    assert.equal(initialAssetPricingM, initialAssetPricing);
+    assert.strictEqual(initialAssetPricingM, initialAssetPricing+'');
 
     console.log('maxTotalSupply', maxTotalSupply);
     let maxTotalSupplyM = await instCrowdFunding.methods.maxTotalSupply().call();
     console.log('maxTotalSupplyM', maxTotalSupplyM);
-    assert.equal(maxTotalSupplyM, maxTotalSupply);
+    assert.strictEqual(maxTotalSupplyM, maxTotalSupply+'');
 
     console.log('quantityGoal', quantityGoal);
     let quantityGoalM = await instCrowdFunding.methods.quantityGoal().call();
     console.log('quantityGoalM', quantityGoalM);
-    assert.equal(quantityGoalM, quantityGoal);
+    assert.strictEqual(quantityGoalM, quantityGoal+'');
 
     let CFSDM = await instCrowdFunding.methods.CFSD().call();
     console.log('CFSDM', CFSDM);
-    assert.equal(CFSDM, CFSD);
+    assert.strictEqual(CFSDM, CFSD+'');
 
     let CFEDM = await instCrowdFunding.methods.CFED().call();
     console.log('CFEDM', CFEDM);
-    assert.equal(CFEDM, CFED);
+    assert.strictEqual(CFEDM, CFED+'');
 
 
     //-------------------==
@@ -2179,11 +2188,11 @@ describe('Tests on CrowdFundingCtrt', () => {
 
     let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('\nstateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "initial: not started yet");
+    assert.strictEqual(stateDescriptionM, "initial: not started yet");
 
     let fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 0);
+    assert.strictEqual(fundingStateM, '0');
 
     //-------------------==
     serverTime = CFSD;
@@ -2193,11 +2202,11 @@ describe('Tests on CrowdFundingCtrt', () => {
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "funding: with goal not reached yet");
+    assert.strictEqual(stateDescriptionM, "funding: with goal not reached yet");
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 1);
+    assert.strictEqual(fundingStateM, '1');
 
     if (1==2){
       serverTime = CFED;
@@ -2207,11 +2216,11 @@ describe('Tests on CrowdFundingCtrt', () => {
   
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "fundingNotClosed: ended with goal not reached");
+      assert.strictEqual(stateDescriptionM, "fundingNotClosed: ended with goal not reached");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
-      assert.equal(fundingStateM, 5);
+      assert.strictEqual(fundingStateM, '5');
       //process.exit(1);
     }
 
@@ -2222,19 +2231,19 @@ describe('Tests on CrowdFundingCtrt', () => {
 
     remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('\nremainingTokenQtyM:', remainingTokenQtyM);
-    assert.equal(remainingTokenQtyM, maxTotalSupply);
+    assert.strictEqual(remainingTokenQtyM, maxTotalSupply+'');
     let quantitySoldM = await instCrowdFunding.methods.quantitySold().call();
 
     let modResult = quantityGoal % maxTokenQtyForEachInvestmentFund;
     let quotient = (quantityGoal - modResult)/maxTokenQtyForEachInvestmentFund;
     console.log('quantityGoal:', quantityGoal, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
-    assert.equal(Number.isInteger(quotient), true);
+    assert.strictEqual(Number.isInteger(quotient), true);
     console.log('quotient is integer');
 
     // let modResult = maxTotalSupply % maxTokenQtyForEachInvestmentFund;
     // let quotient = (maxTotalSupply - modResult)/maxTokenQtyForEachInvestmentFund;
     // console.log('maxTotalSupply:', maxTotalSupply, ', maxTokenQtyForEachInvestmentFund:', maxTokenQtyForEachInvestmentFund, ', modResult:', modResult, ', quotient:', quotient);
-    // assert.equal(Number.isInteger(quotient), true);
+    // assert.strictEqual(Number.isInteger(quotient), true);
     // console.log('quotient is integer');
 
     for(i = 0; i < quotient; i++) {
@@ -2243,7 +2252,7 @@ describe('Tests on CrowdFundingCtrt', () => {
     }
     remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
     console.log('remainingTokenQtyM:', remainingTokenQtyM, ' V.s. modResult:', modResult, '... maxTotalSupply', maxTotalSupply, ', quantityGoal', quantityGoal, 'quantitySoldM', quantitySoldM);
-    assert.equal(remainingTokenQtyM, modResult+maxTotalSupply-quantityGoal);
+    assert.strictEqual(remainingTokenQtyM,modResult+maxTotalSupply-quantityGoal+'');
 
     await instCrowdFunding.methods.invest(addrAssetBook1, modResult, serverTime).send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     console.log('invest(modResult=', modResult, ')');
@@ -2253,7 +2262,7 @@ describe('Tests on CrowdFundingCtrt', () => {
     console.log('after investing the target goal amount');
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+    assert.strictEqual(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
 
     result = await instCrowdFunding.methods.getInvestors(0, 0).call();
     console.log('assetbookArray', result[0]);
@@ -2261,7 +2270,7 @@ describe('Tests on CrowdFundingCtrt', () => {
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 3);
+    assert.strictEqual(fundingStateM, '3');
 
 
     //------------------==Set time to initial
@@ -2272,11 +2281,11 @@ describe('Tests on CrowdFundingCtrt', () => {
     
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "initial: goal reached already");
+    assert.strictEqual(stateDescriptionM, "initial: goal reached already");
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 0);
+    assert.strictEqual(fundingStateM, '0');
 
     //------------------==Back to CFSD
     serverTime = CFSD;
@@ -2286,11 +2295,11 @@ describe('Tests on CrowdFundingCtrt', () => {
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
     console.log('stateDescriptionM', stateDescriptionM);
-    assert.equal(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
+    assert.strictEqual(stateDescriptionM, "fundingGoalReached: still funding and has reached goal");
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     console.log('fundingStateM', fundingStateM);
-    assert.equal(fundingStateM, 3);
+    assert.strictEqual(fundingStateM, '3');
 
 
     //------------------==Overbuying
@@ -2316,11 +2325,11 @@ describe('Tests on CrowdFundingCtrt', () => {
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "funding paused");
+      assert.strictEqual(stateDescriptionM, "funding paused");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
-      assert.equal(fundingStateM, 2);
+      assert.strictEqual(fundingStateM, '2');
 
       //-------------------==resumeFunding the crowdfunding
       serverTime = CFSD+3;
@@ -2330,11 +2339,11 @@ describe('Tests on CrowdFundingCtrt', () => {
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      //assert.equal(stateDescriptionM, "funding paused");
+      //assert.strictEqual(stateDescriptionM, "funding paused");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
-      //assert.equal(fundingStateM, 2);
+      //assert.strictEqual(fundingStateM, 2);
       console.log('check stateDescriptionM and fundingStateM!!!');
 
       if(1==2) {
@@ -2345,11 +2354,11 @@ describe('Tests on CrowdFundingCtrt', () => {
   
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
-        assert.equal(stateDescriptionM, "terminated:"+reason);
+        assert.strictEqual(stateDescriptionM, "terminated:"+reason);
   
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);
-        assert.equal(fundingStateM, 6);
+        assert.strictEqual(fundingStateM, 6);
         console.log('check stateDescriptionM and fundingStateM!!!');
 
       } else {
@@ -2360,7 +2369,7 @@ describe('Tests on CrowdFundingCtrt', () => {
 
         stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
         console.log('stateDescriptionM', stateDescriptionM);
-        assert.equal(stateDescriptionM, "fundingClosed: sold out");
+        assert.strictEqual(stateDescriptionM, "fundingClosed: sold out");
 
         result = await instCrowdFunding.methods.getInvestors(0, 0).call();
         console.log('assetbookArray', result[0]);
@@ -2368,7 +2377,7 @@ describe('Tests on CrowdFundingCtrt', () => {
 
         fundingStateM = await instCrowdFunding.methods.fundingState().call();
         console.log('fundingStateM', fundingStateM);
-        assert.equal(fundingStateM, 4);
+        assert.strictEqual(fundingStateM, '4');
       }
       
     } else {
@@ -2380,18 +2389,18 @@ describe('Tests on CrowdFundingCtrt', () => {
 
       stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
       console.log('stateDescriptionM', stateDescriptionM);
-      assert.equal(stateDescriptionM, "fundingClosed: goal reached but not sold out");
+      assert.strictEqual(stateDescriptionM, "fundingClosed: goal reached but not sold out");
 
       fundingStateM = await instCrowdFunding.methods.fundingState().call();
       console.log('fundingStateM', fundingStateM);
-      assert.equal(fundingStateM, 4);
+      assert.strictEqual(fundingStateM, '4');
     }
 
   });
 });
 
 
-describe('Tests on ArrayTesting', () => {
+describe('Test ArrayTesting', () => {
 
   it('ArrayTesting functions test', async function() {
     console.log('\n------------==Check ArrayTesting parameters');
@@ -2412,7 +2421,7 @@ describe('Tests on ArrayTesting', () => {
 //--------------------------------==
 // Make a script entry at package.json:
 //    "testxyz": "mocha --grep xyzCtrt",
-// describe('Tests on xyzCtrt', () => {
+// describe('Test xyzCtrt', () => {
 //   it('... functions test', async function()  {
 //     this.timeout(9500);
 //     console.log('\n------------==Check DDD parameters');

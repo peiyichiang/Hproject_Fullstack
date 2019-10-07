@@ -518,10 +518,10 @@ TimeOfDeployment: ${TimeOfDeployment}, maxTokenQtyForEachInvestmentFund: ${maxTo
 initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply},quantityGoal: ${quantityGoal}, quantitySold: ${quantitySold}, CFSD: ${CFSD}, CFED: ${CFED}, fundingCindex: ${fundingCindex}
 fundingState: ${fundingState}, stateDescription: ${stateDescription}
 addrHelium: ${addrHelium}`);
-      resolve([true, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingState, stateDescription, addrHelium]);
+      resolve([true, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium]);
     } catch(err) {
       console.log(`[Error] checkCrowdfundingCtrt() failed at crowdFundingAddr: ${crowdFundingAddr} <===================================`);
-      resolve([false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
+      resolve([false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
     }
   });
 }
@@ -2611,7 +2611,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
 
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     console.log('checkInvest1');
-    const [is_checkCrowdfunding, tokenSymbol, initialAssetPricing, maxTotalSupply, fundingType, CFSD, CFED, stateDescription] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
+    const [is_checkCrowdfunding, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
       console.log(`${err} \ncheckCrowdfundingCtrt() failed...`);
       reject(false);
       return false;
