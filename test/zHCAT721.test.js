@@ -279,7 +279,7 @@ let adminM, chairmanM, directorM, managerM, ownerM;
 
 let tokenId, _from, uriStr, uriBytes32, uriStrB;
 let tokenOwnerM, tokenControllerDetail, TimeAtDeploymentM, ownerCindexM
-let TimeOfDeploymentM, TimeTokenUnlockM, TimeTokenValidM, bool1;
+let TimeOfDeploymentM, TimeTokenUnlockM, TimeTokenValidM, bool1, bool2, bool3;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
 let result1, boolArray, uintArray;
@@ -1807,31 +1807,112 @@ describe('Test HeliumCtrt', () => {
     console.log('MinimumVotesForMultiSig():', MinimumVotesForMultiSig, typeof MinimumVotesForMultiSig);
     assert.strictEqual(MinimumVotesForMultiSig, '3');
 
-    depConditions = await instHelium.methods.checkDeploymentConditions().call();
-    console.log('depConditions():', depConditions);
-    assert.strictEqual(depConditions['0'], true);
-    assert.strictEqual(depConditions['1'], false);
+    const mgrlength = await instHelium.methods.mgrlength().call();
+    console.log('mgrlength():', mgrlength);
+    assert.strictEqual(mgrlength, '5');
 
-    getHeliumDetails = await instHelium.methods.getHeliumDetails().call();
-    console.log('getHeliumDetails():', getHeliumDetails);
+    const minMgrlength = await instHelium.methods.minMgrlength().call();
+    console.log('minMgrlength():', minMgrlength);
+    assert.strictEqual(minMgrlength, '5');
+
+    const doMgrsHaveDuplicate = await instHelium.methods.doMgrsHaveDuplicate().call();
+    console.log('doMgrsHaveDuplicate():', doMgrsHaveDuplicate);
+    assert.strictEqual(doMgrsHaveDuplicate, false);
 
     locked = await instHelium.methods.locked().call();
     console.log('locked():', locked);
     assert.strictEqual(locked, false);
 
+    for(let i = 0; i < mgrlength; i+=1) {
+      const isAddrAddedArrayX = await instHelium.methods.isAddrAddedArray(i).call();
+      console.log(`isAddrAddedArray(${i}): ${isAddrAddedArrayX}`);
+      assert.strictEqual(isAddrAddedArrayX, false);
+
+      const isAddrAddedMappingX = await instHelium.methods.isAddrAddedMapping(accounts[i]).call();
+      console.log(`isAddrAddedMapping(${i}): ${isAddrAddedMappingX}`);
+      assert.strictEqual(isAddrAddedMappingX, true);
+    }
+
+    const depConditions = await instHelium.methods.checkDeploymentConditions().call();
+    console.log('depConditions():', depConditions);
+    assert.strictEqual(depConditions['0'], true);
+    assert.strictEqual(depConditions['1'], false);
+    //assert.strictEqual(depConditions['2'], false);
+
+    const getHeliumDetails = await instHelium.methods.getHeliumDetails().call();
+    console.log('getHeliumDetails(): [5] isAfterDeployment, [6] locked...\n', getHeliumDetails);
+
     //--------------==
+    bool1 = await instHelium.methods.checkAdmin(admin).call();
+    console.log('checkAdmin(admin):', bool1);
+    assert.strictEqual(bool1, true);
+
+    bool1 = await instHelium.methods.checkPlatformSupervisor(admin).call();
+    console.log('checkPlatformSupervisor(admin):', bool1);
+    assert.strictEqual(bool1, true);
+
+    bool1 = await instHelium.methods.checkPlatformSupervisor(AssetOwner1).call();
+    console.log('checkPlatformSupervisor(AssetOwner1):', bool1);
+    assert.strictEqual(bool1, true);
+
+    bool1 = await instHelium.methods.checkPlatformSupervisor(AssetOwner2).call();
+    console.log('checkPlatformSupervisor(AssetOwner2):', bool1);
+    assert.strictEqual(bool1, true);
+
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner3).call();
+    console.log('checkCustomerService(AssetOwner3):', bool1);
+    assert.strictEqual(bool1, true);
+
+    bool1 = await instHelium.methods.checkCustomerService(AssetOwner4).call();
+    console.log('checkCustomerService(AssetOwner4):', bool1);
+    assert.strictEqual(bool1, true);
+
     bool1 = await instHelium.methods.checkCustomerService(admin).call();
     console.log('checkCustomerService(admin):', bool1);
     assert.strictEqual(bool1, true);
 
+
+    console.log('\n-------------------==Add AssetOwner1 as a CustomerService');
     bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.strictEqual(bool1, false);
+
+    error = false;
+    try {
+      await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] only Admin can addCustomerService(), err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
 
     await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
     bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.strictEqual(bool1, true);
+
+
+    console.log('\n-------------------==Add AssetOwner3 as a PlatformSupervisor');
+    bool1 = await instHelium.methods.checkPlatformSupervisor(AssetOwner3).call();
+    console.log('checkPlatformSupervisor(AssetOwner3):', bool1);
+    assert.strictEqual(bool1, false);
+
+    error = false;
+    try {
+      await instHelium.methods.addPlatformSupervisor(AssetOwner3).send({value: '0', from: AssetOwner4, gas: gasLimitValue, gasPrice: gasPriceValue });
+      error = true;
+    } catch (err) {
+      console.log('[Success] only Admin can addPlatformSupervisor(), err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    await instHelium.methods.addPlatformSupervisor(AssetOwner3).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    bool1 = await instHelium.methods.checkPlatformSupervisor(AssetOwner3).call();
+    console.log('checkPlatformSupervisor(AssetOwner3):', bool1);
+    assert.strictEqual(bool1, true);
+
 
   });
 });
@@ -2103,8 +2184,8 @@ describe('Test IncomeManagerCtrt', () => {
 
 //-----------------------------------------==Registry
 describe('Test RegistryCtrt', () => {
-
   it('RegistryCtrt functions test', async function() {
+    console.log('\n------------==Check RegistryCtrt parameters');
 
   });
 });
