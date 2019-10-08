@@ -1075,7 +1075,7 @@ const investTokensToCloseCFC_API = async () => {
 
   console.log('\n-------------== add CrowdfundingCtrt');
 
-  const isGood = await addSmartContractRow(tokenSymbol, crowdFundingAddr, '', totalAmountToInvest, '', '').catch((err) => {
+  const isGood = await addSmartContractRow(tokenSymbol, crowdFundingAddr, null, totalAmountToInvest, null, null).catch((err) => {
     console.log('\n[Error @ addSmartContractRow()]'+ err);
   });
   console.log(`addSmartContractRow() result: isGood ${isGood}`);

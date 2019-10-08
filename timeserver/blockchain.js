@@ -1557,6 +1557,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
       return false;
     });
     if(isAssetbookGood){
+      console.log('checkMint_isAssetbookGood is true');
       const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
       const result = await instHCAT721.methods.checkMintSerialNFT(toAddress, amount, price, fundingType, serverTime).call({from: backendAddr});
       console.log('\nresult', result);
@@ -2444,7 +2445,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       }
       const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
       const investorListBf = await instCrowdFunding.methods.getInvestors(0, 0).call();
-      console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]}, \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
+      console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]} \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
 
       const checkResult = await checkAssetbookArray(assetbookCtrtArray).catch(async(err) => {
         console.log(`checkAssetbookArray() \nresult: ${err} \ncheckAssetbookArray() failed inside asyncForEachAbCFC(). \nassetbookCtrtArray: ${assetbookCtrtArray}`);
@@ -2463,7 +2464,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
 
       await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
         const amountToInvest = parseInt(tokenCountArray[index]);
-        console.log(`\n----==[Good] For ${addrAssetbook}, found its amountToInvest ${amountToInvest}`);
+        console.log(`\n----==[Good] For ${addrAssetbook} \nfound its amountToInvest: ${amountToInvest}`);
 
         console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
 amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
@@ -2475,7 +2476,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
           console.log('\ncheckInvest result:', result);
           console.log('\n[Error @ investTokens]', err);
           checkOK = false;
-          return [false, '0x0'];
+          return [false, null];
         });
         console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
 

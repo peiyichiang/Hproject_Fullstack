@@ -72,29 +72,28 @@ const productObj0MaxTotalSupply = Math.floor(Math.random()*10000)+10000
 const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + productDate, p_name.substr(0, 20), (faker.address.streetAddress() + faker.address.city() + faker.address.country()).substr(0, 40), productObj0MaxTotalSupply, productObj0MaxTotalSupply - 100, 73310, Math.floor(Math.random()*100000) , "NTD", 530, 20, 2, "", "", "", "");
 
 
-//const productObj0 = new productObject("AMER1903", "Mercury1901", "Mercury base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 530, 20, 2, "", "", "", "");
-
+//fundingType= 1 PO, 2 PP
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
 
-const productObj1 = new productObject("AVEN1901", "Venus1902", "Venus base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 1, "0xF16AA558B34E3C7e37e2896C2a11a8808E20c4aF", "", "", "");
+const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 2, "", "", "", "");
 
-const productObj2 = new productObject("AJUP1902", "Jupiter1903", "Jupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
+const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
 
-const productObj3 = new productObject("AURA1903", "Uranus1904", "Uranus base 0001", 1000, 900, 7331, 15000, "NTD", 500, 20, 2, "0x0360dB66E7656683F77661b8A02708AdD6721356", "0x277dF373352B926588d8BfC19171c57Ab895fd35", "0x45c53EE395a4656e193cfd6a3043F48A2aB498b2", "0xB1ec2EB8040C3b374f5d7a785143a39666C527c6");
+const productObj3 = new productObject("ADAM1903", "Adam1903", "Adam base 0001", 1000, 900, 7331, 15000, "NTD", 500, 20, 2, "", "", "", "");
 
-const productObj4 = new productObject("ANEP1904", "Neptune1905", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj4 = new productObject("AETH1904", "AETH1904", "Earth base 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0xbc6e9eBe20C76336c0E1a1CB7f071680bD1c8C23", "", "", "");// each investor can own max of 17 tokens
 
-const productObj5 = new productObject("AOOT1905", "AOOT1907", "MARS0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj6 = new productObject("ASAT1906", "Satarn1906", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj6 = new productObject("ASAT1906", "Satarn1906", "Saturn base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj7 = new productObject("AMAR1907", "MARS1907", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj7 = new productObject("AMAR1907", "MARS1907", "Mars base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj8 = new productObject("APLU1908", "APLU1908", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj8 = new productObject("APLU1908", "APLU1908", "Pluto base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj9 = new productObject("AHOB1909", "HOBBLE1909", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj9 = new productObject("AHOB1909", "HOBBLE1909", "Hobble base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj10 = new productObject("ASUN1910", "SUN1910", "Neptune base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj10 = new productObject("ASUN1910", "SUN1910", "Sun base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 

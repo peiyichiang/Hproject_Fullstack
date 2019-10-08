@@ -2264,7 +2264,7 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
     return new Promise((resolve, reject) => {
 
-        web3.eth.getTransactionCount(userEthAddr)
+        web3.eth.getTransactionCount(userEthAddr, 'pending')
             .then(nonce => {
 
                 let userPrivateKey = Buffer.from(userRawPrivateKey.slice(2), 'hex');

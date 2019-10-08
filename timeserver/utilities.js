@@ -228,7 +228,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
 
 
 async function asyncForEach(array, callback) {
-  console.log('\n------------------==asyncForEach:', array);
+  console.log('\n------------------==asyncForEach:\n', array);
   for (let idx = 0; idx < array.length; idx++) {
     const item = array[idx];
     console.log(`\n--------------==next in asyncForEach
@@ -251,7 +251,7 @@ async function asyncForEach(array, callback) {
 }
 
 async function asyncForEachTsMain(array, callback) {
-  console.log("\n--------------==asyncForEachTsMain:", array);
+  console.log("\n--------------==asyncForEachTsMain:\n", array);
   for (let idx = 0; idx < array.length; idx++) {
     const item = array[idx];
     console.log(`--------------==next in asyncForEachTsMain()

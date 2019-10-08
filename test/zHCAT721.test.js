@@ -241,9 +241,9 @@ let amount, balancePlatformSupervisor = 0, balanceAO1 = 0, balanceAO2 = 0;
 let _to, price, accountM, balanceM, accountIdsAll, assetbookMX, serverTime;
 
 const addrZero = "0x0000000000000000000000000000000000000000";
-let argsAssetBook1, argsAssetBook2, argsAssetBook3;
-let instAssetBook1, instAssetBook2, instAssetBook3;
-let addrAssetBook1, addrAssetBook2, addrAssetBook3;
+let argsAssetBook1, argsAssetBook2, argsAssetBook3, argsAssetBook4, argsAssetBook5;
+let instAssetBook1, instAssetBook2, instAssetBook3, instAssetBook4, instAssetBook5;
+let addrAssetBook1, addrAssetBook2, addrAssetBook3, addrAssetBook4, addrAssetBook5;
 
 // const { TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid, CFSD, CFED } = require('../ethereum/contracts/zTestParameters');
 //const { checkAssetbook } = require('../timeserver/blockchain');
@@ -1839,8 +1839,8 @@ describe('Test HeliumCtrt', () => {
     assert.strictEqual(depConditions['1'], false);
     //assert.strictEqual(depConditions['2'], false);
 
-    const getHeliumDetails = await instHelium.methods.getHeliumDetails().call();
-    console.log('getHeliumDetails(): [5] isAfterDeployment, [6] locked...\n', getHeliumDetails);
+    let getHeliumDetails = await instHelium.methods.getHeliumDetails().call();
+    console.log('getHeliumDetails(): [5] isAfterDeployment, [6] locked...\n[7~11] management member vote, [12] MinimumVotesForMultiSig\n', getHeliumDetails);
 
     //--------------==
     bool1 = await instHelium.methods.checkAdmin(admin).call();
@@ -1876,13 +1876,17 @@ describe('Test HeliumCtrt', () => {
     bool1 = await instHelium.methods.checkCustomerService(AssetOwner1).call();
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.strictEqual(bool1, false);
+    let permissionList1 = await instHelium.methods.PermissionList(AssetOwner1).call();
+    console.log('PermissionList of AssetOwner1:', permissionList1);
+    assert.strictEqual(permissionList1['0'], '2');
+    assert.strictEqual(permissionList1['1'], true);
 
     error = false;
     try {
       await instHelium.methods.addCustomerService(AssetOwner1).send({value: '0', from: AssetOwner2, gas: gasLimitValue, gasPrice: gasPriceValue });
       error = true;
     } catch (err) {
-      console.log('[Success] only Admin can addCustomerService(), err:', err.toString().substr(0, 150));
+      console.log('\n[Success] only Admin can addCustomerService(), err:', err.toString().substr(0, 150));
       assert(err);
     }
     if (error) {assert(false);}
@@ -1892,6 +1896,16 @@ describe('Test HeliumCtrt', () => {
     console.log('checkCustomerService(AssetOwner1):', bool1);
     assert.strictEqual(bool1, true);
 
+    permissionList1 = await instHelium.methods.PermissionList(AssetOwner1).call();
+    console.log('PermissionList of AssetOwner1:', permissionList1);
+    assert.strictEqual(permissionList1['0'], '1');
+    assert.strictEqual(permissionList1['1'], true);
+
+    console.log('\nchangePermissionToPS()');
+    await instHelium.methods.changePermissionToPS(AssetOwner1).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    permissionList1 = await instHelium.methods.PermissionList(AssetOwner1).call();
+    console.log('PermissionList of AssetOwner1:', permissionList1);
+    assert.strictEqual(permissionList1['0'], '2');
 
     console.log('\n-------------------==Add AssetOwner3 as a PlatformSupervisor');
     bool1 = await instHelium.methods.checkPlatformSupervisor(AssetOwner3).call();
@@ -1913,6 +1927,71 @@ describe('Test HeliumCtrt', () => {
     console.log('checkPlatformSupervisor(AssetOwner3):', bool1);
     assert.strictEqual(bool1, true);
 
+    permissionList1 = await instHelium.methods.PermissionList(AssetOwner3).call();
+    console.log('PermissionList of AssetOwner3:', permissionList1);
+    assert.strictEqual(permissionList1['0'], '2');
+    assert.strictEqual(permissionList1['1'], true);
+
+    console.log('\nchangePermissionToCS()');
+    await instHelium.methods.changePermissionToCS(AssetOwner3).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    permissionList1 = await instHelium.methods.PermissionList(AssetOwner3).call();
+    console.log('PermissionList of AssetOwner3:', permissionList1);
+    assert.strictEqual(permissionList1['0'], '1');
+
+    console.log('\nremovePermission()');
+    await instHelium.methods.removePermission(AssetOwner3).send({value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    permissionList1 = await instHelium.methods.PermissionList(AssetOwner3).call();
+    console.log('PermissionList of AssetOwner3:', permissionList1);
+    assert.strictEqual(permissionList1['1'], false);
+
+    console.log('\n-------------------==MultiSig');
+    let EachVoteResult = await instHelium.methods.getEachVoteResult().call();
+    console.log('\nEachVoteResult():', EachVoteResult);
+
+    let isVotedApproved = await instHelium.methods.isVotedApproved().call();
+    console.log('\nisVotedApproved():', isVotedApproved);
+
+    //admin, chairman, director, manager, owner
+    await instHelium.methods.HeliumChairmanApprove(true).send({value: '0', from: chairman, gas: gasLimitValue, gasPrice: gasPriceValue });
+    ChairmanVoteM = await instHelium.methods.Helium_ChairmanVote().call();
+    console.log('Helium_ChairmanVote():', ChairmanVoteM);
+    assert.strictEqual(ChairmanVoteM, '1');
+
+
+    await instHelium.methods.HeliumDirectorApprove(true).send({value: '0', from: director, gas: gasLimitValue, gasPrice: gasPriceValue });
+    DirectorVoteM = await instHelium.methods.Helium_DirectorVote().call();
+    console.log('Helium_DirectorVote():', DirectorVoteM);
+    assert.strictEqual(DirectorVoteM, '1');
+
+    await instHelium.methods.HeliumManagerApprove(true).send({value: '0', from: manager, gas: gasLimitValue, gasPrice: gasPriceValue });
+    ManagerVoteM = await instHelium.methods.Helium_ManagerVote().call();
+    console.log('Helium_ManagerVote():', ManagerVoteM);
+    assert.strictEqual(ManagerVoteM, '1');
+
+    await instHelium.methods.HeliumOwnerApprove(true).send({value: '0', from: owner, gas: gasLimitValue, gasPrice: gasPriceValue });
+    OwnerVoteM = await instHelium.methods.Helium_OwnerVote().call();
+    console.log('Helium_OwnerVote():', OwnerVoteM);
+    assert.strictEqual(OwnerVoteM, '1');
+
+
+    EachVoteResult = await instHelium.methods.getEachVoteResult().call();
+    console.log('\nEachVoteResult():', EachVoteResult);
+
+    isVotedApproved = await instHelium.methods.isVotedApproved().call();
+    console.log('\nisVotedApproved():', isVotedApproved);
+    assert.strictEqual(bool1, true);
+
+    bool1 = await instHelium.methods.checkAdmin(AssetOwner5).call();
+    console.log('checkAdmin(AssetOwner5):', bool1);
+    assert.strictEqual(bool1, false);
+    await instHelium.methods.setManagement(5, AssetOwner5, 0).send({value: '0', from: owner, gas: gasLimitValue, gasPrice: gasPriceValue, from: manager });
+    bool1 = await instHelium.methods.checkAdmin(AssetOwner5).call();
+    console.log('checkAdmin(AssetOwner5):', bool1);
+    assert.strictEqual(bool1, true);
+    isVotedApproved = await instHelium.methods.isVotedApproved().call();
+    console.log('\nisVotedApproved():', isVotedApproved);
+    EachVoteResult = await instHelium.methods.getEachVoteResult().call();
+    console.log('\nEachVoteResult():', EachVoteResult);
 
   });
 });
@@ -2185,7 +2264,104 @@ describe('Test IncomeManagerCtrt', () => {
 //-----------------------------------------==Registry
 describe('Test RegistryCtrt', () => {
   it('RegistryCtrt functions test', async function() {
-    console.log('\n------------==Check RegistryCtrt parameters');
+    console.log('\n------------==RegistryCtrt');
+    let userX, userY, isUidApproved;
+
+    // await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    // .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+
+    //-----------------------==
+    console.log('\n------------==Deploying AssetBook contracts...');
+    console.log('Deploying AssetBook5...');
+    argsAssetBook5 = [ AssetOwner5, addrHeliumCtrt];
+
+    instAssetBook5 =  await new web3.eth.Contract(AssetBook.abi)
+    .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBook5 })
+    .send({ from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    //.then(console.log);
+    console.log('AssetBook5 has been deployed');
+    if (instAssetBook5 === undefined) {
+      console.error('[Error] instAssetBook5 is NOT defined');
+      } else {console.log('[Good] instAssetBook5 is defined');}
+    instAssetBook5.setProvider(provider);
+    addrAssetBook5 = instAssetBook5.options.address;
+    console.log('addrAssetBook5:', addrAssetBook5);
+
+    console.log('\n------------==addUser()...');
+    uid = "A500000005"; assetbookAddr = addrAssetBook5; authLevel = 5;
+    console.log('uid:', uid, ', assetbookAddr:', assetbookAddr, ', authLevel:', authLevel);
+
+    // userY = await instRegistry.methods.assetbookToUser(assetbookAddr).call();
+    // console.log('userY:', userY);
+    userY = await instRegistry.methods.getUserFromAssetbook(assetbookAddr).call();
+    console.log('userY:', userY);
+    userX = await instRegistry.methods.getUserFromUid(uid).call();
+    console.log('userX:', userX);
+    // isUidApproved = await instRegistry.methods.isUidApproved(uid).call();
+    // console.log('isUidApproved:', sisUidApproved);
+
+
+    let isCustomerService = await instRegistry.methods.checkCustomerServiceFromReg().call({from: AssetOwner5});    console.log('\nisCustomerService:', isCustomerService);
+
+    error = false;
+    try {
+      await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+      .send({ value: '0', from: AssetOwner5, gas: gasLimitValue, gasPrice: gasPriceValue, from: AssetOwner5 });
+        error = true;
+    } catch (err) {
+      console.log('\n[Success] only CustomerService can addUser(), err:', err.toString().substr(0, 150));
+      assert(err);
+    }
+    if (error) {assert(false);}
+
+    await instRegistry.methods.addUser(uid, assetbookAddr, authLevel)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue, from: AssetOwner3 });
+
+    userY = await instRegistry.methods.getUserFromAssetbook(assetbookAddr).call();
+    console.log('userY:', userY);
+    userX = await instRegistry.methods.getUserFromUid(uid).call();
+    console.log('userX:', userX);
+
+    console.log('\n------------==SetUser()...');
+    uid = "A500000005"; assetbookAddr = addrAssetBook2; authLevel = 4;
+    console.log('uid:', uid, ', assetbookAddr:', assetbookAddr, ', authLevel:', authLevel);
+
+    await instRegistry.methods.setUser(uid, assetbookAddr, authLevel)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue, from: AssetOwner3 });
+
+    userY = await instRegistry.methods.getUserFromAssetbook(assetbookAddr).call();
+    console.log('userY:', userY);
+    userX = await instRegistry.methods.getUserFromUid(uid).call();
+    console.log('userX:', userX);
+    
+    console.log('\n------------==setUserAuthLevel & isUidApproved...');
+    authLevel = 0;
+    isUidApproved = await instRegistry.methods.isUidApproved(uid).call();
+    console.log('isUidApproved:', isUidApproved);
+    isAssetbookApproved = await instRegistry.methods.isAssetbookApproved(assetbookAddr).call();
+    console.log('isAssetbookApproved:', isAssetbookApproved);
+
+    await instRegistry.methods.setUserAuthLevel(uid, authLevel)
+    .send({ value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue, from: AssetOwner3 });
+    userX = await instRegistry.methods.getUserFromUid(uid).call();
+    console.log('userX:', userX);
+
+    isUidApproved = await instRegistry.methods.isUidApproved(uid).call();
+    console.log('isUidApproved:', isUidApproved);
+    isAssetbookApproved = await instRegistry.methods.isAssetbookApproved(assetbookAddr).call();
+    console.log('isAssetbookApproved:', isAssetbookApproved);
+
+    console.log('\n------------==isFundingApproved... see mintSerialNFT');
+
+    console.log('\n------------==...');
+
+    console.log('\n------------==...');
+
+    console.log('\n------------==...');
+
+    console.log('\n------------==...');
+
+    console.log('\n------------==...');
 
   });
 });
