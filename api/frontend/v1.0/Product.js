@@ -436,4 +436,31 @@ router.get('/ProductDataBySymbol', function (req, res) {
     })
 });
 
+router.get('/AssetDocs', function (req, res) {
+    console.log('------------------------==\n@Product/AssetDocs');
+    let mysqlPoolQuery = req.pool;
+    const JWT = req.query.JWT;
+    const symbol = req.query.symbol;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            mysqlPoolQuery(
+                `SELECT p_assetdocs
+                FROM htoken_test.product
+                WHERE p_SYMBOL = ?`, symbol, function (err, documentLink) {
+                if (err) { res.status(400).send({ "message": "文件連結取得失敗:\n" + err }) }
+                else {
+                    res.status(200).json({
+                        "message": "文件連結取得成功",
+                        "result": documentLink[0].p_assetdocs
+                    });
+                }
+            });
+        }
+    })
+});
+
 module.exports = router;
