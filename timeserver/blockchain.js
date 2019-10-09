@@ -385,15 +385,15 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
     });
 
     let isGood;
-    const checkResult = await checkAssetbookArray(addrAssetBookArray).catch(async(err) => {
+    const resultCheckAssetbookArray = await checkAssetbookArray(addrAssetBookArray).catch(async(err) => {
       console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). \naddressArray: ${addressArray}`);
       isGood = false;
     });
-    if(checkResult.includes(false)){
-      console.log(`\ncheckResult has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+    if(resultCheckAssetbookArray.includes(false)){
+      console.log(`\nresultCheckAssetbookArray has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbookArray}`);
       isGood = false;
     } else {
-      console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+      console.log(`all input addresses have been checked good by checkAssetbookArray \nresultCheckAssetbookArray: ${resultCheckAssetbookArray} `);
       isGood = true;
     }
     resolve({isGood, addrAssetBookArray});
@@ -1880,19 +1880,19 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
       resolve([false, [], mesg]);
       return false;
     }
-    const checkResult = await checkAssetbookArray(addressArray).catch(async(err) => {
+    const resultCheckAssetbookArray = await checkAssetbookArray(addressArray).catch(async(err) => {
       mesg = 'failed at checkAssetbookArray()';
       console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed inside asyncForEachAbCFC(). addressArray: ${addressArray}`);
       resolve([false, [], mesg]);
       return false;
     });
-    if(checkResult.includes(false)){
-      mesg = 'failed at checkResult.includes(false)';
-      console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+    if(resultCheckAssetbookArray.includes(false)){
+      mesg = 'failed at resultCheckAssetbookArray.includes(false)';
+      console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbookArray}`);
       resolve([false, [], mesg]);
       return false;
     } else {
-      console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+      console.log(`all input addresses have been checked good by checkAssetbookArray \nresultCheckAssetbookArray: ${resultCheckAssetbookArray} `);
     }
 
     const [is_checkHCATTokenCtrt, nftsymbolM, maxTotalSupplyM, initialAssetPricingM, TimeOfDeploymentM, tokenIdM, isPlatformSupervisorM] = await checkHCATTokenCtrt(tokenCtrtAddr).catch(async(err) => {
@@ -2447,20 +2447,21 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       const investorListBf = await instCrowdFunding.methods.getInvestors(0, 0).call();
       console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]} \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
 
-      const checkResult = await checkAssetbookArray(assetbookCtrtArray).catch(async(err) => {
+      const resultCheckAssetbookArray = await checkAssetbookArray(assetbookCtrtArray).catch(async(err) => {
         console.log(`checkAssetbookArray() \nresult: ${err} \ncheckAssetbookArray() failed inside asyncForEachAbCFC(). \nassetbookCtrtArray: ${assetbookCtrtArray}`);
         checkOK = false;
         return false;
       });
-      if(checkResult.includes(false)){
-        console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${assetbookCtrtArray} \n\ncheckAssetbookArray() Result: ${checkResult}`);
+      if(resultCheckAssetbookArray.includes(false)){
+        console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${assetbookCtrtArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbookArray}`);
         checkOK = false;
         return false;
       } else {
-        console.log(`all input addresses has been checked good by checkAssetbookArray \ncheckResult: ${checkResult} `);
+        console.log(`\n------------------==\nall input addresses have been checked good by checkAssetbookArray \nresultCheckAssetbookArray: ${resultCheckAssetbookArray} `);
       }
 
       const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
+      const queryStr5F = 'UPDATE order_list SET o_paymentStatus = "errCFC", o_txHash = ? WHERE o_id = ?';
 
       await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
         const amountToInvest = parseInt(tokenCountArray[index]);
@@ -2486,12 +2487,21 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         //----------==
         const orderId = orderIdArray[index];
         const email = emailArray[index];
-        const results5 = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
-          console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
-          checkOK = false;
-        });
-        //console.log('\nresults5', results5);
-        log(chalk.green(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+        if(isInvestSuccess){
+          const results5 = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
+            console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
+            checkOK = false;
+          });
+          //console.log('\nresults5', results5);
+          log(chalk.green(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+        } else {
+          const results5 = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
+            console.log('\n[Error @ mysqlPoolQueryB(queryStr5)]'+ err);
+            checkOK = false;
+          });
+
+          log(chalk.red(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+        }
       });
 
       console.log(`\nisInvestSuccessArray: ${isInvestSuccessArray}
@@ -2588,18 +2598,18 @@ lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
 const checkAssetbookArray = async(addrAssetbookArray) => {
   return new Promise( async ( resolve, reject ) => {
     console.log('-----------==inside checkAssetbookArray()');
-    const checkResult = [];
+    const resultCheckAssetbookArray = [];
     await asyncForEach(addrAssetbookArray, async(addrAssetbookX,index) => {
       const [isGood, assetOwnerM, lastLoginTimeM, assetCindexM] = await tokenReceiver(addrAssetbookX).catch(async(err) => {
         console.log(`tokenReceiver result: ${err}, checkAssetbookArray() > tokenReceiver() failed at addrAssetbookX: ${addrAssetbookX}`);
       });
       if(isGood){
-        checkResult.push(isGood)
+        resultCheckAssetbookArray.push(isGood)
       } else {
-        checkResult.push(false)
+        resultCheckAssetbookArray.push(false)
       }
     });
-    resolve(checkResult);
+    resolve(resultCheckAssetbookArray);
   });
 }
 
@@ -2609,9 +2619,14 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
     console.log('-----------==inside checkInvest()');
     const amountToInvest = parseInt(amountToInvestStr);
     const serverTime = parseInt(serverTimeStr);
+    if(isNaN(amountToInvest) || isNaN(serverTime)){
+      console.log(`\ninvalid input ... check amountToInvest: ${amountToInvest}, serverTime: ${serverTime}`);
+      resolve(false);
+      return false;
+    }
 
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    console.log('checkInvest1');
+    console.log('\ncheckInvest1: check crowdfunding contract');
     const [is_checkCrowdfunding, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
       console.log(`${err} \ncheckCrowdfundingCtrt() failed...`);
       reject(false);
@@ -2623,12 +2638,20 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
     }
     console.log('Please manually check if above data is correct according to the actual crowdfunding data.\nIf yes, then the crowdfunding contract is good');
     
-    console.log('\ncheckInvest2');
-    const isAssetbookGood = await tokenReceiver(addrAssetbook).catch(async(err) => {
-      console.log(`${err} \ncheckAssetbook() failed...`);
-      reject(false);
-      return false;
+    console.log('\ncheckInvest2: check assetbook contract');
+    let isAssetbookGood;
+    const resultCheckAssetbook = await checkAssetbookArray([addrAssetbook]).catch(async(err) => {
+      console.log(`checkAssetbookArray() result: ${err}, checkAssetbookArray() failed(). \naddressArray: ${addressArray}`);
+      isAssetbookGood = false;
     });
+    if(resultCheckAssetbook.includes(false)){
+      console.log(`\nresultCheckAssetbook has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbook}`);
+      isAssetbookGood = false;
+    } else {
+      console.log(`The input address has been checked good by checkAssetbookArray \nresultCheckAssetbook: ${resultCheckAssetbook} `);
+      isAssetbookGood = true;
+    }
+
     if(isAssetbookGood){
       console.log(`\n-----------==assetbook is checked good \ntokenSymbol: ${tokenSymbol}, initialAssetPricing: ${initialAssetPricing}, maxTotalSupply: ${maxTotalSupply}, CFSD: ${CFSD}, CFED: ${CFED}, stateDescription: ${stateDescription}`);
       console.log(`${addrAssetbook}:${ typeof addrAssetbook}, ${amountToInvest} : ${typeof amountToInvest}, ${serverTime} : ${typeof serverTime}`);
@@ -2661,10 +2684,10 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
           mesg += ', [4] addrAssetbook should pass tokenReceiver()';
         }
         if(!boolArray[5]){
-          mesg += ', [5] quantityToInvest should be > 0';
+          mesg += ', [5] quantityToInvest '+amountToInvest+' should be > 0';
         }
         if(!boolArray[6]){
-          mesg += ', [6] quantityToInvest + quantitySold should be <= maxTotalSupply';
+          mesg += ', [6] quantityToInvest '+amountToInvest+' + quantitySold '+quantitySold+' should be <= maxTotalSupply '+maxTotalSupply;
         }
         if(!boolArray[7]){
           mesg += ', [7] serverTime should be > TimeOfDeployment';
@@ -3851,5 +3874,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt
 }

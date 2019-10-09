@@ -213,17 +213,23 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
       tokenCountArray.push(remainingQty);
       
     } else {
-      let tokenCountHold = getRndIntegerBothEnd(1, remainingQty * 0.5);
-      if(tokenCountHold < 1 || remainingQty < 1 ){
+      let amountToInvest = getRndIntegerBothEnd(1, remainingQty * 0.5);
+      if(amountToInvest < 1 || remainingQty < 1 ){
         continue
       }
-      tokenCountArray.push(tokenCountHold);
+      tokenCountArray.push(amountToInvest);
       userIndexArray.push(usrIdx);
     } 
   }
   const tokenCountTotal = arraySum(tokenCountArray);
   console.log('tokenCountTotal:', tokenCountTotal);
-  return [userIndexArray, tokenCountArray];
+
+  if(tokenCountTotal === totalAmountToInvest && tokenCountArray.length === arraylength && userIndexArray.length === arraylength){
+    console.log('Tested Good: tokenCountTotal, tokenCountArray length, and userIndexArray length are all correct');
+    return [userIndexArray, tokenCountArray];
+  } else {
+    return [undefined, undefined];
+  }
 };
 
 

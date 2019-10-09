@@ -81,9 +81,9 @@ const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001"
 
 const productObj3 = new productObject("ADAM1903", "Adam1903", "Adam base 0001", 1000, 900, 7331, 15000, "NTD", 500, 20, 2, "", "", "", "");
 
-const productObj4 = new productObject("AETH1904", "AETH1904", "Earth base 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0xbc6e9eBe20C76336c0E1a1CB7f071680bD1c8C23", "", "", "");// each investor can own max of 17 tokens
+const productObj4 = new productObject("AETH1914", "AETH1904", "Earth base 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0x26e2479C1dD4b739D864A9AdaFb6E759D8069474", "0xf777aF7b3d0495190dc74aF12c99AB6238801F77", "0xCe162342c999791c1b3070cA125cdf73bE85BB4d", "0x87485F2620540deaC4500E14c6CAd17CBF4D5C47");// each investor can own max of 17 tokens
 
-const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 1000000000, 900000000, 73310, 22000, "NTD", 490, 20, 2, "", "", "", "");
+const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "", "", "", "");
 
 const productObj6 = new productObject("ASAT1906", "Satarn1906", "Saturn base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
