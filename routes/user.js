@@ -179,16 +179,59 @@ router.post('/AddUser', function (req, res, next) {
 //設置reviewStatus
 router.post('/reviewStatus', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
+    console.log("＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊");
     console.log(req.body.reviewStatus);
     console.log(req.body.email);
+    console.log("＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊");
     sql = {
         u_review_status: req.body.reviewStatus
     };
-    var qur = mysqlPoolQuery('UPDATE htoken.user SET ? WHERE u_email = ?', [sql, req.body.email], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE ' + process.env.DB_NAME + '.user SET ? WHERE u_email = ?', [sql, req.body.email], function (err, rows) {
+
         if (err) {
-            console.log(err);
+             res.status(400).json({ "message": "更改u_review_status失敗" + err }); 
+             console.log("更改u_review_status失敗:" + err)
         }
-        res.redirect('/BackendUser/backend_user');
+        else {
+            console.log("更改u_review_status成功")
+            var transporter = nodemailer.createTransport({
+                /* Helium */
+                host: 'server239.web-hosting.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+        
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: ' <noreply@hcat.io>', // sender address
+                to: req.body.email, // list of receivers
+                subject: '電利超商 - 補上傳身分證明文件通知', // Subject line
+                text: "由於您的身分證明文件尚未齊備，請參考以下流程補上。流程：登入電利超商之後，請點擊左上角的菜單(menu) - 會員專區 - 補上傳身份證明文件，請補上身分證正反面 以及銀行存摺正面，以利完成會員註冊程序，謝謝", // plain text body
+                // html: '<b>Hello world?</b>' // html body
+            };
+        
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    res.status(400)
+                    res.json({
+                        "message": "驗證信寄送失敗：" + err
+                    })
+                }
+                else {
+                    res.status(200);
+                    res.json({
+                        "message": "驗證信寄送成功"
+                    })
+                }
+            });
+            
+            res.redirect('/BackendUser/backend_user');
+        }
     });
 });
 
