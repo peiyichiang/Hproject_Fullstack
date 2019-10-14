@@ -282,7 +282,7 @@ let tokenOwnerM, tokenControllerDetail, TimeAtDeploymentM, ownerCindexM
 let TimeOfDeploymentM, TimeTokenUnlockM, TimeTokenValidM, bool1, bool2, bool3;
 
 let tokenContractDetails, tokenNameM_b32, tokenNameM, tokenSymbolM_b32, tokenSymbolM, initialAssetPricingM, IRR20yrx100M, maxTotalSupplyM, pricingCurrencyM, siteSizeInKWM, tokenURI_M;
-let result1, boolArray, uintArray;
+let result1, boolArray, uintArray, balanceToM;
 
 
 beforeEach( async function() {
@@ -960,9 +960,39 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     if (error) {assert(false);}
 
 
-    amount = 20;
+    console.log('----------==');
+    amount = 12;
     await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
     value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log(`Successfully minted ${amount} tokens`);
+
+    amount = 7;
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
+      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log(`Successfully minted ${amount} tokens`);
+
+    amount = 1;
+    let balanceToMStr = await instHCAT721.methods.balanceOf(_to).call();
+    let balanceToM = parseInt(balanceToMStr);
+    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
+    console.log(result1);
+    boolArray = result1[0];
+    uintArray = result1[1];
+    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
+    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
+    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
+    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
+    is msg.sender platformSupervisor: ${boolArray[7]}
+    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
+    amount: ${amount}, price: ${price}, fundingType: ${fundingType}
+    amount.mul(price): ${amount * price}
+    balanceOf(_to).mul(price): ${ balanceToM * price }
+    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
+    ${amount * price}
+    `);
+    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
+      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
+    console.log(`Successfully minted ${amount} token`);
     
     tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook3, 0, 0).call();
     balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook3).call();
