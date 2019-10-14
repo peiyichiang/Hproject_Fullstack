@@ -235,7 +235,7 @@
                 /*部署assetContract*/
                 console.log("assetBookContract deploying...");
                 $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/assetbookContract' %>", {
-                    assetBookOwner: "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB"//ethAddr,(key chain開發未完成)
+                    assetBookOwner: ethAddr,
                 }, function (result) {
                     //var result = JSON.parse(resultJSON);
                     console.log(result);
