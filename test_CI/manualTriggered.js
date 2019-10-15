@@ -1,7 +1,8 @@
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
-
+const chalk = require('chalk');
+const log = console.log;
 //--------------------==
 const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray } = require('./zTestParameters');
 
@@ -11,7 +12,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensByRegulations } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck } = require('../timeserver/blockchain.js');
 
 const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime,checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
 
@@ -1576,7 +1577,7 @@ const addIncomeArrangementRows_API = async() => {
   });
   console.log('resultArray:', resultArray);
   if(resultArray.includes(false)){
-    console.log(`\n[Error] Some/All addIncomeArrangementRows() failed`);
+    console.log('\n[Error] Some/All addIncomeArrangementRows() failed');
   } else {
     console.log(`\n[Success] All addIncomeArrangementRows() have succeeded`);
   }
@@ -2569,42 +2570,71 @@ const amountToInvest = [${amountToInvest}];
 }
 
 //yarn run testmt -f 209
-const mintTokensByRegulations_API = async () => {
-  console.log('\n-----------------------==sequentialMintSuperAPI()');
+const mintTokensWithRegulationCheck_API = async () => {
+  console.log('\n-----------------------==mintTokensWithRegulationCheck_API()');
   const amountArray = [21, 12, 7, 1, 1];
   const tokenCtrtAddr = addrHCAT721;
+  const accountIndex = 4;
+  /**
+  Assume order amounts are all correct under Regulations
+  $15k each token for max buyAmount 300k and max balance 300k...
+  # mint 21 to accX ... failed due to over buyAmount
+  # mint 12, 7, 1 tokens to accX okay
+  # mint 1 to accX ... failed due to over balanceMax
+   */
 
   const userArrayPartial = userArray.slice(0, assetbookAmount);
-  const to = userArrayPartial[0].addrAssetBook;
+  const to = userArrayPartial[accountIndex].addrAssetBook;
   console.log('toAddr:', to);
   const fundingType = 1;//fundingType= 1 PO, 2 PP
   const price = 15000;
-  let isGood;
+  let isGood, amount, error;
 
+  amount = amountArray[0]; isGood = undefined;
+  error = false;
   try{
-    isGood = await mintTokensByRegulations(amountArray[0], tokenCtrtAddr, to, fundingType, price, addrTokenController);
-    console.log('isGood:', isGood);
-  
+    isGood = await mintTokensWithRegulationCheck(amount, tokenCtrtAddr, to, fundingType, price, addrTokenController);
+    log(chalk.green('isGood:', isGood));
     error = true;
   } catch (err) {
-    console.log('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 120));
-    //resolve(true);
-    //assert(err);
+    log(chalk.green('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:'+ err.toString().substr(0, 120)));
   }
-  //if (error) {resolve(false);}
-  //if (error) {assert(false);}
-  console.log('check1');
+  if (!error) {
+    log(chalk.green('check1: PASSED'));
+  } else {
+    log(chalk.red('check1: FAILED'));
+    process.exit(1);
+  }
 
-  // isGood = await mintTokensByRegulations(amountArray[1], tokenCtrtAddr, to, fundingType, price, addrTokenController);
-  // console.log('isGood:', isGood);
+  amount = amountArray[1]; isGood = undefined;
+  isGood = await mintTokensWithRegulationCheck(amount, tokenCtrtAddr, to, fundingType, price, addrTokenController);
+  log(chalk.green('isGood:', isGood, ', check2: PASSED'));
 
-  /*
-  isGood = await mintTokensByRegulations(amountArray[2], tokenCtrtAddr, to, fundingType, price, addrTokenController);
-  console.log('isGood:', isGood);
+  amount = amountArray[2]; isGood = undefined;
+  isGood = await mintTokensWithRegulationCheck(amount, tokenCtrtAddr, to, fundingType, price, addrTokenController);
+  log(chalk.green('isGood:', isGood, ', check3: PASSED'));
 
-  isGood = await mintTokensByRegulations(amountArray[3], tokenCtrtAddr, to, fundingType, price, addrTokenController);
-  console.log('isGood:', isGood);
-*/
+
+  amount = amountArray[3]; isGood = undefined;
+  isGood = await mintTokensWithRegulationCheck(amount, tokenCtrtAddr, to, fundingType, price, addrTokenController);
+  log(chalk.green('isGood:', isGood, ', check4: PASSED'));
+
+  amount = amountArray[4]; isGood = undefined;
+  error = false;
+  try{
+    isGood = await mintTokensWithRegulationCheck(amount, tokenCtrtAddr, to, fundingType, price, addrTokenController);
+    log(chalk.green('isGood:', isGood));
+    error = true;
+  } catch (err) {
+    log(chalk.green('[Success] STO Compliance for buyAmount of assetbook1. failed because of buyAmount has exceeded maximum restricted value. err:', err.toString().substr(0, 120)));
+  }
+  if (!error) {
+    log(chalk.green('check5: PASSED'));
+  } else {
+    log(chalk.red('check5: FAILED'));
+    process.exit(1);
+  }
+  console.log('accountIndex:', accountIndex);
   process.exit(0);
 }
 
@@ -3081,5 +3111,5 @@ if(argv3 === 0){
 
   //yarn run testmt -f 209
 } else if(argv3 === 209){
-  mintTokensByRegulations_API();
+  mintTokensWithRegulationCheck_API();
 }
