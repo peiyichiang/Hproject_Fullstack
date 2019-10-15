@@ -305,7 +305,7 @@ router.get('/canBuyToken', async function (req, res) {
                     else {
                         if (!!isServerTimeLargerThanCFSD) {
                             res.status(400).send("使用者尚未通過身份驗證");
-                            console.error('assetbook address is not found : ', email);
+                            console.error('assetbook address is not found : ', decoded.u_email);
                         } else {
                             res.status(400).send("非專案開賣時間");
                             console.error('product is not funding : ', symbol);
