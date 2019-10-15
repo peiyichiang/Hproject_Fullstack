@@ -110,7 +110,7 @@
                 <th scope="col" class="text-nowrap">審核通過</th>
             </tr>
             <tbody>
-                <% console.log(FrontEnd_data) %>
+                <% //console.log(FrontEnd_data) %>
                 <% for ( var i = 0 ; i < FrontEnd_data.length ; i++){ %>
                     <%if (FrontEnd_data[i].u_review_status =="unapproved" ) { %>
                         <tr>
@@ -207,7 +207,7 @@
                 <th scope="col" class="text-nowrap">審核通過</th>
             </tr>
             <tbody>
-                <% console.log(FrontEnd_data) %>
+                <% //console.log(FrontEnd_data) %>
                 <% for ( var i = 0 ; i < FrontEnd_data.length ; i++){ %>
                     <%if (FrontEnd_data[i].u_review_status =="rejected" ) { %>
                         <tr>
@@ -304,7 +304,7 @@
                 <th scope="col" class="text-nowrap">審核通過</th>
             </tr>
             <tbody>
-                <% console.log(FrontEnd_data) %>
+                <% //console.log(FrontEnd_data) %>
                 <% for ( var i = 0 ; i < FrontEnd_data.length ; i++){ %>
                     <%if (FrontEnd_data[i].u_review_status =="approved" ) { %>
                         <tr>
@@ -415,7 +415,7 @@
         }
 
         function Approve(ID, email, ethAddr, buttonID, status) {
-            console.log("status:" + status);
+            //console.log("status:" + status);
             if (status == 0) {
                 alert("尚未進行信箱驗證！！");
             }
@@ -424,23 +424,23 @@
                 document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
                 document.getElementById(buttonID).disabled = true;
 
-                console.log("ETH:" + ethAddr);
+                //console.log("ETH:" + ethAddr);
                 //let heliumContractAddr = await $.get("http://localhost:3030/Contracts/heliumContract");
-                //console.log("heliumContractAddr:" + heliumContractAddr);
+                ////console.log("heliumContractAddr:" + heliumContractAddr);
 
                 /*部署assetContract*/
-                console.log("assetBookContract deploying...");
+                //console.log("assetBookContract deploying...");
                 $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/assetbookContract' %>", {
                     assetBookOwner: ethAddr,
                 }, function (result) {
                     //var result = JSON.parse(resultJSON);
-                    console.log(result);
-                    console.log(result.contractAddress);
+                    //console.log(result);
+                    //console.log(result.contractAddress);
 
                     /*檢查是否部署成功*/
                     if (result.status == true) {
                         /*部署成功後，註冊會員白名單*/
-                        console.log("registering...");
+                        //console.log("registering...");
                         $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/registryContract/users/' %>" + ID, {
                             assetBookAddress: result.contractAddress,
                             ethAddr: ethAddr,
