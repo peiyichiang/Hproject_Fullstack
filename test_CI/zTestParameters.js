@@ -73,16 +73,22 @@ const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + produc
 
 
 //fundingType= 1 PO, 2 PP
+//300k / 15k => 20
 //function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
 
-const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 2, "", "", "", "");
+//Private
+const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 2, "0x04110eC2b17E6593d9BD90273c3B2555F3F8370d", "0x4A4559298E83Bd4fe123AFEeAAdC3665143C971B", "0x5fB1A76955f55CB6EB29668a1103dB6B3874567b", "");
 
-const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 510, 20, 2, "", "", "", "");
+//Public
+const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000, 900, 73310, 15000, "NTD", 510, 20, 1, "", "", "", "");
 
-const productObj3 = new productObject("ADAM1903", "Adam1903", "Adam base 0001", 1000, 900, 7331, 15000, "NTD", 500, 20, 2, "", "", "", "");
+//Public
+const productObj3 = new productObject("ADAM1903", "Adam1903", "Adam base 0001", 100, 90, 7331, 15000, "NTD", 500, 20, 1, "", "", "", "");
 
+//Public
 const productObj4 = new productObject("AETH1914", "AETH1904", "Earth base 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0x26e2479C1dD4b739D864A9AdaFb6E759D8069474", "0xf777aF7b3d0495190dc74aF12c99AB6238801F77", "0xCe162342c999791c1b3070cA125cdf73bE85BB4d", "0x87485F2620540deaC4500E14c6CAd17CBF4D5C47");// each investor can own max of 17 tokens
 
+//Public
 const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "", "", "", "");
 
 const productObj6 = new productObject("ASAT1906", "Satarn1906", "Saturn base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
