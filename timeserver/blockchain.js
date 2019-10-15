@@ -2076,12 +2076,10 @@ const mintToken = async (amountToMint, tokenCtrtAddr, to, fundingType, price) =>
 }
 
 
-const mintTokensByRegulations = async (amount, tokenCtrtAddr, to, fundingType, price, tokenControllerAddr) => {
+const mintTokensWithRegulationCheck = async (amount, tokenCtrtAddr, _to, fundingType, price, tokenControllerAddr) => {
   return new Promise(async (resolve, reject) => {
-    console.log(`\n-----------==inside mintTokensByRegulations()
+    console.log(`\n--------------==inside mintTokensWithRegulationCheck()
     fundingType: ${fundingType}, amount: ${amount}`);
-    let error = false, _to = to;
-    const initialAssetPricing = price;
 
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
     const TimeTokenUnlock = await instTokenController.methods.TimeUnlock().call();
@@ -2092,9 +2090,9 @@ const mintTokensByRegulations = async (amount, tokenCtrtAddr, to, fundingType, p
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, tokenCtrtAddr);
     let balanceXM = await instHCAT721.methods.balanceOf(_to).call();
     let tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
-    let totalAssetBalance = initialAssetPricing * balanceXM;
+    let totalAssetBalance = price * balanceXM;
     console.log(`HCAT721 tokenId = ${tokenIds}, balanceXM = ${balanceXM}
-initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBalance}`);
+price: ${price}, total asset balance: ${totalAssetBalance}`);
 
     const result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call({from: admin});
     console.log(result1);
@@ -2111,92 +2109,23 @@ initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBa
     authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
     `);
 
-      let encodedData = instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).encodeABI();
-      let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch((err) => {
-        reject('[Error @ signTx() mintSerialNFT(serverTime)]'+ err);
-        return false;
-      });
+    let encodedData = instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch((err) => {
+      reject('[Error @ signTx() mintSerialNFT(serverTime)]'+ err);
+      return false;
+    });
+    console.log('TxResult:', TxResult);
+
+    balanceXM = await instHCAT721.methods.balanceOf(_to).call();
+    tokenIds = await instHCAT721.methods.getAccountIds(_to, 0, 0).call();
+    totalAssetBalance = price * balanceXM;
+    console.log(`\n--------------==\nHCAT721 tokenId = ${tokenIds}, balanceXM = ${balanceXM}
+    price: ${price}, total asset balance: ${totalAssetBalance}`);
+      
+    resolve(true);
   });
 }
 
-/**
-    console.log('\n------------==Check if STO Compliance for buyAmount: _to');
-
-
-    console.log('----------==');
-    amount = 12;
-    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-    value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log(`Successfully minted ${amount} tokens`);
-
-    amount = 7;
-    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log(`Successfully minted ${amount} tokens`);
-
-    amount = 1;
-    let balanceToMStr = await instHCAT721.methods.balanceOf(_to).call();
-    let balanceToM = parseInt(balanceToMStr);
-    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
-    console.log(result1);
-    boolArray = result1[0];
-    uintArray = result1[1];
-    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
-    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
-    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
-    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
-    is msg.sender platformSupervisor: ${boolArray[7]}
-    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
-    amount: ${amount}, price: ${price}, fundingType: ${fundingType}
-    amount.mul(price): ${amount * price}
-    balanceOf(_to).mul(price): ${ balanceToM * price }
-    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
-    ${amount * price}
-    `);
-    await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-      value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-    console.log(`Successfully minted ${amount} token`);
-    
-    tokenIds = await instHCAT721.methods.getAccountIds(addrAssetBook3, 0, 0).call();
-    balanceXM = await instHCAT721.methods.balanceOf(addrAssetBook3).call();
-    totalAssetBalance = initialAssetPricing * balanceXM;
-    console.log(`\nHCAT721 tokenId = ${tokenIds}, balanceXM = ${balanceXM}
-initialAssetPricing: ${initialAssetPricing}, total asset balance: ${totalAssetBalance}
-[Success] minting 20 tokens to assetbook3 with maximum allowed buyAmount`);
-
-    //-----------------==Check if STO Compliance for balance
-    console.log('\n------------==Check if STO Compliance for balance: addrAssetBook3');
-
-    error = false;
-    amount = 1;
-    console.log(`mintSerialNFT()... to = addrAssetBook3
-    amount: ${amount}, price: ${price}, fundingType: ${fundingType}, serverTime: ${serverTime}`);
-
-    result1 = await instHCAT721.methods.checkMintSerialNFT(_to, amount, price, fundingType, serverTime).call();
-    console.log(result1);
-    boolArray = result1[0];
-    uintArray = result1[1];
-    //console.log('boolArray', boolArray);
-  
-    console.log(`to.isContract(): ${boolArray[0]}, is ctrt@to compatible: ${boolArray[1]}
-    is amount > 0: ${boolArray[2]}, is price > 0: ${boolArray[3]}
-    is fundingType > 0: ${boolArray[4]}, is serverTime > 201905240900: ${boolArray[5]}
-    is tokenId.add(amount) <= maxTotalSupply: ${boolArray[6]}
-    is msg.sender platformSupervisor: ${boolArray[7]}
-    isOkBuyAmount: ${boolArray[8]}, isOkBalanceNew: ${boolArray[9]}
-    authLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
-    `);
-
-    try {
-      await instHCAT721.methods.mintSerialNFT(_to, amount, price, fundingType, serverTime).send({
-        value: '0', from: admin, gas: gasLimitValue, gasPrice: gasPriceValue });
-      error = true;
-    } catch (err) {
-      console.log('[Success] STO Compliance for balance of assetbook1. failed because of balance has exceeded maximum restricted value. err: ', err.toString().substr(0, 120));
-      assert(err);
-    }
-    if (error) {assert(false);}
- */
 
 
 const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pricing) => {
@@ -3995,5 +3924,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensByRegulations
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck
 }
