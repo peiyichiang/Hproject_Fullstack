@@ -106,3 +106,5 @@ public/media/
 *.crt
 *.key
 *.ca-bundle
+
+.DS_Store
