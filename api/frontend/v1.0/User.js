@@ -135,7 +135,7 @@ router.post('/AddUser', function (req, res, next) {
                 u_bankBooklet: user.bankAccount,
                 u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
-                u_bankCode: user.bankCode,
+                u_bankcode: user.bankCode,
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
                 u_investorLevel: 1,
