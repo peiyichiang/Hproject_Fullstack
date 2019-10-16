@@ -4,6 +4,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log;
 
+const { wlogger } = require('../ethereum/contracts/zsetupData');
 const { getTimeServerTime } = require('./utilities');
 const { timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./envVariables');
 const { calculateLastPeriodProfit } = require('../timeserver/mysql');
@@ -24,25 +25,28 @@ if(timeserverMode === 1){
 // '10 * * * * *'  ... for every 10th seconds
 // '59 * * * * *'  ... for every 59th seconds
 schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
-    getTimeServerTime().then(function (time) {
-      console.log(`----------------==[timeserverSource.js]
-get time from time.txt or localTime: ${time}`);
-    });
-    let date = new Date().myFormat();
-    //console.log('--------------==\n',date.slice(0, 4), 'year', date.slice(4, 6), 'month', date.slice(6, 8), 'day', date.slice(8, 10), 'hour', date.slice(10, 12), 'minute');
+    const time = await getTimeServerTime();
+    wlogger.info(`----------------==[timeserverSource.js] ${time}`);
+    
+//     getTimeServerTime().then(function (time) {
+//       wlogger.info(`----------------==[timeserverSource.js]
+// time from new Date(): ${time}`);
+//     });
+    //let time = new Date().myFormat();
+    //wlogger.info('--------------==\n',time.slice(0, 4), 'year', time.slice(4, 6), 'month', time.slice(6, 8), 'day', time.slice(8, 10), 'hour', time.slice(10, 12), 'minute');
 
-    fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), date, function (err) {
-        if (err) console.error(`[Error @ timeserverSource] failed at writing to date.txt`);
-    });
+    // fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), time, function (err) {
+    //     if (err) wlogger.error(`[Error @ timeserverSource] failed at writing to time.txt`);
+    // });
 
     let serverTime;
     try {
-      serverTime = parseInt(date.toString());
+      serverTime = parseInt(time.toString());
     } catch(err) {
-      console.log('[Error] serverTime is not an integer', date.toString());
+      wlogger.error(`[Error] serverTime is not an integer: ${time.toString()}`);
       process.exit(0);
     }
-    //console.log('[timeserverSource.js] serverTime:', serverTime);
+    //wlogger.info(`[timeserverSource.js] serverTime: ${serverTime}`);
   
 
     if(is_addAssetbooksIntoCFC){
@@ -52,7 +56,7 @@ get time from time.txt or localTime: ${time}`);
 
     if(is_makeOrdersExpiredCFED){
       const result = await makeOrdersExpiredCFED(serverTime).catch((err) => {
-        console.log('[Failed @ timeserver: makeOrdersExpiredCFED]: '+ err);
+        wlogger.error(`[Failed @ timeserver: makeOrdersExpiredCFED]: ${err}`);
       });;//blockchain.js
       if(result){
         log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED();'));
@@ -66,7 +70,7 @@ get time from time.txt or localTime: ${time}`);
     //orderDate+3 => expired orders
     if(is_updateExpiredOrders){
       const result = await updateExpiredOrders(serverTime).catch((err) => {
-        console.log('[Failed @ timeserver: updateExpiredOrders]: '+ err);
+        wlogger.error(`[Failed @ timeserver: updateExpiredOrders]: ${err}`);
       });
       if(result){
         log(chalk.green('>> [Success@ timeserver] updateExpiredOrders();'));
@@ -78,7 +82,7 @@ get time from time.txt or localTime: ${time}`);
 
     if(is_updateFundingStateFromDB){
       const result = await updateFundingStateFromDB(serverTime).catch((err) => {
-        console.log('[Failed @ timeserver: updateFundingStateFromDB]: '+ err);
+        wlogger.error(`[Failed @ timeserver: updateFundingStateFromDB]: ${err}`);
       });
       if(result){
         log(chalk.green('>> [Success@ timeserver] updateFundingStateFromDB();'));
@@ -91,7 +95,7 @@ get time from time.txt or localTime: ${time}`);
     //From DB check if product:tokenState needs to be updated
     if(is_updateTokenStateFromDB){
       const result = await updateTokenStateFromDB(serverTime).catch((err) => {
-        console.log('[Failed @ timeserver: updateTokenStateFromDB]: '+ err);
+        wlogger.error(`[Failed @ timeserver: updateTokenStateFromDB]: ${err}`);
       });
       if(result){
         log(chalk.green('>> [Success@ timeserver] updateTokenStateFromDB();'));
@@ -103,8 +107,9 @@ get time from time.txt or localTime: ${time}`);
 
     if(is_calculateLastPeriodProfit){
       const result = await calculateLastPeriodProfit(serverTime).catch((err) => {
-        console.log('[Failed @ timeserver: calculateLastPeriodProfit]: '+ err);
+        wlogger.error(`[Failed @ timeserver: calculateLastPeriodProfit]: ${err}`);
       });
+      wlogger.debug(result);
       if(result){
         log(chalk.green('>> [Success@ timeserver] calculateLastPeriodProfit();'));
       } else {
@@ -114,11 +119,11 @@ get time from time.txt or localTime: ${time}`);
   
 
     // fs.readFile(path.resolve(__dirname, '..', 'data', 'target.json'), function (err, data) {
-    //     if (err) console.error(`[Error @ timeserverSource] failed at reading date.txt`);
+    //     if (err) wlogger.err(`[Error @ timeserverSource] failed at reading time.txt`);
     //     else {
     //         let targets = JSON.parse(data.toString());
     //         // for(let i = 0; i < targets.length; i++) {
-    //         //     sendTime(date, targets[i].host, targets[i].port)
+    //         //     sendTime(time, targets[i].host, targets[i].port)
     //         // }
     //     }
     // })
@@ -128,7 +133,7 @@ get time from time.txt or localTime: ${time}`);
 
 //     var client = net.createConnection({ host, port });
 //     client.on("error", err => {
-//         console.log(`${host}:${port} 連結失敗`)
+//         wlogger.error(`${host}:${port} 連結失敗`)
 //     });
 
 //     client.write(date)

@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
+let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, loglevel;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -42,6 +42,23 @@ if(isNaN(ASSETBOOKAMOUNT)){
   assetbookAmount = ASSETBOOKAMOUNT;
 }
 console.log('assetbookAmount:', assetbookAmount);
+
+//1 error, 2 warn, 3 info, 4 verbose, 5 debug
+const LOGLEVEL = parseInt(process.env.LOGLEVEL);
+if(LOGLEVEL === 1){
+  loglevel = 'error';
+} else if(LOGLEVEL === 2){
+  loglevel = 'warn';
+} else if(LOGLEVEL === 3){
+  loglevel = 'info';
+} else if(LOGLEVEL === 4){
+  loglevel = 'verbose';
+} else if(LOGLEVEL === 5){
+  loglevel = 'debug';
+} else {
+    loglevel = 'warn';
+}
+console.log('loglevel:', loglevel);
 
 //process.exit(0);
 
@@ -134,4 +151,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };

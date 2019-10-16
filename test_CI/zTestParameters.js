@@ -1,26 +1,27 @@
-const { symbolNumber, isTimeserverON } = require('../timeserver/envVariables');
-const { sLog, getArraysFromCSV, getOneAddrPerLineFromCSV } = require('../timeserver/utilities');
 var faker = require('faker');
 var _ = require('lodash');
+const { symbolNumber, isTimeserverON } = require('../timeserver/envVariables');
+const { getArraysFromCSV, getOneAddrPerLineFromCSV } = require('../timeserver/utilities');
+const { wlogger } = require('../ethereum/contracts/zsetupData');
 
-sLog(`\n--------------------== zTestParameters.js`);
+wlogger.info(`\n--------------------== zTestParameters.js`);
 let crowdFundingAddrArray = [], tokenControllerAddrArray = [], symbolArray = [], nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, fundmanager, addrAssetBookArray;
 
 const assetOwnerArray = [], assetOwnerpkRawArray = [], assetbookArray = [], userArray = [];
 
 const [EOA_List, badEOAs] = getArraysFromCSV('./test_CI/EOA_List.csv', 4);
 if(badEOAs.length > 0){
-  console.warn(`badEOAs are found: ${badEOAs}`);
+  wlogger.warn(`badEOAs are found: ${badEOAs}`);
 } else {
-  console.log(`all EOAs are complete in parts`);
+  wlogger.debug(`all EOAs are complete in parts`);
 }
 
-console.log('--------==');
+wlogger.debug('--------==');
 const [Assetbooks, badAssetbooks ] = getOneAddrPerLineFromCSV('./test_CI/Assetbooks.csv');
 if(badAssetbooks.length > 0){
-  console.warn(`badAssetbooks are found: ${badAssetbooks}`);
+  wlogger.warn(`badAssetbooks are found: _${badAssetbooks}_`);
 } else {
-  console.log(`all assetbooks are complete in parts`);
+  wlogger.debug(`all assetbooks are complete in parts`);
 }
 
 /** deployed contracts
@@ -107,7 +108,7 @@ const productObjArray = [productObj0, productObj1, productObj2, productObj3, pro
 
 
 // const currentTime = await timer.getTimeServerTime();
-// console.log('currentTime', currentTime);
+// wlogger.debug('currentTime', currentTime);
 let TimeOfDeployment_CF, CFSD, CFED, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid;
 if(isTimeserverON){
   TimeOfDeployment_CF = -1;
@@ -157,7 +158,7 @@ productObjArray.forEach( (obj) => {
   crowdFundingAddrArray.push(obj.addrCrowdFunding);
   tokenControllerAddrArray.push(obj.addrTokenController)
 });
-sLog(`\nconst symbolArray = ${symbolArray}; \nconst crowdFundingAddrArray = ${crowdFundingAddrArray}; \nconst tokenControllerAddrArray = ${ tokenControllerAddrArray}\nsymbolNumber: ${symbolNumber}`);
+wlogger.debug(`\nconst symbolArray = ${symbolArray}; \nconst crowdFundingAddrArray = ${crowdFundingAddrArray}; \nconst tokenControllerAddrArray = ${ tokenControllerAddrArray}\nsymbolNumber: ${symbolNumber}`);
 
 const productObjN = productObjArray[symbolNumber];
 nftName = productObjN.nftName;
@@ -201,7 +202,7 @@ EOA_List.forEach((item, index)=> {
   if(index < 10){ fillingDigit = '0';
   } else { fillingDigit = ''; }
 
-  //console.log(`\nitem: ${item}`);
+  //wlogger.debug(`\nitem: ${item}`);
   const digits = fillingDigit+index;
   const email = '000a'+digits+'@gmail.com';
   const password = 'user'+digits+'pw';
@@ -213,7 +214,7 @@ EOA_List.forEach((item, index)=> {
   const assetBookX = Assetbooks[index];
   const tokenAmtToBuy = tokenAmtToBuyBase + index;
 
-  //console.log(`\n  index: ${index}, EOA: ${assetOwnerX} ${typeof assetOwnerX} \n  pkey: ${privateKeyX} ${typeof privateKeyX}`);
+  //wlogger.debug(`\n  index: ${index}, EOA: ${assetOwnerX} ${typeof assetOwnerX} \n  pkey: ${privateKeyX} ${typeof privateKeyX}`);
   assetOwnerArray.push(assetOwnerX);
   assetOwnerpkRawArray.push(privateKeyX);
 
@@ -290,7 +291,7 @@ const incomeArrangement5 = new incomeArrangementObject(nftSymbol, TimeTokenUnloc
 const incomeArrangementArray = [incomeArrangement1, incomeArrangement2, incomeArrangement3, incomeArrangement4, incomeArrangement5];
 
 
-sLog(`
+wlogger.debug(`
 const TimeOfDeployment_CF = ${TimeOfDeployment_CF};
 const CFSD = ${CFSD};
 const CFED = ${CFED};

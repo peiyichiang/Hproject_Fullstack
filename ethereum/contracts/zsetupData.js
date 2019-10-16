@@ -1,17 +1,51 @@
 const winston = require('winston');
 const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
-//const { sLog } = require('../../timeserver/utilities');
-const sLog = str => {
-  if(process.env.IS_LOG_ON){
-    console.log(str);
-  }
-}
+const { loglevel } = require('../../timeserver/envVariables');
 const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AOOT1907', 'NCCC0801', 'TEST01'];//'AURA1904', 'AVEN1902', 'AJUP1903', 'ANEP1905',
 const excludedSymbolsIA = [];
 
-sLog('--------------------==zsetupData.js');
+//---------------------------==Winston Logger
+//const loglevel = 'warn';//to show/hide logs.
+//value = silly, debug, verbose, info, warn, and error
+//console.log => wlogger.verbose, wlogger.warn, wlogger.error
+
+const logFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp(),
+  winston.format.align(),
+  winston.format.printf(
+    info => `${info.level}: ${info.message}`,
+  ),
+);//${info.timestamp} 
+
+//add file and console wloggers to the winston instance
+winston.loggers.add('format1', {
+  format: logFormat,
+  transports: [
+    new winstonDailyRotateFile({
+      filename: './logs/custom-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'warn',
+    }),
+    new winston.transports.Console({
+      level: loglevel,
+    }),
+  ],
+});
+
+const wlogger = winston.loggers.get('format1');
+// wlogger.silly('log level = silly, Winston!');
+// wlogger.debug(`log level = debug, Winston!');
+// wlogger.verbose('log level = verbose, Winston!');
+wlogger.info(`log level = info, Winston!`);
+wlogger.warn(`log level = warn, Winston! ${loglevel}`);
+wlogger.error('log level = danger, Winston!'+ loglevel);
+
 //---------------------------==
+//---------------------------==
+wlogger.info(`--------------------==zsetupData.js`);
+
 /*
 authLevel & STO investor classification on purchase amount and holding balance restrictions in case of public offering and private placement, for each symbol; currency = NTD
 1 Natural person: 0, 0; UnLTD, UnLTD;
@@ -44,287 +78,249 @@ const COMPLIANCE_LEVELS = {
 
 
 const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
-  console.log('\n[checkCompliance] authLevel', authLevel, typeof authLevel, 'balance', balance, typeof balance, 'orderPayment', orderPayment, typeof orderPayment, 'fundingType', fundingType, typeof fundingType);
+  wlogger.debug(`\n[checkCompliance] authLevel: ${authLevel}, ${typeof authLevel}, balance: ${balance} ${typeof balance}, orderPayment: ${orderPayment} ${typeof orderPayment}, fundingType: ${fundingType} ${typeof fundingType}`);
 
   if(typeof authLevel !== 'string'){
-    console.log('\n[checkCompliance] authLevel should be of type string:', authLevel);
+    wlogger.debug(`\n[checkCompliance] authLevel should be of type string: ${authLevel}`);
     return false;
   } else if (typeof fundingType !== 'string') {
-    console.log('\n[checkCompliance] fundingType should be of type string:', fundingType);
+    wlogger.debug(`\n[checkCompliance] fundingType should be of type string: ${fundingType}`);
     return false;
   } else if (typeof balance !== 'number' || isNaN(balance)) {
-    console.log('\n[checkCompliance] balance should be of type number and not NaN:', balance);
+    wlogger.debug(`\n[checkCompliance] balance should be of type number and not NaN: ${balance}`);
     return false;
   } else if (typeof orderPayment !== 'number' || isNaN(balance)) {
-    console.log('\n[checkCompliance] orderPayment should be of type number and not NaN:', orderPayment);
+    wlogger.debug(`\n[checkCompliance] orderPayment should be of type number and not NaN: ${orderPayment}`);
     return false;
 
   } else if (fundingType === "PublicOffering" || fundingType === '1') {
-      console.log("inside fundingType == PublicOffering\n", COMPLIANCE_LEVELS[authLevel]);
+      wlogger.debug(`inside fundingType == PublicOffering\n, COMPLIANCE_LEVELS[authLevel]: ${COMPLIANCE_LEVELS[authLevel]}`);
       if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic) {
-          console.log(`orderPayment ${orderPayment} should be <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          wlogger.debug(`orderPayment ${orderPayment} should be <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
           return false;
 
       } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePublic) {
-          console.log(`balance + orderPayment ${balance + orderPayment} should be <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          wlogger.debug(`balance + orderPayment ${balance + orderPayment} should be <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
           return false;
 
         } else {
-          console.log("passing both orderPayment and new balance regulation for Public Offering");
-          console.log(`orderPayment ${orderPayment} <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
-          console.log(`balance + orderPayment ${balance + orderPayment} <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          wlogger.debug(`passing both orderPayment and new balance regulation for Public Offering`);
+          wlogger.debug(`orderPayment ${orderPayment} <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          wlogger.debug(`balance + orderPayment ${balance + orderPayment} <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
           return true;
       }
 
   } else if (fundingType === "PrivatePlacement" || fundingType === '2') {
-      console.log("inside fundingType == PrivatePlacement\n", COMPLIANCE_LEVELS[authLevel]);
+      wlogger.debug(`inside fundingType == PrivatePlacement \n COMPLIANCE_LEVELS[authLevel]: ${COMPLIANCE_LEVELS[authLevel]}`);
       if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate) {
-          console.log(`orderPayment ${orderPayment} should be <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          wlogger.debug(`orderPayment ${orderPayment} should be <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
           return false;
 
       } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePrivate) {
-          console.log(`balance + orderPayment ${balance+orderPayment} should be <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
+          wlogger.debug(`balance + orderPayment ${balance+orderPayment} should be <= maxBalancePrivate ${COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
           return false;
 
         } else {
-          console.log("passing both orderPayment and new balance regulation for Private Placement");
-          console.log(`orderPayment ${orderPayment} <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
-          console.log(`balance + orderPayment ${balance+orderPayment} <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
+          wlogger.debug(`passing both orderPayment and new balance regulation for Private Placement`);
+          wlogger.debug(`orderPayment ${orderPayment} <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          wlogger.debug(`balance + orderPayment ${balance+orderPayment} <= maxBalancePrivate ${ COMPLIANCE_LEVELS[authLevel].maxBalancePrivate}`);
           return true;
       }
   } else {
-      console.log('fundingType is not valid', fundingType);
+      wlogger.debug(`fundingType is not valid: ${fundingType}`);
       return false;
   }
 
 }
 
-console.log('loading blockchain.js smart contract json files');
+wlogger.debug(`loading blockchain.js smart contract json files`);
 
 const Helium = require('./build/Helium.json');
 
 if (Helium === undefined){
-  console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] Helium is defined');
+  wlogger.debug(`[Good] Helium is defined`);
   if (Helium.abi === undefined){
-    console.log('[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] Helium.abi is defined');
-      //console.log('Helium.abi:', Helium.abi);
+    wlogger.debug(`[Good] Helium.abi is defined`);
+      //wlogger.debug(`Helium.abi:: ${Helium.abi);
   }
   if (Helium.bytecode === undefined || Helium.bytecode.length < 10){
-    console.log('[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] Helium.bytecode is defined');
-      //console.log('Helium.bytecode:', Helium.bytecode);
+    wlogger.debug(`[Good] Helium.bytecode is defined`);
+      //wlogger.debug(`Helium.bytecode:: ${Helium.bytecode);
   }
-  //console.log(Helium);
+  //wlogger.debug(Helium);
 }
 
 const AssetBook = require('./build/AssetBook.json');
 if (AssetBook === undefined){
-  console.log('[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] AssetBook is defined');
+  wlogger.debug(`[Good] AssetBook is defined`);
   if (AssetBook.abi === undefined){
-    console.log('[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] AssetBook.abi is defined');
-      //console.log('AssetBook.abi:', AssetBook.abi);
+    wlogger.debug(`[Good] AssetBook.abi is defined`);
+      //wlogger.debug(`AssetBook.abi:: ${AssetBook.abi);
   }
   if (AssetBook.bytecode === undefined || AssetBook.bytecode.length < 10){
-    console.log('[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] AssetBook.bytecode is defined');
-      //console.log('AssetBook.bytecode:', AssetBook.bytecode);
+    wlogger.debug(`[Good] AssetBook.bytecode is defined`);
+      //wlogger.debug(`AssetBook.bytecode:: ${AssetBook.bytecode);
   }
-  //console.log(AssetBook);
+  //wlogger.debug(AssetBook);
 }
 
 
 const Registry = require('./build/Registry.json');
 if (Registry === undefined){
-  console.log('[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] Registry is defined');
+  wlogger.debug(`[Good] Registry is defined`);
   if (Registry.abi === undefined){
-    console.log('[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] Registry.abi is defined');
-      //console.log('Registry.abi:', Registry.abi);
+    wlogger.debug(`[Good] Registry.abi is defined`);
+      //wlogger.debug(`Registry.abi:: ${Registry.abi);
   }
   if (Registry.bytecode === undefined || Registry.bytecode.length < 10){
-    console.log('[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] Registry.bytecode is defined');
-      //console.log('Registry.bytecode:', Registry.bytecode);
+    wlogger.debug(`[Good] Registry.bytecode is defined`);
+      //wlogger.debug(`Registry.bytecode:: ${Registry.bytecode);
   }
-  //console.log(Registry);
+  //wlogger.debug(Registry);
 }
 
 const TokenController = require('./build/TokenController.json');
 if (TokenController === undefined){
-  console.log('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] TokenController is defined');
+  wlogger.debug(`[Good] TokenController is defined`);
   if (TokenController.abi === undefined){
-    console.log('[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] TokenController.abi is defined');
-      //console.log('TokenController.abi:', TokenController.abi);
+    wlogger.debug(`[Good] TokenController.abi is defined`);
+      //wlogger.debug(`TokenController.abi:: ${TokenController.abi);
   }
   if (TokenController.bytecode === undefined || TokenController.bytecode.length < 10){
-    console.log('[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] TokenController.bytecode is defined');
-      //console.log('TokenController.bytecode:', TokenController.bytecode);
+    wlogger.debug(`[Good] TokenController.bytecode is defined`);
+      //wlogger.debug(`TokenController.bytecode:: ${TokenController.bytecode);
   }
-  //console.log(TokenController);
+  //wlogger.debug(TokenController);
 }
 
 const HCAT721 = require('./build/HCAT721_AssetToken.json');
 if (HCAT721 === undefined){
-  console.log('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] HCAT721 is defined');
+  wlogger.debug(`[Good] HCAT721 is defined`);
   if (HCAT721.abi === undefined){
-    console.log('[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] HCAT721.abi is defined');
-      //console.log('HCAT721.abi:', HCAT721.abi);
+    wlogger.debug(`[Good] HCAT721.abi is defined`);
+      //wlogger.debug(`HCAT721.abi:: ${HCAT721.abi);
   }
   if (HCAT721.bytecode === undefined || HCAT721.bytecode.length < 10){
-    console.log('[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] HCAT721.bytecode is defined');
-      //console.log('HCAT721.bytecode:', HCAT721.bytecode);
+    wlogger.debug(`[Good] HCAT721.bytecode is defined`);
+      //wlogger.debug(`HCAT721.bytecode:: ${HCAT721.bytecode);
   }
-  //console.log(HCAT721);
+  //wlogger.debug(HCAT721);
 }
 
 const HCAT721_Test = '';
 /*
 const HCAT721_Test = require('./build/HCAT721_AssetToken_Test.json');
 if (HCAT721_Test === undefined) {
-  console.log('[Error] HCAT721_Test is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] HCAT721_Test is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] HCAT721_Test is defined');
+  wlogger.debug(`[Good] HCAT721_Test is defined`);
   if (HCAT721_Test.abi === undefined) {
-    console.log('[Error] HCAT721_Test.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] HCAT721_Test.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] HCAT721_Test.abi is defined');
-    //console.log('HCAT721_Test.abi:', HCAT721_Test.abi);
+    wlogger.debug(`[Good] HCAT721_Test.abi is defined`);
+    //wlogger.debug(`HCAT721_Test.abi:: ${HCAT721_Test.abi);
   }
   if (HCAT721_Test.bytecode === undefined || HCAT721_Test.bytecode.length < 10) {
-    console.log('[Error] HCAT721_Test.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] HCAT721_Test.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] HCAT721_Test.bytecode is defined');
-    //console.log('HCAT721_Test.bytecode:', HCAT721_Test.bytecode);
+    wlogger.debug(`[Good] HCAT721_Test.bytecode is defined`);
+    //wlogger.debug(`HCAT721_Test.bytecode:: ${HCAT721_Test.bytecode);
   }
-  //console.log(HCAT721_Test);
+  //wlogger.debug(HCAT721_Test);
 }*/
 
 const CrowdFunding = require('./build/CrowdFunding.json');
 if (CrowdFunding === undefined){
-  console.log('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] CrowdFunding is defined');
+  wlogger.debug(`[Good] CrowdFunding is defined`);
   if (CrowdFunding.abi === undefined){
-    console.log('[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] CrowdFunding.abi is defined');
-      //console.log('CrowdFunding.abi:', CrowdFunding.abi);
+    wlogger.debug(`[Good] CrowdFunding.abi is defined`);
+      //wlogger.debug(`CrowdFunding.abi:: ${CrowdFunding.abi);
   }
   if (CrowdFunding.bytecode === undefined || CrowdFunding.bytecode.length < 10){
-    console.log('[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] CrowdFunding.bytecode is defined');
-      //console.log('CrowdFunding.bytecode:', CrowdFunding.bytecode);
+    wlogger.debug(`[Good] CrowdFunding.bytecode is defined`);
+      //wlogger.debug(`CrowdFunding.bytecode:: ${CrowdFunding.bytecode);
   }
-  //console.log(CrowdFunding);
+  //wlogger.debug(CrowdFunding);
 }
 
 const IncomeManager = require('./build/IncomeManagerCtrt.json');
 if (IncomeManager === undefined){
-  console.log('[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] IncomeManager is defined');
+  wlogger.debug(`[Good] IncomeManager is defined`);
   if (IncomeManager.abi === undefined){
-    console.log('[Error] IncomeManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] IncomeManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] IncomeManager.abi is defined');
-      //console.log('IncomeManager.abi:', IncomeManager.abi);
+    wlogger.debug(`[Good] IncomeManager.abi is defined`);
+      //wlogger.debug(`IncomeManager.abi:: ${IncomeManager.abi);
   }
   if (IncomeManager.bytecode === undefined || IncomeManager.bytecode.length < 10){
-    console.log('[Error] IncomeManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] IncomeManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] IncomeManager.bytecode is defined');
-      //console.log('IncomeManager.bytecode:', IncomeManager.bytecode);
+    wlogger.debug(`[Good] IncomeManager.bytecode is defined`);
+      //wlogger.debug(`IncomeManager.bytecode:: ${IncomeManager.bytecode);
   }
-  //console.log(IncomeManager);
+  //wlogger.debug(IncomeManager);
 }
 
 const ProductManager = require('./build/ProductManager.json');
 if (ProductManager === undefined){
-  console.log('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+  wlogger.debug(`[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  sLog('[Good] ProductManager is defined');
+  wlogger.debug(`[Good] ProductManager is defined`);
   if (ProductManager.abi === undefined){
-    console.log('[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] ProductManager.abi is defined');
-      //console.log('ProductManager.abi:', ProductManager.abi);
+    wlogger.debug(`[Good] ProductManager.abi is defined`);
+      //wlogger.debug(`ProductManager.abi:: ${ProductManager.abi);
   }
   if (ProductManager.bytecode === undefined || ProductManager.bytecode.length < 10){
-    console.log('[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<');
+    wlogger.debug(`[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    sLog('[Good] ProductManager.bytecode is defined');
-      //console.log('ProductManager.bytecode:', ProductManager.bytecode);
+    wlogger.debug(`[Good] ProductManager.bytecode is defined`);
+      //wlogger.debug(`ProductManager.bytecode:: ${ProductManager.bytecode);
   }
-  //console.log(ProductManager);
+  //wlogger.debug(ProductManager);
 }
 
 
 
-//---------------------------==Winston Logger
-const loglevel = 'warn';//to show/hide logs.
-//value = silly, debug, verbose, info, warn, and error
-//console.log => wlogger.verbose, wlogger.warn, wlogger.error
-
-const logFormat = winston.format.combine(
-  winston.format.colorize(),
-  winston.format.timestamp(),
-  winston.format.align(),
-  winston.format.printf(
-    info => `${info.level}: ${info.message}`,
-  ),
-);//${info.timestamp} 
-
-//add file and console wloggers to the winston instance
-winston.loggers.add('format1', {
-  format: logFormat,
-  transports: [
-    new winstonDailyRotateFile({
-      filename: './logs/custom-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      level: 'warn',
-    }),
-    new winston.transports.Console({
-      level: loglevel,
-    }),
-  ],
-});
-
-const wlogger = winston.loggers.get('format1');
-// wlogger.silly('Trace message, Winston!');
-// wlogger.debug('Debug message, Winston!');
-// wlogger.verbose('A bit more info, Winston!');
-// wlogger.info('Hello, Winston!');
-// wlogger.warn('Heads up, Winston!');
-// wlogger.error('Danger, Winston!');
-
-//---------------------------==
 
 
 module.exports = { COMPLIANCE_LEVELS, checkCompliance,

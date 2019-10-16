@@ -2578,9 +2578,9 @@ const mintTokensWithRegulationCheck_API = async () => {
   /**
   Assume order amounts are all correct under Regulations
   $15k each token for max buyAmount 300k and max balance 300k...
-  # mint 21 to accX ... failed due to over buyAmount
-  # mint 12, 7, 1 tokens to accX okay
-  # mint 1 to accX ... failed due to over balanceMax
+  # mint 21 to accountX ... failed due to over buyAmount
+  # mint 12, 7, 1 tokens to accountX successfully
+  # mint 1 to accountX ... failed due to over balanceMax
    */
 
   const userArrayPartial = userArray.slice(0, assetbookAmount);

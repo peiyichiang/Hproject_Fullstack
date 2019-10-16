@@ -1,32 +1,26 @@
 const fs = require('fs');
 const path = require('path');
 
-const { excludedSymbols } = require('../ethereum/contracts/zsetupData');
-console.log('--------------------== utilities.js');
+const { excludedSymbols, wlogger } = require('../ethereum/contracts/zsetupData');
+wlogger.info(`--------------------== utilities.js`);
 //----------------------------==Log
-let IS_LOG_ON;
-// try{
-//   IS_LOG_ON = process.env.IS_LOG_ON;
-// } catch(err){
-//   console.log(`${err}`);
-// };
-if(process.env.IS_LOG_ON){
-  console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=> true`);
-} else{
-  console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=>false`);
-}
-const sLog = str => {
-  if(process.env.IS_LOG_ON){
-    console.log(str);
-  }
-}
+// if(process.env.IS_LOG_ON){
+//   console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=> true`);
+// } else{
+//   console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=>false`);
+// }
+// const sLog = str => {
+//   if(process.env.IS_LOG_ON){
+//     console.log(str);
+//   }
+// }
 
 const checkEq = (value1, value2) => {
   if (value1 === value2) {
-    console.log('checked ok');
+    wlogger.debug(`checked ok`);
     return [true, ''];
   } else {
-    console.log("\x1b[31m", '[Error] _' + value1 + '<vs>' + value2 + '_', typeof value1, typeof value2);
+    wlogger.debug(`\x1b[31m [Error] _${value1} <vs> ${value2}_ ${typeof value1}, ${typeof value2}`);
     const err = Error('checkEq failed');
     return [false, err];
     //process.exit(1);
@@ -52,14 +46,17 @@ const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myOb
 
 const getTimeServerTime = () => {
   return new Promise(function (resolve, reject) {
-    try {
-      let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString();
-      resolve(time);
-    } catch (error) {
-      console.log(`cannot find timeserver time. Use local time instead`);
-      let time = new Date().myFormat();
-      resolve(time);
-    }
+    let time = new Date().myFormat();
+    resolve(time);
+
+    // try {
+    //   let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString();
+    //   resolve(time);
+    // } catch (error) {
+    //   wlogger.debug(`cannot find timeserver time. Use local time instead`);
+    //   let time = new Date().myFormat();
+    //   resolve(time);
+    // }
   });
 }
 
@@ -93,29 +90,32 @@ const getArraysFromCSV = (eoaPath, itemNumberPerLine) => {
       .map(e => e.trim()) // remove white spaces for each line
       .map(e => e.split(',').map(e => e.trim())); // split each line to array
  
-  // console.log('array[-3]:', array[array.length-3]);
-  // console.log('array[-2]:', array[array.length-2]);
-  // console.log('array[-1]:', array[array.length-1]);
+  // wlogger.debug(`array[-3]:: ${array[array.length-3]);
+  // wlogger.debug(`array[-2]:: ${array[array.length-2]);
+  // wlogger.debug(`array[-1]:: ${array[array.length-1]);
 
   const good = [], bad = [];
   array.forEach((item, index)=> {
     if(item.length === itemNumberPerLine) {
       good.push(item);
     } else {
-      bad.push(item);
+      if(item.length > 1){
+        wlogger.debug(`item.length: ${item.length} =|${item}|=`);
+        bad.push(item);
+      }
     }
   });
   // const filtered = array.filter((el) => {
   //   return el.length === 4;
   // });
-  // console.log('filtered[-3]:', filtered[filtered.length-3]);
-  // console.log('filtered[-2]:', filtered[filtered.length-2]);
-  // console.log('filtered[-1]:', filtered[filtered.length-1]);
+  // wlogger.debug(`filtered[-3]:: ${filtered[filtered.length-3]);
+  // wlogger.debug(`filtered[-2]:: ${filtered[filtered.length-2]);
+  // wlogger.debug(`filtered[-1]:: ${filtered[filtered.length-1]);
 
-  //console.log('as JSON:', JSON.stringify(data, '', 2)); // as json
+  //wlogger.debug(`as JSON:: ${JSON.stringify(data, '', 2)); // as json
 //   data.forEach((item, index)=> {
-//     //console.log(`\nitem: ${item}`);
-//     console.log(`\n------------==index: ${index}
+//     //wlogger.debug(`\nitem: ${item}`);
+//     wlogger.debug(`\n------------==index: ${index}
 // EOA: ${item[1]} ${typeof item[1]}
 // pkey: ${item[3]} ${typeof item[3]}`);
 //   });
@@ -128,14 +128,17 @@ const getOneAddrPerLineFromCSV = (eoaPath) => {
       .split('\n') // split string to lines
       .map(e => e.trim()); // remove white spaces for each line
  
-  //console.log('array:', array);
+  //wlogger.debug(`array:: ${array);
   const good = [], bad = [];
   array.forEach((item, index)=> {
     if(item.substring(0,2) === '0x' && item.length === 42) {
-      console.log(`${index} ${item} ${typeof item}`);
+      wlogger.debug(`${index} ${item} ${typeof item}`);
       good.push(item);
     } else {
-      bad.push(item);
+      if(item.length > 1){
+        wlogger.debug(`item.length: ${item.length} =|${item}|=`);
+        bad.push(item);
+      }
     }
   });
 
@@ -149,16 +152,16 @@ const getOneAddrPerLineFromCSV = (eoaPath) => {
 
 const reduceArrays = (toAddressArray, amountArray) => {
   const toAddressArrayOut = [...new Set(toAddressArray)];
-  console.log('toAddressArrayOut', toAddressArrayOut);
+  wlogger.debug(`toAddressArrayOut: ${toAddressArrayOut}`);
 
   const amountArrayOut = [];
   for(let i = 0; i < toAddressArrayOut.length; i++){
     indexes = getAllIndexes(toAddressArray, toAddressArrayOut[i]);
-    console.log('indexes', indexes);
+    wlogger.debug(`indexes: ${indexes}`);
     sum = sumIndexedValues(indexes, amountArray);
     amountArrayOut.push(sum);
   }
-  console.log('amountArrayOut', amountArrayOut);
+  wlogger.debug(`amountArrayOut: ${amountArrayOut}`);
   return [toAddressArrayOut, amountArrayOut];
 }
 
@@ -190,14 +193,14 @@ const getInvestQty = () => getRndIntegerBothEnd(500,1000);
 
 const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   if(typeof arraylength !== 'number'){
-    console.error('[Error] arraylength should be typeof number');
+    wlogger.error(`[Error] arraylength should be typeof number`);
     process.exit(1);
   } else if(arraylength > 10 || arraylength < 1) {
-    console.error('[Error] arraylength should be <= 10 and >= 1');
+    wlogger.error(`[Error] arraylength should be <= 10 and >= 1`);
     process.exit(1);
   }
   //const totalAmountToInvest = 750 * arraylength;
-  console.log(`totalAmountToInvest: ${totalAmountToInvest}`)
+  wlogger.debug(`totalAmountToInvest: ${totalAmountToInvest}`)
   const userIndexArray = [];
   const tokenCountArray = [];
   let usrIdx;
@@ -205,7 +208,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     do{
       usrIdx = getRndIntegerBothEnd(0, 9);
     }while(userIndexArray.includes(usrIdx))
-    //console.log('usrIdx:', usrIdx);
+    //wlogger.debug(`usrIdx:: ${usrIdx);
     const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
 
     if(idx === arraylength-1 && remainingQty > 0){
@@ -222,10 +225,10 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     } 
   }
   const tokenCountTotal = arraySum(tokenCountArray);
-  console.log('tokenCountTotal:', tokenCountTotal);
+  wlogger.debug(`tokenCountTotal: ${tokenCountTotal}`);
 
   if(tokenCountTotal === totalAmountToInvest && tokenCountArray.length === arraylength && userIndexArray.length === arraylength){
-    console.log('Tested Good: tokenCountTotal, tokenCountArray length, and userIndexArray length are all correct');
+    wlogger.debug(`Tested Good: tokenCountTotal, tokenCountArray length, and userIndexArray length are all correct`);
     return [userIndexArray, tokenCountArray];
   } else {
     return [undefined, undefined];
@@ -234,159 +237,159 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
 
 
 async function asyncForEach(array, callback) {
-  console.log('\n------------------==asyncForEach:\n', array);
+  wlogger.debug(`\n------------------==asyncForEach:\n ${array}`);
   for (let idx = 0; idx < array.length; idx++) {
     const item = array[idx];
-    console.log(`\n--------------==next in asyncForEach
+    wlogger.debug(`\n--------------==next in asyncForEach
     idx: ${idx}, ${item}`);
     if(typeof item === 'object' && item !== null){
       if(excludedSymbols.includes(item.o_symbol)){
-        console.log('Skipping symbol:', item.o_symbol);
+        wlogger.debug(`Skipping symbol: ${item.o_symbol}`);
         continue;
       } else {
         await callback(item, idx).catch((err) => {
-          console.log('\n[Error@asyncForEach > callback1]', err);
+          wlogger.debug(`\n[Error@asyncForEach > callback1] ${err}`);
         });
       }
     } else {
       await callback(item, idx).catch((err) => {
-        console.log('\n[Error@asyncForEach > callback2]', err);
+        wlogger.debug(`\n[Error@asyncForEach > callback2] ${err}`);
       });
     }
   }
 }
 
 async function asyncForEachTsMain(array, callback) {
-  console.log("\n--------------==asyncForEachTsMain:\n", array);
+  wlogger.debug(`\n--------------==asyncForEachTsMain:\n${array}`);
   for (let idx = 0; idx < array.length; idx++) {
     const item = array[idx];
-    console.log(`--------------==next in asyncForEachTsMain()
+    wlogger.debug(`\n--------------==next in asyncForEachTsMain()
     idx: ${idx}, ${item}`);
     if(typeof item === 'object' && item !== null){
       if(excludedSymbols.includes(item.o_symbol)){
-        console.log('Skipping symbol:', item.o_symbol);
+        wlogger.debug(`Skipping symbol: ${item.o_symbol}`);
         continue;
       } else {
         await callback(item, idx, array).catch((err) => {
-          console.log('\n[Error@asyncForEachTsMain > callback1]', err);
+          wlogger.debug(`\n[Error@asyncForEachTsMain > callback1] ${err}`);
         });
       }
     } else {
       await callback(item, idx, array).catch((err) => {
-        console.log('\n[Error@asyncForEachTsMain > callback2]', err);
+        wlogger.debug(`\n[Error@asyncForEachTsMain > callback2] ${err}`);
       });
     }
   }
 }
 
 async function asyncForEachMint(toAddrArray, callback) {
-  console.log('\n------------------==asyncForEachMint');
+  wlogger.debug(`\n------------------==asyncForEachMint`);
   const idxMintMax = toAddrArray.length -1;
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
     const toAddr = toAddrArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachMint
+    wlogger.debug(`\n--------------==next in asyncForEachMint
     idxMint: ${idxMint} out of ${idxMintMax}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachMint > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachMint > callback] ${err}`);
       });
   }
 }
 async function asyncForEachMint2(toAddrArray, idxMint, idxMintMax, callback) {
-  console.log('\n------------------==asyncForEachMint2');
+  wlogger.debug(`\n------------------==asyncForEachMint2`);
   const idxMintSubMax = toAddrArray.length -1;
   for (let idxMintSub = 0; idxMintSub < toAddrArray.length; idxMintSub++) {
     const toAddr = toAddrArray[idxMintSub];
-    console.log(`\n--------------==next in asyncForEachMint2
+    wlogger.debug(`\n--------------==next in asyncForEachMint2
     idxMintSub: ${idxMintSub} out of ${idxMintSubMax}
     idxMint: ${idxMint} out of ${idxMintMax}
     toAddress: ${toAddr}`);
     await callback(toAddr, idxMintSub).catch((err) => {
-      console.log('\n[Error@asyncForEachMint2 > callback]', err);
+      wlogger.debug(`\n[Error@asyncForEachMint2 > callback] ${err}`);
     });
   }
 }
 
 
 async function asyncForEachCFC(toAddrArray, callback) {
-  console.log('\n------------------==asyncForEachCFC');
+  wlogger.debug(`\n------------------==asyncForEachCFC`);
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
     const toAddr = toAddrArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachCFC
+    wlogger.debug(`\n--------------==next in asyncForEachCFC
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachCFC > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachCFC > callback] ${err}`);
       });
   }
 }
 
 async function asyncForEachAbCFC(toAddrArray, callback) {
-  console.log('\n------------------==asyncForEachAbCFC');
+  wlogger.debug(`\n------------------==asyncForEachAbCFC`);
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
     const toAddr = toAddrArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachAbCFC
+    wlogger.debug(`\n--------------==next in asyncForEachAbCFC
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachAbCFC > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachAbCFC > callback] ${err}`);
       });
   }
 }
 
 async function asyncForEachAbCFC2(toAddrArray, callback) {
-  console.log('\n------------------==asyncForEachAbCFC2');
+  wlogger.debug(`\n------------------==asyncForEachAbCFC2`);
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
     const toAddr = toAddrArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachAbCFC2
+    wlogger.debug(`\n--------------==next in asyncForEachAbCFC2
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachAbCFC2 > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachAbCFC2 > callback] ${err}`);
       });
   }
 }
 
 async function asyncForEachAbCFC3(toAddrArray, callback) {
-  console.log('\n------------------==asyncForEachAbCFC3');
+  wlogger.debug(`\n------------------==asyncForEachAbCFC3`);
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
     const toAddr = toAddrArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachAbCFC3
+    wlogger.debug(`\n--------------==next in asyncForEachAbCFC3
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachAbCFC3 > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachAbCFC3 > callback] ${err}`);
       });
   }
 }
 
 async function asyncForEachOrderExpiry(toAddrArray, callback) {
-  console.log('\n------------------==asyncForEachOrderExpiry');
+  wlogger.debug(`\n------------------==asyncForEachOrderExpiry`);
   for (let idxMint = 0; idxMint < toAddrArray.length; idxMint++) {
     const toAddr = toAddrArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachOrderExpiry
+    wlogger.debug(`\n--------------==next in asyncForEachOrderExpiry
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachOrderExpiry > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachOrderExpiry > callback] ${err}`);
       });
   }
 }
 
 async function asyncForEachAssetRecordRowArray(inputArray, callback) {
-  console.log('\n------------------==asyncForEachAssetRecordRowArray');
+  wlogger.debug(`\n------------------==asyncForEachAssetRecordRowArray`);
   for (let idxMint = 0; idxMint < inputArray.length; idxMint++) {
     const toAddr = inputArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachAssetRecordRowArray
+    wlogger.debug(`\n--------------==next in asyncForEachAssetRecordRowArray
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachAssetRecordRowArray > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachAssetRecordRowArray > callback] ${err}`);
       });
   }
 }
 
 async function asyncForEachAssetRecordRowArray2(inputArray, callback) {
-  console.log('\n------------------==asyncForEachAssetRecordRowArray2');
+  wlogger.debug(`\n------------------==asyncForEachAssetRecordRowArray2`);
   for (let idxMint = 0; idxMint < inputArray.length; idxMint++) {
     const toAddr = inputArray[idxMint];
-    console.log(`\n--------------==next in asyncForEachAssetRecordRowArray2
+    wlogger.debug(`\n--------------==next in asyncForEachAssetRecordRowArray2
     idxMint: ${idxMint}, ${toAddr}`);
       await callback(toAddr, idxMint).catch((err) => {
-        console.log('\n[Error@asyncForEachAssetRecordRowArray2 > callback]', err);
+        wlogger.debug(`\n[Error@asyncForEachAssetRecordRowArray2 > callback] ${err}`);
       });
   }
 }
@@ -399,13 +402,13 @@ const checkTargetAmounts = (existingBalances, targetAmounts) => {
   if(isEmpty(existingBalances) || isEmpty(targetAmounts)){
     mesg = 'existingBalances or targetAmounts is emtpy!';
     //throw new Error(mesg);
-    console.log(mesg);
+    wlogger.debug(`${mesg}`);
     return [isGoodArray, false];
   }
   if(existingBalances.length !== targetAmounts.length){
     mesg = 'existingBalances and targetAmounts are of different length';
     //throw new Error(mesg);
-    console.log(mesg);
+    wlogger.debug(`${mesg}`);
     return [isGoodArray, false];
   }
 
@@ -422,11 +425,11 @@ const checkTargetAmounts = (existingBalances, targetAmounts) => {
 }
 
 const breakdownArray = (toAddress, amount, maxMintAmountPerRun) => {
-  console.log('\n-----------------==\ninside breakdownArray: amount', amount, '\ntoAddress', toAddress);
+  wlogger.debug(`\n-----------------==\ninside breakdownArray: amount: ${amount} \ntoAddress: ${toAddress}`);
   let mesg = '';
   if(isEmpty(toAddress) || isEmpty(amount) || isEmpty(maxMintAmountPerRun)){
     mesg = 'toAddress, amount, or maxMintAmountPerRun is not valid!';
-    console.log(mesg);
+    wlogger.debug(`${mesg}`);
     //throw new Error();
     return [undefined, undefined];
   }
@@ -446,24 +449,24 @@ const breakdownArray = (toAddress, amount, maxMintAmountPerRun) => {
     toAddressOut.push(toAddress);
     amountOut.push(amount);
   }
-  console.log(`toAddressOut: ${toAddressOut}, amountOut: ${amountOut}`);
+  wlogger.debug(`toAddressOut: ${toAddressOut}, amountOut: ${amountOut}`);
   return [toAddressOut, amountOut];
 }
 
 const breakdownArrays = (toAddressArray, amountArray, maxMintAmountPerRun) => {
-  console.log('\n-----------------==\ninside breakdownArrays: amountArray', amountArray, '\ntoAddressArray', toAddressArray);
+  wlogger.debug(`\n-----------------==\ninside breakdownArrays: amountArray: ${amountArray}  \ntoAddressArray: ${toAddressArray}`);
 
   if(toAddressArray.length !== amountArray.length){
-    console.log('amountArray and toAddressArray should have the same length!');
+    wlogger.debug(`amountArray and toAddressArray should have the same length!`);
     return [undefined, undefined];
   }
 
-  console.log('for loop...');
+  wlogger.debug(`for loop...`);
   const amountArrayOut = [];
   const toAddressArrayOut = [];
   for (let idx = 0; idx < amountArray.length; idx++) {
     const amount = parseInt(amountArray[idx]);
-    console.log('idx', idx, ', amount', amount);
+    wlogger.debug(`idx: ${idx}, amount: ${amount}`);
 
     if(amount > maxMintAmountPerRun){
       const quotient = Math.floor(amount / maxMintAmountPerRun);
@@ -479,8 +482,8 @@ const breakdownArrays = (toAddressArray, amountArray, maxMintAmountPerRun) => {
       amountArrayOut.push(amount);
       toAddressArrayOut.push(toAddressArray[idx]);
     }
-    console.log('amountArrayOut', amountArrayOut);
-    console.log('toAddressArrayOut', toAddressArrayOut);
+    wlogger.debug(`amountArrayOut: ${amountArrayOut}`);
+    wlogger.debug(`toAddressArrayOut: ${toAddressArrayOut}`);
   }
   return [toAddressArrayOut, amountArrayOut];
 }
@@ -492,5 +495,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, sLog, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }
