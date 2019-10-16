@@ -135,13 +135,14 @@ router.post('/AddUser', function (req, res, next) {
                 u_bankBooklet: user.bankAccount,
                 u_eth_add: user.eth_account,
                 u_verify_status: user.verify_status,
+                u_bankcode: user.bankCode,
                 u_cellphone: user.phoneNumber,
                 u_name: user.name,
                 u_investorLevel: 1,
                 u_account_status: 0,
                 u_review_status: 'unapproved'
-            };//Math.random().toString(36).substring(2, 15)
-            passwordHash.passwordHash = hash
+            };
+            passwordHash.passwordHash = hash;
 
             var qur = mysqlPoolQuery(qstr1, userNew, function (err, result) {
                 if (err) {
