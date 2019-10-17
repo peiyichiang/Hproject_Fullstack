@@ -136,7 +136,10 @@ const timeserverTimeInverval = parseInt(process.env.TIMESERVER_TIME_INTERVAL);//
 const is_addAssetbooksIntoCFC = process.env.IS_ADDASSETBOOKS_INTO_CFC === '1';
 const is_makeOrdersExpiredCFED = process.env.IS_MAKEORDERS_EXPIRED_CFED === '1';
 const is_updateExpiredOrders = process.env.IS_UPDATE_EXPIRED_ORDERS === '1';
+
 const is_updateFundingStateFromDB = process.env.IS_UPDATE_FUNDING_STATE_FROM_DB === '1';
+//crowdfunding state can be partially triggered by timeserver!!!
+
 const is_updateTokenStateFromDB = process.env.IS_UPDATE_TOKEN_STATE_FROM_DB === '1';
 const is_calculateLastPeriodProfit = process.env.IS_CALCULATE_LAST_PERIOD_PROFIT === '1';
 

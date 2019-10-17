@@ -2,7 +2,7 @@ const winston = require('winston');
 const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
 const { loglevel } = require('../../timeserver/envVariables');
-const excludedSymbols = ['HToken123', 'NCCU1902','NCCU1901', 'NCCU1801', 'NCCU0531', 'SUNL1607', 'TOKN1999', 'MYRR1701', 'AMER1901', 'AOOT1907', 'NCCC0801', 'TEST01'];//'AURA1904', 'AVEN1902', 'AJUP1903', 'ANEP1905',
+const excludedSymbols = ['ABCD1234'];//'AURA1904', 'AVEN1902', 'AJUP1903', 'ANEP1905',
 const excludedSymbolsIA = [];
 
 //---------------------------==Winston Logger
@@ -35,12 +35,12 @@ winston.loggers.add('format1', {
 });
 
 const wlogger = winston.loggers.get('format1');
-// wlogger.silly('log level = silly, Winston!');
-// wlogger.debug(`log level = debug, Winston!');
-// wlogger.verbose('log level = verbose, Winston!');
-wlogger.info(`log level = info, Winston!`);
-wlogger.warn(`log level = warn, Winston! ${loglevel}`);
-wlogger.error('log level = danger, Winston!'+ loglevel);
+// wlogger.silly('log level = silly');
+wlogger.info(`log level = 5 debug`);
+// wlogger.verbose('log level = 4 verbose');
+// wlogger.debug(`log level = 3 info');
+wlogger.warn(`log level = 2 warn`);
+wlogger.error(`log level = 1 error`);
 
 //---------------------------==
 //---------------------------==

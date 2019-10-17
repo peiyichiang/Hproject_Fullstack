@@ -112,7 +112,11 @@ const getTxnInfoRowsBySymbol = (tokenSymbol) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
     wlogger.debug(`result: ${result}`);
-    resolve(!isEmpty(result));
+    if (!Array.isArray(result) || !result.length) {
+      resolve(false);
+    } else {
+      resolve(result);
+    }
   });
 }
 
@@ -205,7 +209,11 @@ const getProductRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    resolve(result);
+    if (!Array.isArray(result) || !result.length) {
+      resolve(false);
+    } else {
+      resolve(result);
+    }
   });
 }
 
@@ -261,7 +269,11 @@ const getSmartContractRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    resolve(result);
+    if (!Array.isArray(result) || !result.length) {
+      resolve(false);
+    } else {
+      resolve(result);
+    }
   });
 }
 
@@ -343,19 +355,19 @@ const getAssetbookFromEmail = async(email) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==inside getAssetbookFromEmail()`);
     const queryStr1 = 'SELECT u_assetbookContractAddress FROM user WHERE u_email = ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [email]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [email]).catch((err) => {
       wlogger.debug(`\n[Error @ getAssetbookFromEmail]`);
       reject(err);
       return false;
     });
-    if(result1.length === 0){
+    if (!Array.isArray(result) || !result.length) {
       resolve([false, '', 'no assetbook for that email is found']);
 
-    } else if (result1.length > 1){
+    } else if (result.length > 1){
       resolve([false, '', 'multiple assetbook addresses are found']);
 
     } else {
-      const assetbookX = result1[0].u_assetbookContractAddress;
+      const assetbookX = result[0].u_assetbookContractAddress;
       if(isEmpty(assetbookX) || assetbookX.length !== 42){
         resolve([false, assetbookX, 'assetbook address is not valid']);
       } else {
@@ -369,19 +381,19 @@ const getAssetbookFromIdentityNumber = async(identityNumber) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==inside getAssetbookFromIdentityNumber()`);
     const queryStr1 = 'SELECT u_assetbookContractAddress FROM user WHERE u_identityNumber = ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [identityNumber]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [identityNumber]).catch((err) => {
       wlogger.debug(`\n[Error @ getAssetbookFromIdentityNumber]`);
       reject(err);
       return false;
     });
-    if(result1.length === 0){
+    if (!Array.isArray(result) || !result.length) {
       resolve([false, '', 'no assetbook for that identityNumber is found']);
 
-    } else if (result1.length > 1){
+    } else if (result.length > 1){
       resolve([false, '', 'multiple assetbook addresses are found']);
 
     } else {
-      const assetbookX = result1[0].u_assetbookContractAddress;
+      const assetbookX = result[0].u_assetbookContractAddress;
       if(isEmpty(assetbookX) || assetbookX.length !== 42){
         resolve([false, assetbookX, 'assetbook address is not valid']);
       } else {
@@ -613,7 +625,7 @@ const updateIAassetRecordStatus = (symbol) => {
       reject(err);
       return false;
     });
-    //wlogger.debug(`result: ${result1}`);
+    //wlogger.debug(`result: ${result}`);
     resolve(true);
   });
 }
@@ -648,19 +660,25 @@ const addIncomeArrangementRows = async(incomeArrangementArray) => {
 const getProductPricing = async(symbol) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==inside getProductPricing()`);
-    const queryStr1 = 'SELECT p_pricing FROM product WHERE p_SYMBOL = ?';//"NCCU0716"
-    const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
+    const queryStr1 = 'SELECT p_pricing FROM product WHERE p_SYMBOL = ?';
+    const result = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       wlogger.debug(`\n[Error @ getProductPricing]`);
       reject(err);
       return false;
     });
-    const pricing = result1[0].p_pricing;
-    if(Number.isInteger(pricing)){
-      wlogger.debug(`pricing found as an integer: ${pricing}`);
-      resolve(parseInt(pricing));
-    } else{
-      wlogger.debug(`pricing is not an integer: ${pricing}`);
-      reject(false);
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || !result.length) {
+      wlogger.debug(`pricing is not defined`);
+      resolve(undefined);
+    } else {
+      const pricing = result[0].p_pricing;
+      if(Number.isInteger(pricing)){
+        wlogger.debug(`pricing found as an integer: ${pricing}`);
+        resolve(parseInt(pricing));
+      } else{
+        wlogger.debug(`pricing is not an integer: ${pricing}`);
+        reject(false);
+      }
     }
   });
 }
@@ -670,15 +688,20 @@ const getPastScheduleTimes = async(symbol, serverTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`-----------==getPastScheduleTimes`);
     const queryStr1 = 'SELECT ia_time FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time <= ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [symbol, serverTime]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [symbol, serverTime]).catch((err) => {
       wlogger.debug(`\n[Error @ getPastScheduleTimes > mysqlPoolQueryB()]`);
       reject(err);
       return false;
     });
-    const pastSchedules = result1.map((item) => {
-      return item.ia_time;
-    });
-    resolve(pastSchedules);
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || !result.length) {
+      resolve(undefined);
+    } else {
+      const pastSchedules = result.map((item) => {
+        return item.ia_time;
+      });
+      resolve(pastSchedules);
+    }
   });
 }
 
@@ -687,30 +710,28 @@ const getSymbolsONM = async() => {
     wlogger.debug(`-----------==getSymbolsONM`);
     let mesg;
     const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")';
-    const result2 = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       wlogger.debug(`\n[Error @ getSymbolsONM > mysqlPoolQueryB(queryStr2)]`);
       reject(err);
       return false;
     });
-    const result2Len = result2.length;
-    wlogger.debug(`\nArray length @ getSymbolsONM: ${result2Len}`);
-    if(result2Len === 0 ){
+    wlogger.debug(`[getSymbolsONM] result: ${result}`);
+    if (!Array.isArray(result) || !result.length) {
       mesg = '[Error @ getSymbolsONM > queryStr2';
       wlogger.debug(`\n${mesg}`);
       reject(mesg);
       return false;
-    }
-    // wlogger.debug(`result2:: ${result2}`);
-
-    const foundSymbols = [];
-    const foundHCAT721Addrs = [];
-    for(let i = 0; i < result2.length; i++) {
-      if(typeof result2[i] === 'object' && result2[i] !== null && !excludedSymbols.includes(result2[i].sc_symbol)){
-        foundSymbols.push(result2[i].sc_symbol);
-        foundHCAT721Addrs.push(result2[i].sc_erc721address);
+    } else {
+      const foundSymbols = [];
+      const foundHCAT721Addrs = [];
+      for(let i = 0; i < result.length; i++) {
+        if(typeof result[i] === 'object' && result[i] !== null && !excludedSymbols.includes(result[i].sc_symbol)){
+          foundSymbols.push(result[i].sc_symbol);
+          foundHCAT721Addrs.push(result[i].sc_erc721address);
+        }
       }
+      resolve([foundSymbols, foundHCAT721Addrs]);
     }
-    resolve([foundSymbols, foundHCAT721Addrs]);
   });
 }
 
@@ -719,27 +740,27 @@ const checkIaAssetRecordStatus = async(symbol, actualPaymentTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`-------==checkIaAssetRecordStatus`);
     const query1 = 'SELECT ia_assetRecord_status FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
-    const result1 = await mysqlPoolQueryB(query1, [symbol, actualPaymentTime]).catch((err) => {
+    const result = await mysqlPoolQueryB(query1, [symbol, actualPaymentTime]).catch((err) => {
       wlogger.debug(`\n[Error @ checkIaAssetRecordStatus > mysqlPoolQueryB()]`);
       reject(err);
       return false;
     });
-
     let assetRecordStatus;
-    if(result1.length === 0){
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || !result.length) {
       wlogger.debug(`assetRecordStatus was not found`);
-      
-    } else if(result1.length === 1){
-      const result1b = result1[0]['ia_assetRecord_status'];
-      if(result1b === null){
+
+    } else if(result.length === 1){
+      const resultb = result[0]['ia_assetRecord_status'];
+      if(resultb === null){
         assetRecordStatus = 'null';
       } else {
-        assetRecordStatus = result1b;
+        assetRecordStatus = resultb;
       }
 
     } else {
-      const result1ObjStr = JSON.stringify(result1);
-      wlogger.debug(`multiple assetRecordStatuss are found. \n${result1ObjStr}`);
+      const resultObjStr = JSON.stringify(result);
+      wlogger.debug(`multiple assetRecordStatuss are found. \n${resultObjStr}`);
 
     }
     wlogger.debug(`[end of checkIaAssetRecordStatus()] assetRecordStatus: ${assetRecordStatus}`);
@@ -754,30 +775,29 @@ const getMaxActualPaymentTime = async(symbol, serverTime) => {
     const query1 = 'SELECT MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_assetRecord_status = 0 AND ia_actualPaymentTime <= ?';
     //SELECT MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = "ACHM6666" AND ia_actualPaymentTime <= 201906271235;
 
-    const result1 = await mysqlPoolQueryB(query1, [symbol, serverTime]).catch((err) => {
+    const result = await mysqlPoolQueryB(query1, [symbol, serverTime]).catch((err) => {
       wlogger.debug(`\n[Error @ getMaxActualPaymentTime > mysqlPoolQueryB()]`);
       reject(err);
       return false;
     });
-
     let maxActualPaymentTime;
-    if(result1.length === 0){
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || !result.length) {
       wlogger.debug(`maxActualPaymentTime was not found ... either in the past or in the future...`);
       maxActualPaymentTime = 'result_len_zero';
-
-    } else if(result1.length === 1){
-      const result1b = result1[0]['MAX(ia_actualPaymentTime)'];
-      if(result1b === null){
+    } else if(result.length === 1){
+      const resultb = result[0]['MAX(ia_actualPaymentTime)'];
+      if(resultb === null){
         maxActualPaymentTime = 'null';
       } else {
-        maxActualPaymentTime = result1b;
+        maxActualPaymentTime = resultb;
         wlogger.debug(`check1.`);
       }
 
     } else {
-      const result1ObjStr = JSON.stringify(result1);
+      const resultObjStr = JSON.stringify(result);
       maxActualPaymentTime = 'multiple maxActualPaymentTimes';
-      wlogger.debug(`multiple maxActualPaymentTimes are found. \n${result1ObjStr}`);
+      wlogger.debug(`multiple maxActualPaymentTimes are found. \n${resultObjStr}`);
     }
     wlogger.debug(`[end of getMaxActualPaymentTime()] maxActualPaymentTime: ${maxActualPaymentTime} ${typeof maxActualPaymentTime} \nsymbol: ${symbol}, serverTime: ${serverTime}`);
     resolve(maxActualPaymentTime);
@@ -805,10 +825,10 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
       reject(err);
       return false;
     });
-
-    if(result1 === null) {
-      wlogger.debug(`result1 is null`);
-      acPayment = -3;
+    wlogger.debug(`result1: ${result1}`);
+    if (!Array.isArray(result1)) {
+      wlogger.debug(`result1 is invalid`);
+      acPayment = -9;
 
     } else if(result1.length === 0){
       wlogger.debug(`acPayment was not found`);
@@ -816,12 +836,17 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
       const query2 = 'SELECT * FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
 
       const result2 = await mysqlPoolQueryB(query2, [symbol, maxActualPaymentTime]).catch((err) => {
-        wlogger.debug(`\n[Error @ getAcPayment()]`);
+        wlogger.debug(`\n[Error @ getAcPayment(query2)]`);
         reject(err);
         return false;
       });
       wlogger.debug(`... check income arrangement record`);
-      if(result2.length === 1){
+      wlogger.debug(`result2: ${result2}`);
+      if (!Array.isArray(result2) || !result2.length) {
+        wlogger.debug(`getAcPayment result2 is invalid or empty`);
+        acPayment = -11;
+
+      } else if(result2.length === 1){
         if(result2[0]['ia_State'] !== "ia_state_approved"){
           wlogger.debug(`>>> ia_State is not ia_state_approved`);
         }
@@ -830,7 +855,8 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
         }
         acPayment = -1;
       } else {
-        wlogger.debug(`getAcPayment result2: ${result2}`);
+        wlogger.debug(`getAcPayment result2 length > 1`);
+        acPayment = -12;
       }
 
     } else if(result1.length === 1){
@@ -841,9 +867,9 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
         acPayment = result1b;
       }
 
-    } else if(result1.length > 1){
+    } else {
       //const result1ObjStr = JSON.stringify(result1);
-      wlogger.debug(`multiple acPayments are found. result1: ${result1} \nsymbol: ${symbol}, maxActualPaymentTime: ${maxActualPaymentTime}`);
+      wlogger.debug(`multiple acPayments are found. \nsymbol: ${symbol}, maxActualPaymentTime: ${maxActualPaymentTime}`);
       acPayment = -4;
     }
     wlogger.debug(`[end of getAcPayment()] acPayment: ${acPayment}`);
@@ -988,9 +1014,13 @@ const calculateLastPeriodProfit = async(serverTime) => {
           resolve([undefined, undefined, undefined]);
 
         } else {
-          const pricing = await getProductPricing(symbol);
+          const pricing = await getProductPricing(symbol).catch((err) => {
+            wlogger.error(`\n[Error @ getProductPricing]`);
+            reject(err);
+            return false;
+          });
           if(!pricing){
-            wlogger.debug(`\n[Error @ addAssetRecordRowArray > getProductPricing] ${pricing}`);
+            wlogger.error(`\n[Error @ addAssetRecordRowArray > getProductPricing] ${pricing}`);
             reject(false);
             return false;
           }
@@ -1036,13 +1066,13 @@ const setAssetRecordStatus = async (assetRecordStatus, symbol, actualPaymentTime
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n-------==setAssetRecordStatus`);
     const queryStr1 = 'UPDATE income_arrangement SET ia_assetRecord_status = ? WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [assetRecordStatus, symbol, actualPaymentTime]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [assetRecordStatus, symbol, actualPaymentTime]).catch((err) => {
       const mesg = '[Error @ setAssetRecordStatus]';
       wlogger.debug(`\n${mesg}`);
       reject(err);
       return false;
     });
-    wlogger.debug(`\nresult1: ${result1}`);
+    wlogger.debug(`\nresult: ${result}`);
     resolve(true);
   });
 }
@@ -1101,18 +1131,18 @@ const deleteAllRecordsBySymbol = async (tokenSymbol) => {
     wlogger.debug(`check1 ... result1: ${result1}, result2: ${result2}, result3: ${result3}, result4: ${result4}, result5: ${result5}, result6: ${result6}`);
 
     const result_getProductRows = await getProductRows(tokenSymbol).catch((err) => { reject(err); });
-    if(isEmpty(result_getProductRows)){
-      wlogger.debug(`\ngetProductRows: nothing is found`);
-    } else {
+    if(result_getProductRows){
       wlogger.debug(`\ngetProductRows: ${result}`);
+    } else {
+      wlogger.debug(`\ngetProductRows: nothing is found`);
     }
     wlogger.debug(`check2`);
     const result_getSmartContractRows = await getSmartContractRows(tokenSymbol).catch((err) => { reject(err); });
 
-    if(isEmpty(result_getSmartContractRows)){
-      wlogger.debug(`getSmartContractRows: nothing is found`);
-    } else {
+    if(result_getSmartContractRows){
       wlogger.debug(`getSmartContractRows: ${result}`);
+    } else {
+      wlogger.debug(`getSmartContractRows: nothing is found`);
     }
     wlogger.debug(`result_getProductRows: ${result_getProductRows} \nresult_getSmartContractRows: ${result_getSmartContractRows}`);
     resolve(true);
@@ -1180,8 +1210,8 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
           reject(err);
           return [null, null];
         });
-        //wlogger.debug(`\nemailObj: ${ emailObj);
-        if(isEmpty(emailObj)){
+        //wlogger.debug(`\nemailObj: ${emailObj}`);
+        if (!Array.isArray(emailObj)) {
           wlogger.debug(`\n----==[Warning] email address is null or undefined for addrAssetbook: ${addrAssetbook}, emailObj: ${emailObj}`);
           emailArray.push('email:_null_or_undefined');
 
@@ -1252,13 +1282,19 @@ const getFundingStateDB = (symbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`inside getFundingStateDB()... get p_state`);
     const queryStr2 = 'SELECT p_state, p_CFSD, p_CFED FROM product WHERE p_SYMBOL = ?';
-    const result2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
       reject(err);
       return false;
     });
-    wlogger.debug(`symbol: ${symbol}, pstate: ${result2[0]}, CFSD: ${result2[1]}, CFED: ${result2[2]}`);
-    resolve(true);
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || result.length < 3) {
+      wlogger.debug(`query failed or invalid`);
+      resolve(undefined);
+    } else {
+      wlogger.debug(`symbol: ${symbol}, pstate: ${result[0]}, CFSD: ${result[1]}, CFED: ${result[2]}`);
+      resolve(true);
+      }
   });
 }
 
@@ -1326,13 +1362,18 @@ const getTokenStateDB = (symbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`inside getTokenStateDB()... get p_tokenState`);
     const queryStr2 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM product WHERE p_SYMBOL = ?';
-    const result2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
       reject(err);
       return false;
     });
-    wlogger.debug(`symbol: ${symbol}, tokenState: ${result2[0]}, lockuptime: ${result2[1]}, validdate: ${result2[2]}`);
-    resolve(true);
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || result.length < 3) {
+      resolve(undefined);
+    } else {
+      wlogger.debug(`symbol: ${symbol}, tokenState: ${result[0]}, lockuptime: ${result[1]}, validdate: ${result[2]}`);
+      resolve(true);
+      }
   });
 }
 
@@ -1340,23 +1381,25 @@ const getTokenStateDB = (symbol) => {
 const getAllSmartContractAddrs = async(symbol) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n---------==inside getAllSmartContractAddrs`);
-    let mesg;
     const queryStr1 = 'SELECT * FROM smart_contracts WHERE sc_symbol = ?';
     const ctrtAddrResult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
         reject('[Error @ getAllSmartContractAddrs:'+ err);
-      });
-    const ctrtAddrResultLen = ctrtAddrResult.length;
+    });
+    wlogger.debug(`ctrtAddrResult: ${ctrtAddrResult}`);
+    if (!Array.isArray(ctrtAddrResult)) {
+      resolve([false, undefined, `[Error] invalid contract row`]);
 
-    if(ctrtAddrResultLen == 0){
+    } else if(ctrtAddrResult.length == 0){
       resolve([false, undefined, `[Error] no contract row is found for ${symbol}`]);
-    } else if(ctrtAddrResultLen > 1){
+
+    } else if(ctrtAddrResult.length > 1){
       resolve([false, 'multipleAddr', `[Error] multiple contract rows are found for ${symbol}`]);
+
     } else {
-      //wlogger.debug(` ctrtAddrResult[0]:: ${  ctrtAddrResult[0]);
+      //wlogger.debug(`ctrtAddrResult[0]: ${ctrtAddrResult[0]}`);
       //process.exit(0);
       const ctrtAddrObj = ctrtAddrResult[0];
-
       resolve([ctrtAddrObj['sc_crowdsaleaddress'], ctrtAddrObj['sc_erc721Controller'], ctrtAddrObj['sc_erc721address'], ctrtAddrObj['sc_incomeManagementaddress']]);
     }
   });
@@ -1386,13 +1429,17 @@ const getCtrtAddr = async(symbol, ctrtType) => {
     const ctrtAddrResult = await mysqlPoolQueryB(queryStr1, [symbol]).catch(
       (err) => {
         reject('[Error @ getCtrtAddr:'+ err);
-      });
-    const ctrtAddrResultLen = ctrtAddrResult.length;
-    //wlogger.debug(`\nArray length @ getCtrtAddr:: ${ ctrtAddrResultLen, ctrtAddrResult:: ${ ctrtAddrResult);
-    if(ctrtAddrResultLen == 0){
+    });
+    wlogger.debug(`ctrtAddrResult: ${ctrtAddrResult}`);
+    if (!Array.isArray(ctrtAddrResult)) {
+      resolve([false, undefined, `[Error] invalid ${ctrtType} contract address found for ${symbol}`]);
+
+    } else if(ctrtAddrResult.length == 0){
       resolve([false, undefined, `[Error] no ${ctrtType} contract address is found for ${symbol}`]);
-    } else if(ctrtAddrResultLen > 1){
+
+    } else if(ctrtAddrResult.length > 1){
       resolve([false, 'multipleAddr', `[Error] multiple ${ctrtType} addresses are found for ${symbol}`]);
+
     } else {
       const targetAddr = ctrtAddrResult[0][scColumnName];//.sc_incomeManagementaddress;
       if(isEmpty(targetAddr)){
@@ -1426,13 +1473,16 @@ const getSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
     const symbolResult = await mysqlPoolQueryB(queryStr1, [ctrtAddr]).catch((err) => {
       reject(`[Error @ getSymbolFromCtrtAddr] ${err}`);
     });
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result)) {
+      resolve([false, undefined, `[Error] invalid symbol is found for ${ctrtType} contract address$ {ctrtAddr}`]);
 
-    const symbolResultLen = symbolResult.length;
-    //wlogger.debug(`\nArray length @ getSymbolFromCtrtAddr: ${ symbolResultLen, symbolResult: ${ symbolResult);
-    if(symbolResultLen == 0){
+    } else if(symbolResult.length == 0){
       resolve([false, undefined, `[Error] no symbol is found for ${ctrtType} contract address$ {ctrtAddr}`]);
-    } else if(symbolResultLen > 1){
+
+    } else if(symbolResult.length > 1){
       resolve([false, 'multipleSymbols', `[Error] multiple symbols are found for ${ctrtType} addresses ${ctrtAddr}`]);
+
     } else {
       const symbol = symbolResult[0]['sc_symbol'];
       if(isEmpty(symbol)){
@@ -1453,7 +1503,7 @@ function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
       const result = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
       });
-      wlogger.debug(`[DB] symbol: ${symbol}, tokenState: ${tokenState}, lockuptime: ${lockuptime}, validdate: ${validdate}, result: ${result1}`);
+      wlogger.debug(`[DB] symbol: ${symbol}, tokenState: ${tokenState}, lockuptime: ${lockuptime}, validdate: ${validdate}, result: ${result}`);
       resolve(true);
     } else {
       const queryStr1 = 'UPDATE product SET p_tokenState = ? WHERE p_SYMBOL = ?';
@@ -1473,8 +1523,14 @@ function isIMScheduleGoodDB(symbol){
     const result = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
     });
-    wlogger.debug(`symbol: ${symbol}, tokenState: ${result[0]}, lockuptime: ${result[1]}, validdate: ${result[2]}`);
-    resolve([result[0], result[1]]);
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || result.length < 3) {
+      wlogger.debug(`[isIMScheduleGoodDB] returned invalid result. symbol: ${symbol}`);
+      resolve([undefined, undefined]);
+    } else {
+      wlogger.debug(`symbol: ${symbol}, tokenState: ${result[0]}, lockuptime: ${result[1]}, validdate: ${result[2]}`);
+      resolve([result[0], result[1]]);
+      }
   });
 }
 
@@ -1494,32 +1550,41 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   const symbolObjArray = await mysqlPoolQueryB(queryStr0, []).catch((err) => {
     wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr0)] ${err}`);
   });
-  //wlogger.debug(`symbolObjArray: ${symbolObjArray}`);
+  if (!Array.isArray(symbolObjArray) || !symbolObjArray.length) {
+    wlogger.debug(`invalid symbolObjArray: ${symbolObjArray}`);
+    return undefined;
+  }
 
   const queryStr7 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)'
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
-    const result1 = await mysqlPoolQueryB(queryStr7, [symbolObj.ia_SYMBOL]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr7, [symbolObj.ia_SYMBOL]).catch((err) => {
       wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr7)] ${err}`);
     });
-    const symbolM = result1[0].ia_SYMBOL;
-    const acpaymentTime = parseInt(result1[0]['MAX(ia_actualPaymentTime)']);
-    if(serverTime >= acpaymentTime){
-      wlogger.debug(`found period: ${symbolM} ${acpaymentTime}`);
-      symbolArray.push(symbolM);
-      acPaymentTimeArray.push(acpaymentTime);
-      const incomePayment = parseInt(result1[0].ia_single_Actual_Income_Payment_in_the_Period);
-      acIncomePaymentArray.push(incomePayment);
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result) || !result.length) {
+      wlogger.debug(`invalid query7 result: ${result}`);
+      return undefined;
+    } else {
+      const symbolM = result[0].ia_SYMBOL;
+      const acpaymentTime = parseInt(result[0]['MAX(ia_actualPaymentTime)']);
+      if(serverTime >= acpaymentTime){
+        wlogger.debug(`found period: ${symbolM} ${acpaymentTime}`);
+        symbolArray.push(symbolM);
+        acPaymentTimeArray.push(acpaymentTime);
+        const incomePayment = parseInt(result[0].ia_single_Actual_Income_Payment_in_the_Period);
+        acIncomePaymentArray.push(incomePayment);
+      }
     }
   });
   /*
   const queryStr1 = 'SELECT ia_SYMBOL, MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?';
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
-    const result1 = await mysqlPoolQueryB(queryStr1, [symbolObj.ia_SYMBOL]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [symbolObj.ia_SYMBOL]).catch((err) => {
       wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
     });
-    //wlogger.debug(`result1: ${ result1, result1[0].ia_SYMBOL, result1[0]['MAX(ia_actualPaymentTime)']);
-    const symbolM = result1[0].ia_SYMBOL;
-    const acpaymentTime = parseInt(result1[0]['MAX(ia_actualPaymentTime)']);
+    //wlogger.debug(`result: ${ result, result[0].ia_SYMBOL, result[0]['MAX(ia_actualPaymentTime)']);
+    const symbolM = result[0].ia_SYMBOL;
+    const acpaymentTime = parseInt(result[0]['MAX(ia_actualPaymentTime)']);
     if(serverTime >= acpaymentTime){
       wlogger.debug(`found period: ${ symbolM, acpaymentTime);
       symbolArray.push(symbolM);
@@ -1531,10 +1596,10 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   if(symbolArray.length > 0){
     const queryStr2 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_SYMBOL = ?';
     await asyncForEach(symbolArray, async (symbol, index) => {
-      const result1 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
+      const result = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
         wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr2)]'+ err);
       });
-      const incomePayment = parseInt(result1[0].ia_single_Actual_Income_Payment_in_the_Period);
+      const incomePayment = parseInt(result[0].ia_single_Actual_Income_Payment_in_the_Period);
       acIncomePaymentArray.push(incomePayment);
     });
   
@@ -1554,16 +1619,22 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
       wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr2)] ${err}`);
     });
     wlogger.debug(`result2: ${result2}`);
+    if (!Array.isArray(result2)) {
+      wlogger.debug(`[Error] erc721 contract address: invalid`);
+      addrHCAT_Array.push(`invalid erc721 ctrt result`);
 
-    if(result2.length === 0){
+    } else if(result2.length === 0){
       wlogger.debug(`[Error] erc721 contract address was not found`);
       addrHCAT_Array.push(`Not on record`);
+
     } else if(result2.length > 1){
       wlogger.debug(`[Error] multiple erc721 contract addresses were found`);
       addrHCAT_Array.push(`multiple contract addr`);
+
     } else if(isEmpty(result2[0].sc_erc721address)){
       wlogger.debug(`[Error] erc21 contract addresses is null or undefined or empty string`);
       addrHCAT_Array.push(result2[0].sc_erc721address);
+
     } else {
       wlogger.debug(`[Good] erc721 contract address: ${result2[0].sc_erc721address}`);
       addrHCAT_Array.push(result2[0].sc_erc721address);
@@ -1602,27 +1673,35 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
         wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
       });
       wlogger.debug(`result3: ${result3}`);
-      const email = result3[0].u_email;
-      emailArray.push(email);
-
-      const personal_income = incomePaymentArrayGroup[index][idx];
-      const holding_Amount = abBalArrayGroup[index][idx];
-      wlogger.debug(`    email: ${email}, symbol: ${symbol}, acPaymentTime: ${acPaymentTime}, holding_Amount: ${holding_Amount}
-  personal_income: ${personal_income}`);
-      const sqlObject = {
-        ar_investorEmail: email,
-        ar_tokenSYMBOL: symbol,
-        ar_Time: acPaymentTime,
-        ar_Holding_Amount_in_the_end_of_Period: holding_Amount,
-        ar_personal_income: personal_income,
-      };
-      wlogger.debug(sqlObject);
-
-      const queryStr6 = 'INSERT INTO investor_assetRecord SET ?';
-      const result6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
-        wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr6)] ${err}`);
-      });
-      wlogger.debug(`result6: ${result6}`);
+      if (!Array.isArray(result3)) {
+        wlogger.debug(`invalid u_email`);
+        return false;
+      } else if(result3.length === 0){
+        wlogger.debug(`u_email is not found`);
+        return false;
+      } else {
+        const email = result3[0].u_email;
+        emailArray.push(email);
+  
+        const personal_income = incomePaymentArrayGroup[index][idx];
+        const holding_Amount = abBalArrayGroup[index][idx];
+        wlogger.debug(`    email: ${email}, symbol: ${symbol}, acPaymentTime: ${acPaymentTime}, holding_Amount: ${holding_Amount}
+    personal_income: ${personal_income}`);
+        const sqlObject = {
+          ar_investorEmail: email,
+          ar_tokenSYMBOL: symbol,
+          ar_Time: acPaymentTime,
+          ar_Holding_Amount_in_the_end_of_Period: holding_Amount,
+          ar_personal_income: personal_income,
+        };
+        wlogger.debug(sqlObject);
+  
+        const queryStr6 = 'INSERT INTO investor_assetRecord SET ?';
+        const result6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
+          wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr6)] ${err}`);
+        });
+        wlogger.debug(`result6: ${result6}`);
+      }
     });
     wlogger.debug(`emailArray: ${emailArray}`);
     emailArrayGroup.push(emailArray);
@@ -1639,13 +1718,16 @@ const addForecastedSchedulesIntoDB = async () => {
 const getForecastedSchedulesFromDB = async (symbol) => {
   return new Promise(async (resolve, reject) => {
     const queryStr1 = 'SELECT ia_time, ia_single_Forecasted_Payable_Income_in_the_Period From income_arrangement where ia_SYMBOL = ?';
-    const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
+    const result = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       reject('[Error @ addScheduleBatch: mysqlPoolQueryB(queryStr1)]:'+ err);
       return false;
     });
-    const result1Len = result1.length;
-    wlogger.debug(`symbolArray length @ addScheduleBatch: ${result1Len}`);
-    if (result1Len === 0) {
+    wlogger.debug(`result: ${result}`);
+    if (!Array.isArray(result)) {
+      reject('invalid result from ia_time, ia_single_Forecasted_Payable_Income_in_the_Period');
+      return false;
+
+    } else if (result.length === 0) {
       reject('ia_time, ia_single_Forecasted_Payable_Income_in_the_Period not found');
       return false;
 
@@ -1655,13 +1737,13 @@ const getForecastedSchedulesFromDB = async (symbol) => {
       const forecastedPayableTimesError = [];
       const forecastedPayableAmountsError = [];
 
-      for(let i = 0; i < result1.length; i++) {
-        if(typeof result1[i] === 'object' && result1[i] !== null && result1[i] !== undefined){
-          forecastedPayableTimes.push(result1[i].ia_time);
-          forecastedPayableAmounts.push(result1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+      for(let i = 0; i < result.length; i++) {
+        if(typeof result[i] === 'object' && result[i] !== null && result[i] !== undefined){
+          forecastedPayableTimes.push(result[i].ia_time);
+          forecastedPayableAmounts.push(result[i].ia_single_Forecasted_Payable_Income_in_the_Period);
         } else {
-          forecastedPayableTimesError.push(result1[i].ia_time);
-          forecastedPayableAmountsError.push(result1[i].ia_single_Forecasted_Payable_Income_in_the_Period);
+          forecastedPayableTimesError.push(result[i].ia_time);
+          forecastedPayableAmountsError.push(result[i].ia_single_Forecasted_Payable_Income_in_the_Period);
         }
       }
       resolve([forecastedPayableTimes, forecastedPayableAmounts, forecastedPayableTimesError, forecastedPayableAmountsError]);

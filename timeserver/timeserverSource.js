@@ -50,14 +50,17 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
   
 
     if(is_addAssetbooksIntoCFC){
-      addAssetbooksIntoCFC(serverTime);//blockchain.js
+      addAssetbooksIntoCFC(serverTime).catch((err) => {
+        wlogger.error(`[Failed addAssetbooksIntoCFC]: ${err}`);
+        log(chalk.red(`[Error] see above`));
+      });//blockchain.js
       // after order status change: waiting -> paid -> write into crowdfunding contract
     };
 
     if(is_makeOrdersExpiredCFED){
       const result = await makeOrdersExpiredCFED(serverTime).catch((err) => {
         wlogger.error(`[Failed @ timeserver: makeOrdersExpiredCFED]: ${err}`);
-      });;//blockchain.js
+      });//blockchain.js
       if(result){
         log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED();'));
       } else {
@@ -80,6 +83,7 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
       //find still funding symbols that have passed CDED2 -> expire all orders of that symbol
     };
 
+    // partical crowdfunding actions can be triggered by timeserver
     if(is_updateFundingStateFromDB){
       const result = await updateFundingStateFromDB(serverTime).catch((err) => {
         wlogger.error(`[Failed @ timeserver: updateFundingStateFromDB]: ${err}`);

@@ -39,6 +39,10 @@ const isNoneInteger = value =>
     (typeof value === 'object') ||
     (typeof value === 'string' && isNaN(parseInt(value)));
 
+const isInvalidArray = value => 
+    !Array.isArray(value) || value.length === 0;
+
+
 const isAllTruthy = myObj => myObj.every(function(i) { return i; });
 
 const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myObj[k] === true });//If you really want to check for true rather than just a truthy value

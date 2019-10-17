@@ -1785,7 +1785,10 @@ const preMint = async(symbol) => {
       return false;
     });
     wlogger.debug(`result1: ${result1}`);
-    if(isEmpty(result1)){
+    if (!Array.isArray(result1)){
+      reject(`result1 array does not exist, or is not an array`);
+      return false;
+    } else if(!result1.length) {
       reject(`no contract address is found for that symbol`);
       return false;
     }
@@ -1798,7 +1801,11 @@ const preMint = async(symbol) => {
       return false;
     });
     wlogger.debug(`result2: ${result2}`);
-    if(isEmpty(result2)){
+    if (!Array.isArray(result1)){
+      reject(`result2 array does not exist, or is not an array`);
+      return false;
+
+    } else if(!result1.length) {
       reject(`no pricing and fundingType is found for that symbol`);
       return false;
     }
@@ -1807,31 +1814,23 @@ const preMint = async(symbol) => {
     const fundingType = result2[0].p_fundingType;
     wlogger.debug(`pricing: ${pricing}, fundingType: ${fundingType}`);
 
-    if(result1 && result2){
-      crowdFundingAddr = result1[0].sc_crowdsaleaddress;
-      tokenCtrtAddr = result1[0].sc_erc721address;
-      tokenControllerAddr = result1[0].sc_erc721Controller;
-      wlogger.debug(`crowdFundingAddr: ${crowdFundingAddr}
+    crowdFundingAddr = result1[0].sc_crowdsaleaddress;
+    tokenCtrtAddr = result1[0].sc_erc721address;
+    tokenControllerAddr = result1[0].sc_erc721Controller;
+    wlogger.debug(`crowdFundingAddr: ${crowdFundingAddr}
 tokenCtrtAddr: ${tokenCtrtAddr}
 tokenControllerAddr: ${tokenControllerAddr}`); 
 
-      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
-      wlogger.debug(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
-      investorAssetBooks: ${investorAssetBooks} \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+    const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
+    wlogger.debug(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
+    investorAssetBooks: ${investorAssetBooks} \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
 
-      if (investorAssetBooks.length === 0 || investedTokenQtyArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
-        wlogger.debug(`[Error] preMint() returns invalid values, investorAssetBooks length: ${investorAssetBooks.length},investedTokenQtyArray length: ${investedTokenQtyArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
-        resolve([false, 'preMint() returns invalid values', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
-
-      } else {
-        resolve([true, 'successfully done @ preMint()', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
-      }
+    if (investorAssetBooks.length === 0 || investedTokenQtyArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
+      wlogger.debug(`[Error] preMint() returns invalid values, investorAssetBooks length: ${investorAssetBooks.length},investedTokenQtyArray length: ${investedTokenQtyArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+      resolve([false, 'preMint() returns invalid values', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
 
     } else {
-      mesg = 'no contract address and/or no p_pricing, p_fundingType is found for that symbol';
-      wlogger.debug(`${mesg}. result1: ${result1} \nresult2: ${result2}`);
-      reject(mesg);
-      return false;
+      resolve([true, 'successfully done @ preMint()', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
     }
   });
 }
@@ -2021,7 +2020,10 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
     } else if(actionType === 'updateExpiredOrders'){
       symbol = 'sym_updateExpiredOrders';
 
-    } else if(actionType === 'crowdfunding' || actionType === 'tokencontroller'){
+    } else if(actionType === 'crowdfunding'){
+      symbol = item;
+
+    } else if(actionType === 'tokencontroller'){
       symbol = item;
 
     } else {
@@ -2234,18 +2236,18 @@ const updateFundingStateFromDB = async (serverTime) => {
       return false;
     }
     const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
-    const symbolObjArray = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
+    const results = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       reject(`[Error @ updateFundingStateFromDB: mysqlPoolQueryB(queryStr2)]:  ${err}`);
       return false;
     });
+    wlogger.debug(`results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[updateFundingStateFromDB] symbol array does not exist, or is not an array`);
+    } else if(!results.length) {
+      wlogger.debug(`\n[updateFundingStateFromDB] symbol array is empty`);
 
-    const symbolObjArrayLen = symbolObjArray.length;
-    wlogger.debug(`\nsymbolObjArray length @ updateFundingStateFromDB: ${symbolObjArrayLen} symbolObjArray: ${symbolObjArray}`);
-
-    if (symbolObjArrayLen === 0) {
-      wlogger.debug(`[updateFundingStateFromDB] no symbol was found for updating its crowdfunding contract`);
-
-    } else if (symbolObjArrayLen > 0) {
+    } else {
+      wlogger.debug(`\n[updateFundingStateFromDB] ${results.length} symbol(s) were found`);
       const symbolArray = [];
       for (let i = 0; i < symbolObjArrayLen; i++) {
         if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
@@ -2254,6 +2256,7 @@ const updateFundingStateFromDB = async (serverTime) => {
       }
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['crowdfunding']);
     }
+    wlogger.debug(`[updateFundingStateFromDB] exiting`);
     resolve(true);
   });
 }
@@ -2270,72 +2273,36 @@ const makeOrdersExpiredCFED = async (serverTime) => {
     }
 
     const queryStr1 = 'SELECT p_SYMBOL FROM product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
-    const symbolObjArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
-      reject(`[Error @ mysqlPoolQueryB(queryStr1)]  ${err}`);
+    const results = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
+      reject(`[Error @ mysqlPoolQueryB(queryStr1)] ${err}`);
       return false;
     });
-    const symbolObjArrayLen = symbolObjArray.length;
-    wlogger.debug(`\nArray length @ makeOrdersExpiredCFED: ${symbolObjArrayLen}`);
-    //wlogger.debug(`symbols: ${symbolObjArray);
-
-    if (symbolObjArrayLen === 0) {
-      wlogger.debug(`[makeOrdersExpiredCFED] no symbol was found`);
-      resolve(true);
-
-    } else if (symbolObjArrayLen > 0) {
-      wlogger.debug(`[makeOrdersExpiredCFED] symbol(s) found`);
+    wlogger.debug(`results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[makeOrdersExpiredCFED] symbol array does not exist, or is not an array`);
+    } else if(!results.length) {
+      wlogger.debug(`\n[makeOrdersExpiredCFED] symbol array is empty`);
+    } else {
+      wlogger.debug(`[makeOrdersExpiredCFED] ${results.length} symbol(s) were found`);
 
       const symbolArray = [];
-      for (let i = 0; i < symbolObjArrayLen; i++) {
-        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
-          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+      for (let i = 0; i < results.length; i++) {
+        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
+          symbolArray.push(results[i].p_SYMBOL)
         }
       }
   
-      //const queryStr = 'UPDATE product SET p_state = ? WHERE p_SYMBOL = ?';
       const queryStr3 = 'UPDATE order_list SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
       await asyncForEachOrderExpiry(symbolArray, async (symbol, index) => {
-        /*
-        //------------== auto determines the crowdfunding results -> write it into DB
-        const crowdFundingAddr = await getCtrtAddr(symbol,'crowdfunding').catch((err) => {
-          wlogger.error(`[Error @getCtrtAddr]: ${err}`);
-          continue;
-        });
-        const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    
-        const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
-        let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
-        const TxResultStr = JSON.stringify(TxResult, null, 4);
-    wlogger.debug(`TxResult: ${TxResultStr}`);
-      
-        let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
-        wlogger.debug(`\nfundingState: ${fundingState);
-
-        let p_state;
-        if(fundingState === '4'){
-          p_state = 'fundingClosed';
-        } else if(fundingState === '5'){
-          p_state = 'fundingNotClosed';
-        } else if(fundingState === '6'){
-          p_state = 'terminated';
-        }
-        const results2 = await mysqlPoolQueryB(queryStr, [p_state, symbol]).catch((err) => {
-          wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr)] ${err}`);
-        });
-        wlogger.debug(`\nUpdated product of ${symbol, results2);
-        */
-
-        //------------== 
         const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
           reject(`[Error @ mysqlPoolQueryB(queryStr3)]  ${err}`);
           return false;
         });
-        wlogger.debug(`-------==[Success] updated orders to expired for symbol ${symbol}`);
-        resolve(true);
+        wlogger.debug(`-------==[Success] updated orders to expired for symbol ${symbol} \nresults3: ${results3}`);
       });
     }
+    resolve(true);
   });
-  //process.exit(0);
 }
 
 
@@ -2427,17 +2394,26 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   wlogger.debug(`\n--------------==inside addAssetbooksIntoCFC() \nserverTime: ${serverTime}`);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = ?';
   const results1 = await mysqlPoolQueryB(queryStr1, [paymentStatus]).catch((err) => {
-    wlogger.debug(`\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)] ${err}`);
+    wlogger.error(`\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)] ${err}`);
+    log(chalk.red(`\n[Error] above`));
     return false;
   });
-
   const foundSymbolArray = [];
   const symbolArray = [];
 
-  if(results1.length === 0){
+  wlogger.debug(`results1: ${results1}`);
+  if (!Array.isArray(results1)){
+    wlogger.debug(`\n[distinct symbols] array does not exist, or is not an array`);
     log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] No paid order is found'));
     return true;
+
+  } else if(!results1.length) {
+    wlogger.debug(`\n[distinct symbols] array is empty`);
+    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] No paid order is found'));
+    return true;
+
   } else {
+    wlogger.debug(`\n[distinct symbols] ${results1.length} symbols were found`);
     for(let i = 0; i < results1.length; i++) {
       if(typeof results1[i] === 'object' && results1[i] !== null){
         foundSymbolArray.push(results1[i].o_symbol);
@@ -2448,6 +2424,8 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       }
     }
   }
+
+  //----------------==
   wlogger.debug(`foundSymbolArray ${foundSymbolArray}`);
   wlogger.debug(`symbolArray of paid orders: ${symbolArray}`);
   if(symbolArray.length === 0){
@@ -2479,13 +2457,21 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
       wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
       checkOK = false;
+      return false;
     });
     wlogger.debug(`results3 ${results3}`);
-    if(results3.length === 0){
-      wlogger.error(`[Error] Got no paid order where symbol ${symbol}, result3: ${results3}`);
+    if (!Array.isArray(results3)){
+      wlogger.debug(`\n[results3] array does not exist, or is not an array. \nno paid order was found for symbol ${symbol}`);
       checkOK = false;
       return false;
+
+    } else if(!results3.length) {
+      wlogger.debug(`\n[results3] array is empty. \nno paid order was found for symbol ${symbol}`);
+      checkOK = false;
+      return false;
+
     } else {
+      wlogger.debug(`\n[results3] ${results3.length} results3 items were found`);
       wlogger.debug(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
       const assetbookCtrtArray = [];
       const assetbookCtrtArrayError = [];
@@ -2608,11 +2594,9 @@ txnHashArray: ${txnHashArray}`);
         orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
         checkOK = false;
       }*/
-
+  
     }
-  //process.exit(0);
   });
-
   return checkOK;
 }
 
@@ -2908,24 +2892,28 @@ const updateTokenStateFromDB = async (serverTime) => {
     }
 
     const str = 'SELECT p_SYMBOL FROM product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
-    const symbolObjArray = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
+    const results = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
       reject(`[Error @ mysqlPoolQueryB(str)]  ${err}`);
       return false;
     });
-    const symbolObjArrayLen = symbolObjArray.length;
-    wlogger.debug(`\nsymbolObjArray length @ updateTokenStateFromDB: ${symbolObjArrayLen} \nsymbolObjArray: ${symbolObjArray}`);
+    wlogger.debug(`results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[updateTokenStateFromDB] array does not exist, or is not an array`);
 
-    if (symbolObjArrayLen === 0) {
-      wlogger.debug(`[updateTokenStateFromDB] no symbol was found`);
-    } else if (symbolObjArrayLen > 0) {
+    } else if(!results.length) {
+      wlogger.debug(`\n[updateTokenStateFromDB] array is empty`);
+
+    } else {
+      wlogger.debug(`\n[updateTokenStateFromDB] array length: ${results.length}`);
       const symbolArray = [];
-      for (let i = 0; i < symbolObjArrayLen; i++) {
+      for (let i = 0; i < results.length; i++) {
         if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
           symbolArray.push(symbolObjArray[i].p_SYMBOL)
         }
       }
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['tokencontroller']);
     }
+    wlogger.debug(`[updateTokenStateFromDB] exiting`);
     resolve(true);
   });
 }
@@ -3472,7 +3460,7 @@ const updateExpiredOrders = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateExpiredOrders(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
     if(!Number.isInteger(serverTime)){
-      wlogger.debug(`[Error] serverTime should be an integer`);
+      reject(`[Error]: serverTime should be an integer`);
       return false;
     }
 
@@ -3481,21 +3469,19 @@ const updateExpiredOrders = async (serverTime) => {
       reject(`[Error @ updateExpiredOrders: mysqlPoolQueryB(queryStr)]:  ${err}`);
       return false;
     });
+    wlogger.debug(`order_id and purchaseDate results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[updateExpiredOrders] expired by 3 days orders array does not exist, or is not an array`);
 
-    const resultsLen = results.length;
-    wlogger.debug(`\nArray length @ updateExpiredOrders: ${resultsLen}, order_id and purchaseDate: ${results}`);
+    } else if(!results.length) {
+      wlogger.debug(`\n[updateExpiredOrders] expired by 3 days orders array is empty`);
 
-    // const oidArray = [], purchaseDateArray = [];
-    // for (let i = 0; i < results.length; i++) {
-    //   oidArray.push(results[i].o_id);
-    //   purchaseDateArray.push(results[i].o_purchaseDate);
-    // }
+    } else {
+      wlogger.debug(`\n[updateExpiredOrders]: ${results.length} orders were found`);
   
-    if (resultsLen === 0) {
-      wlogger.debug(`[updateExpiredOrders] no waiting order was found`);
-    } else if (resultsLen > 0) {
       await sequentialRunTsMain(results, timeIntervalUpdateExpiredOrders, serverTime, ['updateExpiredOrders']);
     }
+    wlogger.debug(`[updateExpiredOrders] exiting`);
     resolve(true);
   });
 }
