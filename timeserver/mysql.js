@@ -72,7 +72,7 @@ const mysqlPoolQueryB = async (sql, options) => {
               return reject(err);
             } else {
               conn.release();
-              //wlogger.debug(`[Success: mysqlPoolQueryB @ mysql.js] `);
+              //wlogger.info(`[Success: mysqlPoolQueryB @ mysql.js] `);
               resolve(result);
             }  
           });
@@ -133,6 +133,7 @@ const addTxnInfoRowFromObj = (row) => {
 }
 
 
+//yarn run testmt -f 61
 const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\nto add product row into DB`);
@@ -182,13 +183,14 @@ const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing
       p_PVOnGridDate: _CFSD,
       p_Copywriting: "auto",
     };
-    wlogger.debug(sql);
+    const sqlStr = JSON.stringify(sql, null, 4);
+    wlogger.debug(sqlStr);
 
     const queryStr1 = 'INSERT INTO product SET ?';
     const result = await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
-    wlogger.debug(`result: ${result}`);
+    wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -235,7 +237,7 @@ const addSmartContractRow = async (tokenSymbol, addrCrowdFunding, addrHCAT721, m
     const result = await mysqlPoolQueryB(queryStr1, sql).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
-    wlogger.debug(`result: ${result}`);
+    wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -247,7 +249,7 @@ const add3SmartContractsBySymbol = async (tokenSymbol, addrHCAT721,  addrIncomeM
     const result = await mysqlPoolQueryB(queryStr1, [addrTokenController, addrHCAT721, addrIncomeManager, tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB(queryStr1)]. err: '+ err);
     });
-    wlogger.debug(`result: ${result}`);
+    wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -258,7 +260,7 @@ const deleteSmartContractRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    wlogger.debug(`deleteSmartContractRows result: ${result}`);
+    wlogger.debug(`deleteSmartContractRows result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -318,7 +320,7 @@ const addUserRow = async (email, password, identityNumber, eth_add, cellphone, n
         const result = await mysqlPoolQueryB(queryStr2, userNew).catch((err) => {
           reject('[Error @ mysqlPoolQueryB(queryStr2)]. err: '+ err);
         });
-        wlogger.debug(`result: ${result}`);
+        wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
         resolve(true);
       });
   });
@@ -356,7 +358,7 @@ const getAssetbookFromEmail = async(email) => {
     wlogger.debug(`\n--------------==inside getAssetbookFromEmail()`);
     const queryStr1 = 'SELECT u_assetbookContractAddress FROM user WHERE u_email = ?';
     const result = await mysqlPoolQueryB(queryStr1, [email]).catch((err) => {
-      wlogger.debug(`\n[Error @ getAssetbookFromEmail]`);
+      wlogger.error(`\n[Error @ getAssetbookFromEmail]`);
       reject(err);
       return false;
     });
@@ -382,7 +384,7 @@ const getAssetbookFromIdentityNumber = async(identityNumber) => {
     wlogger.debug(`\n--------------==inside getAssetbookFromIdentityNumber()`);
     const queryStr1 = 'SELECT u_assetbookContractAddress FROM user WHERE u_identityNumber = ?';
     const result = await mysqlPoolQueryB(queryStr1, [identityNumber]).catch((err) => {
-      wlogger.debug(`\n[Error @ getAssetbookFromIdentityNumber]`);
+      wlogger.error(`\n[Error @ getAssetbookFromIdentityNumber]`);
       reject(err);
       return false;
     });
@@ -437,7 +439,7 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
 
     const queryStr1 = 'INSERT INTO order_list SET ?';
     const result = await mysqlPoolQueryB(queryStr1, sqlObject).catch((err) => reject('[Error @ mysqlPoolQueryB()]'+ err));
-    wlogger.debug(`result: ${result}`);
+    wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
 
   });
@@ -449,7 +451,7 @@ const deleteOrderRows = (tokenSymbol) => {
     const result = await mysqlPoolQueryB(queryStr1, [tokenSymbol]).catch((err) => {
       reject('[Error @ mysqlPoolQueryB] '+ err);
     });
-    wlogger.debug(`deleteOrderRows result: ${result}`);
+    wlogger.debug(`deleteOrderRows result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -468,7 +470,7 @@ const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSym
       const result = await addOrderRow(identityNumber, email, tokenCount, tokenSymbol, fundCount, paymentStatus).catch((err) => {
         reject(err);
       });
-      wlogger.debug(`addOrderRow result: ${result}`);
+      wlogger.debug(`addOrderRow result: ${JSON.stringify(result, null, 4)}`);
     });
     resolve(true);
   });
@@ -530,11 +532,11 @@ const addActualPaymentTime = async(actualPaymentTime, symbol, payablePeriodEnd) 
     wlogger.debug(`\n--------------==inside addActualPaymentTime(), actualPaymentTime: ${actualPaymentTime}`);
     const queryStr = 'UPDATE income_arrangement SET ia_actualPaymentTime = ? WHERE ia_SYMBOL = ? AND ia_Payable_Period_End = ?';
     const result = await mysqlPoolQueryB(queryStr, [actualPaymentTime, symbol, payablePeriodEnd]).catch((err) => {
-      wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr)]`);
+      wlogger.error(`[Error @ mysqlPoolQueryB(queryStr)]`);
       reject(err);
       return false;
     });
-    wlogger.debug(`result: ${result}`);
+    wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -569,11 +571,11 @@ const addIncomeArrangementRowFromObj = (iaObj) => {
 
     const queryStr = 'INSERT INTO income_arrangement SET ?';
     const result = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
-      wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr)] ${err}`);
+      wlogger.error(`[Error @ mysqlPoolQueryB(queryStr)] ${err}`);
       reject(err);
       return false;
     });
-    wlogger.debug(`income arrangement table has been added with one new row. \nresult: ${result}`);
+    wlogger.debug(`income arrangement table has been added with one new row. \nresult: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -607,11 +609,11 @@ const addIncomeArrangementRow = (symbol, ia_time, actualPaymentTime, payablePeri
 
     const queryStr = 'INSERT INTO income_arrangement SET ?';
     const result = await mysqlPoolQueryB(queryStr, sqlObject).catch((err) => {
-      wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr)] ${err}`);
+      wlogger.error(`[Error @ mysqlPoolQueryB(queryStr)] ${err}`);
       reject(err);
       return false;
     });
-    wlogger.debug(`\ntransaction_info table has been added with one new row. \nresult: ${result}`);
+    wlogger.debug(`\ntransaction_info table has been added with one new row. \nresult: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -621,11 +623,11 @@ const updateIAassetRecordStatus = (symbol) => {
     wlogger.debug(`\n--------------==inside updateIAassetRecordStatus() \nsymbol: ${symbol}`);
     const queryStr = 'UPDATE income_arrangement SET ia_assetRecord_status = 1 WHERE ia_SYMBOL = ? AND ia_Payable_Period_End = 0';
     const result = await mysqlPoolQueryB(queryStr, [symbol]).catch((err) => {
-      wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr)]`);
+      wlogger.error(`[Error @ mysqlPoolQueryB(queryStr)]`);
       reject(err);
       return false;
     });
-    //wlogger.debug(`result: ${result}`);
+    //wlogger.debug(`result: ${JSON.stringify(result, null, 4)}`);
     resolve(true);
   });
 }
@@ -662,7 +664,7 @@ const getProductPricing = async(symbol) => {
     wlogger.debug(`\n--------------==inside getProductPricing()`);
     const queryStr1 = 'SELECT p_pricing FROM product WHERE p_SYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
-      wlogger.debug(`\n[Error @ getProductPricing]`);
+      wlogger.error(`\n[Error @ getProductPricing]`);
       reject(err);
       return false;
     });
@@ -689,7 +691,7 @@ const getPastScheduleTimes = async(symbol, serverTime) => {
     wlogger.debug(`-----------==getPastScheduleTimes`);
     const queryStr1 = 'SELECT ia_time FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_time <= ?';
     const result = await mysqlPoolQueryB(queryStr1, [symbol, serverTime]).catch((err) => {
-      wlogger.debug(`\n[Error @ getPastScheduleTimes > mysqlPoolQueryB()]`);
+      wlogger.error(`\n[Error @ getPastScheduleTimes > mysqlPoolQueryB()]`);
       reject(err);
       return false;
     });
@@ -711,14 +713,14 @@ const getSymbolsONM = async() => {
     let mesg;
     const queryStr2 = 'SELECT sc_symbol, smart_contracts.sc_erc721address FROM smart_contracts WHERE sc_symbol IN (SELECT p_SYMBOL FROM product WHERE p_state = "ONM")';
     const result = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
-      wlogger.debug(`\n[Error @ getSymbolsONM > mysqlPoolQueryB(queryStr2)]`);
+      wlogger.error(`\n[Error @ getSymbolsONM > mysqlPoolQueryB(queryStr2)]`);
       reject(err);
       return false;
     });
     wlogger.debug(`[getSymbolsONM] result: ${result}`);
     if (!Array.isArray(result) || !result.length) {
       mesg = '[Error @ getSymbolsONM > queryStr2';
-      wlogger.debug(`\n${mesg}`);
+      wlogger.error(`\n${mesg}`);
       reject(mesg);
       return false;
     } else {
@@ -741,7 +743,7 @@ const checkIaAssetRecordStatus = async(symbol, actualPaymentTime) => {
     wlogger.debug(`-------==checkIaAssetRecordStatus`);
     const query1 = 'SELECT ia_assetRecord_status FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
     const result = await mysqlPoolQueryB(query1, [symbol, actualPaymentTime]).catch((err) => {
-      wlogger.debug(`\n[Error @ checkIaAssetRecordStatus > mysqlPoolQueryB()]`);
+      wlogger.error(`\n[Error @ checkIaAssetRecordStatus > mysqlPoolQueryB()]`);
       reject(err);
       return false;
     });
@@ -776,7 +778,7 @@ const getMaxActualPaymentTime = async(symbol, serverTime) => {
     //SELECT MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = "ACHM6666" AND ia_actualPaymentTime <= 201906271235;
 
     const result = await mysqlPoolQueryB(query1, [symbol, serverTime]).catch((err) => {
-      wlogger.debug(`\n[Error @ getMaxActualPaymentTime > mysqlPoolQueryB()]`);
+      wlogger.error(`\n[Error @ getMaxActualPaymentTime > mysqlPoolQueryB()]`);
       reject(err);
       return false;
     });
@@ -821,7 +823,7 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
     // SELECT ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_State = "ia_state_approved" AND ia_assetRecord_status = 0 AND ia_SYMBOL = "ALLI0905" AND ia_actualPaymentTime = "201909051556";
 
     const result1 = await mysqlPoolQueryB(query1, [symbol, maxActualPaymentTime]).catch((err) => {
-      wlogger.debug(`\n[Error @ getAcPayment()]`);
+      wlogger.error(`\n[Error @ getAcPayment()]`);
       reject(err);
       return false;
     });
@@ -836,7 +838,7 @@ const getAcPayment = async(symbol, maxActualPaymentTime) => {
       const query2 = 'SELECT * FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
 
       const result2 = await mysqlPoolQueryB(query2, [symbol, maxActualPaymentTime]).catch((err) => {
-        wlogger.debug(`\n[Error @ getAcPayment(query2)]`);
+        wlogger.error(`\n[Error @ getAcPayment(query2)]`);
         reject(err);
         return false;
       });
@@ -882,7 +884,7 @@ const getProfitSymbolAddresses = async(serverTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`-----------==getProfitSymbolAddress \nserverTime: ${serverTime} typeof: ${typeof serverTime}`);
     const [foundSymbols, foundHCAT721Addrs] = await getSymbolsONM().catch((err) => {
-      wlogger.debug(`\n[Error @getSymbolsONM] err: ${err}`);
+      wlogger.error(`\n[Error @getSymbolsONM] err: ${err}`);
       reject(err);
       return false;
     });
@@ -918,10 +920,10 @@ const getProfitSymbolAddresses = async(serverTime) => {
       } else if(isNoneInteger(maxActualPaymentTime)){
         acPayment = -13;
         mesg += 'MAPT_not_valid';//incorrect data...
-        wlogger.debug(`[Warning] ${mesg}, symbol: ${symbol}`);
+        wlogger.warn(`[Warning] ${mesg}, symbol: ${symbol}`);
   
       } else {
-        wlogger.debug(`[Good] MAPT is valid: ${maxActualPaymentTime}`);
+        wlogger.info(`[Good] MAPT is valid: ${maxActualPaymentTime}`);
         //const assetRecordStatus = await checkIaAssetRecordStatus(symbol, maxActualPaymentTime);
 
         acPayment = await getAcPayment(symbol, maxActualPaymentTime);
@@ -931,10 +933,10 @@ const getProfitSymbolAddresses = async(serverTime) => {
           } else {
             mesg += 'acPayment_invalid';//-ve or null or undefined 
           }
-          wlogger.debug(`[Warning] ${mesg}: ${acPayment} ${typeof acPayment}, symbol: ${symbol}`);
+          wlogger.warn(`[Warning] ${mesg}: ${acPayment} ${typeof acPayment}, symbol: ${symbol}`);
 
         } else {
-          wlogger.debug(`[Good] acPayment is valid`);
+          wlogger.info(`[Good] acPayment is valid`);
         }
 
       }
@@ -1037,7 +1039,7 @@ const calculateLastPeriodProfit = async(serverTime) => {
           });
 
           const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(toAddressArray, amountArray, symbol, ar_time, acPayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
-            wlogger.debug(`\n[Error @ addAssetRecordRowArray]`);
+            wlogger.error(`\n[Error @ addAssetRecordRowArray]`);
             reject(err);
             return false;
           });
@@ -1068,7 +1070,7 @@ const setAssetRecordStatus = async (assetRecordStatus, symbol, actualPaymentTime
     const queryStr1 = 'UPDATE income_arrangement SET ia_assetRecord_status = ? WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
     const result = await mysqlPoolQueryB(queryStr1, [assetRecordStatus, symbol, actualPaymentTime]).catch((err) => {
       const mesg = '[Error @ setAssetRecordStatus]';
-      wlogger.debug(`\n${mesg}`);
+      wlogger.error(`\n${mesg}`);
       reject(err);
       return false;
     });
@@ -1096,7 +1098,7 @@ const addAssetRecordRow = async (investorEmail, symbol, ar_time, holdingAmount, 
 
     const querySql1 = 'INSERT INTO investor_assetRecord SET ?';
     const result5 = await mysqlPoolQueryB(querySql1, sql).catch((err) => {
-      wlogger.debug(`[Error @ adding asset row(querySql1)]`);
+      wlogger.error(`[Error @ adding asset row(querySql1)]`);
       reject(err);
       return(false);
     });
@@ -1206,7 +1208,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
       const queryStr4 = 'SELECT u_email FROM user WHERE u_assetbookContractAddress = ?';
       await asyncForEachAssetRecordRowArray(inputArray, async (addrAssetbook, index) => {
         const emailObj = await mysqlPoolQueryB(queryStr4, [addrAssetbook]).catch((err) => {
-          wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr4)]`);
+          wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr4)]`);
           reject(err);
           return [null, null];
         });
@@ -1220,12 +1222,12 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
           emailArray.push('email:_multiple_emails_were_found');
 
         } else if(emailObj.length === 0){
-          wlogger.error(`\n----==[Warning] Got empty email address from one addrAssetbook: ${addrAssetbook}, emailObj: ${emailObj}`);
+          wlogger.error(`\n----==[Error] Got empty email address from one addrAssetbook: ${addrAssetbook}, emailObj: ${emailObj}`);
           emailArray.push('email:not_found');
 
         } else {
           const email = emailObj[0].u_email;
-          wlogger.error(`\n----==[Good] Got one email ${email} from assetbook: \n${addrAssetbook}, amount: ${amountArray[index]}`);
+          wlogger.info(`\n----==[Good] Got one email ${email} from assetbook: \n${addrAssetbook}, amount: ${amountArray[index]}`);
           emailArray.push(email);
         }
       });
@@ -1241,7 +1243,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
       if(!email.includes('@')){
         emailArrayError.push(email);
         amountArrayError.push(amount);
-        wlogger.debug(`[Error @ email] email: ${email}, amount: ${amount} ... added to emailArrayError and amountArrayError`);
+        wlogger.error(`[Error @ email] email: ${email}, amount: ${amount} ... added to emailArrayError and amountArrayError`);
 
       } else {
         wlogger.debug(`mysql612: email: ${email}, symbol: ${symbol}, ar_time: ${ar_time} \nacPayment(singleActualIncomePayment): ${acPayment}, amount: ${amount}, acquiredCost: ${acquiredCost}`);
@@ -1261,7 +1263,7 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
 
         const queryStr6 = 'INSERT INTO investor_assetRecord SET ?';
         const result6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
-          wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr6)]`);
+          wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr6)]`);
           reject(err);
           return [null, null];
         });
@@ -1283,7 +1285,7 @@ const getFundingStateDB = (symbol) => {
     wlogger.debug(`inside getFundingStateDB()... get p_state`);
     const queryStr2 = 'SELECT p_state, p_CFSD, p_CFED FROM product WHERE p_SYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
-      wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
+      wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
       reject(err);
       return false;
     });
@@ -1307,7 +1309,7 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
 
     if(Number.isInteger(CFSD) && Number.isInteger(CFED)){
       const result1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
-        wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
+        wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
         reject(err);
         return false;
       });
@@ -1316,11 +1318,11 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
       resolve(true);
     } else {
       const result2 = await mysqlPoolQueryB(queryStr2, [pstate, symbol]).catch((err) => {
-        wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
+        wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
         reject(err);
         return false;
       });
-      wlogger.debug(`[Success @setFundingStateDB] have set symbol: ${symbol}, to p_state = ${pstate}`);
+      wlogger.info(`[Success @setFundingStateDB] have set symbol: ${symbol}, to p_state = ${pstate}`);
       //wlogger.debug(`result2: ${result2}`);
       resolve(true);
     }
@@ -1338,7 +1340,7 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
 
     if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
       const result1 = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
-        wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr1)]`);
+        wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr1)]`);
         reject(err);
         return false;
       });
@@ -1347,7 +1349,7 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
       resolve(true);
     } else {
       const result = await mysqlPoolQueryB(queryStr2, [tokenState, symbol]).catch((err) => {
-        wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
+        wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
         reject(err);
         return false;
       });
@@ -1358,22 +1360,22 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
   });
 }
 
-const getTokenStateDB = (symbol) => {
+//yarn run testmt -f 212
+const getTokenStateDB = async(symbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`inside getTokenStateDB()... get p_tokenState`);
     const queryStr2 = 'SELECT p_tokenState, p_lockuptime, p_validdate FROM product WHERE p_SYMBOL = ?';
     const result = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
-      wlogger.debug(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
+      wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
       reject(err);
       return false;
     });
-    wlogger.debug(`result: ${result}`);
-    if (!Array.isArray(result) || result.length < 3) {
-      resolve(undefined);
-    } else {
-      wlogger.debug(`symbol: ${symbol}, tokenState: ${result[0]}, lockuptime: ${result[1]}, validdate: ${result[2]}`);
-      resolve(true);
-      }
+    //wlogger.debug(`=> ${result[0].p_tokenState}`);
+    const resultStr = JSON.stringify(result, null, 4);
+    //wlogger.debug(`resultStr: ${resultStr}`);
+    //wlogger.debug(`symbol: ${symbol}, tokenState: ${result[0].p_tokenState}, lockuptime: ${result[0].p_lockuptime}, validdate: ${result[0].p_validdate}`);
+    resolve([true, result[0].p_tokenState, result[0].p_lockuptime, result[0].p_validdate]);
+    // const [isGood, tokenState, lockuptime, validdate] = getTokenStateDB(symbol);
   });
 }
 
@@ -1548,7 +1550,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
 
   const queryStr0 = 'SELECT distinct ia_SYMBOL FROM product';
   const symbolObjArray = await mysqlPoolQueryB(queryStr0, []).catch((err) => {
-    wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr0)] ${err}`);
+    wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr0)] ${err}`);
   });
   if (!Array.isArray(symbolObjArray) || !symbolObjArray.length) {
     wlogger.debug(`invalid symbolObjArray: ${symbolObjArray}`);
@@ -1558,7 +1560,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   const queryStr7 = 'SELECT ia_SYMBOL, ia_actualPaymentTime, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_actualPaymentTime = (SELECT  MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?)'
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
     const result = await mysqlPoolQueryB(queryStr7, [symbolObj.ia_SYMBOL]).catch((err) => {
-      wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr7)] ${err}`);
+      wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr7)] ${err}`);
     });
     wlogger.debug(`result: ${result}`);
     if (!Array.isArray(result) || !result.length) {
@@ -1580,7 +1582,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   const queryStr1 = 'SELECT ia_SYMBOL, MAX(ia_actualPaymentTime) FROM income_arrangement WHERE ia_SYMBOL = ?';
   await asyncForEach(symbolObjArray, async (symbolObj, index) => {
     const result = await mysqlPoolQueryB(queryStr1, [symbolObj.ia_SYMBOL]).catch((err) => {
-      wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
+      wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
     });
     //wlogger.debug(`result: ${ result, result[0].ia_SYMBOL, result[0]['MAX(ia_actualPaymentTime)']);
     const symbolM = result[0].ia_SYMBOL;
@@ -1597,7 +1599,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
     const queryStr2 = 'SELECT ia_SYMBOL, ia_single_Actual_Income_Payment_in_the_Period FROM income_arrangement WHERE ia_SYMBOL = ?';
     await asyncForEach(symbolArray, async (symbol, index) => {
       const result = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
-        wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr2)]'+ err);
+        wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr2)]'+ err);
       });
       const incomePayment = parseInt(result[0].ia_single_Actual_Income_Payment_in_the_Period);
       acIncomePaymentArray.push(incomePayment);
@@ -1616,27 +1618,27 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   const queryStr2 = 'SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol = ?';
   await asyncForEach(symbolArray, async (symbol, index) => {
     const result2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
-      wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr2)] ${err}`);
+      wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr2)] ${err}`);
     });
     wlogger.debug(`result2: ${result2}`);
     if (!Array.isArray(result2)) {
-      wlogger.debug(`[Error] erc721 contract address: invalid`);
+      wlogger.error(`[Error] erc721 contract address: invalid`);
       addrHCAT_Array.push(`invalid erc721 ctrt result`);
 
     } else if(result2.length === 0){
-      wlogger.debug(`[Error] erc721 contract address was not found`);
+      wlogger.error(`[Error] erc721 contract address was not found`);
       addrHCAT_Array.push(`Not on record`);
 
     } else if(result2.length > 1){
-      wlogger.debug(`[Error] multiple erc721 contract addresses were found`);
+      wlogger.error(`[Error] multiple erc721 contract addresses were found`);
       addrHCAT_Array.push(`multiple contract addr`);
 
     } else if(isEmpty(result2[0].sc_erc721address)){
-      wlogger.debug(`[Error] erc21 contract addresses is null or undefined or empty string`);
+      wlogger.error(`[Error] erc21 contract addresses is null or undefined or empty string`);
       addrHCAT_Array.push(result2[0].sc_erc721address);
 
     } else {
-      wlogger.debug(`[Good] erc721 contract address: ${result2[0].sc_erc721address}`);
+      wlogger.info(`[Good] erc721 contract address: ${result2[0].sc_erc721address}`);
       addrHCAT_Array.push(result2[0].sc_erc721address);
     }
   });
@@ -1670,7 +1672,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
     await asyncForEach(abAddrArray, async (assetbookAddr, idx) => {
       const queryStr3 = 'SELECT u_email FROM user WHERE u_assetbookContractAddress = ?';
       const result3 = await mysqlPoolQueryB(queryStr3, [assetbookAddr]).catch((err) => {
-        wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
+        wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
       });
       wlogger.debug(`result3: ${result3}`);
       if (!Array.isArray(result3)) {
@@ -1698,7 +1700,7 @@ const addIncomePaymentPerPeriodIntoDB = async (serverTime) => {
   
         const queryStr6 = 'INSERT INTO investor_assetRecord SET ?';
         const result6 = await mysqlPoolQueryB(queryStr6, sqlObject).catch((err) => {
-          wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr6)] ${err}`);
+          wlogger.error(`[Error @ mysqlPoolQueryB(queryStr6)] ${err}`);
         });
         wlogger.debug(`result6: ${result6}`);
       }

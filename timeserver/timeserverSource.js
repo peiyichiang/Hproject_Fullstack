@@ -1,8 +1,6 @@
 const schedule = require('node-schedule');
-const path = require('path');
-const fs = require('fs');
-const chalk = require('chalk');
-const log = console.log;
+// const path = require('path');
+// const fs = require('fs');
 
 const { wlogger } = require('../ethereum/contracts/zsetupData');
 const { getTimeServerTime } = require('./utilities');
@@ -44,27 +42,26 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
       serverTime = parseInt(time.toString());
     } catch(err) {
       wlogger.error(`[Error] serverTime is not an integer: ${time.toString()}`);
-      process.exit(0);
+      process.exit(1);
     }
     //wlogger.info(`[timeserverSource.js] serverTime: ${serverTime}`);
   
 
     if(is_addAssetbooksIntoCFC){
       addAssetbooksIntoCFC(serverTime).catch((err) => {
-        wlogger.error(`[Failed addAssetbooksIntoCFC]: ${err}`);
-        log(chalk.red(`[Error] see above`));
+        wlogger.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
       });//blockchain.js
       // after order status change: waiting -> paid -> write into crowdfunding contract
     };
 
     if(is_makeOrdersExpiredCFED){
       const result = await makeOrdersExpiredCFED(serverTime).catch((err) => {
-        wlogger.error(`[Failed @ timeserver: makeOrdersExpiredCFED]: ${err}`);
+        wlogger.error(`[Error @ timeserver: makeOrdersExpiredCFED]: ${err}`);
       });//blockchain.js
       if(result){
-        log(chalk.green('>> [Success@ timeserver] makeOrdersExpiredCFED();'));
+        wlogger.info('>> [Success@ timeserver] makeOrdersExpiredCFED()');
       } else {
-        log(chalk.red('>> [Fail@ timeserver] makeOrdersExpiredCFED() returns false;'));
+        wlogger.error('>> [Error @ timeserver] makeOrdersExpiredCFED() returns false;');
       };//blockchain.js
 
       // after orders pass CFED, we make such orders expired
@@ -73,12 +70,12 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
     //orderDate+3 => expired orders
     if(is_updateExpiredOrders){
       const result = await updateExpiredOrders(serverTime).catch((err) => {
-        wlogger.error(`[Failed @ timeserver: updateExpiredOrders]: ${err}`);
+        wlogger.error(`[Error @ timeserver: updateExpiredOrders]: ${err}`);
       });
       if(result){
-        log(chalk.green('>> [Success@ timeserver] updateExpiredOrders();'));
+        wlogger.info('>> [Success@ timeserver] updateExpiredOrders();');
       } else {
-        log(chalk.red('>> [Fail@ timeserver] updateExpiredOrders() returns false;'));
+        wlogger.error('>> [Error @ timeserver] updateExpiredOrders() returns false;');
       };//blockchain.js
       //find still funding symbols that have passed CDED2 -> expire all orders of that symbol
     };
@@ -86,12 +83,12 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
     // partical crowdfunding actions can be triggered by timeserver
     if(is_updateFundingStateFromDB){
       const result = await updateFundingStateFromDB(serverTime).catch((err) => {
-        wlogger.error(`[Failed @ timeserver: updateFundingStateFromDB]: ${err}`);
+        wlogger.error(`[Error @ timeserver: updateFundingStateFromDB]: ${err}`);
       });
       if(result){
-        log(chalk.green('>> [Success@ timeserver] updateFundingStateFromDB();'));
+        wlogger.info('>> [Success@ timeserver] updateFundingStateFromDB();');
       } else {
-        log(chalk.red('>> [Fail@ timeserver] updateFundingStateFromDB() returns false;'));
+        wlogger.error('>> [Error @ timeserver] updateFundingStateFromDB() returns false;');
       };//blockchain.js
       //From DB check if product:fundingState needs to be updated, except fundingClosed/notClosed
     };
@@ -99,25 +96,25 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
     //From DB check if product:tokenState needs to be updated
     if(is_updateTokenStateFromDB){
       const result = await updateTokenStateFromDB(serverTime).catch((err) => {
-        wlogger.error(`[Failed @ timeserver: updateTokenStateFromDB]: ${err}`);
+        wlogger.error(`[Error @ timeserver: updateTokenStateFromDB]: ${err}`);
       });
       if(result){
-        log(chalk.green('>> [Success@ timeserver] updateTokenStateFromDB();'));
+        wlogger.info('>> [Success@ timeserver] updateTokenStateFromDB();');
       } else {
-        log(chalk.red('>> [Fail@ timeserver] updateTokenStateFromDB() returns false;'));
+        wlogger.error('>> [Error @ timeserver] updateTokenStateFromDB() returns false;');
       };//blockchain.js
       //From DB check if product:tokenState needs to be updated
     };
 
     if(is_calculateLastPeriodProfit){
       const result = await calculateLastPeriodProfit(serverTime).catch((err) => {
-        wlogger.error(`[Failed @ timeserver: calculateLastPeriodProfit]: ${err}`);
+        wlogger.error(`[Error @ timeserver: calculateLastPeriodProfit]: ${err}`);
       });
       wlogger.debug(result);
       if(result){
-        log(chalk.green('>> [Success@ timeserver] calculateLastPeriodProfit();'));
+        wlogger.info('>> [Success@ timeserver] calculateLastPeriodProfit();');
       } else {
-        log(chalk.red('>> [Fail@ timeserver] calculateLastPeriodProfit() returns false;'));
+        wlogger.error('>> [Error @ timeserver] calculateLastPeriodProfit() returns false;');
       };//mysql.js
     }
   

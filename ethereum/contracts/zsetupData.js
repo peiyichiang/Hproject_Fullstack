@@ -36,9 +36,9 @@ winston.loggers.add('format1', {
 
 const wlogger = winston.loggers.get('format1');
 // wlogger.silly('log level = silly');
-wlogger.info(`log level = 5 debug`);
-// wlogger.verbose('log level = 4 verbose');
-// wlogger.debug(`log level = 3 info');
+wlogger.debug(`log level = 5 debug`);
+wlogger.verbose(`log level = 4 verbose`);
+wlogger.info(`log level = 3 info`);
 wlogger.warn(`log level = 2 warn`);
 wlogger.error(`log level = 1 error`);
 
@@ -138,19 +138,19 @@ wlogger.debug(`loading blockchain.js smart contract json files`);
 const Helium = require('./build/Helium.json');
 
 if (Helium === undefined){
-  wlogger.debug(`[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] Helium is defined`);
+  wlogger.info(`[Good] Helium is defined`);
   if (Helium.abi === undefined){
-    wlogger.debug(`[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] Helium.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] Helium.abi is defined`);
+    wlogger.info(`[Good] Helium.abi is defined`);
       //wlogger.debug(`Helium.abi:: ${Helium.abi);
   }
   if (Helium.bytecode === undefined || Helium.bytecode.length < 10){
-    wlogger.debug(`[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] Helium.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] Helium.bytecode is defined`);
+    wlogger.info(`[Good] Helium.bytecode is defined`);
       //wlogger.debug(`Helium.bytecode:: ${Helium.bytecode);
   }
   //wlogger.debug(Helium);
@@ -158,19 +158,19 @@ if (Helium === undefined){
 
 const AssetBook = require('./build/AssetBook.json');
 if (AssetBook === undefined){
-  wlogger.debug(`[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] AssetBook is defined`);
+  wlogger.info(`[Good] AssetBook is defined`);
   if (AssetBook.abi === undefined){
-    wlogger.debug(`[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] AssetBook.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] AssetBook.abi is defined`);
+    wlogger.info(`[Good] AssetBook.abi is defined`);
       //wlogger.debug(`AssetBook.abi:: ${AssetBook.abi);
   }
   if (AssetBook.bytecode === undefined || AssetBook.bytecode.length < 10){
-    wlogger.debug(`[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] AssetBook.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] AssetBook.bytecode is defined`);
+    wlogger.info(`[Good] AssetBook.bytecode is defined`);
       //wlogger.debug(`AssetBook.bytecode:: ${AssetBook.bytecode);
   }
   //wlogger.debug(AssetBook);
@@ -179,19 +179,19 @@ if (AssetBook === undefined){
 
 const Registry = require('./build/Registry.json');
 if (Registry === undefined){
-  wlogger.debug(`[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] Registry is defined`);
+  wlogger.info(`[Good] Registry is defined`);
   if (Registry.abi === undefined){
-    wlogger.debug(`[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] Registry.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] Registry.abi is defined`);
+    wlogger.info(`[Good] Registry.abi is defined`);
       //wlogger.debug(`Registry.abi:: ${Registry.abi);
   }
   if (Registry.bytecode === undefined || Registry.bytecode.length < 10){
-    wlogger.debug(`[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] Registry.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] Registry.bytecode is defined`);
+    wlogger.info(`[Good] Registry.bytecode is defined`);
       //wlogger.debug(`Registry.bytecode:: ${Registry.bytecode);
   }
   //wlogger.debug(Registry);
@@ -199,19 +199,19 @@ if (Registry === undefined){
 
 const TokenController = require('./build/TokenController.json');
 if (TokenController === undefined){
-  wlogger.debug(`[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] TokenController is defined`);
+  wlogger.info(`[Good] TokenController is defined`);
   if (TokenController.abi === undefined){
-    wlogger.debug(`[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] TokenController.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] TokenController.abi is defined`);
+    wlogger.info(`[Good] TokenController.abi is defined`);
       //wlogger.debug(`TokenController.abi:: ${TokenController.abi);
   }
   if (TokenController.bytecode === undefined || TokenController.bytecode.length < 10){
-    wlogger.debug(`[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] TokenController.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] TokenController.bytecode is defined`);
+    wlogger.info(`[Good] TokenController.bytecode is defined`);
       //wlogger.debug(`TokenController.bytecode:: ${TokenController.bytecode);
   }
   //wlogger.debug(TokenController);
@@ -219,19 +219,19 @@ if (TokenController === undefined){
 
 const HCAT721 = require('./build/HCAT721_AssetToken.json');
 if (HCAT721 === undefined){
-  wlogger.debug(`[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] HCAT721 is defined`);
+  wlogger.info(`[Good] HCAT721 is defined`);
   if (HCAT721.abi === undefined){
-    wlogger.debug(`[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] HCAT721.abi is NOT defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] HCAT721.abi is defined`);
+    wlogger.info(`[Good] HCAT721.abi is defined`);
       //wlogger.debug(`HCAT721.abi:: ${HCAT721.abi);
   }
   if (HCAT721.bytecode === undefined || HCAT721.bytecode.length < 10){
-    wlogger.debug(`[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] HCAT721.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] HCAT721.bytecode is defined`);
+    wlogger.info(`[Good] HCAT721.bytecode is defined`);
       //wlogger.debug(`HCAT721.bytecode:: ${HCAT721.bytecode);
   }
   //wlogger.debug(HCAT721);
@@ -241,19 +241,19 @@ const HCAT721_Test = '';
 /*
 const HCAT721_Test = require('./build/HCAT721_AssetToken_Test.json');
 if (HCAT721_Test === undefined) {
-  wlogger.debug(`[Error] HCAT721_Test is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] HCAT721_Test is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] HCAT721_Test is defined`);
+  wlogger.info(`[Good] HCAT721_Test is defined`);
   if (HCAT721_Test.abi === undefined) {
-    wlogger.debug(`[Error] HCAT721_Test.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] HCAT721_Test.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] HCAT721_Test.abi is defined`);
+    wlogger.info(`[Good] HCAT721_Test.abi is defined`);
     //wlogger.debug(`HCAT721_Test.abi:: ${HCAT721_Test.abi);
   }
   if (HCAT721_Test.bytecode === undefined || HCAT721_Test.bytecode.length < 10) {
-    wlogger.debug(`[Error] HCAT721_Test.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] HCAT721_Test.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] HCAT721_Test.bytecode is defined`);
+    wlogger.info(`[Good] HCAT721_Test.bytecode is defined`);
     //wlogger.debug(`HCAT721_Test.bytecode:: ${HCAT721_Test.bytecode);
   }
   //wlogger.debug(HCAT721_Test);
@@ -261,19 +261,19 @@ if (HCAT721_Test === undefined) {
 
 const CrowdFunding = require('./build/CrowdFunding.json');
 if (CrowdFunding === undefined){
-  wlogger.debug(`[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] CrowdFunding is defined`);
+  wlogger.info(`[Good] CrowdFunding is defined`);
   if (CrowdFunding.abi === undefined){
-    wlogger.debug(`[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] CrowdFunding.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] CrowdFunding.abi is defined`);
+    wlogger.info(`[Good] CrowdFunding.abi is defined`);
       //wlogger.debug(`CrowdFunding.abi:: ${CrowdFunding.abi);
   }
   if (CrowdFunding.bytecode === undefined || CrowdFunding.bytecode.length < 10){
-    wlogger.debug(`[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] CrowdFunding.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] CrowdFunding.bytecode is defined`);
+    wlogger.info(`[Good] CrowdFunding.bytecode is defined`);
       //wlogger.debug(`CrowdFunding.bytecode:: ${CrowdFunding.bytecode);
   }
   //wlogger.debug(CrowdFunding);
@@ -281,19 +281,19 @@ if (CrowdFunding === undefined){
 
 const IncomeManager = require('./build/IncomeManagerCtrt.json');
 if (IncomeManager === undefined){
-  wlogger.debug(`[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] IncomeManager is defined`);
+  wlogger.info(`[Good] IncomeManager is defined`);
   if (IncomeManager.abi === undefined){
-    wlogger.debug(`[Error] IncomeManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] IncomeManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] IncomeManager.abi is defined`);
+    wlogger.info(`[Good] IncomeManager.abi is defined`);
       //wlogger.debug(`IncomeManager.abi:: ${IncomeManager.abi);
   }
   if (IncomeManager.bytecode === undefined || IncomeManager.bytecode.length < 10){
-    wlogger.debug(`[Error] IncomeManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] IncomeManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] IncomeManager.bytecode is defined`);
+    wlogger.info(`[Good] IncomeManager.bytecode is defined`);
       //wlogger.debug(`IncomeManager.bytecode:: ${IncomeManager.bytecode);
   }
   //wlogger.debug(IncomeManager);
@@ -301,19 +301,19 @@ if (IncomeManager === undefined){
 
 const ProductManager = require('./build/ProductManager.json');
 if (ProductManager === undefined){
-  wlogger.debug(`[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  wlogger.error(`[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
 } else {
-  wlogger.debug(`[Good] ProductManager is defined`);
+  wlogger.info(`[Good] ProductManager is defined`);
   if (ProductManager.abi === undefined){
-    wlogger.debug(`[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] ProductManager.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] ProductManager.abi is defined`);
+    wlogger.info(`[Good] ProductManager.abi is defined`);
       //wlogger.debug(`ProductManager.abi:: ${ProductManager.abi);
   }
   if (ProductManager.bytecode === undefined || ProductManager.bytecode.length < 10){
-    wlogger.debug(`[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+    wlogger.error(`[Error] ProductManager.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
   } else {
-    wlogger.debug(`[Good] ProductManager.bytecode is defined`);
+    wlogger.info(`[Good] ProductManager.bytecode is defined`);
       //wlogger.debug(`ProductManager.bytecode:: ${ProductManager.bytecode);
   }
   //wlogger.debug(ProductManager);

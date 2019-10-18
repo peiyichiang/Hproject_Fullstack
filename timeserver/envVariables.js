@@ -131,8 +131,15 @@ console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrPro
 
 //----------------------------==Timeserver Settings
 const isTimeserverON = process.env.IS_TIMESERVER_ON === '1';
-const timeserverMode = parseInt(process.env.TIMESERVER_MODE);// = 1
-const timeserverTimeInverval = parseInt(process.env.TIMESERVER_TIME_INTERVAL);//20
+let timeserverMode = parseInt(process.env.TIMESERVER_MODE);// = 1
+if(isNaN(timeserverMode)){
+  timeserverMode = 1;
+}
+let timeserverTimeInverval = parseInt(process.env.TIMESERVER_TIME_INTERVAL);//20
+if(isNaN(timeserverTimeInverval)){
+  timeserverTimeInverval = 20;
+}
+
 const is_addAssetbooksIntoCFC = process.env.IS_ADDASSETBOOKS_INTO_CFC === '1';
 const is_makeOrdersExpiredCFED = process.env.IS_MAKEORDERS_EXPIRED_CFED === '1';
 const is_updateExpiredOrders = process.env.IS_UPDATE_EXPIRED_ORDERS === '1';
