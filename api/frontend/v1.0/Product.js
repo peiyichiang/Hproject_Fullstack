@@ -23,6 +23,7 @@ router.get('/LaunchedProductList', function (req, res) {
         SUBSTRING(p_CFSD, 11, 2) AS releaseDateMinute,
         p_size AS size,
         p_duration AS durationInYear,
+        p_FRP AS duration,
         SUBSTRING(p_CFED, 1, 4) AS deadlineYear,
         SUBSTRING(p_CFED, 5, 2) AS deadlineMonth,
         SUBSTRING(p_CFED, 7, 2) AS deadlineDate,
