@@ -449,14 +449,16 @@ router.get('/AssetDocs', function (req, res) {
         }
         else {
             mysqlPoolQuery(
-                `SELECT p_assetdocs
+                `SELECT p_NotarizedRentalContract,
+                        p_ParallelAudited
                 FROM htoken_test.product
-                WHERE p_SYMBOL = ?`, symbol, function (err, documentLink) {
+                WHERE p_SYMBOL = ?`, symbol, function (err, docAddresses) {
                 if (err) { res.status(400).send({ "message": "文件連結取得失敗:\n" + err }) }
                 else {
+                    console.log(docAddresses)
                     res.status(200).json({
                         "message": "文件連結取得成功",
-                        "result": documentLink[0].p_assetdocs
+                        "result": docAddresses[0]
                     });
                 }
             });
