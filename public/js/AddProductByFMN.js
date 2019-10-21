@@ -120,6 +120,9 @@ function UploadImage(){
                     $("#p_Image10").val(data.filePath['image10'][0].path);     
                     // console.log("Image10：" + data.filePath['image10'][0].path);
                 }
+                //將p_size限制在小數點2位數
+                $("#p_size").val(parseFloat(document.getElementById("p_size").value).toFixed(2));
+                
                 // 將資料寫入資料庫
                 document.getElementById("addProductForm").submit();
             }
