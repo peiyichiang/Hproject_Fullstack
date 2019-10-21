@@ -60,10 +60,20 @@ function UploadImage(){
             //     $("#p_assetdocs").val(data.filePath);
             // }
             try {
-                if(data.filePath['file']!=null){
-                    $("#p_assetdocs").val(data.filePath['file'][0].path);
-                    // console.log(data.filePath['file'][0].path);
+                // if(data.filePath['file']!=null){
+                //     $("#p_assetdocs").val(data.filePath['file'][0].path);
+                //     // console.log(data.filePath['file'][0].path);
+                // }
+                if(data.filePath['p_NotarizedRentalContract_form']!=null){
+                    $("#p_NotarizedRentalContract").val(data.filePath['p_NotarizedRentalContract_form'][0].path);
+                    // console.log(data.filePath['icon'][0].path);
                 }
+
+                if(data.filePath['p_ParallelAudited_form']!=null){
+                    $("#p_ParallelAudited").val(data.filePath['p_ParallelAudited_form'][0].path);
+                    // console.log(data.filePath['icon'][0].path);
+                }
+
                 if(data.filePath['icon']!=null){
                     $("#p_icon").val(data.filePath['icon'][0].path);
                     // alert(data.filePath['icon'][0].path);
@@ -112,6 +122,8 @@ function UploadImage(){
                     $("#p_Image10").val(data.filePath['image10'][0].path);     
                     // console.log("Image10：" + data.filePath['image10'][0].path);
                 }
+                //將p_size限制在小數點2位數
+                $("#p_size").val(parseFloat(document.getElementById("p_size").value).toFixed(2));
                 // 將修改後的資料存回資料庫
                 document.getElementById("editform").submit();
             }
