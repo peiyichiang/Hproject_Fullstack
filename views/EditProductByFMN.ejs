@@ -137,10 +137,10 @@
             <label for="p_fundingGoal">專案募資目標(個)</label>
             <input type="text" class="form-control" name="p_fundingGoal" id="p_fundingGoal" placeholder="ex:800" value="<%=data[0].p_fundingGoal %>">
           </div>
-          <div class="form-group col-md-4">
+          <!-- <div class="form-group col-md-4">
             <label for="p_HCAT721uri">專案於公鏈或政府官方文件</label>
             <input type="text" class="form-control" name="p_HCAT721uri" id="p_HCAT721uri" placeholder="" value="<%=data[0].p_HCAT721uri %>">
-          </div>
+          </div> -->
           <div class="form-group col-md-4">
             <label for="p_EPCname">EPC名稱</label>
             <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="" value="<%=data[0].p_EPCname %>">
@@ -173,35 +173,35 @@
         <div class="form-row">
                 <div class="form-group col-md-6">
                   <label for="p_TaiPowerApprovalDate">台電並聯作業日期</label>
-                  <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_TaiPowerApprovalDate %>">
+                  <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_TaiPowerApprovalDate %>">
                 </div>
                 <div class="form-group col-md-6">
                       <label for="p_BOEApprovalDate">能源局同意備案日期</label>
-                      <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_BOEApprovalDate %>">
+                      <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_BOEApprovalDate %>">
                  </div>
         </div>
         <div class="form-row">
                 <div class="form-group col-md-6">
                   <label for="p_PVTrialOperationDate">併聯試運轉日期</label>
-                  <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_PVTrialOperationDate %>">
+                  <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVTrialOperationDate %>">
                 </div>
                 <div class="form-group col-md-6">
                       <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
-                      <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_PVOnGridDate %>">
+                      <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVOnGridDate %>">
                  </div>
         </div>
         <div class="form-row">
           <div class="form-group col-md-4">
               <label for="p_ContractOut">工程發包日期</label>
-              <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_ContractOut %>">
+              <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDD" value="<%=data[0].p_ContractOut %>">
           </div>
           <div class="form-group col-md-4">
             <label for="p_CaseConstruction">案場建置完成日期</label>
-            <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_CaseConstruction %>">
+            <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDD" value="<%=data[0].p_CaseConstruction %>">
           </div>
           <div class="form-group col-md-4">
                 <label for="p_ElectricityBilling">電費計費開始日期</label>
-                <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_ElectricityBilling %>">
+                <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDD" value="<%=data[0].p_ElectricityBilling %>">
            </div>
         </div>
         <div class="form-row">
@@ -209,7 +209,7 @@
             <label for="p_Copywriting">產品文案</label>
             <br>
             <!-- <input type="text" class="form-control" name="p_Copywriting" id="p_Copywriting"> -->
-            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;" maxlength="50"><%=data[0].p_Copywriting %></textarea>
+            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;" maxlength="200"><%=data[0].p_Copywriting %></textarea>
           </div>
         </div>
         <div class="form-row" hidden>
@@ -282,13 +282,13 @@
         <!-- 文件上傳表單 -->
         <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
             <div class="form-row">
-                    <div class="form-group col-md-4">
+                    <!-- <div class="form-group col-md-4">
                             <label for="file">購售電合約</label>
                             <input type="file" class="form-control" name="file" id="file">
                             <%if (data[0].p_assetdocs != null && data[0].p_assetdocs != "") { %>
                                 <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_assetdocs.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
                             <% } %>
-                    </div>
+                    </div> -->
                     <div class="form-group col-md-4">
                             <label for="icon">產品icon</label>
                             <input type="file" class="form-control" name="icon" id="icon">

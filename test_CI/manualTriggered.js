@@ -4,13 +4,13 @@ const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log;
 //--------------------==
-const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray } = require('./zTestParameters');
+const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, amountToInvest100 } = require('./zTestParameters');
 
 const { admin, adminpkRaw, symbolNumber, isTimeserverON, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount } = require('../timeserver/envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus } = require('../timeserver/mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck } = require('../timeserver/blockchain.js');
 
@@ -573,7 +573,7 @@ const deployProductManagerContract_API = async() => {
 //yarn run testmt -f 56
 const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
-  const choice = 1;//1: normal, 2 for specific addresses, 3 for just one
+  const choice = 3;//1: normal, 2 for specific addresses, 3 for just one
   let eoaArray, eoapkArray;
   const addrHeliumContract = addrHelium;
 
@@ -598,7 +598,7 @@ const deployAssetbookContracts_API = async() => {
     eoapkArray = [eoa1pk, eoa2pk, eoa3pk, eoa4pk];
 
   } else {
-    const assetownerOne = assetOwnerArray[0];
+    const assetownerOne = assetOwnerArray[10];
     if(assetownerOne.trim().length === 0) {
       console.log('assetownerOne cannot be empty');
       process.exit(0);
@@ -710,9 +710,63 @@ const addUsersToRegistryCtrt_API = async() => {
   process.exit(0);
 };
 
-//yarn run testmt -f 60
-const xyz_API = async () => {
 
+//yarn run testmt -f 52
+const deployAssetbook_DB_Reg_API = async () => {
+  console.log('\n--------------==inside deployAssetbook_DB_Reg_API()');
+  const addrHeliumContract = addrHelium;
+  const eoaIndex = 11;// 0 ~ assetOwnerArray.length
+
+  if(assetOwnerArray.length < eoaIndex) {
+    console.error(`not enough assetOwnerArray length compared to ${eoaIndex}!`);
+    process.exit(1);
+  }
+
+  const assetownerOne = assetOwnerArray[eoaIndex];
+  if(assetownerOne.trim().length === 0) {
+    console.log('assetownerOne cannot be empty');
+    process.exit(0);
+  }
+  const eoaArray = [assetownerOne];
+
+  const {isGood, addrAssetBookArray} = await deployAssetbooks(eoaArray,addrHeliumContract);
+
+  console.log(`\nreturned isGood: ${isGood}, addrAssetBookArray:`);
+  addrAssetBookArray.forEach((item, idx) => {
+    console.log(`EOA_${idx}: ${eoaArray[idx]} \naddrAssetBook${idx} = ${item}`);
+  });
+  console.log('\n');
+  addrAssetBookArray.forEach((item, idx) => {
+    console.log(`${item}`);
+  })
+
+  const isAllGood = !(addrAssetBookArray.includes(undefined));
+  console.log('\nisAllGood:', isAllGood);
+
+
+  console.log('\n-------------==addUsersIntoDB');
+  const userArrayPartial = [userArray[eoaIndex]];
+  const result = await addUsersIntoDB(userArrayPartial).catch((err) => {
+    console.log('\n[Error @ addUsersIntoDB()] '+ err);
+  });
+  console.log('addUsersIntoDB result:', result);
+
+  console.log('\n-------------==addUsersToRegistryCtrt');
+  let userIDs, investorLevels;
+  const registryContractAddr = addrRegistry;
+
+  userIDs = []; investorLevels = [];
+  const userId = userArray[eoaIndex].identityNumber;
+  const userLevel = userArray[eoaIndex].investorLevel;
+  userIDs.push(userId);
+  investorLevels.push(userLevel);
+  console.log(`${userId} ${userLevel}`);
+
+  const result2 = await addUsersToRegistryCtrt(registryContractAddr, userIDs, addrAssetBookArray, investorLevels).catch((err) => {
+    console.log('\n[Error @ addUsersToRegistryCtrt()] '+ err);
+  });
+  console.log('isGood2:', result2.isGood, ', results:', result2.results);
+  process.exit(0);
 }
 
 
@@ -1084,8 +1138,8 @@ const investTokensToCloseCFC_API = async () => {
   const [userIndexArray, amountToInvest] = getInputArrays(10, totalAmountToInvest);
   console.log(`userIndexArray: ${userIndexArray} ... length: ${userIndexArray.length} \namountToInvest: ${amountToInvest} ... length: ${amountToInvest.length} \n`);
   */
-  const userIndexArray = [0,1,5,2,8,4,6,9,7,3];
-  const amountToInvest = [17,11,5,1,9,16,2,15,14,10];
+  const userIndexArray = [0,1,2,3,4,5,6,7,8,9];
+  const amountToInvest = amountToInvest100;//[17,11,5,1,9,16,2,15,14,10];
 
 
   const result = await addArrayOrdersIntoDB(userIndexArray, amountToInvest, fundCount, paymentStatus, tokenSymbol).catch((err) => {
@@ -2638,6 +2692,14 @@ const mintTokensWithRegulationCheck_API = async () => {
   process.exit(0);
 }
 
+//yarn run testmt -f 212
+const getTokenStateDB_API = async () => {
+  console.log('\n-----------------------==getTokenStateDB_API()');
+  const symbol = 'AUBR1001';
+  const [isGood, tokenStateDB, lockuptime, validdate] = await getTokenStateDB(symbol);
+   console.log(`isGood: ${isGood}, tokenStateDB: ${tokenStateDB}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
+   process.exit(0);
+}
 
 //------------------------==
 // yarn run testmt -f 0
@@ -2836,6 +2898,10 @@ if(argv3 === 0){
 
 
 //----------------------==Deploy System contracts
+//yarn run testmt -f 52
+} else if (argv3 === 52) {
+  deployAssetbook_DB_Reg_API();
+
 //yarn run testmt -f 53
 } else if (argv3 === 53) {
   deployHeliumContract_API();
@@ -3112,4 +3178,8 @@ if(argv3 === 0){
   //yarn run testmt -f 209
 } else if(argv3 === 209){
   mintTokensWithRegulationCheck_API();
+
+  //yarn run testmt -f 212
+} else if(argv3 === 212){
+  getTokenStateDB_API();
 }

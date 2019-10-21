@@ -141,15 +141,15 @@ const checkHeliumCtrt = async(addrHeliumContract, managementTeam) => {
       const [isGood4, mesg4] = checkEq(HeliumDetails[4], managementTeam[4]);
 
       if(distinctArray.length < 5){
-        wlogger.debug(`[Error] duplicated EOA is found`);
+        wlogger.error(`[Error] duplicated EOA is found`);
         resolve(false);
 
       } else if(isGood0 && isGood1 && isGood2 && isGood3 && isGood4){
-        wlogger.debug(`[Good] All managementTeam members are unique, and are all confirmed to be the expected addresses`);
+        wlogger.info(`[Good] All managementTeam members are unique, and are all confirmed to be the expected addresses`);
         resolve(true);
 
       } else {
-        wlogger.debug(`[WARNING] management teams are not the expected ones`);
+        wlogger.warn(`[WarnING] management teams are not the expected ones`);
         resolve(false);
       }
   });
@@ -175,7 +175,7 @@ const deployHeliumContract = async(managementTeam) => {
         .deploy({ data: prefix+Helium.bytecode, arguments: argsHelium })
         .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
         .on('receipt', function (receipt) {
-          wlogger.debug(`receipt: ${receipt}`);
+          wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
         })
         .on('error', function (error) {
             reject(`error: ${error.toString()}`);
@@ -190,7 +190,7 @@ const deployHeliumContract = async(managementTeam) => {
         reject(`[Error] instHelium is NOT defined`);
         return false;
       } else {
-        wlogger.debug(`[Good] instHelium is defined`);
+        wlogger.info(`[Good] instHelium is defined`);
   
         instHelium.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
         const addrHeliumContract = instHelium.options.address;
@@ -200,7 +200,7 @@ const deployHeliumContract = async(managementTeam) => {
         wlogger.debug(`deploymentConditions: ${deploymentConditions}`);
         const isAnyErrorAtDeployment = deploymentConditions['2'].includes(true);
         if(isAnyErrorAtDeployment){
-          wlogger.debug(`[Warning] duplicated management team member is found`);
+          wlogger.warn(`[Warning] duplicated management team member is found`);
           resolve({isGood: false, addrHeliumContract});
         } else {
           const isGood= await checkHeliumCtrt(addrHeliumContract, managementTeam);
@@ -231,7 +231,7 @@ const deployRegistryContract = async(addrHeliumContract) => {
       .deploy({ data: prefix+Registry.bytecode, arguments: argsRegistry })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       })
       .on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
@@ -246,7 +246,7 @@ const deployRegistryContract = async(addrHeliumContract) => {
     if (instRegistry === undefined) {
       reject(`[Error] instRegistry is NOT defined`);
       return false;
-    } else {wlogger.debug(`[Good] instRegistry is defined`);}
+    } else {wlogger.info(`[Good] instRegistry is defined`);}
 
     instRegistry.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     const addrRegistryCtrt = instRegistry.options.address;
@@ -273,7 +273,7 @@ const deployProductManagerContract = async(addrHeliumContract) => {
       .deploy({ data: prefix+ProductManager.bytecode, arguments: argsProductManager })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       })
       .on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
@@ -290,7 +290,7 @@ const deployProductManagerContract = async(addrHeliumContract) => {
       return false;
 
     } else {
-      wlogger.debug(`[Good] instProductManager is defined`);
+      wlogger.info(`[Good] instProductManager is defined`);
       instProductManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       const addrProductManager = instProductManager.options.address
       wlogger.debug(`\nconst addrProductManager = ${addrProductManager}`);
@@ -327,7 +327,7 @@ const deployTesttract = async(HeliumCtrtAddr) => {
     .deploy({ data: prefix+TestCtrt.bytecode, arguments: argsTestCtrt })
     .send({ from: backendAddr, gas: gasLimitValueStr, gasPrice: gasPriceValueStr })
     .on('receipt', function (receipt) {
-      wlogger.debug(`receipt: ${receipt}`);
+      wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
     })
     .on('error', function (error) {
         wlogger.debug(`error: ${error.toString()}`);
@@ -335,8 +335,8 @@ const deployTesttract = async(HeliumCtrtAddr) => {
 
     wlogger.debug(`TestCtrt has been deployed`);
     if (instTestCtrt === undefined) {
-      wlogger.debug(`[Error] instTestCtrt is NOT defined`);
-      } else {wlogger.debug(`[Good] instTestCtrt is defined`);}
+      wlogger.error(`[Error] instTestCtrt is NOT defined`);
+      } else {wlogger.info(`[Good] instTestCtrt is defined`);}
     instTestCtrt.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     wlogger.debug(`addrTestCtrt = ${instTestCtrt.options.address}`);
   });
@@ -360,7 +360,7 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
       .deploy({ data: prefix+AssetBook.bytecode, arguments: argsAssetBookN })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       })
       .on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
@@ -374,12 +374,11 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
         reject(mesg);
         return false;
       } else {
-        wlogger.debug(`[Good] instAssetBook${idx} is defined`);
-        wlogger.debug(`AssetBook${idx} has been deployed`);
         const addrAssetBook = instAssetBookN.options.address;
-        wlogger.debug(`addrAssetBook${idx}: ${addrAssetBook}`);
         addrAssetBookArray.push(addrAssetBook);
-        wlogger.debug(`Finished deploying AssetBook${idx}...`);
+        wlogger.info(`[Good] instAssetBook${idx} is defined
+AssetBook${idx} has been deployed \naddrAssetBook${idx}: ${addrAssetBook}
+Finished deploying AssetBook${idx} \nfor owner ${item}  ...`);
       }
     });
 
@@ -406,7 +405,7 @@ const deployAssetbooks = async(eoaArray, addrHeliumContract) => {
 
 
 //-------------------==Crowdfunding
-//yarn run testmt -f 61
+//yarn run testmt -f 60
 const deployCrowdfundingContract = async(argsCrowdFunding) => {
   return new Promise(async (resolve, reject) => {
 
@@ -421,7 +420,7 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
       .deploy({ data: prefix+CrowdFunding.bytecode, arguments: argsCrowdFunding })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       })
       .on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
@@ -438,7 +437,7 @@ const deployCrowdfundingContract = async(argsCrowdFunding) => {
       return false;
 
     } else {
-      wlogger.debug(`[Good] instCrowdFunding is defined`);
+      wlogger.info(`[Good] instCrowdFunding is defined`);
       instCrowdFunding.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       const crowdFundingAddr = instCrowdFunding.options.address;
       wlogger.debug(`\nconst addrCrowdFunding= ${crowdFundingAddr}`);
@@ -523,7 +522,7 @@ fundingState: ${fundingState}, stateDescription: ${stateDescription}
 addrHelium: ${addrHelium}`);
       resolve([true, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium]);
     } catch(err) {
-      wlogger.debug(`[Error] checkCrowdfundingCtrt() failed at crowdFundingAddr: ${crowdFundingAddr} <===================================`);
+      wlogger.error(`[Error] checkCrowdfundingCtrt() failed at crowdFundingAddr: ${crowdFundingAddr} <===================================`);
       resolve([false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined]);
     }
   });
@@ -582,11 +581,11 @@ const checkDeploymentCFC = async(crowdFundingAddr, argsCrowdFunding) => {
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
         }
-        wlogger.debug(`\n[Error message] ${mesg}`);
+        wlogger.error(`\n[Error] ${mesg}`);
         resolve(false);
   
       } else {
-        wlogger.debug(`[Success] all checks have passed checkDeploymentConditions()`);
+        wlogger.info(`[Success] all checks have passed checkDeploymentConditions()`);
         resolve(true);
       }
     }
@@ -655,7 +654,7 @@ const deployTokenControllerContract = async(argsTokenController) => {
       .deploy({ data: prefix+TokenController.bytecode, arguments: argsTokenController })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       })
       .on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
@@ -670,7 +669,7 @@ const deployTokenControllerContract = async(argsTokenController) => {
     if (instTokenController === undefined) {
       reject(`[Error] instTokenController is NOT defined`);
       return false;
-    } else {wlogger.debug(`[Good] instTokenController is defined`);}
+    } else {wlogger.info(`[Good] instTokenController is defined`);}
     instTokenController.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
     const tokenControllerAddr = instTokenController.options.address;
     wlogger.debug(`\nconst addrTokenController = ${tokenControllerAddr}`);
@@ -693,7 +692,7 @@ const checkTokenControllerCtrt = async(tokenControllerCtrtAddr) => {
       wlogger.debug(`\n--------==checkTokenControllerCtrt()... TimeUnlock: ${TimeUnlock}, TimeValid: ${TimeValid}, TokenState: ${TokenState}, TimeOfDeployment: ${TimeOfDeployment}`);
       resolve([true, TimeUnlock, TimeValid, TokenState, TimeOfDeployment]);
     } catch(err){
-      wlogger.debug(`[Error] checkTokenControllerCtrt() failed at tokenControllerCtrtAddr: ${tokenControllerCtrtAddr} <===================================`);
+      wlogger.error(`[Error] checkTokenControllerCtrt() failed at tokenControllerCtrtAddr: ${tokenControllerCtrtAddr} <===================================`);
       resolve([false, undefined, undefined, undefined, undefined]);
     }
   });
@@ -741,11 +740,11 @@ const checkDeploymentTCC = async(tokenControllerAddr, argsTokenController) => {
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
         }
-        wlogger.error(`\n[Error message] ${mesg}`);
+        wlogger.error(`\n[Error] ${mesg}`);
         resolve(false);
   
       } else {
-        wlogger.debug(`[Success] all checks have passed checkDeploymentConditions()`);
+        wlogger.info(`[Success] all checks have passed checkDeploymentConditions()`);
         resolve(true);
       }
     }
@@ -852,7 +851,7 @@ const deployHCATContract = async(argsHCAT721) => {
       .deploy({ data: prefix+HCAT721.bytecode, arguments: argsHCAT721 })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       }).on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
           reject(error.toString());
@@ -869,7 +868,7 @@ const deployHCATContract = async(argsHCAT721) => {
       return false;
 
     } else {
-      wlogger.debug(`[Good] instHCAT721 is defined`);
+      wlogger.info(`[Good] instHCAT721 is defined`);
       instHCAT721.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       const HCAT_Addr = instHCAT721.options.address;
       wlogger.debug(`\nconst addrHCAT721 = "${HCAT_Addr}"`);
@@ -954,11 +953,11 @@ const checkDeploymentHCAT = async(tokenCtrtAddr, argsHCAT721) => {
           mesg = mesg.substring(2);
         }
 
-        wlogger.debug(`\n[Error message] ${mesg}`);
+        wlogger.error(`\n[Error] ${mesg}`);
         resolve(false);
   
       } else {
-        wlogger.debug(`[Success] all checks have passed checkDeploymentConditions()`);
+        wlogger.info(`[Success] all checks have passed checkDeploymentConditions()`);
         resolve(true);
       }
     }
@@ -996,7 +995,7 @@ const checkHCATTokenCtrt = async(tokenCtrtAddr) => {
       */
       resolve([true, nftsymbol, maxTotalSupply, initialAssetPricing, TimeOfDeployment, tokenId, isPlatformSupervisor]);
     } catch(err){
-      wlogger.debug(`[Error] checkHCATTokenCtrt() failed at tokenCtrtAddr: ${tokenCtrtAddr} <=================================== \n${err}`);
+      wlogger.error(`[Error] checkHCATTokenCtrt() failed at tokenCtrtAddr: ${tokenCtrtAddr} <=================================== \n${err}`);
       resolve([false, undefined, undefined, undefined, undefined, undefined, undefined]);
     }
   });
@@ -1029,7 +1028,7 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
       wlogger.debug(`getTokenContractDetails()... tokenSymbol: ${tokenSymbol}, siteSizeInKW: ${siteSizeInKW}, maxTotalSupply: ${maxTotalSupply}, pricingCurrency: ${pricingCurrency}, IRR20yrx100: ${IRR20yrx100}`);
       resolve([tokenSymbol, siteSizeInKW, maxTotalSupply, pricingCurrency, IRR20yrx100]);
     } catch(err){
-      wlogger.debug(`err: ${err} \n[Error] getTokenContractDetails() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
+      wlogger.error(`err: ${err} \n[Error] getTokenContractDetails() failed at tokenCtrtAddr: ${tokenCtrtAddr} <===================================`);
       resolve([undefined, undefined, undefined, undefined, undefined]);
     }
   });
@@ -1044,7 +1043,7 @@ const checkDeployedContracts = async(symbol) => {
   result = await instTokenController.methods.checkDeploymentConditions(...argsTokenController).call();
   wlogger.debug(`\nTokenController checkDeploymentConditions(): ${result}`);
   if(result.every(checkBoolTrueArray)){
-    wlogger.debug(`[Success] all checks have passed`);
+    wlogger.info(`[Success] all checks have passed`);
   } else {
     wlogger.debug(`[Failed] Some/one check(s) have/has failed`);
   }
@@ -1055,7 +1054,7 @@ const checkDeployedContracts = async(symbol) => {
   result = await instHCAT721.methods.checkDeploymentConditions(...argsHCAT721).call();
   wlogger.debug(`\nHCAT721 checkDeploymentConditions(): ${result}`);
   if(result.every(checkBoolTrueArray)){
-    wlogger.debug(`[Success] all checks have passed`);
+    wlogger.info(`[Success] all checks have passed`);
   } else {
     wlogger.debug(`[Failed] Some/one check(s) have/has failed`);
   }
@@ -1064,7 +1063,7 @@ const checkDeployedContracts = async(symbol) => {
   result = await instCrowdFunding.methods.checkDeploymentConditions(...argsCrowdFunding).call();
   wlogger.debug(`\nCrowdFunding checkDeploymentConditions(): ${result}`);
   if(result.every(checkBoolTrueArray)){
-    wlogger.debug(`[Success] all checks have passed`);
+    wlogger.info(`[Success] all checks have passed`);
   } else {
     wlogger.debug(`[Failed] Some/one check(s) have/has failed`);
   }
@@ -1075,7 +1074,7 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
     wlogger.debug(`---------------==\nsetTokenController()`);
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
     boolArray = await instTokenController.methods.getHTokenControllerDetails().call();
-    wlogger.debug(`boolArray: ${boolArray}`);
+    wlogger.debug(`setTokenController boolArray: ${boolArray}`);
     // if(boolArray.length !== 5){
     //   wlogger.error(`getHTokenControllerDetails boolArray.length is not valid`);
     //   reject(false);
@@ -1155,7 +1154,7 @@ const addProductRowFromSymbol = async(tokenSymbol, tokenName, location, duration
     }
     wlogger.debug(`\n--------==TimeReleaseDate: ${TimeReleaseDate}`);
     const result = await addProductRow(tokenSymbol, tokenName, location, initialAssetPricingM, duration, pricingCurrency, IRR20yrx100M, TimeReleaseDate, TimeTokenValidM, siteSizeInKWM, maxTotalSupplyMH, fundmanagerIn, CFSDM, CFEDM, quantityGoalM, TimeTokenUnlockM, fundingType, fundingStateM).catch((err) => {
-      wlogger.debug(`\n[Error @ addProductRow()] ${err}`);
+      wlogger.error(`\n[Error @ addProductRow()] ${err}`);
     });
     resolve(result);
   });
@@ -1216,7 +1215,7 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
       .deploy({ data: prefix+IncomeManager.bytecode, arguments: argsIncomeManager })
       .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
       .on('receipt', function (receipt) {
-        wlogger.debug(`receipt: ${receipt}`);
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
       })
       .on('error', function (error) {
           wlogger.debug(`error: ${error.toString()}`);
@@ -1232,7 +1231,7 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
       reject(`[Error] instIncomeManager is NOT defined`);
       return false;
     } else {
-      wlogger.debug(`[Good] instIncomeManager is defined`);
+      wlogger.info(`[Good] instIncomeManager is defined`);
       instIncomeManager.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
       const IncomeManager_Addr = instIncomeManager.options.address
       wlogger.debug(`const addrIncomeManager = ${IncomeManager_Addr}`);
@@ -1246,7 +1245,7 @@ const deployIncomeManagerContract = async(argsIncomeManager) => {
       }
       const isGood = !(boolArray.includes(false));
       if(isGood){
-        wlogger.debug(`[Success] all checks have passed`);
+        wlogger.info(`[Success] all checks have passed`);
       } else {
         wlogger.debug(`[Failed] Some/one check(s) have/has failed`);
       }
@@ -1266,7 +1265,7 @@ const checkDeploymentIncomeManager = async(IncomeManager_Addr, argsIncomeManager
       wlogger.debug(`[Failed] Some/one check(s) have/has failed`);
       resolve(false);
     } else {
-      wlogger.debug(`[Success] all checks have passed`);
+      wlogger.info(`[Success] all checks have passed`);
       resolve(true);
     }
   });
@@ -1321,24 +1320,24 @@ serverTime: ${serverTime}`);
       const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
       wlogger.debug(`about to execute updateState() in the crowdfunding contract...`);
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch( async(err) => {
-        wlogger.debug(`signTx failed1...`);
+        wlogger.error(`signTx failed1...`);
         const TimeOfDeployment = await instCrowdFunding.methods.TimeOfDeployment().call();
 
-        wlogger.debug(`signTx failed2...`);
+        wlogger.error(`signTx failed2...`);
         const checkTime = serverTime > TimeOfDeployment;
 
-        wlogger.debug(`signTx failed3...`);
+        wlogger.error(`signTx failed3...`);
         stateDescription = await instCrowdFunding.methods.stateDescription().call();
 
-        wlogger.debug(`signTx failed4...`);
-        wlogger.debug(`\n[Error @ signTx() updateState(serverTime)], checkTime: ${checkTime}, symbol: ${symbol}, fundingState: ${fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}`);
+        wlogger.error(`signTx failed4...`);
+        wlogger.error(`\n[Error @ signTx() updateState(serverTime)], checkTime: ${checkTime}, symbol: ${symbol}, fundingState: ${fundingState}, stateDescription: ${stateDescription}, TimeOfDeployment: ${TimeOfDeployment}, serverTime: ${serverTime}`);
 
         const checkPlatformSupervisorFromCFC_M = await instCrowdFunding.methods.checkPlatformSupervisorFromCFC().call({from: backendAddr});
 
-        wlogger.debug(`signTx failed5...`);
+        wlogger.error(`signTx failed5...`);
         let HeliumCtrtAddr = await instCrowdFunding.methods.addrHelium().call();
 
-        wlogger.debug(`checkPlatformSupervisorFromCFC_M: ${checkPlatformSupervisorFromCFC_M}, HeliumCtrtAddr: ${HeliumCtrtAddr}`);
+        wlogger.error(`checkPlatformSupervisorFromCFC_M: ${checkPlatformSupervisorFromCFC_M}, HeliumCtrtAddr: ${HeliumCtrtAddr}`);
         reject(`err: ${err}`);
         return undefined;
       });
@@ -1409,45 +1408,65 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
 serverTime: ${serverTime}`);
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
 
+    let details = await instTokenController.methods.getHTokenControllerDetails().call();
+    wlogger.debug(`getHTokenControllerDetails: ${details}`);
+    let tokenUnlock = details['1'];
+    let tokenValid = details['2'];
     let tokenState = await instTokenController.methods.tokenState().call();
-    wlogger.debug(`\nsymbol: ${symbol}, tokenState: ${tokenState}`);
+    wlogger.debug(`\nsymbol: ${symbol}, tokenState: ${tokenState} \ntokenUnlock time: ${tokenUnlock}, tokenValid until time: ${tokenValid}`);
 
-    if(parseInt(tokenState) < 2){
-      wlogger.debug(`the tokenController contract of ${symbol} is ready to be updated...`);
-      const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
-      wlogger.debug(`about to execute updateState() in the tokenController...`);
-      let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData).catch( async(err) => {
-        const checkPlatformSupervisorFromTCC_M = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr});
-        let HeliumCtrtAddr = await instTokenController.methods.addrHelium().call();
+    const [isGood, tokenStateDB, lockuptime, validdate] = await getTokenStateDB(symbol);
+    console.log(`isGood: ${isGood}, tokenStateDB: ${tokenStateDB}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
 
-        wlogger.debug(`[Error @ signTx() updateState(serverTime) in TCC] \nsymbol: ${symbol}, tokenState: ${tokenState}, serverTime: ${serverTime}, checkPlatformSupervisorFromTCC_M: ${checkPlatformSupervisorFromTCC_M}, HeliumCtrtAddr: ${HeliumCtrtAddr}`);
-        reject(`err:  ${err}`);
-        return undefined;
-      });
-      const TxResultStr = JSON.stringify(TxResult, null, 4);
-      wlogger.debug(`TxResult: ${TxResultStr}`);
-      tokenState = await instTokenController.methods.tokenState().call();
-      wlogger.debug(`\nnew tokenState: ${tokenState}  \ntokenControllerAddr: ${tokenControllerAddr}`);
-      tokenUnlock = await instTokenController.methods.TimeUnlock().call();
-      wlogger.debug(`tokenUnlock time: ${tokenUnlock}`);
-      tokenValid = await instTokenController.methods.TimeValid().call();
-      wlogger.debug(`tokenValid until time: ${tokenValid}`);
-      resolve(tokenState);
-
-    } else {
-      //enum TokenState{lockup, normal, expired}
-      let tokenStateAlphabets;
-      if(tokenState === '0'){
-        tokenStateAlphabets = 'lockup';
-      } else if(tokenState === '1'){
-        tokenStateAlphabets = 'normal';
-      } else if(tokenState === '2'){
-        tokenStateAlphabets = 'expired';
+    if(tokenUnlock === lockuptime && tokenValid === validdate){
+      if(parseInt(tokenState) < 2){
+        wlogger.debug(`the tokenController contract of ${symbol} is ready to be updated...`);
+        const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
+        wlogger.debug(`about to execute updateState() in the tokenController...`);
+        let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerAddr, encodedData).catch( async(err) => {
+          const checkPlatformSupervisorFromTCC_M = await instTokenController.methods.checkPlatformSupervisorFromTCC().call({from: backendAddr});
+          let HeliumCtrtAddr = await instTokenController.methods.addrHelium().call();
+  
+          wlogger.error(`[Error @ signTx() updateState(serverTime) in TCC] \nsymbol: ${symbol}, tokenState: ${tokenState}, serverTime: ${serverTime}, checkPlatformSupervisorFromTCC_M: ${checkPlatformSupervisorFromTCC_M}, HeliumCtrtAddr: ${HeliumCtrtAddr}`);
+          reject(`err:  ${err}`);
+          return undefined;
+        });
+        const TxResultStr = JSON.stringify(TxResult, null, 4);
+        wlogger.debug(`TxResult: ${TxResultStr}`);
+        tokenState = await instTokenController.methods.tokenState().call();
+        wlogger.debug(`\nnew tokenState: ${tokenState}  \ntokenControllerAddr: ${tokenControllerAddr}`);
+        details = await instTokenController.methods.getHTokenControllerDetails().call();
+        tokenUnlock = details['1'];
+        tokenValid = details['2'];
+        wlogger.debug(`tokenUnlock time: ${tokenUnlock}, tokenValid until time: ${tokenValid}`);
+        resolve(tokenState);
+  
       } else {
-        tokenStateAlphabets = 'out of range';
+        //enum TokenState{lockup, normal, expired}
+        let tokenStateAlphabets;
+        if(tokenState === '0'){
+          tokenStateAlphabets = 'lockup';
+        } else if(tokenState === '1'){
+          tokenStateAlphabets = 'normal';
+        } else if(tokenState === '2'){
+          tokenStateAlphabets = 'expired';
+        } else {
+          tokenStateAlphabets = 'out of range';
+        }
+        wlogger.warn(`[Warning] the TC contract should not be updated... DB p_tokenState should be updated with ${tokenStateAlphabets}, tokenState= ${tokenState}`);
+        resolve(tokenState);
       }
-      wlogger.warn(`[Warning] the TC contract should not be updated... DB p_tokenState should be updated with ${tokenStateAlphabets}, tokenState= ${tokenState}`);
-      resolve(tokenState);
+  
+    } else {
+      wlogger.error(`tokenUnlock and tokenValid from tokenController contract should be the same as that in DB`);
+      if(tokenUnlock !== lockuptime){
+        wlogger.error(`tokenUnlock: ${tokenUnlock}, lockuptime from DB: ${lockuptime}`);
+      }
+      if(tokenValid !== validdate){
+        wlogger.error(`tokenValid: ${tokenValid}, validdate from DB: ${validdate}`);
+      }
+      reject(false);
+
     }
   });
 }
@@ -1464,7 +1483,7 @@ const getCFC_Balances = async(crowdFundingAddr, assetbooks) => {
       cfQuantities.push(parseInt(qty));
     });
     wlogger.debug(`cfQuantities ${cfQuantities}`);
-    wlogger.debug(`cfQuantities() has been completed}`);
+    wlogger.debug(`cfQuantities() has been completed`);
     resolve(cfQuantities);
   });
 }
@@ -1531,7 +1550,7 @@ const sequentialCheckBalancesAfter = async (addressArray, amountArray, tokenCtrt
       return false;
     }
     if(!balanceArrayBefore.every(isInt)){
-      wlogger.debug(`[error @ sequentialCheckBalancesAfter()] balanceArrayBefore has non integer item. \nbalanceArrayBefore: ${balanceArrayBefore}`);
+      wlogger.error(`[Error @ sequentialCheckBalancesAfter()] balanceArrayBefore has non integer item. \nbalanceArrayBefore: ${balanceArrayBefore}`);
       reject(`[error @ sequentialCheckBalancesAfter()] balanceArrayBefore has non integer item.`);
       return false;
     }
@@ -1642,7 +1661,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
         } else {
           fundingTypeDescription = 'Error in funding type';
         }//PO: 1, PP: 2
-        wlogger.debug(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
+        wlogger.error(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
         resolve(true);
       }
     }
@@ -1678,7 +1697,7 @@ const sequentialMintToAdd = async(addressArray, amountArray, maxMintAmountPerRun
       const idxMintMax = addressArray.length -1;
       await asyncForEachMint2(addressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
         let amountSub = amountArrayOut[idxMintSub];
-        wlogger.debug(`\n    minting ${amountSub} tokens`);
+        wlogger.info(`minting ${amountSub} tokens`);
 
         const balB4MintingStr2 = await instHCAT721.methods.balanceOf(toAddress).call();
         const balB4Minting2 = parseInt(balB4MintingStr2);
@@ -1695,7 +1714,7 @@ const sequentialMintToAdd = async(addressArray, amountArray, maxMintAmountPerRun
           wlogger.debug(`balance before sub mint: ${balB4Minting2} < max allowed balance for this addr: ${balMaxForThisAddr}`);
           const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amountSub, price, fundingType, serverTime).encodeABI();
           const TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch(async(err) => {
-            wlogger.debug(`\n[Error @ signTx() mintSerialNFT()] ${err}`);
+            wlogger.error(`\n[Error @ signTx() mintSerialNFT()] ${err}`);
             await checkMint(tokenCtrtAddr, toAddress, amountSub, price, fundingType, serverTime);
           });
           wlogger.debug(`TxResult ${TxResult}`);
@@ -1734,7 +1753,7 @@ const sequentialMintToMax = async(addressArray, amountArray, maxMintAmountPerRun
       const idxMintMax = addressArray.length -1;
       await asyncForEachMint2(addressArrayOut, idxMint, idxMintMax, async (toAddress, idxMintSub) => {
         let amountSub = amountArrayOut[idxMintSub];
-        wlogger.debug(`    minting ${amountSub} tokens`);
+        wlogger.info(`minting ${amountSub} tokens`);
 
         const balB4MintingStr2 = await instHCAT721.methods.balanceOf(toAddress).call();
         const balB4Minting2 = parseInt(balB4MintingStr2);
@@ -1747,14 +1766,14 @@ const sequentialMintToMax = async(addressArray, amountArray, maxMintAmountPerRun
         if(amountSub > 0){
           const encodedData = instHCAT721.methods.mintSerialNFT(toAddress, amountSub, price, fundingType, serverTime).encodeABI();
           const TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenCtrtAddr, encodedData).catch(async(err) => {
-            wlogger.debug(`\n[Error @ signTx() mintSerialNFT()] ${err}`);
+            wlogger.error(`\n[Error @ signTx() mintSerialNFT()] ${err}`);
             await checkMint(tokenCtrtAddr, toAddress, amountSub, price, fundingType, serverTime);
           });
 
           const maxTotalSupply = await instHCAT721.methods.maxTotalSupply().call();
           const totalSupply = await instHCAT721.methods.totalSupply().call();
       
-          wlogger.debug(`    fundingType: ${fundingType}, blockNumber: ${TxResult.blockNumber}, Status: ${TxResult.status},
+          wlogger.info(`after minting above token amount... \nfundingType: ${fundingType}, blockNumber: ${TxResult.blockNumber}, Status: ${TxResult.status},
   remainingQuantityForMinting: ${maxTotalSupply-totalSupply}`);
           //wlogger.debug(`TxResult ${TxResult}`);
         } else {
@@ -1780,12 +1799,15 @@ const preMint = async(symbol) => {
     const queryStr1 = 'SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?';
     const result1 = await mysqlPoolQueryB(queryStr1, [symbol]).catch((err) => {
       mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr1)] '+ err;
-      wlogger.debug(`\n${mesg}`);
+      wlogger.error(`\n${mesg}`);
       reject(mesg);
       return false;
     });
     wlogger.debug(`result1: ${result1}`);
-    if(isEmpty(result1)){
+    if (!Array.isArray(result1)){
+      reject(`result1 array does not exist, or is not an array`);
+      return false;
+    } else if(!result1.length) {
       reject(`no contract address is found for that symbol`);
       return false;
     }
@@ -1793,12 +1815,16 @@ const preMint = async(symbol) => {
     const queryStr2 = 'SELECT p_pricing, p_fundingType from product where p_SYMBOL = ?';
     const result2 = await mysqlPoolQueryB(queryStr2, [symbol]).catch((err) => {
       mesg = '[Error @ preMint() > mysqlPoolQueryB(queryStr2)], '+ err;
-      wlogger.debug(`\n${mesg}`);
+      wlogger.error(`\n${mesg}`);
       reject(mesg);
       return false;
     });
     wlogger.debug(`result2: ${result2}`);
-    if(isEmpty(result2)){
+    if (!Array.isArray(result1)){
+      reject(`result2 array does not exist, or is not an array`);
+      return false;
+
+    } else if(!result1.length) {
       reject(`no pricing and fundingType is found for that symbol`);
       return false;
     }
@@ -1807,31 +1833,23 @@ const preMint = async(symbol) => {
     const fundingType = result2[0].p_fundingType;
     wlogger.debug(`pricing: ${pricing}, fundingType: ${fundingType}`);
 
-    if(result1 && result2){
-      crowdFundingAddr = result1[0].sc_crowdsaleaddress;
-      tokenCtrtAddr = result1[0].sc_erc721address;
-      tokenControllerAddr = result1[0].sc_erc721Controller;
-      wlogger.debug(`crowdFundingAddr: ${crowdFundingAddr}
+    crowdFundingAddr = result1[0].sc_crowdsaleaddress;
+    tokenCtrtAddr = result1[0].sc_erc721address;
+    tokenControllerAddr = result1[0].sc_erc721Controller;
+    wlogger.debug(`crowdFundingAddr: ${crowdFundingAddr}
 tokenCtrtAddr: ${tokenCtrtAddr}
 tokenControllerAddr: ${tokenControllerAddr}`); 
 
-      const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
-      wlogger.debug(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
-      investorAssetBooks: ${investorAssetBooks} \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
+    const [investorAssetBooks, investedTokenQtyArray] = await getInvestorsFromCFC(crowdFundingAddr);
+    wlogger.debug(`symbol: ${symbol}, tokenCtrtAddr: ${tokenCtrtAddr}
+    investorAssetBooks: ${investorAssetBooks} \ninvestedTokenQtyArray: ${investedTokenQtyArray}`);
 
-      if (investorAssetBooks.length === 0 || investedTokenQtyArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
-        wlogger.debug(`[Error] preMint() returns invalid values, investorAssetBooks length: ${investorAssetBooks.length},investedTokenQtyArray length: ${investedTokenQtyArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
-        resolve([false, 'preMint() returns invalid values', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
-
-      } else {
-        resolve([true, 'successfully done @ preMint()', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
-      }
+    if (investorAssetBooks.length === 0 || investedTokenQtyArray.length === 0 || isEmpty(tokenCtrtAddr) || isEmpty(pricing) || isEmpty(fundingType)) {
+      wlogger.error(`[Error] preMint() returns invalid values, investorAssetBooks length: ${investorAssetBooks.length},investedTokenQtyArray length: ${investedTokenQtyArray.length},tokenCtrtAddr: ${tokenCtrtAddr}`);
+      resolve([false, 'preMint() returns invalid values', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
 
     } else {
-      mesg = 'no contract address and/or no p_pricing, p_fundingType is found for that symbol';
-      wlogger.debug(`${mesg}. result1: ${result1} \nresult2: ${result2}`);
-      reject(mesg);
-      return false;
+      resolve([true, 'successfully done @ preMint()', investorAssetBooks, investedTokenQtyArray, tokenCtrtAddr, fundingType, pricing]);
     }
   });
 }
@@ -1878,7 +1896,12 @@ const mintSequentialPerContract = async(symbol, serverTime, maxMintAmountPerRun)
         reject(mesg);
         return false;
       });
-      wlogger.debug(`\n--------------== \nreturned values from sequentialMintSuper() \nis_sequentialMintSuper: ${is_sequentialMintSuper}, \nisCorrectAmountArray: ${isCorrectAmountArray}, \nmesg_sequentialMintSuper: ${mesg_sequentialMintSuper}`);
+      const log_sequentialMintSuper = `\n--------------== \nreturned values from sequentialMintSuper() \nis_sequentialMintSuper: ${is_sequentialMintSuper}, \nisCorrectAmountArray: ${isCorrectAmountArray} \nmesg_sequentialMintSuper: ${mesg_sequentialMintSuper}`;
+      if(is_sequentialMintSuper){
+        wlogger.info(`log_sequentialMintSuper`);
+      } else {
+        wlogger.error(`log_sequentialMintSuper`);
+      }
       resolve([is_preMint, is_doAssetRecords, is_addActualPaymentTime, is_setFundingStateDB, is_sequentialMintSuper]);
 
     } else {
@@ -1942,28 +1965,28 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
     wlogger.debug(`isGoodAmountArray: ${isGoodAmountArray} \n${isAllGood}: ${isAllGood}`);
     if(!isAllGood){
       mesg = '[Error] at least one target mint amount is lesser than its existing balance';
-      wlogger.debug(mesg);
+      wlogger.error(mesg);
       resolve([false, [], mesg]);
       return false;
     }
 
     wlogger.debug(`\n--------------==Minting tokens via sequentialMintToMax()...`);
     await sequentialMintToMax(addressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
-      wlogger.debug(`[Error @ sequentialMintToMax] ${err}`);
+      wlogger.error(`[Error @ sequentialMintToMax] ${err}`);
       mesg = 'failed at sequentialMintToMax';
       resolve([false, [], mesg]);
       return false;
     });
     // wlogger.debug(`\n--------------==Minting tokens via sequentialMintToAdd()...`);
     // await sequentialMintToAdd(addressArray, amountArray, maxMintAmountPerRun, fundingType, pricing, tokenCtrtAddr, serverTime).catch((err) => {
-    //   wlogger.debug(`[Error @ sequentialMintToAdd] ${err}`);
+    //   wlogger.error(`[Error @ sequentialMintToAdd] ${err}`);
     //   return false;
     // });
 
     const isToMax = true;
     wlogger.debug(`\n--------------==after minting tokens, check balances now...`);
     const [isCorrectAmountArray, balanceArrayAfter] = await sequentialCheckBalancesAfter(addressArray, amountArray, tokenCtrtAddr, balanceArrayBefore, isToMax).catch((err) => {
-      wlogger.debug(`[Error @ sequentialCheckBalancesAfter] ${err}`);
+      wlogger.error(`[Error @ sequentialCheckBalancesAfter] ${err}`);
       mesg = 'failed at sequentialCheckBalancesAfter';
       resolve([false, [], mesg]);
       return false;
@@ -1990,18 +2013,18 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
   //wlogger.debug(`mainInputArray= ${mainInputArray}, waitTime= ${waitTime}, serverTime= ${serverTime}, extraInputArray= ${extraInputArray}`);
   
   if(!Number.isInteger(serverTime)){
-    wlogger.debug(`[Error] serverTime is not an integer. serverTime: ${serverTime}`);
+    wlogger.error(`[Error] serverTime is not an integer. serverTime: ${serverTime}`);
     return false;
   }
   if(extraInputArray.length < 1){
-    wlogger.debug(`[Error] extraInputArray should not be empty`);
+    wlogger.error(`[Error] extraInputArray should not be empty`);
     return false;
   }
 
   const actionType = extraInputArray[0];
   if(waitTime < 7000 && actionType !== 'updateExpiredOrders'){
     //give DB a list of todos, no async/await ... make orders expired
-    wlogger.debug(`[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time`);
+    wlogger.warn(`[Warning] waitTime is < min 5000, which is determined by the blockchain block interval time`);
     return false;
   }
   //wlogger.debug(`actionType: ${actionType);
@@ -2021,7 +2044,10 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
     } else if(actionType === 'updateExpiredOrders'){
       symbol = 'sym_updateExpiredOrders';
 
-    } else if(actionType === 'crowdfunding' || actionType === 'tokencontroller'){
+    } else if(actionType === 'crowdfunding'){
+      symbol = item;
+
+    } else if(actionType === 'tokencontroller'){
       symbol = item;
 
     } else {
@@ -2030,7 +2056,7 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
 
     wlogger.debug(`\n--------------==next symbol: ${symbol}`);
     if (symbol === undefined || symbol === null || symbol.length < 8){
-      wlogger.debug(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
+      wlogger.error(`[Error] symbol not valid. actionType: ${actionType}, symbol: ${symbol}`);
 
     } else {
 
@@ -2048,7 +2074,7 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
         const oid = item.o_id;
         const oPurchaseDate = item.o_purchaseDate;
         if(oPurchaseDate.length < 12 || oPurchaseDate.length > 12){
-          wlogger.debug(`[Error] oPurchaseDate length is not of 12 ${oPurchaseDate}`);
+          wlogger.error(`[Error] oPurchaseDate length is not of 12 ${oPurchaseDate}`);
           return false;
         }
         const oPurchaseDateM = moment(oPurchaseDate, ['YYYYMMDD']);
@@ -2058,21 +2084,21 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
           wlogger.debug(`oid ${oid} is found serverTime >= oPurchaseDate ... write to DB`);
           const queryStr1 = 'UPDATE order_list SET o_paymentStatus = "expired" WHERE o_id = ?';
           const results = await mysqlPoolQueryB(queryStr1, [oid]).catch((err) => {
-            wlogger.debug(`[Error @ mysqlPoolQueryB(queryStr1)]: setting o_paymentStatus to expired; oid: ${oid}  \nerr: ${err}`);
+            wlogger.error(`[Error @ mysqlPoolQueryB(queryStr1)]: setting o_paymentStatus to expired; oid: ${oid}  \nerr: ${err}`);
           });
-          wlogger.debug(`[Success] have written status of oid ${oid} as expired.`);
+          wlogger.info(`[Success] have written status of oid ${oid} as expired.`);
         }
 
       } else {
         //send time to contracts to see the result of determined state: e.g. fundingState, tokenState, ...
         const [isGood, targetAddr, resultMesg] = await getCtrtAddr(symbol, actionType).catch((err) => {
-          wlogger.debug(`[Error @getCtrtAddr]: ${err}`);
+          wlogger.error(`[Error @getCtrtAddr]: ${err}`);
           return false;
         });
         wlogger.debug(`\n${resultMesg}. actionType: ${actionType}`);
         if(isGood){
           await writeToBlockchainAndDatabase(targetAddr, serverTime, symbol, actionType);
-          wlogger.debug(`[Success] writingToBlockchainAndDatabase() is completed`);
+          wlogger.info(`[Success] writingToBlockchainAndDatabase() is completed`);
         } else {
           wlogger.error(`[Error] at blockchain.js 1486`);
         }
@@ -2230,30 +2256,31 @@ const updateFundingStateFromDB = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
     if(!Number.isInteger(serverTime)){
-      wlogger.debug(`[Error] serverTime should be an integer`);
+      wlogger.error(`[Error] serverTime should be an integer`);
       return false;
     }
     const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
-    const symbolObjArray = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
+    const results = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       reject(`[Error @ updateFundingStateFromDB: mysqlPoolQueryB(queryStr2)]:  ${err}`);
       return false;
     });
+    wlogger.debug(`results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[updateFundingStateFromDB] symbol array does not exist, or is not an array`);
+    } else if(!results.length) {
+      wlogger.debug(`\n[updateFundingStateFromDB] symbol array is empty`);
 
-    const symbolObjArrayLen = symbolObjArray.length;
-    wlogger.debug(`\nsymbolObjArray length @ updateFundingStateFromDB: ${symbolObjArrayLen} symbolObjArray: ${symbolObjArray}`);
-
-    if (symbolObjArrayLen === 0) {
-      wlogger.debug(`[updateFundingStateFromDB] no symbol was found for updating its crowdfunding contract`);
-
-    } else if (symbolObjArrayLen > 0) {
+    } else {
+      wlogger.debug(`\n[updateFundingStateFromDB] ${results.length} symbol(s) were found`);
       const symbolArray = [];
-      for (let i = 0; i < symbolObjArrayLen; i++) {
-        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
-          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+      for (let i = 0; i < results.length; i++) {
+        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
+          symbolArray.push(results[i].p_SYMBOL)
         }
       }
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['crowdfunding']);
     }
+    wlogger.debug(`[updateFundingStateFromDB] exiting`);
     resolve(true);
   });
 }
@@ -2270,72 +2297,36 @@ const makeOrdersExpiredCFED = async (serverTime) => {
     }
 
     const queryStr1 = 'SELECT p_SYMBOL FROM product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
-    const symbolObjArray = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
-      reject(`[Error @ mysqlPoolQueryB(queryStr1)]  ${err}`);
+    const results = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
+      reject(`[Error @ mysqlPoolQueryB(queryStr1)] ${err}`);
       return false;
     });
-    const symbolObjArrayLen = symbolObjArray.length;
-    wlogger.debug(`\nArray length @ makeOrdersExpiredCFED: ${symbolObjArrayLen}`);
-    //wlogger.debug(`symbols: ${symbolObjArray);
-
-    if (symbolObjArrayLen === 0) {
-      wlogger.debug(`[makeOrdersExpiredCFED] no symbol was found`);
-      resolve(true);
-
-    } else if (symbolObjArrayLen > 0) {
-      wlogger.debug(`[makeOrdersExpiredCFED] symbol(s) found`);
+    wlogger.debug(`results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[makeOrdersExpiredCFED] symbol array does not exist, or is not an array`);
+    } else if(!results.length) {
+      wlogger.debug(`\n[makeOrdersExpiredCFED] symbol array is empty`);
+    } else {
+      wlogger.debug(`[makeOrdersExpiredCFED] ${results.length} symbol(s) were found`);
 
       const symbolArray = [];
-      for (let i = 0; i < symbolObjArrayLen; i++) {
-        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
-          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+      for (let i = 0; i < results.length; i++) {
+        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
+          symbolArray.push(results[i].p_SYMBOL)
         }
       }
   
-      //const queryStr = 'UPDATE product SET p_state = ? WHERE p_SYMBOL = ?';
       const queryStr3 = 'UPDATE order_list SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
       await asyncForEachOrderExpiry(symbolArray, async (symbol, index) => {
-        /*
-        //------------== auto determines the crowdfunding results -> write it into DB
-        const crowdFundingAddr = await getCtrtAddr(symbol,'crowdfunding').catch((err) => {
-          wlogger.error(`[Error @getCtrtAddr]: ${err}`);
-          continue;
-        });
-        const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    
-        const encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
-        let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
-        const TxResultStr = JSON.stringify(TxResult, null, 4);
-    wlogger.debug(`TxResult: ${TxResultStr}`);
-      
-        let fundingState = await instCrowdFunding.methods.fundingState().call({ from: backendAddr });
-        wlogger.debug(`\nfundingState: ${fundingState);
-
-        let p_state;
-        if(fundingState === '4'){
-          p_state = 'fundingClosed';
-        } else if(fundingState === '5'){
-          p_state = 'fundingNotClosed';
-        } else if(fundingState === '6'){
-          p_state = 'terminated';
-        }
-        const results2 = await mysqlPoolQueryB(queryStr, [p_state, symbol]).catch((err) => {
-          wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr)] ${err}`);
-        });
-        wlogger.debug(`\nUpdated product of ${symbol, results2);
-        */
-
-        //------------== 
         const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
           reject(`[Error @ mysqlPoolQueryB(queryStr3)]  ${err}`);
           return false;
         });
-        wlogger.debug(`-------==[Success] updated orders to expired for symbol ${symbol}`);
-        resolve(true);
+        wlogger.debug(`-------==[Success] updated orders to expired for symbol ${symbol} \nresults3: ${results3}`);
       });
     }
+    resolve(true);
   });
-  //process.exit(0);
 }
 
 
@@ -2427,17 +2418,25 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   wlogger.debug(`\n--------------==inside addAssetbooksIntoCFC() \nserverTime: ${serverTime}`);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = ?';
   const results1 = await mysqlPoolQueryB(queryStr1, [paymentStatus]).catch((err) => {
-    wlogger.debug(`\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)] ${err}`);
+    wlogger.error(`\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)] ${err}`);
     return false;
   });
-
   const foundSymbolArray = [];
   const symbolArray = [];
 
-  if(results1.length === 0){
-    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] No paid order is found'));
+  wlogger.debug(`results1: ${results1}`);
+  if (!Array.isArray(results1)){
+    wlogger.debug(`\n[distinct symbols] array does not exist, or is not an array`);
+    wlogger.info('>>[Success @ addAssetbooksIntoCFC()] No paid order is found');
     return true;
+
+  } else if(!results1.length) {
+    wlogger.debug(`\n[distinct symbols] array is empty`);
+    wlogger.info('>>[Success @ addAssetbooksIntoCFC()] No paid order is found');
+    return true;
+
   } else {
+    wlogger.debug(`\n[distinct symbols] ${results1.length} symbols were found`);
     for(let i = 0; i < results1.length; i++) {
       if(typeof results1[i] === 'object' && results1[i] !== null){
         foundSymbolArray.push(results1[i].o_symbol);
@@ -2448,10 +2447,12 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       }
     }
   }
+
+  //----------------==
   wlogger.debug(`foundSymbolArray ${foundSymbolArray}`);
   wlogger.debug(`symbolArray of paid orders: ${symbolArray}`);
   if(symbolArray.length === 0){
-    log(chalk.green('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded'));
+   wlogger.info('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded');
     return true;
   }
 
@@ -2477,15 +2478,23 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
 
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
-      wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
-      checkOK = false;
-    });
-    wlogger.debug(`results3 ${results3}`);
-    if(results3.length === 0){
-      wlogger.error(`[Error] Got no paid order where symbol ${symbol}, result3: ${results3}`);
+      wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
       checkOK = false;
       return false;
+    });
+    wlogger.debug(`results3 ${results3}`);
+    if (!Array.isArray(results3)){
+      wlogger.debug(`\n[results3] array does not exist, or is not an array. \nno paid order was found for symbol ${symbol}`);
+      checkOK = false;
+      return false;
+
+    } else if(!results3.length) {
+      wlogger.debug(`\n[results3] array is empty. \nno paid order was found for symbol ${symbol}`);
+      checkOK = false;
+      return false;
+
     } else {
+      wlogger.debug(`\n[results3] ${results3.length} results3 items were found`);
       wlogger.debug(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
       const assetbookCtrtArray = [];
       const assetbookCtrtArrayError = [];
@@ -2518,7 +2527,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
 
       wlogger.debug(`\n----------------==assetbookCtrtArray \n${assetbookCtrtArray}`);
       if(assetbookCtrtArray.length !== emailArray.length){
-        wlogger.debug(`[Error] assetbookCtrtArray and emailArray have different length`);
+        wlogger.error(`[Error] assetbookCtrtArray and emailArray have different length`);
         checkOK = false;
         return false;//process.exit(0);
       }
@@ -2544,9 +2553,9 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
 
       await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
         const amountToInvest = parseInt(tokenCountArray[index]);
-        wlogger.debug(`\n----==[Good] For ${addrAssetbook} \nfound its amountToInvest: ${amountToInvest}`);
+        wlogger.info(`\n[Good] For ${addrAssetbook} \nfound its amountToInvest: ${amountToInvest}`);
 
-        wlogger.debug(`\n[Good] About to write the assetbook address into the crowdfunding contract
+        wlogger.info(`\n[Good] About to write the assetbook address into the crowdfunding contract
 amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
 addrAssetbook: ${addrAssetbook}
 crowdFundingAddr: ${crowdFundingAddr}`);
@@ -2554,7 +2563,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'asyncForEachAbCFC2').catch(async(err) => { 
           const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
           wlogger.debug(`\ncheckInvest result: ${result}`);
-          wlogger.debug(`\n[Error @ investTokens] ${err}`);
+          wlogger.error(`\n[Error @ investTokens] ${err}`);
           checkOK = false;
           return [false, null];
         });
@@ -2568,20 +2577,20 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         const email = emailArray[index];
         if(isInvestSuccess){
           const results5 = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
-            wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
             checkOK = false;
           });
           //wlogger.debug(`\nresults5 ${results5);
-          log(chalk.green(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+         wlogger.info(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
         } else {
-          log(chalk.red(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+          wlogger.error(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
           /*
           const results5 = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
-            wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
             checkOK = false;
           });
 
-          log(chalk.red(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+          wlogger.error(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
           */
         }
       });
@@ -2597,22 +2606,20 @@ txnHashArray: ${txnHashArray}`);
         const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
         await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
           const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
-            wlogger.debug(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
             checkOK = false;
           });
           //wlogger.debug(`\nresults5 ${results5);
         });
-        log(chalk.green('\n>>[Success @ addAssetbooksIntoCFC()];'));
+       wlogger.info('\n>>[Success @ addAssetbooksIntoCFC()];'));
       } else {
-        log(chalk.red(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
+        wlogger.error(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
         orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
         checkOK = false;
       }*/
-
+  
     }
-  //process.exit(0);
   });
-
   return checkOK;
 }
 
@@ -2634,7 +2641,7 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     const encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
     wlogger.debug(`investTokens3`);
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => {
-      wlogger.debug(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
+      wlogger.error(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
       reject(false);
       return false;
     });
@@ -2672,7 +2679,7 @@ const tokenReceiver = async(addrAssetbookX) => {
 lastLoginTimeM: ${lastLoginTimeM}, assetCindexM: ${assetCindexM}`);
       resolve([true, assetOwnerM, lastLoginTimeM, assetCindexM]);
     } catch(err) {
-      wlogger.debug(`[Error] tokenReceiver() failed at addrAssetbookX: ${err} ${addrAssetbookX} <===================================`);
+      wlogger.error(`[Error] tokenReceiver() failed at addrAssetbookX: ${err} ${addrAssetbookX} <===================================`);
       resolve([false, undefined, undefined, undefined]);
     }
   });
@@ -2727,7 +2734,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
       isAssetbookGood = false;
     });
     if(resultCheckAssetbook.includes(false)){
-      wlogger.debug(`\nresultCheckAssetbook has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbook}`);
+      wlogger.error(`\nresultCheckAssetbook has at least one error item. \n\naddressArray: ${addressArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbook}`);
       isAssetbookGood = false;
     } else {
       wlogger.debug(`The input address has been checked good by checkAssetbookArray \nresultCheckAssetbook: ${resultCheckAssetbook} `);
@@ -2780,7 +2787,7 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
         if(mesg.substring(0,2) === ', '){
           mesg = mesg.substring(2);
         }
-        wlogger.debug(`\n[Error message]  ${mesg}`);
+        wlogger.error(`\n[Error message]  ${mesg}`);
         resolve(false);
   
       } else {
@@ -2806,7 +2813,7 @@ const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountT
         const result = await checkInvest(crowdFundingAddr, addrAssetbookX, amountToInvestArray[index], serverTime);
         wlogger.debug(`checkInvest result: ${result}`);
       });
-      wlogger.debug(`\n[Error @ signTx() investInBatch()] ${err}`);
+      wlogger.error(`\n[Error @ signTx() investInBatch()] ${err}`);
       reject(false);
       return false;
     });
@@ -2861,7 +2868,7 @@ const getInvestorsFromCFC = async (crowdFundingAddr, indexStartStr = 0, tokenCou
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==getInvestorsFromCFC()...`);
     if(!Number.isInteger(indexStartStr) || !Number.isInteger(tokenCountStr)){
-      wlogger.debug(`[Error] Non integer is found: indexStartStr: ${indexStartStr}, tokenCountStr: ${tokenCountStr}`);
+      wlogger.error(`[Error] Non integer is found: indexStartStr: ${indexStartStr}, tokenCountStr: ${tokenCountStr}`);
       reject(`index or tokenCount is not valid`);
       return false;
     }
@@ -2903,29 +2910,33 @@ const updateTokenStateFromDB = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateTokenStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
     if(!Number.isInteger(serverTime)){
-      wlogger.debug(`[Error] serverTime should be an integer`);
+      wlogger.error(`[Error] serverTime should be an integer`);
       return false;
     }
 
     const str = 'SELECT p_SYMBOL FROM product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
-    const symbolObjArray = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
+    const results = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
       reject(`[Error @ mysqlPoolQueryB(str)]  ${err}`);
       return false;
     });
-    const symbolObjArrayLen = symbolObjArray.length;
-    wlogger.debug(`\nsymbolObjArray length @ updateTokenStateFromDB: ${symbolObjArrayLen} \nsymbolObjArray: ${symbolObjArray}`);
+    wlogger.debug(`results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[updateTokenStateFromDB] array does not exist, or is not an array`);
 
-    if (symbolObjArrayLen === 0) {
-      wlogger.debug(`[updateTokenStateFromDB] no symbol was found`);
-    } else if (symbolObjArrayLen > 0) {
+    } else if(!results.length) {
+      wlogger.debug(`\n[updateTokenStateFromDB] array is empty`);
+
+    } else {
+      wlogger.debug(`\n[updateTokenStateFromDB] array length: ${results.length}`);
       const symbolArray = [];
-      for (let i = 0; i < symbolObjArrayLen; i++) {
-        if(!excludedSymbols.includes(symbolObjArray[i].p_SYMBOL)){
-          symbolArray.push(symbolObjArray[i].p_SYMBOL)
+      for (let i = 0; i < results.length; i++) {
+        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
+          symbolArray.push(results[i].p_SYMBOL)
         }
       }
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['tokencontroller']);
     }
+    wlogger.debug(`[updateTokenStateFromDB] exiting`);
     resolve(true);
   });
 }
@@ -3000,13 +3011,13 @@ const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, acti
       //write bank's confirmation into IncomeManager.sol
       let encodedData = instIncomeManager.methods.setPaymentReleaseResults(serverTime, actualPaymentTime, actualPaymentAmount, errorCode).encodeABI();
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, targetAddr, encodedData).catch((err) => {
-        wlogger.debug(`\n[Error @ signTx() updateState(serverTime)] ${err}`);
+        wlogger.error(`\n[Error @ signTx() updateState(serverTime)] ${err}`);
         return undefined;
       });
       wlogger.debug(`TxResult ${TxResult}`);
 
       //const scheduleDetails = await instIncomeManager.methods.getIncomeSchedule(schIndex).call({ from: backendAddr });
-      //wlogger.debug(`[Success @ updateIncomeManager(serverTime)] scheduleDetails: ${scheduleDetails);
+      //wlogger.info(`[Success @ updateIncomeManager(serverTime)] scheduleDetails: ${scheduleDetails);
 
     } else {
 
@@ -3472,7 +3483,7 @@ const updateExpiredOrders = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateExpiredOrders(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
     if(!Number.isInteger(serverTime)){
-      wlogger.debug(`[Error] serverTime should be an integer`);
+      reject(`[Error]: serverTime should be an integer`);
       return false;
     }
 
@@ -3481,21 +3492,19 @@ const updateExpiredOrders = async (serverTime) => {
       reject(`[Error @ updateExpiredOrders: mysqlPoolQueryB(queryStr)]:  ${err}`);
       return false;
     });
+    wlogger.debug(`order_id and purchaseDate results: ${results}`);
+    if (!Array.isArray(results)){
+      wlogger.debug(`\n[updateExpiredOrders] expired by 3 days orders array does not exist, or is not an array`);
 
-    const resultsLen = results.length;
-    wlogger.debug(`\nArray length @ updateExpiredOrders: ${resultsLen}, order_id and purchaseDate: ${results}`);
+    } else if(!results.length) {
+      wlogger.debug(`\n[updateExpiredOrders] expired by 3 days orders array is empty`);
 
-    // const oidArray = [], purchaseDateArray = [];
-    // for (let i = 0; i < results.length; i++) {
-    //   oidArray.push(results[i].o_id);
-    //   purchaseDateArray.push(results[i].o_purchaseDate);
-    // }
+    } else {
+      wlogger.debug(`\n[updateExpiredOrders]: ${results.length} orders were found`);
   
-    if (resultsLen === 0) {
-      wlogger.debug(`[updateExpiredOrders] no waiting order was found`);
-    } else if (resultsLen > 0) {
       await sequentialRunTsMain(results, timeIntervalUpdateExpiredOrders, serverTime, ['updateExpiredOrders']);
     }
+    wlogger.debug(`[updateExpiredOrders] exiting`);
     resolve(true);
   });
 }
@@ -3740,7 +3749,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
       if(mesg.substring(0,2) === ', '){
         mesg = mesg.substring(2);
       }
-      wlogger.debug(`\n[Error message]  ${mesg}`);
+      wlogger.error(`\n[Error message]  ${mesg}`);
       resolve(mesg);
     }
   });
@@ -3816,7 +3825,7 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       wlogger.debug(`TxResult ${TxResult}`);
 
     } catch (error) {
-      wlogger.debug("error:" + error);
+      wlogger.error(`error: ${error}`);
       const result = await checkSafeTransferFromBatchFunction(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
       //assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime
       reject(result);
@@ -3865,12 +3874,12 @@ const rabbitMQSender = async (functionName, symbol, price) => {
 
   amqp.connect('amqp://localhost', (error0, conn) => {
     if (error0) {
-      wlogger.debug(`error0 ${error0}`);
+      wlogger.error(`error0 ${error0}`);
       throw error0;
     }
     conn.createChannel((error1, channel) => {
       if (error1) {
-        wlogger.debug(`error1 ${error1}`);
+        wlogger.error(`error1 ${error1}`);
         throw error1;
       }
       const boxName = 'amqpTest2';
@@ -3891,7 +3900,7 @@ const rabbitMQReceiver = async (functionName, symbol, price) => {
   amqp.connect('amqp://localhost', (err, conn) => {
     conn.createChannel((error0, channel) => {
       if (error0) {
-        wlogger.debug(`error0 ${error0}`);
+        wlogger.error(`error0 ${error0}`);
         throw error0;
       }
       const boxName = 'amqpTest2';
@@ -3954,7 +3963,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
                       resolve(receipt)
                   })
                   .on('error', function (err) {
-                      //wlogger.debug(err);
+                      //wlogger.error(err);
                       reject(err);
                   });
           });

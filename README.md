@@ -119,56 +119,15 @@ yarn run livechain -c 1 --f 1 ... setupTest to verify initial conditions
 
 
 
-### 8. Test deployed smart contracts
-```
-yarn run testlive1 --chain C --func F
-```
-C = 1: POA private chain, 2: POW private chain, 3: POW Infura Rinkeby chain
-F = 0: testDeployedCtrt, 1: checking AssetBook1, 2: checking AssetBook2
+### 8. Set Log Level
+by default(if you do nothing in the env file), it will show warn and error messages. You can also set in the .env file: LOGLEVEL=1 for only error, 2 for adding warn, 3 for adding info, 4 for adding verbose, 5 for adding debug console logs ... set it to 5 if you want to debug or show all the logs 
 
-0: setupTest
-```
-yarn run livechain --c 1 --f 0
-```
+### 9. Setup Timeserver sending part
 
-1: getSystemInfo
-```
-yarn run livechain --c 1 --f 1
-```
-
-2: showAccountnAssetBooks
-```
-yarn run livechain --c 1 --f 2
-```
-
-3: showAssetInfo(tokenId)
-```
-yarn run livechain --c 1 --f 3 -a tokenId
-```
-
-4: mintTokens(assetbookNum, amountToMint)
-```
-yarn run livechain --c 1 --f 4 -a assetbookNum, -b amountToMint
-```
-
-8: sendAssetBeforeAllowed(),
-```
-yarn run livechain --c 1 --f 8
-```
-
-9: setServerTime(newServerTime)
-```
-yarn run livechain --c 1 --f 9 -a serverTime
-```
 
 10: transferTokens(assetbookNum, amount)
 ```
-yarn run livechain --c 1 --f 10 -a 2 -b 1
-```
-
-### 9. Setup Timeserver sending part
-```
-'*/5 * * * * *'
+yarn run livechain --c 1 --f 10 -a 2 -b 1/5 * * * * *'
 '*/10 * * * * *'  ... for every 10 seconds
 '59 * * * * *'  ... for every 59th minute
 
@@ -197,6 +156,8 @@ yarn run start
 ```
 App will be opened in browser at `http://localhost:3000/`
 if you want to run it without timeserver, then comment out "require('./timeserver/timeserverSource');" inside /app.js
+
+Please remember to delete old log files under log folder
 
 ### 18. Set to receive incoming time
 ```

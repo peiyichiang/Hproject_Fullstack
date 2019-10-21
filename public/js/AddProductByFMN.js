@@ -4,7 +4,7 @@ addBtn.addEventListener('click',function(){
     var empty_=0;
 
     // 判斷這些欄位 有沒有填寫
-    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_HCAT721uri","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","file","icon","csvFIle"]; 
+    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","icon","csvFIle"]; 
     for(var i=0;i<fieldArray.length;i++){
         ele=document.getElementById(fieldArray[i]);
         // ele.previousElementSibling.innerHTML.length<42 是用來判斷 是不是已經加了<必填>
@@ -143,7 +143,7 @@ $("#file").on('change', function() {
     reader1.onloadend = function (evt) {
         //計算hash
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-            alert(web3Object.utils.sha3(evt.target.result));
+            // alert(web3Object.utils.sha3(evt.target.result));
             $("#p_assetdocsHash").val(web3Object.utils.sha3(evt.target.result));
         }
 
