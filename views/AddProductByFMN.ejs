@@ -198,6 +198,8 @@
             <input type="text" name="p_icon" id="p_icon" hidden>
             <input type="text" name="p_assetdocs" id="p_assetdocs" hidden>
             <input type="text" name="p_assetdocsHash" id="p_assetdocsHash" hidden>
+            <input type="text" name="p_NotarizedRentalContract" id="p_NotarizedRentalContract" hidden>
+            <input type="text" name="p_ParallelAudited" id="p_ParallelAudited" hidden>
             <input type="text" name="p_csvFIle" id="p_csvFIle" hidden>
             <input type="text" name="p_Image1" id="p_Image1" hidden>
             <input type="text" name="p_Image2" id="p_Image2" hidden>
@@ -213,15 +215,23 @@
         <!-- 文件上傳表單 -->
         <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
             <div class="form-row">
-                    <div class="form-group col-md-4" style="display: none;">
+                    <!-- <div class="form-group col-md-4">
                             <label for="file">購售電合約</label>
                             <input type="file" class="form-control" name="file" id="file" />
+                    </div> -->
+                    <div class="form-group col-md-3">
+                      <label for="p_NotarizedRentalContract_form">房屋與土地租約</label>
+                      <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form" />
                     </div>
-                    <div class="form-group col-md-4">
+                    <div class="form-group col-md-3">
+                      <label for="p_ParallelAudited_form">併聯審查意見書</label>
+                      <input type="file" class="form-control" name="p_ParallelAudited_form" id="p_ParallelAudited_form" />
+                    </div>
+                    <div class="form-group col-md-3">
                             <label for="icon">產品icon</label>
                             <input type="file" class="form-control" name="icon" id="icon">
                     </div>
-                    <div class="form-group col-md-4">
+                    <div class="form-group col-md-3">
                       <label for="csvFIle">CSV文件</label>
                       <input type="file" class="form-control" name="csvFIle" id="csvFIle">
                     </div>

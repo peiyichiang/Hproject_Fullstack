@@ -4,12 +4,14 @@ addBtn.addEventListener('click',function(){
     var empty_=0;
 
     // 判斷這些欄位 有沒有填寫
-    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","icon","csvFIle"]; 
+    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","p_NotarizedRentalContract_form","p_ParallelAudited_form","icon","csvFIle"]; 
     for(var i=0;i<fieldArray.length;i++){
         ele=document.getElementById(fieldArray[i]);
         // ele.previousElementSibling.innerHTML.length<42 是用來判斷 是不是已經加了<必填>
+        // console.log(ele.value);
         if(ele.value==""){
             empty_++;
+            // console.log("＊" + fieldArray[i]);
         }
         if(ele.value=="" && ele.previousElementSibling.innerHTML.length<42){
             ele.previousElementSibling.innerHTML+="<span style='color:red;'>&nbsp(必填)</span>";
@@ -56,10 +58,20 @@ function UploadImage(){
             //上傳成功後將回傳的路徑寫入form input中
             // console.log(data);
             try {
-                if(data.filePath['file']!=null){
-                    $("#p_assetdocs").val(data.filePath['file'][0].path);
-                    // console.log(data.filePath['file'][0].path);
+                // if(data.filePath['file']!=null){
+                //     $("#p_assetdocs").val(data.filePath['file'][0].path);
+                //     // console.log(data.filePath['file'][0].path);
+                // }
+                if(data.filePath['p_NotarizedRentalContract_form']!=null){
+                    $("#p_NotarizedRentalContract").val(data.filePath['p_NotarizedRentalContract_form'][0].path);
+                    // console.log(data.filePath['icon'][0].path);
                 }
+
+                if(data.filePath['p_ParallelAudited_form']!=null){
+                    $("#p_ParallelAudited").val(data.filePath['p_ParallelAudited_form'][0].path);
+                    // console.log(data.filePath['icon'][0].path);
+                }
+
                 if(data.filePath['icon']!=null){
                     $("#p_icon").val(data.filePath['icon'][0].path);
                     // console.log(data.filePath['icon'][0].path);
