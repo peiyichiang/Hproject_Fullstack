@@ -261,7 +261,7 @@ const deployProductManagerContract = async(addrHeliumContract) => {
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
-    wlogger.debug(`web3deploy.version: ${web3deploy.version} \nerr: ${err}`);
+    wlogger.debug(`web3deploy.version: ${web3deploy.version}`);
 
     wlogger.debug(`\n----------------== deployProductManagerContract()`);
     const argsProductManager =[addrHeliumContract];
@@ -2582,16 +2582,16 @@ crowdFundingAddr: ${crowdFundingAddr}`);
           });
           //wlogger.debug(`\nresults5 ${results5);
          wlogger.info(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+
         } else {
-          wlogger.error(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
-          /*
           const results5 = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
-            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            wlogger.warn(`\n[Warn @ mysqlPoolQueryB(queryStr5F)] ${err}`);
             checkOK = false;
           });
 
-          wlogger.error(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
-          */
+          wlogger.warn(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+          // wlogger.warn(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+         
         }
       });
 
