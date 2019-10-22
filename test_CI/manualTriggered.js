@@ -12,9 +12,9 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
 
-const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime,checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
+const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
 
 //const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
 
@@ -1083,6 +1083,33 @@ const setCloseFundingCFC_API = async() => {
   process.exit(0);
 }
 
+//yarn run testmt -f 48
+const setTimeCFC_bySymbol_API = async() => {
+  console.log('\n------------==inside setTimeCFC_bySymbol_API()');
+  console.log('_servertime:', argv4, ', symbol:', argv5);
+  const [isGoodServerTime, servertime, mesgServerTime] = testInputTime(argv4);
+  console.log('isGoodServerTime:', isGoodServerTime, ', servertime:', servertime, ', mesgServerTime:', mesgServerTime);
+  if(!isGoodServerTime){
+    console.log('servertime is not valid ...'+mesgServerTime);
+    return false;
+  }
+
+  if(!argv5 || argv5.length !== 8){
+    console.log('symbol is not valid');
+    return false;
+  }
+  console.log('servertime to be set:', servertime, ', symbol:', symbol);
+  process.exit(0);
+  const result = await setTimeCFC_bySymbol(servertime, symbol).catch((err) => {
+    console.error(`[Error @ timeserver: setTimeCFC_bySymbol]: ${err}`);
+  });
+  if(result){
+    console.info('>> [Success@ timeserver] setTimeCFC_bySymbol();');
+  } else {
+    console.error('>> [Error @ timeserver] setTimeCFC_bySymbol() returns false;');
+  };//blockchain.js
+ 
+}
 
 //yarn run testmt -f 63
 const addAssetbooksIntoCFC_API = async() => {
@@ -2885,6 +2912,7 @@ if(argv3 === 0){
 
 //yarn run testmt -f 48
 } else if (argv3 === 48) {
+  setTimeCFC_bySymbol_API();
 
 //yarn run testmt -f 49
 } else if (argv3 === 49) {
@@ -3146,6 +3174,11 @@ if(argv3 === 0){
 //yarn run testmt -f 153
 } else if (argv3 === 153) {
   writeStreamToTxtFile_API();
+
+  //yarn run testmt -f 154
+} else if(argv3 === 154){
+  const result = testInputTime(argv4);
+  console.log('result:', result);
 
 //yarn run testmt -f 201
 } else if(argv3 === 201){

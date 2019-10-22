@@ -70,6 +70,31 @@ Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
 
+const testInputTime = (_servertime) => {
+  // 201910220801
+  console.log('_servertime:', _servertime);
+  if(_servertime){
+    if(_servertime.match(/\D/g)){//  /\D/g   /[^$,.\d]/ 
+      return [false, undefined, 'invalid character was found'];
+    }
+    const int_length = (''+_servertime).length;
+    if(int_length !== 12){
+      return [false, undefined, 'length is invalid: '+int_length];
+    }
+    //const servertime = parseInt(_servertime);
+    if(Number.isInteger(_servertime)){
+      return [false, undefined, 'servertime is not an integer'];
+
+    } else if(_servertime < getLocalTime()-1){
+      return [false, undefined, 'servertime should not be in the past'];
+
+    } else {
+      return [true, Number(_servertime), 'servertime is valid'];
+    }
+  } else {
+    return [false, undefined, 'servertime is invalid'];
+  }
+}
 
 const checkBoolTrueArray = (item) => item;
 const isInt =(item) => Number.isInteger(item);
@@ -499,5 +524,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
 }

@@ -22,8 +22,6 @@ userArray.forEach((user, idx) => {
 });
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
-const serverTimeMin = 201905270900;
-
 const DatabaseCredential = {
   host: DB_host,
   user: DB_user,
@@ -1165,6 +1163,13 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n----------------------==addAssetRecordRowArray`);
     let mesg = '';
+    const [isGoodar_time, ar_time_, mesgar_time] = testInputTime(ar_time);
+    wlogger.debug('isGoodar_time:', isGoodar_time);
+    if(!isGoodar_time){
+      reject(`${mesgar_time}`);
+      return [null, null];
+    }
+
     if(typeof symbol !== "string" || isEmpty(symbol)){
       mesg = '[Error] symbol must be a string. symbol: ' + symbol;
       reject(mesg);
@@ -1182,17 +1187,6 @@ const addAssetRecordRowArray = async (inputArray, amountArray, symbol, ar_time, 
       reject(mesg);
       return [null, null];
     
-    } else if(!Number.isInteger(parseInt(ar_time))){
-      wlogger.debug(`ar_time: ${typeof ar_time} ${Number.isInteger(ar_time)}`);
-      mesg = '[Error] ar_time '+ar_time+' must be an integer';
-      reject(mesg);
-      return [null, null];
-
-    } else if(parseInt(ar_time) < serverTimeMin){ 
-      mesg = '[Error] ar_time '+ar_time+' must be >= '+serverTimeMin;
-      reject(mesg);
-      return [null, null];
-
     } else if(inputArray.length !== amountArray.length) {
       mesg = '[Error] inputArray and amountArray must have the same length';
       reject(mesg);
@@ -1307,7 +1301,11 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
     const queryStr1 = 'UPDATE product SET p_state = ?, p_CFSD = ?, p_CFED = ? WHERE p_SYMBOL = ?';
     const queryStr2 = 'UPDATE product SET p_state = ? WHERE p_SYMBOL = ?';
 
-    if(Number.isInteger(CFSD) && Number.isInteger(CFED)){
+    const [isGoodCFSD, CFSD_, mesgCFSD] = testInputTime(CFSD);
+    const [isGoodCFED, CFED_, mesgCFED] = testInputTime(CFED);
+    console.log('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED);
+
+    if(isGoodCFSD && isGoodCFED){
       const result1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
         wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
         reject(err);
@@ -1316,6 +1314,7 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
       wlogger.debug(`[setFundingStateDB] symbol: ${symbol}, pstate: ${pstate}, CFSD: ${CFSD}, CFED: ${CFED}`); 
       //wlogger.debug(`result1: ${result1)`);
       resolve(true);
+
     } else {
       const result2 = await mysqlPoolQueryB(queryStr2, [pstate, symbol]).catch((err) => {
         wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
@@ -1338,7 +1337,13 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
     const queryStr1 = 'UPDATE product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
     const queryStr2 = 'UPDATE product SET p_tokenState = ? WHERE p_SYMBOL = ?';
 
-    if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
+    const [isGoodlockuptime, lockuptime_, mesglockuptime] = testInputTime(lockuptime);
+    wlogger.debug('isGoodlockuptime:', isGoodlockuptime);
+    const [isGoodvaliddate, validdate_, mesgvaliddate] = testInputTime(validdate);
+    wlogger.debug('isGoodvaliddate:', isGoodvaliddate);
+
+
+    if(isGoodlockuptime && isGoodvaliddate){
       const result1 = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
         wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr1)]`);
         reject(err);
@@ -1347,6 +1352,7 @@ const setTokenStateDB = (symbol, tokenState, lockuptime, validdate) => {
       wlogger.debug(`[DB] symbol: ${symbol}, tokenState: ${tokenState}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
       //wlogger.debug(`result: ${result1}`);
       resolve(true);
+
     } else {
       const result = await mysqlPoolQueryB(queryStr2, [tokenState, symbol]).catch((err) => {
         wlogger.error(`\n[Error @ setTokenStateDB: mysqlPoolQueryB(queryStr2)]`);
@@ -1500,13 +1506,28 @@ const getSymbolFromCtrtAddr = async(ctrtAddr, ctrtType) => {
 function setIMScheduleDB(symbol, tokenState, lockuptime, validdate){
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\ninside setIMScheduleDB()... change p_tokenState`);
-    if(Number.isInteger(lockuptime) && Number.isInteger(validdate)){
+
+    const [isGoodlockuptime, lockuptime_, mesglockuptime] = testInputTime(lockuptime);
+    wlogger.debug('isGoodlockuptime:', isGoodlockuptime);
+    // if(!isGoodlockuptime){
+    //   reject(`${mesglockuptime}`);
+    //   return false;
+    // }
+    const [isGoodvaliddate, validdate_, mesgvaliddate] = testInputTime(validdate);
+    wlogger.debug('isGoodvaliddate:', isGoodvaliddate);
+    // if(!isGoodvaliddate){
+    //   reject(`${mesgvaliddate}`);
+    //   return false;
+    // }
+
+    if(isGoodlockuptime && isGoodvaliddate){
       const queryStr1 = 'UPDATE product SET p_tokenState = ?, p_lockuptime = ?, p_validdate = ? WHERE p_SYMBOL = ?';
       const result = await mysqlPoolQueryB(queryStr1, [tokenState, lockuptime, validdate, symbol]).catch((err) => {
         reject('[Error @ mysqlPoolQueryB(queryStr1)]'+ err);
       });
       wlogger.debug(`[DB] symbol: ${symbol}, tokenState: ${tokenState}, lockuptime: ${lockuptime}, validdate: ${validdate}, result: ${result}`);
       resolve(true);
+
     } else {
       const queryStr1 = 'UPDATE product SET p_tokenState = ? WHERE p_SYMBOL = ?';
       const result = await mysqlPoolQueryB(queryStr1, [tokenState, symbol]).catch((err) => {

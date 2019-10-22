@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { checkEq, getTimeServerTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
+const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
 
 const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
@@ -457,12 +457,27 @@ const checkArgumentsCFC = async(argsCrowdFunding) => {
     } 
     if(maxTotalSupply < quantityGoal){
       mesg += ', [1] maxTotalSupply has to be >= quantityGoal';
+    }
+
+    const [isGoodCFSD, CFSD_, mesgCFSD] = testInputTime(acCFSD);
+    const [isGoodCFED, CFED_, mesgCFED] = testInputTime(acCFED);
+    const [isGoodDeploymtTime, deploymtTime_, mesgDeploymt] = testInputTime(acTimeOfDeployment_CF);
+
+    console.log('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED, ', isGoodDeploymtTime:', isGoodDeploymtTime);
+
+    if(!isGoodDeploymtTime){
+      mesg += ', [2] '+mesgDeploymt;
     } 
-    if(acTimeOfDeployment_CF <= 201905281400){
-      mesg += ', [2] TimeOfDeployment should be > 201905281400';
+
+    if(!isGoodCFSD){
+      mesg += ', [3x] '+mesgCFSD;
     } 
     if(acCFSD <= acTimeOfDeployment_CF){
       mesg += ', [3] CFSD should be > TimeOfDeployment';
+    } 
+
+    if(!isGoodCFED){
+      mesg += ', [4x] '+mesgCFED;
     } 
     if(acCFED <= acCFSD){
       mesg += ', [4] CFED should be > CFSD';
@@ -597,12 +612,32 @@ const checkArgumentsTCC = async(argsTokenController) => {
   return new Promise(async (resolve, reject) => {
     const [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock, acTimeTokenValid, addrHelium ] = argsTokenController;
     let mesg = '';
-    if(acTimeOfDeployment_TokCtrl <= 201905281400){
-      mesg += ', [2] TimeOfDeployment should be > 201905281400';
-    }
+
+    const [isGoodacTimeOfDeployment_TokCtrl, acTimeOfDeployment_TokCtrl_, mesgacTimeOfDeployment_TokCtrl] = testInputTime(acTimeOfDeployment_TokCtrl);
+
+    const [isGoodacTimeTokenUnlock, acTimeTokenUnlock_, mesgacTimeTokenUnlock] = testInputTime(acTimeTokenUnlock);
+
+    const [isGoodacTimeTokenValid, acTimeTokenValid_, mesgacTimeTokenValid] = testInputTime(acTimeOfDeployment_CF);
+
+    console.log('isGoodacTimeOfDeployment_TokCtrl:', isGoodacTimeOfDeployment_TokCtrl, ', isGoodacTimeTokenUnlock:', isGoodacTimeTokenUnlock, ', isGoodacTimeTokenValid:', isGoodacTimeTokenValid);
+
+    if(!isGoodacTimeOfDeployment_TokCtrl){
+      mesg += ', [2] '+mesgacTimeOfDeployment_TokCtrl;
+    } 
+    // if(acTimeOfDeployment_TokCtrl <= 201905281400){
+    //   mesg += ', [2] TimeOfDeployment should be > 201905281400';
+    // }
+
+    if(!isGoodacTimeTokenUnlock){
+      mesg += ', [3x] '+mesgacTimeTokenUnlock;
+    } 
     if(acTimeTokenUnlock <= acTimeOfDeployment_TokCtrl){
       mesg += ', [3] acTimeTokenUnlock should be > acTimeOfDeployment_TokCtrl';
     }
+
+    if(!isGoodacTimeTokenValid){
+      mesg += ', [4x] '+mesgacTimeTokenValid;
+    } 
     if(acTimeTokenValid <= acTimeTokenUnlock){
       mesg += ', [4] acTimeTokenValid should be > acTimeTokenUnlock';
     }
@@ -1406,6 +1441,14 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n[updateTokenStateTCC] tokenControllerAddr: ${tokenControllerAddr}
 serverTime: ${serverTime}`);
+
+    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    wlogger.debug('isGoodServerTime:', isGoodServerTime);
+    if(!isGoodServerTime){
+      reject(`${mesgServerTime}`);
+      return false;
+    } 
+
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
 
     let details = await instTokenController.methods.getHTokenControllerDetails().call();
@@ -2009,13 +2052,17 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
 
 //-----------------------------==
 const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraInputArray) => {
-  wlogger.debug(`\n----------==inside sequentialRunTsMain()...`);
+  wlogger.debug(`\n----------==inside sequentialRunTsMain()...
+  serverTime: ${serverTime}`);
   //wlogger.debug(`mainInputArray= ${mainInputArray}, waitTime= ${waitTime}, serverTime= ${serverTime}, extraInputArray= ${extraInputArray}`);
   
-  if(!Number.isInteger(serverTime)){
-    wlogger.error(`[Error] serverTime is not an integer. serverTime: ${serverTime}`);
+  const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+  wlogger.debug('isGoodServerTime:', isGoodServerTime);
+  if(!isGoodServerTime){
+    reject(`${mesgServerTime}`);
     return false;
   }
+
   if(extraInputArray.length < 1){
     wlogger.error(`[Error] extraInputArray should not be empty`);
     return false;
@@ -2255,10 +2302,14 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
 const updateFundingStateFromDB = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-    if(!Number.isInteger(serverTime)){
-      wlogger.error(`[Error] serverTime should be an integer`);
+
+    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    wlogger.debug('isGoodServerTime:', isGoodServerTime);
+    if(!isGoodServerTime){
+      reject(`${mesgServerTime}`);
       return false;
     }
+
     const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
     const results = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
       reject(`[Error @ updateFundingStateFromDB: mysqlPoolQueryB(queryStr2)]:  ${err}`);
@@ -2285,14 +2336,16 @@ const updateFundingStateFromDB = async (serverTime) => {
   });
 }
 
-
 //yarn run testts -a 2 -c 2
 //find still funding symbols that have passed CDED2 -> expire all orders of that symbol
 const makeOrdersExpiredCFED = async (serverTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\ninside makeOrdersExpiredCFED(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-    if(!Number.isInteger(serverTime)){
-      reject(`[Error] serverTime should be an integer`);
+
+    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    wlogger.debug('isGoodServerTime:', isGoodServerTime);
+    if(!isGoodServerTime){
+      reject(`${mesgServerTime}`);
       return false;
     }
 
@@ -2589,7 +2642,7 @@ crowdFundingAddr: ${crowdFundingAddr}`);
             checkOK = false;
           });
 
-          wlogger.warn(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `));
+          wlogger.warn(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
           // wlogger.warn(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
          
         }
@@ -2601,23 +2654,6 @@ txnHashArray: ${txnHashArray}`);
       const investorListAf = await instCrowdFunding.methods.getInvestors(0, 0).call();
       wlogger.debug(`\nAfter calling investTokens() for \nassetbookArrayAf: ${investorListAf[0]}, \ninvestedTokenQtyArrayAf: ${investorListAf[1]}`);
 
-      /*
-      if(orderIdArray.length === txnHashArray.length){
-        const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
-        await asyncForEachAbCFC3(orderIdArray, async (orderId, index) => {
-          const results5 = await mysqlPoolQueryB(queryStr5, [txnHashArray[index], orderId]).catch((err) => {
-            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
-            checkOK = false;
-          });
-          //wlogger.debug(`\nresults5 ${results5);
-        });
-       wlogger.info('\n>>[Success @ addAssetbooksIntoCFC()];'));
-      } else {
-        wlogger.error(`\n>>[Error @ addAssetbooksIntoCFC] orderIdArray and txnHashArray have different length
-        orderIdArray: ${orderIdArray} \ntxnHashArray: ${txnHashArray}`));
-        checkOK = false;
-      }*/
-  
     }
   });
   return checkOK;
@@ -2904,13 +2940,46 @@ const setTimeCFC = async (crowdFundingAddr, serverTime) => {
   });
 }
 
+//yarn run testmt -f 48
+const setTimeCFC_bySymbol = async (serverTime, symbol) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\ninside setTimeCFC_bySymbol(), serverTime: ${serverTime}, typeof ${typeof serverTime}, symbol: ${symbol}`);
+
+    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    wlogger.debug('[setTimeCFC_bySymbol] isGoodServerTime:', isGoodServerTime, ', servertime:', servertime, ', mesgServerTime:', mesgServerTime);
+    if(!isGoodServerTime){
+      reject(`${mesgServerTime}`);
+      return false;
+    }
+
+    const [isGoodCtrtAddr, crowdFundingAddr, resultMesg] = await getCtrtAddr(symbol, 'crowdfunding').catch((err) => {
+      reject(`[Error @getCtrtAddr]:  ${err}`);
+      return undefined;
+    });
+    ger.debug(`\n[setTimeCFC_bySymbol] isGoodCtrtAddr: ${isGoodCtrtAddr}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
+
+    if(!isGoodCtrtAddr){
+      reject(`${resultMesg}`);
+      return false;
+    }
+    const fundingStateM = await setTimeCFC(crowdFundingAddr, serverTime).catch((err) => {
+      reject(`[Error @setTimeCFC]:  ${err}`);
+      return undefined;
+    });
+    resolve(fundingStateM);
+  });
+}
+
 //-------------------==Token Controller
 //From DB check if product:tokenState needs to be updated
 const updateTokenStateFromDB = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateTokenStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-    if(!Number.isInteger(serverTime)){
-      wlogger.error(`[Error] serverTime should be an integer`);
+
+    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    wlogger.debug('isGoodServerTime:', isGoodServerTime);
+    if(!isGoodServerTime){
+      reject(`${mesgServerTime}`);
       return false;
     }
 
@@ -3482,8 +3551,11 @@ const setErrResolution = async (symbol, schIndex, isErrorResolved, errorCode) =>
 const updateExpiredOrders = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateExpiredOrders(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-    if(!Number.isInteger(serverTime)){
-      reject(`[Error]: serverTime should be an integer`);
+
+    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    wlogger.debug('isGoodServerTime:', isGoodServerTime);
+    if(!isGoodServerTime){
+      reject(`${mesgServerTime}`);
       return false;
     }
 
@@ -3974,6 +4046,6 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, setTimeCFC_bySymbol, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck
 }
