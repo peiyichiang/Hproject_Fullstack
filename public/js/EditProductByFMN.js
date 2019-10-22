@@ -4,7 +4,7 @@ modify.addEventListener('click',function(){
     var empty_=0;
 
     // 判斷這些欄位 有沒有填寫
-    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling"]; 
+    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","p_ForecastedAnnualIncomePerModule"]; 
     for(var i=0;i<fieldArray.length;i++){
         ele=document.getElementById(fieldArray[i]);
         // ele.previousElementSibling.innerHTML.length<42 是用來判斷 是不是已經加了<必填>
@@ -122,8 +122,11 @@ function UploadImage(){
                     $("#p_Image10").val(data.filePath['image10'][0].path);     
                     // console.log("Image10：" + data.filePath['image10'][0].path);
                 }
-                //將p_size限制在小數點2位數
+                
+                //將p_size跟p_ForecastedAnnualIncomePerModule限制在小數點2位數
                 $("#p_size").val(parseFloat(document.getElementById("p_size").value).toFixed(2));
+                $("#p_ForecastedAnnualIncomePerModule").val(parseFloat(document.getElementById("p_ForecastedAnnualIncomePerModule").value).toFixed(2));
+                
                 // 將修改後的資料存回資料庫
                 document.getElementById("editform").submit();
             }
