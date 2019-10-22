@@ -460,13 +460,17 @@ router.get('/AssetDocs', function (req, res) {
         }
         else {
             mysqlPoolQuery(
-                `SELECT p_NotarizedRentalContract,
-                        p_OnGridAuditedLetter
+                `SELECT p_NotarizedRentalContract AS notarizedRentalContract,
+                        p_OnGridAuditedLetter AS onGridAuditedLetter,
+                        p_BOEApprovedLetter AS BOEApprovedLetter,
+                        p_PowerPurchaseAgreement AS powerPurchaseAgreement,
+                        p_OnGridTryrunLetter AS onGridTryrunLetter,
+                        p_PowerPlantEquipmentRegisteredLetter AS powerPlantEquipmentRegisteredLetter,
+                        p_PowerPlantInsurancePolicy AS powerPlantInsurancePolicy
                 FROM product
                 WHERE p_SYMBOL = ?`, symbol, function (err, docAddresses) {
                 if (err) { res.status(400).send({ "message": "文件連結取得失敗:\n" + err }) }
                 else {
-                    console.log(docAddresses)
                     res.status(200).json({
                         "message": "文件連結取得成功",
                         "result": docAddresses[0]
