@@ -15,6 +15,7 @@ router.get('/LaunchedProductList', function (req, res) {
         p_pricing AS pricing,
         p_currency AS currency,
         p_totalrelease AS maxProductQuantity,
+        p_icon AS iconURL,
         ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
         SUBSTRING(p_CFSD, 1, 4) AS releaseDateYear,
         SUBSTRING(p_CFSD, 5, 2) AS releaseDateMonth,
@@ -42,7 +43,8 @@ router.get('/LaunchedProductList', function (req, res) {
         p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
         IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
         IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-        p_Copywriting AS copyWritingText
+        p_Copywriting AS copyWritingText,
+        p_ForecastedAnnualIncomePerModule as forecastedAnnualIncomePerMudule
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
                     FROM order_list
