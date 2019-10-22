@@ -84,13 +84,13 @@ const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 10
 const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000, 900, 73310, 15000, "NTD", 510, 20, 1, "0xEF22926F586779148E99E47dC4cfd52195557037", "", "", "");
 
 //Public
-const productObj3 = new productObject("ADAM1903", "Adam1903", "Adam base 0001", 100, 90, 7331, 15000, "NTD", 500, 20, 1, "0x66FaCAB27550bfD0ba50351a38B3464b1F12Bdd9", "0xF7E7B3291DFcdCF25A505A408aEd50A88a5317b9", "0xc53181eD9bdA3693Fe319a2AdCEC539f300d36f1", "0xD9d998d586c2fd807d9a6f9717c5c9014b387e24");
+const productObj3 = new productObject("ADAM1904", "Adam1904", "Adam base 0004", 100, 90, 7331, 15000, "NTD", 500, 20, 1, "", "", "", "");
 
 //Public
 const productObj4 = new productObject("AETH1914", "AETH1904", "Earth base 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0x26e2479C1dD4b739D864A9AdaFb6E759D8069474", "0xf777aF7b3d0495190dc74aF12c99AB6238801F77", "0xCe162342c999791c1b3070cA125cdf73bE85BB4d", "0x87485F2620540deaC4500E14c6CAd17CBF4D5C47");// each investor can own max of 17 tokens
 
 //Public
-const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "", "", "", "");
+const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0x8F155E2381dd633A615B92eB54AE1277e6Bfe11d", "", "", "");
 
 const productObj6 = new productObject("ASAT1906", "Satarn1906", "Saturn base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 

@@ -23,19 +23,20 @@ if(timeserverMode === 1){
 // '10 * * * * *'  ... for every 10th seconds
 // '59 * * * * *'  ... for every 59th seconds
 schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
-    const time = await getTimeServerTime();
-    wlogger.info(`----------------==[timeserverSource.js] ${time}`);
-    
-//     getTimeServerTime().then(function (time) {
-//       wlogger.info(`----------------==[timeserverSource.js]
-// time from new Date(): ${time}`);
-//     });
-    //let time = new Date().myFormat();
-    //wlogger.info('--------------==\n',time.slice(0, 4), 'year', time.slice(4, 6), 'month', time.slice(6, 8), 'day', time.slice(8, 10), 'hour', time.slice(10, 12), 'minute');
+    const serverTime = await getTimeServerTime();
+    wlogger.info(`----------------==[timeserverSource.js] ${serverTime}`);
 
-    // fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), time, function (err) {
-    //     if (err) wlogger.error(`[Error @ timeserverSource] failed at writing to time.txt`);
-    // });
+    /*
+    getTimeServerTime().then(function (time) {
+      wlogger.info(`----------------==[timeserverSource.js]
+time from new Date(): ${time}`);
+    });
+    let time = new Date().myFormat();
+    wlogger.info('--------------==\n',time.slice(0, 4), 'year', time.slice(4, 6), 'month', time.slice(6, 8), 'day', time.slice(8, 10), 'hour', time.slice(10, 12), 'minute');
+
+    fs.writeFile(path.resolve(__dirname, '..', 'time.txt'), time, function (err) {
+        if (err) wlogger.error(`[Error @ timeserverSource] failed at writing to time.txt`);
+    });
 
     let serverTime;
     try {
@@ -44,8 +45,8 @@ schedule.scheduleJob(timeserverModeStr+' * * * * *', async function () {
       wlogger.error(`[Error] serverTime is not an integer: ${time.toString()}`);
       process.exit(1);
     }
-    //wlogger.info(`[timeserverSource.js] serverTime: ${serverTime}`);
-  
+    wlogger.info(`[timeserverSource.js] serverTime: ${serverTime}`);
+    */
 
     if(is_addAssetbooksIntoCFC){
       addAssetbooksIntoCFC(serverTime).catch((err) => {
