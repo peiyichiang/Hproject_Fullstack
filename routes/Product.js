@@ -403,7 +403,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_state: "draft",   //草稿
         p_icon: req.body.p_icon,
         p_NotarizedRentalContract:req.body.p_NotarizedRentalContract,
-        p_ParallelAudited:req.body.p_ParallelAudited,
+        p_OnGridAuditedLetter:req.body.p_OnGridAuditedLetter,
         p_csvFIle: req.body.p_csvFIle,
         p_Image1: req.body.p_Image1,
         p_Image2: req.body.p_Image2,
@@ -435,7 +435,8 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
         p_isNewCase: req.body.p_isNewCase,
-        p_assetdocsHash: req.body.p_assetdocsHash
+        p_assetdocsHash: req.body.p_assetdocsHash,
+        p_ForecastedAnnualIncomePerModule:req.body.p_ForecastedAnnualIncomePerModule
     };
 
     console.log(sql);
@@ -627,7 +628,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_fundingType: req.body.p_fundingType,
         p_icon: req.body.p_icon,
         p_NotarizedRentalContract:req.body.p_NotarizedRentalContract,
-        p_ParallelAudited:req.body.p_ParallelAudited,
+        p_OnGridAuditedLetter:req.body.p_OnGridAuditedLetter,
         p_csvFIle: req.body.p_csvFIle,
         p_Image1: req.body.p_Image1,
         p_Image2: req.body.p_Image2,
@@ -659,7 +660,8 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
         p_isNewCase: req.body.p_isNewCase,
-        p_assetdocsHash: req.body.p_assetdocsHash
+        p_assetdocsHash: req.body.p_assetdocsHash,
+        p_ForecastedAnnualIncomePerModule:req.body.p_ForecastedAnnualIncomePerModule
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };

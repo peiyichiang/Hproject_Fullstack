@@ -145,6 +145,11 @@
             <label for="p_EPCname">EPC名稱</label>
             <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="" value="<%=data[0].p_EPCname %>">
           </div>
+          <div class="form-group col-md-4">
+            <label for="p_ForecastedAnnualIncomePerModule">預估每片平均年收益</label>
+            <input type="text" class="form-control" name="p_ForecastedAnnualIncomePerModule" id="p_ForecastedAnnualIncomePerModule" placeholder="" value="<%=data[0].p_ForecastedAnnualIncomePerModule %>">
+          </div>
+          
         </div>
         <!-- <div class="form-row">
                 <div class="form-group col-md-6">
@@ -209,7 +214,7 @@
             <label for="p_Copywriting">產品文案</label>
             <br>
             <!-- <input type="text" class="form-control" name="p_Copywriting" id="p_Copywriting"> -->
-            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;" maxlength="200"><%=data[0].p_Copywriting %></textarea>
+            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;height: 200px;" maxlength="200"><%=data[0].p_Copywriting %></textarea>
           </div>
         </div>
         <div class="form-row" hidden>
@@ -226,8 +231,8 @@
                   <input type="text" class="form-control" name="p_NotarizedRentalContract" id="p_NotarizedRentalContract" value="<%=data[0].p_NotarizedRentalContract %>" readonly>
                 </div>
                 <div class="form-group col-md-2">
-                  <label for="p_ParallelAudited">併聯審查意見書</label>
-                  <input type="text" class="form-control" name="p_ParallelAudited" id="p_ParallelAudited" value="<%=data[0].p_ParallelAudited %>" readonly>
+                  <label for="p_OnGridAuditedLetter">併聯審查意見書</label>
+                  <input type="text" class="form-control" name="p_OnGridAuditedLetter" id="p_OnGridAuditedLetter" value="<%=data[0].p_OnGridAuditedLetter %>" readonly>
                 </div>
                 <div class="form-group col-md-2">
                     <label for="p_icon">產品icon</label>
@@ -305,10 +310,10 @@
                       <% } %>
                     </div>
                     <div class="form-group col-md-3">
-                            <label for="p_ParallelAudited_form">併聯審查意見書</label>
-                            <input type="file" class="form-control" name="p_ParallelAudited_form" id="p_ParallelAudited_form">
-                            <%if (data[0].p_ParallelAudited != null && data[0].p_ParallelAudited != "") { %>
-                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_ParallelAudited.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                            <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
+                            <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form">
+                            <%if (data[0].p_OnGridAuditedLetter != null && data[0].p_OnGridAuditedLetter != "") { %>
+                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_OnGridAuditedLetter.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
                             <% } %>
                     </div>
                     <div class="form-group col-md-3">

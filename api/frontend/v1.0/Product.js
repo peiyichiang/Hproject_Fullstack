@@ -15,6 +15,7 @@ router.get('/LaunchedProductList', function (req, res) {
         p_pricing AS pricing,
         p_currency AS currency,
         p_totalrelease AS maxProductQuantity,
+        p_icon AS iconURL,
         ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
         SUBSTRING(p_CFSD, 1, 4) AS releaseDateYear,
         SUBSTRING(p_CFSD, 5, 2) AS releaseDateMonth,
@@ -42,7 +43,8 @@ router.get('/LaunchedProductList', function (req, res) {
         p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
         IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
         IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-        p_Copywriting AS copyWritingText
+        p_Copywriting AS copyWritingText,
+        p_ForecastedAnnualIncomePerModule as forecastedAnnualIncomePerMudule
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
                     FROM order_list
@@ -379,6 +381,7 @@ router.get('/ProductDataBySymbol', function (req, res) {
                 p_pricing AS pricing,
                 p_currency AS currency,
                 p_totalrelease AS maxProductQuantity,
+                p_icon AS iconURL,
                 ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
                 SUBSTRING(p_CFSD, 1, 4) AS releaseDateYear,
                 SUBSTRING(p_CFSD, 5, 2) AS releaseDateMonth,
@@ -405,7 +408,15 @@ router.get('/ProductDataBySymbol', function (req, res) {
                 p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
                 IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
                 IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-                p_Copywriting AS copyWritingText
+                p_Copywriting AS copyWritingText,
+                p_ForecastedAnnualIncomePerModule as forecastedAnnualIncomePerMudule,
+                p_NotarizedRentalContract AS notarizedRentalContract,
+                p_OnGridAuditedLetter AS onGridAuditedLetter,
+                p_BOEApprovedLetter AS BOEApprovedLetter,
+                p_PowerPurchaseAgreement AS powerPurchaseAgreement,
+                p_OnGridTryrunLetter AS onGridTryrunLetter,
+                p_PowerPlantEquipmentRegisteredLetter AS powerPlantEquipmentRegisteredLetter,
+                p_PowerPlantInsurancePolicy AS powerPlantInsurancePolicy
                 FROM product AS T1
                 LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
                             FROM order_list
@@ -449,16 +460,47 @@ router.get('/AssetDocs', function (req, res) {
         }
         else {
             mysqlPoolQuery(
-                `SELECT p_NotarizedRentalContract,
-                        p_ParallelAudited
+                `SELECT p_NotarizedRentalContract AS notarizedRentalContract,
+                        p_OnGridAuditedLetter AS onGridAuditedLetter,
+                        p_BOEApprovedLetter AS BOEApprovedLetter,
+                        p_PowerPurchaseAgreement AS powerPurchaseAgreement,
+                        p_OnGridTryrunLetter AS onGridTryrunLetter,
+                        p_PowerPlantEquipmentRegisteredLetter AS powerPlantEquipmentRegisteredLetter,
+                        p_PowerPlantInsurancePolicy AS powerPlantInsurancePolicy
                 FROM product
                 WHERE p_SYMBOL = ?`, symbol, function (err, docAddresses) {
                 if (err) { res.status(400).send({ "message": "文件連結取得失敗:\n" + err }) }
                 else {
-                    console.log(docAddresses)
                     res.status(200).json({
                         "message": "文件連結取得成功",
                         "result": docAddresses[0]
+                    });
+                }
+            });
+        }
+    })
+});
+
+router.get('/IconURL', function (req, res) {
+    console.log('------------------------==\n@Product/IconURL');
+    let mysqlPoolQuery = req.pool;
+    const JWT = req.query.JWT;
+    const symbol = req.query.symbol;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            mysqlPoolQuery(
+                `SELECT p_icon AS iconURL
+                 FROM product
+                 WHERE p_SYMBOL = ?`, symbol, function (err, iconURLArray) {
+                if (err) { res.status(400).send({ "message": "icon 連結取得失敗:\n" + err }) }
+                else {
+                    res.status(200).json({
+                        "message": "icon 連結取得成功",
+                        "result": iconURLArray[0].iconURL
                     });
                 }
             });
