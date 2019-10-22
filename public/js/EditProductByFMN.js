@@ -69,8 +69,8 @@ function UploadImage(){
                     // console.log(data.filePath['icon'][0].path);
                 }
 
-                if(data.filePath['p_ParallelAudited_form']!=null){
-                    $("#p_ParallelAudited").val(data.filePath['p_ParallelAudited_form'][0].path);
+                if(data.filePath['p_ParallelAuditedLetter_form']!=null){
+                    $("#p_ParallelAuditedLetter").val(data.filePath['p_ParallelAuditedLetter_form'][0].path);
                     // console.log(data.filePath['icon'][0].path);
                 }
 
