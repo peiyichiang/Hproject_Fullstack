@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw;
+let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, loglevel;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -42,6 +42,23 @@ if(isNaN(ASSETBOOKAMOUNT)){
   assetbookAmount = ASSETBOOKAMOUNT;
 }
 console.log('assetbookAmount:', assetbookAmount);
+
+//1 error, 2 warn, 3 info, 4 verbose, 5 debug
+const LOGLEVEL = parseInt(process.env.LOGLEVEL);
+if(LOGLEVEL === 1){
+  loglevel = 'error';
+} else if(LOGLEVEL === 2){
+  loglevel = 'warn';
+} else if(LOGLEVEL === 3){
+  loglevel = 'info';
+} else if(LOGLEVEL === 4){
+  loglevel = 'verbose';
+} else if(LOGLEVEL === 5){
+  loglevel = 'debug';
+} else {
+    loglevel = 'warn';
+}
+console.log('loglevel:', loglevel);
 
 //process.exit(0);
 
@@ -114,12 +131,22 @@ console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrPro
 
 //----------------------------==Timeserver Settings
 const isTimeserverON = process.env.IS_TIMESERVER_ON === '1';
-const timeserverMode = parseInt(process.env.TIMESERVER_MODE);// = 1
-const timeserverTimeInverval = parseInt(process.env.TIMESERVER_TIME_INTERVAL);//20
+let timeserverMode = parseInt(process.env.TIMESERVER_MODE);// = 1
+if(isNaN(timeserverMode)){
+  timeserverMode = 1;
+}
+let timeserverTimeInverval = parseInt(process.env.TIMESERVER_TIME_INTERVAL);//20
+if(isNaN(timeserverTimeInverval)){
+  timeserverTimeInverval = 20;
+}
+
 const is_addAssetbooksIntoCFC = process.env.IS_ADDASSETBOOKS_INTO_CFC === '1';
 const is_makeOrdersExpiredCFED = process.env.IS_MAKEORDERS_EXPIRED_CFED === '1';
 const is_updateExpiredOrders = process.env.IS_UPDATE_EXPIRED_ORDERS === '1';
+
 const is_updateFundingStateFromDB = process.env.IS_UPDATE_FUNDING_STATE_FROM_DB === '1';
+//crowdfunding state can be partially triggered by timeserver!!!
+
 const is_updateTokenStateFromDB = process.env.IS_UPDATE_TOKEN_STATE_FROM_DB === '1';
 const is_calculateLastPeriodProfit = process.env.IS_CALCULATE_LAST_PERIOD_PROFIT === '1';
 
@@ -134,4 +161,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };
