@@ -8,7 +8,7 @@ const { updateExpiredOrders, checkTimeOfOrder, getDetailsCFC,
   getTokenStateTCC, updateTokenStateTCC, updateTokenStateFromDB, 
   isScheduleGoodIMC, makeOrdersExpiredCFED2, getInvestorsFromCFC_Check } = require('./blockchain.js');
 
-let { nftSymbol, symArray, crowdFundingAddrArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
+let { nftSymbol, symArray, crowdFundingAddrArray, userArray, assetRecordArray, wlogger, incomeArrangementArray, tokenControllerAddrArray, CFSD2, CFED2, TimeTokenUnlock, TimeTokenValid, 
 } = require('../ethereum/contracts/zsetupData');
 
 let choice, crowdFundingAddr, arg0, arg1, arg2, time, fundingState, tokenState;

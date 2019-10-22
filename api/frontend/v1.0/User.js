@@ -184,9 +184,8 @@ router.post('/send_email', function (req, res) {
     let mailOptions = {
         from: ' <noreply@hcat.io>', // sender address
         to: email, // list of receivers
-        subject: '帳號註冊驗證信', // Subject line
-        text: `請點以下連結以完成驗證： ${process.env.SERVER_PROTOCOL}://hcat.io:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=` + passwordHash, // plain text body
-        // html: '<b>Hello world?</b>' // html body
+        subject: '電力超商註冊驗證信', // Subject line
+        html: `<p>請點以下連結以完成驗證： <a href="${process.env.SERVER_PROTOCOL}://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=${passwordHash}">點我完成驗證</a>` // html body
     };
 
     // send mail with defined transport object
