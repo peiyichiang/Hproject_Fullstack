@@ -403,7 +403,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_state: "draft",   //草稿
         p_icon: req.body.p_icon,
         p_NotarizedRentalContract:req.body.p_NotarizedRentalContract,
-        p_ParallelAuditedLetter:req.body.p_ParallelAuditedLetter,
+        p_OnGridAuditedLetter:req.body.p_OnGridAuditedLetter,
         p_csvFIle: req.body.p_csvFIle,
         p_Image1: req.body.p_Image1,
         p_Image2: req.body.p_Image2,
@@ -627,7 +627,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_fundingType: req.body.p_fundingType,
         p_icon: req.body.p_icon,
         p_NotarizedRentalContract:req.body.p_NotarizedRentalContract,
-        p_ParallelAuditedLetter:req.body.p_ParallelAuditedLetter,
+        p_OnGridAuditedLetter:req.body.p_OnGridAuditedLetter,
         p_csvFIle: req.body.p_csvFIle,
         p_Image1: req.body.p_Image1,
         p_Image2: req.body.p_Image2,

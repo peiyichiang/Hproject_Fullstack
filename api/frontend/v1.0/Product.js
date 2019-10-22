@@ -450,7 +450,7 @@ router.get('/AssetDocs', function (req, res) {
         else {
             mysqlPoolQuery(
                 `SELECT p_NotarizedRentalContract,
-                        p_ParallelAuditedLetter
+                        p_OnGridAuditedLetter
                 FROM product
                 WHERE p_SYMBOL = ?`, symbol, function (err, docAddresses) {
                 if (err) { res.status(400).send({ "message": "文件連結取得失敗:\n" + err }) }

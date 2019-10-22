@@ -226,8 +226,8 @@
                   <input type="text" class="form-control" name="p_NotarizedRentalContract" id="p_NotarizedRentalContract" value="<%=data[0].p_NotarizedRentalContract %>" readonly>
                 </div>
                 <div class="form-group col-md-2">
-                  <label for="p_ParallelAuditedLetter">併聯審查意見書</label>
-                  <input type="text" class="form-control" name="p_ParallelAuditedLetter" id="p_ParallelAuditedLetter" value="<%=data[0].p_ParallelAuditedLetter %>" readonly>
+                  <label for="p_OnGridAuditedLetter">併聯審查意見書</label>
+                  <input type="text" class="form-control" name="p_OnGridAuditedLetter" id="p_OnGridAuditedLetter" value="<%=data[0].p_OnGridAuditedLetter %>" readonly>
                 </div>
                 <div class="form-group col-md-2">
                     <label for="p_icon">產品icon</label>
@@ -305,10 +305,10 @@
                       <% } %>
                     </div>
                     <div class="form-group col-md-3">
-                            <label for="p_ParallelAuditedLetter_form">併聯審查意見書</label>
-                            <input type="file" class="form-control" name="p_ParallelAuditedLetter_form" id="p_ParallelAuditedLetter_form">
-                            <%if (data[0].p_ParallelAuditedLetter != null && data[0].p_ParallelAuditedLetter != "") { %>
-                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_ParallelAuditedLetter.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                            <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
+                            <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form">
+                            <%if (data[0].p_OnGridAuditedLetter != null && data[0].p_OnGridAuditedLetter != "") { %>
+                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_OnGridAuditedLetter.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
                             <% } %>
                     </div>
                     <div class="form-group col-md-3">
