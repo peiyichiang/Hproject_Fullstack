@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const { excludedSymbols, wlogger } = require('../ethereum/contracts/zsetupData');
-const { isTimeserverON, fakeServertime } = require('./envVariables');
+const { excludedSymbols, wlogger, COMPLIANCE_LEVELS } = require('../ethereum/contracts/zsetupData');
+const { isLivetimeOn, fakeServertime } = require('./envVariables');
 
 wlogger.info(`--------------------== utilities.js`);
 
@@ -42,7 +42,7 @@ const getLocalTime = () => parseInt(new Date().myFormat());
 
 const getTimeServerTime = () => {
   return new Promise(function (resolve, reject) {
-    if(isTimeserverON){
+    if(isLivetimeOn){
       resolve(getLocalTime());
     } else {
       resolve(fakeServertime);
@@ -220,6 +220,51 @@ const getRndIntegerBothEnd = ((min, max) => {
 
 const getInvestQty = () => getRndIntegerBothEnd(500,1000);
 
+const getUserIndexArray = (arraylength = 3) => {
+  for (let idx = 0; idx < arraylength; idx++) {
+    do{
+      usrIdx = getRndIntegerBothEnd(0, 9);
+    } while(userIndexArray.includes(usrIdx))
+  }
+}
+
+const getNumberArray = (totalAmount, price) => {
+ 
+  const maxAmountPublic = COMPLIANCE_LEVELS['5'].maxOrderPaymentPublic;
+  const maxBalancePublic = COMPLIANCE_LEVELS['5'].maxBalancePublic;
+
+  const maxAmountToBuy = Math.floor(maxAmountPublic / price);
+  const remainder = maxAmountPublic - price * maxAmountToBuy;
+
+  wlogger.debug(`maxAmountPublic: ${maxAmountPublic} ${typeof maxAmountPublic}, maxBalancePublic: ${maxBalancePublic} ${typeof maxBalancePublic}
+totalAmount: ${totalAmount}, maxAmountToBuy: ${maxAmountToBuy}, remainder: ${remainder}`);
+
+  wlogger.debug(``);
+  const amountArray = [];
+  let remainingQty = totalAmount, isGood, mesg;
+  do{
+    //wlogger.debug(`remainingQty: ${remainingQty}`);
+    let amount = getRndIntegerBothEnd(1, maxAmountToBuy);
+
+    if(amount > remainingQty){
+      amount = remainingQty;
+    }
+    amountArray.push(amount);
+    remainingQty = remainingQty - amount;
+    
+  } while(remainingQty > 0);
+
+  const amountSum = arraySum(amountArray);
+  if(amountSum === totalAmount){
+    isGood = true;
+  } else {
+    isGood = false;
+  }
+  wlogger.debug(`amountSum: ${amountSum} \namountArray: ${amountArray}, length: ${amountArray.length}, isGood: ${isGood}`);
+  return [isGood, amountArray, mesg];
+};
+
+
 const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   if(typeof arraylength !== 'number'){
     wlogger.error(`[Error] arraylength should be typeof number`);
@@ -264,7 +309,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   }
 };
 
-
+//-----------------------------==
 async function asyncForEach(array, callback) {
   wlogger.debug(`\n------------------==asyncForEach:\n ${array}`);
   for (let idx = 0; idx < array.length; idx++) {
@@ -524,5 +569,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getNumberArray
 }

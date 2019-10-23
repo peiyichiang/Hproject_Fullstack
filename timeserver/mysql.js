@@ -3,9 +3,9 @@ var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
 const Web3 = require('web3');
 
-const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL } = require('./envVariables');
+const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL,assetbookAmount } = require('./envVariables');
 
-const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
+const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, testInputTime } = require('./utilities');
 
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, wlogger} = require('../ethereum/contracts/zsetupData');
 
@@ -132,7 +132,7 @@ const addTxnInfoRowFromObj = (row) => {
 
 
 //yarn run testmt -f 61
-const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state) => {
+const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule, img1, img2, img3, img4, img5, img6, img7, img8, img9, img10) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\nto add product row into DB`);
     const sql = {
@@ -152,22 +152,21 @@ const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing
       p_CFSD: _CFSD,
       p_CFED: _CFED,
       p_icon: "",
-      p_assetdocs: "",
       p_RPT: "9",
       p_FRP: "9",     
       p_PSD: _CFSD,
       p_FMXAdate: "2019-8-8 00:00:00", 
       p_state: state,
-      p_Image1: "public/uploadImgs/1.jpg",
-      p_Image2: "public/uploadImgs/2.jpg",
-      p_Image3: "public/uploadImgs/3.jpg",
-      p_Image4: "public/uploadImgs/4.jpg",
-      p_Image5: "public/uploadImgs/5.jpg",
-      p_Image6: "public/uploadImgs/6.jpg",
-      p_Image7: "public/uploadImgs/7.jpg",
-      p_Image8: "public/uploadImgs/8.jpg",
-      p_Image9: "public/uploadImgs/9.jpg",
-      p_Image10: "public/uploadImgs/10.jpg",
+      p_Image1: img1,
+      p_Image2: img2,
+      p_Image3: img3,
+      p_Image4: img4,
+      p_Image5: img5,
+      p_Image6: img6,
+      p_Image7: img7,
+      p_Image8: img8,
+      p_Image9: img9,
+      p_Image10: img10,
       p_fundingGoal: _quantityGoal,
       p_lockuptime: TimeTokenUnlock,
       p_tokenState: "lockup",
@@ -180,6 +179,13 @@ const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing
       p_PVTrialOperationDate: _CFSD,
       p_PVOnGridDate: _CFSD,
       p_Copywriting: "auto",
+      p_NotarizedRentalContract: notarizedRentalContract,
+      p_BOEApprovedLetter: BOEApprovedLetter,
+      p_PowerPurchaseAgreement: powerPurchaseAgreement,
+      p_OnGridTryrunLetter: onGridTryrunLetter,
+      p_PowerPlantEquipmentRegisteredLetter: powerPlantEquipmentRegisteredLetter,
+      p_PowerPlantInsurancePolicy: powerPlantInsurancePolicy,
+      p_ForecastedAnnualIncomePerModule: forecastedAnnualIncomePerModule
     };
     const sqlStr = JSON.stringify(sql, null, 4);
     wlogger.debug(sqlStr);
@@ -403,8 +409,24 @@ const getAssetbookFromIdentityNumber = async(identityNumber) => {
   });
 }
 
+const deleteUsersInDB = async(users) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\n-------------==inside deleteUsersInDB()`);
+    const queryStr1 = 'DELETE FROM user WHERE u_eth_add = ?';
+    const usersPartial = users.slice(0, assetbookAmount);
+    
+    await asyncForEach(usersPartial, async (user, idx) => {
+      const eoa = user.eth_add;
+      wlogger.debug(`id:= ${idx} eoa: ${eoa}`);
+      const result = await mysqlPoolQueryB(queryStr1, [eoa]).catch((err) => {
+        reject(`[Error @ mysqlPoolQueryB] ${err}`);
+      });
+    });
+    resolve(true);
+  });
+}
 
-
+//-------------------------------==
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
@@ -1776,5 +1798,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
-    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus
+    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, deleteUsersInDB
 }

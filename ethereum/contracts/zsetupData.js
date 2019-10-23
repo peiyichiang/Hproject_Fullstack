@@ -81,26 +81,26 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
   wlogger.debug(`\n[checkCompliance] authLevel: ${authLevel}, ${typeof authLevel}, balance: ${balance} ${typeof balance}, orderPayment: ${orderPayment} ${typeof orderPayment}, fundingType: ${fundingType} ${typeof fundingType}`);
 
   if(typeof authLevel !== 'string'){
-    wlogger.debug(`\n[checkCompliance] authLevel should be of type string: ${authLevel}`);
+    wlogger.error(`\n[checkCompliance] authLevel should be of type string: ${authLevel}`);
     return false;
   } else if (typeof fundingType !== 'string') {
-    wlogger.debug(`\n[checkCompliance] fundingType should be of type string: ${fundingType}`);
+    wlogger.error(`\n[checkCompliance] fundingType should be of type string: ${fundingType}`);
     return false;
   } else if (typeof balance !== 'number' || isNaN(balance)) {
-    wlogger.debug(`\n[checkCompliance] balance should be of type number and not NaN: ${balance}`);
+    wlogger.error(`\n[checkCompliance] balance should be of type number and not NaN: ${balance}`);
     return false;
   } else if (typeof orderPayment !== 'number' || isNaN(balance)) {
-    wlogger.debug(`\n[checkCompliance] orderPayment should be of type number and not NaN: ${orderPayment}`);
+    wlogger.error(`\n[checkCompliance] orderPayment should be of type number and not NaN: ${orderPayment}`);
     return false;
 
   } else if (fundingType === "PublicOffering" || fundingType === '1') {
       wlogger.debug(`inside fundingType == PublicOffering\n, COMPLIANCE_LEVELS[authLevel]: ${COMPLIANCE_LEVELS[authLevel]}`);
       if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic) {
-          wlogger.debug(`orderPayment ${orderPayment} should be <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
+          wlogger.error(`orderPayment ${orderPayment} should be <= maxOrderPaymentPublic ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPublic}`);
           return false;
 
       } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePublic) {
-          wlogger.debug(`balance + orderPayment ${balance + orderPayment} should be <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
+          wlogger.error(`balance + orderPayment ${balance + orderPayment} should be <= maxBalancePublic orderPayment ${COMPLIANCE_LEVELS[authLevel].maxBalancePublic}`);
           return false;
 
         } else {
@@ -113,7 +113,7 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
   } else if (fundingType === "PrivatePlacement" || fundingType === '2') {
       wlogger.debug(`inside fundingType == PrivatePlacement \n COMPLIANCE_LEVELS[authLevel]: ${COMPLIANCE_LEVELS[authLevel]}`);
       if (orderPayment > COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate) {
-          wlogger.debug(`orderPayment ${orderPayment} should be <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
+          wlogger.error(`orderPayment ${orderPayment} should be <= maxOrderPaymentPrivate ${COMPLIANCE_LEVELS[authLevel].maxOrderPaymentPrivate}`);
           return false;
 
       } else if (balance + orderPayment > COMPLIANCE_LEVELS[authLevel].maxBalancePrivate) {
@@ -127,7 +127,7 @@ const checkCompliance = (authLevel, balance, orderPayment, fundingType) => {
           return true;
       }
   } else {
-      wlogger.debug(`fundingType is not valid: ${fundingType}`);
+      wlogger.error(`fundingType is not valid: ${fundingType}`);
       return false;
   }
 
@@ -324,5 +324,5 @@ if (ProductManager === undefined){
 
 
 module.exports = { COMPLIANCE_LEVELS, checkCompliance,
-  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, 
+  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS
 }

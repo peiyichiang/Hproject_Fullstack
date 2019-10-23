@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel;
+let symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -10,13 +10,13 @@ if(isNaN(SYMBOLNUMBER)){
 }
 console.log('symbolNumber:', symbolNumber);
 
-const OPERATIONMODE = parseInt(process.env.OPERATIONMODE);
-if(isNaN(OPERATIONMODE)){
-  operationMode = 1;
-} else {
-  operationMode = OPERATIONMODE;
-}
-console.log('operationMode:', operationMode);
+// const OPERATIONMODE = parseInt(process.env.OPERATIONMODE);
+// if(isNaN(OPERATIONMODE)){
+//   operationMode = 1;
+// } else {
+//   operationMode = OPERATIONMODE;
+// }
+// console.log('operationMode:', operationMode);
 //9 for production with more strict time checking inside blockchain.js
 
 const BACKENDADDRCHOICE = parseInt(process.env.BACKENDADDRCHOICE);
@@ -132,8 +132,8 @@ console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrPro
 //----------------------------==Timeserver Settings
 
 
-const isTimeserverON = process.env.IS_TIMESERVER_ON === '1';
-console.log('isTimeserverON:', isTimeserverON);
+const isLivetimeOn = process.env.IS_LIVETIME_ON === '1';
+console.log('isLivetimeOn:', isLivetimeOn);
 
 const SERVERTIME = parseInt(process.env.SERVERTIME);
 if(isNaN(SERVERTIME)){
@@ -163,7 +163,7 @@ const is_updateFundingStateFromDB = process.env.IS_UPDATE_FUNDING_STATE_FROM_DB 
 const is_updateTokenStateFromDB = process.env.IS_UPDATE_TOKEN_STATE_FROM_DB === '1';
 const is_calculateLastPeriodProfit = process.env.IS_CALCULATE_LAST_PERIOD_PROFIT === '1';
 
-/*console.log(`isTimeserverON: ${isTimeserverON} ${typeof isTimeserverON}
+/*console.log(`isLivetimeOn: ${isLivetimeOn} ${typeof isLivetimeOn}
 is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}
 is_makeOrdersExpiredCFED: ${is_makeOrdersExpiredCFED}
 is_updateExpiredOrders: ${is_updateExpiredOrders}
@@ -174,4 +174,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel, isTimeserverON };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };

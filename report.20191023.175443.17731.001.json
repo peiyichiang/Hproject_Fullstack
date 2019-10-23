@@ -1,0 +1,456 @@
+
+{
+  "header": {
+    "event": "Allocation failed - JavaScript heap out of memory",
+    "location": "OnFatalError",
+    "filename": "report.20191023.175443.17731.001.json",
+    "dumpEventTime": "2019-10-23T17:54:43Z",
+    "dumpEventTimeStamp": "1571824483176",
+    "processId": 17731,
+    "commandLine": [
+      "/home/user1/.nvm/versions/node/v11.10.0/bin/node",
+      "test_CI/manualTriggered.js",
+      "-f",
+      "209"
+    ],
+    "nodejsVersion": "v11.10.0",
+    "glibcVersionRuntime": "2.27",
+    "glibcVersionCompiler": "2.12",
+    "wordSize": 64,
+    "arch": "x64",
+    "platform": "linux",
+    "componentVersions": {
+      "node": "11.10.0",
+      "v8": "7.0.276.38-node.17",
+      "uv": "1.26.0",
+      "zlib": "1.2.11",
+      "brotli": "1.0.7",
+      "ares": "1.15.0",
+      "modules": "67",
+      "nghttp2": "1.34.0",
+      "napi": "4",
+      "llhttp": "1.1.1",
+      "http_parser": "2.8.0",
+      "openssl": "1.1.1a",
+      "cldr": "34.0",
+      "icu": "63.1",
+      "tz": "2018e",
+      "unicode": "11.0"
+    },
+    "release": {
+      "name": "node",
+      "headersUrl": "https://nodejs.org/download/release/v11.10.0/node-v11.10.0-headers.tar.gz",
+      "sourceUrl": "https://nodejs.org/download/release/v11.10.0/node-v11.10.0.tar.gz"
+    },
+    "osName": "Linux",
+    "osRelease": "4.15.0-65-generic",
+    "osVersion": "#74-Ubuntu SMP Tue Sep 17 17:06:04 UTC 2019",
+    "osMachine": "x86_64",
+    "host": "CoolMaster"
+  },
+  "javascriptStack": {
+    "message": "No stack.",
+    "stack": [
+      "Unavailable."
+    ]
+  },
+  "nativeStack": [
+    {
+      "pc": "0x0000000000a683e8",
+      "symbol": "report::TriggerNodeReport(v8::Isolate*, node::Environment*, char const*, char const*, std::string, v8::Local<v8::String>) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x00000000009548de",
+      "symbol": "node::OnFatalError(char const*, char const*) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000b32bee",
+      "symbol": "v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000b32e24",
+      "symbol": "v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000f32452",
+      "symbol": " [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000f4255f",
+      "symbol": "v8::internal::Heap::AllocateRawWithRetryOrFail(int, v8::internal::AllocationSpace, v8::internal::AllocationAlignment) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000f0c3f6",
+      "symbol": "v8::internal::Factory::AllocateRawArray(int, v8::internal::PretenureFlag) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000f0cdba",
+      "symbol": "v8::internal::Factory::NewFixedArrayWithFiller(v8::internal::Heap::RootListIndex, int, v8::internal::Object*, v8::internal::PretenureFlag) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000f0d487",
+      "symbol": "v8::internal::Factory::NewUninitializedFixedArray(int, v8::internal::PretenureFlag) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000000000eba8cf",
+      "symbol": " [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x000000000118b28d",
+      "symbol": "v8::internal::Runtime_GrowArrayElements(int, v8::internal::Object**, v8::internal::Isolate*) [/home/user1/.nvm/versions/node/v11.10.0/bin/node]"
+    },
+    {
+      "pc": "0x0000181b8f1cfc5d",
+      "symbol": ""
+    }
+  ],
+  "javascriptHeap": {
+    "totalMemory": 637079552,
+    "totalCommittedMemory": 633816424,
+    "usedMemory": 630488656,
+    "availableMemory": 892975176,
+    "memoryLimit": 1526909922,
+    "heapSpaces": {
+      "read_only_space": {
+        "memorySize": 524288,
+        "committedMemory": 42224,
+        "capacity": 515584,
+        "used": 33520,
+        "available": 482064
+      },
+      "new_space": {
+        "memorySize": 1048576,
+        "committedMemory": 17408,
+        "capacity": 1031168,
+        "used": 0,
+        "available": 1031168
+      },
+      "old_space": {
+        "memorySize": 25890816,
+        "committedMemory": 24264936,
+        "capacity": 25333304,
+        "used": 23509760,
+        "available": 1823544
+      },
+      "code_space": {
+        "memorySize": 1048576,
+        "committedMemory": 1037920,
+        "capacity": 783200,
+        "used": 783200,
+        "available": 0
+      },
+      "map_space": {
+        "memorySize": 2109440,
+        "committedMemory": 1996080,
+        "capacity": 1062160,
+        "used": 1062160,
+        "available": 0
+      },
+      "large_object_space": {
+        "memorySize": 606457856,
+        "committedMemory": 606457856,
+        "capacity": 1494738416,
+        "used": 605100016,
+        "available": 889638400
+      },
+      "new_large_object_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      }
+    }
+  },
+  "resourceUsage": {
+    "userCpuSeconds": 2.95809,
+    "kernelCpuSeconds": 2.95809,
+    "cpuConsumptionPercent": 3.76389e-07,
+    "maxRss": 1113636864,
+    "pageFaults": {
+      "IORequired": 17,
+      "IONotRequired": 475899
+    },
+    "fsActivity": {
+      "reads": 1968,
+      "writes": 0
+    }
+  },
+  "uvthreadResourceUsage": {
+    "userCpuSeconds": 2.10951,
+    "kernelCpuSeconds": 2.10951,
+    "cpuConsumptionPercent": 2.68415e-07,
+    "fsActivity": {
+      "reads": 1968,
+      "writes": 0
+    }
+  },
+  "libuv": [
+  ],
+  "environmentVariables": {
+    "LESSOPEN": "| /usr/bin/lesspipe %s",
+    "npm_package_dependencies_winston_daily_rotate_file": "^3.10.0",
+    "SDKMAN_VERSION": "5.7.3+337",
+    "npm_package_dependencies_fs": "^0.0.1-security",
+    "npm_package_dependencies_csv2sql_stream": "0.0.22",
+    "J2SDKDIR": "/usr/lib/jvm/java-8-oracle",
+    "USER": "user1",
+    "LANGUAGE": "en_US",
+    "npm_package_dependencies_bignumber_js": "^8.1.1",
+    "npm_config_version_commit_hooks": "true",
+    "npm_config_user_agent": "yarn/1.19.1 npm/? node/v11.10.0 linux x64",
+    "COMP_WORDBREAKS": " \t\n\"'><;|&(:",
+    "XDG_SEAT": "seat0",
+    "npm_package_scripts_mohe": "mocha --grep HeliumCtrt",
+    "npm_config_bin_links": "true",
+    "SSH_AGENT_PID": "1910",
+    "XDG_SESSION_TYPE": "x11",
+    "npm_node_execpath": "/home/user1/.nvm/versions/node/v11.10.0/bin/node",
+    "npm_package_dependencies_node_fetch": "^2.6.0",
+    "npm_config_init_version": "1.0.0",
+    "J2REDIR": "/usr/lib/jvm/java-8-oracle/jre",
+    "SHLVL": "2",
+    "HOME": "/home/user1",
+    "DESKTOP_SESSION": "cinnamon",
+    "NVM_BIN": "/home/user1/.nvm/versions/node/v11.10.0/bin",
+    "npm_package_scripts_testexp": "node test_CI/zExperimentalTests.js",
+    "npm_config_init_license": "MIT",
+    "GRADLE_HOME": "/home/user1/.sdkman/candidates/gradle/current",
+    "GTK_MODULES": "gail:atk-bridge",
+    "XDG_SEAT_PATH": "/org/freedesktop/DisplayManager/Seat0",
+    "YARN_WRAP_OUTPUT": "false",
+    "npm_config_version_tag_prefix": "v",
+    "LC_MONETARY": "lzh_TW",
+    "npm_package_dependencies_truffle_privatekey_provider": "^1.0.0",
+    "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
+    "npm_package_dependencies_moment": "^2.24.0",
+    "npm_package_dependencies_dotenv": "^7.0.0",
+    "npm_package_scripts_solc": "cd ethereum/contracts && node zcompile.js",
+    "COLORTERM": "truecolor",
+    "LIBVIRT_DEFAULT_URI": "qemu:///system",
+    "npm_package_description": "## Usage",
+    "npm_package_dependencies_yaeti": "^1.0.2",
+    "npm_package_dependencies_concurrently": "^4.1.0",
+    "npm_package_scripts_moim": "mocha --grep IncomeManagerCtrt",
+    "NVM_DIR": "/home/user1/.nvm",
+    "npm_package_readmeFilename": "README.md",
+    "MANDATORY_PATH": "/usr/share/gconf/cinnamon.mandatory.path",
+    "QT_QPA_PLATFORMTHEME": "qt5ct",
+    "LOGNAME": "user1",
+    "npm_package_dependencies_request": "^2.88.0",
+    "npm_package_dependencies_node_schedule": "^1.3.2",
+    "npm_package_dependencies_bcrypt": "^3.0.2",
+    "SDKMAN_CANDIDATES_API": "https://api.sdkman.io/2",
+    "DESKTOP_AUTOSTART_ID": "10632fa853ed835120157179514612819300000018440016",
+    "_": "/usr/bin/yarn",
+    "npm_package_dependencies_linereader": "^1.1.0",
+    "npm_package_dependencies_express": "~4.16.0",
+    "npm_package_scripts_ci": "node test_CI/manualTriggered.js -f 100",
+    "npm_package_private": "true",
+    "DEFAULTS_PATH": "/usr/share/gconf/cinnamon.default.path",
+    "npm_package_dependencies_typedarray_to_buffer": "^3.1.5",
+    "npm_package_scripts_testmt": "node test_CI/manualTriggered.js",
+    "npm_config_registry": "https://registry.yarnpkg.com",
+    "GTK_OVERLAY_SCROLLING": "1",
+    "XDG_SESSION_ID": "c2",
+    "TERM": "xterm-256color",
+    "npm_package_scripts_livechain": "node ethereum/contracts/zlivechain.js",
+    "GNOME_DESKTOP_SESSION_ID": "this-is-deprecated",
+    "npm_package_devDependencies_ganache_cli": "^6.3.0",
+    "npm_package_dependencies_amqplib": "^0.5.3",
+    "npm_package_scripts_mohcat": "mocha --grep HCAT721Ctrt",
+    "npm_package_scripts_mopm": "mocha --grep ProductManagerCtrt",
+    "npm_package_scripts_start": "nodemon ./bin/www",
+    "npm_config_ignore_scripts": "",
+    "npm_package_dependencies_multer": "^1.4.1",
+    "npm_package_dependencies_axios": "^0.19.0",
+    "PATH": "/tmp/yarn--1571824480159-0.6749965576838783:/mnt/sda3/projects/Hproject_FullstackR2/node_modules/.bin:/home/user1/.config/yarn/link/node_modules/.bin:/home/user1/.nvm/versions/node/v11.10.0/libexec/lib/node_modules/npm/bin/node-gyp-bin:/home/user1/.nvm/versions/node/v11.10.0/lib/node_modules/npm/bin/node-gyp-bin:/home/user1/.nvm/versions/node/v11.10.0/bin/node_modules/npm/bin/node-gyp-bin:/home/user1/.sdkman/candidates/gradle/current/bin:/home/user1/.yarn/bin:/home/user1/.yarn/bin:/home/user1/.nvm/versions/node/v11.10.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/db/bin:/usr/lib/jvm/java-8-oracle/jre/bin:/home/user1/Android/Sdk/emulator:/home/user1/Android/Sdk/tools:/home/user1/Android/Sdk/tools/bin:/home/user1/Android/Sdk/platform-tools:/home/user1/Android/Sdk/gradle/gradle-5.1.1/bin",
+    "NODE": "/home/user1/.nvm/versions/node/v11.10.0/bin/node",
+    "GDM_LANG": "en_US",
+    "DERBY_HOME": "/usr/lib/jvm/java-8-oracle/db",
+    "SDKMAN_CANDIDATES_DIR": "/home/user1/.sdkman/candidates",
+    "SESSION_MANAGER": "local/CoolMaster:@/tmp/.ICE-unix/1844,unix/CoolMaster:/tmp/.ICE-unix/1844",
+    "npm_package_dependencies_nodemailer": "^4.7.0",
+    "npm_package_dependencies_http_errors": "~1.6.2",
+    "npm_package_name": "hproject",
+    "GNOME_TERMINAL_SCREEN": "/org/gnome/Terminal/screen/08f4140d_9c3b_4bac_abb7_f4cce72dd959",
+    "LC_ADDRESS": "lzh_TW",
+    "XDG_RUNTIME_DIR": "/run/user/1000",
+    "XDG_SESSION_PATH": "/org/freedesktop/DisplayManager/Session0",
+    "DISPLAY": ":0",
+    "npm_package_scripts_testts": "node test_CI/timeserverTest.js",
+    "LANG": "en_US.UTF-8",
+    "XDG_CURRENT_DESKTOP": "X-Cinnamon",
+    "LC_TELEPHONE": "lzh_TW",
+    "npm_package_dependencies_winston": "^3.2.1",
+    "LS_COLORS": "rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:",
+    "XDG_SESSION_DESKTOP": "cinnamon",
+    "SDKMAN_DIR": "/home/user1/.sdkman",
+    "GNOME_TERMINAL_SERVICE": ":1.59",
+    "XAUTHORITY": "/home/user1/.Xauthority",
+    "SDKMAN_PLATFORM": "Linux64",
+    "npm_lifecycle_script": "node test_CI/manualTriggered.js",
+    "npm_package_dependencies_express_session": "^1.15.6",
+    "SSH_AUTH_SOCK": "/run/user/1000/keyring/ssh",
+    "XDG_GREETER_DATA_DIR": "/var/lib/lightdm-data/user1",
+    "npm_package_dependencies_chalk": "^2.4.2",
+    "npm_config_version_git_message": "v%s",
+    "LC_NAME": "lzh_TW",
+    "SHELL": "/bin/bash",
+    "npm_lifecycle_event": "testmt",
+    "npm_package_version": "0.9.0",
+    "QT_ACCESSIBILITY": "1",
+    "GDMSESSION": "cinnamon",
+    "npm_config_argv": "{\"remain\":[],\"cooked\":[\"run\",\"testmt\"],\"original\":[\"run\",\"testmt\",\"-f\",\"209\"]}",
+    "npm_package_devDependencies_async": "^2.6.1",
+    "npm_package_dependencies_ejs": "~2.5.7",
+    "LESSCLOSE": "/usr/bin/lesspipe %s %s",
+    "npm_package_dependencies_nodemon": "^1.18.10",
+    "npm_package_dependencies_ethereumjs_tx": "1.3.7",
+    "LC_MEASUREMENT": "lzh_TW",
+    "npm_package_dependencies_debug": "~2.6.9",
+    "npm_config_version_git_tag": "true",
+    "npm_config_version_git_sign": "",
+    "GPG_AGENT_INFO": "/run/user/1000/gnupg/S.gpg-agent:0:1",
+    "LC_IDENTIFICATION": "lzh_TW",
+    "npm_config_strict_ssl": "true",
+    "XDG_VTNR": "7",
+    "npm_package_devDependencies_tinyify": "^2.5.1",
+    "npm_package_dependencies_faker": "^4.1.0",
+    "npm_package_scripts_moab": "mocha --grep AssetBookCtrt",
+    "JAVA_HOME": "/usr/lib/jvm/java-8-oracle",
+    "PWD": "/mnt/sda3/projects/Hproject_FullstackR2",
+    "npm_execpath": "/usr/share/yarn/bin/yarn.js",
+    "npm_package_dependencies_line_reader": "^0.4.0",
+    "npm_package_scripts_moall": "mocha",
+    "ANDROID_HOME": "/home/user1/Android/Sdk",
+    "NVM_CD_FLAGS": "",
+    "XDG_DATA_DIRS": "/usr/share/cinnamon:/usr/share/gnome:/home/user1/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share",
+    "XDG_CONFIG_DIRS": "/etc/xdg/xdg-cinnamon:/etc/xdg",
+    "LC_NUMERIC": "lzh_TW",
+    "npm_package_dependencies_https": "^1.0.0",
+    "npm_package_dependencies_cookie_parser": "~1.4.3",
+    "npm_package_dependencies_connect_timeout": "^1.9.0",
+    "npm_config_save_prefix": "^",
+    "npm_config_ignore_optional": "",
+    "LC_PAPER": "lzh_TW",
+    "npm_package_devDependencies_solc": "^0.5.4",
+    "npm_package_dependencies_web3": "1.0.0-beta.37",
+    "npm_package_dependencies_jsonwebtoken": "^8.4.0",
+    "VTE_VERSION": "5202",
+    "INIT_CWD": "/mnt/sda3/projects/Hproject_FullstackR2",
+    "npm_package_dependencies_mysql": "^2.16.0",
+    "npm_package_dependencies_morgan": "~1.9.0",
+    "npm_package_scripts_mocf": "mocha --grep CrowdFundingCtrt",
+    "npm_package_scripts_moreg": "mocha --grep RegistryCtrt",
+    "SERVER_HOST": "localhost",
+    "SERVER_PORT": "3030",
+    "SERVER_PROTOCOL": "http",
+    "DB_HOST": "210.65.88.135",
+    "DB_PORT": "3306",
+    "DB_USER": "root",
+    "DB_PASS": "350bchub321",
+    "DB_NAME": "htoken_test",
+    "DB_HOST2": "140.119.101.130",
+    "DB_PORT2": "3306",
+    "DB_USER2": "root",
+    "DB_PASS2": "bchub",
+    "DB_NAME2": "htoken",
+    "JWT_PRIVATEKEY": "privatekey",
+    "NODE_ENV": "livechain",
+    "EMAIL_USER": "noreply@hcat.io",
+    "EMAIL_PASS": "Ltnl({BR^b+H",
+    "BLOCKCHAIN_CHOICE": "1",
+    "BC_HOST": "203.66.68.70",
+    "BC_PORT": "8545",
+    "BC_PORT_GANACHE": "8540",
+    "BC_PROVIDER": "https://ropsten.infura.io/v3/4d47718945dc41e39071666b2aef3e8d",
+    "BC_HOST_GANACHECLI": "localhost",
+    "BC_PORT_GANACHECLI": "8545",
+    "IS_LIVETIME_ON": "1",
+    "SERVERTIME": "201910221630",
+    "TIMESERVER_MODE": "1",
+    "TIMESERVER_TIME_INTERVAL": "20",
+    "SYMBOLNUMBER": "9",
+    "BACKENDADDRCHOICE": "0",
+    "IS_ADDASSETBOOKS_INTO_CFC": "0",
+    "IS_MAKEORDERS_EXPIRED_CFED": "0",
+    "IS_UPDATE_EXPIRED_ORDERS": "0",
+    "IS_UPDATE_FUNDING_STATE_FROM_DB": "1",
+    "IS_UPDATE_TOKEN_STATE_FROM_DB": "0",
+    "IS_CALCULATE_LAST_PERIOD_PROFIT": "0",
+    "LOGLEVEL": "5",
+    "IS_TO_DEPLOY": "1",
+    "ASSETBOOKAMOUNT": "10",
+    "HELIUM_ADMIN": "0x17200B9d6F3D0ABBEccB0e451f50f7c6ed98b5DB",
+    "HELIUM_ADMIN_PRIVATEKEY": "0x17080CDFA85890085E1FA46DE0FBDC6A83FAF1D75DC4B757803D986FD65E309C",
+    "HELIUM_CHAIRMAN": "0xa6cc621A179f01A719ee57dB4637A4A1f603A442",
+    "HELIUM_DIRECTOR": "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2",
+    "HELIUM_MANAGER": "0x470Dea51542017db8D352b8B36B798a4B6d92c2E",
+    "HELIUM_OWNER": "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61",
+    "HELIUMCONTRACTADDR": "0x391DAce017a97273e1231c7072F6cd9dCD05e798",
+    "REGISTRYCONTRACTADDR": "0xE733a43B95c9F20936fDb0690ea3f6360262FD46",
+    "PRODUCTMANAGERCONTRACTADDR": "0x35c6A424c2550C60bceb2A5e8fc916BcDEB7DccB",
+    "GANACHE_EOA0": "0xa6cc621a179f01a719ee57db4637a4a1f603a442",
+    "GANACHE_EOAPK0": "0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a"
+  },
+  "userLimits": {
+    "core_file_size_blocks": {
+      "soft": 0,
+      "hard": "unlimited"
+    },
+    "data_seg_size_kbytes": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "file_size_blocks": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "max_locked_memory_bytes": {
+      "soft": 16777216,
+      "hard": 16777216
+    },
+    "max_memory_size_kbytes": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "open_files": {
+      "soft": 4096,
+      "hard": 4096
+    },
+    "stack_size_bytes": {
+      "soft": 8388608,
+      "hard": "unlimited"
+    },
+    "cpu_time_seconds": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "max_user_processes": {
+      "soft": 31151,
+      "hard": 31151
+    },
+    "virtual_memory_kbytes": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    }
+  },
+  "sharedObjects": [
+    "linux-vdso.so.1",
+    "/lib/x86_64-linux-gnu/libdl.so.2",
+    "/lib/x86_64-linux-gnu/librt.so.1",
+    "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
+    "/lib/x86_64-linux-gnu/libm.so.6",
+    "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+    "/lib/x86_64-linux-gnu/libpthread.so.0",
+    "/lib/x86_64-linux-gnu/libc.so.6",
+    "/lib64/ld-linux-x86-64.so.2",
+    "/mnt/sda3/projects/Hproject_FullstackR2/node_modules/bcrypt/lib/binding/bcrypt_lib.node",
+    "/mnt/sda3/projects/Hproject_FullstackR2/node_modules/websocket/build/Release/bufferutil.node",
+    "/mnt/sda3/projects/Hproject_FullstackR2/node_modules/websocket/build/Release/validation.node",
+    "/mnt/sda3/projects/Hproject_FullstackR2/node_modules/scrypt/build/Release/scrypt.node",
+    "/mnt/sda3/projects/Hproject_FullstackR2/node_modules/keccak/build/Release/keccak.node",
+    "/mnt/sda3/projects/Hproject_FullstackR2/node_modules/secp256k1/build/Release/secp256k1.node"
+  ]
+}
