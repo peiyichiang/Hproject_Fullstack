@@ -39,31 +39,31 @@
             <th class="nowrap">產品名稱</th>
             <th class="nowrap">產品所在地</th>
             <th class="nowrap">產品定價</th>
-            <th class="nowrap">幣別</th>
+            <!-- <th class="nowrap">幣別</th>
             <th class="nowrap">專案年期</th>
-            <th class="nowrap">預期報酬率(%)</th>                        
+            <th class="nowrap">預期報酬率(%)</th>                         -->
             <!--  -->
-            <th class="nowrap">專案開始日期</th>
+            <!-- <th class="nowrap">專案開始日期</th> -->
             <!-- <th class="nowrap">FMS審核通過的日期</th>
             <th class="nowrap">PA審核通過的日期</th> -->
-            <th class="nowrap">募資起始日</th>
+            <!-- <th class="nowrap">募資起始日</th>
             <th class="nowrap">募資截止日</th>
-            <!--  -->
             <th class="nowrap">產品發行日</th>
             <th class="nowrap">產品到期日</th>
             <th class="nowrap">專案規模(kw)</th>
             <th class="nowrap">產品總發行量(個)</th>
             <th class="nowrap">發行專案的產品經理</th>
-            <th class="nowrap">該專案處理狀態</th>
+            <th class="nowrap">該專案處理狀態</th> -->
             <!-- <th class="nowrap">預估平均年收益</th> -->
             <!-- <th class="nowrap">預估回收金額</th> -->
-            <th class="nowrap">收益總期數</th>
-            <th class="nowrap">預估回收年限</th>
+            <!-- <th class="nowrap">收益總期數</th>
+            <th class="nowrap">預估回收年限</th> -->
             <!-- <th class="nowrap">預估進度圖</th> -->
-            <th class="nowrap">PS審核退回備註</th>
+            <!-- <th class="nowrap">PS審核退回備註</th>
             <th class="nowrap">購售電合約</th>
             <th class="nowrap">產品icon</th>
-            <th class="nowrap">CSV文件</th>
+            <th class="nowrap">CSV文件</th> -->
+            <th class="nowrap">產品詳細資料</th>
             <th class="nowrap">發佈</th>
             <th class="nowrap">退回</th>
         </tr>
@@ -81,7 +81,7 @@
                 <td>
                     <%= data[i].p_pricing  %>
                 </td>
-                <td>
+                <!-- <td>
                     <%= data[i].p_currency  %>
                 </td>
                 <td>
@@ -89,25 +89,23 @@
                 </td>
                 <td>
                     <%= data[i].p_irr  %>
-                </td>                                
+                </td>                                 -->
                 <!--  -->
-                <td>
+                <!-- <td>
                     <%= data[i].p_PSD  %>
-                </td>
+                </td> -->
                 <!-- <td>
                     <%= data[i].p_FMXAdate  %>
                 </td>
                 <td>
                     <%= data[i].p_PAdate  %>
                 </td> -->
-                <td>
+                <!-- <td>
                     <%= data[i].p_CFSD  %>
                 </td>
                 <td>
                     <%= data[i].p_CFED  %>
                 </td>
-                <!--  -->
-
                 <td>
                     <%= data[i].p_releasedate  %>
                 </td>
@@ -125,23 +123,23 @@
                 </td>
                 <td>
                     <%= data[i].p_state  %>
-                </td>
+                </td> -->
                 <!-- <td>
                     <%= data[i].p_FAY  %>
                 </td> -->
                 <!-- <td>
                     <%= data[i].p_FTRT  %>
                 </td> -->
-                <td>
+                <!-- <td>
                     <%= data[i].p_RPT  %>
                 </td>
                 <td>
                     <%= data[i].p_FRP  %>
-                </td>
+                </td> -->
                 <!-- <td>
                     <%= data[i].p_Timeline  %>
                 </td> -->                                
-                <td>
+                <!-- <td>
                     <%= data[i].p_PANote %>
                 </td>
                 <td>
@@ -158,6 +156,9 @@
                     <%if (data[i].p_csvFIle != null && data[i].p_csvFIle != "") { %>
                         <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
                     <% } %>
+                </td> -->
+                <td>
+                    <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
                 </td>
                 <td>
                     <!-- <input type="button" name="publish" value="publish" onclick="Edit('<%= data[i].p_SYMBOL  %>');" /> -->
@@ -432,6 +433,11 @@
         // 將要校正的資料送出
         function SubmitCorrectActualPaymentForm(){
             document.getElementById('correctActualPaymentForm').submit();
+        }
+
+        // 查看產品詳細資料
+        function ViewProductDetail(SYMBOL) {
+            window.location.href = "/Product/ViewProductDeatil?symbol=" + SYMBOL;
         }
 
 

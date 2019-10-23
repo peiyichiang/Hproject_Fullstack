@@ -569,6 +569,49 @@ router.get('/EditProductByFMN', function (req, res, next) {
     });
 });
 
+//查看產品詳細資料：撈取資料到查看產品資料頁面(FMS、PS專用)
+router.get('/ViewProductDeatil', function (req, res, next) {
+    var token = req.cookies.access_token;
+    var dateNow = new Date();
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if (decoded.exp < dateNow.getTime() / 1000) {
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                return;
+            } else {
+                console.log("＊＊＊:" + decoded.payload.m_permission);
+                //JWT token驗證成功
+                if (decoded.payload.m_permission != "Company_FundManagerS" && decoded.payload.m_permission != "Platform_Supervisor") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    var symbol = req.query.symbol;
+    var mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        var data = rows;
+        res.render('ViewProductDetail', { title: '查看產品詳細資料', data: data });
+    });
+});
+
 //修改資料：將修改後的資料傳到資料庫(FMN專用)
 router.post('/EditProductByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);

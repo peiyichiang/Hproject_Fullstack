@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="border-bottom:1px solid white;">
+        <a class="navbar-brand sticky-top" href="#">HeliumCryptic</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:history.back()">管理產品</a>
+              </li>
+            <!-- <li class="nav-item" id="SignOut">
+              <a class="nav-link" href="#">登出</a>
+            </li> -->
+          </ul>
+        </div>
+</nav>
+
+<!-- 新增產品表單 -->
+<div class="wrap" style="width:50%;height:100%;margin:0 auto;margin-top:60px;margin-bottom:60px;border:1px solid #dbdbdb;border-radius: 25px;padding:20px;">
+    <form name="editform" id="editform" action="/Product/EditProductByFMN" method="post" accept-charset="utf-8">
+        <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="p_SYMBOL">產品代號</label>
+            <input type="text" class="form-control" name="p_SYMBOL" id="p_SYMBOL" placeholder="ex:NCCU19" value="<%=data[0].p_SYMBOL %>" readonly>
+        </div>
+        <div class="form-group col-md-4">
+                <label for="p_name">產品名稱</label>
+                <input type="text" class="form-control" name="p_name" id="p_name" placeholder="ex:政大一號" value="<%=data[0].p_name %>" readonly>
+        </div>
+        <div class="form-group col-md-4">
+                <label for="p_location">產品所在地</label>
+                <input type="text" class="form-control" name="p_location" id="p_location" placeholder="ex:台北" value="<%=data[0].p_location %>" readonly>
+        </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                <label for="p_pricing">產品定價</label>
+                <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500" value="<%=data[0].p_pricing %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_duration">專案年期</label>
+                    <input type="text" class="form-control" name="p_duration" id="p_duration" placeholder="ex:10" value="<%=data[0].p_duration %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_currency">幣別</label>
+                    <input type="text" class="form-control" name="p_currency" id="p_currency" placeholder="ex:NTD" value="<%=data[0].p_currency %>" readonly>
+                </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                <label for="p_irr">預期報酬率(%)</label>
+                <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8" value="<%=data[0].p_irr %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_releasedate">產品發行日</label>
+                    <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_releasedate %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_validdate">產品到期日</label>
+                    <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_validdate %>" readonly>
+                </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                <label for="p_size">專案規模(kw)</label>
+                <input type="text" class="form-control" name="p_size" id="p_size" placeholder="ex:8" value="<%=data[0].p_size %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_totalrelease">產品總發行量(個)</label>
+                    <input type="text" class="form-control" name="p_totalrelease" id="p_totalrelease" placeholder="ex:330" value="<%=data[0].p_totalrelease %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="p_fundingType">募款類型</label>
+                    <br>
+                    <%if (data[0].p_fundingType =="1") { %>
+                      <label>
+                        <input type="radio"  name="p_fundingType" id="p_fundingType" value="1" checked  readonly>公募(PO)
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_fundingType" id="p_fundingType" value="2" readonly>私募(PP)
+                      </label>
+                    <% } %>
+                    <%if (data[0].p_fundingType =="2") { %>
+                      <label>
+                        <input type="radio"  name="p_fundingType" id="p_fundingType" value="1" readonly>公募
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_fundingType" id="p_fundingType" value="2" checked readonly>私募
+                      </label>
+                    <% } %>
+                 </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="p_isNewCase">舊案/新案</label>
+                    <br>
+                    <%if (data[0].p_isNewCase =="1") { %>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1" checked readonly>舊案
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2" readonly>新案
+                      </label>
+                    <% } %>
+                    <%if (data[0].p_isNewCase =="2") { %>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="1" readonly>舊案
+                      </label>
+                      <label>
+                        <input type="radio"  name="p_isNewCase" id="p_isNewCase" value="2" checked readonly>新案
+                      </label>
+                    <% } %>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="p_RPT">收益總期數</label>
+                    <input type="text" class="form-control" name="p_RPT" id="p_RPT" placeholder="ex:80" value="<%=data[0].p_RPT %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="p_FRP">預估回收年限(年數/月數)</label>
+                  <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:20/10" value="<%=data[0].p_FRP %>" readonly>
+                  </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label for="p_fundingGoal">專案募資目標(個)</label>
+            <input type="text" class="form-control" name="p_fundingGoal" id="p_fundingGoal" placeholder="ex:800" value="<%=data[0].p_fundingGoal %>" readonly>
+          </div>
+          <!-- <div class="form-group col-md-4">
+            <label for="p_HCAT721uri">專案於公鏈或政府官方文件</label>
+            <input type="text" class="form-control" name="p_HCAT721uri" id="p_HCAT721uri" placeholder="" value="<%=data[0].p_HCAT721uri %>">
+          </div> -->
+          <div class="form-group col-md-4">
+            <label for="p_EPCname">EPC名稱</label>
+            <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="" value="<%=data[0].p_EPCname %>" readonly>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="p_ForecastedAnnualIncomePerModule">預估每片平均年收益</label>
+            <input type="text" class="form-control" name="p_ForecastedAnnualIncomePerModule" id="p_ForecastedAnnualIncomePerModule" placeholder="" value="<%=data[0].p_ForecastedAnnualIncomePerModule %>" readonly>
+          </div>
+          
+        </div>
+        <!-- <div class="form-row">
+                <div class="form-group col-md-6">
+                <label for="p_FRP">預估回收年限</label>
+                <input type="text" class="form-control" name="p_FRP" id="p_FRP" placeholder="ex:8" value="<%=data[0].p_FRP %>">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="p_Timeline">預估進度圖</label>
+                    <input type="text" class="form-control" name="p_Timeline" id="p_Timeline" placeholder="ex:" value="<%=data[0].p_Timeline %>">
+                </div>
+        </div> -->
+        <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="p_PSD">專案開始日期</label>
+                    <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_PSD %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="p_CFSD">募資起始日</label>
+                  <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_CFSD %>" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                      <label for="p_CFED">募資截止日</label>
+                      <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_CFED %>" readonly>
+                 </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="p_TaiPowerApprovalDate">台電並聯作業日期</label>
+                  <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_TaiPowerApprovalDate %>" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                      <label for="p_BOEApprovalDate">能源局同意備案日期</label>
+                      <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_BOEApprovalDate %>" readonly>
+                 </div>
+        </div>
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="p_PVTrialOperationDate">併聯試運轉日期</label>
+                  <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVTrialOperationDate %>" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                      <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
+                      <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVOnGridDate %>" readonly>
+                 </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+              <label for="p_ContractOut">工程發包日期</label>
+              <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDD" value="<%=data[0].p_ContractOut %>" readonly>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="p_CaseConstruction">案場建置完成日期</label>
+            <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDD" value="<%=data[0].p_CaseConstruction %>" readonly>
+          </div>
+          <div class="form-group col-md-4">
+                <label for="p_ElectricityBilling">電費計費開始日期</label>
+                <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDD" value="<%=data[0].p_ElectricityBilling %>" readonly>
+           </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-12">
+            <label for="p_Copywriting">產品文案</label>
+            <br>
+            <!-- <input type="text" class="form-control" name="p_Copywriting" id="p_Copywriting"> -->
+            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;height: 200px;" maxlength="200" readonly><%=data[0].p_Copywriting %></textarea>
+          </div>
+        </div>
+        <div class="form-row" hidden>
+                <div class="form-group col-md-2">
+                  <label for="p_assetdocs">購售電合約</label>
+                  <input type="text" class="form-control" name="p_assetdocs" id="p_assetdocs" value="<%=data[0].p_assetdocs %>" readonly>
+                </div>
+                <div class="form-group col-md-2">
+                  <label for="p_assetdocs">購售電合約Hash</label>
+                  <input type="text" class="form-control" name="p_assetdocsHash" id="p_assetdocsHash" readonly>
+                </div>
+                <div class="form-group col-md-2">
+                  <label for="p_NotarizedRentalContract">房屋與土地租約</label>
+                  <input type="text" class="form-control" name="p_NotarizedRentalContract" id="p_NotarizedRentalContract" value="<%=data[0].p_NotarizedRentalContract %>" readonly>
+                </div>
+                <div class="form-group col-md-2">
+                  <label for="p_OnGridAuditedLetter">併聯審查意見書</label>
+                  <input type="text" class="form-control" name="p_OnGridAuditedLetter" id="p_OnGridAuditedLetter" value="<%=data[0].p_OnGridAuditedLetter %>" readonly>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="p_icon">產品icon</label>
+                    <input type="text" class="form-control" name="p_icon" id="p_icon" value="<%=data[0].p_icon %>" readonly>
+                </div>
+                <div class="form-group col-md-2">
+                  <label for="p_csvFIle">產品csv file</label>
+                  <input type="text" class="form-control" name="p_csvFIle" id="p_csvFIle" value="<%=data[0].p_csvFIle %>" readonly>
+              </div>
+        </div>
+        <div class="form-row" hidden>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片1</label>
+                <input type="text" class="form-control" name="p_Image1" id="p_Image1" value="<%=data[0].p_Image1 %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片2</label>
+                <input type="text" class="form-control" name="p_Image2" id="p_Image2" value="<%=data[0].p_Image2 %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片3</label>
+                <input type="text" class="form-control" name="p_Image3" id="p_Image3" value="<%=data[0].p_Image3 %>" readonly>
+            </div>
+        </div>
+        <div class="form-row" hidden>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片4</label>
+                <input type="text" class="form-control" name="p_Image4" id="p_Image4" value="<%=data[0].p_Image4 %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片5</label>
+                <input type="text" class="form-control" name="p_Image5" id="p_Image5" value="<%=data[0].p_Image5 %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片6</label>
+                <input type="text" class="form-control" name="p_Image6" id="p_Image6" value="<%=data[0].p_Image6 %>" readonly>
+            </div>
+        </div>
+        <div class="form-row" hidden>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片7</label>
+                <input type="text" class="form-control" name="p_Image7" id="p_Image7" value="<%=data[0].p_Image7 %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片8</label>
+                <input type="text" class="form-control" name="p_Image8" id="p_Image8" value="<%=data[0].p_Image8 %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片9</label>
+                <input type="text" class="form-control" name="p_Image9" id="p_Image9" value="<%=data[0].p_Image9 %>" readonly>
+            </div>
+        </div>
+        <div class="form-row" hidden>
+            <div class="form-group col-md-4">
+                <label for="p_assetdocs">案場圖片10</label>
+                <input type="text" class="form-control" name="p_Image10" id="p_Image10" value="<%=data[0].p_Image10 %>" readonly>
+            </div>
+        </div>
+    </form>
+        <!-- 文件上傳表單 -->
+        <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
+            <div class="form-row">
+                    <!-- <div class="form-group col-md-4">
+                            <label for="file">購售電合約</label>
+                            <input type="file" class="form-control" name="file" id="file">
+                            <%if (data[0].p_assetdocs != null && data[0].p_assetdocs != "") { %>
+                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_assetdocs.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                            <% } %>
+                    </div> -->
+                    <div class="form-group col-md-3">
+                      <label for="p_NotarizedRentalContract_form">房屋與土地租約</label>
+                      <!-- <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form"> -->
+                      <%if (data[0].p_NotarizedRentalContract != null && data[0].p_NotarizedRentalContract != "") { %>
+                          <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_NotarizedRentalContract.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                      <% } %>
+                    </div>
+                    <div class="form-group col-md-3">
+                            <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
+                            <!-- <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form"> -->
+                            <%if (data[0].p_OnGridAuditedLetter != null && data[0].p_OnGridAuditedLetter != "") { %>
+                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_OnGridAuditedLetter.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                            <% } %>
+                    </div>
+                    <div class="form-group col-md-3">
+                            <label for="icon">產品icon</label>
+                            <!-- <input type="file" class="form-control" name="icon" id="icon"> -->
+                            <%if (data[0].p_icon != null && data[0].p_icon != "") { %>
+                                <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_icon.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                            <% } %>
+                    </div>
+                    <div class="form-group col-md-3">
+                      <label for="csvFIle">CSV文件</label>
+                      <!-- <input type="file" class="form-control" name="csvFIle" id="csvFIle"> -->
+                      <%if (data[0].p_csvFIle != null && data[0].p_csvFIle != "") { %>
+                          <br>
+                          <a href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_csvFIle.replace('public','')  %>">CSV File</a>
+                      <% } %>
+                    </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image1 != null && data[0].p_Image1 != "") { %>
+                    <label for="image1">案場圖片1</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image1.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image2 != null && data[0].p_Image2 != "") { %>
+                    <label for="image2">案場圖片2</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image2.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image3 != null && data[0].p_Image3 != "") { %>
+                    <label for="image3">案場圖片3</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image3.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image4 != null && data[0].p_Image4 != "") { %>
+                    <label for="image4">案場圖片4</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image4.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image5 != null && data[0].p_Image5 != "") { %>
+                    <label for="image5">案場圖片5</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image5.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image6 != null && data[0].p_Image6 != "") { %>
+                    <label for="image6">案場圖片6</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image6.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image7 != null && data[0].p_Image7 != "") { %>
+                    <label for="image7">案場圖片7</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image7.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image8 != null && data[0].p_Image8 != "") { %>
+                    <label for="image8">案場圖片8</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image8.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image9 != null && data[0].p_Image9 != "") { %>
+                    <label for="image9">案場圖片9</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image9.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <%if (data[0].p_Image10 != null && data[0].p_Image10 != "") { %>
+                    <label for="image10">案場圖片10</label>
+                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_Image10.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                <% } %>
+              </div>
+            </div>
+        </form>
+</div>
+
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+</html>
