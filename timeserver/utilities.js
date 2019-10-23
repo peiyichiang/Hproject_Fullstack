@@ -2,18 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const { excludedSymbols, wlogger } = require('../ethereum/contracts/zsetupData');
+const { isTimeserverON, fakeServertime } = require('./envVariables');
+
 wlogger.info(`--------------------== utilities.js`);
-//----------------------------==Log
-// if(process.env.IS_LOG_ON){
-//   console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=> true`);
-// } else{
-//   console.log(`process.env.IS_LOG_ON: ${process.env.IS_LOG_ON}=>false`);
-// }
-// const sLog = str => {
-//   if(process.env.IS_LOG_ON){
-//     console.log(str);
-//   }
-// }
 
 const checkEq = (value1, value2) => {
   if (value1 === value2) {
@@ -47,11 +38,15 @@ const isAllTruthy = myObj => myObj.every(function(i) { return i; });
 
 const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myObj[k] === true });//If you really want to check for true rather than just a truthy value
 
+const getLocalTime = () => parseInt(new Date().myFormat());
 
 const getTimeServerTime = () => {
   return new Promise(function (resolve, reject) {
-    let time = new Date().myFormat();
-    resolve(time);
+    if(isTimeserverON){
+      resolve(getLocalTime());
+    } else {
+      resolve(fakeServertime);
+    }
 
     // try {
     //   let time = fs.readFileSync(path.resolve(__dirname, "..", "time.txt"), "utf8").toString();
@@ -64,35 +59,40 @@ const getTimeServerTime = () => {
   });
 }
 
-const getLocalTime = () => parseInt(new Date().myFormat());
-
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
 
-const testInputTime = (_servertime) => {
+const testInputTime = (inputTime) => {
   // 201910220801
-  console.log('_servertime:', _servertime);
-  if(_servertime){
-    if(_servertime.match(/\D/g)){//  /\D/g   /[^$,.\d]/ 
+  console.log('inputTime:', inputTime);
+  const inputTimeStr = inputTime + '';
+    //const inputTime = parseInt(inputTime);
+
+  if(inputTimeStr){
+    if(inputTimeStr.match(/\D/g)){//  /\D/g   /[^$,.\d]/ 
       return [false, undefined, 'invalid character was found'];
     }
-    const int_length = (''+_servertime).length;
+    const int_length = inputTimeStr.length;
     if(int_length !== 12){
       return [false, undefined, 'length is invalid: '+int_length];
     }
-    //const servertime = parseInt(_servertime);
-    if(Number.isInteger(_servertime)){
-      return [false, undefined, 'servertime is not an integer'];
+    const isInt = Number.isInteger(inputTime);
+    if(isInt){
+      const inputTimeNum = Number(inputTime);
 
-    } else if(_servertime < getLocalTime()-1){
-      return [false, undefined, 'servertime should not be in the past'];
+      if(inputTimeNum < getLocalTime()-1){
+        return [false, undefined, 'inputTime should not be in the past'];
+      } else {
+        return [true, inputTimeNum, 'inputTime is valid'];
+      }
 
     } else {
-      return [true, Number(_servertime), 'servertime is valid'];
+      return [false, undefined, 'inputTime is not an integer'];
     }
+
   } else {
-    return [false, undefined, 'servertime is invalid'];
+    return [false, undefined, 'inputTime is invalid'];
   }
 }
 

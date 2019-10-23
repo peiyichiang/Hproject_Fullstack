@@ -12,7 +12,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
 
 const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
 
@@ -1111,14 +1111,25 @@ const setTimeCFC_bySymbol_API = async() => {
  
 }
 
+//yarn run testmt -f 51
+const updateFundingStateFromDB_API = async() => {
+  console.log('\n-------------------==inside updateFundingStateFromDB_API');
+  const serverTime = await getTimeServerTime();
+  const result = await updateFundingStateFromDB(serverTime).catch((err) => {
+    console.error(`[Error @ timeserver: updateFundingStateFromDB]: ${err}`);
+  });
+  if(result){
+    console.info('>> [Success@ timeserver] updateFundingStateFromDB();');
+  } else {
+    console.error('>> [Error @ timeserver] updateFundingStateFromDB() returns false;');
+  };//blockchain.js
+
+}
+
 //yarn run testmt -f 63
 const addAssetbooksIntoCFC_API = async() => {
   console.log('\n-------------------==inside addAssetbooksIntoCFC_API');
-  if(isTimeserverON){
-    serverTime = await getLocalTime();
-  } else {
-    serverTime = TimeOfDeployment_HCAT;
-  }
+  const serverTime = getTimeServerTime();
   await addAssetbooksIntoCFC(serverTime);
   process.exit(0);
 }
@@ -1138,11 +1149,7 @@ const addPaidOrdersIntoDBnCFC = async() => {
   console.log('addArrayOrdersIntoDB result:', result);
   //process.exit(0);
 
-  if(isTimeserverON){
-    serverTime = await getLocalTime();
-  } else {
-    serverTime = TimeOfDeployment_HCAT;
-  }
+  const serverTime = getTimeServerTime();
   await addAssetbooksIntoCFC(serverTime);
   process.exit(0);
 }
@@ -1181,11 +1188,7 @@ const investTokensToCloseCFC_API = async () => {
   });
   console.log(`addSmartContractRow() result: isGood ${isGood}`);
   //----------------------==
-  if(isTimeserverON){
-    serverTime = await getLocalTime();
-  } else {
-    serverTime = TimeOfDeployment_HCAT;
-  }
+  const serverTime = getTimeServerTime();
   console.log('isTimeserverON:', isTimeserverON, ', serverTime:', serverTime);
   //process.exit(0);
   await addAssetbooksIntoCFC(serverTime);
@@ -2728,6 +2731,15 @@ const getTokenStateDB_API = async () => {
    process.exit(0);
 }
 
+//yarn run testmt -f 213
+const getTimeServerTime_API = async () => {
+  console.log('\n-----------------------==getTimeServerTime_API()');
+  const servertime = await getTimeServerTime();
+   console.log(`servertime: ${servertime}`);
+   process.exit(0);
+}
+
+
 //------------------------==
 // yarn run testmt -f 0
 if(argv3 === 0){
@@ -2922,7 +2934,9 @@ if(argv3 === 0){
 } else if (argv3 === 50) {
   resetAfterMintToken_API();
 
-
+//yarn run testmt -f 51
+} else if (argv3 === 51) {
+  updateFundingStateFromDB_API();
 
 
 //----------------------==Deploy System contracts
@@ -3215,4 +3229,8 @@ if(argv3 === 0){
   //yarn run testmt -f 212
 } else if(argv3 === 212){
   getTokenStateDB_API();
+
+  //yarn run testmt -f 213
+} else if(argv3 === 213){
+  getTimeServerTime_API();
 }

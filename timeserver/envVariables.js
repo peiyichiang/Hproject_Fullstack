@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, loglevel;
+let symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -130,7 +130,20 @@ console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrPro
 
 
 //----------------------------==Timeserver Settings
+
+
 const isTimeserverON = process.env.IS_TIMESERVER_ON === '1';
+console.log('isTimeserverON:', isTimeserverON);
+
+const SERVERTIME = parseInt(process.env.SERVERTIME);
+if(isNaN(SERVERTIME)){
+  fakeServertime = 201910220930;
+} else {
+  fakeServertime = SERVERTIME;
+}
+console.log('fakeServertime:', fakeServertime);
+
+
 let timeserverMode = parseInt(process.env.TIMESERVER_MODE);// = 1
 if(isNaN(timeserverMode)){
   timeserverMode = 1;
@@ -161,4 +174,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, operationMode, backendAddrChoice, isToDeploy, assetbookAmount, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel, isTimeserverON };

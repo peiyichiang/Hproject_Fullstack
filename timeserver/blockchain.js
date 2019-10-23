@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
+const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
 
 const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
@@ -1341,11 +1341,12 @@ const getHeliumAddrCFC = async (crowdFundingAddr) => {
 
 const updateFundingStateCFC = async (crowdFundingAddr, serverTime, symbol) => {
   return new Promise(async (resolve, reject) => {
-    wlogger.debug(`\n[updateFundingStateCFC] crowdFundingAddr: ${crowdFundingAddr}
-serverTime: ${serverTime}`);
+    wlogger.debug(`\n[updateFundingStateCFC] crowdFundingAddr: ${crowdFundingAddr} \nserverTime: ${serverTime}`);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
+    wlogger.debug(`\ncheck1`);
 
     let stateDescription = await instCrowdFunding.methods.stateDescription().call();
+    wlogger.debug(`\ncheck2`);
     //const symbol = await instCrowdFunding.methods.tokenSymbol().call();
     let fundingState = await instCrowdFunding.methods.fundingState().call();
     wlogger.debug(`\nsymbol: ${symbol}, fundingState: ${fundingState}, stateDescription: ${stateDescription}`);
@@ -2299,11 +2300,11 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
 //-------------------------------==DB + BC
 //-------------------==Crowdfunding
 //From DB check if product:fundingState needs to be updated
-const updateFundingStateFromDB = async (serverTime) => {
+const updateFundingStateFromDB = async (_serverTime) => {
   return new Promise(async (resolve, reject) => {
-    wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
+    wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${_serverTime}, typeof ${typeof _serverTime}`);
 
-    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
+    const [isGoodServerTime, serverTime, mesgServerTime] = testInputTime(_serverTime);
     wlogger.debug('isGoodServerTime:', isGoodServerTime);
     if(!isGoodServerTime){
       reject(`${mesgServerTime}`);
