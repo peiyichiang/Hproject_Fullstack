@@ -123,7 +123,7 @@ function UploadImage(){
                 
                 //將p_size跟p_ForecastedAnnualIncomePerModule限制在小數點2位數
                 $("#p_size").val(parseInt(parseFloat(document.getElementById("p_size").value).toFixed(2)*100));
-                $("#p_ForecastedAnnualIncomePerModule").val(parseFloat(document.getElementById("p_ForecastedAnnualIncomePerModule").value).toFixed(2));
+                $("#p_ForecastedAnnualIncomePerModule").val(parseInt(parseFloat(document.getElementById("p_ForecastedAnnualIncomePerModule").value).toFixed(0)));
                 
                 
                 // 將資料寫入資料庫
