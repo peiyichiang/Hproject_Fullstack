@@ -496,12 +496,12 @@ const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSym
   });
 }
 
-const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol) => {
+const addArrayOrdersIntoDB = async(userIndexArray, amountArray, initialAssetPricing, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n-------------==inside addArrayOrdersIntoDB()`);
-    if(userIndexArray.length !== tokenCountArray.length){
-      wlogger.debug(`${userIndexArray} & ${tokenCountArray}`);
-      reject('userIndexArray and tokenCountArray should have the same length');
+    if(userIndexArray.length !== amountArray.length){
+      wlogger.debug(`${userIndexArray} & ${amountArray}`);
+      reject('userIndexArray and amountArray should have the same length');
     }
     const maxIndex = assetbookArray.length ;
     userIndexArray.forEach((index, idx)=> {
@@ -517,7 +517,7 @@ const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, initialAsset
       const user = userArray[userIndex];
       const identityNumber = user.identityNumber;
       const email = user.email;
-      const tokenCount = tokenCountArray[idx];
+      const tokenCount = amountArray[idx];
       wlogger.debug(`idx: ${idx}, 
 identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
 tokenSymbol: ${tokenSymbol}, fundCount: ${initialAssetPricing * tokenCount}, paymentStatus: ${paymentStatus}`);

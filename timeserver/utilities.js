@@ -101,6 +101,7 @@ const isInt =(item) => Number.isInteger(item);
 const isIntAboveOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
 
 const arraySum = arr => arr.reduce((a,b) => a + b, 0);
+const makeIndexArray = (_length) => Array.from({length: _length}, (v, i) => i);
 
 const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
 
@@ -228,20 +229,24 @@ const getUserIndexArray = (arraylength = 3) => {
   }
 }
 
-const getNumberArray = (totalAmount, price) => {
- 
+const getBuyAmountArray = (totalAmount, price, fundingType) => {
+  let maxAmountToBuy, remainder;
   const maxAmountPublic = COMPLIANCE_LEVELS['5'].maxOrderPaymentPublic;
   const maxBalancePublic = COMPLIANCE_LEVELS['5'].maxBalancePublic;
 
-  const maxAmountToBuy = Math.floor(maxAmountPublic / price);
-  const remainder = maxAmountPublic - price * maxAmountToBuy;
+  if(fundingType === 1){//PO
+    maxAmountToBuy = Math.floor(maxAmountPublic / price);
+    remainder = maxAmountPublic - price * maxAmountToBuy;
+    wlogger('fundingType: '+ fundingType+' Public with Regulations');
+  } else {
+    maxAmountToBuy = 20;
+  }
 
   wlogger.debug(`maxAmountPublic: ${maxAmountPublic} ${typeof maxAmountPublic}, maxBalancePublic: ${maxBalancePublic} ${typeof maxBalancePublic}
-totalAmount: ${totalAmount}, maxAmountToBuy: ${maxAmountToBuy}, remainder: ${remainder}`);
+totalAmount: ${totalAmount}, price: ${price}, maxAmountToBuy: ${maxAmountToBuy}, remainder: ${remainder}`);
 
-  wlogger.debug(``);
   const amountArray = [];
-  let remainingQty = totalAmount, isGood, mesg;
+  let remainingQty = totalAmount, isGood, mesg = '';
   do{
     //wlogger.debug(`remainingQty: ${remainingQty}`);
     let amount = getRndIntegerBothEnd(1, maxAmountToBuy);
@@ -254,18 +259,18 @@ totalAmount: ${totalAmount}, maxAmountToBuy: ${maxAmountToBuy}, remainder: ${rem
     
   } while(remainingQty > 0);
 
-  const amountSum = arraySum(amountArray);
-  if(amountSum === totalAmount){
+  const amountSumOut = arraySum(amountArray);
+  if(amountSumOut === totalAmount){
     isGood = true;
   } else {
     isGood = false;
   }
-  wlogger.debug(`amountSum: ${amountSum} \namountArray: ${amountArray}, length: ${amountArray.length}, isGood: ${isGood}`);
+  wlogger.info(`\namountSumOut: ${amountSumOut} \nconst amountArray = [${amountArray}]; length: ${amountArray.length} \nisGood: ${isGood}, mesg: ${mesg}`);
   return [isGood, amountArray, mesg];
 };
 
 
-const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
+const getInputArrays = (arraylength = 3, totalTokenAmount) => {
   if(typeof arraylength !== 'number'){
     wlogger.error(`[Error] arraylength should be typeof number`);
     process.exit(1);
@@ -273,8 +278,8 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     wlogger.error(`[Error] arraylength should be <= 10 and >= 1`);
     process.exit(1);
   }
-  //const totalAmountToInvest = 750 * arraylength;
-  wlogger.debug(`totalAmountToInvest: ${totalAmountToInvest}`)
+  //const totalTokenAmount = 750 * arraylength;
+  wlogger.debug(`totalTokenAmount: ${totalTokenAmount}`)
   const userIndexArray = [];
   const tokenCountArray = [];
   let usrIdx;
@@ -283,7 +288,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
       usrIdx = getRndIntegerBothEnd(0, 9);
     }while(userIndexArray.includes(usrIdx))
     //wlogger.debug(`usrIdx:: ${usrIdx);
-    const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
+    const remainingQty = totalTokenAmount-arraySum(tokenCountArray);
 
     if(idx === arraylength-1 && remainingQty > 0){
       userIndexArray.push(usrIdx);
@@ -292,7 +297,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     } else {
       let amountToInvest = getRndIntegerBothEnd(1, remainingQty * 0.5);
       if(amountToInvest < 1 || remainingQty < 1 ){
-        continue
+        continue;
       }
       tokenCountArray.push(amountToInvest);
       userIndexArray.push(usrIdx);
@@ -301,7 +306,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   const tokenCountTotal = arraySum(tokenCountArray);
   wlogger.debug(`tokenCountTotal: ${tokenCountTotal}`);
 
-  if(tokenCountTotal === totalAmountToInvest && tokenCountArray.length === arraylength && userIndexArray.length === arraylength){
+  if(tokenCountTotal === totalTokenAmount && tokenCountArray.length === arraylength && userIndexArray.length === arraylength){
     wlogger.debug(`Tested Good: tokenCountTotal, tokenCountArray length, and userIndexArray length are all correct`);
     return [userIndexArray, tokenCountArray];
   } else {
@@ -569,5 +574,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getNumberArray
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays
 }

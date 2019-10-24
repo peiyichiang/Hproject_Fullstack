@@ -4,7 +4,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log;
 //--------------------==
-const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, investArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule } = require('./zTestParameters');
+const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, amountArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule } = require('./zTestParameters');
 
 const { admin, adminpkRaw, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount } = require('../timeserver/envVariables');
 
@@ -12,9 +12,9 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, deleteUsersInDB, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
 
-const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getNumberArray, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
+const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
 
 //const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
 
@@ -573,16 +573,22 @@ const deployProductManagerContract_API = async() => {
 //yarn run testmt -f 56
 const deployAssetbookContracts_API = async() => {
   console.log('\n--------------==inside deployAssetbookContracts_API()');
+  //may occur: { [Error: ETIMEDOUT] message: 'ETIMEDOUT', code: -32603 }
   let eoaArray, eoapkArray;
   const addrHeliumContract = addrHelium;
   const choice = parseInt(argv4);
   if(isNaN(choice)){
-    console.log('choice is undefined. Add another argument as an integer for your choice: 1: normal for first 10 EOAs, 2 for specific addresses, 3 for just one');
+    console.log(`choice is undefined. Add another argument as an integer for your choice: 1: normal for ${assetbookAmount} EOAs, 2 for specific addresses, 3 for just one`);
     process.exit(0);
+  } else {
+    console.log(`choice: ${choice}. 1: normal for ${assetbookAmount} EOAs, 2 for specific addresses, 3 for just one`);
   }
 
   if(assetOwnerArray.length < 10) {
-    console.error('not enough assetOwnerArray length!');
+    console.error('assetOwnerArray length should be >= 10');
+    process.exit(1);
+  } else if(assetOwnerArray.length < assetbookAmount){
+    console.error('not enough assetOwnerArray for given assetbookAmount: '+assetbookAmount);
     process.exit(1);
   }
 
@@ -719,6 +725,58 @@ const addUsersToRegistryCtrt_API = async() => {
   console.log('isGood:', isGood, ', results:', results);
   process.exit(0);
 };
+
+
+//yarn run testmt -f 599
+const setUsersInRegistryCtrt_API = async() => {
+  console.log('\n-------------==inside setUsersInRegistryCtrt_API');
+  let userIDs, userAssetbooks, investorLevels;
+
+  const method = 4;
+  const authLevel = 5;
+  const registryContractAddr = addrRegistry;
+
+  if(method === 1){
+    const assetbookChoice = 10;
+    userIDs = ["A500000010"];
+    userAssetbooks = [assetbookArray[assetbookChoice]];
+    investorLevels = [authLevel];
+
+  } else if(method === 2) {
+    userIDs = ["A500000003"];
+    userAssetbooks = [addrAssetBook3];
+    investorLevels = [authLevel];
+
+  } else if(method === 3) {
+    userIDs = ['A500000021', 'A500000022', 'A500000023'];
+
+    userAssetbooks = [addrAssetBook1, addrAssetBook2, addrAssetBook3];
+    investorLevels = [authLevel, authLevel, authLevel];
+
+  } else if(method === 4) {
+    userAssetbooks = assetbookArray.slice(0, assetbookAmount);
+    //console.log('assetbookArray:', assetbookArray);
+    console.log('userAssetbooks:', userAssetbooks);
+
+    userIDs = []; investorLevels = [];
+    for (let i = 0; i < assetbookAmount; i++) {
+      const userId = userArray[i].identityNumber;
+      const userLevel = userArray[i].investorLevel;
+      const userAssetbook = userAssetbooks[i];
+      userIDs.push(userId);
+      investorLevels.push(userLevel);
+      console.log(`${userId} ${userLevel} ${userAssetbook} ${typeof userAssetbook}`);
+    }
+  }
+  //process.exit(0);
+
+  const {isGood, results} = await setUsersInRegistryCtrt(registryContractAddr, userIDs, userAssetbooks, investorLevels).catch((err) => {
+    console.log('\n[Error @ setUsersInRegistryCtrt()] '+ err);
+  });
+  console.log('isGood:', isGood, ', results:', results);
+  process.exit(0);
+};
+
 
 //yarn run testmt -f 577
 const deleteUsersInDB_API = async () => {
@@ -1158,11 +1216,11 @@ const addPaidOrdersIntoDBnCFC = async() => {
   console.log('\n-------------------==inside addPaidOrdersIntoDBnCFC');
   const userIndexArray = [2, 4, 7];
   const amountToInvest = [500, 800, 700];
-  const fundCount = 150000;
+  const price = 150000;
   const paymentStatus = 'paid';
   const tokenSymbol =  nftSymbol;
 
-  const result = await addArrayOrdersIntoDB(userIndexArray, amountToInvest, fundCount, paymentStatus, tokenSymbol).catch((err) => {
+  const result = await addArrayOrdersIntoDB(userIndexArray, amountToInvest, price, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addArrayOrdersIntoDB()]'+ err);
   });
   console.log('addArrayOrdersIntoDB result:', result);
@@ -1174,46 +1232,67 @@ const addPaidOrdersIntoDBnCFC = async() => {
 }
 
 
-//yarn run testmt -f 62
-const investTokensToGoalThenTimeOut_API  = async () => {
-  console.log('\n---------------------==investTokensToGoalThenTimeOut_API');
-
-}
-
 //yarn run testmt -f 63
 investTokensUnderGoalThenTimeOut_API = async () => {
   console.log('\n---------------------==investTokensUnderGoalThenTimeOut_API');
 
 }
 
+//yarn run testmt -f 64
+const investTokensToGoalThenTimeOut_API  = async () => {
+  console.log('\n---------------------==investTokensToGoalThenTimeOut_API');
+
+}
+
+
 //yarn run testmt -f 65
 const investTokensToCloseCFC_API = async () => {
   console.log('\n---------------------==investTokensToCloseCFC_API()');
   const tokenSymbol =  nftSymbol;
-  const totalAmountToInvest = maxTotalSupply;
+  const totalTokenAmount = maxTotalSupply;
   const crowdFundingAddr = addrCrowdFunding;
-  const fundCount = initialAssetPricing;
+  const price = initialAssetPricing;
   const paymentStatus = 'paid';
+  let isGoodAmountArraySumOut;
 
-  console.log('tokenSymbol:', tokenSymbol, ', totalAmountToInvest:', totalAmountToInvest, ', fundCount:', fundCount);
+  console.log('tokenSymbol:', tokenSymbol, ', totalTokenAmount:', totalTokenAmount, ', price:', price);
 
   let [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
   //process.exit(0);
 
   /*
-  const [userIndexArray, amountToInvest] = getNumberArray(10, totalAmountToInvest);
+  const [userIndexArray, amountToInvest] = getNumberArray(10, totalTokenAmount);
   console.log(`userIndexArray: ${userIndexArray} ... length: ${userIndexArray.length} \namountToInvest: ${amountToInvest} ... length: ${amountToInvest.length} \n`);
   */
-  const userIndexArray = [0,1,2,3,4,5,6,7,8,9];
+  //const userIndexArray = [0,1,2,3,4,5,6,7,8,9];
+  // const [isGood, amountArray, mesg] = getBuyAmountArray(totalAmount,price);
+  // if(!isGood){
+  //   console.log('[Error @getBuyAmountArray] '+ mesg);
+  //   return false;
+  // }
+  const userIndexArray = Array.from({length: amountArray.length}, (v, i) => i);
+  const amountArraySumOut = arraySum(amountArray);
+  if(amountArraySumOut === totalTokenAmount){
+    isGoodAmountArraySumOut = true;
+    console.error('[Good] isGoodAmountArraySumOut:',isGoodAmountArraySumOut)
+  } else {
+    isGoodAmountArraySumOut = false;
+    console.error('[Error] isGoodAmountArraySumOut:',isGoodAmountArraySumOut);
+    process.exit(1);
+  }
 
-  const result = await addArrayOrdersIntoDB(userIndexArray, investArray, fundCount, paymentStatus, tokenSymbol).catch((err) => {
+  console.log(`amountArraySumOut: ${amountArraySumOut} \nuserIndexArray: ${userIndexArray} \n\namountArray: ${amountArray}`);
+  //process.exit(0);
+  //const amountArray = [16,2,1,7,13,10,5,11,6,8];//79
+
+  const result = await addArrayOrdersIntoDB(userIndexArray, amountArray, price, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addArrayOrdersIntoDB()]'+ err);
   });
   console.log('addArrayOrdersIntoDB result:', result);
 
   console.log('\n-------------== add CrowdfundingCtrt');
 
-  const isGoodAddSmartContractRow = await addSmartContractRow(tokenSymbol, crowdFundingAddr, null, totalAmountToInvest, null, null).catch((err) => {
+  const isGoodAddSmartContractRow = await addSmartContractRow(tokenSymbol, crowdFundingAddr, null, totalTokenAmount, null, null).catch((err) => {
     console.log('\n[Error @ addSmartContractRow()]'+ err);
   });
   console.log(`addSmartContractRow() result: isGoodAddSmartContractRow ${isGoodAddSmartContractRow}`);
@@ -1229,7 +1308,7 @@ const investTokensToCloseCFC_API = async () => {
 
   [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
 
-  console.log('\n--------------==End \ntotalAmountToInvest:', totalAmountToInvest, 'fundCount:', fundCount);
+  console.log('\n--------------==End \ntotalTokenAmount:', totalTokenAmount, 'price:', price);
   process.exit(0);
   //console.log(`--------==returned values from getDetailsCFC(): \nfundingStateM: ${fundingStateM}, stateDescriptionM: ${stateDescriptionM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
 
@@ -1744,10 +1823,10 @@ const add2SmartContractsBySymbol_API = async() => {
 //yarn run testmt -f 75
 const addUserArrayOrdersIntoDB_API = async() => {
   console.log('\n-------------------==inside addUserArrayOrdersIntoDB_API');
-  const fundCount = 150000;
+  const price = 150000;
   const paymentStatus = 'waiting';
   const tokenSymbol =  nftSymbol;
-  const result = await addUserArrayOrdersIntoDB(userArray, fundCount, paymentStatus, tokenSymbol).catch((err) => {
+  const result = await addUserArrayOrdersIntoDB(userArray, price, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addUserArrayOrdersIntoDB()]'+ err);
   });
   console.log('addUserArrayOrdersIntoDB result:', result);
@@ -1758,7 +1837,7 @@ const addUserArrayOrdersIntoDB_API = async() => {
 const addOrderIntoDB_API = async() => {
   console.log('\n-------------------==inside addOrderIntoDB_API');
   const userIndex = 1;
-  const fundCount = 150000;
+  const price = 150000;
   const paymentStatus = 'waiting';
   const tokenSymbol =  nftSymbol;
 
@@ -1766,7 +1845,7 @@ const addOrderIntoDB_API = async() => {
   const identityNumber = user.identityNumber;
   const email = user.email;
   const tokenCount = user.tokenOrderAmount;
-  const result = await addOrderIntoDB(identityNumber, email, tokenCount, fundCount, paymentStatus, tokenSymbol).catch((err) => {
+  const result = await addOrderIntoDB(identityNumber, email, tokenCount, price, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addOrderIntoDB()]'+ err);
   });
   console.log('addOrderIntoDB result:', result);
@@ -1779,11 +1858,11 @@ const addArrayOrdersIntoDB_API = async() => {
   console.log('\n-------------------==inside addArrayOrdersIntoDB_API');
   const userIndexArray = [1, 2, 3];
   const amountToInvest = [10, 17, 29];
-  const fundCount = 150000;
+  const price = 150000;
   const paymentStatus = 'waiting';
   const tokenSymbol =  nftSymbol;
 
-  const result = await addArrayOrdersIntoDB(userIndexArray, amountToInvest, fundCount, paymentStatus, tokenSymbol).catch((err) => {
+  const result = await addArrayOrdersIntoDB(userIndexArray, amountToInvest, price, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addArrayOrdersIntoDB()]'+ err);
   });
   console.log('addArrayOrdersIntoDB result:', result);
@@ -2695,50 +2774,51 @@ const Test1GetAccountDetail_API = async() => {
 const getInputArrays_API = async() => {
   console.log('\n--------------==inside getInputArrays_API()');
   const outputLength = 10;
-  const totalAmountToInvest = 969;
+  const totalTokenAmount = 969;
 
-  const [userIndexArray, tokenCountArray] = getInputArrays(outputLength, totalAmountToInvest);
+  const [userIndexArray, tokenCountArray] = getInputArrays(outputLength, totalTokenAmount);
   console.log(`\nuserIndexArray: ${userIndexArray} ... length: ${userIndexArray.length} \ntokenCountArray: ${tokenCountArray} ... length: ${tokenCountArray.length} \n`);
   process.exit(0);
 }
 
 //yarn run testmt -f 209
-const getNumberArray_API = async() => {
-  console.log('\n--------------==inside getNumberArray_API()');
-  const price = 16468;
-  const totalAmount = 969;
-  const [isGood, amountArray, mesg] = getNumberArray(totalAmount, price);
+const getBuyAmountArray_API = async() => {
+  console.log('\n--------------==inside getBuyAmountArray_API()');
+  const price = initialAssetPricing;
+  const totalAmount = maxTotalSupply;
+  const fundingTypeIn = fundingType;
+  const [isGood, amountArray, mesg] = getBuyAmountArray(totalAmount, price, fundingTypeIn);
   process.exit(0);
 }
 
 
 //yarn run testmt -f 208
-const getNumberArrayManualAmounts_API = async() => {
-  console.log('\n--------------==inside getNumberArrayManualAmounts_API()');
-  const totalAmountToInvest = parseInt(argv4);
-  if(isNaN(totalAmountToInvest)){
-    console.log('totalAmountToInvest is undefined. Add another argument as an integer for your totalAmountToInvest: 100, 969, or 10000');
+const getInputArraysManualAmounts_API = async() => {
+  console.log('\n--------------==inside getInputArraysManualAmounts_API()');
+  const totalTokenAmount = parseInt(argv4);
+  if(isNaN(totalTokenAmount)){
+    console.log('totalTokenAmount is undefined. Add another argument as an integer for your totalTokenAmount: 100, 969, or 10000');
     process.exit(0);
   }
 
-  const amountToInvest = [16, 15, 13, 3, 14, 5, 9, 13, 1, 11];//$ 18000
-  //const amountToInvest = [17, 16, 13, 3, 15, 5, 9, 14, 1, 7];//$ 17000
-  //const amountToInvest = [18, 17, 13, 3, 15, 5, 9, 12, 1, 7];//$ 16000
-  //const amountToInvest = [20, 19, 10, 3, 15, 2, 9, 14, 1, 7];//$ 15000
-  const tokenCountTotal = arraySum(amountToInvest);
-  const remainingAmount = totalAmountToInvest - tokenCountTotal;
+  const buyAmounts = [16, 15, 13, 3, 14, 5, 9, 13, 1, 11];//$ 18000
+  //const buyAmounts = [17, 16, 13, 3, 15, 5, 9, 14, 1, 7];//$ 17000
+  //const buyAmounts = [18, 17, 13, 3, 15, 5, 9, 12, 1, 7];//$ 16000
+  //const buyAmounts = [20, 19, 10, 3, 15, 2, 9, 14, 1, 7];//$ 15000
+  const tokenCountTotal = arraySum(buyAmounts);
+  const remainingAmount = totalTokenAmount - tokenCountTotal;
   console.log('remainingAmount:', remainingAmount);
 
-  const [userIndexArray, tokenCountArray] = getNumberArray(10, totalAmountToInvest);
+  const [userIndexArray, tokenCountArray] = getInputArrays(10, totalTokenAmount);
   console.log(`\nconst userIndexArray = [${userIndexArray}];
-const amountToInvest = [${amountToInvest}];
+const buyAmounts = [${buyAmounts}];
 ... length: ${userIndexArray.length}
-... length: ${amountToInvest.length} \n`);
+... length: ${buyAmounts.length} \n`);
 
-  if(userIndexArray.length === amountToInvest.length && remainingAmount === 0){
-    console.log('amountToInvest is good and complete');
+  if(userIndexArray.length === buyAmounts.length && remainingAmount === 0){
+    console.log('buyAmounts is good and complete');
   } else {
-    console.log('amountToInvest is not good or not complete');
+    console.log('buyAmounts is not good or not complete');
   }
   process.exit(0);
 }
@@ -3066,6 +3146,9 @@ if(argv3 === 0){
 } else if (argv3 === 59) {
   addUsersToRegistryCtrt_API();
 
+//yarn run testmt -f 599
+} else if (argv3 === 599) {
+  setUsersInRegistryCtrt_API();
 
 //yarn run testmt -f 60
 } else if (argv3 === 60) {
@@ -3081,7 +3164,6 @@ if(argv3 === 0){
 
 //yarn run testmt -f 62
 } else if (argv3 === 62) {
-  investTokensToGoalThenTimeOut_API();
 
 //yarn run testmt -f 63
 } else if (argv3 === 63) {
@@ -3089,7 +3171,7 @@ if(argv3 === 0){
 
 //yarn run testmt -f 64
 } else if (argv3 === 64) {
-
+  investTokensToGoalThenTimeOut_API();
 
 //yarn run testmt -f 65
 } else if (argv3 === 65) {
@@ -3349,11 +3431,11 @@ if(argv3 === 0){
 
   //yarn run testmt -f 208
 } else if(argv3 === 208){
-  getNumberArrayManualAmounts_API();
+  getInputArraysManualAmounts_API();
 
 //yarn run testmt -f 209
 } else if(argv3 === 209){
-  getNumberArray_API();
+  getBuyAmountArray_API();
 
   //yarn run testmt -f 221
 } else if(argv3 === 221){
