@@ -124,7 +124,7 @@ function UploadImage(){
                 }
                 
                 //將p_size跟p_ForecastedAnnualIncomePerModule限制在小數點2位數
-                $("#p_size").val(parseFloat(document.getElementById("p_size").value).toFixed(2));
+                $("#p_size").val(parseInt(parseFloat(document.getElementById("p_size").value).toFixed(2)*100));
                 $("#p_ForecastedAnnualIncomePerModule").val(parseFloat(document.getElementById("p_ForecastedAnnualIncomePerModule").value).toFixed(2));
                 
                 // 將修改後的資料存回資料庫
