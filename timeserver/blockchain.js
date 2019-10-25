@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
+const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray, makeFakeTxHash } = require('./utilities');
 
 const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isLivetimeOn, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
@@ -2481,7 +2481,7 @@ const setUsersInRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
   });
 }
 
-// yarn run testts -a 2 -c 1
+
 // after order status change: waiting -> paid -> write into crowdfunding contract
 const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   // check if serverTime > CFSD for each symbol...
@@ -2622,6 +2622,8 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       const queryStr5F = 'UPDATE order_list SET o_paymentStatus = "errCFC", o_txHash = ? WHERE o_id = ?';
 
       await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
+        const orderId = orderIdArray[index];
+        const email = emailArray[index];
         const amountToInvest = parseInt(tokenCountArray[index]);
         wlogger.info(`\n[Good] About to write the assetbook address into the crowdfunding contract
 index: ${index}, amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
@@ -2629,10 +2631,31 @@ addrAssetbook: ${addrAssetbook}
 crowdFundingAddr: ${crowdFundingAddr}`);
 
         const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'asyncForEachAbCFC2').catch(async(err) => { 
-          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
-          wlogger.debug(`\ncheckInvest result: ${result}`);
-          wlogger.error(`\n[Error @ investTokens] ${err}`);
+
           checkOK = false;
+          wlogger.error(`\n>>Rejected @ investTokens()`);
+          wlogger.error(`\n[Error @ investTokens] ${err}`);
+          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime).catch((err) => {
+            wlogger.error(`\n[Error @ checkInvest1] ${err}`);
+            checkOK = false;
+            return [false, null];
+          });
+          wlogger.debug(`\ncheckInvest result: ${result}`);
+
+          let checkWritingToDB1 = true;
+          const fakeHash = makeFakeTxHash();
+          const results5a = await mysqlPoolQueryB(queryStr5F, [fakeHash, orderId ]).catch((err) => {
+            checkWritingToDB1 = false;
+            wlogger.error(`\n[Error2 @ mysqlPoolQueryB(queryStr5F) errCFC] Failed to write "errCFC" into DB \n${err}`);
+          });
+
+          if(checkWritingToDB1){
+            wlogger.info(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+          } else {
+            wlogger.debug(`\nresults5a: ${results5a}`);
+            wlogger.error(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+
+          }
           return [false, null];
         });
         wlogger.debug(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
@@ -2641,29 +2664,43 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         txnHashArray.push(txnHash);
 
         //----------==
-        const orderId = orderIdArray[index];
-        const email = emailArray[index];
+        let checkWritingToDB2 = true;
         if(isInvestSuccess){
-          const results5 = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
+          wlogger.info(`\n>>isInvestSuccess: true @ investTokens()`);
+          const results5b = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
             wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            checkWritingToDB2 = false;
             checkOK = false;
           });
-          //wlogger.debug(`\nresults5 ${results5);
-         wlogger.info(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+
+          if(checkWritingToDB2){
+            wlogger.info(`\n>>[Success @ investTokens() & writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+          } else {
+            wlogger.debug(`\nresults5b: ${results5b}`);
+            wlogger.error(`\n[Error @ writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+          }
 
         } else {
-          wlogger.error(`\n>>Failed @ investTokens()`);
-          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
+          wlogger.error(`\n>>isInvestSuccess: false @ investTokens()`);
+          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime).catch((err) => {
+            wlogger.error(`\n[Error @ checkInvest2] ${err}`);
+            checkOK = false;
+            return [false, null];
+          });
           wlogger.debug(`\ncheckInvest result: ${result}`);
 
-          const results5 = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
-            wlogger.warn(`\n[Warn @ mysqlPoolQueryB(queryStr5F)] ${err}`);
+          const results5c = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
+            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5F)] ${err}`);
             checkOK = false;
+            checkWritingToDB2 = false;
           });
 
-          wlogger.error(`\nwritten "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
-          // wlogger.warn(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
-         
+          if(checkWritingToDB2){
+            wlogger.info(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+          } else {
+            wlogger.debug(`\nresults5c: ${results5c}`);
+            wlogger.error(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+          }
         }
       });
 
@@ -2685,10 +2722,7 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     //DO not check serverTime against the localtime because it IS FROM the local time!
 
     wlogger.debug(`amountToInvest: ${amountToInvest}, serverTime: ${serverTime}, \naddrAssetbookX: ${addrAssetbookX} \ncrowdFundingAddr: ${crowdFundingAddr}`);
-    // if(!isGoodServerTime){
-    //   reject(`[Error] invalid serverTime: ${mesgServerTime}`);
-    //   return false;
-    // }
+
     if(isNaN(amountToInvest)){
       reject(`[Error] amountToInvest is not valid`);
       return false;
@@ -2705,7 +2739,7 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     wlogger.debug(`investTokens3`);
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => {
       wlogger.error(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
-      reject(false);
+      reject(err);
       return false;
     });
     //wlogger.debug(`TxResult ${TxResult}`);
@@ -2788,8 +2822,8 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     wlogger.debug(`\ncheckInvest1: check crowdfunding contract`);
     const [is_checkCrowdfunding, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
-      wlogger.debug(`${err} \ncheckCrowdfundingCtrt() failed...`);
-      reject(false);
+      //wlogger.error(`${err} \ncheckCrowdfundingCtrt() failed...`);
+      reject(err);
       return false;
     });
     if(!is_checkCrowdfunding){
@@ -2818,12 +2852,12 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
 
       const boolArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr }).catch((err) =>{
         wlogger.error(err);
+        return false;
       });
       wlogger.debug(`\ncheckInvestFunction boolArray: ${boolArray}`);
 
       if(boolArray.length !== 9){
-        wlogger.error(`checkInvest boolArray.length is not valid`);
-        reject(false);
+        reject(`checkInvest boolArray.length is not valid`);
         return false;
       }
       let mesg = 'found error: ', CFSD_M, CFED_M;
@@ -2863,11 +2897,11 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
   
       } else {
         mesg = '[Success] all checks have passed via checkInvestFunction()';
-        wlogger.debug(mesg);
+        wlogger.info(mesg);
         resolve(true);
       }
     } else {
-      wlogger.debug(`tokenReceiver() returned false`);
+      wlogger.error(`tokenReceiver() returned false`);
       resolve(false);
     }
   });
@@ -2877,7 +2911,7 @@ const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountT
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==investTokensInBatch()...`);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    const encodedData = await instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
+    const encodedData = instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
 
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
       await asyncForEachCFC(addrAssetbookArray, async(addrAssetbookX,index) => {
@@ -2961,14 +2995,18 @@ const setTimeCFC = async (crowdFundingAddr, serverTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==setTimeCFC()...`);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
+
+    let [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
+
+    encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch((err) => {
+      reject(`[Error @ signTx updateState]:  ${err}`);
+      return undefined;
+    });
     wlogger.debug(`updateState TxResult ${TxResult}`);
 
-    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    wlogger.debug(`\nstateDescriptionM: ${stateDescriptionM}`);
+    [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
 
-    let fundingStateM = await instCrowdFunding.methods.fundingState().call();
     wlogger.debug(`\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}`);
     wlogger.debug(`fundingStateM: ${fundingStateM}`);
     resolve(fundingStateM);
@@ -2985,7 +3023,7 @@ const setTimeCFC_bySymbol = async (serverTime, symbol) => {
       reject(`[Error @getCtrtAddr]:  ${err}`);
       return undefined;
     });
-    ger.debug(`\n[setTimeCFC_bySymbol] isGoodCtrtAddr: ${isGoodCtrtAddr}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
+    wlogger.debug(`\n[setTimeCFC_bySymbol] isGoodCtrtAddr: ${isGoodCtrtAddr}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
 
     if(!isGoodCtrtAddr){
       reject(`${resultMesg}`);

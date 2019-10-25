@@ -6,7 +6,7 @@ const log = console.log;
 //--------------------==
 const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, amountArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule } = require('./zTestParameters');
 
-const { admin, adminpkRaw, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount } = require('../timeserver/envVariables');
+const { admin, adminpkRaw, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount, crowdfundingScenario } = require('../timeserver/envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
@@ -14,7 +14,7 @@ const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calcul
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
 
-const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach} = require('../timeserver/utilities');
+const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeIndexArray, makeCorrectAmountArray} = require('../timeserver/utilities');
 
 //const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
 
@@ -1163,22 +1163,33 @@ const setCloseFundingCFC_API = async() => {
 //yarn run testmt -f 48
 const setTimeCFC_bySymbol_API = async() => {
   console.log('\n------------==inside setTimeCFC_bySymbol_API()');
-  console.log('_servertime:', argv4, ', symbol:', argv5);
-  const [isGoodServerTime, servertime, mesgServerTime] = testInputTime(argv4);
+  console.log('enteredTime:', argv4, ', symbol:', argv5);
+  const enteredTime = parseInt(argv4);
+  const symbol = argv5;
+  if(!argv4 || argv4.length !== 12){
+    console.log('entered time is not valid');
+    return false;
+  } else if(isNaN(enteredTime)){
+    console.log('entered time is not an integer');
+  }
+  if(!symbol || symbol.length !== 8){
+    console.log('symbol is not valid');
+    return false;
+  }
+  console.log('check2');
+
+  const [isGoodServerTime, servertime, mesgServerTime] = testInputTime(enteredTime);
   console.log('isGoodServerTime:', isGoodServerTime, ', servertime:', servertime, ', mesgServerTime:', mesgServerTime);
   if(!isGoodServerTime){
     console.log('servertime is not valid ...'+mesgServerTime);
     return false;
   }
-
-  if(!argv5 || argv5.length !== 8){
-    console.log('symbol is not valid');
-    return false;
-  }
+  console.log('check3');
   console.log('servertime to be set:', servertime, ', symbol:', symbol);
-  process.exit(0);
+  //process.exit(0);
   const result = await setTimeCFC_bySymbol(servertime, symbol).catch((err) => {
     console.error(`[Error @ timeserver: setTimeCFC_bySymbol]: ${err}`);
+    return false;
   });
   if(result){
     console.info('>> [Success@ timeserver] setTimeCFC_bySymbol();');
@@ -1187,6 +1198,43 @@ const setTimeCFC_bySymbol_API = async() => {
   };//blockchain.js
  
 }
+
+//yarn run testmt -f 488
+const setTimeCFC_API = async() => {
+  console.log('\n------------==inside setTimeCFC_API()');
+  const crowdFundingAddr = addrCrowdFunding;
+  console.log('enteredTime:', argv4);
+  const enteredTime = parseInt(argv4);
+  if(!argv4 || argv4.length !== 12){
+    console.log('entered time is not valid');
+    return false;
+  } else if(isNaN(enteredTime)){
+    console.log('entered time is not an integer');
+  }
+  console.log('check2');
+
+  const [isGoodServerTime, servertime, mesgServerTime] = testInputTime(enteredTime);
+  console.log('isGoodServerTime:', isGoodServerTime, ', servertime:', servertime, ', mesgServerTime:', mesgServerTime);
+  if(!isGoodServerTime){
+    console.log('servertime is not valid ...'+mesgServerTime);
+    return false;
+  }
+  console.log('check3');
+  console.log('servertime to be set:', servertime, ', crowdFundingAddr:', crowdFundingAddr);
+  //process.exit(0);
+  const result = await setTimeCFC(crowdFundingAddr, servertime).catch((err) => {
+    console.error(`[Error @ timeserver: setTimeCFC_bySymbol]: ${err}`);
+    return false;
+  });
+  if(result){
+    console.info('>> [Success@ timeserver] setTimeCFC_bySymbol();');
+  } else {
+    console.error('>> [Error @ timeserver] setTimeCFC_bySymbol() returns false;');
+  };
+  process.exit(0);
+}
+
+
 
 //yarn run testmt -f 133
 const updateFundingStateFromDB_API = async() => {
@@ -1242,50 +1290,55 @@ investTokensUnderGoalThenTimeOut_API = async () => {
 const investTokensToGoalThenTimeOut_API  = async () => {
   console.log('\n---------------------==investTokensToGoalThenTimeOut_API');
 
+  console.log('servertime to be set:', servertime, ', symbol:', symbol);
+  const result = await setTimeCFC_bySymbol(servertime, symbol).catch((err) => {
+    console.error(`[Error @ timeserver: setTimeCFC_bySymbol]: ${err}`);
+    return false;
+  });
+  if(result){
+    console.info('>> [Success@ timeserver] setTimeCFC_bySymbol();');
+  } else {
+    console.error('>> [Error @ timeserver] setTimeCFC_bySymbol() returns false;');
+  };
 }
 
 
+//yarn run testmt -f 655
+const makeCorrectAmountArray_API = async () => {
+  console.log('\n---------------------==makeCorrectAmountArray_API()');
+  const totalTokenAmount = maxTotalSupply;
+
+  const [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesgArrayOut] = makeCorrectAmountArray(amountArray, quantityGoal, totalTokenAmount);
+  amountArrayOutSum = arraySum(amountArrayOut);
+
+  console.log('quantityGoal:', quantityGoal, ', totalTokenAmount:', totalTokenAmount, ', mesgArrayOut:', mesgArrayOut, ', isGoodAmountArrayOutSum:', isGoodAmountArrayOutSum, ', amountArrayOutSum:', amountArrayOutSum, ', amountArrayOut.length:', amountArrayOut.length);
+  console.log(` \nuserIndexArray: ${userIndexArray} \n\namountArray: ${amountArrayOut}`);
+}
+
 //yarn run testmt -f 65
-const investTokensToCloseCFC_API = async () => {
-  console.log('\n---------------------==investTokensToCloseCFC_API()');
+const investTokensThenCloseCFC_API = async () => {
+  console.log('\n---------------------==investTokensThenCloseCFC_API()');
   const tokenSymbol =  nftSymbol;
   const totalTokenAmount = maxTotalSupply;
   const crowdFundingAddr = addrCrowdFunding;
   const price = initialAssetPricing;
   const paymentStatus = 'paid';
-  let isGoodAmountArraySumOut;
 
   console.log('tokenSymbol:', tokenSymbol, ', totalTokenAmount:', totalTokenAmount, ', price:', price);
 
   let [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
   //process.exit(0);
 
-  /*
-  const [userIndexArray, amountToInvest] = getNumberArray(10, totalTokenAmount);
-  console.log(`userIndexArray: ${userIndexArray} ... length: ${userIndexArray.length} \namountToInvest: ${amountToInvest} ... length: ${amountToInvest.length} \n`);
-  */
-  //const userIndexArray = [0,1,2,3,4,5,6,7,8,9];
-  // const [isGood, amountArray, mesg] = getBuyAmountArray(totalAmount,price);
-  // if(!isGood){
-  //   console.log('[Error @getBuyAmountArray] '+ mesg);
-  //   return false;
-  // }
-  const userIndexArray = Array.from({length: amountArray.length}, (v, i) => i);
-  const amountArraySumOut = arraySum(amountArray);
-  if(amountArraySumOut === totalTokenAmount){
-    isGoodAmountArraySumOut = true;
-    console.error('[Good] isGoodAmountArraySumOut:',isGoodAmountArraySumOut)
-  } else {
-    isGoodAmountArraySumOut = false;
-    console.error('[Error] isGoodAmountArraySumOut:',isGoodAmountArraySumOut);
-    process.exit(1);
-  }
+  const [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesgArrayOut] = makeCorrectAmountArray(amountArray, quantityGoal, totalTokenAmount);
+  amountArrayOutSum = arraySum(amountArrayOut);
 
-  console.log(`amountArraySumOut: ${amountArraySumOut} \nuserIndexArray: ${userIndexArray} \n\namountArray: ${amountArray}`);
+  console.log('quantityGoal:', quantityGoal, ', totalTokenAmount:', totalTokenAmount, ', mesgArrayOut:', mesgArrayOut, ', isGoodAmountArrayOutSum:', isGoodAmountArrayOutSum);
+
+  console.log(`amountArrayOutSum: ${amountArrayOutSum}, amountArrayOut.length: ${amountArrayOut.length} \nuserIndexArray: ${userIndexArray} \n\namountArray: ${amountArrayOut}`);
+
   //process.exit(0);
-  //const amountArray = [16,2,1,7,13,10,5,11,6,8];//79
 
-  const result = await addArrayOrdersIntoDB(userIndexArray, amountArray, price, paymentStatus, tokenSymbol).catch((err) => {
+  const result = await addArrayOrdersIntoDB(userIndexArray, amountArrayOut, price, paymentStatus, tokenSymbol).catch((err) => {
     console.log('\n[Error @ addArrayOrdersIntoDB()]'+ err);
   });
   console.log('addArrayOrdersIntoDB result:', result);
@@ -1307,6 +1360,13 @@ const investTokensToCloseCFC_API = async () => {
   await addAssetbooksIntoCFC(serverTime);
 
   [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
+
+  console.log('check7');
+  if(crowdfundingScenario > 1){
+    console.error('\n-----------------==\nset CFC state by calling updateState():');
+    fundingStateM = await setTimeCFC_bySymbol(CFEDM, tokenSymbol);
+
+  }
 
   console.log('\n--------------==End \ntotalTokenAmount:', totalTokenAmount, 'price:', price);
   process.exit(0);
@@ -1910,7 +1970,7 @@ const getTokenBalances_API = async () => {
   const [isGood, tokenCtrtAddr, resultMesg] = await getCtrtAddr(symbol, 'hcat721');
   if(isGood){
     const existingBalances = await getTokenBalances(tokenCtrtAddr, assetbooks);
-    console.log('existingBalances:', existingBalances);
+    console.log(`existingBalances: ${existingBalances}`);
   }
   process.exit(0);
 }
@@ -3096,6 +3156,10 @@ if(argv3 === 0){
 } else if (argv3 === 48) {
   setTimeCFC_bySymbol_API();
 
+//yarn run testmt -f 488
+} else if (argv3 === 488) {
+  setTimeCFC_API();
+
 //yarn run testmt -f 49
 } else if (argv3 === 49) {
   mintSequentialPerContract_API();
@@ -3173,9 +3237,13 @@ if(argv3 === 0){
 } else if (argv3 === 64) {
   investTokensToGoalThenTimeOut_API();
 
+  //yarn run testmt -f 655
+} else if (argv3 === 655) {
+  makeCorrectAmountArray_API();
+
 //yarn run testmt -f 65
 } else if (argv3 === 65) {
-  investTokensToCloseCFC_API();
+  investTokensThenCloseCFC_API();
 
 //yarn run testmt -f 66
 } else if (argv3 === 66) {

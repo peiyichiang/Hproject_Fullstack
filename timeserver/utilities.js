@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { excludedSymbols, wlogger, COMPLIANCE_LEVELS } = require('../ethereum/contracts/zsetupData');
-const { isLivetimeOn, fakeServertime } = require('./envVariables');
+const { isLivetimeOn, fakeServertime, crowdfundingScenario } = require('./envVariables');
 
 wlogger.info(`--------------------== utilities.js`);
 
@@ -65,7 +65,7 @@ Date.prototype.myFormat = function () {
 
 const testInputTime = (inputTime) => {
   // 201910220801
-  console.log('inputTime:', inputTime);
+  console.log('inputTime:'+ inputTime+'<<');
   const inputTimeStr = inputTime + '';
     //const inputTime = parseInt(inputTime);
 
@@ -102,8 +102,8 @@ const isIntAboveOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
 
 const arraySum = arr => arr.reduce((a,b) => a + b, 0);
 const makeIndexArray = (_length) => Array.from({length: _length}, (v, i) => i);
-
 const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
+const makeFakeTxHash = () => Math.random().toString(36).substring(2, 15);
 
 const getAllIndexes = (arr, val) => {
   var indexes = [], i;
@@ -313,6 +313,60 @@ const getInputArrays = (arraylength = 3, totalTokenAmount) => {
     return [undefined, undefined];
   }
 };
+
+
+const makeCorrectAmountArray = (_amountArray, goal, maxTotal) => {
+  console.log('\n------==inside makeCorrectAmountArray()');
+  let userIndexArray, mesg = '', amountArrayOut = [..._amountArray], amountArrayOutSum, previousItem;
+  if(crowdfundingScenario === 1){
+    console.log('crowdfundingScenario:', crowdfundingScenario, ', ended with sold out');
+    userIndexArray = makeIndexArray(amountArrayOut.length);
+
+    amountArrayOutSum = arraySum(amountArrayOut);
+    if(amountArrayOutSum === maxTotal){
+      isGoodAmountArrayOutSum = true;
+      console.error('[Good] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum)
+    } else {
+      isGoodAmountArrayOutSum = false;
+      console.error('[Error] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum);
+    }
+  
+  } else if(crowdfundingScenario === 2){
+    console.log('crowdfundingScenario:', crowdfundingScenario, ', funding ended with goal reached');
+    do {
+      previousItem = amountArrayOut.pop();
+      amountArrayOutSum = arraySum(amountArrayOut);
+    } while( amountArrayOutSum >= goal && amountArrayOutSum < maxTotal);
+    amountArrayOut.push(previousItem);
+    amountArrayOutSum = arraySum(amountArrayOut);
+    userIndexArray = makeIndexArray(amountArrayOut.length);
+
+    if(goal <= amountArrayOutSum && amountArrayOutSum < maxTotal){
+      isGoodAmountArrayOutSum = true;
+      console.error('[Good] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum)
+    } else {
+      isGoodAmountArrayOutSum = false;
+      console.error('[Error] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum);
+    }
+
+  } else if(crowdfundingScenario === 3){
+    console.log('crowdfundingScenario:', crowdfundingScenario, ', funding failed');
+    do {
+      amountArrayOut.pop();
+      amountArrayOutSum = arraySum(amountArrayOut);
+    } while( amountArrayOutSum >= goal);
+    userIndexArray = makeIndexArray(amountArrayOut.length);
+
+    if(goal > amountArrayOutSum){
+      isGoodAmountArrayOutSum = true;
+      console.error('[Good] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum)
+    } else {
+      isGoodAmountArrayOutSum = false;
+      console.error('[Error] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum);
+    }
+  }
+  return [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesg];
+}
 
 //-----------------------------==
 async function asyncForEach(array, callback) {
@@ -574,5 +628,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeCorrectAmountArray
 }

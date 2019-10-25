@@ -94,9 +94,11 @@ const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001"
 //Private
 const productObj3 = new productObject("EINS1915", "愛因斯坦x號", "台南市新營區新工路23號", 969, 500, 300, 16468, "NTD", 540, 20, 2, "0x50268032D63986E89C3Ea462F2859983C7A69b48", "0x7D43F481e658d185f2A199eE8Ed1f831078E5b85", "0x67EE71B1DF787C8707E349b39B83325B1afa2f9d", "0x39B833Ebc8d1b1588bA4c0dBE34Ce883a10c57aB", ".", ".", ".", ".", ".", ".", 1.0);
 
+//Private
+const productObj4 = new productObject("EINS1916", "愛因斯坦x號", "台南市新營區新工路23號", 969, 500, 300, 16468, "NTD", 540, 20, 2, "0x027eF7F7EaBe747e80dE9fd420763C85E8e2E677", "0xF6cc16D8c7707BfFC2dfEebEd01b8cb489daADe2", "0xd0D18d110B4e2f439aaC624C5cB4ECCf0b2a099d", "0xB47F4259c3F3Da1bA1Ea3593BA9D208685188290", ".", ".", ".", ".", ".", ".", 1.0);
 
 //Public
-const productObj4 = new productObject("AETH1914", "AETH base", "Earth base 0001", 100, 90, 110, 16000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
+const productObj14 = new productObject("AETH1914", "AETH base", "Earth base 0001", 100, 90, 110, 16000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
 
 //Public
 const productObj5 = new productObject("AFLY1906", "base", "0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
@@ -197,9 +199,9 @@ IRR20yrx100 = productObjN.IRR20yrx100;
 duration = productObjN.duration;
 location = productObjN.location;
 fundingType = productObjN.fundingType;
+addrCrowdFunding = productObjN.addrCrowdFunding;
 addrTokenController = productObjN.addrTokenController;
 addrHCAT721 = productObjN.addrHCAT721;
-addrCrowdFunding = productObjN.addrCrowdFunding;
 addrIncomeManager = productObjN.addrIncomeManager;
 
 notarizedRentalContract = productObjN.notarizedRentalContract;
@@ -225,7 +227,7 @@ if(initialAssetPricing === 15000){
   amountArray = [7,1,6,12,4,17,14,4,6,3,8,5,15,4,9,5,19,15,19,7,6,2,17,20,8,5,10,6,20,19,9,12,14,11,4,9,17,10,7,7,16,16,9,1,17,12,8,17,18,17,5,5,6,11,1,4,2,9,16,16,5,6,18,19,17,20,2,20,11,20,7,14,7,3,7,15,18,14,5,1,16,12,17,3,16,1,13,13,8,2,16,2,1,9,8,4];
   const amountArraySumOut = arraySum(amountArray);
 
-  console.log(`initialAssetPricing is not expected. \namountArray: ${amountArray}, amountArraySumOut: ${amountArraySumOut}`);
+  console.log(`initialAssetPricing is not needed. \namountArray: ${amountArray}, amountArraySumOut: ${amountArraySumOut}`);
   //process.exit(1);
 }
 

@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel;
+let symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel, crowdfundingScenario;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -60,6 +60,13 @@ if(LOGLEVEL === 1){
 }
 console.log('loglevel:', loglevel);
 
+const CROWDFUNDING_SCENARIO = parseInt(process.env.CROWDFUNDING_SCENARIO);
+if(isNaN(CROWDFUNDING_SCENARIO)){
+  crowdfundingScenario = 1;
+} else {
+  crowdfundingScenario = CROWDFUNDING_SCENARIO;
+}
+console.log('crowdfundingScenario:', crowdfundingScenario);
 //process.exit(0);
 
 //----------------------------==Server Settings
@@ -174,4 +181,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, crowdfundingScenario, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };

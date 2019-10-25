@@ -5,7 +5,7 @@ const Web3 = require('web3');
 
 const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL,assetbookAmount } = require('./envVariables');
 
-const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, testInputTime } = require('./utilities');
+const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, testInputTime, makeFakeTxHash } = require('./utilities');
 
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, wlogger} = require('../ethereum/contracts/zsetupData');
 
@@ -448,7 +448,7 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
         o_id: orderId,
         o_symbol: symbol,
         o_email: email,
-        o_txHash: Math.random().toString(36).substring(2, 15),
+        o_txHash: makeFakeTxHash(),
         o_tokenCount: tokenCount,
         o_fundCount: fundCount,
         o_purchaseDate: currentDate,
