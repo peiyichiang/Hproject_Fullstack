@@ -1318,7 +1318,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary" onclick="Aborted('aborted',this.id);"
-                        data-dismiss="modal">確定緊急下架</button>
+                        data-dismiss="modal" id="abortedBtn" disabled>確定緊急下架</button>
                 </div>
             </div>
         </div>
@@ -1328,6 +1328,14 @@
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>
     <script>
+        $("#abortedReasonMessage-text").on('change keyup paste', function() {
+            if(document.getElementById('abortedReasonMessage-text').value.length>=7 && document.getElementById('abortedReasonMessage-text').value.length<=32){
+                document.getElementById('abortedBtn').disabled=false;
+            }else{
+                document.getElementById('abortedBtn').disabled=true;
+            }
+        });
+
         function correctActualPayment(iaSymbol, iaTime ,ia_single_Actual_Income_Payment_in_the_Period, isState) {
             // alert(iaSymbol + "," + iaTime + "," + isState);
             document.getElementById("CorrectActualPaymentTokenSymbol").value = iaSymbol;
