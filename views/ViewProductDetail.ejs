@@ -306,21 +306,27 @@
                       <label for="p_NotarizedRentalContract_form">房屋與土地租約</label>
                       <!-- <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form"> -->
                       <%if (data[0].p_NotarizedRentalContract != null && data[0].p_NotarizedRentalContract != "") { %>
-                          <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_NotarizedRentalContract.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                        <br>
+                          <!-- <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_NotarizedRentalContract.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe> -->
+                          <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_NotarizedRentalContract.replace('public','')  %>">文件連結</a>
                       <% } %>
                     </div>
                     <div class="form-group col-md-3">
                             <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
                             <!-- <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form"> -->
                             <%if (data[0].p_OnGridAuditedLetter != null && data[0].p_OnGridAuditedLetter != "") { %>
-                                <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_OnGridAuditedLetter.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe>
+                                <br>
+                                <!-- <iframe src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_OnGridAuditedLetter.replace('public','')  %>" frameborder="0" style="width:100%;padding-top: 10px;"></iframe> -->
+                                <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_OnGridAuditedLetter.replace('public','')  %>">文件連結</a>
                             <% } %>
                     </div>
                     <div class="form-group col-md-3">
                             <label for="icon">產品icon</label>
                             <!-- <input type="file" class="form-control" name="icon" id="icon"> -->
                             <%if (data[0].p_icon != null && data[0].p_icon != "") { %>
-                                <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_icon.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;">
+                                <br>
+                                <!-- <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_icon.replace('public','')  %>" alt="" style="width:100%;padding-top: 10px;"> -->
+                                <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_icon.replace('public','')  %>">icon連結</a>
                             <% } %>
                     </div>
                     <div class="form-group col-md-3">
@@ -328,7 +334,7 @@
                       <!-- <input type="file" class="form-control" name="csvFIle" id="csvFIle"> -->
                       <%if (data[0].p_csvFIle != null && data[0].p_csvFIle != "") { %>
                           <br>
-                          <a href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_csvFIle.replace('public','')  %>">CSV File</a>
+                          <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[0].p_csvFIle.replace('public','')  %>">CSV File</a>
                       <% } %>
                     </div>
             </div>
