@@ -853,7 +853,7 @@
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
                         name="Aborted" value="Aborted" data-toggle="modal" data-target="#abortedReasonModal"
-                        data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');">緊急下架
+                        data-whatever="@mdo" onclick="SetCurrentSYMBOL('<%= data[i].p_SYMBOL  %>');SetCurrentButtonID(this.id);">緊急下架
                     </button>
                     <!-- <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
                         name="Aborted" value="Aborted"
