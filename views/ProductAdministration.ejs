@@ -110,28 +110,6 @@
                 <th class="nowrap">產品名稱</th>
                 <th class="nowrap">產品所在地</th>
                 <th class="nowrap">產品定價</th>
-                <!-- <th class="nowrap">幣別</th>
-                <th class="nowrap">專案年期</th>
-                <th class="nowrap">預期報酬率(%)</th>
-                <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMS審核通過的日期</th> -->
-                <!-- <th class="nowrap">PA審核通過的日期</th> -->
-                <!-- <th class="nowrap">募資起始日</th>
-                <th class="nowrap">募資截止日</th>
-                <th class="nowrap">產品發行日</th>
-                <th class="nowrap">產品到期日</th>
-                <th class="nowrap">專案規模(kw)</th>
-                <th class="nowrap">產品總發行量(個)</th>
-                <th class="nowrap">發行專案的產品經理</th>
-                <th class="nowrap">該專案處理狀態</th> -->
-                <!-- <th class="nowrap">預估平均年收益</th> -->
-                <!-- <th class="nowrap">預估回收金額</th> -->
-                <!-- <th class="nowrap">收益總期數</th>
-                <th class="nowrap">預估回收年限</th> -->
-                <!-- <th class="nowrap">預估進度圖</th> -->
-                <!-- <th class="nowrap">購售電合約</th>
-                <th class="nowrap">CSV文件</th>
-                <th class="nowrap">產品icon</th> -->
                 <th class="nowrap">產品詳細資料</th>
                 <th class="nowrap">退回</th>
                 <th class="nowrap">上架</th>
@@ -153,82 +131,6 @@
                 <td>
                     <%= data[i].p_pricing  %>
                 </td>
-                <!-- <td>
-                    <%= data[i].p_currency  %>
-                </td>
-                <td>
-                    <%= data[i].p_duration  %>
-                </td>
-                <td>
-                    <%= data[i].p_irr  %>
-                </td>
-                <td>
-                    <%= data[i].p_PSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_FMXAdate  %>
-                </td> -->
-                <!-- <td>
-                        <%= data[i].p_PAdate  %>
-                    </td> -->
-                <!-- <td>
-                    <%= data[i].p_CFSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_CFED  %>
-                </td>
-
-                <td>
-                    <%= data[i].p_releasedate  %>
-                </td>
-                <td>
-                    <%= data[i].p_validdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_size  %>
-                </td>
-                <td>
-                    <%= data[i].p_totalrelease  %>
-                </td>
-                <td>
-                    <%= data[i].p_fundmanager  %>
-                </td>
-                <td>
-                    <%= data[i].p_state  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FAY  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FTRT  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_RPT  %>
-                </td>
-                <td>
-                    <%= data[i].p_FRP  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_Timeline  %>
-                </td> -->
-                <!-- <td>
-                    <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                    <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
-                    <% } %>
-                </td>
-                <td>
-                    <%if (data[i].p_csvFIle != null && data[i].p_csvFIle !="") { %>
-                    <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_csvFIle.replace('public','')  %>">CSV</a>
-                    <% } %>
-                </td>
-                <td>
-                    <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src=<a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
-                        style="width:50%;">
-                    <% } %>
-                </td> -->
                 <td>
                     <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
                 </td>
@@ -273,35 +175,8 @@
                 <th class="nowrap">產品名稱</th>
                 <th class="nowrap">產品所在地</th>
                 <th class="nowrap">產品定價</th>
-                <th class="nowrap">幣別</th>
-                <th class="nowrap">專案年期</th>
-                <th class="nowrap">預期報酬率(%)</th>
-                <!--  -->
-                <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">PA審核通過的日期</th>
-                <th class="nowrap">募資起始日</th>
-                <th class="nowrap">募資截止日</th>
-                <!--  -->
-                <th class="nowrap">產品發行日</th>
-                <th class="nowrap">產品到期日</th>
-                <th class="nowrap">專案規模(kw)</th>
-                <th class="nowrap">產品總發行量(個)</th>
-                <th class="nowrap">發行專案的產品經理</th>
-                <th class="nowrap">該專案處理狀態</th>
-                <!-- <th class="nowrap">預估平均年收益</th> -->
-                <!-- <th class="nowrap">預估回收金額</th> -->
-                <th class="nowrap">收益總期數</th>
-                <th class="nowrap">預估回收年限</th>
-                <!-- <th class="nowrap">預估進度圖</th> -->
-                <th class="nowrap">購售電合約</th>
-                <th class="nowrap">產品icon</th>
-                <!-- <th class="nowrap">退回</th> -->
-                <!-- <th class="nowrap">募資</th> -->
+                <th class="nowrap">產品詳細資料</th>
                 <th class="nowrap">結束募資</th>
-                <!-- <th class="nowrap">募資成功</th>
-                <th class="nowrap">募資失敗</th> -->
-                <!-- <th class="nowrap">發放Token</th> -->
                 <th class="nowrap">暫停</th>
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
@@ -320,114 +195,14 @@
                     <%= data[i].p_pricing  %>
                 </td>
                 <td>
-                    <%= data[i].p_currency  %>
+                    <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
                 </td>
-                <td>
-                    <%= data[i].p_duration  %>
-                </td>
-                <td>
-                    <%= data[i].p_irr  %>
-                </td>
-                <!--  -->
-                <td>
-                    <%= data[i].p_PSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_FMXAdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_PAdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_CFSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_CFED  %>
-                </td>
-                <!--  -->
-
-                <td>
-                    <%= data[i].p_releasedate  %>
-                </td>
-                <td>
-                    <%= data[i].p_validdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_size  %>
-                </td>
-                <td>
-                    <%= data[i].p_totalrelease  %>
-                </td>
-                <td>
-                    <%= data[i].p_fundmanager  %>
-                </td>
-                <td>
-                    <%= data[i].p_state  %>
-                </td>
-                <!-- <td>
-                    <%= data[i].p_FAY  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FTRT  %>
-                </td> -->
-                <td>
-                    <%= data[i].p_RPT  %>
-                </td>
-                <td>
-                    <%= data[i].p_FRP  %>
-                </td>
-                <!-- <td>
-                    <%= data[i].p_Timeline  %>
-                </td> -->
-                <td>
-                    <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                    <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
-                    <% } %>
-                </td>
-                <td>
-                    <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
-                        style="width:50%;">
-                    <% } %>
-                </td>
-                <!-- <td>
-                    <button type="button" class="btn btn-success" name="return" value="return"
-                        onclick="Edit('<%= data[i].p_SYMBOL  %>','publish');">退回</button>
-                </td> -->
-                <!-- <td>
-                    <button type="button" class="btn btn-success" name="funding" value="funding"
-                        onclick="Fund('<%= data[i].p_SYMBOL  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_CFSD  %>','<%= data[i].p_CFED  %>','<%= data[i].p_fundingGoal  %>','funding');">募資</button>
-                </td> -->
                 <td>
                     <button type="button" style="width: 90px;" class="btn btn-success" name="archive"
                         id="FundingFinished<%= i %>" value="archive"
                         onclick="FundingFinished('<%= data[i].p_name  %>','<%= data[i].p_SYMBOL  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_size  %>','<%= data[i].p_irr  %>',this.id,'<%= data[i].p_releasedate  %>','<%= data[i].p_validdate  %>','<%= data[i].p_lockupperiod  %>','<%= data[i].p_HCAT721uri  %>')">募資結束
                     </button>
                 </td>
-                <!-- <td>
-                    <button type="button" style="width: 90px;" class="btn btn-success" name="archive"
-                        id="FundingComplete<%= i %>" value="archive"
-                        onclick="FundingComplete('<%= data[i].p_name  %>','<%= data[i].p_SYMBOL  %>','<%= data[i].p_totalrelease  %>','<%= data[i].p_pricing  %>','<%= data[i].p_currency  %>','<%= data[i].p_size  %>','<%= data[i].p_irr  %>','FundingClosed',this.id,'<%= data[i].p_releasedate  %>','<%= data[i].p_validdate  %>','<%= data[i].p_lockupperiod  %>','<%= data[i].p_HCAT721uri  %>');">募資成功
-                    </button>
-                </td>
-                <td>
-                    <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
-                        name="FundingNotClosed" value="FundingNotClosed"
-                        onclick="FundingNotClosed('<%= data[i].p_SYMBOL  %>','FundingNotClosed',this.id);">募資失敗
-                    </button>
-                </td> -->
-                <!-- <td>
-                    <%if (data[i].p_state == "funding" || data[i].p_state == "TokenReleased") { %>
-                    <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" disabled
-                        class="btn btn-success" name="release" value="release"
-                        onclick="Release('<%= data[i].p_SYMBOL  %>','TokenReleased',this.id);">發放Token</button>
-                    <% }else if (data[i].p_state == "FundingComplete"){ %>
-                    <button type="button" style="width: 101.25px;" id="releaseToken<%= i %>" class="btn btn-success"
-                        name="release" value="release"
-                        onclick="Release('<%= data[i].p_SYMBOL  %>','TokenReleased',this.id);">發放Token</button>
-                    <% } %>
-                </td> -->
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
                         name="FundingPaused" value="FundingPaused"
@@ -462,26 +237,7 @@
                 <th class="nowrap">產品名稱</th>
                 <th class="nowrap">產品所在地</th>
                 <th class="nowrap">產品定價</th>
-                <th class="nowrap">幣別</th>
-                <th class="nowrap">專案年期</th>
-                <th class="nowrap">預期報酬率(%)</th>
-                <th class="nowrap">專案開始日期</th>
-                <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">募資起始日</th>
-                <th class="nowrap">募資截止日</th>
-                <th class="nowrap">產品發行日</th>
-                <th class="nowrap">產品到期日</th>
-                <th class="nowrap">專案規模(kw)</th>
-                <th class="nowrap">產品總發行量(個)</th>
-                <th class="nowrap">發行專案的產品經理</th>
-                <th class="nowrap">該專案處理狀態</th>
-                <!-- <th class="nowrap">預估平均年收益</th> -->
-                <!-- <th class="nowrap">預估回收金額</th> -->
-                <th class="nowrap">收益總期數</th>
-                <th class="nowrap">預估回收年限</th>
-                <!-- <th class="nowrap">預估進度圖</th> -->
-                <th class="nowrap">購售電合約</th>
-                <th class="nowrap">產品icon</th>
+                <th class="nowrap">產品詳細資料</th>
                 <th class="nowrap">恢復募資</th>
                 <th class="nowrap">緊急下架</th>
             </tr>
@@ -501,76 +257,16 @@
                     <%= data[i].p_pricing  %>
                 </td>
                 <td>
-                    <%= data[i].p_currency  %>
-                </td>
-                <td>
-                    <%= data[i].p_duration  %>
-                </td>
-                <td>
-                    <%= data[i].p_irr  %>
-                </td>
-                <td>
-                    <%= data[i].p_PSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_FMXAdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_CFSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_CFED  %>
-                </td>
-                <td>
-                    <%= data[i].p_releasedate  %>
-                </td>
-                <td>
-                    <%= data[i].p_validdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_size  %>
-                </td>
-                <td>
-                    <%= data[i].p_totalrelease  %>
-                </td>
-                <td>
-                    <%= data[i].p_fundmanager  %>
-                </td>
-                <td>
-                    <%= data[i].p_state  %>
-                </td>
-                <!-- <td>
-                    <%= data[i].p_FAY  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FTRT  %>
-                </td> -->
-                <td>
-                    <%= data[i].p_RPT  %>
-                </td>
-                <td>
-                    <%= data[i].p_FRP  %>
-                </td>
-                <!-- <td>
-                    <%= data[i].p_Timeline  %>
-                </td> -->
-                <td>
-                    <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                    <a target="_blank"
-                        href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
-                    <% } %>
-                </td>
-                <td>
-                    <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                    <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_icon.replace('public','')  %>" alt=""
-                        style="width:50%;">
-                    <% } %>
+                    <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="FundingRestart<%= i %>" class="btn btn-success"
                         name="FundingRestart" value="FundingRestart"
                         onclick="FundingRestart('<%= data[i].p_SYMBOL  %>','funding',this.id,'<%= data[i].p_CFED  %>','<%= data[i].p_totalrelease  %>');">恢復募資
                     </button>
+                    <br><br>
+                    CFED：<input type="text" id="CFEDinput" value="<%= data[i].p_CFED  %>"><br><br>
+                    產品總發行量：<input type="text" id="totalreleaseInput" value="<%= data[i].p_totalrelease  %>">
                 </td>
                 <td>
                     <button type="button" style="width: 101.25px;" id="paused<%= i %>" class="btn btn-danger"
@@ -1433,6 +1129,11 @@
             //等待狀態
             document.getElementById(buttonID).innerHTML = "<i class='fas fa-spinner fa-spin' style='font-size:24px'></i>";
             document.getElementById(buttonID).disabled = true;
+
+            CFED2=document.getElementById("CFEDinput").value;
+            quantityMax=document.getElementById("totalreleaseInput").value;
+            alert(CFED2);
+            alert(quantityMax);
 
             $.post("<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + 'Contracts/crowdFundingContract/' %>" + tokenSymbol + "/resume", {
                 CFED2: CFED2,
