@@ -10,16 +10,15 @@ const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, a
 const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, wlogger} = require('../ethereum/contracts/zsetupData');
 
 const { userArray } = require('../test_CI/zTestParameters');
-// const userIdentityNumberArray = [];
-// const investorLevelArray = [];
+/*
+const userIdentityNumberArray = [];
+const investorLevelArray = [];
 const assetbookArray = [];
 userArray.forEach((user, idx) => {
-  if (idx !== 0 ){
-    // userIdentityNumberArray.push(user.identityNumber);
-    // investorLevelArray.push(user.investorLevel);
-    assetbookArray.push(user.addrAssetBook);
-  }
-});
+  userIdentityNumberArray.push(user.identityNumber);
+  investorLevelArray.push(user.investorLevel);
+  assetbookArray.push(user.addrAssetBook);
+});*/
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 const DatabaseCredential = {
@@ -476,13 +475,24 @@ const deleteOrderRows = (tokenSymbol) => {
   });
 }
 
-const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSymbol) => {
+const addUserArrayOrdersIntoDB = async(users, _price, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n-------------==inside addUserArrayOrdersIntoDB()`);
     await asyncForEach(users, async (user, idx) => {
       const identityNumber = user.identityNumber;
       const email = user.email;
-      const tokenCount = user.tokenOrderAmount;
+      const tokenCount = parseInt(user.tokenOrderAmount);
+      const price = parseInt(_price);
+      if(isNaN(tokenCount)){
+        wlogger.debug(`tokenCount: ${tokenCount}`);
+        reject('tokenCount is not valid');
+        return false;
+      } else if(isNaN(price)){
+        wlogger.debug(`price: ${price}`);
+        reject('price is not valid');
+        return false;
+      }
+      const fundCount = price*tokenCount;
       wlogger.debug(`userNum: ${idx}, user: ${user}
   identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
   tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
@@ -503,7 +513,7 @@ const addArrayOrdersIntoDB = async(userIndexArray, amountArray, initialAssetPric
       wlogger.debug(`${userIndexArray} & ${amountArray}`);
       reject('userIndexArray and amountArray should have the same length');
     }
-    const maxIndex = assetbookArray.length ;
+    const maxIndex = userArray.length -1;
     userIndexArray.forEach((index, idx)=> {
       if(index > maxIndex || index < 0) {
         let mesg = `index should not be > maxIndex of ${maxIndex}. index value: ${index}`;
@@ -690,8 +700,13 @@ const getProductPricing = async(symbol) => {
     });
     wlogger.debug(`result: ${result}`);
     if (!Array.isArray(result) || !result.length) {
-      wlogger.debug(`pricing is not defined`);
+      wlogger.debug(`product is not found for this symbol ${symbol}`);
       resolve(undefined);
+
+    } else if(result.length > 1){
+      wlogger.warn(`multiple products are found for this symbol ${symbol}`);
+      resolve(undefined);
+
     } else {
       const pricing = result[0].p_pricing;
       if(Number.isInteger(pricing)){
@@ -761,7 +776,7 @@ const getSymbolsONM = async() => {
 const checkIaAssetRecordStatus = async(symbol, actualPaymentTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`-------==checkIaAssetRecordStatus`);
-    const query1 = 'SELECT ia_assetRecord_status FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
+    const query1 = 'SELECT ia_assetRecord_status FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
     const result = await mysqlPoolQueryB(query1, [symbol, actualPaymentTime]).catch((err) => {
       wlogger.error(`\n[Error @ checkIaAssetRecordStatus > mysqlPoolQueryB()]`);
       reject(err);
@@ -1325,7 +1340,7 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
 
     const [isGoodCFSD, CFSD_, mesgCFSD] = testInputTime(CFSD);
     const [isGoodCFED, CFED_, mesgCFED] = testInputTime(CFED);
-    console.log('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED);
+    wlogger.debug('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED);
 
     if(isGoodCFSD && isGoodCFED){
       const result1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
@@ -1798,5 +1813,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
-    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, deleteUsersInDB
+    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, getTxnInfoRowsBySymbol, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, deleteUsersInDB
 }

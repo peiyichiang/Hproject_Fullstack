@@ -1,8 +1,8 @@
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const moment = require('moment');
-const chalk = require('chalk');
-const log = console.log;
+// const chalk = require('chalk');
+// const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray, makeFakeTxHash } = require('./utilities');
@@ -463,7 +463,7 @@ const checkArgumentsCFC = async(argsCrowdFunding) => {
     const [isGoodCFED, CFED_, mesgCFED] = testInputTime(acCFED);
     const [isGoodDeploymtTime, deploymtTime_, mesgDeploymt] = testInputTime(acTimeOfDeployment_CF);
 
-    console.log('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED, ', isGoodDeploymtTime:', isGoodDeploymtTime);
+    wlogger.debug('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED, ', isGoodDeploymtTime:', isGoodDeploymtTime);
 
     if(!isGoodDeploymtTime){
       mesg += ', [2] '+mesgDeploymt;
@@ -619,7 +619,7 @@ const checkArgumentsTCC = async(argsTokenController) => {
 
     const [isGoodacTimeTokenValid, acTimeTokenValid_, mesgacTimeTokenValid] = testInputTime(acTimeTokenValid);
 
-    console.log('isGoodacTimeOfDeployment_TokCtrl:', isGoodacTimeOfDeployment_TokCtrl, ', isGoodacTimeTokenUnlock:', isGoodacTimeTokenUnlock, ', isGoodacTimeTokenValid:', isGoodacTimeTokenValid);
+    wlogger.debug('isGoodacTimeOfDeployment_TokCtrl:', isGoodacTimeOfDeployment_TokCtrl, ', isGoodacTimeTokenUnlock:', isGoodacTimeTokenUnlock, ', isGoodacTimeTokenValid:', isGoodacTimeTokenValid);
 
     if(!isGoodacTimeOfDeployment_TokCtrl){
       mesg += ', [2] '+mesgacTimeOfDeployment_TokCtrl;
@@ -1449,7 +1449,7 @@ serverTime: ${serverTime}`);
     wlogger.debug(`\nsymbol: ${symbol}, tokenState: ${tokenState} \ntokenUnlock time: ${tokenUnlock}, tokenValid until time: ${tokenValid}`);
 
     const [isGood, tokenStateDB, lockuptime, validdate] = await getTokenStateDB(symbol);
-    console.log(`isGood: ${isGood}, tokenStateDB: ${tokenStateDB}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
+    wlogger.debug(`isGood: ${isGood}, tokenStateDB: ${tokenStateDB}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
 
     if(tokenUnlock === lockuptime && tokenValid === validdate){
       if(parseInt(tokenState) < 2){
