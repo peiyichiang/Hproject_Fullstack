@@ -5,16 +5,16 @@ const moment = require('moment');
 // const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray, makeFakeTxHash } = require('./utilities');
+const { checkEq, getTimeServerTime, isEmpty, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArray, isInt, isIntAboveZero, checkBoolTrueArray, makeFakeTxHash } = require('./utilities');
 
 const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isLivetimeOn, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
 const { assetOwnerArray, assetOwnerpkRawArray } = require('../test_CI/zTestParameters');
 
-const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
+const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols } = require('../ethereum/contracts/zsetupData');
 
-const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs, updateIAassetRecordStatus } = require('./mysql.js');
+const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB,  setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs, updateIAassetRecordStatus } = require('./mysql.js');
 
 wlogger.info(`--------------------== blockchain.js...`);
 const timeIntervalOfNewBlocks = 13000;
@@ -1063,9 +1063,12 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
   });
 }
 
-
+//Not finished ... DO NOT USE
 const checkDeployedContracts = async(symbol) => {
   //wlogger.debug(`---------------------== checkDeployedContracts`);
+
+  const smartcontracts = await getSmartContractRows(symbol);
+
   let result;
 
   const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
@@ -1553,7 +1556,6 @@ const showAssetBookBalance_TokenId = async () => {
   process.exit(0);
 }
 
-//disable promises so we dont wait for it
 const sequentialCheckBalances = async (addressArray, tokenCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n------==inside sequentialCheckBalances()`);
@@ -1952,8 +1954,8 @@ const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fun
     wlogger.debug(`\n----------------------==inside sequentialMintSuper()...`);
     let mesg;
     //wlogger.debug(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
-    if(!amountArray.every(isIntAboveOne)){
-      mesg = 'failed at amountArray.every(isIntAboveOne)';
+    if(!amountArray.every(isIntAboveZero)){
+      mesg = 'failed at amountArray.every(isIntAboveZero)';
       wlogger.debug(`amountArray has non integer or zero element`);
       resolve([false, [], mesg]);
       return false;

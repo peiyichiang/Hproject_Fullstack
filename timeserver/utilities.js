@@ -77,8 +77,8 @@ const testInputTime = (inputTime) => {
     if(int_length !== 12){
       return [false, undefined, 'length is invalid: '+int_length];
     }
-    const isInt = Number.isInteger(inputTime);
-    if(isInt){
+    const isIntBoolean = Number.isInteger(inputTime);
+    if(isIntBoolean){
       const inputTimeNum = Number(inputTime);
 
       if(inputTimeNum < getLocalTime()-1){
@@ -98,7 +98,7 @@ const testInputTime = (inputTime) => {
 
 const checkBoolTrueArray = (item) => item;
 const isInt =(item) => Number.isInteger(item);
-const isIntAboveOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
+const isIntAboveZero =(item) =>  Number.isInteger(item) && Number(item) > 0;
 
 const arraySum = arr => arr.reduce((a,b) => a + b, 0);
 const makeIndexArray = (_length) => Array.from({length: _length}, (v, i) => i);
@@ -535,13 +535,13 @@ const checkTargetAmounts = (existingBalances, targetAmounts) => {
   if(isEmpty(existingBalances) || isEmpty(targetAmounts)){
     mesg = 'existingBalances or targetAmounts is emtpy!';
     //throw new Error(mesg);
-    wlogger.debug(`${mesg}`);
+    wlogger.warn(`${mesg}`);
     return [isGoodArray, false];
   }
   if(existingBalances.length !== targetAmounts.length){
     mesg = 'existingBalances and targetAmounts are of different length';
     //throw new Error(mesg);
-    wlogger.debug(`${mesg}`);
+    wlogger.warn(`${mesg}`);
     return [isGoodArray, false];
   }
 
@@ -628,5 +628,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeCorrectAmountArray
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveZero, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeCorrectAmountArray
 }
