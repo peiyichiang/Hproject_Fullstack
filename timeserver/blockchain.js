@@ -1948,7 +1948,6 @@ const mintSequentialPerContract = async(symbol, serverTime, maxMintAmountPerRun)
 }
 
 
-//to be called from API and zlivechain.js, etc...
 const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n----------------------==inside sequentialMintSuper()...`);
@@ -2283,7 +2282,7 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
 
 
 
-// HHtoekn12222  Htoken001  Htoken0030
+
 //-------------------------------==DB + BC
 //-------------------==Crowdfunding
 //From DB check if product:fundingState needs to be updated
@@ -3989,8 +3988,6 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
     //call /HCAT721_AssetTokenContract/safeTransferFromBatch API to record txn info
   });
 }
-
-
 
 //--------------------------==
 //message queue producer(sender)
