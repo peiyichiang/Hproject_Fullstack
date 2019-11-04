@@ -122,10 +122,10 @@ router.post('/AddOrder', async function (req, res, next) {
             });
         }
     })
-    /* TODO */
+    //算虛擬帳號
     function getBankVirtualAccount(orderId, symbol, email, currentDate, fundCount) {
         return new Promise(async (resolve, reject) => {
-            /**專案代號(3) 身分證字號(6) 太陽日(4) 檢查碼(1) */
+            /**專案代號(3) oid(3) 身分證字號(3) 太陽日(4) 檢查碼(1) */
             let o_id = orderId;
             console.log(req.body);
 
@@ -148,10 +148,10 @@ router.post('/AddOrder', async function (req, res, next) {
             let expiredSolarDay = await countExpiredSolarDay(purchaseDate);
 
             // 計算檢查碼
-            let virtualAccount_13digits = bankcode + userId.slice(4) + expiredSolarDay;
-            console.log(virtualAccount_13digits);
+            let virtualAccount_13digits = bankcode + o_id.slice(-3) + userId.slice(7) + expiredSolarDay;
+            console.log("virtualAccount_13digits:" + virtualAccount_13digits);
             let amountToPaid_11digits = lpad(amountToPaid, 11);
-            console.log(amountToPaid_11digits);
+            console.log("amountToPaid_11digits:" + amountToPaid_11digits);
             let checkCode = await calculateCheckCode(virtualAccount_13digits, amountToPaid_11digits);
 
             //產生14碼虛擬帳號
