@@ -7,7 +7,7 @@ const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL,assetbook
 
 const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, testInputTime, makeFakeTxHash } = require('./utilities');
 
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, wlogger} = require('../ethereum/contracts/zsetupData');
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols,wlogger} = require('../ethereum/contracts/zsetupData');
 
 const { userArray } = require('../test_CI/zTestParameters');
 /*
@@ -1088,6 +1088,11 @@ const calculateLastPeriodProfit = async(serverTime) => {
   });
 }
 
+
+/**
+ * getOwnerAddrAmountList() should not be moved to blockchain.js
+ * because of circular dependency!!!
+ */
 const getOwnerAddrAmountList = async(tokenAddress, indexStart, indexAmount) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n--------------==inside getOwnerAddrAmountList()`);
