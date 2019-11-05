@@ -187,14 +187,9 @@ If the name starts with ‘is’, then it returns a boolean.
 | editActualSchedule               | symbol, schIndex, actualPaymentTime, actualPaymentAmount | Edit actual income schedule                                                                                                                                                                                                                                                                                                                                                                          |
 | addPaymentCount                  | symbol                                                   | Add payment count                                                                                                                                                                                                                                                                                                                                                                                    |
 | setErrResolution                 | symbol, schIndex, isErrorResolved, errorCode             | Set error resolution code for a chosen income schedule                                                                                                                                                                                                                                                                                                                                               |
-| updateExpiredOrders              | serverTime                                               | Update expired orders                                                                                                                                                                                                                                                                                                                                                                                |
+| updateExpiredOrders              | serverTime                                               | Update expired orders: 1.Find orderIDs, purchase dates from order_list within orders in ‘waiting’ as payment status   2.Check those order’s age.  3.Set payment status to expired if the order age is equal or over 3 days old                                                                                                                                                                                                                                                                                                                                                                                |
 
-7.  Find orderIDs, purchase dates from order_list within orders in ‘waiting’ as
-    payment status
 
-8.  Check those order’s age
-
-9.  Set payment status to expired if the order age is equal or over 3 days old
 
 **Functions regarding Assetbook contracts**
 

@@ -6,17 +6,13 @@ TimeserverSource.js defines all the services timeserver will provide.
 
 Each service can be turned on by the corresponding env file parameters.
 
-ServerTime is given from **getTimeServerTime**(), which is controlled by
-isLivetimeOn
+ServerTime is given from **getTimeServerTime**(), which is controlled by isLivetimeOn
 
-in the env file. If IS_LIVETIME_ON is 1, then isLivetimeOn will be true, and
-**getTimeServerTime**() will return localtime. If not, then
-**getTimeServerTime**() will return a fake servertime, which can be set in env
-file.
+in the env file. If IS_LIVETIME_ON is 1, then isLivetimeOn will be true, and **getTimeServerTime**() will return localtime. If not, then **getTimeServerTime**() will return a fake servertime, which can be set in env file.
 
-| Packages                  | Description                                                                                                                           |                                                                                                 |
-|---------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| node-schedule             | A job scheduler that allows **scheduling** jobs (arbitrary functions) for execution at specific dates, with optional recurrence rules |                                                                                                 |
+| Packages     | Description                                        |
+---------------|----------------------------------------------------|
+| node-schedule             | A job scheduler that allows scheduling jobs (arbitrary functions) for execution at specific dates, with optional recurrence rules |                                                                                                 |
 | Imported functions        | Source location                                                                                                                       | Description                                                                                     |
 | wlogger                   | ../ethereum/contracts/zsetupData                                                                                                      | WinstonJs logger                                                                                |
 | getTimeServerTime         | ./utilities                                                                                                                           | Get timeserver time                                                                             |
@@ -28,14 +24,12 @@ file.
 | makeOrdersExpiredCFED     | ./blockchain.js                                                                                                                       | Make orders expired due to servertime reaching CFED                                             |
 
 timeserverMode is set inside env file
-
 If it is set to 1: timeserver will be triggered at certain interval.
-
 If it is set to 2: timeserver will be triggered at every minute at certain fixed
 second
 
-| Imported variables           | Type       | Descriptions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|------------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Imported variables | Type   | Descriptions           |
+|--------------------|--------|----------------------------------------------------------------------|
 | timeserverMode               | integer    | 1 to trigger timeserver at interval of timeserverTimeInverval 2 to trigger timeserver at fixed second of every minute                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | timeserverTimeInverval       | integer    | See above                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | is_addAssetbooksIntoCFC      | boolean    | Switch for writing assetbooks into crowdfunding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |

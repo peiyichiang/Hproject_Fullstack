@@ -21,22 +21,17 @@ sequential asynchronous actions, ...**
 |----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | isLivetimeOn         | ServerTime is given from getTimeServerTime(), which is controlled by isLivetimeOn in the env file. If IS_LIVETIME_ON is 1, then isLivetimeOn will be true, and getTimeServerTime() will return localtime. If not, then getTimeServerTime() will return a fake servertime, which can be set in env file |
 | fakeServertime       | See above                                                                                                                                                                                                                                                                                              |
-| crowdfundingScenario | An integer to determine if the funding status is:                                                                                                                                                                                                                                                      |
+| crowdfundingScenario | An integer to determine if the funding status is:  1.Sold out … funding successful  2.Ended with goal reached … funding successful.    3.Ended with goal not reached … funding failed |
 
-1.  Sold out … funding successful
 
-2.  Ended with goal reached … funding successful
-
-3.  Ended with goal not reached … funding failed
 
 Note. in the following functions. The naming indicates the returned value types:
-
 If the name starts with ‘is’, then it returns a boolean.
 
 **Functions defined within utilities.js**
 
-| Function Name                    | Parameters                                       | Description                                                                                                                                                                            |
-|----------------------------------|--------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Function Name | Parameters | Description                                         |
+|---------------|------------|--------------------------------------------------------------------------------------|
 | checkEq                          | value1, value2                                   | Check if the two given values are equal in both value and type                                                                                                                         |
 | isEmpty                          | value                                            | Check if the given value is undefined, null, empty object, empty string or string of ‘undefined’                                                                                       |
 | isNoneInteger                    | value                                            | Check if the given value is undefined, null, object, or string that cannot be converted into integer                                                                                   |
@@ -62,7 +57,7 @@ If the name starts with ‘is’, then it returns a boolean.
 | getRndIntegerBothEnd             | min, max                                         | Get a random number between min and max                                                                                                                                                |
 | getBuyAmountArray                | totalAmount, price, fundingType                  | Get buy amount that is complied with Regulation on the max buy amount                                                                                                                  |
 | getInputArrays                   | arraylength = 3, totalTokenAmount                | Get input arrays of userIndexArray and tokenCountArray                                                                                                                                 |
-| makeCorrectAmountArray           | \_amountArray, goal, maxTotal                    | Make correct amounts for different funding scenarios                                                                                                                                   |
+| makeCorrectAmountArray           | amountArray, goal, maxTotal                    | Make correct amounts for different funding scenarios: 1.Funding Sold out: all maxTotal should be distributed inside amountArray.  2.Funding ended with goal reached: total output amount array should only sum up to be just above the goal.   3.Funding ended with goal not reached(funding failed): total output amount array should only sum up to be just below the goal           |
 | asyncForEach                     | array, callback                                  | A function to sequentially execute an asynchronous callback function in the order of given array items                                                                                 |
 | asyncForEachTsMain               | array, callback                                  | Same as asyncForEach for object and non-object array as input, with excluded symbols                                                                                                   |
 | asyncForEachMint                 | toAddrArray, callback                            | Same as asyncForEach for address array as input, for mintTokens outer loop                                                                                                             |
@@ -78,11 +73,3 @@ If the name starts with ‘is’, then it returns a boolean.
 | breakdownArray                   | toAddress, amount, maxMintAmountPerRun           | Break down given amount into an array of maxMintAmountPerRun and a remainder amount so each output array element is less or equal to maxMintAmountPerRun                               |
 | breakdownArrays                  | toAddressArray, amountArray, maxMintAmountPerRun | For each of given amountArray, reak down given amount into an array of maxMintAmountPerRun and a remainder amount so each output array element is less or equal to maxMintAmountPerRun |
 | validateEmail                    | email                                            | Validate email input                                                                                                                                                                   |
-
-1.  Funding Sold out: all maxTotal should be distributed inside \_amountArray
-
-2.  Funding ended with goal reached: total output amount array should only sum
-    up to be just above the goal
-
-3.  Funding ended with goal not reached(funding failed): total output amount
-    array should only sum up to be just below the goal

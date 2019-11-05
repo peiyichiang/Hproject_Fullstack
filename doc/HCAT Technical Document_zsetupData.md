@@ -1,16 +1,16 @@
 **zsetupData.js**
 
-**Setup data**
+This file is to setup Compliance Levels and compiled smart contracts for future interactions.
 
-| Packages                  | Descriptions                         |
-|---------------------------|--------------------------------------|
-| winston                   | A logger for just about everything   |
+|Packages| Descriptions |
+|--------|--------------|
+| winston| A logger for just about everything |
 | winston-daily-rotate-file | Save daily log file into /log folder |
 
 **Imported functions from /timeserver/envVariables.js**
 
-| Imported variables | Descriptions                                                                                                                                  |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| Imported variables | Descriptions      |
+|--------------------|-------------------|
 | loglevel           | The level of logs to show in the console, e.g. error, warn, info, verbose, debug, but we use 1\~5 in the env file to specify which one to use |
 
 **Regulatory Restrictions in Taiwan**
