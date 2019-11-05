@@ -2129,6 +2129,8 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
           wlogger.error(`[Error @getCtrtAddr]: ${err}`);
           return false;
         });
+        console.log(symbol);
+        console.log(targetAddr);
         wlogger.debug(`\n${resultMesg}. actionType: ${actionType}`);
         if(isGood){
           await writeToBlockchainAndDatabase(targetAddr, serverTime, symbol, actionType);
@@ -2287,8 +2289,9 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
 //-------------------==Crowdfunding
 //From DB check if product:fundingState needs to be updated
 const updateFundingStateFromDB = async (serverTime) => {
+  console.log(serverTime);
   return new Promise(async (resolve, reject) => {
-    wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${_serverTime}, typeof ${typeof _serverTime}`);
+    wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
     //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
