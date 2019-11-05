@@ -2129,9 +2129,8 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
           wlogger.error(`[Error @getCtrtAddr]: ${err}`);
           return false;
         });
-        console.log(symbol);
-        console.log(targetAddr);
-        wlogger.debug(`\n${resultMesg}. actionType: ${actionType}`);
+        wlogger.debug(`\n${resultMesg}. actionType: ${actionType}
+        symbol: ${symbol}, targetAddr: ${targetAddr}`);
         if(isGood){
           await writeToBlockchainAndDatabase(targetAddr, serverTime, symbol, actionType);
           wlogger.info(`[Success] writingToBlockchainAndDatabase() is completed`);
@@ -2289,7 +2288,6 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
 //-------------------==Crowdfunding
 //From DB check if product:fundingState needs to be updated
 const updateFundingStateFromDB = async (serverTime) => {
-  console.log(serverTime);
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
     //DO not check serverTime against the localtime because it IS FROM the local time!
