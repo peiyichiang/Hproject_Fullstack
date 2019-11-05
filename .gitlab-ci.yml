@@ -3,7 +3,7 @@ image: node:10
 before_script:
   - yarn install
   - yarn run solc
-  
+
 test_funding:
   script:
-  - mocha test_CI/apiTest.js
+  - node node_modules/.bin/mocha test_CI/apiTest.js
