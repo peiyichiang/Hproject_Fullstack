@@ -1,20 +1,20 @@
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const moment = require('moment');
-const chalk = require('chalk');
-const log = console.log;
+// const chalk = require('chalk');
+// const log = console.log;
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
-const { checkEq, getTimeServerTime, getLocalTime, isEmpty, checkTrue, isAllTrueBool, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArrays, breakdownArray, isInt, isIntAboveOne, checkBoolTrueArray } = require('./utilities');
+const { checkEq, getTimeServerTime, isEmpty, testInputTime, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachOrderExpiry, checkTargetAmounts, breakdownArray, isInt, isIntAboveZero, checkBoolTrueArray, makeFakeTxHash } = require('./utilities');
 
-const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isTimeserverON, operationMode, backendAddrChoice} = require('./envVariables');
+const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, adminpkRaw, gasLimitValue, gasPriceValue, isLivetimeOn, backendAddrChoice} = require('./envVariables');
 //0 API dev, 1 Blockchain dev, 2 Backend dev, 3 .., 4 timeserver
 
 const { assetOwnerArray, assetOwnerpkRawArray } = require('../test_CI/zTestParameters');
 
-const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, excludedSymbolsIA } = require('../ethereum/contracts/zsetupData');
+const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols } = require('../ethereum/contracts/zsetupData');
 
-const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs, updateIAassetRecordStatus } = require('./mysql.js');
+const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB,  setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs, updateIAassetRecordStatus } = require('./mysql.js');
 
 wlogger.info(`--------------------== blockchain.js...`);
 const timeIntervalOfNewBlocks = 13000;
@@ -463,7 +463,7 @@ const checkArgumentsCFC = async(argsCrowdFunding) => {
     const [isGoodCFED, CFED_, mesgCFED] = testInputTime(acCFED);
     const [isGoodDeploymtTime, deploymtTime_, mesgDeploymt] = testInputTime(acTimeOfDeployment_CF);
 
-    console.log('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED, ', isGoodDeploymtTime:', isGoodDeploymtTime);
+    wlogger.debug('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED, ', isGoodDeploymtTime:', isGoodDeploymtTime);
 
     if(!isGoodDeploymtTime){
       mesg += ', [2] '+mesgDeploymt;
@@ -617,9 +617,9 @@ const checkArgumentsTCC = async(argsTokenController) => {
 
     const [isGoodacTimeTokenUnlock, acTimeTokenUnlock_, mesgacTimeTokenUnlock] = testInputTime(acTimeTokenUnlock);
 
-    const [isGoodacTimeTokenValid, acTimeTokenValid_, mesgacTimeTokenValid] = testInputTime(acTimeOfDeployment_CF);
+    const [isGoodacTimeTokenValid, acTimeTokenValid_, mesgacTimeTokenValid] = testInputTime(acTimeTokenValid);
 
-    console.log('isGoodacTimeOfDeployment_TokCtrl:', isGoodacTimeOfDeployment_TokCtrl, ', isGoodacTimeTokenUnlock:', isGoodacTimeTokenUnlock, ', isGoodacTimeTokenValid:', isGoodacTimeTokenValid);
+    wlogger.debug('isGoodacTimeOfDeployment_TokCtrl:', isGoodacTimeOfDeployment_TokCtrl, ', isGoodacTimeTokenUnlock:', isGoodacTimeTokenUnlock, ', isGoodacTimeTokenValid:', isGoodacTimeTokenValid);
 
     if(!isGoodacTimeOfDeployment_TokCtrl){
       mesg += ', [2] '+mesgacTimeOfDeployment_TokCtrl;
@@ -661,23 +661,17 @@ const checkArgumentsTCC = async(argsTokenController) => {
 //yarn run testmt -f 62
 const deployTokenControllerContract = async(argsTokenController) => {
   return new Promise(async (resolve, reject) => {
-    if(operationMode === 9){
-      const [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock, acTimeTokenValid, addrHelium ] = argsTokenController;
+    const [acTimeOfDeployment_TokCtrl, acTimeTokenUnlock, acTimeTokenValid, addrHelium ] = argsTokenController;
 
-      if(acTimeOfDeployment_TokCtrl > acTimeTokenUnlock) {
-        reject(`[Error] acTimeOfDeployment_TokCtrl > acTimeTokenUnlock`);
-        return false;
-      }
-      if(acTimeTokenUnlock <= CFED) {
-        reject(`[Error] acTimeTokenUnlock <= CFED`);
-        return false;
-      }
-      if(acTimeTokenValid <= acTimeTokenUnlock) {
-        reject(`[Error] acTimeTokenValid <= acTimeTokenUnlock`);
-        return false;
-      }
-
+    if(acTimeTokenUnlock <= acTimeOfDeployment_TokCtrl) {
+      reject(`[Error] acTimeTokenUnlock < acTimeOfDeployment_TokCtrl`);
+      return false;
     }
+    if(acTimeTokenValid <= acTimeTokenUnlock) {
+      reject(`[Error] acTimeTokenValid <= acTimeTokenUnlock`);
+      return false;
+    }
+
     const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
     const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
     const web3deploy = new Web3(provider);
@@ -1069,9 +1063,12 @@ const getTokenContractDetails = async(tokenCtrtAddr) => {
   });
 }
 
-
+//Not finished ... DO NOT USE
 const checkDeployedContracts = async(symbol) => {
   //wlogger.debug(`---------------------== checkDeployedContracts`);
+
+  const smartcontracts = await getSmartContractRows(symbol);
+
   let result;
 
   const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
@@ -1155,10 +1152,10 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
 
 
 //-------------------==
-const addProductRowFromSymbol = async(tokenSymbol, tokenName, location, duration, fundingType, pricingCurrency, fundmanagerIn, TimeReleaseDateIn) => {
+//yarn run testmt -f 72
+const addProductRowFromSymbol = async(tokenSymbol, tokenName, location, duration, fundingType, pricingCurrency, fundmanagerIn, TimeReleaseDateIn, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule, img1, img2, img3, img4, img5, img6, img7, img8, img9, img10) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`---------------==\naddProductRowFromSymbol()`);
-
 
     const [crowdFundingAddr, tokenControllerAddr, hcatAddr, incomeManagerAddr] = await getAllSmartContractAddrs(tokenSymbol);
     wlogger.debug(`--------==returned values from getAllSmartContractAddrs():\ncrowdFundingAddr: ${crowdFundingAddr}, tokenControllerAddr: ${tokenControllerAddr}, hcatAddr: ${hcatAddr}, incomeManagerAddr: ${incomeManagerAddr}`);
@@ -1178,17 +1175,18 @@ const addProductRowFromSymbol = async(tokenSymbol, tokenName, location, duration
     wlogger.debug(`\nlocation: ${location}, duration: ${duration}, fundingType: ${fundingType}, pricingCurrency: ${pricingCurrency}, fundmanagerIn: ${fundmanagerIn}`);
 
     const TimeReleaseDate = parseInt(TimeReleaseDateIn);
-    if(operationMode === 9){
-      if(TimeReleaseDate > parseInt(CFEDM) && TimeReleaseDate < parseInt(TimeTokenUnlockM)){
-        wlogger.debug(`\n--------==TimeReleaseDate is a valid date under operationMode: ${operationMode}`);
 
-      } else {
-        wlogger.debug(`\n--------==TimeReleaseDate: ${TimeReleaseDate} is out of allowed range`);
-        resolve(false);
-      }
+    if(TimeReleaseDate > parseInt(CFEDM) && TimeReleaseDate < parseInt(TimeTokenUnlockM)){
+      wlogger.info('TimeReleaseDate: ${TimeReleaseDate} TimeReleaseDate is a valid date')
+
+    } else {
+      wlogger.error('CFEDM: ${CFEDM}, TimeReleaseDate: ${TimeReleaseDate}, TimeTokenUnlockM: ${TimeTokenUnlockM}')
+      reject('TimeReleaseDate is out of allowed range');
+      return false;
     }
+
     wlogger.debug(`\n--------==TimeReleaseDate: ${TimeReleaseDate}`);
-    const result = await addProductRow(tokenSymbol, tokenName, location, initialAssetPricingM, duration, pricingCurrency, IRR20yrx100M, TimeReleaseDate, TimeTokenValidM, siteSizeInKWM, maxTotalSupplyMH, fundmanagerIn, CFSDM, CFEDM, quantityGoalM, TimeTokenUnlockM, fundingType, fundingStateM).catch((err) => {
+    const result = await addProductRow(tokenSymbol, tokenName, location, initialAssetPricingM, duration, pricingCurrency, IRR20yrx100M, TimeReleaseDate, TimeTokenValidM, siteSizeInKWM, maxTotalSupplyMH, fundmanagerIn, CFSDM, CFEDM, quantityGoalM, TimeTokenUnlockM, fundingType, fundingStateM, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule, img1, img2, img3, img4, img5, img6, img7, img8, img9, img10).catch((err) => {
       wlogger.error(`\n[Error @ addProductRow()] ${err}`);
     });
     resolve(result);
@@ -1442,13 +1440,7 @@ const updateTokenStateTCC = async (tokenControllerAddr, serverTime, symbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n[updateTokenStateTCC] tokenControllerAddr: ${tokenControllerAddr}
 serverTime: ${serverTime}`);
-
-    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
-    wlogger.debug('isGoodServerTime:', isGoodServerTime);
-    if(!isGoodServerTime){
-      reject(`${mesgServerTime}`);
-      return false;
-    } 
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerAddr);
 
@@ -1460,7 +1452,7 @@ serverTime: ${serverTime}`);
     wlogger.debug(`\nsymbol: ${symbol}, tokenState: ${tokenState} \ntokenUnlock time: ${tokenUnlock}, tokenValid until time: ${tokenValid}`);
 
     const [isGood, tokenStateDB, lockuptime, validdate] = await getTokenStateDB(symbol);
-    console.log(`isGood: ${isGood}, tokenStateDB: ${tokenStateDB}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
+    wlogger.debug(`isGood: ${isGood}, tokenStateDB: ${tokenStateDB}, lockuptime: ${lockuptime}, validdate: ${validdate}`);
 
     if(tokenUnlock === lockuptime && tokenValid === validdate){
       if(parseInt(tokenState) < 2){
@@ -1564,7 +1556,6 @@ const showAssetBookBalance_TokenId = async () => {
   process.exit(0);
 }
 
-//disable promises so we dont wait for it
 const sequentialCheckBalances = async (addressArray, tokenCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n------==inside sequentialCheckBalances()`);
@@ -1686,7 +1677,7 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
           mesg += ', [7] Caller is not approved by HeliumCtrt.checkPlatformSupervisor()';
         } 
         if(!boolArray[8]){
-          mesg += ', [8] Registry.isFundingApproved() ... buyAmount > maxBuyAmount';
+          mesg += ', [8] Registry.isFundingApproved() ... buyAmount > maxBuyAmount..'+amount*price;
         } 
         if(!boolArray[9]){
           mesg += ', [9] Registry.isFundingApproved() ... balance + buyAmount > maxBalance';
@@ -1705,7 +1696,8 @@ const checkMint = async(tokenCtrtAddr, toAddress, amount, price, fundingType, se
         } else {
           fundingTypeDescription = 'Error in funding type';
         }//PO: 1, PP: 2
-        wlogger.error(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}`);
+        wlogger.error(`\n[Error message] ${mesg} \n===>>> fundingType: ${fundingType} ${fundingTypeDescription} \nauthLevel: ${uintArray[0]}, maxBuyAmount: ${uintArray[1]}, maxBalance: ${uintArray[2]}
+        amount: ${amount}, price: ${price}`);
         resolve(true);
       }
     }
@@ -1723,12 +1715,12 @@ const sequentialMintToAdd = async(addressArray, amountArray, maxMintAmountPerRun
       reject(`addressArray and amountArray must be of the same length`);
       return false;
     }
+    wlogger.debug(`addressArray: ${addressArray}, amountArray: ${amountArray}`);
 
     await asyncForEachMint(addressArray, async (toAddress, idxMint) => {
       const amountForThisAddr = amountArray[idxMint];
       const [addressArrayOut, amountArrayOut] = breakdownArray(toAddress, amountForThisAddr, maxMintAmountPerRun);
-      wlogger.debug(`addressArray: ${addressArray}, amountArray: ${amountArray}
-  addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
+      wlogger.debug(`addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
       wlogger.debug(`\n---------------==next: mint to ${toAddress} ${amountForThisAddr} tokens`);
 
       const balB4MintingStr1 = await instHCAT721.methods.balanceOf(toAddress).call();
@@ -1784,14 +1776,14 @@ const sequentialMintToMax = async(addressArray, amountArray, maxMintAmountPerRun
       reject(`addressArray and amountArray must be of the same length`);
       return false;
     }
+    wlogger.debug(`addressArray: ${addressArray}, amountArray: ${amountArray}`);
 
     await asyncForEachMint(addressArray, async (toAddress, idxMint) => {
       const balMaxForThisAddr = amountArray[idxMint];
       const balB4MintingStr1 = await instHCAT721.methods.balanceOf(toAddress).call();
       const balB4Minting1 = parseInt(balB4MintingStr1);
       const [addressArrayOut, amountArrayOut] = breakdownArray(toAddress, balMaxForThisAddr-balB4Minting1, maxMintAmountPerRun);
-      wlogger.debug(`addressArray: ${addressArray}, amountArray: ${amountArray}
-  addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
+      wlogger.debug(`addressArrayOut: ${addressArrayOut}, amountArrayOut: ${amountArrayOut}`);
       wlogger.debug(`\n---------------==next: mint to ${toAddress} ${balMaxForThisAddr} tokens`);
 
       const idxMintMax = addressArray.length -1;
@@ -1956,14 +1948,13 @@ const mintSequentialPerContract = async(symbol, serverTime, maxMintAmountPerRun)
 }
 
 
-//to be called from API and zlivechain.js, etc...
 const sequentialMintSuper = async (addressArray, amountArray, tokenCtrtAddr, fundingType, pricing, maxMintAmountPerRun, serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n----------------------==inside sequentialMintSuper()...`);
     let mesg;
     //wlogger.debug(`addressArray= ${addressArray}, amountArray= ${amountArray}`);
-    if(!amountArray.every(isIntAboveOne)){
-      mesg = 'failed at amountArray.every(isIntAboveOne)';
+    if(!amountArray.every(isIntAboveZero)){
+      mesg = 'failed at amountArray.every(isIntAboveZero)';
       wlogger.debug(`amountArray has non integer or zero element`);
       resolve([false, [], mesg]);
       return false;
@@ -2057,12 +2048,7 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
   serverTime: ${serverTime}`);
   //wlogger.debug(`mainInputArray= ${mainInputArray}, waitTime= ${waitTime}, serverTime= ${serverTime}, extraInputArray= ${extraInputArray}`);
   
-  const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
-  wlogger.debug('isGoodServerTime:', isGoodServerTime);
-  if(!isGoodServerTime){
-    reject(`${mesgServerTime}`);
-    return false;
-  }
+  //DO not check serverTime against the localtime because it IS FROM the local time!
 
   if(extraInputArray.length < 1){
     wlogger.error(`[Error] extraInputArray should not be empty`);
@@ -2143,6 +2129,8 @@ const sequentialRunTsMain = async (mainInputArray, waitTime, serverTime, extraIn
           wlogger.error(`[Error @getCtrtAddr]: ${err}`);
           return false;
         });
+        console.log(symbol);
+        console.log(targetAddr);
         wlogger.debug(`\n${resultMesg}. actionType: ${actionType}`);
         if(isGood){
           await writeToBlockchainAndDatabase(targetAddr, serverTime, symbol, actionType);
@@ -2296,20 +2284,15 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
 
 
 
-// HHtoekn12222  Htoken001  Htoken0030
+
 //-------------------------------==DB + BC
 //-------------------==Crowdfunding
 //From DB check if product:fundingState needs to be updated
-const updateFundingStateFromDB = async (_serverTime) => {
+const updateFundingStateFromDB = async (serverTime) => {
+  console.log(serverTime);
   return new Promise(async (resolve, reject) => {
-    wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${_serverTime}, typeof ${typeof _serverTime}`);
-
-    const [isGoodServerTime, serverTime, mesgServerTime] = testInputTime(_serverTime);
-    wlogger.debug('isGoodServerTime:', isGoodServerTime);
-    if(!isGoodServerTime){
-      reject(`${mesgServerTime}`);
-      return false;
-    }
+    wlogger.debug(`\ninside updateFundingStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const queryStr2 = 'SELECT p_SYMBOL FROM product WHERE (p_state = "initial" AND p_CFSD <= '+serverTime+') OR (p_state = "funding" AND p_CFED <= '+serverTime+') OR (p_state = "fundingGoalReached" AND p_CFED <= '+serverTime+')';
     const results = await mysqlPoolQueryB(queryStr2, []).catch((err) => {
@@ -2342,13 +2325,7 @@ const updateFundingStateFromDB = async (_serverTime) => {
 const makeOrdersExpiredCFED = async (serverTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\ninside makeOrdersExpiredCFED(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-
-    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
-    wlogger.debug('isGoodServerTime:', isGoodServerTime);
-    if(!isGoodServerTime){
-      reject(`${mesgServerTime}`);
-      return false;
-    }
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const queryStr1 = 'SELECT p_SYMBOL FROM product WHERE p_CFED <= ? AND (p_state = "initial" OR p_state = "funding" OR p_state = "fundingGoalReached")';
     const results = await mysqlPoolQueryB(queryStr1, [serverTime]).catch((err) => {
@@ -2401,8 +2378,9 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
 
     await asyncForEach(userIDs, async (userId, idx) => {
       const assetbookX = assetbooks[idx];
-      wlogger.debug(`\n--------==Check: ${userId} ${typeof userId} ${authLevels[idx]} ${typeof authLevels[idx]} \n${assetbookX} ${typeof assetbookX}`);
-      const boolArray = await instRegistry.methods.checkAddSetUser(userId, assetbookX, authLevels[idx]).call({from: backendAddr});
+      const authlevelX = authLevels[idx];
+      wlogger.debug(`\n--------==Check: ${userId} ${typeof userId} ${authlevelX} ${typeof authlevelX} \n${assetbookX} ${typeof assetbookX}`);
+      const boolArray = await instRegistry.methods.checkAddSetUser(userId, assetbookX, authlevelX).call({from: backendAddr});
       /**
           boolArray[0] = HeliumITF_Reg(HeliumCtrtAddr).checkCustomerService(msg.sender);
           //ckUidLength(uid)
@@ -2423,8 +2401,8 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
       }
       if(boolArray[0] && boolArray[1] && boolArray[2] && boolArray[3] && boolArray[4] && boolArray[6]){
         if(boolArray[5]){
-          wlogger.debug(`\n--------==this userId has not been added into RegistryCtrt yet... \n--------==AddUser(): idx: ${idx}, userId: ${userId}, assetBookAddr: ${assetbookX}, authLevel: ${authLevels[idx]}`);
-          const encodedData = instRegistry.methods.addUser(userId, assetbookX, authLevels[idx]).encodeABI();
+          wlogger.debug(`\n--------==this userId has not been added into RegistryCtrt yet... \n--------==AddUser(): idx: ${idx}, userId: ${userId}, assetBookAddr: ${assetbookX}, authLevel: ${authlevelX}`);
+          const encodedData = instRegistry.methods.addUser(userId, assetbookX, authlevelX).encodeABI();
           let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryCtrtAddr, encodedData);
           //const TxResultStr = JSON.stringify(TxResult, null, 4);
           //wlogger.debug(`TxResult: ${TxResultStr}`);
@@ -2432,7 +2410,7 @@ const addUsersToRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
       
           userM = await instRegistry.methods.getUserFromUid(userId).call();
           wlogger.debug(`userM ${userM}`);
-          if (userM[0] === assetbookX && userM[1] === authLevels[idx].toString()) {
+          if (userM[0] === assetbookX && userM[1] === authlevelX.toString()) {
             wlogger.debug(`\nChecked good: this uid ${userId} has already been added.`);
             results.push(true);
           } else {
@@ -2464,8 +2442,50 @@ Skipping this uid...`)
   });
 }
 
+const setUsersInRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, authLevels) => {
+  return new Promise(async(resolve, reject) => {
+    wlogger.debug(`\n------------==inside setUsersInRegistryCtrt \nregistryCtrtAddr: ${registryCtrtAddr} \nuserIDs: ${userIDs}, \nassetbooks: ${assetbooks}, \nauthLevels: ${authLevels}`);
+    const results = []; let isGood;
 
-// yarn run testts -a 2 -c 1
+    if(userIDs.length !== assetbooks.length) {
+      reject(`userIDs and assetbooks have different length`);
+      return false;
+    } else if(userIDs.length !== authLevels.length) {
+      reject(`userIDs and authLevels have different length`);
+      return false;
+    }
+    const instRegistry = new web3.eth.Contract(Registry.abi, registryCtrtAddr);
+
+    await asyncForEach(userIDs, async (userId, idx) => {
+      const assetbookX = assetbooks[idx];
+      const authlevelX = authLevels[idx];
+      wlogger.debug(`\n--------==Check: ${userId}  ${authlevelX}  \n${assetbookX} `);
+      wlogger.debug(`\n--------==setUser(): idx: ${idx}, userId: ${userId} ${typeof userId}, authLevel: ${authlevelX} ${typeof authlevelX} \nassetBookAddr: ${assetbookX} ${typeof assetbookX}`);
+      const encodedData = instRegistry.methods.setUser(userId, assetbookX, authlevelX).encodeABI();
+      let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryCtrtAddr, encodedData);
+      //const TxResultStr = JSON.stringify(TxResult, null, 4);
+      //wlogger.debug(`TxResult: ${TxResultStr}`);
+      wlogger.debug(`after setUser() on userId: ${userId}...`);
+  
+      userM = await instRegistry.methods.getUserFromUid(userId).call();
+      wlogger.debug(`userM ${userM}`);
+      if (userM[0] === assetbookX && userM[1] === authlevelX.toString()) {
+        wlogger.debug(`\nChecked good: this uid ${userId} has updated info`);
+        results.push(true);
+      } else {
+        results.push(false);
+      }
+    });
+    if(results.includes(false)){
+      isGood = false;
+    } else {
+      isGood = true;
+    }
+    resolve({isGood, results});
+  });
+}
+
+
 // after order status change: waiting -> paid -> write into crowdfunding contract
 const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   // check if serverTime > CFSD for each symbol...
@@ -2606,19 +2626,40 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       const queryStr5F = 'UPDATE order_list SET o_paymentStatus = "errCFC", o_txHash = ? WHERE o_id = ?';
 
       await asyncForEachAbCFC2(assetbookCtrtArray, async (addrAssetbook, index) => {
+        const orderId = orderIdArray[index];
+        const email = emailArray[index];
         const amountToInvest = parseInt(tokenCountArray[index]);
-        wlogger.info(`\n[Good] For ${addrAssetbook} \nfound its amountToInvest: ${amountToInvest}`);
-
         wlogger.info(`\n[Good] About to write the assetbook address into the crowdfunding contract
-amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
+index: ${index}, amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
 addrAssetbook: ${addrAssetbook}
 crowdFundingAddr: ${crowdFundingAddr}`);
 
         const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'asyncForEachAbCFC2').catch(async(err) => { 
-          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime);
-          wlogger.debug(`\ncheckInvest result: ${result}`);
-          wlogger.error(`\n[Error @ investTokens] ${err}`);
+
           checkOK = false;
+          wlogger.error(`\n>>Rejected @ investTokens()`);
+          wlogger.error(`\n[Error @ investTokens] ${err}`);
+          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime).catch((err) => {
+            wlogger.error(`\n[Error @ checkInvest1] ${err}`);
+            checkOK = false;
+            return [false, null];
+          });
+          wlogger.debug(`\ncheckInvest result: ${result}`);
+
+          let checkWritingToDB1 = true;
+          const fakeHash = makeFakeTxHash();
+          const results5a = await mysqlPoolQueryB(queryStr5F, [fakeHash, orderId ]).catch((err) => {
+            checkWritingToDB1 = false;
+            wlogger.error(`\n[Error2 @ mysqlPoolQueryB(queryStr5F) errCFC] Failed to write "errCFC" into DB \n${err}`);
+          });
+
+          if(checkWritingToDB1){
+            wlogger.info(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+          } else {
+            wlogger.debug(`\nresults5a: ${results5a}`);
+            wlogger.error(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+
+          }
           return [false, null];
         });
         wlogger.debug(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
@@ -2627,25 +2668,43 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         txnHashArray.push(txnHash);
 
         //----------==
-        const orderId = orderIdArray[index];
-        const email = emailArray[index];
+        let checkWritingToDB2 = true;
         if(isInvestSuccess){
-          const results5 = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
+          wlogger.info(`\n>>isInvestSuccess: true @ investTokens()`);
+          const results5b = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
             wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            checkWritingToDB2 = false;
             checkOK = false;
           });
-          //wlogger.debug(`\nresults5 ${results5);
-         wlogger.info(`\n>>Success @ investTokens() & writing "txnFinished" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+
+          if(checkWritingToDB2){
+            wlogger.info(`\n>>[Success @ investTokens() & writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+          } else {
+            wlogger.debug(`\nresults5b: ${results5b}`);
+            wlogger.error(`\n[Error @ writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+          }
 
         } else {
-          const results5 = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
-            wlogger.warn(`\n[Warn @ mysqlPoolQueryB(queryStr5F)] ${err}`);
+          wlogger.error(`\n>>isInvestSuccess: false @ investTokens()`);
+          const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime).catch((err) => {
+            wlogger.error(`\n[Error @ checkInvest2] ${err}`);
             checkOK = false;
+            return [false, null];
+          });
+          wlogger.debug(`\ncheckInvest result: ${result}`);
+
+          const results5c = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
+            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5F)] ${err}`);
+            checkOK = false;
+            checkWritingToDB2 = false;
           });
 
-          wlogger.warn(`\n>>Failed @ investTokens() & writing "errCFC" into DB for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
-          // wlogger.warn(`\n>>Failed @ investTokens() for email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
-         
+          if(checkWritingToDB2){
+            wlogger.info(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+          } else {
+            wlogger.debug(`\nresults5c: ${results5c}`);
+            wlogger.error(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+          }
         }
       });
 
@@ -2660,13 +2719,18 @@ txnHashArray: ${txnHashArray}`);
   return checkOK;
 }
 
-const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTimeStr, invokedBy = '') => {
+const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTime, invokedBy = '') => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==investTokens()...`);
     const amountToInvest = parseInt(amountToInvestStr);
-    const serverTime = parseInt(serverTimeStr);
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     wlogger.debug(`amountToInvest: ${amountToInvest}, serverTime: ${serverTime}, \naddrAssetbookX: ${addrAssetbookX} \ncrowdFundingAddr: ${crowdFundingAddr}`);
+
+    if(isNaN(amountToInvest)){
+      reject(`[Error] amountToInvest is not valid`);
+      return false;
+    }
   
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     wlogger.debug(`investTokens1`);
@@ -2675,11 +2739,11 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
 
     wlogger.debug(`balanceB4Investing: ${balanceB4Investing}, quantitySoldMB4: ${quantitySoldMB4}`);
 
-    const encodedData = await instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
+    const encodedData = instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
     wlogger.debug(`investTokens3`);
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => {
       wlogger.error(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
-      reject(false);
+      reject(err);
       return false;
     });
     //wlogger.debug(`TxResult ${TxResult}`);
@@ -2700,7 +2764,9 @@ const tokenReceiver = async(addrAssetbookX) => {
   return new Promise( async ( resolve, reject ) => {
     wlogger.debug(`-----------==inside tokenReceiver()`);
     try{
+      wlogger.debug(`tokenReceiver1`);
       const instAssetbook = new web3.eth.Contract(AssetBook.abi, addrAssetbookX);
+      wlogger.debug(`tokenReceiver2`);
       const assetOwnerM = await instAssetbook.methods.assetOwner().call();
       const lastLoginTimeM = await instAssetbook.methods.lastLoginTime().call();
       const assetCindexM = await instAssetbook.methods.assetCindex().call();
@@ -2740,22 +2806,28 @@ const checkAssetbookArray = async(addrAssetbookArray) => {
 }
 
 
-const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, serverTimeStr) => {
+const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, serverTime) => {
   return new Promise( async ( resolve, reject ) => {
     wlogger.debug(`-----------==inside checkInvest()`);
     const amountToInvest = parseInt(amountToInvestStr);
-    const serverTime = parseInt(serverTimeStr);
-    if(isNaN(amountToInvest) || isNaN(serverTime)){
-      wlogger.debug(`\ninvalid input ... check amountToInvest: ${amountToInvest}, serverTime: ${serverTime}`);
+    //DO not check serverTime against the localtime because it IS FROM the local time!
+
+    if(isNaN(amountToInvest)){
+      wlogger.debug(`\ninvalid input ... check amountToInvest: ${amountToInvest}`);
       resolve(false);
       return false;
-    }
+
+    } //else if(!isGoodServerTime){
+    //   wlogger.debug(`\ninvalid input ... check serverTime: ${serverTime}, mesgServerTime: ${mesgServerTime}`);
+    //   resolve(false);
+    //   return false;
+    // }
 
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     wlogger.debug(`\ncheckInvest1: check crowdfunding contract`);
     const [is_checkCrowdfunding, TimeOfDeployment, maxTokenQtyForEachInvestmentFund, tokenSymbol, pricingCurrency, initialAssetPricing, maxTotalSupply, quantityGoal, quantitySold, CFSD, CFED, fundingCindex, fundingState, stateDescription, addrHelium] = await checkCrowdfundingCtrt(crowdFundingAddr).catch(async(err) => {
-      wlogger.debug(`${err} \ncheckCrowdfundingCtrt() failed...`);
-      reject(false);
+      //wlogger.error(`${err} \ncheckCrowdfundingCtrt() failed...`);
+      reject(err);
       return false;
     });
     if(!is_checkCrowdfunding){
@@ -2784,12 +2856,12 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
 
       const boolArray = await instCrowdFunding.methods.checkInvestFunction(addrAssetbook, amountToInvest, serverTime).call({ from: backendAddr }).catch((err) =>{
         wlogger.error(err);
+        return false;
       });
       wlogger.debug(`\ncheckInvestFunction boolArray: ${boolArray}`);
 
       if(boolArray.length !== 9){
-        wlogger.error(`checkInvest boolArray.length is not valid`);
-        reject(false);
+        reject(`checkInvest boolArray.length is not valid`);
         return false;
       }
       let mesg = 'found error: ', CFSD_M, CFED_M;
@@ -2829,11 +2901,11 @@ const checkInvest = async(crowdFundingAddr, addrAssetbook, amountToInvestStr, se
   
       } else {
         mesg = '[Success] all checks have passed via checkInvestFunction()';
-        wlogger.debug(mesg);
+        wlogger.info(mesg);
         resolve(true);
       }
     } else {
-      wlogger.debug(`tokenReceiver() returned false`);
+      wlogger.error(`tokenReceiver() returned false`);
       resolve(false);
     }
   });
@@ -2843,7 +2915,7 @@ const investTokensInBatch = async (crowdFundingAddr, addrAssetbookArray, amountT
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==investTokensInBatch()...`);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    const encodedData = await instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
+    const encodedData = instCrowdFunding.methods.investInBatch(addrAssetbookArray, amountToInvestArray, serverTime).encodeABI();
 
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => { 
       await asyncForEachCFC(addrAssetbookArray, async(addrAssetbookX,index) => {
@@ -2927,14 +2999,18 @@ const setTimeCFC = async (crowdFundingAddr, serverTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\n--------------==setTimeCFC()...`);
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    encodedData = await instCrowdFunding.methods.updateState(serverTime).encodeABI();
-    let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData);
+
+    let [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
+
+    encodedData = instCrowdFunding.methods.updateState(serverTime).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch((err) => {
+      reject(`[Error @ signTx updateState]:  ${err}`);
+      return undefined;
+    });
     wlogger.debug(`updateState TxResult ${TxResult}`);
 
-    let stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    wlogger.debug(`\nstateDescriptionM: ${stateDescriptionM}`);
+    [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
 
-    let fundingStateM = await instCrowdFunding.methods.fundingState().call();
     wlogger.debug(`\nFundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, aborted}`);
     wlogger.debug(`fundingStateM: ${fundingStateM}`);
     resolve(fundingStateM);
@@ -2945,19 +3021,13 @@ const setTimeCFC = async (crowdFundingAddr, serverTime) => {
 const setTimeCFC_bySymbol = async (serverTime, symbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside setTimeCFC_bySymbol(), serverTime: ${serverTime}, typeof ${typeof serverTime}, symbol: ${symbol}`);
-
-    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
-    wlogger.debug('[setTimeCFC_bySymbol] isGoodServerTime:', isGoodServerTime, ', servertime:', servertime, ', mesgServerTime:', mesgServerTime);
-    if(!isGoodServerTime){
-      reject(`${mesgServerTime}`);
-      return false;
-    }
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const [isGoodCtrtAddr, crowdFundingAddr, resultMesg] = await getCtrtAddr(symbol, 'crowdfunding').catch((err) => {
       reject(`[Error @getCtrtAddr]:  ${err}`);
       return undefined;
     });
-    ger.debug(`\n[setTimeCFC_bySymbol] isGoodCtrtAddr: ${isGoodCtrtAddr}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
+    wlogger.debug(`\n[setTimeCFC_bySymbol] isGoodCtrtAddr: ${isGoodCtrtAddr}, crowdFundingAddr: ${crowdFundingAddr}, resultMesg: ${resultMesg}`);
 
     if(!isGoodCtrtAddr){
       reject(`${resultMesg}`);
@@ -2976,13 +3046,7 @@ const setTimeCFC_bySymbol = async (serverTime, symbol) => {
 const updateTokenStateFromDB = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateTokenStateFromDB(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-
-    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
-    wlogger.debug('isGoodServerTime:', isGoodServerTime);
-    if(!isGoodServerTime){
-      reject(`${mesgServerTime}`);
-      return false;
-    }
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const str = 'SELECT p_SYMBOL FROM product WHERE (p_tokenState = "lockup" AND p_lockuptime <= ?) OR (p_tokenState = "normal" AND p_validdate <= ?)';
     const results = await mysqlPoolQueryB(str, [serverTime, serverTime]).catch((err) => {
@@ -3552,13 +3616,7 @@ const setErrResolution = async (symbol, schIndex, isErrorResolved, errorCode) =>
 const updateExpiredOrders = async (serverTime) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\ninside updateExpiredOrders(), serverTime: ${serverTime}, typeof ${typeof serverTime}`);
-
-    const [isGoodServerTime, serverTime_, mesgServerTime] = testInputTime(serverTime);
-    wlogger.debug('isGoodServerTime:', isGoodServerTime);
-    if(!isGoodServerTime){
-      reject(`${mesgServerTime}`);
-      return false;
-    }
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
     const queryStr ='SELECT o_id, o_purchaseDate FROM order_list WHERE o_paymentStatus = "waiting"';
     const results = await mysqlPoolQueryB(queryStr, []).catch((err) => {
@@ -3845,18 +3903,19 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
     wlogger.debug(`entering transferTokens()`);
 
     let mesg = '';
-    const serverTimeStr = 201905281400;// only used for emitting events in the blockchain
+    const serverTimeInput = 201905281400;// only used for emitting events in the blockchain
     const addrZero = "0x0000000000000000000000000000000000000000";
 
     // const _fromAssetOwner = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
     // const _fromAssetOwnerpkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
     const amount = parseInt(amountStr);
     const price = parseInt(priceStr);
-    const serverTime = parseInt(serverTimeStr);
+    //DO not check serverTime against the localtime because it IS FROM the local time!
 
-    if (isNaN(amount) || isNaN(price) || isNaN(serverTime)){
+
+    if (isNaN(amount) || isNaN(price) ){ //|| !isGoodServerTime
       mesg = 'input values should be integers';
-      wlogger.debug(`mesg, amount: ${amountStr}, price: ${priceStr}, serverTime: ${serverTimeStr}`);
+      wlogger.debug(`mesg, amount: ${amountStr}, price: ${priceStr}, serverTime: ${serverTimeInput}`);
       reject(mesg);
       return false;
     }
@@ -3932,8 +3991,6 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
     //call /HCAT721_AssetTokenContract/safeTransferFromBatch API to record txn info
   });
 }
-
-
 
 //--------------------------==
 //message queue producer(sender)
@@ -4047,6 +4104,6 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, setTimeCFC_bySymbol, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, setTimeCFC_bySymbol, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck
 }

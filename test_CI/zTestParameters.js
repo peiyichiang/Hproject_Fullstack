@@ -1,7 +1,7 @@
 var faker = require('faker');
 var _ = require('lodash');
-const { symbolNumber, isTimeserverON } = require('../timeserver/envVariables');
-const { getArraysFromCSV, getOneAddrPerLineFromCSV } = require('../timeserver/utilities');
+const { symbolNumber, isLivetimeOn } = require('../timeserver/envVariables');
+const { getArraysFromCSV, getOneAddrPerLineFromCSV, arraySum } = require('../timeserver/utilities');
 const { wlogger } = require('../ethereum/contracts/zsetupData');
 
 wlogger.info(`\n--------------------== zTestParameters.js`);
@@ -32,7 +32,7 @@ if(badAssetbooks.length > 0){
 
 //fundingType= 1 PO, 2 PP
 //Math.round(maxTotalSupply*quantityGoalPercentage);
-function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule) {
   this.nftSymbol = nftSymbol;
   this.maxTotalSupply = maxTotalSupply;
   this.quantityGoal = quantityGoal;
@@ -48,6 +48,14 @@ function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoa
   this.addrHCAT721 = addrHCAT721;
   this.addrCrowdFunding = addrCrowdFunding;
   this.addrIncomeManager = addrIncomeManager;
+
+  this.notarizedRentalContract = notarizedRentalContract;
+  this.BOEApprovedLetter = BOEApprovedLetter;
+  this.powerPurchaseAgreement = powerPurchaseAgreement;
+  this.onGridTryrunLetter = onGridTryrunLetter;
+  this.powerPlantEquipmentRegisteredLetter = powerPlantEquipmentRegisteredLetter;
+  this.powerPlantInsurancePolicy = powerPlantInsurancePolicy;
+  this.forecastedAnnualIncomePerModule = forecastedAnnualIncomePerModule;
 }
 
 //fundingType: PO: 1, PP: 2
@@ -75,43 +83,57 @@ const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + produc
 
 //fundingType= 1 PO, 2 PP
 //300k / 15k => 20
-//function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager) {
+//function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule) {
 
 //Private
-const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 2, "0x04110eC2b17E6593d9BD90273c3B2555F3F8370d", "0x4A4559298E83Bd4fe123AFEeAAdC3665143C971B", "0x5fB1A76955f55CB6EB29668a1103dB6B3874567b", "");
+const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 2, "0x04110eC2b17E6593d9BD90273c3B2555F3F8370d", "0x4A4559298E83Bd4fe123AFEeAAdC3665143C971B", "0x5fB1A76955f55CB6EB29668a1103dB6B3874567b", "", ".", ".", ".", ".", ".", ".", 1.0);
 
 //Public
-const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000, 900, 73310, 15000, "NTD", 510, 20, 1, "0xEF22926F586779148E99E47dC4cfd52195557037", "", "", "");
+const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000, 900, 73310, 15000, "NTD", 510, 20, 1, "0xEF22926F586779148E99E47dC4cfd52195557037", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
+
+//Private
+const productObj3 = new productObject("EINS1915", "愛因斯坦x號", "台南市新營區新工路23號", 969, 500, 300, 16468, "NTD", 540, 20, 2, "0x50268032D63986E89C3Ea462F2859983C7A69b48", "0x7D43F481e658d185f2A199eE8Ed1f831078E5b85", "0x67EE71B1DF787C8707E349b39B83325B1afa2f9d", "0x39B833Ebc8d1b1588bA4c0dBE34Ce883a10c57aB", ".", ".", ".", ".", ".", ".", 1.0);
+
+//Private
+const productObj4 = new productObject("EINS1916", "愛因斯坦x號", "台南市新營區新工路23號", 969, 500, 300, 16468, "NTD", 540, 20, 2, "0x027eF7F7EaBe747e80dE9fd420763C85E8e2E677", "0xF6cc16D8c7707BfFC2dfEebEd01b8cb489daADe2", "0xd0D18d110B4e2f439aaC624C5cB4ECCf0b2a099d", "0xB47F4259c3F3Da1bA1Ea3593BA9D208685188290", ".", ".", ".", ".", ".", ".", 1.0);
 
 //Public
-const productObj3 = new productObject("ADAM1904", "Adam1904", "Adam base 0004", 100, 90, 7331, 15000, "NTD", 500, 20, 1, "", "", "", "");
+const productObj14 = new productObject("AETH1914", "AETH base", "Earth base 0001", 100, 90, 110, 16000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
 
 //Public
-const productObj4 = new productObject("AETH1914", "AETH1904", "Earth base 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0x26e2479C1dD4b739D864A9AdaFb6E759D8069474", "0xf777aF7b3d0495190dc74aF12c99AB6238801F77", "0xCe162342c999791c1b3070cA125cdf73bE85BB4d", "0x87485F2620540deaC4500E14c6CAd17CBF4D5C47");// each investor can own max of 17 tokens
+const productObj5 = new productObject("AFLY1906", "base", "0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
+
+//fundingType= 1 PO, 2 PP
+//300k / 15k => 20
+//function productObject(nftSymbol, nftName, location, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, fundingType, addrCrowdFunding, addrTokenController, addrHCAT721, addrIncomeManager, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule) {
 
 //Public
-const productObj5 = new productObject("AFOT1905", "AFOT1905", "AFOT 0001", 100, 90, 73310, 17000, "NTD", 490, 20, 1, "0x8F155E2381dd633A615B92eB54AE1277e6Bfe11d", "", "", "");
+const productObj6 = new productObject("ASAT1906", "Satarn1906", "Saturn base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
 
-const productObj6 = new productObject("ASAT1906", "Satarn1906", "Saturn base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+//Public - goal reached
+//const productObj7 = new productObject("AMAR1907", "MARS1907", "Mars base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
+const productObj7 = new productObject("EINS1907", "愛因斯坦一號", "台南市新營區新工路23號", 969, 79, 300, 16468, "NTD", 540, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
 
-const productObj7 = new productObject("AMAR1907", "MARS1907", "Mars base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+//Public - sold out
+//const productObj8 = new productObject("APLU1908", "APLU1908", "Pluto base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
+const productObj8 = new productObject("EINS1908", "愛因斯坦一號", "台南市新營區新工路23號", 79, 61, 300, 16468, "NTD", 540, 20, 1, "0x55D978BCbbA2383e1fBA2b08ca8363032E9837e0", "0x154dEe6C875c8FF546EEb277Ec9DE12f63296250", "0x7fa2d4c352EbF9865686584a95d2C254C58f32D6", "0xe538922EcF3c35e18DE5fF0EB1A753A1c14C5155", ".", ".", ".", ".", ".", ".", 1.0);
 
-const productObj8 = new productObject("APLU1908", "APLU1908", "Pluto base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
 
-const productObj9 = new productObject("AHOB1909", "HOBBLE1909", "Hobble base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+//Public
+const productObj9 = new productObject("EINS1909", "愛因斯坦一號", "台南市新營區新工路23號", 969, 500, 300, 16468, "NTD", 540, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
 
-const productObj10 = new productObject("ASUN1910", "SUN1910", "Sun base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 2, "", "", "", "");
+//Public
+const productObj10 = new productObject("ASUN1910", "SUN1910", "Sun base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 490, 20, 1, "", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
 
 const productObjArray = [productObj0, productObj1, productObj2, productObj3, productObj4, productObj5, productObj6, productObj7, productObj8, productObj9, productObj10];
 
 //const getLocalTime_API = async () => await getLocalTime();
 
-const amountToInvest100 = [20, 19, 10, 3, 15, 2, 9, 14, 1, 7];
 
 // const currentTime = await timer.getTimeServerTime();
 // wlogger.debug('currentTime', currentTime);
 let TimeOfDeployment_CF, CFSD, CFED, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, TimeTokenUnlock, TimeTokenValid;
-if(isTimeserverON){
+if(isLivetimeOn){
   TimeOfDeployment_CF = -1;
   CFSD = -1;
   CFED = -1;
@@ -123,7 +145,7 @@ if(isTimeserverON){
 
 } else {
   
-  TimeOfDeployment_CF = 201905281410;
+  TimeOfDeployment_CF = 201910221410;
   CFSD = TimeOfDeployment_CF+10;
   CFED = TimeOfDeployment_CF+15;
   TimeOfDeployment_TokCtrl = TimeOfDeployment_CF + 20;
@@ -141,6 +163,10 @@ if(isTimeserverON){
   TimeTokenUnlock = nowDateAddMinites(nowDate, 30); 
   TimeTokenValid =  nowDateAddMinites(nowDate, 90);*/
 }
+// if(acTimeOfDeployment_TokCtrl <= CFED) {
+//   reject(`[Error] acTimeOfDeployment_TokCtrl <= CFED`);
+//   return false;
+// }
 fundmanager = 'Company_FundManagerN';
 
 
@@ -173,12 +199,38 @@ IRR20yrx100 = productObjN.IRR20yrx100;
 duration = productObjN.duration;
 location = productObjN.location;
 fundingType = productObjN.fundingType;
+addrCrowdFunding = productObjN.addrCrowdFunding;
 addrTokenController = productObjN.addrTokenController;
 addrHCAT721 = productObjN.addrHCAT721;
-addrCrowdFunding = productObjN.addrCrowdFunding;
 addrIncomeManager = productObjN.addrIncomeManager;
 
+notarizedRentalContract = productObjN.notarizedRentalContract;
+BOEApprovedLetter = productObjN.BOEApprovedLetter;
+powerPurchaseAgreement = productObjN.powerPurchaseAgreement;
+onGridTryrunLetter = productObjN.onGridTryrunLetter;
+powerPlantEquipmentRegisteredLetter = productObjN.powerPlantEquipmentRegisteredLetter;
+powerPlantInsurancePolicy = productObjN.powerPlantInsurancePolicy;
+forecastedAnnualIncomePerModule = productObjN.forecastedAnnualIncomePerModule;
+
 tokenURI = nftSymbol+"/uri";
+
+let amountArray;
+if(initialAssetPricing === 15000){
+  amountArray = [20, 19, 10, 3, 15, 2, 9, 14, 1, 7];//$ 15000
+} else if(initialAssetPricing === 16000){
+  amountArray = [18, 17, 13, 3, 15, 5, 9, 12, 1, 7];//$ 16000
+} else if(initialAssetPricing === 17000){
+  amountArray = [17, 16, 13, 3, 15, 5, 9, 14, 1, 7];//$ 17000
+} else if(initialAssetPricing === 18000){
+  amountArray = [16, 15, 13, 3, 14, 5, 9, 13, 1, 11];//$ 18000
+} else {
+  amountArray = [7,1,6,12,4,17,14,4,6,3,8,5,15,4,9,5,19,15,19,7,6,2,17,20,8,5,10,6,20,19,9,12,14,11,4,9,17,10,7,7,16,16,9,1,17,12,8,17,18,17,5,5,6,11,1,4,2,9,16,16,5,6,18,19,17,20,2,20,11,20,7,14,7,3,7,15,18,14,5,1,16,12,17,3,16,1,13,13,8,2,16,2,1,9,8,4];
+  const amountArraySumOut = arraySum(amountArray);
+
+  console.log(`initialAssetPricing is not needed. \namountArray: ${amountArray}, amountArraySumOut: ${amountArraySumOut}`);
+  //process.exit(1);
+}
+
 
 function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, tokenOrderAmount) {
   this.email = email;
@@ -315,5 +367,5 @@ duration: ${duration}, fundingType: ${fundingType}
 `);
 
 
-module.exports = { productObjArray, symbolArray, crowdFundingAddrArray, assetbookArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, amountToInvest100
+module.exports = { productObjArray, symbolArray, crowdFundingAddrArray, assetbookArray, userArray, assetRecordArray, incomeArrangementArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray,  TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, amountArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule
 }

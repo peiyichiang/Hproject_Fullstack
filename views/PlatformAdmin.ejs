@@ -17,7 +17,7 @@
     <!-- <h1>Backend User - List</h1> -->
     <!-- <input type='submit' value='Add' onclick="javascript: location.href='/BackendUser/AddBackendUser'"> -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <a class="navbar-brand" href="#">HeliumCryptic</a>
+        <a class="navbar-brand" href="#">Hcat電利超商</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -102,6 +102,7 @@
                 <th scope="col" class="text-nowrap">身分證正面</th>
                 <th scope="col" class="text-nowrap">身分證反面</th>
                 <th scope="col" class="text-nowrap">存摺照片</th>
+                <th scope="col" class="text-nowrap">銀行代號</th>
                 <th scope="col" class="text-nowrap">存摺帳號</th>
                 <th scope="col" class="text-nowrap">手機</th>
                 <th scope="col" class="text-nowrap">以太坊地址</th>
@@ -141,6 +142,9 @@
                                 <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + FrontEnd_data[i].u_bankAccountimage %>" alt=""
                                     style="width:100%;">
                                 <% } %>
+                            </td>
+                            <td class="align-middle">
+                                <%= FrontEnd_data[i].u_bankcode  %>
                             </td>
                             <td class="align-middle">
                                 <%= FrontEnd_data[i].u_bankBooklet  %>
@@ -199,6 +203,7 @@
                 <th scope="col" class="text-nowrap">身分證正面</th>
                 <th scope="col" class="text-nowrap">身分證反面</th>
                 <th scope="col" class="text-nowrap">存摺照片</th>
+                <th scope="col" class="text-nowrap">銀行代號</th>
                 <th scope="col" class="text-nowrap">存摺帳號</th>
                 <th scope="col" class="text-nowrap">手機</th>
                 <th scope="col" class="text-nowrap">以太坊地址</th>
@@ -238,6 +243,9 @@
                                 <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + FrontEnd_data[i].u_bankAccountimage %>" alt=""
                                     style="width:100%;">
                                 <% } %>
+                            </td>
+                            <td class="align-middle">
+                                <%= FrontEnd_data[i].u_bankcode  %>
                             </td>
                             <td class="align-middle">
                                 <%= FrontEnd_data[i].u_bankBooklet  %>
@@ -296,6 +304,7 @@
                 <th scope="col" class="text-nowrap">身分證正面</th>
                 <th scope="col" class="text-nowrap">身分證反面</th>
                 <th scope="col" class="text-nowrap">存摺照片</th>
+                <th scope="col" class="text-nowrap">銀行代號</th>
                 <th scope="col" class="text-nowrap">存摺帳號</th>
                 <th scope="col" class="text-nowrap">手機</th>
                 <th scope="col" class="text-nowrap">以太坊地址</th>
@@ -335,6 +344,9 @@
                                 <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + FrontEnd_data[i].u_bankAccountimage %>" alt=""
                                     style="width:100%;">
                                 <% } %>
+                            </td>
+                            <td class="align-middle">
+                                <%= FrontEnd_data[i].u_bankcode  %>
                             </td>
                             <td class="align-middle">
                                 <%= FrontEnd_data[i].u_bankBooklet  %>

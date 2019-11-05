@@ -1,11 +1,12 @@
 const fs = require('fs');
-const path = require('path');
+//const path = require('path');
 
-const { excludedSymbols, wlogger } = require('../ethereum/contracts/zsetupData');
-const { isTimeserverON, fakeServertime } = require('./envVariables');
+const { excludedSymbols, wlogger, COMPLIANCE_LEVELS } = require('../ethereum/contracts/zsetupData');
+const { isLivetimeOn, fakeServertime, crowdfundingScenario } = require('./envVariables');
 
 wlogger.info(`--------------------== utilities.js`);
 
+//Check if the two given values are equal in both value and type
 const checkEq = (value1, value2) => {
   if (value1 === value2) {
     wlogger.debug(`checked ok`);
@@ -18,31 +19,38 @@ const checkEq = (value1, value2) => {
   }
 }
 //----------------------------==
+//Check if the given value is undefined, null, empty object, empty string or string of ‘undefined’
 const isEmpty = value => 
     value === undefined ||
     value === null ||
     (typeof value === 'object' && Object.keys(value).length === 0) ||
     (typeof value === 'string' && value.trim().length === 0) || (typeof value === 'string' && value === 'undefined');
 
+//Check if the given value is undefined, null, object, or string that cannot be converted into integer
 const isNoneInteger = value => 
     value === undefined ||
     value === null ||
     (typeof value === 'object') ||
     (typeof value === 'string' && isNaN(parseInt(value)));
 
+//Check if the given value is not of array type or array length is zero
 const isInvalidArray = value => 
     !Array.isArray(value) || value.length === 0;
 
 
+//Returns if all given object properties are truthy
 const isAllTruthy = myObj => myObj.every(function(i) { return i; });
 
+//Returns if all given object properties are exactly true
 const isAllTrueBool = myObj => Object.keys(myObj).every(function(k){ return myObj[k] === true });//If you really want to check for true rather than just a truthy value
 
+//Get local machine time, then convert it into an integer
 const getLocalTime = () => parseInt(new Date().myFormat());
 
+//A custom date format function for making YYYYMMDDHHMM format
 const getTimeServerTime = () => {
   return new Promise(function (resolve, reject) {
-    if(isTimeserverON){
+    if(isLivetimeOn){
       resolve(getLocalTime());
     } else {
       resolve(fakeServertime);
@@ -63,9 +71,10 @@ Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
 
+//Test if the given time is of a valid format as specified in YYYYMMDDHHMM and it should not represent a time in the past
 const testInputTime = (inputTime) => {
   // 201910220801
-  console.log('inputTime:', inputTime);
+  console.log('inputTime:'+ inputTime+'<<');
   const inputTimeStr = inputTime + '';
     //const inputTime = parseInt(inputTime);
 
@@ -77,8 +86,8 @@ const testInputTime = (inputTime) => {
     if(int_length !== 12){
       return [false, undefined, 'length is invalid: '+int_length];
     }
-    const isInt = Number.isInteger(inputTime);
-    if(isInt){
+    const isIntBoolean = Number.isInteger(inputTime);
+    if(isIntBoolean){
       const inputTimeNum = Number(inputTime);
 
       if(inputTimeNum < getLocalTime()-1){
@@ -96,14 +105,28 @@ const testInputTime = (inputTime) => {
   }
 }
 
+//Returns the given item
 const checkBoolTrueArray = (item) => item;
-const isInt =(item) => Number.isInteger(item);
-const isIntAboveOne =(item) =>  Number.isInteger(item) && Number(item) > 0;
 
+//Checks if the given value is an integer
+const isInt =(item) => Number.isInteger(item);
+
+//Checks if the given value is a positive integer
+const isIntAboveZero =(item) =>  Number.isInteger(item) && Number(item) > 0;
+
+//Sum of all elements in the given array
 const arraySum = arr => arr.reduce((a,b) => a + b, 0);
 
+//Make an array whose element values are the same as their array index values
+const makeIndexArray = (_length) => Array.from({length: _length}, (v, i) => i);
+
+//Sum of all elements whose element indexes are specified in the indexes array
 const sumIndexedValues = (indexes, values) => indexes.map(i => values[i]).reduce((accumulator,currentValue) => accumulator + currentValue);
 
+//Make fake Ethereum transaction hash
+const makeFakeTxHash = () => Math.random().toString(36).substring(2, 15);
+
+//Get all array element indexes of a particular value
 const getAllIndexes = (arr, val) => {
   var indexes = [], i;
   for(i = 0; i < arr.length; i++){
@@ -112,6 +135,7 @@ const getAllIndexes = (arr, val) => {
   return indexes;
 }
 
+//Get arrays from a csv file, inside which there are lines of arrays
 const getArraysFromCSV = (eoaPath, itemNumberPerLine) => {
   const array = fs.readFileSync(eoaPath)
       .toString() // convert Buffer to string
@@ -151,6 +175,7 @@ const getArraysFromCSV = (eoaPath, itemNumberPerLine) => {
   return [good, bad];
 }
 
+//Get one address per line inside the given csv file
 const getOneAddrPerLineFromCSV = (eoaPath) => {
   const array = fs.readFileSync(eoaPath)
       .toString() // convert Buffer to string
@@ -178,7 +203,7 @@ const getOneAddrPerLineFromCSV = (eoaPath) => {
 
 
 
-
+//Reduce multiple duplicated address-amount pairs into unique pairs
 const reduceArrays = (toAddressArray, amountArray) => {
   const toAddressArrayOut = [...new Set(toAddressArray)];
   wlogger.debug(`toAddressArrayOut: ${toAddressArrayOut}`);
@@ -194,6 +219,7 @@ const reduceArrays = (toAddressArray, amountArray) => {
   return [toAddressArrayOut, amountArrayOut];
 }
 
+//compare array elements after sorting both arrays
 const arraysSortedEqual = (array1, array2) => {
   if (array1 === array2) return true;
   if (array1 == null || array2 == null) return false;
@@ -214,13 +240,65 @@ const arraysSortedEqual = (array1, array2) => {
   return true;
 }
 
+//Get a random number between min and max
 const getRndIntegerBothEnd = ((min, max) => {
   return Math.floor(Math.random() * (max - min + 1) ) + min;
 });
 
-const getInvestQty = () => getRndIntegerBothEnd(500,1000);
 
-const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
+// const getUserIndexArray = (arraylength = 3) => {
+//   for (let idx = 0; idx < arraylength; idx++) {
+//     do{
+//       usrIdx = getRndIntegerBothEnd(0, 9);
+//     } while(userIndexArray.includes(usrIdx))
+//   }
+// }
+
+
+//Get buy amount that is complied with Regulation on the max buy amount
+const getBuyAmountArray = (totalAmount, price, fundingType) => {
+  let maxAmountToBuy, remainder;
+  const maxAmountPublic = COMPLIANCE_LEVELS['5'].maxOrderPaymentPublic;
+  const maxBalancePublic = COMPLIANCE_LEVELS['5'].maxBalancePublic;
+
+  if(fundingType === 1){//PO
+    maxAmountToBuy = Math.floor(maxAmountPublic / price);
+    remainder = maxAmountPublic - price * maxAmountToBuy;
+    wlogger('fundingType: '+ fundingType+' Public with Regulations');
+  } else {
+    maxAmountToBuy = 20;
+  }
+
+  wlogger.debug(`maxAmountPublic: ${maxAmountPublic} ${typeof maxAmountPublic}, maxBalancePublic: ${maxBalancePublic} ${typeof maxBalancePublic}
+totalAmount: ${totalAmount}, price: ${price}, maxAmountToBuy: ${maxAmountToBuy}, remainder: ${remainder}`);
+
+  const amountArray = [];
+  let remainingQty = totalAmount, isGood, mesg = '';
+  do{
+    //wlogger.debug(`remainingQty: ${remainingQty}`);
+    let amount = getRndIntegerBothEnd(1, maxAmountToBuy);
+
+    if(amount > remainingQty){
+      amount = remainingQty;
+    }
+    amountArray.push(amount);
+    remainingQty = remainingQty - amount;
+    
+  } while(remainingQty > 0);
+
+  const amountSumOut = arraySum(amountArray);
+  if(amountSumOut === totalAmount){
+    isGood = true;
+  } else {
+    isGood = false;
+  }
+  wlogger.info(`\namountSumOut: ${amountSumOut} \nconst amountArray = [${amountArray}]; length: ${amountArray.length} \nisGood: ${isGood}, mesg: ${mesg}`);
+  return [isGood, amountArray, mesg];
+};
+
+
+//Get input arrays of userIndexArray and tokenCountArray
+const getInputArrays = (arraylength = 3, totalTokenAmount) => {
   if(typeof arraylength !== 'number'){
     wlogger.error(`[Error] arraylength should be typeof number`);
     process.exit(1);
@@ -228,8 +306,8 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     wlogger.error(`[Error] arraylength should be <= 10 and >= 1`);
     process.exit(1);
   }
-  //const totalAmountToInvest = 750 * arraylength;
-  wlogger.debug(`totalAmountToInvest: ${totalAmountToInvest}`)
+  //const totalTokenAmount = 750 * arraylength;
+  wlogger.debug(`totalTokenAmount: ${totalTokenAmount}`)
   const userIndexArray = [];
   const tokenCountArray = [];
   let usrIdx;
@@ -238,7 +316,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
       usrIdx = getRndIntegerBothEnd(0, 9);
     }while(userIndexArray.includes(usrIdx))
     //wlogger.debug(`usrIdx:: ${usrIdx);
-    const remainingQty = totalAmountToInvest-arraySum(tokenCountArray);
+    const remainingQty = totalTokenAmount-arraySum(tokenCountArray);
 
     if(idx === arraylength-1 && remainingQty > 0){
       userIndexArray.push(usrIdx);
@@ -247,7 +325,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
     } else {
       let amountToInvest = getRndIntegerBothEnd(1, remainingQty * 0.5);
       if(amountToInvest < 1 || remainingQty < 1 ){
-        continue
+        continue;
       }
       tokenCountArray.push(amountToInvest);
       userIndexArray.push(usrIdx);
@@ -256,7 +334,7 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   const tokenCountTotal = arraySum(tokenCountArray);
   wlogger.debug(`tokenCountTotal: ${tokenCountTotal}`);
 
-  if(tokenCountTotal === totalAmountToInvest && tokenCountArray.length === arraylength && userIndexArray.length === arraylength){
+  if(tokenCountTotal === totalTokenAmount && tokenCountArray.length === arraylength && userIndexArray.length === arraylength){
     wlogger.debug(`Tested Good: tokenCountTotal, tokenCountArray length, and userIndexArray length are all correct`);
     return [userIndexArray, tokenCountArray];
   } else {
@@ -264,7 +342,70 @@ const getInputArrays = (arraylength = 3, totalAmountToInvest) => {
   }
 };
 
+/**
+Make correct amounts for different funding scenarios
+1. Funding Sold out: all maxTotal should be distributed inside _amountArray
 
+2. Funding ended with goal reached: total output amount array should only sum up to be just above the goal
+
+3. Funding ended with goal not reached(funding failed): total output amount array should only sum up to be just below the goal
+ */
+const makeCorrectAmountArray = (_amountArray, goal, maxTotal) => {
+  console.log('\n------==inside makeCorrectAmountArray()');
+  let userIndexArray, mesg = '', amountArrayOut = [..._amountArray], amountArrayOutSum, previousItem;
+  if(crowdfundingScenario === 1){
+    console.log('crowdfundingScenario:', crowdfundingScenario, ', ended with sold out');
+    userIndexArray = makeIndexArray(amountArrayOut.length);
+
+    amountArrayOutSum = arraySum(amountArrayOut);
+    if(amountArrayOutSum === maxTotal){
+      isGoodAmountArrayOutSum = true;
+      console.error('[Good] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum)
+    } else {
+      isGoodAmountArrayOutSum = false;
+      console.error('[Error] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum);
+    }
+  
+  } else if(crowdfundingScenario === 2){
+    console.log('crowdfundingScenario:', crowdfundingScenario, ', funding ended with goal reached');
+    do {
+      previousItem = amountArrayOut.pop();
+      amountArrayOutSum = arraySum(amountArrayOut);
+    } while( amountArrayOutSum >= goal && amountArrayOutSum < maxTotal);
+    amountArrayOut.push(previousItem);
+    amountArrayOutSum = arraySum(amountArrayOut);
+    userIndexArray = makeIndexArray(amountArrayOut.length);
+
+    if(goal <= amountArrayOutSum && amountArrayOutSum < maxTotal){
+      isGoodAmountArrayOutSum = true;
+      console.error('[Good] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum)
+    } else {
+      isGoodAmountArrayOutSum = false;
+      console.error('[Error] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum);
+    }
+
+  } else if(crowdfundingScenario === 3){
+    console.log('crowdfundingScenario:', crowdfundingScenario, ', funding failed');
+    do {
+      amountArrayOut.pop();
+      amountArrayOutSum = arraySum(amountArrayOut);
+    } while( amountArrayOutSum >= goal);
+    userIndexArray = makeIndexArray(amountArrayOut.length);
+
+    if(goal > amountArrayOutSum){
+      isGoodAmountArrayOutSum = true;
+      console.error('[Good] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum)
+    } else {
+      isGoodAmountArrayOutSum = false;
+      console.error('[Error] isGoodAmountArrayOutSum:',isGoodAmountArrayOutSum);
+    }
+  }
+  return [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesg];
+}
+
+
+//-----------------------------==
+//A function to sequentially execute an asynchronous callback function in the order of given array items
 async function asyncForEach(array, callback) {
   wlogger.debug(`\n------------------==asyncForEach:\n ${array}`);
   for (let idx = 0; idx < array.length; idx++) {
@@ -288,6 +429,7 @@ async function asyncForEach(array, callback) {
   }
 }
 
+//Same as asyncForEach for object and non-object array as input, with excluded symbols
 async function asyncForEachTsMain(array, callback) {
   wlogger.debug(`\n--------------==asyncForEachTsMain:\n${array}`);
   for (let idx = 0; idx < array.length; idx++) {
@@ -311,6 +453,7 @@ async function asyncForEachTsMain(array, callback) {
   }
 }
 
+//Same as asyncForEach for address array as input, for mintTokens outer loop
 async function asyncForEachMint(toAddrArray, callback) {
   wlogger.debug(`\n------------------==asyncForEachMint`);
   const idxMintMax = toAddrArray.length -1;
@@ -323,6 +466,8 @@ async function asyncForEachMint(toAddrArray, callback) {
       });
   }
 }
+
+//Same as asyncForEach for address array as input, for mintTokens inner loop. Two extra input for showing idxMint out of idxMintMax
 async function asyncForEachMint2(toAddrArray, idxMint, idxMintMax, callback) {
   wlogger.debug(`\n------------------==asyncForEachMint2`);
   const idxMintSubMax = toAddrArray.length -1;
@@ -423,7 +568,7 @@ async function asyncForEachAssetRecordRowArray2(inputArray, callback) {
   }
 }
 
-
+//Check if each balance is less or equal to each amount respectively
 const checkTargetAmounts = (existingBalances, targetAmounts) => {
   let mesg = '', isAllGood;
   const isGoodArray = [];
@@ -431,13 +576,13 @@ const checkTargetAmounts = (existingBalances, targetAmounts) => {
   if(isEmpty(existingBalances) || isEmpty(targetAmounts)){
     mesg = 'existingBalances or targetAmounts is emtpy!';
     //throw new Error(mesg);
-    wlogger.debug(`${mesg}`);
+    wlogger.warn(`${mesg}`);
     return [isGoodArray, false];
   }
   if(existingBalances.length !== targetAmounts.length){
     mesg = 'existingBalances and targetAmounts are of different length';
     //throw new Error(mesg);
-    wlogger.debug(`${mesg}`);
+    wlogger.warn(`${mesg}`);
     return [isGoodArray, false];
   }
 
@@ -453,6 +598,8 @@ const checkTargetAmounts = (existingBalances, targetAmounts) => {
   return [isGoodArray, isAllGood];
 }
 
+
+//Break down given amount into an array of maxMintAmountPerRun and a remainder amount so each output array element is less or equal to maxMintAmountPerRun
 const breakdownArray = (toAddress, amount, maxMintAmountPerRun) => {
   wlogger.debug(`\n-----------------==\ninside breakdownArray: amount: ${amount} \ntoAddress: ${toAddress}`);
   let mesg = '';
@@ -481,6 +628,7 @@ const breakdownArray = (toAddress, amount, maxMintAmountPerRun) => {
   wlogger.debug(`toAddressOut: ${toAddressOut}, amountOut: ${amountOut}`);
   return [toAddressOut, amountOut];
 }
+
 
 const breakdownArrays = (toAddressArray, amountArray, maxMintAmountPerRun) => {
   wlogger.debug(`\n-----------------==\ninside breakdownArrays: amountArray: ${amountArray}  \ntoAddressArray: ${toAddressArray}`);
@@ -524,5 +672,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveOne, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getInputArrays
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveZero, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeCorrectAmountArray
 }

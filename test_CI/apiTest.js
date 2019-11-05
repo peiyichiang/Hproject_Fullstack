@@ -6,7 +6,7 @@ const should = require('should');
 const assert = require('assert');
 const {mysqlPoolQueryB} = require('../timeserver/mysql.js');
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
-const {addAssetbooksIntoCFC} = require('../timeserver/blockchain.js');
+const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 let virtualAccount;
 //var describe = mocha.describe;
@@ -101,7 +101,7 @@ const frontEndUserViewingPages = async() => {
     });
   })
 }
-const frontEndUserOrdering = async() => {
+const frontEndUserOrdering = async(amout) => {
   describe('intergration testing of front-end user ordering', async function(){
     this.timeout(1000);  
     let jwt, canBuy = false;
@@ -175,7 +175,7 @@ const frontEndUserOrdering = async() => {
     it('get order compliance', async function(){
       await request
         .get(version+'/order/CheckOrderCompliance')
-        .query({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: total,  buyAmount: total, userIdentity: "A128465975", fundCount: price * total})
+        .query({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
         .set('Accept', 'application/json')
         .expect(200)
         .then(async function(res){
@@ -187,7 +187,7 @@ const frontEndUserOrdering = async() => {
     it('add order to db', async function(){
       await request
         .post(version+'/order/AddOrder')
-        .send({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: total,  buyAmount: total, userIdentity: "A128465975", fundCount: price * total})
+        .send({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
         .set('Accept', 'application/json')
         .expect(200)
         .then(res => {
@@ -417,6 +417,166 @@ const PSPublishProduct = async() => {
     
   });
 };
+const PSPauseProduct = async() => {
+  let crowdFundingAddr;
+  describe('intergration testing of PS pause product', async function(){
+    this.timeout(1000);  
+    before('Login before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
+        .expect(302)
+        .then(async function(res){
+          await res.header["set-cookie"].should.not.empty();
+          token = (res.header["set-cookie"]);
+        });
+    });
+    it('Browse Product By PS', async function(){
+      await request
+        .get('/BackendUser/BackendUser_Platform_Supervisor')
+        .set('Cookie', token)
+        .then(async function(res){
+          res.text.should.not.equal("請先登入");
+          
+        });
+    });
+    it('You need to wait 60 secs now', async function(){
+    }).timeout(1000);
+    it('Wating one minute for pause time > time of deployment', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 60000);    
+      }).then(() => {
+        return ; // do the promise call in a `then` callback to properly chain it
+    })
+    }).timeout(100000);
+    it('Pause Product By PS', async function(){
+      await request
+        .post(`/contracts/crowdFundingContract/${symbol}/pause`)
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+
+        });
+    }).timeout(25000);
+    it('Set Prodct State By PS', async function(){
+      await request
+        .post('/product/SetProductStateByPlatformSupervisor')
+        .send({ tokenSymbol: symbol, tokenState: 'FundingPaused'})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.status.should.equal('true');
+        });
+    });
+   
+  });
+};
+const PSRestartProduct = async() => {
+  let crowdFundingAddr;
+  describe('intergration testing of PS restart product', async function(){
+    this.timeout(1000);  
+    before('Login before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
+        .expect(302)
+        .then(async function(res){
+          await res.header["set-cookie"].should.not.empty();
+          token = (res.header["set-cookie"]);
+        });
+    });
+    it('Browse Product By PS', async function(){
+      await request
+        .get('/BackendUser/BackendUser_Platform_Supervisor')
+        .set('Cookie', token)
+        .then(async function(res){
+          res.text.should.not.equal("請先登入");
+          
+        });
+    });
+    it('Restart Product By PS', async function(){
+      await request
+        .post(`/contracts/crowdFundingContract/${symbol}/resume`)
+        .send({ CFED2: parseInt(edit_product.p_CFED), quantityMax: goal + 10})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.DBresult.should.not.empty();
+          res.body.TxResult.should.not.empty();
+        });
+    }).timeout(25000);
+    it('Set Prodct State By PS', async function(){
+      await request
+        .post('/product/SetProductStateByPlatformSupervisor')
+        .send({ tokenSymbol: symbol, tokenState: 'funding'})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.status.should.equal('true');
+        });
+    });
+   
+  });
+};
+const PSTerminateProduct = async() => {
+  let crowdFundingAddr;
+  describe('intergration testing of PS terminate product', async function(){
+    this.timeout(1000);  
+    before('Login before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
+        .expect(302)
+        .then(async function(res){
+          await res.header["set-cookie"].should.not.empty();
+          token = (res.header["set-cookie"]);
+        });
+    });
+    it('Browse Product By PS', async function(){
+      await request
+        .get('/BackendUser/BackendUser_Platform_Supervisor')
+        .set('Cookie', token)
+        .then(async function(res){
+          res.text.should.not.equal("請先登入");
+          
+        });
+    });
+    it('Terminate Product By PS', async function(){
+      await request
+        .post(`/contracts/crowdFundingContract/${symbol}/terminate`)
+        .send({ reason: 'CI testing'})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.DBresult.should.not.empty();
+          res.body.TxResult.should.not.empty();
+        });
+    }).timeout(25000);
+    it('Set Prodct State By PS', async function(){
+      await request
+        .post('/product/SetProductStateByPlatformSupervisor')
+        .send({ tokenSymbol: symbol, tokenState: 'aborted'})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.status.should.equal('true');
+        });
+    });
+    it('Set Prodct State By PS', async function(){
+      await request
+        .post('/product/SetAbortedReasonByPA')
+        .send({ tokenSymbol: symbol, AbortedReason: 'CI testing'})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.message.should.equal('設置AbortedReasont成功');
+        });
+    });
+  });
+};
 const makeOrderPaidAndWriteIntoCFC = async() => {
   describe('Make Order Paid And Write Into Crowdfunding', async function(){
     this.timeout(1000);  
@@ -426,14 +586,14 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
       });
     }).timeout(3000);
     it('Write Into Crowdfunding', async function(){
-      await addAssetbooksIntoCFC(getLocalTime()).catch((err) => {
+      await addAssetbooksIntoCFC(getLocalTime()+1).catch((err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
       });
     }).timeout(10000);
     
   });
 };
-const PSMintToken = async() => {
+const PSMintToken = async(updateTime) => {
   let crowdFundingAddr;
   describe('intergration testing of PS mint token', async function(){
     this.timeout(1000);  
@@ -457,6 +617,11 @@ const PSMintToken = async() => {
           
         });
     });
+    it('update funding state', async function(){
+      await updateFundingStateFromDB(updateTime).catch((err) => {
+        console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
+      });
+    }).timeout(20000);
     it('Get Product status By PS', async function(){
       await request
         .get(`/contracts/crowdFundingContract/${symbol}/status`)
@@ -467,25 +632,159 @@ const PSMintToken = async() => {
           crowdFundingAddr = res.body.crowdFundingAddr;
         });
     });
-    it('Mint Token By PS', async function(){
-      let data = await mysqlPoolQueryB('SELECT * FROM product WHERE p_SYMBOL = ?', symbol);
+    it('Funding Close By PS', async function(){
+      let result = await mysqlPoolQueryB('SELECT * FROM product WHERE p_SYMBOL = ?', [symbol]);
+      let data = result[0];
       await request
         .post(`/contracts/crowdFundingContract/${symbol}/closeFunding`)
         .set('Cookie', token)
-        .send({'TimeOfDeployment':parseInt(data.p_releasedate), "TimeTokenValid": parseInt(data.p_validdate), "TimeTokenUnlock": parseInt(data.p_lockuptime), "nftName": symbol, "siteSizeInKW": data.p_size, "maxTotalSupply":data.p_totalrelease, "initialAssetPricing": data.p_pricing, "pricingCurrency": data.p_currency, "IRR20yrx100": parseInt(data.p_irr * 100), "tokenURI": data.p_HCAT721uri, "crowdFundingCtrtAddr":crowdFundingAddr})
+        .send({'TimeOfDeployment':getLocalTime(), "TimeTokenValid": parseInt(data.p_validdate), "TimeTokenUnlock": parseInt(data.p_lockuptime), "nftName": symbol, "siteSizeInKW": data.p_size, "maxTotalSupply":data.p_totalrelease, "initialAssetPricing": data.p_pricing, "pricingCurrency": data.p_currency, "IRR20yrx100": parseInt(data.p_irr * 100), "tokenURI": data.p_HCAT721uri, "crowdFundingCtrtAddr":crowdFundingAddr})
         .expect(200)
         .then(async function(res){
-          console.log(res.body);
+          res.body.tokenControllerAddr.should.not.empty();
+          res.body.HCAT721Addr.should.not.empty();
+          res.body.incomeManagerAddr.should.not.empty();
+          res.body.updateDB.should.not.empty();
         });
-    }).timeout(10000);
+    }).timeout(25000);
+    it('Mint Token By PS', async function(){
+      await request
+        .post(`/contracts/HCAT721_AssetTokenContract/${symbol}/mintSequentialPerContract`)
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.success.should.equal('in process...');
+          if(res.body.success === 'in process...'){
+            //process.exit(0);
+          }
+          else{
+            //process.exit(1);
+          }
+        });
+    }).timeout(2000);
   });
 };
-const allFlow = async() => {
-  await FMNAddProduct();
-  await FMSApproveProduct();
-  await PSPublishProduct();
-  await frontEndUserOrdering();
-  await makeOrderPaidAndWriteIntoCFC();
-  await PSMintToken();
+const PSFundingClose = async(updateTime) => {
+  let crowdFundingAddr;
+  describe('intergration testing of PS mint token', async function(){
+    this.timeout(1000);  
+    before('Login before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
+        .expect(302)
+        .then(async function(res){
+          await res.header["set-cookie"].should.not.empty();
+          token = (res.header["set-cookie"]);
+        });
+    });
+    it('Browse Product By PS', async function(){
+      await request
+        .get('/BackendUser/BackendUser_Platform_Supervisor')
+        .set('Cookie', token)
+        .then(async function(res){
+          res.text.should.not.equal("請先登入");
+          
+        });
+    });
+    it('update funding state', async function(){
+      await updateFundingStateFromDB(updateTime).catch((err) => {
+        console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
+      });
+    }).timeout(20000);
+    it('Get Product status By PS', async function(){
+      await request
+        .get(`/contracts/crowdFundingContract/${symbol}/status`)
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          res.body.fundingState.should.equal('4');
+          crowdFundingAddr = res.body.crowdFundingAddr;
+        });
+    });
+    it('Funding Close By PS', async function(){
+      let result = await mysqlPoolQueryB('SELECT * FROM product WHERE p_SYMBOL = ?', [symbol]);
+      let data = result[0];
+      await request
+        .post(`/contracts/crowdFundingContract/${symbol}/closeFunding`)
+        .set('Cookie', token)
+        .send({'TimeOfDeployment':getLocalTime(), "TimeTokenValid": parseInt(data.p_validdate), "TimeTokenUnlock": parseInt(data.p_lockuptime), "nftName": symbol, "siteSizeInKW": data.p_size, "maxTotalSupply":data.p_totalrelease, "initialAssetPricing": data.p_pricing, "pricingCurrency": data.p_currency, "IRR20yrx100": parseInt(data.p_irr * 100), "tokenURI": data.p_HCAT721uri, "crowdFundingCtrtAddr":crowdFundingAddr})
+        .expect(200)
+        .then(async function(res){
+          res.body.tokenControllerAddr.should.not.empty();
+          res.body.HCAT721Addr.should.not.empty();
+          res.body.incomeManagerAddr.should.not.empty();
+          res.body.updateDB.should.not.empty();
+        });
+    }).timeout(25000);
+    
+  });
+};
+const flow1 = async() => {
+  describe('intergration testing of sold out the product', async function(){
+    await FMNAddProduct();
+    await FMSApproveProduct();
+    await PSPublishProduct();
+    await frontEndUserOrdering(total);
+    await makeOrderPaidAndWriteIntoCFC();
+    await PSMintToken(getLocalTime());
+
+  });
+};
+const flow2 = async() => {
+  describe('intergration testing of reaching the funding goal after CFED', async function(){
+    await FMNAddProduct();
+    await FMSApproveProduct();
+    await PSPublishProduct();
+    await frontEndUserOrdering(goal);
+    await makeOrderPaidAndWriteIntoCFC();
+    await PSMintToken(parseInt(edit_product.p_CFED) + 1);
+  });
+};
+const flow3 = async() => {
+  describe('intergration testing of terminating product', async function(){
+    await FMNAddProduct();
+    await FMSApproveProduct();
+    await PSPublishProduct();
+    await frontEndUserOrdering(goal);
+    await PSPauseProduct();
+    await makeOrderPaidAndWriteIntoCFC();
+    await PSTerminateProduct();
+
+  });
+};
+const flow4 = async() => {
+  describe('intergration testing of restart product', async function(){
+    await FMNAddProduct();
+    await FMSApproveProduct();
+    await PSPublishProduct();
+    await PSPauseProduct();      
+    await PSRestartProduct();
+    await frontEndUserOrdering(goal + 10);
+    await makeOrderPaidAndWriteIntoCFC();
+    await PSMintToken(parseInt(edit_product.p_CFED) + 1);    
+
+  });
+};
+const flow5 = async() => {
+  describe('intergration testing of reaching funding goal but aborted', async function(){
+    await FMNAddProduct();
+    await FMSApproveProduct();
+    await PSPublishProduct();
+    await frontEndUserOrdering(total);
+    await makeOrderPaidAndWriteIntoCFC();
+    await PSFundingClose(getLocalTime());
+    await PSTerminateProduct();
+  });
+};
+const deleteSymbol = async() => {
+  let symbol = 'NAKI1111'
+  await mysqlPoolQueryB('DELETE FROM product WHERE p_SYMBOL = ?', [symbol]);
+  await mysqlPoolQueryB('DELETE FROM smart_contracts WHERE sc_symbol = ?', [symbol]);
+  await mysqlPoolQueryB('DELETE FROM order_list WHERE o_symbol = ?', [symbol]);
+  await mysqlPoolQueryB('DELETE FROM investor_assetRecord WHERE ar_tokenSYMBOL = ?', [symbol]);
+  await mysqlPoolQueryB('DELETE FROM income_arrangement WHERE ia_SYMBOL = ?', [symbol]);
 }
-allFlow();
+
+flow2();

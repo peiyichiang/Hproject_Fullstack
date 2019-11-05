@@ -3,23 +3,22 @@ var debugSQL = require('debug')('dev:mysql');
 const bcrypt = require('bcrypt');
 const Web3 = require('web3');
 
-const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL } = require('./envVariables');
+const { DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL,assetbookAmount } = require('./envVariables');
 
-const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2 } = require('./utilities');
+const { isEmpty, isNoneInteger, asyncForEach, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, testInputTime, makeFakeTxHash } = require('./utilities');
 
-const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols, excludedSymbolsIA, assetRecordArray, wlogger} = require('../ethereum/contracts/zsetupData');
+const { TokenController, HCAT721, CrowdFunding, IncomeManager, excludedSymbols,wlogger} = require('../ethereum/contracts/zsetupData');
 
 const { userArray } = require('../test_CI/zTestParameters');
-// const userIdentityNumberArray = [];
-// const investorLevelArray = [];
+/*
+const userIdentityNumberArray = [];
+const investorLevelArray = [];
 const assetbookArray = [];
 userArray.forEach((user, idx) => {
-  if (idx !== 0 ){
-    // userIdentityNumberArray.push(user.identityNumber);
-    // investorLevelArray.push(user.investorLevel);
-    assetbookArray.push(user.addrAssetBook);
-  }
-});
+  userIdentityNumberArray.push(user.identityNumber);
+  investorLevelArray.push(user.investorLevel);
+  assetbookArray.push(user.addrAssetBook);
+});*/
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
 const DatabaseCredential = {
@@ -132,7 +131,7 @@ const addTxnInfoRowFromObj = (row) => {
 
 
 //yarn run testmt -f 61
-const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state) => {
+const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing, duration, pricingCurrency, IRR20yrx100, TimeReleaseDate, TimeTokenValid, siteSizeInKW, maxTotalSupply, fundmanager, _CFSD, _CFED, _quantityGoal, TimeTokenUnlock, fundingType, state, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule, img1, img2, img3, img4, img5, img6, img7, img8, img9, img10) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`\nto add product row into DB`);
     const sql = {
@@ -152,22 +151,21 @@ const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing
       p_CFSD: _CFSD,
       p_CFED: _CFED,
       p_icon: "",
-      p_assetdocs: "",
       p_RPT: "9",
       p_FRP: "9",     
       p_PSD: _CFSD,
       p_FMXAdate: "2019-8-8 00:00:00", 
       p_state: state,
-      p_Image1: "public/uploadImgs/1.jpg",
-      p_Image2: "public/uploadImgs/2.jpg",
-      p_Image3: "public/uploadImgs/3.jpg",
-      p_Image4: "public/uploadImgs/4.jpg",
-      p_Image5: "public/uploadImgs/5.jpg",
-      p_Image6: "public/uploadImgs/6.jpg",
-      p_Image7: "public/uploadImgs/7.jpg",
-      p_Image8: "public/uploadImgs/8.jpg",
-      p_Image9: "public/uploadImgs/9.jpg",
-      p_Image10: "public/uploadImgs/10.jpg",
+      p_Image1: img1,
+      p_Image2: img2,
+      p_Image3: img3,
+      p_Image4: img4,
+      p_Image5: img5,
+      p_Image6: img6,
+      p_Image7: img7,
+      p_Image8: img8,
+      p_Image9: img9,
+      p_Image10: img10,
       p_fundingGoal: _quantityGoal,
       p_lockuptime: TimeTokenUnlock,
       p_tokenState: "lockup",
@@ -180,6 +178,13 @@ const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing
       p_PVTrialOperationDate: _CFSD,
       p_PVOnGridDate: _CFSD,
       p_Copywriting: "auto",
+      p_NotarizedRentalContract: notarizedRentalContract,
+      p_BOEApprovedLetter: BOEApprovedLetter,
+      p_PowerPurchaseAgreement: powerPurchaseAgreement,
+      p_OnGridTryrunLetter: onGridTryrunLetter,
+      p_PowerPlantEquipmentRegisteredLetter: powerPlantEquipmentRegisteredLetter,
+      p_PowerPlantInsurancePolicy: powerPlantInsurancePolicy,
+      p_ForecastedAnnualIncomePerModule: forecastedAnnualIncomePerModule
     };
     const sqlStr = JSON.stringify(sql, null, 4);
     wlogger.debug(sqlStr);
@@ -403,8 +408,24 @@ const getAssetbookFromIdentityNumber = async(identityNumber) => {
   });
 }
 
+const deleteUsersInDB = async(users) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\n-------------==inside deleteUsersInDB()`);
+    const queryStr1 = 'DELETE FROM user WHERE u_eth_add = ?';
+    const usersPartial = users.slice(0, assetbookAmount);
+    
+    await asyncForEach(usersPartial, async (user, idx) => {
+      const eoa = user.eth_add;
+      wlogger.debug(`id:= ${idx} eoa: ${eoa}`);
+      const result = await mysqlPoolQueryB(queryStr1, [eoa]).catch((err) => {
+        reject(`[Error @ mysqlPoolQueryB] ${err}`);
+      });
+    });
+    resolve(true);
+  });
+}
 
-
+//-------------------------------==
 Date.prototype.myFormat = function () {
   return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
@@ -426,7 +447,7 @@ const addOrderRow = async (nationalId, email, tokenCount, symbol, fundCount, pay
         o_id: orderId,
         o_symbol: symbol,
         o_email: email,
-        o_txHash: Math.random().toString(36).substring(2, 15),
+        o_txHash: makeFakeTxHash(),
         o_tokenCount: tokenCount,
         o_fundCount: fundCount,
         o_purchaseDate: currentDate,
@@ -454,13 +475,24 @@ const deleteOrderRows = (tokenSymbol) => {
   });
 }
 
-const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSymbol) => {
+const addUserArrayOrdersIntoDB = async(users, _price, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n-------------==inside addUserArrayOrdersIntoDB()`);
     await asyncForEach(users, async (user, idx) => {
       const identityNumber = user.identityNumber;
       const email = user.email;
-      const tokenCount = user.tokenOrderAmount;
+      const tokenCount = parseInt(user.tokenOrderAmount);
+      const price = parseInt(_price);
+      if(isNaN(tokenCount)){
+        wlogger.debug(`tokenCount: ${tokenCount}`);
+        reject('tokenCount is not valid');
+        return false;
+      } else if(isNaN(price)){
+        wlogger.debug(`price: ${price}`);
+        reject('price is not valid');
+        return false;
+      }
+      const fundCount = price*tokenCount;
       wlogger.debug(`userNum: ${idx}, user: ${user}
   identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
   tokenSymbol: ${tokenSymbol}, fundCount: ${fundCount}, paymentStatus: ${paymentStatus}`);
@@ -474,14 +506,14 @@ const addUserArrayOrdersIntoDB = async(users, fundCount, paymentStatus, tokenSym
   });
 }
 
-const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, initialAssetPricing, paymentStatus, tokenSymbol) => {
+const addArrayOrdersIntoDB = async(userIndexArray, amountArray, initialAssetPricing, paymentStatus, tokenSymbol) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n-------------==inside addArrayOrdersIntoDB()`);
-    if(userIndexArray.length !== tokenCountArray.length){
-      wlogger.debug(`${userIndexArray} & ${tokenCountArray}`);
-      reject('userIndexArray and tokenCountArray should have the same length');
+    if(userIndexArray.length !== amountArray.length){
+      wlogger.debug(`${userIndexArray} & ${amountArray}`);
+      reject('userIndexArray and amountArray should have the same length');
     }
-    const maxIndex = assetbookArray.length ;
+    const maxIndex = userArray.length -1;
     userIndexArray.forEach((index, idx)=> {
       if(index > maxIndex || index < 0) {
         let mesg = `index should not be > maxIndex of ${maxIndex}. index value: ${index}`;
@@ -495,7 +527,7 @@ const addArrayOrdersIntoDB = async(userIndexArray, tokenCountArray, initialAsset
       const user = userArray[userIndex];
       const identityNumber = user.identityNumber;
       const email = user.email;
-      const tokenCount = tokenCountArray[idx];
+      const tokenCount = amountArray[idx];
       wlogger.debug(`idx: ${idx}, 
 identityNumber: ${identityNumber}, email: ${email}, tokenCount: ${tokenCount}, 
 tokenSymbol: ${tokenSymbol}, fundCount: ${initialAssetPricing * tokenCount}, paymentStatus: ${paymentStatus}`);
@@ -668,8 +700,13 @@ const getProductPricing = async(symbol) => {
     });
     wlogger.debug(`result: ${result}`);
     if (!Array.isArray(result) || !result.length) {
-      wlogger.debug(`pricing is not defined`);
+      wlogger.debug(`product is not found for this symbol ${symbol}`);
       resolve(undefined);
+
+    } else if(result.length > 1){
+      wlogger.warn(`multiple products are found for this symbol ${symbol}`);
+      resolve(undefined);
+
     } else {
       const pricing = result[0].p_pricing;
       if(Number.isInteger(pricing)){
@@ -739,7 +776,7 @@ const getSymbolsONM = async() => {
 const checkIaAssetRecordStatus = async(symbol, actualPaymentTime) => {
   return new Promise(async(resolve, reject) => {
     wlogger.debug(`-------==checkIaAssetRecordStatus`);
-    const query1 = 'SELECT ia_assetRecord_status FROM htoken.income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
+    const query1 = 'SELECT ia_assetRecord_status FROM income_arrangement WHERE ia_SYMBOL = ? AND ia_actualPaymentTime = ?';
     const result = await mysqlPoolQueryB(query1, [symbol, actualPaymentTime]).catch((err) => {
       wlogger.error(`\n[Error @ checkIaAssetRecordStatus > mysqlPoolQueryB()]`);
       reject(err);
@@ -1051,6 +1088,11 @@ const calculateLastPeriodProfit = async(serverTime) => {
   });
 }
 
+
+/**
+ * getOwnerAddrAmountList() should not be moved to blockchain.js
+ * because of circular dependency!!!
+ */
 const getOwnerAddrAmountList = async(tokenAddress, indexStart, indexAmount) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n--------------==inside getOwnerAddrAmountList()`);
@@ -1303,7 +1345,7 @@ const setFundingStateDB = (symbol, pstate, CFSD, CFED) => {
 
     const [isGoodCFSD, CFSD_, mesgCFSD] = testInputTime(CFSD);
     const [isGoodCFED, CFED_, mesgCFED] = testInputTime(CFED);
-    console.log('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED);
+    wlogger.debug('isGoodCFSD:', isGoodCFSD, ', isGoodCFED:', isGoodCFED);
 
     if(isGoodCFSD && isGoodCFED){
       const result1 = await mysqlPoolQueryB(queryStr1, [pstate, CFSD, CFED, symbol]).catch((err) => {
@@ -1776,5 +1818,5 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
-    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus
+    mysqlPoolQuery, addOrderRow, addUserRow, addTxnInfoRow, addTxnInfoRowFromObj, getTxnInfoRowsBySymbol, addIncomeArrangementRowFromObj, addIncomeArrangementRow, addIncomeArrangementRows, setFundingStateDB, getFundingStateDB, setTokenStateDB, getTokenStateDB, addProductRow, addSmartContractRow, add3SmartContractsBySymbol, addUsersIntoDB, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, isIMScheduleGoodDB, setIMScheduleDB, getPastScheduleTimes, getSymbolsONM, addAssetRecordRow, addAssetRecordRowArray, addActualPaymentTime, addIncomePaymentPerPeriodIntoDB, getAssetbookFromEmail, getAssetbookFromIdentityNumber, mysqlPoolQueryB, getCtrtAddr, getSymbolFromCtrtAddr, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, deleteIncomeArrangementRows, deleteAssetRecordRows, getAllSmartContractAddrs, deleteAllRecordsBySymbol, checkIaAssetRecordStatus, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, deleteUsersInDB
 }

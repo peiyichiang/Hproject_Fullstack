@@ -1,8 +1,9 @@
 var faker = require('faker');
 var fs = require('fs');
 var es = require('event-stream');
+const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 
-let symbol = faker.name.findName().toUpperCase().substring(0,4) + "1111";
+let symbol = faker.name.findName().toUpperCase().substring(0,4) + getLocalTime().toString().substring(4, 8);
 let total = faker.random.number(1000) + 1000;
 let goal = faker.random.number(1000, total);
 let price = faker.random.number(10000) + 10000
@@ -15,8 +16,8 @@ const edit_product = {
     p_duration: "20",
     p_currency: 'NTD',
     p_irr: 5.4,
-    p_releasedate: '201911232359',
-    p_validdate: '203912302359',
+    p_releasedate: 201911232359,
+    p_validdate: 203912302359,
     p_size: "300",
     p_totalrelease: total,
     p_fundmanager: 'myrronlin@gmail.com',
@@ -64,7 +65,7 @@ const edit_product = {
     p_isNewCase: "2",
     p_NotarizedRentalContract: '',
     p_ForecastedAnnualIncomePerModule: "1",
-    p_lockuptime: ""
+    p_lockuptime: 201911010800
 };
 const add_product = {
     p_SYMBOL: symbol,
@@ -123,6 +124,8 @@ const add_product = {
     p_isNewCase: "2",
     p_NotarizedRentalContract: '',
     p_ForecastedAnnualIncomePerModule: "1",
+    p_lockuptime: 201911010800
+
 };
 
 const generateCSV = () => {
