@@ -2485,6 +2485,19 @@ const setUsersInRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
   });
 }
 
+const filterSymbols = async () => {
+  for(let i = 0; i < results1.length; i++) {
+    if(typeof results1[i] === 'object' && results1[i] !== null){
+      foundSymbolArray.push(results1[i].o_symbol);
+      if(!excludedSymbols.includes(results1[i].o_symbol)){
+        symbolArray.push(results1[i].o_symbol)
+      }
+    } else {
+      symbolArray.push(results1[i]);
+    }
+  }
+
+}
 
 // after order status change: waiting -> paid -> write into crowdfunding contract
 const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
@@ -2511,15 +2524,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
 
   } else {
     wlogger.debug(`\n[distinct symbols] ${results1.length} symbols were found`);
-    for(let i = 0; i < results1.length; i++) {
-      if(typeof results1[i] === 'object' && results1[i] !== null){
-        foundSymbolArray.push(results1[i].o_symbol);
-        if(!excludedSymbols.includes(results1[i].o_symbol)){
-          symbolArray.push(results1[i].o_symbol)}
-      } else {
-        symbolArray.push(results1[i]);
-      }
-    }
+    [foundSymbolArray, symbolArray] = xyz();
   }
 
   //----------------==
