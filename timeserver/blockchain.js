@@ -2304,18 +2304,15 @@ const updateFundingStateFromDB = async (serverTime) => {
 
     } else {
       wlogger.debug(`\n[updateFundingStateFromDB] ${results.length} symbol(s) were found`);
-      const symbolArray = [];
-      for (let i = 0; i < results.length; i++) {
-        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
-          symbolArray.push(results[i].p_SYMBOL)
-        }
-      }
+      const [symbolArray, foundSymbolArray] = filterSymbols(results);
+
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['crowdfunding']);
     }
     wlogger.debug(`[updateFundingStateFromDB] exiting`);
     resolve(true);
   });
 }
+
 
 //yarn run testts -a 2 -c 2
 //find still funding symbols that have passed CDED2 -> expire all orders of that symbol
@@ -2337,12 +2334,7 @@ const makeOrdersExpiredCFED = async (serverTime) => {
     } else {
       wlogger.debug(`[makeOrdersExpiredCFED] ${results.length} symbol(s) were found`);
 
-      const symbolArray = [];
-      for (let i = 0; i < results.length; i++) {
-        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
-          symbolArray.push(results[i].p_SYMBOL)
-        }
-      }
+      const [symbolArray, foundSymbolArray] = filterSymbols(results);
   
       const queryStr3 = 'UPDATE order_list SET o_paymentStatus = "expired" WHERE o_symbol = ? AND o_paymentStatus = "waiting"';
       await asyncForEachOrderExpiry(symbolArray, async (symbol, index) => {
@@ -2482,18 +2474,31 @@ const setUsersInRegistryCtrt = async (registryCtrtAddr, userIDs, assetbooks, aut
   });
 }
 
-const filterSymbols = async () => {
-  for(let i = 0; i < results1.length; i++) {
-    if(typeof results1[i] === 'object' && results1[i] !== null){
-      foundSymbolArray.push(results1[i].o_symbol);
-      if(!excludedSymbols.includes(results1[i].o_symbol)){
-        symbolArray.push(results1[i].o_symbol)
+
+//[symbolArray, foundSymbolArray] = filterSymbols(results1);
+const filterSymbols = (results) => {
+  const foundSymbolArray = [];
+  const symbolArray = [];
+
+  for(let i = 0; i < results.length; i++) {
+    if(typeof results[i] === 'object' && results[i] !== null){
+      let symbol;
+      if(results[i].p_SYMBOL){
+        symbol = results[i].p_SYMBOL;
+      } else if(results[i].o_symbol){
+        symbol = results[i].o_symbol;
+      } else {
+        wlogger.error('filterSymbols has not found the symbol');
+      }
+      foundSymbolArray.push(symbol);
+      if(!excludedSymbols.includes(symbol)){
+        symbolArray.push(symbol);
       }
     } else {
-      symbolArray.push(results1[i]);
+      symbolArray.push(results[i]);
     }
   }
-
+  return [symbolArray, foundSymbolArray];
 }
 
 // after order status change: waiting -> paid -> write into crowdfunding contract
@@ -2505,9 +2510,8 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
     wlogger.error(`\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)] ${err}`);
     return false;
   });
-  const foundSymbolArray = [];
-  const symbolArray = [];
 
+  let symbolArray, foundSymbolArray;
   wlogger.debug(`results1: ${results1}`);
   if (!Array.isArray(results1)){
     wlogger.debug(`\n[distinct symbols] array does not exist, or is not an array`);
@@ -2521,7 +2525,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
 
   } else {
     wlogger.debug(`\n[distinct symbols] ${results1.length} symbols were found`);
-    [foundSymbolArray, symbolArray] = xyz();
+    [symbolArray, foundSymbolArray] = filterSymbols(results1);
   }
 
   //----------------==
@@ -3064,18 +3068,16 @@ const updateTokenStateFromDB = async (serverTime) => {
 
     } else {
       wlogger.debug(`\n[updateTokenStateFromDB] array length: ${results.length}`);
-      const symbolArray = [];
-      for (let i = 0; i < results.length; i++) {
-        if(!excludedSymbols.includes(results[i].p_SYMBOL)){
-          symbolArray.push(results[i].p_SYMBOL)
-        }
-      }
+      const [symbolArray, foundSymbolArray] = filterSymbols(results);
+
       await sequentialRunTsMain(symbolArray, timeIntervalOfNewBlocks, serverTime, ['tokencontroller']);
     }
     wlogger.debug(`[updateTokenStateFromDB] exiting`);
     resolve(true);
   });
 }
+
+
 
 const writeToBlockchainAndDatabase = async (targetAddr, serverTime, symbol, actionType) => {
   if(actionType === 'crowdfunding'){
