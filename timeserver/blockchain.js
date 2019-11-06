@@ -1829,7 +1829,7 @@ const sequentialMintToMax = async(addressArray, amountArray, maxMintAmountPerRun
 //yarn run testmt -f 40
 const preMint = async(symbol) => {
   return new Promise(async (resolve, reject) => {
-    wlogger.debug(`\n-------------==inside preMint()`);
+    wlogger.debug(`\n-------------==inside preMint(): ${symbol}`);
     let mesg = '';//PO: 1, PP: 2
 
     const queryStr1 = 'SELECT sc_crowdsaleaddress, sc_erc721address, sc_erc721Controller FROM smart_contracts WHERE sc_symbol = ?';
@@ -1839,7 +1839,7 @@ const preMint = async(symbol) => {
       reject(mesg);
       return false;
     });
-    wlogger.debug(`result1: ${result1}`);
+    wlogger.debug(`result1: ${JSON.stringify(result1, null, 4)}`);
     if (!Array.isArray(result1)){
       reject(`result1 array does not exist, or is not an array`);
       return false;
@@ -1855,7 +1855,7 @@ const preMint = async(symbol) => {
       reject(mesg);
       return false;
     });
-    wlogger.debug(`result2: ${result2}`);
+    wlogger.debug(`result2: ${JSON.stringify(result2, null, 4)}`);
     if (!Array.isArray(result1)){
       reject(`result2 array does not exist, or is not an array`);
       return false;
@@ -2741,10 +2741,32 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
   
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
     wlogger.debug(`investTokens1`);
+
+    const fundingStateM = await instCrowdFunding.methods.fundingState().call();
+    //    enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
+    const tokenSymbolM = await instCrowdFunding.methods.tokenSymbol().call();
+    const stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
+
+    if(fundingStateM === '0' || fundingStateM === '1' || fundingStateM === '3'){
+      wlogger.info(`valid funding state: ${fundingStateM}`);
+    } else {
+      wlogger.warn(`invalid funding state: ${fundingStateM}, stateDescriptionM: ${stateDescriptionM}, tokenSymbolM: ${tokenSymbolM} ... exiting investTokens() `);
+      return false;
+    }
+      /**
+        if(serverTime >= CFSD && fundingState == FundingState.initial){
+            fundingState = FundingState.funding;
+        }
+        require(
+            fundingState == FundingState.funding ||
+            fundingState == FundingState.fundingGoalReached,
+            "funding is terminated or not started yet");
+     */
+
     const balanceB4Investing = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
     const quantitySoldMB4 = await instCrowdFunding.methods.quantitySold().call();
 
-    wlogger.debug(`balanceB4Investing: ${balanceB4Investing}, quantitySoldMB4: ${quantitySoldMB4}`);
+    wlogger.debug(`balanceB4Investing: ${balanceB4Investing}, quantitySoldMB4: ${quantitySoldMB4}, fundingStateM: ${fundingStateM}`);
 
     const encodedData = instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
     wlogger.debug(`investTokens3`);
@@ -2961,7 +2983,7 @@ const getDetailsCFC = async(crowdFundingAddr) => {
     wlogger.debug(`CFEDM: ${CFEDM}`);
 
     stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
-    wlogger.debug(`\nstateDescriptionM: ${stateDescriptionM}`);
+    wlogger.debug(`stateDescriptionM: ${stateDescriptionM}`);
 
     fundingStateM = await instCrowdFunding.methods.fundingState().call();
     wlogger.debug(`fundingStateM: ${fundingStateM}`);

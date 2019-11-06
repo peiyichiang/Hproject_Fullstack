@@ -35,13 +35,13 @@ winston.loggers.add('format1', {
 });
 
 const wlogger = winston.loggers.get('format1');
-// wlogger.silly('log level = silly');
+/* wlogger.silly('log level = silly');
 wlogger.debug(`log level = 5 debug`);
 wlogger.verbose(`log level = 4 verbose`);
 wlogger.info(`log level = 3 info`);
 wlogger.warn(`log level = 2 warn`);
 wlogger.error(`log level = 1 error`);
-
+*/
 //---------------------------==
 //---------------------------==
 wlogger.info(`--------------------==zsetupData.js`);

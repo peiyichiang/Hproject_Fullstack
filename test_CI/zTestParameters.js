@@ -1,6 +1,6 @@
 var faker = require('faker');
 var _ = require('lodash');
-const { symbolNumber, isLivetimeOn } = require('../timeserver/envVariables');
+const { symbolNumber, isLivetimeOn, cfcBuyAmountChoice, testmode } = require('../timeserver/envVariables');
 const { getArraysFromCSV, getOneAddrPerLineFromCSV, arraySum } = require('../timeserver/utilities');
 const { wlogger } = require('../ethereum/contracts/zsetupData');
 
@@ -88,8 +88,8 @@ const productObj0 = new productObject(p_name.substr(0, 4).toUpperCase() + produc
 //Private
 const productObj1 = new productObject("ABEN1901", "Ben1901", "Ben base 0001", 1000000000, 900000000, 73310, 15000, "NTD", 520, 20, 2, "0x04110eC2b17E6593d9BD90273c3B2555F3F8370d", "0x4A4559298E83Bd4fe123AFEeAAdC3665143C971B", "0x5fB1A76955f55CB6EB29668a1103dB6B3874567b", "", ".", ".", ".", ".", ".", ".", 1.0);
 
-//Public
-const productObj2 = new productObject("ACUP1902", "Cup1902", "Cupiter base 0001", 1000, 900, 73310, 15000, "NTD", 510, 20, 1, "0xEF22926F586779148E99E47dC4cfd52195557037", "", "", "", ".", ".", ".", ".", ".", ".", 1.0);
+//Private
+const productObj2 = new productObject("EINS1917", "愛因斯坦x號", "台南市新營區新工路23號", 969, 512, 312, 16468, "NTD", 540, 20, 2, "0xE0e18C99297649d5650d18ce5873DE42D8bdC341", "0xa2A1Ce660A7a000bcF18C3AF35085429acFdAF54", "0x7b0b13b1Ab802aA27597254aC91051F16D6eb22a", "0x25e6E85a558c7d739731613847752f6b2a7FC49C", ".", ".", ".", ".", ".", ".", 1.0);
 
 //Private
 const productObj3 = new productObject("EINS1915", "愛因斯坦x號", "台南市新營區新工路23號", 969, 500, 300, 16468, "NTD", 540, 20, 2, "0x50268032D63986E89C3Ea462F2859983C7A69b48", "0x7D43F481e658d185f2A199eE8Ed1f831078E5b85", "0x67EE71B1DF787C8707E349b39B83325B1afa2f9d", "0x39B833Ebc8d1b1588bA4c0dBE34Ce883a10c57aB", ".", ".", ".", ".", ".", ".", 1.0);
@@ -215,21 +215,35 @@ forecastedAnnualIncomePerModule = productObjN.forecastedAnnualIncomePerModule;
 tokenURI = nftSymbol+"/uri";
 
 let amountArray;
-if(initialAssetPricing === 15000){
-  amountArray = [20, 19, 10, 3, 15, 2, 9, 14, 1, 7];//$ 15000
-} else if(initialAssetPricing === 16000){
-  amountArray = [18, 17, 13, 3, 15, 5, 9, 12, 1, 7];//$ 16000
-} else if(initialAssetPricing === 17000){
-  amountArray = [17, 16, 13, 3, 15, 5, 9, 14, 1, 7];//$ 17000
-} else if(initialAssetPricing === 18000){
-  amountArray = [16, 15, 13, 3, 14, 5, 9, 13, 1, 11];//$ 18000
-} else {
-  amountArray = [7,1,6,12,4,17,14,4,6,3,8,5,15,4,9,5,19,15,19,7,6,2,17,20,8,5,10,6,20,19,9,12,14,11,4,9,17,10,7,7,16,16,9,1,17,12,8,17,18,17,5,5,6,11,1,4,2,9,16,16,5,6,18,19,17,20,2,20,11,20,7,14,7,3,7,15,18,14,5,1,16,12,17,3,16,1,13,13,8,2,16,2,1,9,8,4];
-  const amountArraySumOut = arraySum(amountArray);
+if(cfcBuyAmountChoice === 1){
+  amountArray = [324, 437, 208];//969
 
-  console.log(`initialAssetPricing is not needed. \namountArray: ${amountArray}, amountArraySumOut: ${amountArraySumOut}`);
-  //process.exit(1);
+} else if(cfcBuyAmountChoice === 2){
+  amountArray = [1,2,3];//
+
+} else {
+  console.log(`initialAssetPricing is used to calculate amountArray.`);
+  if(initialAssetPricing === 15000){
+    amountArray = [20, 19, 10, 3, 15, 2, 9, 14, 1, 7];//$ 15000
+  } else if(initialAssetPricing === 16000){
+    amountArray = [18, 17, 13, 3, 15, 5, 9, 12, 1, 7];//$ 16000
+  } else if(initialAssetPricing === 17000){
+    amountArray = [17, 16, 13, 3, 15, 5, 9, 14, 1, 7];//$ 17000
+  } else if(initialAssetPricing === 18000){
+    amountArray = [16, 15, 13, 3, 14, 5, 9, 13, 1, 11];//$ 18000
+  } else {
+    console.log(`initialAssetPricing is not needed to calculate amountArray`);
+    amountArray = [7,1,6,12,4,17,14,4,6,3,8,5,15,4,9,5,19,15,19,7,6,2,17,20,8,5,10,6,20,19,9,12,14,11,4,9,17,10,7,7,16,16,9,1,17,12,8,17,18,17,5,5,6,11,1,4,2,9,16,16,5,6,18,19,17,20,2,20,11,20,7,14,7,3,7,15,18,14,5,1,16,12,17,3,16,1,13,13,8,2,16,2,1,9,8,4];//969
+    //process.exit(1);
+  }
 }
+const amountArraySumOut = arraySum(amountArray);
+console.log(`\namountArray: ${amountArray}, amountArraySumOut: ${amountArraySumOut}`);
+if(testmode > 0 && amountArraySumOut !== maxTotalSupply){
+  console.log(`\namountArrayOut is not equal to maxTotalSupply ${maxTotalSupply}`);
+  process.exit(0);
+}
+
 
 
 function userObject(email, password, identityNumber, eth_add, cellphone, name, addrAssetBook, investorLevel, tokenOrderAmount) {
