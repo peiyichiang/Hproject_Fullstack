@@ -16,7 +16,7 @@ const version = "/frontendAPI/v1.0"
 const frontEndUserRegistry = async() => {
   let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol;
   describe('intergration testing of front-end user register', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     it('sign up an user', async function(){
       await request
         .post(version+'/user/addUser')
@@ -86,7 +86,7 @@ const frontEndUserRegistry = async() => {
 
 const frontEndUserViewingPages = async() => {
   describe('intergration testing of front-end user viewing pages', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     let jwt;
     before('Login before do something', async function(){
       await request
@@ -103,7 +103,7 @@ const frontEndUserViewingPages = async() => {
 }
 const frontEndUserOrdering = async(amout) => {
   describe('intergration testing of front-end user ordering', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     let jwt, canBuy = false;
     before('Login before do something', async function(){
       await request
@@ -222,7 +222,7 @@ const frontEndUserOrdering = async(amout) => {
 const FMNAddProduct = async() => {
   let token;
   describe('intergration testing of FMS', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -303,7 +303,7 @@ const FMNAddProduct = async() => {
 }
 const FMSApproveProduct = async() => {
   describe('intergration testing of FMS', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -351,7 +351,7 @@ const FMSApproveProduct = async() => {
 };
 const PSPublishProduct = async() => {
   describe('intergration testing of PS publish product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -420,7 +420,7 @@ const PSPublishProduct = async() => {
 const PSPauseProduct = async() => {
   let crowdFundingAddr;
   describe('intergration testing of PS pause product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -442,7 +442,7 @@ const PSPauseProduct = async() => {
         });
     });
     it('You need to wait 60 secs now', async function(){
-    }).timeout(1000);
+    }).timeout(3000);
     it('Wating one minute for pause time > time of deployment', async function(){
       return new Promise((resolve, reject) => {
         setTimeout(resolve, 60000);    
@@ -475,7 +475,7 @@ const PSPauseProduct = async() => {
 const PSRestartProduct = async() => {
   let crowdFundingAddr;
   describe('intergration testing of PS restart product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -523,7 +523,7 @@ const PSRestartProduct = async() => {
 const PSTerminateProduct = async() => {
   let crowdFundingAddr;
   describe('intergration testing of PS terminate product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -630,8 +630,8 @@ const PSMintToken = async(updateTime) => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.fundingState.should.equal('4');
           crowdFundingAddr = res.body.crowdFundingAddr;
+          res.body.fundingState.should.equal('4');
         });
     });
     it('Funding Close By PS', async function(){
