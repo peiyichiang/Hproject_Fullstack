@@ -16,7 +16,7 @@ const version = "/frontendAPI/v1.0"
 const frontEndUserRegistry = async() => {
   let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol;
   describe('intergration testing of front-end user register', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     it('sign up an user', async function(){
       await request
         .post(version+'/user/addUser')
@@ -69,8 +69,8 @@ const frontEndUserRegistry = async() => {
         .set('Accept', 'application/json')
         .expect(200)
         .then(async function(res){
-            res.body.result.should.be.instanceOf(Array);
-            symbol = res.body.result[0].symbol;
+          await res.body.result.should.be.instanceOf(Array);
+          symbol = res.body.result[0].symbol;
         })
     })
 
@@ -86,7 +86,7 @@ const frontEndUserRegistry = async() => {
 
 const frontEndUserViewingPages = async() => {
   describe('intergration testing of front-end user viewing pages', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     let jwt;
     before('Login before do something', async function(){
       await request
@@ -103,7 +103,7 @@ const frontEndUserViewingPages = async() => {
 }
 const frontEndUserOrdering = async(amout) => {
   describe('intergration testing of front-end user ordering', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     let jwt, canBuy = false;
     before('Login before do something', async function(){
       await request
@@ -144,7 +144,7 @@ const frontEndUserOrdering = async(amout) => {
         .set('Accept', 'application/json')
         .expect(200)
         .then(async function(res){
-            res.body.result.should.be.instanceOf(Array);
+          await res.body.result.should.be.instanceOf(Array);
             //symbol = res.body.result[0].symbol;
             //
             //fundingType = res.body.result[0].fundingType;
@@ -190,8 +190,8 @@ const frontEndUserOrdering = async(amout) => {
         .send({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
         .set('Accept', 'application/json')
         .expect(200)
-        .then(res => {
-            res.body.message.should.equal('訂單寫入資料庫成功 & 驗證信寄送成功');
+        .then(async function(res){
+          await res.body.message.should.equal('訂單寫入資料庫成功 & 驗證信寄送成功');
             
         })
     }).timeout(20000);
@@ -222,7 +222,7 @@ const frontEndUserOrdering = async(amout) => {
 const FMNAddProduct = async() => {
   let token;
   describe('intergration testing of FMS', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -241,7 +241,7 @@ const FMNAddProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -251,7 +251,7 @@ const FMNAddProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
         });
     });
     it('Add Product By FMN', async function(){
@@ -303,7 +303,7 @@ const FMNAddProduct = async() => {
 }
 const FMSApproveProduct = async() => {
   describe('intergration testing of FMS', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -321,7 +321,7 @@ const FMSApproveProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -332,7 +332,7 @@ const FMSApproveProduct = async() => {
         .query({ symbol: symbol})
         .expect(200)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -351,7 +351,7 @@ const FMSApproveProduct = async() => {
 };
 const PSPublishProduct = async() => {
   describe('intergration testing of PS publish product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -368,7 +368,7 @@ const PSPublishProduct = async() => {
         .get('/BackendUser/BackendUser_Platform_Supervisor')
         .set('Cookie', token)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -379,7 +379,7 @@ const PSPublishProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -420,7 +420,7 @@ const PSPublishProduct = async() => {
 const PSPauseProduct = async() => {
   let crowdFundingAddr;
   describe('intergration testing of PS pause product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -437,18 +437,18 @@ const PSPauseProduct = async() => {
         .get('/BackendUser/BackendUser_Platform_Supervisor')
         .set('Cookie', token)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
     it('You need to wait 60 secs now', async function(){
-    }).timeout(1000);
+    }).timeout(3000);
     it('Wating one minute for pause time > time of deployment', async function(){
       return new Promise((resolve, reject) => {
         setTimeout(resolve, 60000);    
       }).then(() => {
         return ; // do the promise call in a `then` callback to properly chain it
-    })
+      })
     }).timeout(100000);
     it('Pause Product By PS', async function(){
       await request
@@ -466,7 +466,7 @@ const PSPauseProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.status.should.equal('true');
+          await res.body.status.should.equal('true');
         });
     });
    
@@ -475,7 +475,7 @@ const PSPauseProduct = async() => {
 const PSRestartProduct = async() => {
   let crowdFundingAddr;
   describe('intergration testing of PS restart product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -492,7 +492,7 @@ const PSRestartProduct = async() => {
         .get('/BackendUser/BackendUser_Platform_Supervisor')
         .set('Cookie', token)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -503,8 +503,8 @@ const PSRestartProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.DBresult.should.not.empty();
-          res.body.TxResult.should.not.empty();
+          await res.body.DBresult.should.not.empty();
+          await res.body.TxResult.should.not.empty();
         });
     }).timeout(25000);
     it('Set Prodct State By PS', async function(){
@@ -514,7 +514,7 @@ const PSRestartProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.status.should.equal('true');
+          await res.body.status.should.equal('true');
         });
     });
    
@@ -523,7 +523,7 @@ const PSRestartProduct = async() => {
 const PSTerminateProduct = async() => {
   let crowdFundingAddr;
   describe('intergration testing of PS terminate product', async function(){
-    this.timeout(1000);  
+    this.timeout(3000);  
     before('Login before do something', async function(){
       await request
         .post('/BackendUser/BackendUserLogin')
@@ -540,7 +540,7 @@ const PSTerminateProduct = async() => {
         .get('/BackendUser/BackendUser_Platform_Supervisor')
         .set('Cookie', token)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -551,8 +551,8 @@ const PSTerminateProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.DBresult.should.not.empty();
-          res.body.TxResult.should.not.empty();
+          await res.body.DBresult.should.not.empty();
+          await res.body.TxResult.should.not.empty();
         });
     }).timeout(25000);
     it('Set Prodct State By PS', async function(){
@@ -562,7 +562,7 @@ const PSTerminateProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.status.should.equal('true');
+          await res.body.status.should.equal('true');
         });
     });
     it('Set Prodct State By PS', async function(){
@@ -572,7 +572,7 @@ const PSTerminateProduct = async() => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.message.should.equal('設置AbortedReasont成功');
+          await res.body.message.should.equal('設置AbortedReasont成功');
         });
     });
   });
@@ -582,12 +582,14 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
     this.timeout(1000);  
     it('Make Order Paid', async function(){
       var sql = { o_paymentStatus: "paid" };
-      const result = await mysqlPoolQueryB('UPDATE order_list SET ? WHERE o_bankvirtualaccount = ?', [sql, virtualAccount]).catch((err) => {
+      const result = await mysqlPoolQueryB('UPDATE order_list SET ? WHERE o_bankvirtualaccount = ?', [sql, virtualAccount]).catch(async (err) => {
+        await err.should.empty();
       });
     }).timeout(3000);
     it('Write Into Crowdfunding', async function(){
-      await addAssetbooksIntoCFC(getLocalTime()+1).catch((err) => {
+      await addAssetbooksIntoCFC(getLocalTime()+1).catch(async (err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
+        await err.should.empty();
       });
     }).timeout(10000);
     
@@ -613,7 +615,7 @@ const PSMintToken = async(updateTime) => {
         .get('/BackendUser/BackendUser_Platform_Supervisor')
         .set('Cookie', token)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -621,15 +623,16 @@ const PSMintToken = async(updateTime) => {
       await updateFundingStateFromDB(updateTime).catch((err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
       });
-    }).timeout(20000);
+    }).timeout(50000);
     it('Get Product status By PS', async function(){
       await request
         .get(`/contracts/crowdFundingContract/${symbol}/status`)
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.fundingState.should.equal('4');
+          console.log(res.body);
           crowdFundingAddr = res.body.crowdFundingAddr;
+          await res.body.fundingState.should.equal('4');
         });
     });
     it('Funding Close By PS', async function(){
@@ -641,10 +644,10 @@ const PSMintToken = async(updateTime) => {
         .send({'TimeOfDeployment':getLocalTime(), "TimeTokenValid": parseInt(data.p_validdate), "TimeTokenUnlock": parseInt(data.p_lockuptime), "nftName": symbol, "siteSizeInKW": data.p_size, "maxTotalSupply":data.p_totalrelease, "initialAssetPricing": data.p_pricing, "pricingCurrency": data.p_currency, "IRR20yrx100": parseInt(data.p_irr * 100), "tokenURI": data.p_HCAT721uri, "crowdFundingCtrtAddr":crowdFundingAddr})
         .expect(200)
         .then(async function(res){
-          res.body.tokenControllerAddr.should.not.empty();
-          res.body.HCAT721Addr.should.not.empty();
-          res.body.incomeManagerAddr.should.not.empty();
-          res.body.updateDB.should.not.empty();
+          await res.body.tokenControllerAddr.should.not.empty();
+          await res.body.HCAT721Addr.should.not.empty();
+          await res.body.incomeManagerAddr.should.not.empty();
+          await res.body.updateDB.should.not.empty();
         });
     }).timeout(25000);
     it('Mint Token By PS', async function(){
@@ -653,15 +656,29 @@ const PSMintToken = async(updateTime) => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.success.should.equal('in process...');
-          if(res.body.success === 'in process...'){
-            //process.exit(0);
-          }
-          else{
-            //process.exit(1);
-          }
+          await res.body.success.should.equal('in process...');
         });
     }).timeout(2000);
+    it('Wating a while(60s) for Minting...', async function(){
+    }).timeout(1000);
+    it('Mint', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 60000);    
+      }).then(() => {
+        return ; // do the promise call in a `then` callback to properly chain it
+      });
+    }).timeout(62000);
+    it('Mint Token By PS', async function(){
+      await request
+        .post(`/contracts/crowdfunding/emailToQty`)
+        .send({"ctrtAddr" : crowdFundingAddr, "email" : "ivan55660228@gmail.com"})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          await parseInt(res.body.quantityOwned).should.equal(parseInt(goal));
+        });
+    }).timeout(2000);
+    
   });
 };
 const PSFundingClose = async(updateTime) => {
@@ -684,7 +701,7 @@ const PSFundingClose = async(updateTime) => {
         .get('/BackendUser/BackendUser_Platform_Supervisor')
         .set('Cookie', token)
         .then(async function(res){
-          res.text.should.not.equal("請先登入");
+          await res.text.should.not.equal("請先登入");
           
         });
     });
@@ -692,14 +709,14 @@ const PSFundingClose = async(updateTime) => {
       await updateFundingStateFromDB(updateTime).catch((err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
       });
-    }).timeout(20000);
+    }).timeout(50000);
     it('Get Product status By PS', async function(){
       await request
         .get(`/contracts/crowdFundingContract/${symbol}/status`)
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
-          res.body.fundingState.should.equal('4');
+          await res.body.fundingState.should.equal('4');
           crowdFundingAddr = res.body.crowdFundingAddr;
         });
     });
@@ -712,10 +729,10 @@ const PSFundingClose = async(updateTime) => {
         .send({'TimeOfDeployment':getLocalTime(), "TimeTokenValid": parseInt(data.p_validdate), "TimeTokenUnlock": parseInt(data.p_lockuptime), "nftName": symbol, "siteSizeInKW": data.p_size, "maxTotalSupply":data.p_totalrelease, "initialAssetPricing": data.p_pricing, "pricingCurrency": data.p_currency, "IRR20yrx100": parseInt(data.p_irr * 100), "tokenURI": data.p_HCAT721uri, "crowdFundingCtrtAddr":crowdFundingAddr})
         .expect(200)
         .then(async function(res){
-          res.body.tokenControllerAddr.should.not.empty();
-          res.body.HCAT721Addr.should.not.empty();
-          res.body.incomeManagerAddr.should.not.empty();
-          res.body.updateDB.should.not.empty();
+          await res.body.tokenControllerAddr.should.not.empty();
+          await res.body.HCAT721Addr.should.not.empty();
+          await res.body.incomeManagerAddr.should.not.empty();
+          await res.body.updateDB.should.not.empty();
         });
     }).timeout(25000);
     
