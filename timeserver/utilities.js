@@ -256,7 +256,7 @@ const getRndIntegerBothEnd = ((min, max) => {
 
 
 //Get buy amount that is complied with Regulation on the max buy amount
-const getBuyAmountArray = (totalAmount, price, fundingType) => {
+const calculateBuyAmountArray = (totalAmount, price, fundingType) => {
   let maxAmountToBuy, remainder;
   const maxAmountPublic = COMPLIANCE_LEVELS['5'].maxOrderPaymentPublic;
   const maxBalancePublic = COMPLIANCE_LEVELS['5'].maxBalancePublic;
@@ -350,8 +350,8 @@ Make correct amounts for different funding scenarios
 
 3. Funding ended with goal not reached(funding failed): total output amount array should only sum up to be just below the goal
  */
-const makeCorrectAmountArray = (_amountArray, goal, maxTotal) => {
-  console.log('\n------==inside makeCorrectAmountArray()');
+const makeAmountArrayByCfcScenario = (_amountArray, goal, maxTotal) => {
+  console.log('\n------==inside makeAmountArrayByCfcScenario()');
   let userIndexArray, mesg = '', amountArrayOut = [..._amountArray], amountArrayOutSum, previousItem;
   if(crowdfundingScenario === 1){
     console.log('crowdfundingScenario:', crowdfundingScenario, ', ended with sold out');
@@ -672,5 +672,5 @@ const validateEmail =(email) => {
 }
 
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveZero, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, getBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeCorrectAmountArray
+  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveZero, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, calculateBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeAmountArrayByCfcScenario
 }

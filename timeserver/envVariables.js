@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-let symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel, crowdfundingScenario;
+let symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, addrHelium, addrRegistry, addrProductManager, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, fakeServertime, loglevel, crowdfundingScenario, cfcBuyAmountChoice, testmode;
 
 const SYMBOLNUMBER = parseInt(process.env.SYMBOLNUMBER);
 if(isNaN(SYMBOLNUMBER)){
@@ -42,6 +42,23 @@ if(isNaN(ASSETBOOKAMOUNT)){
   assetbookAmount = ASSETBOOKAMOUNT;
 }
 console.log('assetbookAmount:', assetbookAmount);
+
+const CFC_BUYAMOUNT_CHOICE = parseInt(process.env.CFC_BUYAMOUNT_CHOICE);
+if(isNaN(CFC_BUYAMOUNT_CHOICE)){
+  cfcBuyAmountChoice = 1;
+} else {
+  cfcBuyAmountChoice = CFC_BUYAMOUNT_CHOICE;
+}
+console.log('cfcBuyAmountChoice:', cfcBuyAmountChoice);
+
+const TESTMODE = parseInt(process.env.TESTMODE);
+if(isNaN(TESTMODE)){
+  testmode = 0;
+} else {
+  testmode = TESTMODE;
+}
+console.log('testmode:', testmode);
+
 
 //1 error, 2 warn, 3 info, 4 verbose, 5 debug
 const LOGLEVEL = parseInt(process.env.LOGLEVEL);
@@ -186,4 +203,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, crowdfundingScenario, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, cfcBuyAmountChoice, testmode, crowdfundingScenario, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };

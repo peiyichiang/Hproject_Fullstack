@@ -6,15 +6,15 @@ const log = console.log;
 //--------------------==
 const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, amountArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule } = require('./zTestParameters');
 
-const { admin, adminpkRaw, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount, crowdfundingScenario } = require('../timeserver/envVariables');
+const { admin, adminpkRaw, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount, crowdfundingScenario, testmode } = require('../timeserver/envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, deleteUsersInDB, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, getRestrictions,deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol, setRestrictions } = require('../timeserver/blockchain.js');
 
-const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, getBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeIndexArray, makeCorrectAmountArray} = require('../timeserver/utilities');
+const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, calculateBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeIndexArray, makeAmountArrayByCfcScenario} = require('../timeserver/utilities');
 
 //const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
 
@@ -995,7 +995,7 @@ const callTestAPI = async () => {
 const getDetailsCFC_API = async() => {
   console.log('\n------------==getDetailsCFC_API');
   const [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(addrCrowdFunding);
-  console.log(`--------------==\nreturned values: initialAssetPricingM: ${initialAssetPricingM}, maxTotalSupplyM: ${maxTotalSupplyM}, quantityGoalM: ${quantityGoalM}, CFSDM: ${CFSDM}, CFEDM: ${CFEDM}, stateDescriptionM: ${stateDescriptionM}, fundingStateM: ${fundingStateM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
+  console.log(`--------------==\nreturned values: initialAssetPricingM: ${initialAssetPricingM}, maxTotalSupplyM: ${maxTotalSupplyM}, quantityGoalM: ${quantityGoalM}, CFSDM: ${CFSDM}, CFEDM: ${CFEDM}, stateDescriptionM: ${stateDescriptionM}, fundingStateM: ${fundingStateM} ${typeof fundingStateM}, remainingTokenQtyM: ${remainingTokenQtyM}, quantitySoldM: ${quantitySoldM}`);
 }
 
 //yarn run testmt -f 41
@@ -1304,11 +1304,11 @@ const investTokensToGoalThenTimeOut_API  = async () => {
 
 
 //yarn run testmt -f 655
-const makeCorrectAmountArray_API = async () => {
-  console.log('\n---------------------==makeCorrectAmountArray_API()');
+const makeAmountArrayByCfcScenario_API = async () => {
+  console.log('\n---------------------==makeAmountArrayByCfcScenario_API()');
   const totalTokenAmount = maxTotalSupply;
 
-  const [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesgArrayOut] = makeCorrectAmountArray(amountArray, quantityGoal, totalTokenAmount);
+  const [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesgArrayOut] = makeAmountArrayByCfcScenario(amountArray, quantityGoal, totalTokenAmount);
   amountArrayOutSum = arraySum(amountArrayOut);
 
   console.log('quantityGoal:', quantityGoal, ', totalTokenAmount:', totalTokenAmount, ', mesgArrayOut:', mesgArrayOut, ', isGoodAmountArrayOutSum:', isGoodAmountArrayOutSum, ', amountArrayOutSum:', amountArrayOutSum, ', amountArrayOut.length:', amountArrayOut.length);
@@ -1329,7 +1329,7 @@ const investTokensThenCloseCFC_API = async () => {
   let [initialAssetPricingM, maxTotalSupplyM, quantityGoalM, CFSDM, CFEDM, stateDescriptionM, fundingStateM, remainingTokenQtyM, quantitySoldM] = await getDetailsCFC(crowdFundingAddr);
   //process.exit(0);
 
-  const [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesgArrayOut] = makeCorrectAmountArray(amountArray, quantityGoal, totalTokenAmount);
+  const [isGoodAmountArrayOutSum, amountArrayOut, userIndexArray, mesgArrayOut] = makeAmountArrayByCfcScenario(amountArray, quantityGoal, totalTokenAmount);
   amountArrayOutSum = arraySum(amountArrayOut);
 
   console.log('quantityGoal:', quantityGoal, ', totalTokenAmount:', totalTokenAmount, ', mesgArrayOut:', mesgArrayOut, ', isGoodAmountArrayOutSum:', isGoodAmountArrayOutSum);
@@ -2751,6 +2751,45 @@ const getOneAddrPerLineFromCSV_API = async () => {
   process.exit(0);
 }
 
+//yarn run testmt -f 160
+const getRestrictions_API = async () => {
+  console.log('\n---------------------==getRestrictions_API()');
+  const registryContractAddr = addrRegistry;
+  const authLevel = parseInt(argv4);
+  if(isNaN(authLevel)){
+    console.log('authLevel is not defined');
+    process.exit(1);
+  } else {
+    console.log('authLevel:', authLevel);
+  }
+  const restrictionsResult = await getRestrictions(registryContractAddr, authLevel);
+  //console.log(`restrictionsResult: ${restrictionsResult}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 161
+const setRestrictions_API = async () => {
+  console.log('\n---------------------==setRestrictions_API()');
+  const registryContractAddr = addrRegistry;
+  const authLevel = parseInt(argv4);
+  const maxBuyAmountPublic = 300021;
+  const maxBalancePublic =   300022;
+  const maxBuyAmountPrivate =99900023;
+  const maxBalancePrivate =  99900024;
+
+  if(isNaN(authLevel)){
+    console.log('authLevel is not defined');
+    process.exit(1);
+  } else {
+    console.log('authLevel:', authLevel);
+  }
+  const restrictionsResult = await setRestrictions(registryContractAddr, authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate);
+  //console.log(`restrictionsResult: ${restrictionsResult}`);
+  process.exit(0);
+}
+
+
+
 const breakdownArraysAPI = () => {
   console.log('breakdownArraysAPI');
   const acc1 = "0x1"; const acc2 = "0x2";
@@ -2842,12 +2881,24 @@ const getInputArrays_API = async() => {
 }
 
 //yarn run testmt -f 209
-const getBuyAmountArray_API = async() => {
-  console.log('\n--------------==inside getBuyAmountArray_API()');
+const calculateBuyAmountArray_API = async() => {
+  console.log('\n--------------==inside calculateBuyAmountArray_API()');
   const price = initialAssetPricing;
   const totalAmount = maxTotalSupply;
   const fundingTypeIn = fundingType;
-  const [isGood, amountArray, mesg] = getBuyAmountArray(totalAmount, price, fundingTypeIn);
+  const [isGood, amountArray, mesg] = calculateBuyAmountArray(totalAmount, price, fundingTypeIn);
+  process.exit(0);
+}
+
+//yarn run testmt -f 210
+const getBuyAmountArray_API = async() => {
+  console.log('\n--------------==inside getBuyAmountArray_API()');
+  const amountArraySumOut = arraySum(amountArray);
+  console.log(`\namountArray: ${amountArray}, amountArraySumOut: ${amountArraySumOut}`);
+  if(testmode > 0 && amountArraySumOut !== maxTotalSupply){
+    console.log(`\namountArrayOut is not equal to maxTotalSupply ${maxTotalSupply}`);
+    process.exit(1);
+  }
   process.exit(0);
 }
 
@@ -3239,7 +3290,7 @@ if(argv3 === 0){
 
   //yarn run testmt -f 655
 } else if (argv3 === 655) {
-  makeCorrectAmountArray_API();
+  makeAmountArrayByCfcScenario_API();
 
 //yarn run testmt -f 65
 } else if (argv3 === 65) {
@@ -3473,6 +3524,14 @@ if(argv3 === 0){
 } else if(argv3 === 155){
   deleteOrdersAndSmartCtrt_API();
 
+//yarn run testmt -f 160
+} else if(argv3 === 160){
+  getRestrictions_API();
+
+//yarn run testmt -f 161
+} else if(argv3 === 161){
+  setRestrictions_API();
+
 //yarn run testmt -f 201
 } else if(argv3 === 201){
   breakdownArraysAPI();
@@ -3503,6 +3562,10 @@ if(argv3 === 0){
 
 //yarn run testmt -f 209
 } else if(argv3 === 209){
+  calculateBuyAmountArray_API();
+
+//yarn run testmt -f 210
+} else if(argv3 === 210){
   getBuyAmountArray_API();
 
   //yarn run testmt -f 221
