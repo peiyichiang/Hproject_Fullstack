@@ -583,11 +583,13 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
     it('Make Order Paid', async function(){
       var sql = { o_paymentStatus: "paid" };
       const result = await mysqlPoolQueryB('UPDATE order_list SET ? WHERE o_bankvirtualaccount = ?', [sql, virtualAccount]).catch((err) => {
+        err.should.empty();
       });
     }).timeout(3000);
     it('Write Into Crowdfunding', async function(){
       await addAssetbooksIntoCFC(getLocalTime()+1).catch((err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
+        err.should.empty();
       });
     }).timeout(10000);
     
@@ -654,14 +656,15 @@ const PSMintToken = async(updateTime) => {
         .expect(200)
         .then(async function(res){
           res.body.success.should.equal('in process...');
-          if(res.body.success === 'in process...'){
-            //process.exit(0);
-          }
-          else{
-            //process.exit(1);
-          }
         });
     }).timeout(2000);
+    it('Wating a while(120s) for Mint...', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 1200000);    
+      }).then(() => {
+        return ; // do the promise call in a `then` callback to properly chain it
+      });
+    });
   });
 };
 const PSFundingClose = async(updateTime) => {

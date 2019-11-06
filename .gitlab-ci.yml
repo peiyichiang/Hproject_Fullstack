@@ -6,4 +6,4 @@ before_script:
 
 test_funding:
   script:
-  - node node_modules/.bin/mocha test_CI/apiTest.js
+  - node node_modules/.bin/mocha  --exit test_CI/apiTest.js
