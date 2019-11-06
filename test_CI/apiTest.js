@@ -448,7 +448,7 @@ const PSPauseProduct = async() => {
         setTimeout(resolve, 60000);    
       }).then(() => {
         return ; // do the promise call in a `then` callback to properly chain it
-    })
+      })
     }).timeout(100000);
     it('Pause Product By PS', async function(){
       await request
@@ -658,13 +658,26 @@ const PSMintToken = async(updateTime) => {
           res.body.success.should.equal('in process...');
         });
     }).timeout(2000);
-    it('Wating a while(120s) for Mint...', async function(){
+    it('Wating a while(60s) for Minting...', async function(){
+    }).timeout(1000);
+    it('Mint', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 1200000);    
+        setTimeout(resolve, 60000);    
       }).then(() => {
         return ; // do the promise call in a `then` callback to properly chain it
       });
-    });
+    }).timeout(62000);
+    it('Mint Token By PS', async function(){
+      await request
+        .post(`/contracts/crowdfunding/emailToQty`)
+        .send({"ctrtAddr" : crowdFundingAddr, "email" : "ivan55660228@gmail.com"})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          parseInt(res.body.quantityOwned).should.equal(parseInt(goal));
+        });
+    }).timeout(2000);
+    
   });
 };
 const PSFundingClose = async(updateTime) => {
