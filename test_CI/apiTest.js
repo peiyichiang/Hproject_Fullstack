@@ -634,7 +634,7 @@ const PSMintToken = async(updateTime) => {
           crowdFundingAddr = res.body.crowdFundingAddr;
           await res.body.fundingState.should.equal('4');
         });
-    });
+    }).timeout(25000);
     it('Funding Close By PS', async function(){
       let result = await mysqlPoolQueryB('SELECT * FROM product WHERE p_SYMBOL = ?', [symbol]);
       let data = result[0];
