@@ -6,4 +6,4 @@ before_script:
 
 test_funding:
   script:
-  - node node_modules/.bin/mocha  --exit test_CI/apiTest.js
+  - env TZ='Asia/Taipei' node node_modules/.bin/mocha  --exit test_CI/apiTest.js

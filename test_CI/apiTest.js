@@ -630,6 +630,7 @@ const PSMintToken = async(updateTime) => {
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
+          console.log(res.body);
           crowdFundingAddr = res.body.crowdFundingAddr;
           res.body.fundingState.should.equal('4');
         });
