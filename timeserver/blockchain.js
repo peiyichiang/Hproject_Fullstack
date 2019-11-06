@@ -301,19 +301,42 @@ const deployProductManagerContract = async(addrHeliumContract) => {
 }
 
 
-//Set compliance regulatory rules
+//get compliance regulatory rules
+const getRestrictions = async(registryContractAddr, authLevel) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==getRestrictions()`);
+    const instRegistry = new web3.eth.Contract(Registry.abi, registryContractAddr);
+    const restrictionsM = await instRegistry.methods.restrictions(authLevel).call();
+    //wlogger.debug(`restrictionsM: ${JSON.stringify(restrictionsM, null, 4)}`);
+    wlogger.debug(`maxBuyAmountPublic: ${restrictionsM.maxBuyAmountPublic}
+maxBalancePublic: ${restrictionsM.maxBalancePublic}
+maxBuyAmountPrivate: ${restrictionsM.maxBuyAmountPrivate}
+maxBalancePrivate: ${restrictionsM.maxBalancePrivate}`);
+    resolve(restrictionsM);
+  });
+}
+
 const setRestrictions = async(registryContractAddr, authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate) => {
   return new Promise(async (resolve, reject) => {
     //wlogger.debug(`--------------==setRestrictions()`);
-    const instHelium = new web3.eth.Contract(Helium.abi, registryContractAddr);
-    const encodedData= instHelium.methods.setRestrictions(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate).encodeABI();
+    const instRegistry = new web3.eth.Contract(Registry.abi, registryContractAddr);
+    const encodedData= instRegistry.methods.setRestrictions(authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate).encodeABI();
     let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryContractAddr, encodedData).catch((err) => {
       reject(`[Error @ signTx() setRestrictions()] ${err}`);
       return false;
     });
     const TxResultStr = JSON.stringify(TxResult, null, 4);
     wlogger.debug(`TxResult: ${TxResultStr}`);
-    resolve(result);
+
+    const restrictionsM = await getRestrictions(registryContractAddr, authLevel);
+
+    if(restrictionsM.maxBuyAmountPublic === maxBuyAmountPublic+'' && restrictionsM.maxBalancePublic === maxBalancePublic+'' && restrictionsM.maxBuyAmountPrivate === maxBuyAmountPrivate+'' && restrictionsM.maxBalancePrivate === maxBalancePrivate+''){
+      wlogger.debug(`setRestrictions has been done successfully`);
+      resolve(true);
+    } else {
+      wlogger.debug(`setRestrictions has NOT been done`);
+      resolve(false);
+    }
   });
 }
 
@@ -4132,5 +4155,5 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 module.exports = {
   addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, setTimeCFC_bySymbol, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, 
-  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck
+  get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, endorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, getRestrictions,checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck
 }

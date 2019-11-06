@@ -12,7 +12,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, deleteUsersInDB, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, getRestrictions,deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol, setRestrictions } = require('../timeserver/blockchain.js');
 
 const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, calculateBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeIndexArray, makeAmountArrayByCfcScenario} = require('../timeserver/utilities');
 
@@ -2751,6 +2751,45 @@ const getOneAddrPerLineFromCSV_API = async () => {
   process.exit(0);
 }
 
+//yarn run testmt -f 160
+const getRestrictions_API = async () => {
+  console.log('\n---------------------==getRestrictions_API()');
+  const registryContractAddr = addrRegistry;
+  const authLevel = parseInt(argv4);
+  if(isNaN(authLevel)){
+    console.log('authLevel is not defined');
+    process.exit(1);
+  } else {
+    console.log('authLevel:', authLevel);
+  }
+  const restrictionsResult = await getRestrictions(registryContractAddr, authLevel);
+  //console.log(`restrictionsResult: ${restrictionsResult}`);
+  process.exit(0);
+}
+
+//yarn run testmt -f 161
+const setRestrictions_API = async () => {
+  console.log('\n---------------------==setRestrictions_API()');
+  const registryContractAddr = addrRegistry;
+  const authLevel = parseInt(argv4);
+  const maxBuyAmountPublic = 300021;
+  const maxBalancePublic =   300022;
+  const maxBuyAmountPrivate =99900023;
+  const maxBalancePrivate =  99900024;
+
+  if(isNaN(authLevel)){
+    console.log('authLevel is not defined');
+    process.exit(1);
+  } else {
+    console.log('authLevel:', authLevel);
+  }
+  const restrictionsResult = await setRestrictions(registryContractAddr, authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate);
+  //console.log(`restrictionsResult: ${restrictionsResult}`);
+  process.exit(0);
+}
+
+
+
 const breakdownArraysAPI = () => {
   console.log('breakdownArraysAPI');
   const acc1 = "0x1"; const acc2 = "0x2";
@@ -3484,6 +3523,14 @@ if(argv3 === 0){
 //yarn run testmt -f 155
 } else if(argv3 === 155){
   deleteOrdersAndSmartCtrt_API();
+
+//yarn run testmt -f 160
+} else if(argv3 === 160){
+  getRestrictions_API();
+
+//yarn run testmt -f 161
+} else if(argv3 === 161){
+  setRestrictions_API();
 
 //yarn run testmt -f 201
 } else if(argv3 === 201){

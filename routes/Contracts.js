@@ -5,11 +5,11 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 const router = express.Router();
 const amqp = require('amqplib/callback_api');
 
-const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger } = require('../timeserver/envVariables');
+const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../timeserver/envVariables');
 
 const { getTimeServerTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 
-const { preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender } = require('../timeserver/blockchain.js');
+const { preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
 
 const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit, getAssetbookFromIdentityNumber } = require('../timeserver/mysql.js');
 
@@ -209,6 +209,31 @@ router.post('/registryContract/getUserFromUid/:uid', async function (req, res, n
   res.send({ isContract });
 });
 
+router.post('/registryContract/setRestrictions', async function (req, res, next) {
+  const authLevel = req.body.authLevel;
+  const maxBuyAmountPublic = req.body.maxBuyAmountPublic;
+  const maxBalancePublic = req.body.maxBalancePublic;
+  const maxBuyAmountPrivate = req.body.maxBuyAmountPrivate;
+  const maxBalancePrivate = req.body.maxBalancePrivate;
+
+  const registryContractAddr = addrRegistry;
+  console.log(`${authLevel}: ${authLevel}, maxBuyAmountPublic: ${maxBuyAmountPublic}, maxBalancePublic: ${maxBalancePublic}, maxBuyAmountPrivate: ${maxBuyAmountPrivate}, maxBalancePrivate: ${maxBalancePrivate}`);
+
+  if(isNaN(authLevel)){
+    console.log('authLevel is not defined');
+    return false;
+  } else {
+    console.log('authLevel:', authLevel);
+  }
+  const restrictionsResult = await setRestrictions(registryContractAddr, authLevel, maxBuyAmountPublic, maxBalancePublic, maxBuyAmountPrivate, maxBalancePrivate).catch((err) => {
+    reject(`[Error @ signTx() setRestrictions()] ${err}`);
+    return false;
+  });
+  console.log(`\nisGood: ${restrictionsResult}`);
+  res.send({
+    isGood: restrictionsResult,
+  });
+});
 
 
 
@@ -640,6 +665,58 @@ router.post('/crowdFundingContract/:tokenSymbol/terminate', async function (req,
     });
 
 });
+
+/**funding changeCFED*/
+router.post('/crowdFundingContract/:tokenSymbol/changeCFED', async function (req, res, next) {
+  let tokenSymbol = req.params.tokenSymbol;
+  let mysqlPoolQuery = req.pool;
+  let currentTime;
+  await getTimeServerTime().then(function (time) {
+      currentTime = time;
+  })
+  console.log(`current time: ${currentTime}`);
+
+  mysqlPoolQuery('SELECT sc_crowdsaleaddress FROM smart_contracts WHERE sc_symbol = ?', [tokenSymbol], async function (err, DBresult, rows) {
+      if (err) {
+          //console.log(err);
+          res.send({
+              err: err,
+              status: false
+          });
+      }
+      else {
+          console.log(DBresult[0].sc_crowdsaleaddress);
+          let crowdFundingAddr = DBresult[0].sc_crowdsaleaddress;
+          let CFED_New = parseInt(req.body.CFED_New);
+          if(CFED_New > currentTime){
+            let crowdFunding = new web3.eth.Contract(crowdFundingContract.abi, crowdFundingAddr);
+
+            /*用後台公私鑰sign*/
+            let encodedData = crowdFunding.methods.changeCFED(CFED_New).encodeABI();
+  
+            try {
+                let TxResult = await signTx(backendAddr, backendRawPrivateKey, crowdFundingAddr, encodedData);
+                res.status(200);
+                res.send({
+                    DBresult: DBresult,
+                    TxResult: TxResult
+                });
+            } catch (error) {
+                console.log("error:" + error);
+                res.status(500);
+                res.send({ error: error.toString() });
+            }
+          } else {
+            const mesg = 'CFED_New should be > currentTime';
+            console.log(mesg);
+            res.status(500);
+            res.send({ error: mesg });
+          }
+      }
+  });
+
+});
+
 
 /**get status */
 router.get('/crowdFundingContract/:tokenSymbol/status', async function (req, res, next) {
