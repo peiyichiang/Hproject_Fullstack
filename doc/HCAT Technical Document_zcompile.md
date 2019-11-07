@@ -2,12 +2,12 @@
 
 **Compile pre-defined smart contracts then put results into build folder...**
 
-| Packages | Descriptions                                                                                                     |
-|----------|------------------------------------------------------------------------------------------------------------------|
-| fs       | File system read/write support                                                                                   |
-| path     | Provides utilities for working with file and directory paths                                                     |
+| Packages | Descriptions |
+|----------|----|
+| fs  | File system read/write support   |
+| path| Provides utilities for working with file and directory paths   |
 | fs-extra | Adds file system methods that aren't included in the native fs module and adds promise support to the fs methods |
-| solc     | JavaScript bindings for the Solidity compiler.                                                                   |
+| solc| JavaScript bindings for the Solidity compiler.  |
 
 Set the smart contracts that you want to compile by editing the fileList array.
 
