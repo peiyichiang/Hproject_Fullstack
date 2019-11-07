@@ -122,7 +122,7 @@ router.post('/AddOrder', async function (req, res, next) {
     /* TODO */
     function getBankVirtualAccount(orderId, symbol, email, currentDate, fundCount) {
         return new Promise(async (resolve, reject) => {
-            /**專案代號(3) oid(3) 身分證字號(3) 太陽日(4) 檢查碼(1) */
+            /**專案代號(3) oid(2) 身分證字號(3) 太陽日(5) 檢查碼(1) */
             let o_id = orderId;
             console.log(req.body);
 
@@ -145,14 +145,14 @@ router.post('/AddOrder', async function (req, res, next) {
             let expiredSolarDay = await countExpiredSolarDay(purchaseDate);
 
             // 計算檢查碼
-            let virtualAccount_13digits = bankcode + o_id.slice(-3) + userId.slice(7) + expiredSolarDay;
+            let virtualAccount_13digits = bankcode + o_id.slice(-2) + userId.slice(-3) + expiredSolarDay;
             console.log(virtualAccount_13digits);
             let amountToPaid_11digits = lpad(amountToPaid, 11);
             console.log(amountToPaid_11digits);
             let checkCode = await calculateCheckCode(virtualAccount_13digits, amountToPaid_11digits);
 
             //產生14碼虛擬帳號
-            let virtualAccount = bankcode + o_id.slice(-3) + userId.slice(7) + expiredSolarDay + checkCode;
+            let virtualAccount = bankcode + o_id.slice(-2) + userId.slice(-3) + expiredSolarDay + checkCode;
 
 
             //todo 將訂單資訊與虛擬帳號綁定 UPDATE table: order_list in: o_bankvirtualaccount
@@ -240,7 +240,7 @@ router.post('/AddOrder', async function (req, res, next) {
             let expired_days_passed = purchase_days_passed + 3;
             console.log(lpad(expired_days_passed, 3));
 
-            let solarDay = purchaseDay.slice(3, 4) + lpad(expired_days_passed, 3);
+            let solarDay = purchaseDay.slice(2, 4) + lpad(expired_days_passed, 3);
             resolve(solarDay)
         })
     }
