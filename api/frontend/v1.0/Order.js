@@ -345,7 +345,6 @@ router.get('/OrdersByEmail', function (req, res, next) {
     console.log('------------------------==\n@Order/OrdersByEmail');
     let qstr1 = 'SELECT * FROM order_list WHERE o_email = ?';
     var mysqlPoolQuery = req.pool;
-    console.log('req.query', req.query, 'req.body', req.body);
     let status, qstrz;
     status = req.query.status;
     if (status) {
@@ -359,7 +358,6 @@ router.get('/OrdersByEmail', function (req, res, next) {
         }
         qstrz = qstrz + ')'
     } else { qstrz = qstr1; }
-    console.log(qstrz)
     const JWT = req.query.JWT;
     jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
         if (err) {
@@ -383,6 +381,70 @@ router.get('/OrdersByEmail', function (req, res, next) {
                     });
                 }
             });
+        }
+    })
+});
+/*
+ * 
+ *
+ *
+ * 
+ */
+router.get('/OrdersByStatus', function (req, res, next) {
+    console.log('------------------------==\n@Order/OrdersByStatus');
+    const JWT = req.query.JWT;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            res.status(401).send('執行失敗，登入資料無效或過期，請重新登入');
+            console.error(err);
+        }
+        else {
+            /* 宣告 */
+            const mysqlPoolQuery = req.pool;
+            const email = decoded.u_email;
+            const status = req.query.status;
+            let statusString = '';
+            let query = `
+                SELECT  o_id AS Id,
+                        o_symbol AS name,
+                        o_fundCount AS price,
+                        o_tokenCount AS tokenCount,
+                        o_paymentStatus AS status,
+                        o_bankvirtualaccount AS virtualAccount
+                FROM    order_list 
+                WHERE   o_email = ? 
+                AND
+                `;
+            const responseHandler = (err, result) => {
+                if (err) {
+                    res.status(400).send({ "message": "取得投資人訂單失敗: " + err })
+                    console.error(err);
+                } else {
+                    if (result.length === 0) {
+                        res.status(404).send({ "message": "找不到符合狀態的訂單" })
+                    } else {
+                        res.status(200).json({
+                            "message": "取得投資人訂單成功",
+                            "result": result
+                        });
+                    }
+                }
+            }
+
+            /* 執行 */
+            if (typeof (status) === 'string') {
+                statusString += 'o_paymentStatus = \'' + status + '\''
+            } else {
+                statusString = status.reduce((acc, cur, index) => {
+                    if (index === status.length - 1) {
+                        return acc += 'o_paymentStatus = \'' + cur + '\''
+                    } else {
+                        return acc += 'o_paymentStatus = \'' + cur + '\'' + ' OR '
+                    }
+                }, '');
+            }
+            query += '(' + statusString + ')';
+            mysqlPoolQuery(query, email, responseHandler);
         }
     })
 });
