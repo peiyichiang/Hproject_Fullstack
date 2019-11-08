@@ -4,17 +4,17 @@ const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log;
 //--------------------==
-const { productObjArray, symbolArray, crowdFundingAddrArray, userArray, assetRecordArray, tokenControllerAddrArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_TokCtrl, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, amountArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule } = require('./zTestParameters');
+const { userArray, nftName, nftSymbol, maxTotalSupply, quantityGoal, siteSizeInKW, initialAssetPricing, pricingCurrency, IRR20yrx100, duration, location, tokenURI, fundingType, addrTokenController, addrHCAT721, addrCrowdFunding, addrIncomeManager, assetOwnerArray, assetOwnerpkRawArray, TimeOfDeployment_CF, TimeOfDeployment_HCAT, TimeOfDeployment_IM, fundmanager, CFSD, CFED, TimeTokenUnlock, TimeTokenValid, nowDate, userObject, assetbookArray, incomeArrangementArray, amountArray, notarizedRentalContract, BOEApprovedLetter, powerPurchaseAgreement, onGridTryrunLetter, powerPlantEquipmentRegisteredLetter, powerPlantInsurancePolicy, forecastedAnnualIncomePerModule } = require('./zTestParameters');
 
-const { admin, adminpkRaw, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount, crowdfundingScenario, testmode } = require('../timeserver/envVariables');
+const { admin, symbolNumber, isLivetimeOn, addrHelium, addrRegistry, addrProductManager, isToDeploy, assetbookAmount, crowdfundingScenario, testmode } = require('../timeserver/envVariables');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
-const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, deleteUsersInDB, add3SmartContractsBySymbol, add2SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
+const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, deleteUsersInDB, add3SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
 const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, getRestrictions,deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol, setRestrictions } = require('../timeserver/blockchain.js');
 
-const { isEmpty, isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, calculateBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeIndexArray, makeAmountArrayByCfcScenario} = require('../timeserver/utilities');
+const { isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, calculateBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeAmountArrayByCfcScenario} = require('../timeserver/utilities');
 
 //const { deployCtrt1, Test1ReadValues, Test1GetAccountDetail } = require('./miniBlockchain');
 
@@ -778,7 +778,7 @@ const setUsersInRegistryCtrt_API = async() => {
 };
 
 
-//yarn run testmt -f 577
+//yarn run testmt -f 957
 const deleteUsersInDB_API = async () => {
   console.log('\n--------------==inside deleteUsersInDB_API()');
   const result = await deleteUsersInDB(userArray).catch((err) => {
@@ -1875,7 +1875,7 @@ const add2SmartContractsBySymbol_API = async() => {
     console.error('\n[Error @ addSmartContractRow()]'+ err);
     process.exit(1)
   });
-  console.log(`add2SmartContractsBySymbol() result: isGood ${isGood}`);
+  console.log(`add2SmartContractsBySymbol_API() result: isGood ${isGood}`);
   process.exit(0);
 }
 
@@ -1980,9 +1980,9 @@ const getTokenBalances_API = async () => {
 //yarn run testmt -f 120
 const checkSafeTransferFromBatchFunction_API = async () => {
   console.log('\n---------------------==checkSafeTransferFromBatchFunction_API()');
-  // const assetIndex
-  // const result1 = await checkSafeTransferFromBatchFunction(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
-  // console.log(result1);
+  const assetIndex = 1;
+  const result1 = await checkSafeTransferFromBatchFunction(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
+  console.log(result1);
   process.exit(0);
 }
 
@@ -2572,7 +2572,7 @@ const checkAssetbook_API = async() => {
 }
 
 
-//yarn run testmt -f 101 MURP0904
+//yarn run testmt -f 999 MURP0904
 const deleteAllRecordsBySymbolCLI_API = async() => {
   let result, tokenSymbol;
   if(argv4){
@@ -2648,7 +2648,7 @@ const deleteOrderRows_API = async () => {
   process.exit(0);
 }
 
-//yarn run testmt -f 155
+//yarn run testmt -f 991
 const deleteOrdersAndSmartCtrt_API = async () => {
   console.log('\n---------------------==deleteOrdersAndSmartCtrt_API()');
   const tokenSymbol = nftSymbol;
@@ -2732,7 +2732,7 @@ function incomeArrangementObject(symbol, ia_time, actualPaymentTime, payablePeri
 //yarn run testmt -f 150
 const getArraysFromCSV_API = async () => {
   console.log('\n---------------------==getArraysFromCSV_API()');
-  //getArraysFromCSV();
+  getArraysFromCSV();
   process.exit(0);
 }
 
@@ -3249,8 +3249,8 @@ if(argv3 === 0){
 } else if (argv3 === 57) {
   addUsersIntoDB_API();
 
-//yarn run testmt -f 577
-} else if (argv3 === 577) {
+//yarn run testmt -f 957
+} else if (argv3 === 957) {
   deleteUsersInDB_API();
 
 //yarn run testmt -f 58
@@ -3423,8 +3423,8 @@ if(argv3 === 0){
 } else if(argv3 === 100){
   intergrationTestOfProduct();
 
-//yarn run testmt -f 101
-} else if(argv3 === 101){
+//yarn run testmt -f 999
+} else if(argv3 === 999){
   deleteAllRecordsBySymbolCLI_API();
 
 //yarn run testmt -f 102
@@ -3520,8 +3520,8 @@ if(argv3 === 0){
   const result = testInputTime(argv4);
   console.log('result:', result);
 
-//yarn run testmt -f 155
-} else if(argv3 === 155){
+//yarn run testmt -f 991
+} else if(argv3 === 991){
   deleteOrdersAndSmartCtrt_API();
 
 //yarn run testmt -f 160

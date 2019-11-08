@@ -126,8 +126,8 @@ app.use(function (err, req, res, next) {
 });
 
 
-console.log(`\n--------------------== app.js: timeserver ${isTimeserverON}`);
 if(isTimeserverON){
+  console.log(`\n--------------------== app.js: timeserver is ON`);
   require('./timeserver/timeserverSource');
   console.log(`  is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}
   is_makeOrdersExpiredCFED: ${is_makeOrdersExpiredCFED}
@@ -136,7 +136,9 @@ if(isTimeserverON){
   is_updateTokenStateFromDB: ${is_updateTokenStateFromDB}
   is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
   `);
-} 
+} else {
+  console.log(`\n--------------------== app.js: timeserver is OFF`);
+}
 
 const baseUrl = `${SERVER_PROTOCOL}://${SERVER_HOST}:${SERVER_PORT}`;
 

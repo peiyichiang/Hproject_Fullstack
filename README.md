@@ -68,93 +68,10 @@ yarn run moim
 yarn run solc
 yarn run moXYZ... as above in step 6
 
-----==setup basic system and users
-yarn run testmt -f x
- 53 ... deployHeliumContract_API -> paste it into .env
- 54 ... deployRegistryContract_API -> paste it into .env
- 55 ... deployProductManagerContract_API -> paste it into .env
-
-----==every new user
- 52 ... change eoaIndex, then deploy assetbook for 1 user, add to DB and Registry
-
-----==a group of users
- 56 ... deployAssetbookContracts_API -> paste results into Assetbooks.csv
- 577... deleteUsersInDB_API
- 57 ... addUsersIntoDB_API
- 59 ... addUsersToRegistryCtrt_API
- 599... setUsersInRegistryCtrt_API
-
-
-----==every new product
- 101 symbolNameXYZ ... to delete all records of a symbol
-
-Set new product details inside zTestParameters.js: symbol, amount...
-Set symbolNumber inside .env
- 60 ... deployCrowdfundingContract_API -> paste into zTestParameter CFC field
- 61 ... addProductRow_API
-
---To test Regulation on Public Funding:
-skipping 65, just mint tokens.
- 66 ... deployTokenControllerContract_API
- 67 ... deployHCATContract_API
- 73 ... add2SmartContractsBySymbol_API
-209 ... mintTokensByRegulations_API
---
-
---Public Offering OR Private Placement
- 155... deleteOrdersAndSmartCtrt_API ... if the same symbol has been used previously
-
-Set crowdfundingScenario in env: 1 sold out, 2 goal reached, 3 failed
-
-Either manual make amountArray -> paste into zTestParameters.js
- 210 ... show amountArray
-OR
- 209 ... for public/private funding to manually calculate the correct buyAmounts => paste amountArray into zTestParameters.js
- 655... makeCorrectAmountArray_API
-
-
- 39 ... getDetailsCFC_API
- 65 ... investTokensThenCloseCFC_API
-        1.CFC sold out => fundingClosed
-        2.CFC reached goal => fundingClosed
-        3.CFC failed => fundingNotClosed
-        4.CFC paused => paused
-        5.CFC terminated => terminated
-OR
- 651... pause > Resume
- 652... terminated
-
- 66 ... deployTokenControllerContract_API -> paste into zTestParameter
- 67 ... deployHCATContract_API -> paste into zTestParameter
- 69 ... deployIncomeManagerContract_API -> paste into zTestParameter
- 70 ... add3SmartContractsBySymbol_API
- 71 ... addIncomeArrangementRows_API
-
-----== CFC
- 39 ... getDetailsCFC_API
- 48 ... setTimeCFC_bySymbol_API  2019xyzabc symbolABC
- 488... setTimeCFC_API
- 42 ... getCFC_Balances_API
-----==
- 82 ... setTokenController
- 79 ... getTokenContractDetails
- 83 ... getTokenBalances_API
-
- 86 ... mintSequentialPerContract_CLI_API ***
-(OR ProductAdministration.ejs interface button press)
- force terminate -> restart ... successfully catch on the previous results
-
- 29 ... calculateLastPeriodProfit_API
-
-----==Test Timeserver
- 130 ... addAssetbooksIntoCFC_API
- 131 ... makeOrdersExpiredCFED_API
- 132 ... updateExpiredOrders_API
- 133 ... updateFundingStateFromDB_API
- 134 ... updateTokenStateFromDB_API
- 135 ... calculateLastPeriodProfit_API
 
 ------------==
+See ManualTriggered section in documentation!
+
  85 ... addOrders_CFC_MintTokens_API
 
  121 3 2 12 ... transferTokens_API
