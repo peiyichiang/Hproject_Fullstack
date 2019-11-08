@@ -163,6 +163,8 @@ If the name starts with ‘is’, then it returns a boolean.
 | investTokensInBatch | crowdFundingAddr, addrAssetbookArray, amountToInvestArray, serverTime| Invest with multiple assetbooks and their buyAmounts respectively using investInBatch() function in crowdfunding contract | array of booleans|
 | getDetailsCFC| crowdFundingAddr| Get all state variables from given crowdfunding contract address | array of booleans and strings|
 | getInvestorsFromCFC | crowdFundingAddr, indexStartStr = 0, tokenCountStr = 0 | Get investor assetbook addresses from given crowdfunding contract address with optional filter feature | array of strings|
+| rabbitMQSender| functionName, symbol, price | Testing RabbitMQ sender fuction| boolean |
+| rabbitMQReceiver| functionName, symbol, price | Testing RabbitMQ receive function| boolean |
 
 
 **Regarding Crowdfunding Contract**
@@ -185,7 +187,7 @@ If the name starts with ‘is’, then it returns a boolean.
 |---------------|-----------|-------------|-------|
 | get_assetOwner| addrAssetBook | Get asset owner EOA saved inside given assetbook address| string |
 | get_lastLoginTime | addrAssetBook | Get last login time inside given assetbook address| string |
-| checkIsContract| addrAssetBook, assetAddr| Check if input address has a contract deployed in it| string |
+| checkIsContract| addrAssetBook, assetAddr| Check if input address has a contract deployed in it| boolean |
 | getAssetbookDetails| addrAssetBook | Get all state variables from given assetbook address| array of booleans and strings |
 | endorsers| addrAssetBook | Get all endorsers’ addresses | array of strings |
 | setHeliumAddr | addrAssetBook, \_addrHeliumContract| Set new Helium contract address inside given asset book address| - |
@@ -194,8 +196,6 @@ If the name starts with ‘is’, then it returns a boolean.
 | changeAssetOwner| addrAssetBook, \_assetOwnerNew, serverTime | Change assetbook owner address | boolean |
 | checkSafeTransferFromBatchFunction | assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime| Check all arguments of safeTransferFromBatch() | boolean |
 | transferTokens| addrHCAT721, fromAssetbook, toAssetbook, amountStr, priceStr, \_fromAssetOwner, \_fromAssetOwnerpkRaw | Transfer HCAT tokens | boolean |
-| rabbitMQSender| functionName, symbol, price | Testing RabbitMQ sender fuction| boolean |
-| rabbitMQReceiver| functionName, symbol, price | Testing RabbitMQ receive function| boolean |
 | signTx | userEthAddr, userRawPrivateKey, contractAddr, encodedData| Use Ethereum-Tx.js to sign then send trans| - |
 
 

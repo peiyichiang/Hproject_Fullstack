@@ -340,6 +340,31 @@ const changeEndorser = async(addrAssetBook, oldEndorser, newEndorser, serverTime
   });
 }
 
+const getEndorsers = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    console.log('\n-------==getEndorsers()');
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const endorserCount = await instAssetBook.methods.endorserCount().call();
+    const endorsers = [];
+    for(let i = 1; i <= endorserCount; i++){
+      const endorser = await instAssetBook.methods.endorsers(i).call();
+      endorsers.push(endorser);
+    }
+    console.log(`\nendorsers: ${endorsers}`);
+    resolve(endorsers);
+  });
+}
+
+
+const get_assetOwner = async(addrAssetBook) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\n-------==assetOwner()`);
+    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+    const result = await instAssetBook.methods.assetOwner().call();
+    resolve(result);
+  });
+}
+
 const changeAssetOwner = async(addrAssetBook,  _assetOwnerNew, serverTime) => {
   return new Promise(async (resolve, reject) => {
     console.log('\n-------==changeAssetOwner()');
@@ -368,49 +393,14 @@ const getAssetbookDetails = async(addrAssetBook) => {
   });
 }
 
-const getEndorserAddresses = async(addrAssetBook) => {
+const get_lastLoginTime = async(addrAssetBook) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n-------==getAssetbookDetails()');
+    wlogger.debug(`\n-------==lastLoginTime()`);
     const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
-    const result = [0, 0, 0];
-    const endorserArray = await instAssetBook.methods.endorserArray().call();
-    if(endorserArray.length === 0){
-
-    } else if(endorserArray.length === 1){
-      result[0] = endorserArray[0];
-
-    } else if(endorserArray.length === 2){
-      result[0] = endorserArray[0];
-      result[1] = endorserArray[1];
-
-    } else if(endorserArray.length === 3){
-      result[0] = endorserArray[0];
-      result[1] = endorserArray[1];
-      result[2] = endorserArray[2];
-    }
-    console.log('\nresult:', result);
+    const result = await instAssetBook.methods.lastLoginTime().call();
     resolve(result);
   });
 }
-
-
-const getVotingDetails = async(addrAssetBook) => {
-  return new Promise(async (resolve, reject) => {
-    console.log('\n-------==getVotingDetails()');
-    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
-    const result = [0, 0, 0, 0, 0, 0, 0, 0];
-    result[0] = await instAssetBook.methods.assetOwner_flag().call();
-    result[1] = await instAssetBook.methods.HeliumContract_flag().call();
-    result[2] = await instAssetBook.methods.endorserArray_flag().call();
-    result[3] = await instAssetBook.methods.calculateVotes().call();
-    result[4] = await instAssetBook.methods.lastLoginTime().call();
-    result[5] = await instAssetBook.methods.antiSystemOverrideDays().call();
-    result[6] = await instAssetBook.methods.checkNowTime().call();
-    result[7] = await instAssetBook.methods.isAbleSystemOverride().call();
-    resolve(result);
-  });
-}
-
 
 //---------------------------------==
 /**
@@ -465,7 +455,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
   });
 }
 
-module.exports = { transferTokens, checkSafeTransferFromBatch, addLoginTime, checkIsContract, assetOwnerVote, setHeliumAddr, endorserVote, setAntiSystemOverrideDays, resetVoteStatus, changeAssetOwner, getAssetbookDetails, addEndorser, changeEndorser }
+module.exports = { transferTokens, checkSafeTransferFromBatch, addLoginTime, checkIsContract, assetOwnerVote, setHeliumAddr, endorserVote, setAntiSystemOverrideDays, resetVoteStatus, changeAssetOwner, getAssetbookDetails, addEndorser, changeEndorser, getEndorsers, get_assetOwner, get_lastLoginTime}
 
 // console.log('here @ zFrontend.js');
 //   if (typeof web3 !== 'undefined') {

@@ -37,18 +37,7 @@ Compile and build smart contract ABI and bytecode:
 yarn run solc
 ```
 
-### 5. Run Mocha Tests on smart contracts and web3
-
-Write tests inside project root directory -> test folder
-
-Install Mocha, a JavaScript test framework
-```
-yarn run test721
-yarn run testcf
-yarn run testim
-```
-
-### 6. Setup P.O.A. Blockchain
+### 5. Setup P.O.A. Blockchain
 ```pm2 -n ganache start "ganache-cli -p 8540 -h 0.0.0.0```
 
 OR
@@ -62,63 +51,162 @@ BC_PORT_GANACHECLI=8545
 GANACHE_EOA0=0xa6cc621a179f01a719ee57db4637a4a1f603a442
 GANACHE_EOAPK0=0x3f6f9f5802784b4c8b122dc490d2a25ea5b02993333ecff20bedad86a48ae48a
 
+### 6. Run Mocha Tests on smart contracts and web3
+Write tests inside project root directory -> test folder
+Install Mocha, a JavaScript test framework
+```
+yarn run mohe
+yarn run moreg
+yarn run mopm
+yarn run moab
+yarn run mocf
+yarn run mohcat
+yarn run moim
+```
 ### 7. Deploy and Test smart contracts
 ---------------==Testing Flow
-yarn run testmt -f 54 ... deployHeliumContract_API
-yarn run testmt -f 55 ... deployRegistryContract_API
-yarn run testmt -f 56 ... deployAssetbookContracts_API
-yarn run testmt -f 57 ... addUsersIntoDB_API
-yarn run testmt -f 59 ... addUsersToRegistryCtrt
+yarn run solc
+yarn run moXYZ... as above in step 6
 
-----==
-yarn run testmt -f 61 ... deployCrowdfundingContract_API
-yarn run testmt -f 64 ... deployTokenControllerContract_API
-yarn run testmt -f 67 ... deployHCATContract_API
-yarn run testmt -f 70 ... deployIncomeManagerContract_API
-yarn run testmt -f 71 ... deployProductManagerContract_API
-yarn run testmt -f 72 ... addSmartContractRow_API
-yarn run testmt -f 74 ... addIncomeArrangementRows_API
+----==setup basic system and users
+yarn run testmt -f x
+ 53 ... deployHeliumContract_API -> paste it into .env
+ 54 ... deployRegistryContract_API -> paste it into .env
+ 55 ... deployProductManagerContract_API -> paste it into .env
 
-yarn run testmt -f 73 ... addProductRowFromSymbol_API
-yarn run testmt -f 100 .. intergrationTestOfProduct
-----==
-yarn run testmt -f 39 ... getDetailsCFC_API
-yarn run testmt -f 42 ... getCFC_Balances_API
-yarn run testmt -f 78 ... addPaidOrdersIntoDBnCFC
-----==
-----== >>> doAssetRecordsCaller() and API
-yarn run testmt -f 82 ... setTokenController
-yarn run testmt -f 79 ... getTokenContractDetails
-yarn run testmt -f 83 ... getTokenBalances_API
+----==every new user
+ 52 ... change eoaIndex, then deploy assetbook for 1 user, add to DB and Registry
 
-yarn run testmt -f 48 ... mintSequentialPerContract_CLI_API ***
+----==a group of users
+ 56 ... deployAssetbookContracts_API -> paste results into Assetbooks.csv
+ 577... deleteUsersInDB_API
+ 57 ... addUsersIntoDB_API
+ 59 ... addUsersToRegistryCtrt_API
+ 599... setUsersInRegistryCtrt_API
+
+
+----==every new product
+ 101 symbolNameXYZ ... to delete all records of a symbol
+
+Set new product details inside zTestParameters.js: symbol, amount...
+Set symbolNumber inside .env
+ 60 ... deployCrowdfundingContract_API -> paste into zTestParameter CFC field
+ 61 ... addProductRow_API
+
+--To test Regulation on Public Funding:
+skipping 65, just mint tokens.
+ 66 ... deployTokenControllerContract_API
+ 67 ... deployHCATContract_API
+ 73 ... add2SmartContractsBySymbol_API
+209 ... mintTokensByRegulations_API
+--
+
+--Public Offering OR Private Placement
+ 155... deleteOrdersAndSmartCtrt_API ... if the same symbol has been used previously
+
+Set crowdfundingScenario in env: 1 sold out, 2 goal reached, 3 failed
+
+Either manual make amountArray -> paste into zTestParameters.js
+ 210 ... show amountArray
+OR
+ 209 ... for public/private funding to manually calculate the correct buyAmounts => paste amountArray into zTestParameters.js
+ 655... makeCorrectAmountArray_API
+
+
+ 39 ... getDetailsCFC_API
+ 65 ... investTokensThenCloseCFC_API
+        1.CFC sold out => fundingClosed
+        2.CFC reached goal => fundingClosed
+        3.CFC failed => fundingNotClosed
+        4.CFC paused => paused
+        5.CFC terminated => terminated
+OR
+ 651... pause > Resume
+ 652... terminated
+
+ 66 ... deployTokenControllerContract_API -> paste into zTestParameter
+ 67 ... deployHCATContract_API -> paste into zTestParameter
+ 69 ... deployIncomeManagerContract_API -> paste into zTestParameter
+ 70 ... add3SmartContractsBySymbol_API
+ 71 ... addIncomeArrangementRows_API
+
+----== CFC
+ 39 ... getDetailsCFC_API
+ 48 ... setTimeCFC_bySymbol_API  2019xyzabc symbolABC
+ 488... setTimeCFC_API
+ 42 ... getCFC_Balances_API
+----==
+ 82 ... setTokenController
+ 79 ... getTokenContractDetails
+ 83 ... getTokenBalances_API
+
+ 86 ... mintSequentialPerContract_CLI_API ***
 (OR ProductAdministration.ejs interface button press)
+ force terminate -> restart ... successfully catch on the previous results
 
-yarn run testmt -f 85 ... addOrders_CFC_MintTokens_API
-yarn run testmt -f 5  ... calculateLastPeriodProfit_API
+ 29 ... calculateLastPeriodProfit_API
+
+----==Test Timeserver
+ 130 ... addAssetbooksIntoCFC_API
+ 131 ... makeOrdersExpiredCFED_API
+ 132 ... updateExpiredOrders_API
+ 133 ... updateFundingStateFromDB_API
+ 134 ... updateTokenStateFromDB_API
+ 135 ... calculateLastPeriodProfit_API
+
+------------==
+ 85 ... addOrders_CFC_MintTokens_API
+
+ 121 3 2 12 ... transferTokens_API
+
+ 100 .. intergrationTestOfProduct
+
+// 87 ... addPaidOrdersIntoDBnCFC ... don't do as we use timeServer functions
+// 72 ... addProductRowFromSymbol_API
 
 -----------------==
-yarn run testmt -f 39 ... getDetailsCFC_API
-yarn run testmt -f 41 ... getCrowdfundingInvestors_API
-yarn run testmt -f 42 ... getCFC_Balances_API
+ 39 ... getDetailsCFC_API
+ 41 ... getCrowdfundingInvestors_API
+ 42 ... getCFC_Balances_API
 
-yarn run testmt -f 788 .. addAssetbooksIntoCFC_API (like timeserver)
+ 788 .. addAssetbooksIntoCFC_API (like timeserver)
 
-yarn run testmt -f 75 ... addUserArrayOrdersIntoDB_API
-yarn run testmt -f 76 ... addOrderIntoDB_API
-yarn run testmt -f 77 ... addArrayOrdersIntoDB_API
+ 75 ... addUserArrayOrdersIntoDB_API
+ 76 ... addOrderIntoDB_API
+ 77 ... addArrayOrdersIntoDB_API
 
-yarn run testmt -f 43 ... invest in CFC
-yarn run testmt -f 44 ... check invest function
-yarn run testmt -f 47 ... invest in CFC in batch!!!
+ 43 ... invest in CFC
+ 44 ... check invest function
+ 47 ... invest in CFC in batch!!!
 
-yarn run testmt -f 101 symbolName ... to delete all records of a symbol
 
 //yarn run livechain -c 1 --f 0 ... checkDeployedContracts 
 yarn run livechain -c 1 --f 1 ... setupTest to verify initial conditions
 
+---------------==
+---------------==
+update the excluded symbol list in ethereum/contract/zsetupData.js
+
+ 40 ... preMint_API
+
+reset_addAssetbooksIntoCFC_API
+yarn run testts -a 2 -c 0  ... to reset 3 orders from user1, 2, 3 to paid
+yarn run start
+
+sequentialMintSuperAPI
+delete 3 top orders in investor_assetRecord table
+yarn run livechain -c 1 --f 6
+
+cancelOverCFED2Orders_API
+if CFC has reached CFED2, then make order paymentStatus: waiting -> expired
+make some target symbol order paymentStatus: waiting
+yarn run testts -a 2 -c 2
+
+Test FE Token transfer
+$ yarn run transfertokens
 
 
+---------------==
 ### 8. Set Log Level
 by default(if you do nothing in the env file), it will show warn and error messages. You can also set in the .env file: LOGLEVEL=1 for only error, 2 for adding warn, 3 for adding info, 4 for adding verbose, 5 for adding debug console logs ... set it to 5 if you want to debug or show all the logs 
 
