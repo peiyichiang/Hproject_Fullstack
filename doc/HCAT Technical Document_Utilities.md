@@ -31,30 +31,30 @@ If the name starts with ‘is’, then it returns a boolean.
 **Functions defined within utilities.js**
 
 | Function Name | Parameters | Description   |
-|---------------|------------|------------|
-| checkEq   | value1, value2| Check if the two given values are equal in both value and type|
-| isEmpty   | value  | Check if the given value is undefined, null, empty object, empty string or string of ‘undefined’|
-| isNoneInteger | value  | Check if the given value is undefined, null, object, or string that cannot be converted into integer|
-| isInvalidArray| value  | Check if the given value is not of array type or array length is zero|
-| isAllTruthy   | myObj  | Returns if all given object properties are truthy|
-| isAllTrueBool | myObj  | Returns if all given object properties are exactly true   |
-| getLocalTime  | \- | Get local machine time, then convert it into an integer   |
-| getTimeServerTime| \- | See isLivetimeOn above   |
-| Date.prototype.myFormat  | \- | A custom date format function for making YYYYMMDDHHMM format  |
-| testInputTime | inputTime  | Test if the given time is of a valid format as specified in YYYYMMDDHHMM and it should not represent a time in the past |
-| checkBoolTrueArray   | item   | Returns the given item   |
-| isInt | item   | Checks if the given value is an integer  |
+|---------------|------------|---------------|
+| checkEq   | value1, value2| Check if the two given values are equal in both value and type| boolean |
+| isEmpty   | value  | Check if the given value is undefined, null, empty object, empty string or string of ‘undefined’| boolean |
+| isNoneInteger | value  | Check if the given value is undefined, null, object, or string that cannot be converted into integer| boolean |
+| isInvalidArray| value  | Check if the given value is not of array type or array length is zero| boolean |
+| isAllTruthy   | myObj  | Returns if all given object properties are truthy| boolean |
+| isAllTrueBool | myObj  | Returns if all given object properties are exactly true   | boolean |
+| getLocalTime  | \- | Get local machine time, then convert it into an integer   | integer |
+| getTimeServerTime| \- | See isLivetimeOn above   | integer |
+| Date.prototype.myFormat  | \- | A custom date format function for making YYYYMMDDHHMM format  | - |
+| testInputTime | inputTime  | Test if the given time is of a valid format as specified in YYYYMMDDHHMM and it should not represent a time in the past | boolean |
+| checkBoolTrueArray   | item   | Returns the given item   | boolean |
+| isInt | item   | Checks if the given value is an integer  | boolean |
 | isIntAboveZero| item   | Checks if the given value is a positive integer  |
-| arraySum  | arr| Sum of all elements in the given array   |
-| makeIndexArray| \_length   | Make an array whose element values are the same as their array index values  |
-| sumIndexedValues | Indexes, values   | Sum of all elements whose element indexes are specified in the indexes array |
-| makeFakeTxHash| \- | Make fake Ethereum transaction hash  |
-| getAllIndexes | Arr, val   | Get all array element indexes of a particular value   |
-| getArraysFromCSV | eoaPath, itemNumberPerLine| Get arrays from a csv file, inside which there are lines of arrays   |
-| getOneAddrPerLineFromCSV | eoaPath| Get one address per line inside the given csv file|
-| reduceArrays  | toAddressArray, amountArray   | Reduce multiple duplicated address-amount pairs into unique pairs|
-| arraysSortedEqual| array1, array2| compare array elements after sorting both arrays |
-| getRndIntegerBothEnd | min, max   | Get a random number between min and max  |
+| arraySum  | arr| Sum of all elements in the given array   | boolean |
+| makeIndexArray| \_length   | Make an array whose element values are the same as their array index values  | - |
+| sumIndexedValues | Indexes, values   | Sum of all elements whose element indexes are specified in the indexes array | integer |
+| makeFakeTxHash| \- | Make fake Ethereum transaction hash  | -|
+| getAllIndexes | Arr, val   | Get all array element indexes of a particular value   | array of integers |
+| getArraysFromCSV | eoaPath, itemNumberPerLine| Get arrays from a csv file, inside which there are lines of arrays   | array of strings |
+| getOneAddrPerLineFromCSV | eoaPath| Get one address per line inside the given csv file| array of strings |
+| reduceArrays  | toAddressArray, amountArray   | Reduce multiple duplicated address-amount pairs into unique pairs| array of strings and integers |
+| arraysSortedEqual| array1, array2| compare array elements after sorting both arrays | arrays of booleans |
+| getRndIntegerBothEnd | min, max   | Get a random number between min and max  | boolean |
 | getBuyAmountArray| totalAmount, price, fundingType  | Get buy amount that is complied with Regulation on the max buy amount|
 | getInputArrays| arraylength = 3, totalTokenAmount| Get input arrays of userIndexArray and tokenCountArray|
 | makeCorrectAmountArray   | amountArray, goal, maxTotal | Make correct amounts for different funding scenarios: 1.Funding Sold out: all maxTotal should be distributed inside amountArray.  2.Funding ended with goal reached: total output amount array should only sum up to be just above the goal.   3.Funding ended with goal not reached(funding failed): total output amount array should only sum up to be just below the goal   |
