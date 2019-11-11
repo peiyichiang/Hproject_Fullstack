@@ -9,9 +9,55 @@ const {edit_product, add_product, symbol, total, goal, generateCSV, price, type}
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 let virtualAccount;
+let crowdFundingAddr;
+
 //var describe = mocha.describe;
 //var it = mocha.it;
-const version = "/frontendAPI/v1.0"
+const version = "/frontendAPI/v1.0";
+
+const getRandomNum = async(x)=>{
+  return new Promise((resolve, reject) => {
+    resolve(Math.floor(Math.random()*x)+1);
+  })
+};
+const getRandomList = async(randomList = [],  randomListLength = 0, remain = 0)=>{
+    if(randomListLength == 0 ){
+      randomListLength = await getRandomNum(9);// How many user buy
+      remain = goal % randomListLength;
+    }
+    let average = parseInt(goal / randomListLength);
+    let hold = await getRandomNum(remain);
+    remain -= hold;
+    randomList.push(hold + average);
+    if(remain <= 0){
+      while(randomList.length < randomListLength){
+        randomList.push(average);
+      }
+      return (randomList);
+    }
+    else{
+      return getRandomList(randomList, randomListLength, remain);
+    }
+}
+function delay(t, val) {
+  return new Promise(function(resolve) {
+      setTimeout(function() {
+          resolve(val);
+      }, t);
+  });
+}
+const orderingFromRandomArray = async()=>{
+    await getRandomList();
+    for (let index = 0; index < randomList.length; index++) {
+      const amount = randomList[index]
+      await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
+      await makeOrderPaidAndWriteIntoCFC();
+    }
+    return
+  }
+//let randomList = [];
+//let randomListLength = getRandomNum(99);
+
 
 const frontEndUserRegistry = async() => {
   let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol;
@@ -101,7 +147,7 @@ const frontEndUserViewingPages = async() => {
     });
   })
 }
-const frontEndUserOrdering = async(amout) => {
+const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', password = '02282040') => {
   describe('intergration testing of front-end user ordering', async function(){
     this.timeout(3000);  
     let jwt, canBuy = false;
@@ -109,7 +155,7 @@ const frontEndUserOrdering = async(amout) => {
       await request
         .get(version + '/user/UserLogin')
         .set('Accept', 'application/json')
-        .query({ email: 'ivan55660228@gmail.com', password: '02282040' })
+        .query({ email: email, password: password })
         .expect(200)
         .then(async function(res){
           await res.body.jwt.should.not.empty();
@@ -175,7 +221,7 @@ const frontEndUserOrdering = async(amout) => {
     it('get order compliance', async function(){
       await request
         .get(version+'/order/CheckOrderCompliance')
-        .query({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
+        .query({ JWT: jwt, symbol: symbol, email: email, fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
         .set('Accept', 'application/json')
         .expect(200)
         .then(async function(res){
@@ -187,7 +233,7 @@ const frontEndUserOrdering = async(amout) => {
     it('add order to db', async function(){
       await request
         .post(version+'/order/AddOrder')
-        .send({ JWT: jwt, symbol: symbol, email: 'ivan55660228@gmail.com', fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
+        .send({ JWT: jwt, symbol: symbol, email: email, fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
         .set('Accept', 'application/json')
         .expect(200)
         .then(async function(res){
@@ -595,8 +641,21 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
     
   });
 };
+const checkAmountAfterMint = async(crowdFundingAddr, email, amount)=>{
+  describe('check the amount is correct or not', async function(){
+    it('Check the amout of every user is correct', async function(){
+      await request
+        .post(`/contracts/crowdfunding/emailToQty`)
+        .send({"ctrtAddr" : crowdFundingAddr, "email" : email})
+        .set('Cookie', token)
+        .expect(200)
+        .then(async function(res){
+          await parseInt(res.body.quantityOwned).should.equal(parseInt(amount));
+        });
+    }).timeout(2000);
+  })
+}
 const PSMintToken = async(updateTime) => {
-  let crowdFundingAddr;
   describe('intergration testing of PS mint token', async function(){
     this.timeout(1000);  
     before('Login before do something', async function(){
@@ -668,16 +727,6 @@ const PSMintToken = async(updateTime) => {
         return ; // do the promise call in a `then` callback to properly chain it
       });
     }).timeout(62000);
-    it('Mint Token By PS', async function(){
-      await request
-        .post(`/contracts/crowdfunding/emailToQty`)
-        .send({"ctrtAddr" : crowdFundingAddr, "email" : "ivan55660228@gmail.com"})
-        .set('Cookie', token)
-        .expect(200)
-        .then(async function(res){
-          await parseInt(res.body.quantityOwned).should.equal(parseInt(goal));
-        });
-    }).timeout(2000);
     
   });
 };
@@ -751,11 +800,22 @@ const flow1 = async() => {
 };
 const flow2 = async() => {
   describe('intergration testing of reaching the funding goal after CFED', async function(){
+    this.timeout(100000);  
+    
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
-    await frontEndUserOrdering(goal);
-    await makeOrderPaidAndWriteIntoCFC();
+    let result = await getRandomList().then(async(result) =>{
+      console.log(result);
+      await asyncForEach(result, async (amount, index) => {
+        await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
+        await makeOrderPaidAndWriteIntoCFC();
+      })
+    })
+    //await orderingFromRandomArray();
+    
+    //await frontEndUserOrdering(goal);
+    //await makeOrderPaidAndWriteIntoCFC();
     await PSMintToken(parseInt(edit_product.p_CFED) + 1);
   });
 };

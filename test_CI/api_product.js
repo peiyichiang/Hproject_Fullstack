@@ -5,8 +5,11 @@ const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 
 let symbol = faker.name.findName().toUpperCase().substring(0,4) + getLocalTime().toString().substring(4, 8);
 let total = faker.random.number(1000) + 1000;
-let goal = faker.random.number(1000, total);
-let price = faker.random.number(10000) + 10000
+let goal = faker.random.number(total - 1000) + 1000;
+let price = faker.random.number(10000) + 10000;
+console.log(`symbol: ${symbol}`);
+console.log(`total: ${total}`);
+console.log(`goal: ${goal}`);
 let type = '2';
 const edit_product = {
     p_SYMBOL: symbol,
