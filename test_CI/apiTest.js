@@ -39,22 +39,16 @@ const getRandomList = async(randomList = [],  randomListLength = 0, remain = 0)=
       return getRandomList(randomList, randomListLength, remain);
     }
 }
-function delay(t, val) {
-  return new Promise(function(resolve) {
-      setTimeout(function() {
-          resolve(val);
-      }, t);
-  });
-}
-const orderingFromRandomArray = async()=>{
-    await getRandomList();
+
+const checkAmountArray = async(randomList)=>{
+  console.log("last execute")
     for (let index = 0; index < randomList.length; index++) {
       const amount = randomList[index]
-      await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
-      await makeOrderPaidAndWriteIntoCFC();
+      await checkAmountAfterMint(crowdFundingAddr, `000a${10 + index}@gmail.com`, amount).catch(err =>{
+        console.log(err);
+      });
     }
-    return
-  }
+}
 //let randomList = [];
 //let randomListLength = getRandomNum(99);
 
@@ -722,11 +716,11 @@ const PSMintToken = async(updateTime) => {
     }).timeout(1000);
     it('Mint', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 60000);    
+        setTimeout(resolve, 100000);    
       }).then(() => {
         return ; // do the promise call in a `then` callback to properly chain it
       });
-    }).timeout(62000);
+    }).timeout(102000);
     
   });
 };
@@ -798,9 +792,9 @@ const flow1 = async() => {
 
   });
 };
-const flow2 = async() => {
-  describe('intergration testing of reaching the funding goal after CFED', async function(){
-    this.timeout(100000);  
+async function flow2(){
+ // describe('intergration testing of reaching the funding goal after CFED', async function(){
+   // this.timeout(100000);  
     
     await FMNAddProduct();
     await FMSApproveProduct();
@@ -817,7 +811,8 @@ const flow2 = async() => {
     //await frontEndUserOrdering(goal);
     //await makeOrderPaidAndWriteIntoCFC();
     await PSMintToken(parseInt(edit_product.p_CFED) + 1);
-  });
+    //await checkAmountArray(result);
+ // });
 };
 const flow3 = async() => {
   describe('intergration testing of terminating product', async function(){
