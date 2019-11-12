@@ -4,7 +4,7 @@ var mocha = require('mocha');
 var faker = require('faker');
 const should = require('should');
 const assert = require('assert');
-const {mysqlPoolQueryB} = require('../timeserver/mysql.js');
+const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
@@ -42,12 +42,11 @@ const getRandomList = async(randomList = [],  randomListLength = 0, remain = 0)=
 
 const checkAmountArray = async(randomList)=>{
   console.log("last execute")
-    for (let index = 0; index < randomList.length; index++) {
-      const amount = randomList[index]
-      await checkAmountAfterMint(crowdFundingAddr, `000a${10 + index}@gmail.com`, amount).catch(err =>{
+    await asyncForEach(randomList, async (amount, index) => {
+      await checkAmountAfterMint(`000a${10 + index}@gmail.com`, amount).catch(err =>{
         console.log(err);
       });
-    }
+    })
 }
 //let randomList = [];
 //let randomListLength = getRandomNum(99);
@@ -458,7 +457,6 @@ const PSPublishProduct = async() => {
   });
 };
 const PSPauseProduct = async() => {
-  let crowdFundingAddr;
   describe('intergration testing of PS pause product', async function(){
     this.timeout(3000);  
     before('Login before do something', async function(){
@@ -513,7 +511,6 @@ const PSPauseProduct = async() => {
   });
 };
 const PSRestartProduct = async() => {
-  let crowdFundingAddr;
   describe('intergration testing of PS restart product', async function(){
     this.timeout(3000);  
     before('Login before do something', async function(){
@@ -561,7 +558,6 @@ const PSRestartProduct = async() => {
   });
 };
 const PSTerminateProduct = async() => {
-  let crowdFundingAddr;
   describe('intergration testing of PS terminate product', async function(){
     this.timeout(3000);  
     before('Login before do something', async function(){
@@ -635,12 +631,13 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
     
   });
 };
-const checkAmountAfterMint = async(crowdFundingAddr, email, amount)=>{
+const checkAmountAfterMint = async(email, amount)=>{
   describe('check the amount is correct or not', async function(){
     it('Check the amout of every user is correct', async function(){
+      let addr = await getAllSmartContractAddrs(symbol);
       await request
         .post(`/contracts/crowdfunding/emailToQty`)
-        .send({"ctrtAddr" : crowdFundingAddr, "email" : email})
+        .send({"ctrtAddr" : addr[0], "email" : email})
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
@@ -725,7 +722,6 @@ const PSMintToken = async(updateTime) => {
   });
 };
 const PSFundingClose = async(updateTime) => {
-  let crowdFundingAddr;
   describe('intergration testing of PS mint token', async function(){
     this.timeout(1000);  
     before('Login before do something', async function(){
@@ -799,19 +795,29 @@ async function flow2(){
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
-    let result = await getRandomList().then(async(result) =>{
+    // let result = await getRandomList().then(async(result) =>{
+    //   console.log(result);
+    //   await asyncForEach(result, async (amount, index) => {
+    //     await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
+    //     await makeOrderPaidAndWriteIntoCFC();
+    //   })
+    // })
+    // await PSMintToken(parseInt(edit_product.p_CFED) + 1);
+    // await checkAmountArray(result);
+
+    await getRandomList()
+    .then(async(result) =>{
       console.log(result);
       await asyncForEach(result, async (amount, index) => {
         await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
         await makeOrderPaidAndWriteIntoCFC();
       })
+      return result;
     })
-    //await orderingFromRandomArray();
-    
-    //await frontEndUserOrdering(goal);
-    //await makeOrderPaidAndWriteIntoCFC();
-    await PSMintToken(parseInt(edit_product.p_CFED) + 1);
-    //await checkAmountArray(result);
+    .then(async(result)=>{
+      await PSMintToken(parseInt(edit_product.p_CFED) + 1);
+      await checkAmountArray(result);
+    })
  // });
 };
 const flow3 = async() => {
