@@ -156,7 +156,7 @@ console.log(`addrHelium: ${addrHelium} \naddrRegistry: ${addrRegistry} \naddrPro
 //----------------------------==Timeserver Settings
 
 let isLivetimeOn;
-const isLivetimeOnNum = parseInt(process.env.IS_LIVETIME_ON);
+const isLivetimeOnNum = parseInt(process.env.IS_TIMESERVER_ON);
 if(isNaN(isLivetimeOnNum) || isLivetimeOnNum === 1){
   isLivetimeOn = true;
 } else {
