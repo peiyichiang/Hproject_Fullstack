@@ -9,7 +9,7 @@ var multer = require('multer');
 // var debugSQL = require('debug')('dev:mysql');
 
 //require("dotenv").config();
-const { SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, isTimeserverON, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
+const { SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, isLivetimeOn, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./timeserver/envVariables');
 
 console.log('loading app.js modules...');
 //智豪
@@ -126,7 +126,7 @@ app.use(function (err, req, res, next) {
 });
 
 
-if(isTimeserverON){
+if(isLivetimeOn){
   console.log(`\n--------------------== app.js: timeserver is ON`);
   require('./timeserver/timeserverSource');
   console.log(`  is_addAssetbooksIntoCFC: ${is_addAssetbooksIntoCFC}
