@@ -250,6 +250,7 @@
     }
 
     const checkAddr = (input, inputName, addrOutDefault) => {
+      const has0x = input.substring(0, 2) === '0x';
       let isGood = false, addrOut, mesg;
       const isGivingDefaultValue = 1;
       if(!isEmpty(input)){
