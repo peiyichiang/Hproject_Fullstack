@@ -175,7 +175,9 @@
         MinimumVotesForMultiSig: <span id="MinimumVotesForMultiSigM"></span><br>
         PermissionList: <span id="PermissionListM"></span><br>
         showPermissionCode: <span id="showPermissionCodeM"></span><br>
-
+        checkCustomerService: <span id="checkCustomerServiceM"></span><br>
+        checkPlatformSupervisor: <span id="checkPlatformSupervisorM"></span><br>
+        checkAdmin: <span id="checkAdminM"></span><br>
         getEachVoteResult: <span id="getEachVoteResultM"></span><br>
         isVotedApproved: <span id="isVotedApprovedM"></span><br>
         <br>
@@ -248,8 +250,8 @@
       document.getElementById("errorMessageM").innerText = mesgFinal;
       
     }
-
     const checkAddr = (input, inputName, addrOutDefault) => {
+      const has0x = input.substring(0, 2) === '0x';
       let isGood = false, addrOut, mesg;
       const isGivingDefaultValue = 1;
       if(!isEmpty(input)){
@@ -284,6 +286,7 @@
       console.log(`inside checkInputs()...`);
       let isGood, mesg = '', addrOut, mesgPublic = '';
 
+      //抓取每個input欄位的值
       const HeliumCtrtAddr_input = document.getElementById("HeliumCtrtAddr").value;
       const addrInput1_input = document.getElementById("addrInput1").value;
       const addrInput2_input = document.getElementById("addrInput2").value;
@@ -338,7 +341,27 @@ addrInput5_input: ${addrInput5_input} `);
 
       return [isGoodHelium, mesgHelium, HeliumCtrtAddr, isGood, mesg, addrOut];
     }
+    $('#Helium_Admin').on('click', async function(e){
+      console.log('inside Helium_Admin function... ');
+      const [isGoodHelium, mesgHelium, HeliumCtrtAddr, isGood, mesg, addrOut] = await checkInputs('Helium_Admin');
+      console.log(`isGoodHelium: ${isGoodHelium}, mesgHelium: ${mesgHelium}, HeliumCtrtAddr: ${HeliumCtrtAddr}, isGood: ${isGood}, mesg: ${mesg}, addrOut: ${addrOut}`);
+      if(isGoodHelium){
+        const url = BcApiBase+`heliumContract/heliumAdmin`;
+        const data = { addrHelium: HeliumCtrtAddr };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
 
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+
+        document.getElementById("Helium_AdminM").innerText = jsonObj['result'];
+        document.getElementById("HeliumCtrtAddrM").innerText = HeliumCtrtAddr;
+      }
+    })
     $('#isAfterDeployment').on('click',  async function (e) {
       console.log('inside isAfterDeployment function... ');
       const [isGoodHelium, mesgHelium, HeliumCtrtAddr, isGood, mesg, addrOut] = await checkInputs('isAfterDeployment');
@@ -382,6 +405,76 @@ addrInput5_input: ${addrInput5_input} `);
         console.log(jsonObj['result']['permissionCode'])
 
         document.getElementById("PermissionListM").innerText = jsonObj['result']['permissionCode'];
+        document.getElementById("HeliumCtrtAddrM").innerText = HeliumCtrtAddr;
+      }
+    });
+    $('#checkCustomerService').on('click',  async function (e) {
+      console.log('inside checkCustomerService function... ');
+      const [isGoodHelium, mesgHelium, HeliumCtrtAddr, isGood, mesg, addrOut] = await checkInputs('checkCustomerService');
+      console.log(`isGoodHelium: ${isGoodHelium}, mesgHelium: ${mesgHelium}, HeliumCtrtAddr: ${HeliumCtrtAddr}, isGood: ${isGood}, mesg: ${mesg}, addrOut: ${addrOut}`);
+
+      if(isGoodHelium){
+        const url = BcApiBase+`heliumContract/checkCustomerService`;
+        const data = { addrHelium: HeliumCtrtAddr, addrInput: addrOut };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
+
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+        console.log(jsonObj['result']['permissionCode'])
+
+        document.getElementById("checkCustomerServiceM").innerText = jsonObj['result'];
+        document.getElementById("HeliumCtrtAddrM").innerText = HeliumCtrtAddr;
+      }
+    });
+    $('#checkPlatformSupervisor').on('click',  async function (e) {
+      console.log('inside checkPlatformSupervisor function... ');
+      const [isGoodHelium, mesgHelium, HeliumCtrtAddr, isGood, mesg, addrOut] = await checkInputs('checkPlatformSupervisor');
+      console.log(`isGoodHelium: ${isGoodHelium}, mesgHelium: ${mesgHelium}, HeliumCtrtAddr: ${HeliumCtrtAddr}, isGood: ${isGood}, mesg: ${mesg}, addrOut: ${addrOut}`);
+
+      if(isGoodHelium){
+        const url = BcApiBase+`heliumContract/checkPlatformSupervisor`;
+        const data = { addrHelium: HeliumCtrtAddr, addrInput: addrOut };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
+
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+        console.log(jsonObj['result']['permissionCode'])
+
+        document.getElementById("checkPlatformSupervisorM").innerText = jsonObj['result'];
+        document.getElementById("HeliumCtrtAddrM").innerText = HeliumCtrtAddr;
+      }
+    });
+
+    $('#checkAdmin').on('click',  async function (e) {
+      console.log('inside checkAdmin function... ');
+      const [isGoodHelium, mesgHelium, HeliumCtrtAddr, isGood, mesg, addrOut] = await checkInputs('checkAdmin');
+      console.log(`isGoodHelium: ${isGoodHelium}, mesgHelium: ${mesgHelium}, HeliumCtrtAddr: ${HeliumCtrtAddr}, isGood: ${isGood}, mesg: ${mesg}, addrOut: ${addrOut}`);
+
+      if(isGoodHelium){
+        const url = BcApiBase+`heliumContract/checkAdmin`;
+        const data = { addrHelium: HeliumCtrtAddr, addrInput: addrOut };
+        const options = {
+          method: 'POST', // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers:{'Content-Type': 'application/json'}
+        };
+        const response = await fetch(url, options).catch(error => console.error('Error:', error));
+
+        const jsonObj = await response.json();
+        console.log('jsonObj', jsonObj);
+        console.log(jsonObj['result']['permissionCode'])
+
+        document.getElementById("checkAdminM").innerText = jsonObj['result'];
         document.getElementById("HeliumCtrtAddrM").innerText = HeliumCtrtAddr;
       }
     });

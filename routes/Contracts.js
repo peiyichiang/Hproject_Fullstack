@@ -73,6 +73,14 @@ router.get('/heliumContract', function (req, res, next) {
     res.send(heliumContractAddr);
 });
 
+router.post('/heliumContract/heliumAdmin', async function (req, res, next) {
+    const addrHelium = req.body.addrHelium;
+    console.log('inside isAfterDeployment', addrHelium);
+    const instHelium = new web3.eth.Contract(heliumContract.abi, addrHelium);
+    const result = await instHelium.methods.Helium_Admin().call();
+    res.send({ result });
+});
+
 router.post('/heliumContract/isAfterDeployment', async function (req, res, next) {
   const addrHelium = req.body.addrHelium;
   console.log('inside isAfterDeployment', addrHelium);
@@ -90,7 +98,32 @@ router.post('/heliumContract/PermissionList', async function (req, res, next) {
   res.send({ result });
 });
 
+router.post('/heliumContract/checkCustomerService', async function (req, res, next) {
+    const addrHelium = req.body.addrHelium;
+    const addrInput = req.body.addrInput;
+    console.log(`inside checkCustomerService... \naddrHelium: ${addrHelium}\naddrInput: ${addrInput}`);
+    const instHelium = new web3.eth.Contract(heliumContract.abi, addrHelium);
+    const result = await instHelium.methods.checkCustomerService(addrInput).call();
+    res.send({ result });
+});
 
+router.post('/heliumContract/checkPlatformSupervisor', async function (req, res, next) {
+    const addrHelium = req.body.addrHelium;
+    const addrInput = req.body.addrInput;
+    console.log(`inside checkPlatformSupervisor... \naddrHelium: ${addrHelium}\naddrInput: ${addrInput}`);
+    const instHelium = new web3.eth.Contract(heliumContract.abi, addrHelium);
+    const result = await instHelium.methods.checkPlatformSupervisor(addrInput).call();
+    res.send({ result });
+});
+
+router.post('/heliumContract/checkAdmin', async function (req, res, next) {
+    const addrHelium = req.body.addrHelium;
+    const addrInput = req.body.addrInput;
+    console.log(`inside checkAdmin... \naddrHelium: ${addrHelium}\naddrInput: ${addrInput}`);
+    const instHelium = new web3.eth.Contract(heliumContract.abi, addrHelium);
+    const result = await instHelium.methods.checkAdmin(addrInput).call();
+    res.send({ result });
+});
 
 
 /**@dev Registry ------------------------------------------------------------------------------------- */
