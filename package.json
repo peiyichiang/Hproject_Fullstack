@@ -40,6 +40,7 @@
     "express-session": "^1.15.6",
     "faker": "^4.1.0",
     "fs": "^0.0.1-security",
+    "googleapis": "^39.2.0",
     "http-errors": "~1.6.2",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.4.0",
