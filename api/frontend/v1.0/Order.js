@@ -159,100 +159,57 @@ router.post('/AddOrder', async function (req, res, next) {
                         "message": "訂單寫入資料庫失敗:\n" + err
                     });
                 } else {
-                    // var transporter = nodemailer.createTransport({
-                    //     /* Helium */
-                    //     host: 'server239.web-hosting.com',
-                    //     port: 465,
-                    //     secure: true, // use SSL
-                    //     auth: {
-                    //         user: process.env.EMAIL_USER,
-                    //         pass: process.env.EMAIL_PASS
-                    //     }
-                    // });
+                    var transporter = nodemailer.createTransport({
+                        /* Helium */
+                        host: 'server239.web-hosting.com',
+                        port: 465,
+                        secure: true, // use SSL
+                        auth: {
+                            user: process.env.EMAIL_USER,
+                            pass: process.env.EMAIL_PASS
+                        }
+                    });
 
-                    // // setup email data with unicode symbols
-                    // let mailOptions = {
-                    //     from: ' <noreply@hcat.io>', // sender address
-                    //     to: email, // list of receivers
-                    //     subject: 'HCAT下單成功', // Subject line
-                    //     html: `<h2>下單成功</h2>
-                    //     <p>
-                    //     <p>親愛的您好:<br>
-                    //     <p>您剛下了一張訂單，此次購買 ${symbol} 共 ${tokenCount} 片，總計 ${fundCount} 元<br>
-                    //     <p>請參照以下指示完成您的付款。<br><br>
-                    //     <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
+                    // setup email data with unicode symbols
+                    let mailOptions = {
+                        from: ' <noreply@hcat.io>', // sender address
+                        to: email, // list of receivers
+                        subject: 'HCAT下單成功', // Subject line
+                        html: `<h2>下單成功</h2>
+                        <p>
+                        <p>親愛的您好:<br>
+                        <p>您剛下了一張訂單，此次購買 ${symbol} 共 ${tokenCount} 片，總計 ${fundCount} 元<br>
+                        <p>請參照以下指示完成您的付款。<br><br>
+                        <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
         
-                    //     <p>訂單編號: ${orderId}<br>
-                    //     <p>購買時間: ${currentDate}<br>
-                    //     <p>銀行代碼: 永豐銀行807
-                    //     <p>轉帳帳號名: 銀鏈資產管理有限公司
-                    //     <p>轉帳帳號: ${bankVirtualAccount}
-                    //     <p>總金額: NT$${fundCount}
-                    //     </p>`, // plain text body
-                    // };
+                        <p>訂單編號: ${orderId}<br>
+                        <p>購買時間: ${currentDate}<br>
+                        <p>銀行代碼: 永豐銀行807
+                        <p>轉帳帳號名: 銀鏈資產管理有限公司
+                        <p>轉帳帳號: ${bankVirtualAccount}
+                        <p>總金額: NT$${fundCount}
+                        </p>`, // plain text body
+                    };
 
                     // send mail with defined transport object
-                    // transporter.sendMail(mailOptions, (err, info) => {
-                    //     if (err) {
-                    //         res.status(400)
-                    //         res.json({
-                    //             "message": "驗證信寄送失敗：" + err
-                    //         })
-                    //     }
-                    //     else {
-                    //         res.status(200);
-                    //         res.json({
-                    //             "message": "訂單寫入資料庫成功 & 驗證信寄送成功",
-                    //             "result": orderId
-                    //         });
-                    //     }
-                    //     // console.log('Message sent: %s', info.messageId);
-                    //     // Preview only available when sending through an Ethereal account
-                    //     console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-                    // });
-
-                    function sendMessage(auth) {
-                        var gmail = google.gmail('v1');
-                        var email_lines = [];
-                        email_lines.push('From: neilliu102@gmail.com');
-                        email_lines.push('To:neilliu84@gmail.com');
-                        email_lines.push('Content-type: text/html;charset=utf-8');
-                        email_lines.push('MIME-Version: 1.0');
-                        email_lines.push('Subject: test');
-                        email_lines.push('');
-                        email_lines.push('body text');
-                        email_lines.push('<b>html text</b>');
-                        var email = email_lines.join('\r\n').trim();
-                        var base64EncodedEmail = new Buffer(email)
-                          .toString('base64')
-                          .replace(/\+/g, '-')
-                          .replace(/\//g, '_');
-                      
-                        console.log(base64EncodedEmail);
-                      
-                        function sendDone(err, response) {
-                          if (err) {
-                            console.log('The API returned an error: ' + err);
-                            return;
-                          }
-                          console.log('send mail success', response);
+                    transporter.sendMail(mailOptions, (err, info) => {
+                        if (err) {
+                            res.status(400)
+                            res.json({
+                                "message": "驗證信寄送失敗：" + err
+                            })
                         }
-                      
-                        gmail.users.messages.send(
-                          {
-                            auth: auth,
-                            userId: 'me',
-                            resource: {
-                              raw: base64EncodedEmail,
-                            },
-                          },
-                          sendDone
-                        );
-                      }
-                      sendMessage({
-                        user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS
-                      });
+                        else {
+                            res.status(200);
+                            res.json({
+                                "message": "訂單寫入資料庫成功 & 驗證信寄送成功",
+                                "result": orderId
+                            });
+                        }
+                        // console.log('Message sent: %s', info.messageId);
+                        // Preview only available when sending through an Ethereal account
+                        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+                    });
                 }
             });
         }
