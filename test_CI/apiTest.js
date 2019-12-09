@@ -872,4 +872,4 @@ const deleteSymbol = async() => {
   await mysqlPoolQueryB('DELETE FROM income_arrangement WHERE ia_SYMBOL = ?', [symbol]);
 }
 
-flow5();
+flow2();
