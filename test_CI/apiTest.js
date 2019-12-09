@@ -436,7 +436,7 @@ const PSPublishProduct = async() => {
     it('Deploy Crowdfunding By PS', async function(){
       await request
         .post('/contracts/crowdFundingContract/' + symbol)
-        .send({ tokenPrice: price, currency: "NTD", quantityMax: total, fundingGoal: goal, CFSD2: '201910180900', CFED2: '201911241700'})
+        .send({ tokenPrice: price, currency: "NTD", quantityMax: total, fundingGoal: goal, CFSD2: edit_product.p_CFSD, CFED2: edit_product.p_CFED})
         .set('Cookie', token)
         .expect(200)
         .then(async function(res){
@@ -623,11 +623,11 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
       });
     }).timeout(3000);
     it('Write Into Crowdfunding', async function(){
-      await addAssetbooksIntoCFC(getLocalTime()+1).catch(async (err) => {
+      await addAssetbooksIntoCFC(getLocalTime()+2).catch(async (err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
         await err.should.empty();
       });
-    }).timeout(10000);
+    }).timeout(30000);
     
   });
 };
@@ -850,9 +850,16 @@ const flow5 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
-    await frontEndUserOrdering(total);
-    await makeOrderPaidAndWriteIntoCFC();
-    await PSFundingClose(getLocalTime());
+    await getRandomList()
+    .then(async(result) =>{
+      console.log(result);
+      await asyncForEach(result, async (amount, index) => {
+        await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
+        await makeOrderPaidAndWriteIntoCFC();
+      })
+      return result;
+    })
+    await PSFundingClose(parseInt(edit_product.p_CFED) + 1);
     await PSTerminateProduct();
   });
 };
@@ -865,4 +872,4 @@ const deleteSymbol = async() => {
   await mysqlPoolQueryB('DELETE FROM income_arrangement WHERE ia_SYMBOL = ?', [symbol]);
 }
 
-flow2();
+flow5();

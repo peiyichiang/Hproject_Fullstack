@@ -506,7 +506,7 @@
       let assetIndex_Str, assetAddr_Str, symbolStr, balanceStr, errorConsole;
       if(jsonObj.status){
         const {assetIndex_, assetAddr_, symbol, balance} = jsonObj['assetInfo'];
-        const symbolStr = jsonObj.symbolStr.trim();
+        let symbolStr = jsonObj.symbolStr.trim();
         console.log(`assetIndex_: ${assetIndex_}, assetAddr_: ${assetAddr_}, symbol: ${symbol}, balance: ${balance}, symbolStr: ${symbolStr}`);
         assetIndex_Str = assetIndex_;
         assetAddr_Str  = assetAddr_;

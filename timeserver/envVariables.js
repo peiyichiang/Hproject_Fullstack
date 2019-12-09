@@ -111,7 +111,7 @@ console.log('blockchainChoice:', blockchainChoice);
 
 if(blockchainChoice === '1'){//POA
   blockchainURL = "http://"+process.env.BC_HOST+":"+process.env.BC_PORT;
-  gasLimitValue = 9000000;//intrinsic gas too low
+  gasLimitValue = 90000000000;//intrinsic gas too low
   gasPriceValue = 0;//insufficient fund for gas * gasPrice + value
   admin = process.env.HELIUM_ADMIN;
   adminpkRaw =  process.env.HELIUM_ADMIN_PRIVATEKEY;

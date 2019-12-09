@@ -156,6 +156,13 @@ router.get('/registryContract', function (req, res, next) {
     res.send(registryContractAddr);
 });
 
+router.get('/registryContract/detail', async function (req, res, next) {
+    console.log(`registryCtrtAddr: ${addrRegistry}`);
+    const instRegistry = new web3.eth.Contract(registryContract.abi, addrRegistry);
+    const obj = await instRegistry.methods.getRegistryDetails().call();
+    res.send({ result: obj });
+});
+
 /*註冊新會員 */
 router.post('/registryContract/users/:u_id', async function (req, res, next) {
     /**寫入BlockChain */
@@ -227,8 +234,8 @@ router.get('/registryContract/users/:u_id', async function (req, res, next) {
 
 router.post('/registryContract/getUserFromUid/:uid', async function (req, res, next) {
   const uid = req.body.uid;
-  const registryCtrtAddr = req.body.registryCtrtAddr;
-  console.log(`\nuid: ${uid}, registryCtrtAddr: ${registryCtrtAddr}`);
+  //const registryCtrtAddr = req.body.registryCtrtAddr;
+  console.log(`\nuid: ${uid}, registryCtrtAddr: ${addrRegistry}`);
   if(isEmpty(uid)){
     res.send({
       err: 'uid is invalid. '+uid,
@@ -236,12 +243,43 @@ router.post('/registryContract/getUserFromUid/:uid', async function (req, res, n
     });
     return false;
   }
-  const instAssetbook = new web3.eth.Contract(registryContract.abi, assetbookAddr);
-  const isContract = await instAssetbook.methods.getUserFromUid(uid).call();
+  const instRegistry = new web3.eth.Contract(registryContract.abi, addrRegistry);
+  const isContract = await instRegistry.methods.getUserFromUid(uid).call();
 
   res.send({ isContract });
 });
 
+router.get('/registryContract/getUserFromAssetbook/:assetbook', async function (req, res, next) {
+    const assetbook = req.params.assetbook;
+    console.log(`\assetbook: ${assetbook}, registryCtrtAddr: ${addrRegistry}`);
+    if(isEmpty(assetbook)){
+      res.send({
+        err: 'assetbook is invalid. '+uid,
+        status: false
+      });
+      return false;
+    }
+    const instRegistry = new web3.eth.Contract(registryContract.abi, addrRegistry);
+    const isContract = await instRegistry.methods.getUserFromAssetbook(assetbook).call();
+    res.send({ isContract });
+});
+
+router.get('/registryContract/restriction', async function (req, res, next) {
+    const restrictions = req.query.authLevel;
+    console.log(`\authLevel: ${restrictions}, registryCtrtAddr: ${addrRegistry}`);
+    if(isEmpty(restrictions) || restrictions === undefined){
+      res.send({
+        err: 'authLevel is invalid. '+restrictions,
+        status: false
+      });
+      return false;
+    }
+    const instRegistry = new web3.eth.Contract(registryContract.abi, addrRegistry);
+    const obj = await instRegistry.methods.restrictions(restrictions).call();
+    res.send({ result: obj });
+});
+
+  
 router.post('/registryContract/setRestrictions', async function (req, res, next) {
   const authLevel = req.body.authLevel;
   const maxBuyAmountPublic = req.body.maxBuyAmountPublic;
@@ -1740,7 +1778,7 @@ router.post('/HCAT721_AssetTokenContract/:symbol/preMint', async function (req, 
 router.post('/HCAT721_AssetTokenContract/:symbol/mintSequentialPerContract', async function (req, res, next) {
     console.log(`\n---------------------==API mintSequentialPerContract...`);
     const symbol = req.params.symbol;
-    const maxMintAmountPerRun = 190;
+    const maxMintAmountPerRun = 5000;
     const serverTime = await getTimeServerTime();
     console.log('serverTime:', serverTime);
 

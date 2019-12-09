@@ -20,6 +20,10 @@
       <strong>Success! </strong> Product have added to your wishlist.
     </div>
 
+    <div class="" id="mesgDiv" style="margin: 15px;">
+      <div class="card card-body d-none" id="mesg" style="background-color: #ffea00;"></div>
+    </div>
+
     <div class="row">
       <div class="col">
         <h5><%= contractType %> Contract:</h5>
@@ -110,6 +114,8 @@
         forecastedPayableTime: <span id="forecastedPayableTimeM"></span><br>
         isErrorResolved: <span id="isErrorResolvedM"></span><br>
         
+        error message: <span id="errorMessageM"></span><br>
+        error from console: <span id="errorConsole"></span><br>
         <br>
         <h5>Asset</h5>
         Asset: <span id="idToAssetM"></span><br>
@@ -201,7 +207,7 @@
 
     const checkInputs = async(funcName) => {
       console.log(`inside checkInputs()...`);
-      let tokenSymbol_input, ctrtAddr_input, scheduleIndex_input, schDateTime_input, amount_input, mesg, isGood, isGoodSch, resultMesg = '', tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount;
+      let tokenSymbol_input, ctrtAddr_input, scheduleIndex_input, schDateTime_input, amount_input, mesg = '', isGood, isGoodSch = false, resultMesg = '', tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount;
 
       tokenSymbol_input = document.getElementById("tokenSymbol").value;
 
@@ -225,6 +231,7 @@
     */
 
       if(!is_tokenSymbol_empty){
+        tokenSymbol = tokenSymbol_input
         if(tokenSymbol_input.length === 8){
           const url = BcApiBase+`getCtrtAddrFromTokenSymbol`;
           console.log('about to find contract address ... url:',url);
@@ -237,7 +244,7 @@
           const response = await fetch(url, options).catch(error => console.error('[Error]:', error));
           const json = await response.json();
           console.log('json', json);
-          isGood = json.isGoodAssetbook;
+          isGood = json.isGoodCtrtAddr;
           ctrtAddr = json.ctrtAddr;
           resultMesg = json.resultMesg;
 
@@ -268,21 +275,21 @@
           mesg = 'Token symbol and Token contract values are empty';
         }
       }
-      console.log(`234----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol}, ctrtAddr: ${ctrtAddr}`);
+      console.log(`234----==isGood: ${isGood}, tokenSymbol: ${tokenSymbol_input}, ctrtAddr: ${ctrtAddr}`);
 
       if(!isGood){
         console.warn(mesg+', resultMesg: '+resultMesg);
         showMessage(mesg+', resultMesg: '+resultMesg);
-        return [isGood, tokenSymbol_input, ctrtAddr_input, undefined, undefined, undefined];
+        return [isGood, tokenSymbol, ctrtAddr, undefined, undefined, undefined];
       }
 
-      console.log(`-------------==`);
-      const scheduleIndex_input_num = parseInt(scheduleIndex_input);
-      const schDateTime_input_num = parseInt(schDateTime_input);
-      const amount_input_num = parseInt(amount_input);
-      console.log('scheduleIndex_input_num:', scheduleIndex_input_num, ', schDateTime_input_num:', schDateTime_input_num, ', amount_input_num:', amount_input_num );
-
       if(!is_scheduleIndex_empty){
+        console.log(`-------------==`);
+        const scheduleIndex_input_num = parseInt(scheduleIndex_input);
+        const schDateTime_input_num = parseInt(schDateTime_input);
+        const amount_input_num = parseInt(amount_input);
+        console.log('scheduleIndex_input_num:', scheduleIndex_input_num, ', schDateTime_input_num:', schDateTime_input_num, ', amount_input_num:', amount_input_num );
+
         if(isNaN(scheduleIndex_input_num) || scheduleIndex_input_num < 1 || scheduleIndex_input_num >300){
           mesg = 'scheduleIndex should not be out of range of 1 ~ 300';
         } else {
@@ -291,6 +298,8 @@
         }
 
       } else if(!is_schDateTime_empty){
+        const schDateTime_input_num = parseInt(schDateTime_input);
+
         if( isNaN(schDateTime_input_num) || schDateTime_input_num < 201909020900 || schDateTime_input_num > 204909020900){
           mesg = 'schDateTime should not be out of range';
         } else {
@@ -313,7 +322,7 @@
       if(!isGoodSch){
         console.warn(mesg+', resultMesg: '+resultMesg);
         showMessage(mesg+', resultMesg: '+resultMesg);
-        return [isGoodSch, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, undefined];
+        return [isGoodSch, tokenSymbol_input, ctrtAddr, scheduleIndex, schDateTime, undefined];
       }
 
       console.log(`-------------==check2`);
@@ -336,7 +345,7 @@
         }
       } 
 
-      console.log('amount_input_num', amount_input_num, ', is_amount_empty:', is_amount_empty);
+      console.log('amount_input_num', parseInt(amount_input), ', is_amount_empty:', is_amount_empty);
       let isGoodAmount;
       if(funcName === 'getIncomeScheduleList'){
         if(is_amount_empty){
@@ -344,16 +353,16 @@
           mesg = 'amount is found empty. Using default value: '+ amount;
           isGood = true;
           isGoodAmount = true;
-        } else if(isNaN(amount_input_num) || amount_input_num < 1 || amount_input_num >300){
+        } else if(isNaN(parseInt(amount_input)) || parseInt(amount_input) < 1 || parseInt(amount_input) >300){
             mesg = 'amount should not be out of range of 1 ~ 300';
         } else {
           isGood = true;
           isGoodAmount = true;
-          amount = amount_input_num;
+          amount = parseInt(amount_input);
         }
       }
       if(!isGoodAmount){
-        return [isGoodAmount, tokenSymbol_input, ctrtAddr_input, scheduleIndex, schDateTime, amount_input_num];
+        return [isGoodAmount, tokenSymbol_input, ctrtAddr, scheduleIndex, schDateTime, parseInt(amount_input)];
       }
       console.log(`-------------==`);
       console.warn(mesg);
@@ -372,8 +381,8 @@
     $('#getContractDetails').on('click',  async function (e) {
       console.log('inside getContractDetails function... \ne.target:', e.target);
       const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('getContractDetails');
-      if(!isGood || isEmpty(ctrtAddr)) return;
-
+      if(isEmpty(ctrtAddr)) return;
+      console.log(ctrtAddr);
       const url = BcApiBase+`incomeManagerCtrt/getContractDetails/${ctrtAddr}`;
       // http://localhost:3030/Contracts/incomeManagerCtrt/getContractDetails/ctrt
       const response = await fetch(url);
@@ -394,7 +403,7 @@
       console.log('inside dateToIdx function... \ne.target:', e.target);
       const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('dateToIdx');
       console.log(`scheduleIndex: ${scheduleIndex}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGood) return;
+      if(isEmpty(ctrtAddr)) return;
 
       const url = BcApiBase+`incomeManagerCtrt/dateToIdx`;
       // http://localhost:3030/Contracts/incomeManagerCtrt/dateToIdx/
@@ -443,7 +452,7 @@
       console.log('inside idxToSchedule function... \ne.target:', e.target);
       const [isGood, tokenSymbol, ctrtAddr, scheduleIndex, schDateTime, amount] = await checkInputs('idxToSchedule');
       console.log(`scheduleIndex: ${scheduleIndex}, ctrtAddr: ${ctrtAddr}`);
-      if(!isGood) return;
+      if(isEmpty(ctrtAddr)) return;
 
       const url = BcApiBase+`incomeManagerCtrt/idxToSchedule`;
       // http://localhost:3030/Contracts/incomeManagerCtrt/idxToSchedule/
