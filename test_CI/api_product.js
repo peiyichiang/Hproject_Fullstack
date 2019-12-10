@@ -3,7 +3,15 @@ var fs = require('fs');
 var es = require('event-stream');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 
-let symbol = faker.name.findName().toUpperCase().substring(0,4) + getLocalTime().toString().substring(4, 8);
+const generateRandomNameWithoutSpecialChar = () => {
+    let randomName = faker.name.findName().toUpperCase().substring(0,4) + getLocalTime().toString().substring(4, 8);
+    while(randomName.includes('.') || randomName.includes(' ')){
+        return generateRandomNameWithoutSpecialChar();
+    }
+    return randomName;
+}
+
+let symbol = generateRandomNameWithoutSpecialChar();
 let total = faker.random.number(10000) + 10000;
 let goal = faker.random.number(total - 10000) + 10000;
 let price = faker.random.number(1000) + 1000;
@@ -26,7 +34,7 @@ const edit_product = {
     p_fundmanager: 'myrronlin@gmail.com',
     p_PAdate: '2019-10-24 11:27:11 AM',
     p_CFSD: '201910180900',
-    p_CFED: '201912241700',
+    p_CFED: '202012241700',
     p_icon: 'public/uploadImgs/1571287635079_icon_ENIS1901.png',
     p_OnGridAuditedLetter:
      'public/uploadImgs/1571287635041_file_銀鏈資產管理有限公司(正和製藥)-併聯審查意見書(無初細步協商) [FAX版].pdf',
@@ -85,7 +93,7 @@ const add_product = {
     p_fundmanager: 'myrronlin@gmail.com',
     p_PAdate: '2019-10-24 11:27:11 AM',
     p_CFSD: '201910180900',
-    p_CFED: '201912241700',
+    p_CFED: '202012241700',
     p_icon: 'public/uploadImgs/1571287635079_icon_ENIS1901.png',
     p_OnGridAuditedLetter:
      'public/uploadImgs/1571287635041_file_銀鏈資產管理有限公司(正和製藥)-併聯審查意見書(無初細步協商) [FAX版].pdf',
@@ -146,4 +154,5 @@ const generateCSV = () => {
                 }
             }))
 }
+
 module.exports = {edit_product, add_product, symbol, total, goal, generateCSV, price, type};
