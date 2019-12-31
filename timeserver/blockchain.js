@@ -12,7 +12,7 @@ const { addrHelium, addrRegistry, addrProductManager, blockchainURL, admin, admi
 
 const { assetOwnerArray, assetOwnerpkRawArray } = require('../test_CI/zTestParameters');
 
-const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols } = require('../ethereum/contracts/zsetupData');
+const { Helium, Registry, AssetBook, TokenController, HCAT721, CrowdFunding, IncomeManager, ProductManager, wlogger, excludedSymbols, RegistryProxy, CrowdFundingV2, UpgradeabilityProxy, UpgradeabilityStorage} = require('../ethereum/contracts/zsetupData');
 
 const { addActualPaymentTime, mysqlPoolQueryB, setFundingStateDB,  setTokenStateDB, getTokenStateDB, addProductRow, addAssetRecordRowArray, getCtrtAddr, getForecastedSchedulesFromDB,getAllSmartContractAddrs, updateIAassetRecordStatus } = require('./mysql.js');
 
@@ -154,7 +154,175 @@ const checkHeliumCtrt = async(addrHeliumContract, managementTeam) => {
       }
   });
 }
+const deployRegistryProxyContract = async(managementTeam) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nblockchainURL: ${blockchainURL}`);
+    //  \nbackendAddrpkRaw: ${backendAddrpkRaw} 
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    wlogger.debug(`web3deploy.version: ${web3deploy.version}`);
+    let instRegistryProxy
+    try{
+      instRegistryProxy =  await new web3deploy.eth.Contract(RegistryProxy.abi)
+      .deploy({ data: prefix+RegistryProxy.bytecode, arguments: []})
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
+      })
+      .on('error', function (error) {
+          reject(`error: ${error.toString()}`);
+      });
+    } catch(err){
+      wlogger.debug(`err: ${err}`);
+    }
+    if (instRegistryProxy === undefined) {
+      reject(`[Error] instRegistryProxy is NOT defined`);
+      return false;
+    } else {
+      instRegistryProxy.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const addrRegistryProxyCtrt = instRegistryProxy.options.address;
+      wlogger.debug(`const addrRegistryCtrt = ${addrRegistryProxyCtrt}`);
+      resolve(addrRegistryProxyCtrt);
+    }
+  });
+}
+const addVersionToRegistryProxy = async(registryProxyAddr, crowdFundingVAddr, version) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==adding additional PlatformSupervisor...`);
+    const instRegistryProxy = new web3.eth.Contract(RegistryProxy.abi, registryProxyAddr);
+    const encodedData= instRegistryProxy.methods.addVersion(version, crowdFundingVAddr).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryProxyAddr, encodedData).catch((err) => {
+      reject(`[Error @ signTx() addVersionToRegistryProxy()] ${err}`);
+      return false;
+    });
+    resolve(TxResult);
+  });
+}
+const createProxyFromRegistryProxy = async(registryProxyAddr, version, nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==adding additional PlatformSupervisor...`);
+    const instRegistryProxy = new web3.eth.Contract(RegistryProxy.abi, registryProxyAddr);
+    const encodedData= instRegistryProxy.methods.createProxy(version,nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, registryProxyAddr, encodedData).catch((err) => {
+      reject(`[Error @ signTx() createProxyFromRegistryProxy()] ${err}`);
+      return false;
+    });
+    resolve(TxResult);
+  });
+}
+const getInfoFromProxy = async(proxyAddr) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==getRestrictions()`);
+    const instProxy = new web3.eth.Contract(CrowdFunding.abi, proxyAddr);
+    const result = await instProxy.methods.getCrowdfundingDetails().call();
+    //wlogger.debug(`restrictionsM: ${JSON.stringify(restrictionsM, null, 4)}`);
+    wlogger.debug(`Detail: ${result}`);
+    resolve(result);
+  });
+}
+const getVersionFromRegistry = async(registryProxyAddr, version) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==getRestrictions()`);
+    const instRegistryProxy = new web3.eth.Contract(RegistryProxy.abi, registryProxyAddr);
+    const result = await instRegistryProxy.methods.getVersion(version).call();
+    //wlogger.debug(`restrictionsM: ${JSON.stringify(restrictionsM, null, 4)}`);
+    wlogger.debug(`Detail: ${result}`);
+    resolve(result);
+  });
+}
+const upgradeProxyVersion = async(proxyAddr, version) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==adding additional PlatformSupervisor...`);
+    const instProxy = new web3.eth.Contract(UpgradeabilityProxy.abi, proxyAddr);
+    const encodedData = instProxy.methods.upgradeTo(version).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, proxyAddr, encodedData).catch((err) => {
+      reject(`[Error @ signTx() createProxyFromRegistryProxy()] ${err}`);
+      return false;
+    });
+    resolve(TxResult);
+  });
+}
 
+const newV2Behavior = async(proxyAddr, goal) => {
+  return new Promise(async (resolve, reject) => {
+    //wlogger.debug(`--------------==adding additional PlatformSupervisor...`);
+    const instProxy = new web3.eth.Contract(CrowdFundingV2.abi, proxyAddr);
+    const encodedData = instProxy.methods.newChangeCFED(202012311201).encodeABI();
+    let TxResult = await signTx(backendAddr, backendAddrpkRaw, proxyAddr, encodedData).catch((err) => {
+      reject(`[Error @ signTx() newV2Behavior()] ${err}`);
+      return false;
+    });
+    resolve(TxResult);
+  });
+}
+
+const deployCrowdFundingContractV = async(managementTeam) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nblockchainURL: ${blockchainURL}`);
+    //  \nbackendAddrpkRaw: ${backendAddrpkRaw} 
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    wlogger.debug(`web3deploy.version: ${web3deploy.version}`);
+    let instCrowdFundingV
+    try{
+      instCrowdFundingV =  await new web3deploy.eth.Contract(CrowdFunding.abi)
+      .deploy({ data: prefix+CrowdFunding.bytecode, arguments: []})
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
+      })
+      .on('error', function (error) {
+          reject(`error: ${error.toString()}`);
+      });
+    } catch(err){
+      wlogger.debug(`err: ${err}`);
+    }
+    if (instCrowdFundingV === undefined) {
+      reject(`[Error] instRegistryProxy is NOT defined`);
+      return false;
+    } else {
+      instCrowdFundingV.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const addrCrowdFundingVCtrt = instCrowdFundingV.options.address;
+      wlogger.debug(`const addrCrowdFundingVCtrt = ${addrCrowdFundingVCtrt}`);
+      resolve(addrCrowdFundingVCtrt);
+    }
+  });
+}
+const deployCrowdFundingContractV2 = async(managementTeam) => {
+  return new Promise(async (resolve, reject) => {
+    wlogger.debug(`\n----------------== inside deployCrowdFundingContractV2() \nbackendAddr: ${backendAddr} \nblockchainURL: ${blockchainURL}`);
+    //  \nbackendAddrpkRaw: ${backendAddrpkRaw} 
+    const backendAddrpkBuffer = Buffer.from(backendAddrpkRaw.substr(2), 'hex');
+    const provider = new PrivateKeyProvider(backendAddrpkBuffer, blockchainURL);
+    const web3deploy = new Web3(provider);
+    wlogger.debug(`web3deploy.version: ${web3deploy.version}`);
+    let instCrowdFundingV2
+    try{
+      instCrowdFundingV2 =  await new web3deploy.eth.Contract(CrowdFundingV2.abi)
+      .deploy({ data: prefix+CrowdFunding.bytecode, arguments: []})
+      .send({ from: backendAddr, gas: gasLimitValue, gasPrice: gasPriceValue })
+      .on('receipt', function (receipt) {
+        wlogger.debug(`receipt: ${JSON.stringify(receipt, null, 4)}`);
+      })
+      .on('error', function (error) {
+          reject(`error: ${error.toString()}`);
+      });
+    } catch(err){
+      wlogger.debug(`err: ${err}`);
+    }
+    if (instCrowdFundingV2 === undefined) {
+      reject(`[Error] instCrowdFundingV2 is NOT defined`);
+      return false;
+    } else {
+      instCrowdFundingV2.setProvider(provider);//super temporary fix. Use this for each compiled ctrt!
+      const addrCrowdFundingV2Ctrt = instCrowdFundingV2.options.address;
+      wlogger.debug(`const addrCrowdFundingV2Ctrt = ${addrCrowdFundingV2Ctrt}`);
+      resolve(addrCrowdFundingV2Ctrt);
+    }
+  });
+}
 const deployHeliumContract = async(managementTeam) => {
   return new Promise(async (resolve, reject) => {
     wlogger.debug(`\n----------------== inside deployHeliumContract() \nbackendAddr: ${backendAddr} \nblockchainURL: ${blockchainURL}`);
@@ -4155,6 +4323,6 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 module.exports = {
-  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, setTimeCFC_bySymbol, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, get_assetOwner, get_lastLoginTime, checkIsContract,
+  addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, setRestrictions, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, updateExpiredOrders, getDetailsCFC, getTokenBalances, sequentialRunTsMain, sequentialMintToAdd, sequentialMintToMax, sequentialCheckBalancesAfter, sequentialCheckBalances, doAssetRecords, sequentialMintSuper, preMint, mintSequentialPerContract, getFundingStateCFC, getHeliumAddrCFC, updateFundingStateFromDB, setTimeCFC_bySymbol, updateFundingStateCFC, investTokensInBatch, addAssetbooksIntoCFC, getInvestorsFromCFC, setTimeCFC, investTokens, checkInvest, getTokenStateTCC, getHeliumAddrTCC, updateTokenStateTCC, updateTokenStateFromDB, makeOrdersExpiredCFED, get_assetOwner, get_lastLoginTime, checkIsContract, deployRegistryProxyContract, deployCrowdFundingContractV, addVersionToRegistryProxy, createProxyFromRegistryProxy, getInfoFromProxy, deployCrowdFundingContractV2, upgradeProxyVersion, newV2Behavior, getVersionFromRegistry,
   get_schCindex, tokenCtrt, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, addPaymentCount, addForecastedScheduleBatchFromDB, setErrResolution, resetVoteStatus, changeAssetOwner, getAssetbookDetails, HeliumContractVote, setHeliumAddr, getEndorsers, rabbitMQSender, rabbitMQReceiver, fromAsciiToBytes32, deployCrowdfundingContract, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, checkDeploymentHCAT, deployHCATContract, deployIncomeManagerContract, getRestrictions,checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, tokenReceiver, checkAssetbookArray, deployRegistryContract, deployHeliumContract, deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck
 }

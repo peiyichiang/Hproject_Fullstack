@@ -12,7 +12,7 @@ const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
 const { mysqlPoolQueryB, setFundingStateDB, getForecastedSchedulesFromDB, calculateLastPeriodProfit, getProfitSymbolAddresses, addAssetRecordRowArray, addActualPaymentTime, addIncomeArrangementRow, setAssetRecordStatus, getMaxActualPaymentTime, getAcPayment, checkIaAssetRecordStatus, getPastScheduleTimes, addUserArrayOrdersIntoDB, addArrayOrdersIntoDB, addOrderIntoDB, deleteTxnInfoRows, deleteProductRows, deleteSmartContractRows, deleteOrderRows, getSymbolFromCtrtAddr, deleteIncomeArrangementRows, deleteAssetRecordRows, addProductRow, addSmartContractRow, deleteUsersInDB, add3SmartContractsBySymbol, addIncomeArrangementRows, getCtrtAddr, getAllSmartContractAddrs, deleteAllRecordsBySymbol, addUsersIntoDB, deleteAllRecordsBySymbolArray, updateIAassetRecordStatus, getTokenStateDB } = require('../timeserver/mysql.js');
 
-const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, getRestrictions,deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol, setRestrictions } = require('../timeserver/blockchain.js');
+const { addPlatformSupervisor, checkPlatformSupervisor, addCustomerService, checkCustomerService, get_schCindex, get_paymentCount, get_TimeOfDeployment, addForecastedScheduleBatch, getIncomeSchedule, getIncomeScheduleList, preMint, mintSequentialPerContract, checkAddForecastedScheduleBatch1, checkAddForecastedScheduleBatch2, checkAddForecastedScheduleBatch, editActualSchedule, getTokenBalances, addForecastedScheduleBatchFromDB, addPaymentCount, setErrResolution, getDetailsCFC, getInvestorsFromCFC, investTokensInBatch, investTokens, checkInvest, setTimeCFC, deployAssetbooks, addUsersToRegistryCtrt, setUsersInRegistryCtrt, deployCrowdfundingContract, updateFundingStateFromDB, deployTokenControllerContract, checkArgumentsTCC, checkDeploymentTCC, checkArgumentsHCAT, deployHCATContract, checkDeploymentHCAT, deployIncomeManagerContract, checkArgumentsIncomeManager, checkDeploymentIncomeManager, checkDeploymentCFC, checkArgumentsCFC, fromAsciiToBytes32, checkAssetbook, checkAssetbookArray, deployRegistryContract, deployHeliumContract, getRestrictions,deployProductManagerContract, getTokenContractDetails, addProductRowFromSymbol, setTokenController, getCFC_Balances, addAssetbooksIntoCFC, updateTokenStateTCC, checkSafeTransferFromBatchFunction, transferTokens, checkCrowdfundingCtrt, mintTokensWithRegulationCheck, setTimeCFC_bySymbol, setRestrictions , deployRegistryProxyContract, deployCrowdFundingContractV, addVersionToRegistryProxy, createProxyFromRegistryProxy, getInfoFromProxy, deployCrowdFundingContractV2, upgradeProxyVersion, newV2Behavior, getVersionFromRegistry} = require('../timeserver/blockchain.js');
 
 const { isIntAboveOne, isNoneInteger, getTimeServerTime, getLocalTime, testInputTime, checkTargetAmounts, getArraysFromCSV, getOneAddrPerLineFromCSV, breakdownArray, breakdownArrays, arraySum, calculateBuyAmountArray, getInputArrays, getRndIntegerBothEnd, asyncForEach, makeAmountArrayByCfcScenario} = require('../timeserver/utilities');
 
@@ -3019,6 +3019,72 @@ const getTimeServerTime_API = async () => {
    console.log(`servertime: ${servertime}`);
    process.exit(0);
 }
+//yarn run testmt -f 300
+const deployRegistryProxy_API = async() =>{
+  const registry = await deployRegistryProxyContract();
+  console.log(registry);
+  //0xDa36CDd33D785a917B379b5f98eCD6bb2F6f5C89
+}
+//yarn run testmt -f 301
+const deployCrowdFundingContractV_API = async() =>{
+  const cfc = await deployCrowdFundingContractV();
+  console.log(cfc);
+  //0xEF9B66f3822C5F6539488e440312103E107e7a59
+}
+
+//yarn run testmt -f 302
+const addVersionToRegistryProxy_API = async() => {
+  const result = await addVersionToRegistryProxy("0xDa36CDd33D785a917B379b5f98eCD6bb2F6f5C89", "0x57f044B2A4034497089AC08072A03366fd80aD5D", "0.2")
+  console.log(result);
+}
+
+//yarn run testmt -f 303
+const createProxyFromRegistryProxy_API = async() => {
+  let acCFSD, acCFED, acTimeOfDeployment_CF;
+  if(timeChoice === 1){
+    acTimeOfDeployment_CF = getLocalTime();
+    acCFSD = acTimeOfDeployment_CF+1;
+    acCFED = acTimeOfDeployment_CF+1000000;//1 month to buy...
+  } else {
+    acTimeOfDeployment_CF = TimeOfDeployment_CF;
+    acCFSD = CFSD;
+    acCFED = CFED;
+  }
+  const result = await createProxyFromRegistryProxy("0xDa36CDd33D785a917B379b5f98eCD6bb2F6f5C89", "0.1",nftSymbol, initialAssetPricing, pricingCurrency, maxTotalSupply, quantityGoal, acCFSD, acCFED, acTimeOfDeployment_CF, addrHelium)
+  console.log(result);
+  //0xB0A1Ff6951FCE3e5373255775207eAf3d66C040d
+}
+
+//yarn run testmt -f 304
+const getInfoFromProxy_API = async() => {
+  const result = await getInfoFromProxy("0xB0A1Ff6951FCE3e5373255775207eAf3d66C040d");
+  console.log(result);
+}
+
+//yarn run testmt -f 305
+const deployCrowdFundingContractV2_API = async() =>{
+  const cfc = await deployCrowdFundingContractV2();
+  console.log(cfc);
+  //0x57f044B2A4034497089AC08072A03366fd80aD5D
+}
+
+//yarn run testmt -f 306
+const upgradeProxyVersion_API = async() => {
+  const result = await upgradeProxyVersion("0xB0A1Ff6951FCE3e5373255775207eAf3d66C040d", "0.2");
+  console.log(result);
+}
+
+//yarn run testmt -f 307
+const newV2Behavior_API = async() => {
+  const result = await newV2Behavior("0x6E4623A89AD19EEBbd0A3370a979673C50aAE324", 8000);
+  console.log(result);
+}
+
+//yarn run testmt -f 308
+const getVersionFromRegistry_API = async() => {
+  const result = await getVersionFromRegistry("0x5887BDa36d4bA6C655323EA2ebe85870b4e39478", "0.1");
+  console.log(result);
+}
 
 
 //------------------------==
@@ -3579,4 +3645,26 @@ if(argv3 === 0){
   //yarn run testmt -f 213
 } else if(argv3 === 213){
   getTimeServerTime_API();
-}
+} else if(argv3 === 300){
+  deployRegistryProxy_API();
+} else if(argv3 === 301){
+  deployCrowdFundingContractV_API();
+} else if(argv3 === 302){
+  addVersionToRegistryProxy_API();
+} else if(argv3 === 303){
+  createProxyFromRegistryProxy_API();
+} else if(argv3 === 304){
+  getInfoFromProxy_API();
+} else if(argv3 === 305){
+  deployCrowdFundingContractV2_API();
+} else if(argv3 === 306){
+  upgradeProxyVersion_API();
+} else if(argv3 === 307){
+  newV2Behavior_API();
+} else if(argv3 === 308){
+  getVersionFromRegistry_API();
+} 
+
+
+
+

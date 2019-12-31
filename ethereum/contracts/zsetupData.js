@@ -278,6 +278,25 @@ if (CrowdFunding === undefined){
   }
   //wlogger.debug(CrowdFunding);
 }
+const CrowdFundingV2 = require('./build/CrowdFundingV2.json');
+if (CrowdFundingV2 === undefined){
+  wlogger.error(`[Error] CrowdFundingV2 is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+} else {
+  wlogger.info(`[Good] CrowdFundingV2 is defined`);
+  if (CrowdFundingV2.abi === undefined){
+    wlogger.error(`[Error] CrowdFundingV2.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] CrowdFundingV2.abi is defined`);
+      //wlogger.debug(`CrowdFunding.abi:: ${CrowdFunding.abi);
+  }
+  if (CrowdFundingV2.bytecode === undefined || CrowdFundingV2.bytecode.length < 10){
+    wlogger.error(`[Error] CrowdFundingV2.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] CrowdFundingV2.bytecode is defined`);
+      //wlogger.debug(`CrowdFunding.bytecode:: ${CrowdFunding.bytecode);
+  }
+  //wlogger.debug(CrowdFunding);
+}
 
 const IncomeManager = require('./build/IncomeManagerCtrt.json');
 if (IncomeManager === undefined){
@@ -318,11 +337,62 @@ if (ProductManager === undefined){
   }
   //wlogger.debug(ProductManager);
 }
+const RegistryProxy = require('./build/RegistryProxy.json');
+if (RegistryProxy === undefined){
+  wlogger.error(`[Error] RegistryProxy is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+} else {
+  wlogger.info(`[Good] RegistryProxy is defined`);
+  if (RegistryProxy.abi === undefined){
+    wlogger.error(`[Error] RegistryProxy.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] RegistryProxy.abi is defined`);
+      //wlogger.debug(`AssetBook.abi:: ${AssetBook.abi);
+  }
+  if (RegistryProxy.bytecode === undefined || RegistryProxy.bytecode.length < 10){
+    wlogger.error(`[Error] RegistryProxy.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] RegistryProxy.bytecode is defined`);
+  }
+}
+const UpgradeabilityProxy = require('./build/UpgradeabilityProxy.json');
+if (UpgradeabilityProxy === undefined){
+  wlogger.error(`[Error] UpgradeabilityProxy is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+} else {
+  wlogger.info(`[Good] UpgradeabilityProxy is defined`);
+  if (UpgradeabilityProxy.abi === undefined){
+    wlogger.error(`[Error] UpgradeabilityProxy.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] UpgradeabilityProxy.abi is defined`);
+      //wlogger.debug(`AssetBook.abi:: ${AssetBook.abi);
+  }
+  if (UpgradeabilityProxy.bytecode === undefined || UpgradeabilityProxy.bytecode.length < 10){
+    wlogger.error(`[Error] UpgradeabilityProxy.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] UpgradeabilityProxy.bytecode is defined`);
+  }
+}
+const UpgradeabilityStorage = require('./build/UpgradeabilityStorage.json');
+if (UpgradeabilityStorage === undefined){
+  wlogger.error(`[Error] UpgradeabilityStorage is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+} else {
+  wlogger.info(`[Good] UpgradeabilityStorage is defined`);
+  if (UpgradeabilityStorage.abi === undefined){
+    wlogger.error(`[Error] UpgradeabilityStorage.abi is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] UpgradeabilityStorage.abi is defined`);
+      //wlogger.debug(`AssetBook.abi:: ${AssetBook.abi);
+  }
+  if (UpgradeabilityStorage.bytecode === undefined || UpgradeabilityStorage.bytecode.length < 10){
+    wlogger.error(`[Error] UpgradeabilityProxy.bytecode is NOT defined or too small <<<<<<<<<<<<<<<<<<<<<`);
+  } else {
+    wlogger.info(`[Good] UpgradeabilityProxy.bytecode is defined`);
+  }
+}
 
 
 
 
 
 module.exports = { COMPLIANCE_LEVELS, checkCompliance,
-  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS
+  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, RegistryProxy, CrowdFundingV2, UpgradeabilityProxy, UpgradeabilityStorage
 }
