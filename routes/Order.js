@@ -136,7 +136,7 @@ router.post('/AddOrder', async function (req, res, next) {
             // let DBresult = await getInfoFromOrder_list(mysqlPoolQuery, o_id);
             console.log("o_symbol:" + symbol);
             let amountToPaid = fundCount;
-            let purchaseDate = currentDate;
+            let expiredDate = currentDate.addDays(3);
             let fundmanager = await getFundmanager(mysqlPoolQuery, symbol);
             let bankcode = await getBankcode(mysqlPoolQuery, fundmanager);
             console.log(email);
@@ -145,7 +145,7 @@ router.post('/AddOrder', async function (req, res, next) {
 
 
             // 計算太陽日
-            let expiredSolarDay = await countExpiredSolarDay(purchaseDate);
+            let expiredSolarDay = await countExpiredSolarDay(expiredDate);
 
             // 計算檢查碼
             let virtualAccount_13digits = bankcode + o_id.slice(-3) + userId.slice(7) + expiredSolarDay;
@@ -227,23 +227,22 @@ router.post('/AddOrder', async function (req, res, next) {
             });
         })
     }
-    function countExpiredSolarDay(purchaseDate) {
+    function countExpiredSolarDay(expiredDate) {
         return new Promise((resolve, reject) => {
-            let purchaseDay = purchaseDate.slice(0, 8);
+            let expiredDay = expiredDate.slice(0, 8);
 
-            let year = parseInt(purchaseDate.slice(0, 4));
-            let month = parseInt(purchaseDate.slice(4, 6));
-            let day = parseInt(purchaseDate.slice(6, 8));
+            let year = parseInt(expiredDate.slice(0, 4));
+            let month = parseInt(expiredDate.slice(4, 6));
+            let day = parseInt(expiredDate.slice(6, 8));
             console.log(year);
             console.log(month);
             console.log(day);
 
-            let purchase_days_passed = countDays_passed(new Date(year, month - 1, day));
-            console.log(purchase_days_passed);
-            let expired_days_passed = purchase_days_passed + 3;
+            let expired_days_passed = countDays_passed(new Date(year, month - 1, day));
+            console.log(expired_days_passed);
             console.log(lpad(expired_days_passed, 3));
 
-            let solarDay = purchaseDay.slice(3, 4) + lpad(expired_days_passed, 3);
+            let solarDay = expiredDay.slice(3, 4) + lpad(expired_days_passed, 3);
             resolve(solarDay)
         })
     }

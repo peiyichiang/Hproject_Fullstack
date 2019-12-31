@@ -28,7 +28,7 @@ contract ProductManager {
     }
     function checkDeploymentConditions(
         address _addrHelium
-      ) public view returns(bool[] memory boolArray) {
+    ) public view returns(bool[] memory boolArray) {
         boolArray = new bool[](1);
         boolArray[0] = _addrHelium.isContract();
     }
