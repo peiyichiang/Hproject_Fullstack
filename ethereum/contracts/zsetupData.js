@@ -278,6 +278,7 @@ if (CrowdFunding === undefined){
   }
   //wlogger.debug(CrowdFunding);
 }
+/*
 const CrowdFundingV2 = require('./build/CrowdFundingV2.json');
 if (CrowdFundingV2 === undefined){
   wlogger.error(`[Error] CrowdFundingV2 is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
@@ -297,7 +298,7 @@ if (CrowdFundingV2 === undefined){
   }
   //wlogger.debug(CrowdFunding);
 }
-
+*/
 const IncomeManager = require('./build/IncomeManagerCtrt.json');
 if (IncomeManager === undefined){
   wlogger.error(`[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
@@ -337,6 +338,7 @@ if (ProductManager === undefined){
   }
   //wlogger.debug(ProductManager);
 }
+/*
 const RegistryProxy = require('./build/RegistryProxy.json');
 if (RegistryProxy === undefined){
   wlogger.error(`[Error] RegistryProxy is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
@@ -354,6 +356,7 @@ if (RegistryProxy === undefined){
     wlogger.info(`[Good] RegistryProxy.bytecode is defined`);
   }
 }
+
 const UpgradeabilityProxy = require('./build/UpgradeabilityProxy.json');
 if (UpgradeabilityProxy === undefined){
   wlogger.error(`[Error] UpgradeabilityProxy is Not Defined <<<<<<<<<<<<<<<<<<<<<`);
@@ -389,10 +392,10 @@ if (UpgradeabilityStorage === undefined){
   }
 }
 
-
+*/
 
 
 
 module.exports = { COMPLIANCE_LEVELS, checkCompliance,
-  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, RegistryProxy, CrowdFundingV2, UpgradeabilityProxy, UpgradeabilityStorage
+  Helium, AssetBook, Registry, TokenController, HCAT721, HCAT721_Test, CrowdFunding, IncomeManager, ProductManager, wlogger,  excludedSymbols, excludedSymbolsIA, COMPLIANCE_LEVELS, /*RegistryProxy, CrowdFundingV2, UpgradeabilityProxy, UpgradeabilityStorage*/
 }
