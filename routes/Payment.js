@@ -21,7 +21,7 @@ router.post('/virtualAccount', async function (req, res, next) {
     // let DBresult = await getInfoFromOrder_list(mysqlPoolQuery, o_id);
     let email = req.body.o_email;
     let symbol = req.body.o_symbol;
-    console.log("o_symbol:"+symbol);
+    console.log("o_symbol:" + symbol);
     let amountToPaid = req.body.o_fundCount;
     let purchaseDate = req.body.o_purchaseDate;
     let fundmanager = await getFundmanager(mysqlPoolQuery, symbol);
@@ -42,7 +42,7 @@ router.post('/virtualAccount', async function (req, res, next) {
     let checkCode = await calculateCheckCode(virtualAccount_13digits, amountToPaid_11digits);
 
     //產生14碼虛擬帳號
-    let virtualAccount = bankcode +  o_id.slice(-3) + userId.slice(7) + expiredSolarDay + checkCode;
+    let virtualAccount = bankcode + o_id.slice(-3) + userId.slice(7) + expiredSolarDay + checkCode;
 
 
     //todo 將訂單資訊與虛擬帳號綁定 UPDATE table: order_list in: o_bankvirtualaccount
@@ -69,7 +69,7 @@ router.post('/virtualAccount', async function (req, res, next) {
 //處理銷帳資料
 router.post('/accountingDetails', async function (req, res, next) {
     let mysqlPoolQuery = req.pool;
-    console.log("__dirname:"+__dirname);
+    console.log("__dirname:" + __dirname);
     fs.readdir('/Users/kappa/Desktop/payment/accountStated', async function (err, files) {
         if (err) {
             res.send("Error getting directory information.");
@@ -80,7 +80,9 @@ router.post('/accountingDetails', async function (req, res, next) {
                 var array = await fs.readFileSync('/Users/kappa/Desktop/payment/accountStated/' + file, 'utf-8').toString().split("\n");
                 for (i in array) {
                     console.log(i + " :::" + array[i]);
-                    accountingDetails[i] = array[i].split("|").map(function (val) { return val; });
+                    accountingDetails[i] = array[i].split("|").map(function (val) {
+                        return val;
+                    });
                     // console.log(accountingDetails[i][0])
                     let v_account = accountingDetails[i][2];
                     let payAmount = accountingDetails[i][9]
@@ -116,8 +118,7 @@ function getInfoFromOrder_list(mysqlPoolQuery, o_id) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 console.log(DBresult);
                 resolve(DBresult[0]);
             }
@@ -131,8 +132,7 @@ function getFundmanager(mysqlPoolQuery, p_SYMBOL) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 console.log(DBresult);
                 console.log(p_SYMBOL);
                 console.log(p_SYMBOL);
@@ -152,8 +152,7 @@ function getBankcode(mysqlPoolQuery, m_id) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 console.log(DBresult);
                 resolve(DBresult[0].m_bankcode);
             }
@@ -167,8 +166,7 @@ function getUserId(mysqlPoolQuery, u_email) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 console.log(DBresult);
                 resolve(DBresult[0].u_identityNumber);
             }
@@ -179,13 +177,14 @@ function getUserId(mysqlPoolQuery, u_email) {
 //將訂單資訊與虛擬帳號綁定
 function bindOrder(mysqlPoolQuery, o_id, virtualAccount) {
     return new Promise((resolve, reject) => {
-        var sql = { o_bankvirtualaccount: virtualAccount };
+        var sql = {
+            o_bankvirtualaccount: virtualAccount
+        };
         mysqlPoolQuery('UPDATE order_list SET ? WHERE o_id = ?', [sql, o_id], function (err, rows) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 resolve();
             }
         });
@@ -250,8 +249,7 @@ function getAmountToPay(mysqlPoolQuery, virtualAccount) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 // console.log(DBresult);
                 resolve(DBresult[0].o_fundCount);
             }
@@ -261,13 +259,14 @@ function getAmountToPay(mysqlPoolQuery, virtualAccount) {
 
 function updatePayemtStatus(mysqlPoolQuery, virtualAccount) {
     return new Promise((resolve, reject) => {
-        var sql = { o_paymentStatus: "paid" };
+        var sql = {
+            o_paymentStatus: "paid"
+        };
         mysqlPoolQuery('UPDATE order_list SET ? WHERE o_bankvirtualaccount = ?', [sql, virtualAccount], function (err, rows) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 resolve();
             }
         });
@@ -281,8 +280,7 @@ function getUserInfo(mysqlPoolQuery, virtualAccount) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 // console.log(DBresult);
                 resolve(DBresult[0]);
             }
@@ -296,8 +294,7 @@ function getUserName(mysqlPoolQuery, email) {
             if (err) {
                 console.log(err);
                 reject(err);
-            }
-            else {
+            } else {
                 // console.log(DBresult);
                 resolve(DBresult[0].u_name);
             }
@@ -308,41 +305,41 @@ function getUserName(mysqlPoolQuery, email) {
 //寄付款成功信件
 function sendPaidMail(name, o_IDs, email) {
     // return new Promise((resolve, reject) => {
-        //宣告發信物件
-        var transporter = nodemailer.createTransport({
-            /* Helium */
-            host: 'server239.web-hosting.com',
-            port: 465,
-            secure: true, // use SSL
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
+    //宣告發信物件
+    var transporter = nodemailer.createTransport({
+        /* Helium */
+        host: 'server239.web-hosting.com',
+        port: 465,
+        secure: true, // use SSL
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
 
-        var text = '<h2>付款成功</h2> <p>' + name + ' 先生/小姐您好：<br<br>><br>我們已收到您的付款。<br>訂單編號為:<br>' + o_IDs + '。<br>您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
+    var text = '<h2>付款成功</h2> <p>' + name + ' 先生/小姐您好：<br<br>><br>我們已收到您的付款。<br>訂單編號為:<br>' + o_IDs + '。<br>您可以從下列網址追蹤您的訂單。<a href="http://en.wikipedia.org/wiki/Lorem_ipsum" title="Lorem ipsum - Wikipedia, the free encyclopedia">Lorem ipsum</a>  </p>'
 
-        var options = {
-            //寄件者
-            from: 'noreply@hcat.io',
-            //收件者
-            to: email,
-            //主旨
-            subject: '付款成功通知',
-            //嵌入 html 的內文
-            html: text
-        };
+    var options = {
+        //寄件者
+        from: 'noreply@hcat.io',
+        //收件者
+        to: email,
+        //主旨
+        subject: '付款成功通知',
+        //嵌入 html 的內文
+        html: text
+    };
 
-        //發送信件方法
-        transporter.sendMail(options, function (error, info) {
-            if (error) {
-                console.log(err);
-                // reject(err);
-            } else {
-                console.log('訊息發送: ' + info.response);
-                // resolve("send email successed");
-            }
-        });
+    //發送信件方法
+    transporter.sendMail(options, function (error, info) {
+        if (error) {
+            console.log(err);
+            // reject(err);
+        } else {
+            console.log('訊息發送: ' + info.response);
+            // resolve("send email successed");
+        }
+    });
 
     // })
 
