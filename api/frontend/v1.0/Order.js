@@ -23,8 +23,11 @@ router.post('/AddOrder', async function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     //當前時間
     var timeStamp = Date.now() / 1000 | 0;//... new Date().getTime();
-    var currentDate = new Date().myFormat();//yyyymmddhhmm
-    console.log('---------------== currentDate:', currentDate);
+    var currentDate = new Date();
+    var purchasedDate = currentDate.myFormat();//yyyymmddhhmm
+    console.log('---------------== purchasedDate:', purchasedDate);
+    var expiredDate = currentDate.addDays(3).myFormat();//yyyymmddhhmm
+    console.log('---------------== expiredDate:', expiredDate);
     const nationalId = req.body.userIdentity;
     const nationalIdLast5 = nationalId.toString().slice(-5);
     const orderId = symbol + "_" + nationalIdLast5 + "_" + timeStamp;
@@ -34,7 +37,7 @@ router.post('/AddOrder', async function (req, res, next) {
     const fundCount = req.body.fundCount
     let userName;
 
-    const bankVirtualAccount = await getBankVirtualAccount(orderId, symbol, email, currentDate, fundCount);
+    const bankVirtualAccount = await getBankVirtualAccount(orderId, symbol, email, expiredDate, fundCount);
 
     var sql = {
         o_id: orderId,
@@ -43,7 +46,7 @@ router.post('/AddOrder', async function (req, res, next) {
         o_txHash: Math.random().toString(36).substring(2, 15),
         o_tokenCount: tokenCount,
         o_fundCount: fundCount,
-        o_purchaseDate: currentDate,
+        o_purchaseDate: purchasedDate,
         o_paymentStatus: "waiting",
         o_bankvirtualaccount: bankVirtualAccount
     };//random() to prevent duplicate NULL entry!
@@ -88,7 +91,7 @@ router.post('/AddOrder', async function (req, res, next) {
                         <p>請儘快使用網路銀行、網絡 eATM 轉帳付款，或至就近銀行或郵局的 ATM 自動提款機輸入以下帳號及金額完成付款。<br><br>
         
                         <p>訂單編號: ${orderId}<br>
-                        <p>購買時間: ${currentDate}<br>
+                        <p>購買時間: ${purchasedDate}<br>
                         <p>銀行代碼: 永豐銀行807
                         <p>轉帳帳號名: 銀鏈資產管理有限公司
                         <p>轉帳帳號: ${bankVirtualAccount}
@@ -120,7 +123,7 @@ router.post('/AddOrder', async function (req, res, next) {
         }
     })
     /* TODO */
-    function getBankVirtualAccount(orderId, symbol, email, currentDate, fundCount) {
+    function getBankVirtualAccount(orderId, symbol, email, expiredDate, fundCount) {
         return new Promise(async (resolve, reject) => {
             /**專案代號(3) oid(2) 身分證字號(3) 太陽日(5) 檢查碼(1) */
             let o_id = orderId;
@@ -133,7 +136,7 @@ router.post('/AddOrder', async function (req, res, next) {
             // let DBresult = await getInfoFromOrder_list(mysqlPoolQuery, o_id);
             console.log("o_symbol:" + symbol);
             let amountToPaid = fundCount;
-            let purchaseDate = currentDate;
+            let expiredDate = expiredDate;
             let fundmanager = await getFundmanager(mysqlPoolQuery, symbol);
             let bankcode = await getBankcode(mysqlPoolQuery, fundmanager);
             console.log(email);
@@ -142,7 +145,7 @@ router.post('/AddOrder', async function (req, res, next) {
 
 
             // 計算太陽日
-            let expiredSolarDay = await countExpiredSolarDay(purchaseDate);
+            let expiredSolarDay = await countExpiredSolarDay(expiredDate);
 
             // 計算檢查碼
             let virtualAccount_13digits = bankcode + o_id.slice(-2) + userId.slice(-3) + expiredSolarDay;
@@ -226,21 +229,20 @@ router.post('/AddOrder', async function (req, res, next) {
     }
     function countExpiredSolarDay(purchaseDate) {
         return new Promise((resolve, reject) => {
-            let purchaseDay = purchaseDate.slice(0, 8);
-
-            let year = parseInt(purchaseDate.slice(0, 4));
-            let month = parseInt(purchaseDate.slice(4, 6));
-            let day = parseInt(purchaseDate.slice(6, 8));
+            let year = parseInt(expiredDate.slice(0, 4));
+            let month = parseInt(expiredDate.slice(4, 6));
+            let day = parseInt(expiredDate.slice(6, 8));
             console.log(year);
             console.log(month);
             console.log(day);
 
-            let purchase_days_passed = countDays_passed(new Date(year, month - 1, day));
-            console.log(purchase_days_passed);
-            let expired_days_passed = purchase_days_passed + 3;
+            let expired_days_passed = countDays_passed(new Date(year, month - 1, day));
+            console.log(expired_days_passed);
             console.log(lpad(expired_days_passed, 3));
 
-            let solarDay = purchaseDay.slice(2, 4) + lpad(expired_days_passed, 3);
+            let solarDay = expiredDate.slice(2, 4) + lpad(expired_days_passed, 3);
+            console.log("訂單過期太陽日:"+solarDay);
+
             resolve(solarDay)
         })
     }
@@ -279,6 +281,10 @@ router.post('/AddOrder', async function (req, res, next) {
     Date.prototype.myFormat = function () {
         return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
     };
+    Date.prototype.addDays = function(days) {
+        this.setDate(this.getDate() + days);
+        return this;
+    }
 });
 
 // router.get('/SumAllOrdersBySymbol', function (req, res, next) {
