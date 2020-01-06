@@ -26,7 +26,7 @@ router.post('/AddOrder', async function (req, res, next) {
     var currentDate = new Date();
     var purchasedDate = currentDate.myFormat();//yyyymmddhhmm
     console.log('---------------== purchasedDate:', purchasedDate);
-    var expiredDate = currentDate.addDays(3).myFormat();//yyyymmddhhmm
+    var expiredDate = new Date(currentDate.setDate(currentDate.getDate() + 3)).myFormat();
     console.log('---------------== expiredDate:', expiredDate);
     const nationalId = req.body.userIdentity;
     const nationalIdLast5 = nationalId.toString().slice(-5);
@@ -281,10 +281,6 @@ router.post('/AddOrder', async function (req, res, next) {
     Date.prototype.myFormat = function () {
         return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
     };
-    Date.prototype.addDays = function(days) {
-        this.setDate(this.getDate() + days);
-        return this;
-    }
 });
 
 // router.get('/SumAllOrdersBySymbol', function (req, res, next) {
