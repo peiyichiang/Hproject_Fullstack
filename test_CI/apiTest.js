@@ -809,7 +809,7 @@ async function flow2(){
     .then(async(result) =>{
       console.log(result);
       await asyncForEach(result, async (amount, index) => {
-        await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
+        //await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
         await makeOrderPaidAndWriteIntoCFC();
       })
       return result;
