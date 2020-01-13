@@ -795,21 +795,11 @@ async function flow2(){
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
-    // let result = await getRandomList().then(async(result) =>{
-    //   console.log(result);
-    //   await asyncForEach(result, async (amount, index) => {
-    //     await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
-    //     await makeOrderPaidAndWriteIntoCFC();
-    //   })
-    // })
-    // await PSMintToken(parseInt(edit_product.p_CFED) + 1);
-    // await checkAmountArray(result);
-
     await getRandomList()
     .then(async(result) =>{
       console.log(result);
       await asyncForEach(result, async (amount, index) => {
-        await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
+        //await frontEndUserOrdering(amount, `000a${10 + index}@gmail.com`, `user${10 + index}pw`);
         await makeOrderPaidAndWriteIntoCFC();
       })
       return result;
@@ -863,13 +853,5 @@ const flow5 = async() => {
     await PSTerminateProduct();
   });
 };
-const deleteSymbol = async() => {
-  let symbol = 'NAKI1111'
-  await mysqlPoolQueryB('DELETE FROM product WHERE p_SYMBOL = ?', [symbol]);
-  await mysqlPoolQueryB('DELETE FROM smart_contracts WHERE sc_symbol = ?', [symbol]);
-  await mysqlPoolQueryB('DELETE FROM order_list WHERE o_symbol = ?', [symbol]);
-  await mysqlPoolQueryB('DELETE FROM investor_assetRecord WHERE ar_tokenSYMBOL = ?', [symbol]);
-  await mysqlPoolQueryB('DELETE FROM income_arrangement WHERE ia_SYMBOL = ?', [symbol]);
-}
 
 flow2();
