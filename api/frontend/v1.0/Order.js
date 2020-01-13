@@ -136,7 +136,6 @@ router.post('/AddOrder', async function (req, res, next) {
             // let DBresult = await getInfoFromOrder_list(mysqlPoolQuery, o_id);
             console.log("o_symbol:" + symbol);
             let amountToPaid = fundCount;
-            //let expiredDate = expiredDate;
             let fundmanager = await getFundmanager(mysqlPoolQuery, symbol);
             let bankcode = await getBankcode(mysqlPoolQuery, fundmanager);
             console.log(email);
