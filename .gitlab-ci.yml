@@ -9,5 +9,6 @@ test_funding:
   - env TZ='Asia/Taipei' node node_modules/.bin/mocha  --exit test_CI/apiTest.js
   - touch job_succeeded
   after_script:
-  - if [ ! -f codescan_succeeded ]; then exit 0 fi
-  - node test_CI/deleteSymbol.js
+  - if [ ! -f job_succeeded ] ;then exit 0 ;else node test_CI/deleteSymbol.js;fi
+  - rm job_succeeded
+

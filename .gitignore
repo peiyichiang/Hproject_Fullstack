@@ -96,6 +96,7 @@ typings/
 
 # CI
 test_CI/random_symbol.txt
+test_CI/job_succeeded
 
 #DynamoDB Local files 
 .dynamodb/ 
