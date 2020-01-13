@@ -94,6 +94,9 @@ typings/
 # FuseBox cache
 .fusebox/
 
+# CI
+test_CI/random_symbol.txt
+
 #DynamoDB Local files 
 .dynamodb/ 
 

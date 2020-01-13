@@ -26,7 +26,7 @@ router.post('/AddOrder', async function (req, res, next) {
     var currentDate = new Date();
     var purchasedDate = currentDate.myFormat();//yyyymmddhhmm
     console.log('---------------== purchasedDate:', purchasedDate);
-    var expiredDate = new Date(currentDate.setDate(currentDate.getDate() + 3)).myFormat();
+    var expiredDate = await new Date(currentDate.setDate(currentDate.getDate() + 3)).myFormat();
     console.log('---------------== expiredDate:', expiredDate);
     const nationalId = req.body.userIdentity;
     const nationalIdLast5 = nationalId.toString().slice(-5);
@@ -136,7 +136,7 @@ router.post('/AddOrder', async function (req, res, next) {
             // let DBresult = await getInfoFromOrder_list(mysqlPoolQuery, o_id);
             console.log("o_symbol:" + symbol);
             let amountToPaid = fundCount;
-            let expiredDate = expiredDate;
+            //let expiredDate = expiredDate;
             let fundmanager = await getFundmanager(mysqlPoolQuery, symbol);
             let bankcode = await getBankcode(mysqlPoolQuery, fundmanager);
             console.log(email);

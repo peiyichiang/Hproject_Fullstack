@@ -3,15 +3,18 @@ var fs = require('fs');
 var es = require('event-stream');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 
-const generateRandomNameWithoutSpecialChar = () => {
+const generateRandomNameWithoutSpecialChar = async() => {
     let randomName = faker.name.findName().toUpperCase().substring(0,4) + getLocalTime().toString().substring(4, 8);
     while(randomName.includes('.') || randomName.includes(' ')){
         return generateRandomNameWithoutSpecialChar();
     }
-    return randomName;
-}
+    symbol = randomName;
+    fs.writeFileSync('./test_CI/random_symbol.txt', symbol);
 
-let symbol = generateRandomNameWithoutSpecialChar();
+}
+let symbol;
+generateRandomNameWithoutSpecialChar(symbol);
+
 let total = faker.random.number(10000) + 10000;
 let goal = faker.random.number(total - 10000) + 10000;
 let price = faker.random.number(1000) + 1000;
@@ -21,7 +24,7 @@ console.log(`goal: ${goal}`);
 let type = '2';
 const edit_product = {
     p_SYMBOL: symbol,
-    p_name: faker.name.findName(),
+    p_name: faker.name.findName().substr(0, 18),
     p_location: '台南市新營區新工路23號',
     p_pricing: price,
     p_duration: "20",
@@ -80,7 +83,7 @@ const edit_product = {
 };
 const add_product = {
     p_SYMBOL: symbol,
-    p_name: faker.name.findName(),
+    p_name: faker.name.findName().substr(0, 18),
     p_location: '台南市新營區新工路23號',
     p_pricing: faker.random.number(10000) + 10000,
     p_duration: "20",
