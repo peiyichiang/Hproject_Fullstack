@@ -8,9 +8,6 @@ test_funding:
   script:
   - env TZ='Asia/Taipei' node node_modules/.bin/mocha  --exit test_CI/apiTest.js
   - touch job_succeeded
-    
-rollback_when_failed:
-  script:
-    - if [ ! -f job_succeeded ]; then exit 0 fi
-    - node test_CI/deleteSymbol.js
-  when: on_failure
+  after_script:
+  - if [ ! -f job_succeeded ] ;then node test_CI/deleteSymbol.js ;else rm job_succeeded ;exit 0;fi
+
