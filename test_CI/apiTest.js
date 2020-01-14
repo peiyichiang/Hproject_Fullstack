@@ -294,15 +294,14 @@ const FMNAddProduct = async() => {
         });
     });
     it('Add Product By FMN', async function(){
-      generateCSV()
-      await request
-        .post('/product/AddProductByFMN')
-        .send(add_product)
-        .set('Cookie', token)
-        .expect(302)
-        .then(async function(res){
-          //res.text.should.not.equal("請先登入");
-        });
+        await request
+          .post('/product/AddProductByFMN')
+          .send(add_product)
+          .set('Cookie', token)
+          .expect(302)
+          .then(async function(res){
+            //res.text.should.not.equal("請先登入");
+          });
     });
     
     it('Edit Product By FMN Pages', async function(){
@@ -426,7 +425,7 @@ const PSPublishProduct = async() => {
       await request
         .post('/product/IncomeCSV')
         .set('Cookie', token)
-        .send({ IncomeCSVFilePath: 'public/uploadImgs/product.csv' })
+        .send({ IncomeCSVFilePath: `public/uploadImgs/${symbol}.csv` })
         .expect(200)
         .then(async function(res){
           console.log(res.body);

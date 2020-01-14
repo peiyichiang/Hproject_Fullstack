@@ -142,20 +142,21 @@ const add_product = {
 
 };
 
-const generateCSV = () => {
-    let newCsv =  fs.createWriteStream('./public/uploadImgs/product.csv');
-    let file =  fs.createReadStream('test_CI/sample.csv')
-    file.pipe(es.split())
-        .pipe(
-            es.mapSync(function(line) {
-            // modify line way you want
-                if(line !== 'ia_SYMBOL,ia_time,ia_actualPaymentTime,ia_Payable_Period_End,ia_Annual_End,ia_wholecase_Principal_Called_back,ia_wholecase_Book_Value,ia_wholecase_Forecasted_Annual_Income,ia_wholecase_Forecasted_Payable_Income_in_the_Period,ia_wholecase_Accumulated_Income,ia_wholecase_Income_Recievable,ia_wholecase_Theory_Value,ia_single_Principal_Called_back,ia_single_Forecasted_Annual_Income,ia_single_Forecasted_Payable_Income_in_the_Period,ia_single_Actual_Income_Payment_in_the_Period,ia_single_Accumulated_Income_Paid,ia_single_Token_Market_Price,ia_assetRecord_status'){
-                    line = symbol + line.substring(8)
-                }
-                if(line !== symbol){
-                    newCsv.write(line+'\n');
-                }
-            }))
+const generateCSV = async() => {
+    return new Promise((resolve, reject) => {
+        let newCsv =  fs.createWriteStream(`\./public/uploadImgs/${symbol}.csv`);
+        let file =  fs.createReadStream('test_CI/sample.csv')
+        file.pipe(es.split())
+            .pipe(
+                es.mapSync(function(line) {
+                    if(line !== 'ia_SYMBOL,ia_time,ia_actualPaymentTime,ia_Payable_Period_End,ia_Annual_End,ia_wholecase_Principal_Called_back,ia_wholecase_Book_Value,ia_wholecase_Forecasted_Annual_Income,ia_wholecase_Forecasted_Payable_Income_in_the_Period,ia_wholecase_Accumulated_Income,ia_wholecase_Income_Recievable,ia_wholecase_Theory_Value,ia_single_Principal_Called_back,ia_single_Forecasted_Annual_Income,ia_single_Forecasted_Payable_Income_in_the_Period,ia_single_Actual_Income_Payment_in_the_Period,ia_single_Accumulated_Income_Paid,ia_single_Token_Market_Price,ia_assetRecord_status'){
+                        line = symbol + line.substring(8)
+                    }
+                    if(line !== symbol){
+                        newCsv.write(line+'\n');
+                    }
+                }))
+    })
 }
-
+generateCSV();
 module.exports = {edit_product, add_product, symbol, total, goal, generateCSV, price, type};
