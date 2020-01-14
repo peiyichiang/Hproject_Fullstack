@@ -143,6 +143,7 @@ const add_product = {
 };
 
 const generateCSV = async() => {
+    console.log("HIiiii");
     return new Promise((resolve, reject) => {
         let newCsv =  fs.createWriteStream(`\./public/uploadImgs/${symbol}.csv`);
         let file =  fs.createReadStream('test_CI/sample.csv')
