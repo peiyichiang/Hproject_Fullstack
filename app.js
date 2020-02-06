@@ -16,6 +16,7 @@ console.log('loading app.js modules...');
 var indexRouter = require('./routes/TxRecord');
 var productRouter = require('./routes/Product');
 var backendUserRouter = require('./routes/backend_user');
+var report = require('./routes/Report');
 //有容
 var userRouter = require('./routes/user');
 var incomeManagementRouter = require('./routes/IncomeManagementAPI');
@@ -70,6 +71,7 @@ app.use(function (req, res, next) {
 app.use('/', indexRouter);
 app.use('/Product', productRouter);
 app.use('/BackendUser', backendUserRouter);
+app.use('/Report', report);
 
 //Ray
 app.use('/ContractExplorer', contractExplorerRouter);

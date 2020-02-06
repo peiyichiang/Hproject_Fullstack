@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <!-- <link rel='stylesheet' href='/stylesheets/style.css' /> -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <!-- 跟ProductAdministration共用，只有用到nowrap -->
+    <link rel="stylesheet" href="/css/ProductAdministration.css">
+  </head>
+  <body>
+    <!-- <h1>Product - List</h1> -->
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="#">Hcat電利超商 - 銷售報表</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav">
+                <span class="navbar-text">
+                    歡迎<%= UserID %>
+                </span>
+                <li class="nav-item" id="SignOut">
+                  <a class="nav-link" href="#">登出</a>
+                </li>
+              </ul>
+            </div>
+    </nav>
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped">
+        <tr class="bg-primary" style="color:white;">
+            <th class="nowrap">Token代號</th>
+            <th class="nowrap">下單日期與時間</th>
+            <th class="nowrap">購買數量</th>
+            <th class="nowrap">購買金額</th>
+            <th class="nowrap">Tx Hash(投資人付款)</th>
+        </tr>
+        <% for ( var i = 0 ; i < data.length ; i++){ %>
+            <tr>
+                <td>
+                    <%= data[i].o_symbol %>
+                </td>
+                <td>
+                    <%= data[i].o_purchaseDate %>
+                </td>
+                <td>
+                    <%= data[i].o_tokenCount  %>
+                </td>
+                <td>
+                    <%= data[i].o_fundCount  %>
+                </td>
+                <td>
+                    <%= data[i].o_txHash  %>
+                </td>
+            </tr>
+        <% } %>
+    </table>
+</div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script src="/js/SignOut.js"></script>
+  </body>
+</html>
