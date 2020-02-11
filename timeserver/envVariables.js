@@ -106,10 +106,6 @@ const DB_password2 = process.env.DB_PASS2;
 const DB_name2 = process.env.DB_NAME2;
 */
 
-//----------------------------==RabbitMQ Settings
-const Q_host = "203.66.68.70:5672"
-
-
 //----------------------------==Blockchain Settings
 const blockchainChoice = process.env.BLOCKCHAIN_CHOICE;
 console.log('blockchainChoice:', blockchainChoice);

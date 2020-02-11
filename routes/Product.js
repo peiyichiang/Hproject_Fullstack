@@ -1188,9 +1188,7 @@ router.post('/IncomeCSV', function (req, res, next) {
                         var qur = mysqlPoolQuery(sql, function (err, rows) {
                             if (err) {
                                 console.log(err);
-                            } else {
-                                console.log(rows); 
-                            }
+                            } 
                         });
 
                     })
