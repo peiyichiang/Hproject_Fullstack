@@ -105,6 +105,11 @@ const DB_user2 = process.env.DB_USER2;
 const DB_password2 = process.env.DB_PASS2;
 const DB_name2 = process.env.DB_NAME2;
 */
+
+//----------------------------==RabbitMQ Settings
+const Q_host = "203.66.68.70:5672"
+
+
 //----------------------------==Blockchain Settings
 const blockchainChoice = process.env.BLOCKCHAIN_CHOICE;
 console.log('blockchainChoice:', blockchainChoice);
@@ -203,4 +208,4 @@ is_calculateLastPeriodProfit: ${is_calculateLastPeriodProfit}
 */
 
 
-module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, cfcBuyAmountChoice, testmode, crowdfundingScenario, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };
+module.exports = { addrHelium, addrRegistry, addrProductManager, symbolNumber, backendAddrChoice, isToDeploy, assetbookAmount, cfcBuyAmountChoice, testmode, crowdfundingScenario, fakeServertime, SERVER_HOST, SERVER_PORT, SERVER_PROTOCOL, DB_host, DB_user, DB_password, DB_name, DB_port, Q_host, blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isLivetimeOn, timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit, loglevel };

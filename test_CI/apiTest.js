@@ -421,6 +421,14 @@ const PSPublishProduct = async() => {
           
         });
     });
+    //
+    it('Wait a while for generating csv', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; // do the promise call in a `then` callback to properly chain it
+      });
+    }).timeout(15000);
     it('Add CSV Into DB By PS', async function(){
       await request
         .post('/product/IncomeCSV')
@@ -429,6 +437,7 @@ const PSPublishProduct = async() => {
         .expect(200)
         .then(async function(res){
           console.log(res.body);
+          await res.body.messageForDeveloper.should.equal("IncomeCSV文件寫入資料庫成功");
         });
     });
     
@@ -440,8 +449,10 @@ const PSPublishProduct = async() => {
         .expect(200)
         .then(async function(res){
           console.log(res.body);
+          await res.body.status.should.equal(true);
+          
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it('Set Prodct State By PS', async function(){
       await request
         .post('/product/SetProductStateByPlatformSupervisor')
@@ -807,7 +818,7 @@ async function flow2(){
       await PSMintToken(parseInt(edit_product.p_CFED) + 1);
       await checkAmountArray(result);
     })
- // });
+ // });*/
 };
 const flow3 = async() => {
   describe('intergration testing of terminating product', async function(){
@@ -852,5 +863,5 @@ const flow5 = async() => {
     await PSTerminateProduct();
   });
 };
-
+//frontEndUserRegistry();
 flow2();
