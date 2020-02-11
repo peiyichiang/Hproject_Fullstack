@@ -4,10 +4,14 @@ var mocha = require('mocha');
 var faker = require('faker');
 const should = require('should');
 const assert = require('assert');
+const amqp = require('amqplib/callback_api');
+require("dotenv").config();
+
 const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
+
 let virtualAccount;
 let crowdFundingAddr;
 
@@ -632,11 +636,21 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
         await err.should.empty();
       });
     }).timeout(3000);
-    it('Write Into Crowdfunding', async function(){
+    it('Write Into Crowdfunding Request', async function(){
+      /*
       await addAssetbooksIntoCFC(getLocalTime()+2).catch(async (err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
         await err.should.empty();
-      });
+      });*/
+      amqp.connect(`amqp://${process.env.AMQP_USER}:${process.env.AMQP_PASS}@${process.env.AMQP_HOST}:${process.env.AMQP_PORT}`, function (err, conn) {
+          conn.createChannel(function (err, ch) {
+              ch.assertExchange('timeserver', 'direct', { durable: true });
+              //發送訊息
+              ch.publish('timeserver', `addAssetbooksIntoCFC`, Buffer.from((getLocalTime()+2).toString()));
+              console.log(` [x] Sent ${getLocalTime()+2}_addAssetbooksIntoCFC`);
+          })
+          setTimeout(function () { conn.close() }, 500);
+        })
     }).timeout(30000);
     
   });
