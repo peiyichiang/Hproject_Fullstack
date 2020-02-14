@@ -4,10 +4,14 @@ var mocha = require('mocha');
 var faker = require('faker');
 const should = require('should');
 const assert = require('assert');
+const amqp = require('amqplib/callback_api');
+require("dotenv").config();
+
 const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
+
 let virtualAccount;
 let crowdFundingAddr;
 
@@ -421,6 +425,14 @@ const PSPublishProduct = async() => {
           
         });
     });
+    //
+    it('Wait a while for generating csv', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; // do the promise call in a `then` callback to properly chain it
+      });
+    }).timeout(15000);
     it('Add CSV Into DB By PS', async function(){
       await request
         .post('/product/IncomeCSV')
@@ -429,6 +441,7 @@ const PSPublishProduct = async() => {
         .expect(200)
         .then(async function(res){
           console.log(res.body);
+          await res.body.messageForDeveloper.should.equal("IncomeCSV文件寫入資料庫成功");
         });
     });
     
@@ -440,8 +453,10 @@ const PSPublishProduct = async() => {
         .expect(200)
         .then(async function(res){
           console.log(res.body);
+          await res.body.status.should.equal(true);
+          
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it('Set Prodct State By PS', async function(){
       await request
         .post('/product/SetProductStateByPlatformSupervisor')
@@ -621,11 +636,21 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
         await err.should.empty();
       });
     }).timeout(3000);
-    it('Write Into Crowdfunding', async function(){
+    it('Write Into Crowdfunding Request', async function(){
+      /*
       await addAssetbooksIntoCFC(getLocalTime()+2).catch(async (err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
         await err.should.empty();
-      });
+      });*/
+      amqp.connect(`amqp://${process.env.AMQP_USER}:${process.env.AMQP_PASS}@${process.env.AMQP_HOST}:${process.env.AMQP_PORT}`, function (err, conn) {
+          conn.createChannel(function (err, ch) {
+              ch.assertExchange('timeserver', 'direct', { durable: true });
+              //發送訊息
+              ch.publish('timeserver', `addAssetbooksIntoCFC`, Buffer.from((getLocalTime()+2).toString()));
+              console.log(` [x] Sent ${getLocalTime()+2}_addAssetbooksIntoCFC`);
+          })
+          setTimeout(function () { conn.close() }, 500);
+        })
     }).timeout(30000);
     
   });
@@ -807,7 +832,7 @@ async function flow2(){
       await PSMintToken(parseInt(edit_product.p_CFED) + 1);
       await checkAmountArray(result);
     })
- // });
+ // });*/
 };
 const flow3 = async() => {
   describe('intergration testing of terminating product', async function(){
@@ -852,5 +877,5 @@ const flow5 = async() => {
     await PSTerminateProduct();
   });
 };
-
+//frontEndUserRegistry();
 flow2();

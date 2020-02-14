@@ -1184,23 +1184,21 @@ router.post('/IncomeCSV', function (req, res, next) {
                 // 將csv轉換成sql語句
                 csv2sql.transform("income_arrangement", fs.createReadStream(IncomeCSVFilePath))
                     .on('data', function (sql) {
-                        //console.log(sql);
                         var mysqlPoolQuery = req.pool;
                         var qur = mysqlPoolQuery(sql, function (err, rows) {
                             if (err) {
                                 console.log(err);
-                            } else {
-                                res.send({
-                                    "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
-                                    "messageForUser": "",
-                                    "isSuccess": true
-                                });
-                            }
+                            } 
                         });
 
                     })
                     .on('end', function (rows) {
                         // console.log(rows); // 5 - Num of rows handled, including header
+                        res.send({
+                            "messageForDeveloper": "IncomeCSV文件寫入資料庫成功",
+                            "messageForUser": "",
+                            "isSuccess": true
+                        });
                     })
                     .on('error', function (error) {
                         console.error(error); //Handle error

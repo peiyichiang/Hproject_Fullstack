@@ -1,12 +1,16 @@
 const schedule = require('node-schedule');
 // const path = require('path');
 // const fs = require('fs');
+const amqp = require('amqplib/callback_api');
 
 const { wlogger } = require('../ethereum/contracts/zsetupData');
 const { getTimeServerTime } = require('./utilities');
 const { timeserverMode, timeserverTimeInverval, is_addAssetbooksIntoCFC, is_makeOrdersExpiredCFED, is_updateExpiredOrders, is_updateFundingStateFromDB, is_updateTokenStateFromDB, is_calculateLastPeriodProfit } = require('./envVariables');
 const { calculateLastPeriodProfit } = require('../timeserver/mysql');
 const { updateExpiredOrders, updateFundingStateFromDB, updateTokenStateFromDB, addAssetbooksIntoCFC, makeOrdersExpiredCFED } = require('./blockchain.js');
+const { SERVER_HOST } = require('../timeserver/envVariables');
+require("dotenv").config();
+
 /**
 "time": "concurrently -n timeserver,manager,rent,crowdfunding,order,tokencontroller \"npm run timeserver\" \"npm run manager\" \"npm run rent\" \"npm run crowdfunding\" \"npm run order\" \"npm run tokencontroller\"",
 */
@@ -49,9 +53,26 @@ time from new Date(): ${time}`);
     */
 
     if(is_addAssetbooksIntoCFC){
-      addAssetbooksIntoCFC(serverTime).catch((err) => {
-        wlogger.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
-      });//blockchain.js
+      //use queue at test env
+      if(SERVER_HOST != 'hcat.io'){
+        amqp.connect(`amqp://${process.env.AMQP_USER}:${process.env.AMQP_PASS}@${process.env.AMQP_HOST}:${process.env.AMQP_PORT}`, function (err, conn) {
+          if(err){
+            wlogger.error(err);
+          }
+          conn.createChannel(function (err, ch) {
+              ch.assertExchange('timeserver', 'direct', { durable: true });
+              //發送訊息
+              ch.publish('timeserver', `addAssetbooksIntoCFC`, Buffer.from(serverTime.toString()));
+              wlogger.info(` [x] Sent ${serverTime}_addAssetbooksIntoCFC`);
+          })
+          setTimeout(function () { conn.close() }, 500);
+        })
+      }
+      else{
+        addAssetbooksIntoCFC(serverTime).catch((err) => {
+          wlogger.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
+        })
+      };//blockchain.js
       // after order status change: waiting -> paid -> write into crowdfunding contract
     };
 
