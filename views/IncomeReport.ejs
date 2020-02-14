@@ -29,7 +29,7 @@
     </script>
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <a class="navbar-brand" href="#">Hcat電利超商 - 銷售報表</a>
+            <a class="navbar-brand" href="#">Hcat電利超商 - 收益分配報表</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
@@ -50,30 +50,26 @@
         <tr class="bg-primary" style="color:white;">
             <th class="nowrap">Token代號</th>
             <th class="nowrap">姓名</th>
-            <th class="nowrap">下單日期與時間</th>
-            <th class="nowrap">購買數量</th>
-            <th class="nowrap">購買金額</th>
-            <th class="nowrap">Tx Hash(投資人付款)</th>
+            <th class="nowrap">收益分配基準日當天持有數量</th>
+            <th class="nowrap">收益發放日期與時間</th>
+            <th class="nowrap">收益發放金額</th>
         </tr>
         <% for ( var i = 0 ; i < data.length ; i++){ %>
             <tr>
                 <td>
-                    <%= data[i].o_symbol %>
+                    <%= data[i].ar_tokenSYMBOL %>
                 </td>
                 <td>
                   <%= data[i].u_name %>
               </td>
                 <td>
-                    <%= data[i].o_purchaseDate %>
+                    NA
                 </td>
                 <td>
-                    <%= data[i].o_tokenCount  %>
+                    <%= data[i].ar_Time  %>
                 </td>
                 <td>
-                    <%= data[i].o_fundCount  %>
-                </td>
-                <td>
-                    <%= data[i].o_txHash  %>
+                    <%= data[i].ar_personal_income  %>
                 </td>
             </tr>
         <% } %>
@@ -88,7 +84,7 @@
         base_path: '/js/tablefilter/',
         col_0: 'select',
         col_1: 'select',
-        col_2: 'select',
+        col_3: 'select',
         alternate_rows: true,
         rows_counter: true,
         btn_reset: true,
@@ -98,10 +94,10 @@
         highlight_keywords: true,
         col_types: [
             'string','string', 'number', 'number',
-            'number', 'string'
+            'number'
         ],
       custom_options: {
-        cols: [2],
+        cols: [3],
         texts: [
           [
             '2020 第一季',
