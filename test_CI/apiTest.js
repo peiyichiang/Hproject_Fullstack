@@ -646,12 +646,12 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
           conn.createChannel(function (err, ch) {
               ch.assertExchange('timeserver', 'direct', { durable: true });
               //發送訊息
-              ch.publish('timeserver', `addAssetbooksIntoCFC`, Buffer.from((getLocalTime()+2).toString()));
-              console.log(` [x] Sent ${getLocalTime()+2}_addAssetbooksIntoCFC`);
+              ch.publish('timeserver', `addAssetbooksIntoCFC`, Buffer.from((getLocalTime()+100).toString()));
+              console.log(` [x] Sent ${getLocalTime()+100}_addAssetbooksIntoCFC`);
           })
           setTimeout(function () { conn.close() }, 500);
         })
-    }).timeout(30000);
+    }).timeout(3000);
     
   });
 };
@@ -813,8 +813,8 @@ const flow1 = async() => {
   });
 };
 async function flow2(){
- // describe('intergration testing of reaching the funding goal after CFED', async function(){
-   // this.timeout(100000);  
+  describe('intergration testing of reaching the funding goal after CFED', async function(){
+    this.timeout(100000);  
     
     await FMNAddProduct();
     await FMSApproveProduct();
@@ -832,7 +832,7 @@ async function flow2(){
       await PSMintToken(parseInt(edit_product.p_CFED) + 1);
       await checkAmountArray(result);
     })
- // });*/
+  });
 };
 const flow3 = async() => {
   describe('intergration testing of terminating product', async function(){
