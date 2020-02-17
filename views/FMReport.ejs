@@ -29,7 +29,7 @@
     </script>
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <a class="navbar-brand" href="#">Hcat電利超商 - 銷售報表</a>
+            <a class="navbar-brand" href="#">Hcat電利超商 - FM資料報表</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
@@ -48,32 +48,24 @@
 <div class="table-responsive">
     <table class="table table-hover table-striped" id="SalesReport">
         <tr class="bg-primary" style="color:white;">
-            <th class="nowrap">Token代號</th>
-            <th class="nowrap">姓名</th>
-            <th class="nowrap">下單日期與時間</th>
-            <th class="nowrap">購買數量</th>
-            <th class="nowrap">購買金額</th>
-            <th class="nowrap">Tx Hash(投資人付款)</th>
+            <th class="nowrap">公司名稱</th>
+            <th class="nowrap">公司統編</th>
+            <th class="nowrap">Email</th>
+            <th class="nowrap">權限</th>
         </tr>
         <% for ( var i = 0 ; i < data.length ; i++){ %>
             <tr>
                 <td>
-                    <%= data[i].o_symbol %>
+                    <%= data[i].m_company %>
                 </td>
                 <td>
-                  <%= data[i].u_name %>
+                  NA
               </td>
                 <td>
-                    <%= data[i].o_purchaseDate %>
+                    <%= data[i].m_email  %>
                 </td>
                 <td>
-                    <%= data[i].o_tokenCount  %>
-                </td>
-                <td>
-                    <%= data[i].o_fundCount  %>
-                </td>
-                <td>
-                    <%= data[i].o_txHash  %>
+                    <%= data[i].m_permission  %>
                 </td>
             </tr>
         <% } %>
@@ -87,8 +79,6 @@
     var filtersConfig = {
         base_path: '/js/tablefilter/',
         col_0: 'select',
-        col_1: 'select',
-        col_2: 'select',
         alternate_rows: true,
         rows_counter: true,
         btn_reset: true,
@@ -97,29 +87,8 @@
         mark_active_columns: true,
         highlight_keywords: true,
         col_types: [
-            'string','string', 'number', 'number',
-            'number', 'string'
+            'string','string', 'string', 'string'
         ],
-      custom_options: {
-        cols: [2],
-        texts: [
-          [
-            '2020 第一季',
-            '2020 第二季',
-            '2020 第三季',
-            '2020 第四季'
-          ]
-        ],
-        values: [
-          [
-            '>=202001010000 && <=202003312359',
-            '>=202004010000 && <=202006312359',
-            '>=202007010000 && <=202009312359',
-            '>=202010010000 && <=202012312359'
-          ]
-        ],
-        sorts: [false]
-      },
         extensions:[{ name: 'sort' }]
     };
 
