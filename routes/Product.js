@@ -439,15 +439,76 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_assetdocsHash: req.body.p_assetdocsHash,
         p_ForecastedAnnualIncomePerModule:req.body.p_ForecastedAnnualIncomePerModule
     };
+    var sql1 = {
+        p_SYMBOL: req.body.p_SYMBOL,
+        p_name: req.body.p_name,
+        p_location: req.body.p_location,
+        p_pricing: req.body.p_pricing,
+        p_duration: req.body.p_duration,
+        p_currency: req.body.p_currency,
+        p_irr: Number(req.body.p_irr).toFixed(2),
+        p_releasedate: req.body.p_releasedate,
+        p_lockuptime: req.body.p_lockuptime,
+        p_validdate: req.body.p_validdate,
+        p_size: req.body.p_size,
+        p_totalrelease: req.body.p_totalrelease,
+        p_fundingType: req.body.p_fundingType,
+        p_fundmanager: JWT_decoded.payload.m_id,
+        p_state: "draft",   //草稿
+        p_FAY: req.body.p_FAY,
+        p_FTRT: req.body.p_FTRT,
+        p_RPT: req.body.p_RPT,
+        p_FRP: req.body.p_FRP,
+        p_Timeline: req.body.p_Timeline,
+        p_PSD: req.body.p_PSD,
+        p_TaiPowerApprovalDate: req.body.p_TaiPowerApprovalDate,
+        p_BOEApprovalDate: req.body.p_BOEApprovalDate,
+        p_PVTrialOperationDate: req.body.p_PVTrialOperationDate,
+        p_PVOnGridDate: req.body.p_PVOnGridDate,
+        p_CFSD: req.body.p_CFSD,
+        p_CFED: req.body.p_CFED,
+        p_fundingGoal: req.body.p_fundingGoal,
+        p_EPCname: req.body.p_EPCname,
+        p_Copywriting: req.body.p_Copywriting,
+        p_ContractOut: req.body.p_ContractOut,
+        p_CaseConstruction: req.body.p_CaseConstruction,
+        p_ElectricityBilling: req.body.p_ElectricityBilling,
+        p_isNewCase: req.body.p_isNewCase,
+        p_ForecastedAnnualIncomePerModule:req.body.p_ForecastedAnnualIncomePerModule
+    };
+    var sql2={
+        pd_SYMBOL:req.body.p_SYMBOL,
+        pd_icon: req.body.p_icon,
+        pd_NotarizedRentalContract:req.body.p_NotarizedRentalContract,
+        pd_OnGridAuditedLetter:req.body.p_OnGridAuditedLetter,
+        pd_csvFIle: req.body.p_csvFIle,
+        pd_Image1: req.body.p_Image1,
+        pd_Image2: req.body.p_Image2,
+        pd_Image3: req.body.p_Image3,
+        pd_Image4: req.body.p_Image4,
+        pd_Image5: req.body.p_Image5,
+        pd_Image6: req.body.p_Image6,
+        pd_Image7: req.body.p_Image7,
+        pd_Image8: req.body.p_Image8,
+        pd_Image9: req.body.p_Image9,
+        pd_Image10: req.body.p_Image10,
+        pd_HCAT721uri: req.body.p_HCAT721uri,
+        pd_assetdocsHash: req.body.p_assetdocsHash
+    }
 
-    console.log(sql);
+    //console.log(sql);
 
-    var qur = mysqlPoolQuery('INSERT INTO product SET ?', sql, function (err, rows) {
+    var qur = mysqlPoolQuery('INSERT INTO product SET ?', sql1, function (err, rows) {
         if (err) {
             console.log(err);
         }
-        res.setHeader('Content-Type', 'application/json');
-        res.redirect('/Product/ProductByFMN');
+        var qur = mysqlPoolQuery('INSERT INTO product_doc SET ?', sql2, function (err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            res.setHeader('Content-Type', 'application/json');
+            res.redirect('/Product/ProductByFMN');
+        });
     });
 
 });
@@ -561,7 +622,15 @@ router.get('/EditProductByFMN', function (req, res, next) {
     var symbol = req.query.symbol;
     var mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function (err, rows) {
+    // mysqlPoolQuery('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function (err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     var data = rows;
+    //     res.render('EditProductByFMN', { title: 'Edit Product', data: data });
+    // });
+
+    mysqlPoolQuery('SELECT * from product_doc,product where product.p_SYMBOL = ? and product_doc.pd_SYMBOL = product.p_SYMBOL', symbol, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -570,7 +639,7 @@ router.get('/EditProductByFMN', function (req, res, next) {
     });
 });
 
-//查看產品詳細資料：撈取資料到查看產品資料頁面(FMS、PS專用)
+//查看產品詳細資料：撈取資料到查看產品資料頁面(FMN、FMS、PS專用)
 router.get('/ViewProductDeatil', function (req, res, next) {
     var token = req.cookies.access_token;
     var dateNow = new Date();
@@ -589,7 +658,7 @@ router.get('/ViewProductDeatil', function (req, res, next) {
             } else {
                 console.log("＊＊＊:" + decoded.payload.m_permission);
                 //JWT token驗證成功
-                if (decoded.payload.m_permission != "Company_FundManagerS" && decoded.payload.m_permission != "Platform_Supervisor") {
+                if (decoded.payload.m_permission != "Company_FundManagerS" && decoded.payload.m_permission != "Platform_Supervisor" && decoded.payload.m_permission != "Company_FundManagerN") {
                     res.render('error', { message: '權限不足', error: '' });
                     return;
                 }
@@ -604,7 +673,7 @@ router.get('/ViewProductDeatil', function (req, res, next) {
     var symbol = req.query.symbol;
     var mysqlPoolQuery = req.pool;
 
-    mysqlPoolQuery('SELECT * FROM product WHERE p_SYMBOL = ?', symbol, function (err, rows) {
+    mysqlPoolQuery('SELECT * from product_doc,product where product.p_SYMBOL = ? and product_doc.pd_SYMBOL = product.p_SYMBOL', symbol, function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -710,17 +779,77 @@ router.post('/EditProductByFMN', function (req, res, next) {
         // p_fundmanager: req.body.p_fundmanager,
         // p_state: req.body.p_state
     };
+    var sql1 = {
+        p_SYMBOL: req.body.p_SYMBOL,
+        p_name: req.body.p_name,
+        p_location: req.body.p_location,
+        p_pricing: req.body.p_pricing,
+        p_duration: req.body.p_duration,
+        p_currency: req.body.p_currency,
+        p_irr: Number(req.body.p_irr).toFixed(2),
+        p_releasedate: req.body.p_releasedate,
+        p_lockuptime: req.body.p_lockuptime,
+        p_validdate: req.body.p_validdate,
+        p_size: req.body.p_size,
+        p_totalrelease: req.body.p_totalrelease,
+        p_fundingType: req.body.p_fundingType,
+        p_FAY: req.body.p_FAY,
+        p_FTRT: req.body.p_FTRT,
+        p_RPT: req.body.p_RPT,
+        p_FRP: req.body.p_FRP,
+        p_Timeline: req.body.p_Timeline,
+        p_PSD: req.body.p_PSD,
+        p_TaiPowerApprovalDate: req.body.p_TaiPowerApprovalDate,
+        p_BOEApprovalDate: req.body.p_BOEApprovalDate,
+        p_PVTrialOperationDate: req.body.p_PVTrialOperationDate,
+        p_PVOnGridDate: req.body.p_PVOnGridDate,
+        p_CFSD: req.body.p_CFSD,
+        p_CFED: req.body.p_CFED,
+        p_fundingGoal: req.body.p_fundingGoal,
+        p_EPCname: req.body.p_EPCname,
+        p_Copywriting: req.body.p_Copywriting,
+        p_ContractOut: req.body.p_ContractOut,
+        p_CaseConstruction: req.body.p_CaseConstruction,
+        p_ElectricityBilling: req.body.p_ElectricityBilling,
+        p_isNewCase: req.body.p_isNewCase,
+        p_ForecastedAnnualIncomePerModule:req.body.p_ForecastedAnnualIncomePerModule
+        // p_fundmanager: req.body.p_fundmanager,
+        // p_state: req.body.p_state
+    };
+    var sql2 = {
+        pd_SYMBOL: req.body.p_SYMBOL,
+        pd_icon: req.body.pd_icon,
+        pd_NotarizedRentalContract:req.body.pd_NotarizedRentalContract,
+        pd_OnGridAuditedLetter:req.body.pd_OnGridAuditedLetter,
+        pd_csvFIle: req.body.pd_csvFIle,
+        pd_Image1: req.body.pd_Image1,
+        pd_Image2: req.body.pd_Image2,
+        pd_Image3: req.body.pd_Image3,
+        pd_Image4: req.body.pd_Image4,
+        pd_Image5: req.body.pd_Image5,
+        pd_Image6: req.body.pd_Image6,
+        pd_Image7: req.body.pd_Image7,
+        pd_Image8: req.body.pd_Image8,
+        pd_Image9: req.body.pd_Image9,
+        pd_Image10: req.body.pd_Image10,
+        pd_assetdocsHash: req.body.pd_assetdocsHash,
+        pd_HCAT721uri: req.body.pd_HCAT721uri
+    };
     // console.log("@@@：" + symbol);
     console.log("@@@：" + JSON.stringify(req.body));
     // console.log("@@@:" + JSON.stringify(sql));
 
-    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql, symbol], function (err, rows) {
+    var qur = mysqlPoolQuery('UPDATE product SET ? WHERE p_SYMBOL = ?', [sql1, symbol], function (err, rows) {
         if (err) {
             console.log("＊＊＊:" + err);
         }
-
-        res.setHeader('Content-Type', 'application/json');
-        res.redirect('/Product/ProductByFMN');
+        var qur = mysqlPoolQuery('UPDATE product_doc SET ? WHERE pd_SYMBOL = ?', [sql2, symbol], function (err, rows) {
+            if (err) {
+                console.log("＊＊＊:" + err);
+            }
+            res.setHeader('Content-Type', 'application/json');
+            res.redirect('/Product/ProductByFMN');
+        });
     });
 
 });
