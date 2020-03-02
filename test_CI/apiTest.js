@@ -693,6 +693,13 @@ const PSMintToken = async(updateTime) => {
           
         });
     });
+    it('waiting for rabbitmq consumer', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 30000);    
+      }).then(() => {
+        return ; // do the promise call in a `then` callback to properly chain it
+      });
+    }).timeout(30000);
     it('update funding state', async function(){
       await updateFundingStateFromDB(updateTime).catch((err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);

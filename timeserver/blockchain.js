@@ -2416,19 +2416,18 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
     const singleActualIncomePayment = 0;// after minting tokens
 
     const asset_valuation = 13000;
-    const holding_amount_changed_Array = amountArray;
-    const moving_ave_holding_cost = pricing;
+    const holding_amount_changed = 0;
+    const holding_costChanged = 0;
+    const moving_ave_holding_cost = 13000;
+
 
     const acquiredCostArray = amountArray.map((element) => {
       return element * pricing;
     });
-    const holding_costChanged_Array = acquiredCostArray;
-
 
     wlogger.debug(`acquiredCostArray: ${acquiredCostArray}`);
 
-    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed_Array, holding_costChanged_Array, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
-      mesg = '[Error @ addAssetRecordRowArray] '+ err;
+    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {      mesg = '[Error @ addAssetRecordRowArray] '+ err;
       wlogger.error(mesg);
       reject(mesg);
       return false;

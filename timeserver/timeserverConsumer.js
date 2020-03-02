@@ -28,19 +28,14 @@ function addAssetbooksIntoCFCConsumer() {
             console.log(" [*]  " + name + " waiting for messages in ", q)
 
             //consume
-            ch.consume(q, function (msg) {
+            ch.consume(q, async function (msg) {
                 console.log(msg.fields.routingKey);
                 console.log(" [*]  " + name + " consumes this message : " + msg.content.toString())
 
-                addAssetbooksIntoCFC(msg.content.toString())
-                    .then(() => {
-                        ch.ack(msg);
-                    })
-                    .catch((err) => {
-                        console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
-                        ch.ack(msg);
-                    });
-
+                let result = await addAssetbooksIntoCFC(msg.content.toString());
+                if(result != undefined){
+                    ch.ack(msg);
+                }
             }, { noAck: false })
         })
     })
