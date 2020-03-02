@@ -2416,16 +2416,18 @@ const doAssetRecords = async(addressArray, amountArray, serverTime, symbol, pric
     const singleActualIncomePayment = 0;// after minting tokens
 
     const asset_valuation = 13000;
-    const holding_amount_changed = 0;
-    const holding_costChanged = 0;
-    const moving_ave_holding_cost = 13000;
+    const holding_amount_changed_Array = amountArray;
+    const moving_ave_holding_cost = pricing;
 
     const acquiredCostArray = amountArray.map((element) => {
       return element * pricing;
     });
+    const holding_costChanged_Array = acquiredCostArray;
+
+
     wlogger.debug(`acquiredCostArray: ${acquiredCostArray}`);
 
-    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed, holding_costChanged, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
+    const [emailArrayError, amountArrayError] = await addAssetRecordRowArray(addressArray, amountArray, symbol, ar_time, singleActualIncomePayment, asset_valuation, holding_amount_changed_Array, holding_costChanged_Array, acquiredCostArray, moving_ave_holding_cost).catch((err) => {
       mesg = '[Error @ addAssetRecordRowArray] '+ err;
       wlogger.error(mesg);
       reject(mesg);
@@ -2696,7 +2698,7 @@ const filterSymbols = (results) => {
 // after order status change: waiting -> paid -> write into crowdfunding contract
 const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   // check if serverTime > CFSD for each symbol...
-  wlogger.debug(`\n--------------==inside addAssetbooksIntoCFC() \nserverTime: ${serverTime}`);
+  console.log(`\n--------------==inside addAssetbooksIntoCFC() \nserverTime: ${serverTime}`);
   const queryStr1 = 'SELECT DISTINCT o_symbol FROM order_list WHERE o_paymentStatus = ?';
   const results1 = await mysqlPoolQueryB(queryStr1, [paymentStatus]).catch((err) => {
     wlogger.error(`\n[Error @ addAssetbooksIntoCFC > mysqlPoolQueryB(queryStr1)] ${err}`);
@@ -2704,27 +2706,27 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
   });
 
   let symbolArray, foundSymbolArray;
-  wlogger.debug(`results1: ${results1}`);
+  console.log(`results1: ${results1}`);
   if (!Array.isArray(results1)){
-    wlogger.debug(`\n[distinct symbols] array does not exist, or is not an array`);
-    wlogger.info('>>[Success @ addAssetbooksIntoCFC()] No paid order is found');
+    console.log(`\n[distinct symbols] array does not exist, or is not an array`);
+    console.log('>>[Success @ addAssetbooksIntoCFC()] No paid order is found');
     return true;
 
   } else if(!results1.length) {
-    wlogger.debug(`\n[distinct symbols] array is empty`);
-    wlogger.info('>>[Success @ addAssetbooksIntoCFC()] No paid order is found');
+    console.log(`\n[distinct symbols] array is empty`);
+    console.log('>>[Success @ addAssetbooksIntoCFC()] No paid order is found');
     return true;
 
   } else {
-    wlogger.debug(`\n[distinct symbols] ${results1.length} symbols were found`);
+    console.log(`\n[distinct symbols] ${results1.length} symbols were found`);
     [symbolArray, foundSymbolArray] = filterSymbols(results1);
   }
 
   //----------------==
-  wlogger.debug(`foundSymbolArray ${foundSymbolArray}`);
-  wlogger.debug(`symbolArray of paid orders: ${symbolArray}`);
+  console.log(`foundSymbolArray ${foundSymbolArray}`);
+  console.log(`symbolArray of paid orders: ${symbolArray}`);
   if(symbolArray.length === 0){
-   wlogger.info('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded');
+    console.log('>>[Success @ addAssetbooksIntoCFC()] paid orders are found but are all excluded');
     return true;
   }
 
@@ -2736,11 +2738,11 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       checkOK = false;
       return undefined;
     });
-    wlogger.debug(`\n${resultMesg}`);
+    console.log(`\n${resultMesg}`);
     if(isGood){
-      wlogger.debug(`\n------==[Good] Found crowdfunding addresses \nsymbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
+      console.log(`\n------==[Good] Found crowdfunding addresses \nsymbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr}`);
     } else {
-      wlogger.error(`[Error] at blockchain.js -> asyncForEachAbCFC: \nsymbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr} \nresultMesg: ${resultMesg}`);
+      console.log(`[Error] at blockchain.js -> asyncForEachAbCFC: \nsymbol: ${symbol}, crowdFundingAddr: ${crowdFundingAddr} \nresultMesg: ${resultMesg}`);
       checkOK = false;
       return false;
     }
@@ -2750,24 +2752,24 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
     //const queryStr3 = 'SELECT o_email, o_tokenCount, o_id FROM order_list WHERE o_symbol = ? AND o_paymentStatus = "paid"';
 
     const results3 = await mysqlPoolQueryB(queryStr3, [symbol]).catch((err) => {
-      wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
+      console.log(`\n[Error @ mysqlPoolQueryB(queryStr3)] ${err}`);
       checkOK = false;
       return false;
     });
-    wlogger.debug(`results3 ${results3}`);
+    console.log(`results3 ${results3}`);
     if (!Array.isArray(results3)){
-      wlogger.debug(`\n[results3] array does not exist, or is not an array. \nno paid order was found for symbol ${symbol}`);
+      console.log(`\n[results3] array does not exist, or is not an array. \nno paid order was found for symbol ${symbol}`);
       checkOK = false;
       return false;
 
     } else if(!results3.length) {
-      wlogger.debug(`\n[results3] array is empty. \nno paid order was found for symbol ${symbol}`);
+      console.log(`\n[results3] array is empty. \nno paid order was found for symbol ${symbol}`);
       checkOK = false;
       return false;
 
     } else {
-      wlogger.debug(`\n[results3] ${results3.length} results3 items were found`);
-      wlogger.debug(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
+      console.log(`\n[results3] ${results3.length} results3 items were found`);
+      console.log(`\n--------------==[Good] Found a list of email, tokenCount, and o_id for ${symbol}`);
       const assetbookCtrtArray = [];
       const assetbookCtrtArrayError = [];
       const emailArray = [];
@@ -2794,10 +2796,10 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
           }
         });
       }
-      wlogger.debug(`\nemailArray: ${emailArray} \ntokenCountArray: ${tokenCountArray} \norderIdArray: ${orderIdArray} \nemailArrayError: ${emailArrayError} \ntokenCountArrayError: ${tokenCountArrayError} \norderIdArrayError: ${orderIdArrayError}`);
+      console.log(`\nemailArray: ${emailArray} \ntokenCountArray: ${tokenCountArray} \norderIdArray: ${orderIdArray} \nemailArrayError: ${emailArrayError} \ntokenCountArrayError: ${tokenCountArrayError} \norderIdArrayError: ${orderIdArrayError}`);
 
 
-      wlogger.debug(`\n----------------==assetbookCtrtArray \n${assetbookCtrtArray}`);
+      console.log(`\n----------------==assetbookCtrtArray \n${assetbookCtrtArray}`);
       if(assetbookCtrtArray.length !== emailArray.length){
         wlogger.error(`[Error] assetbookCtrtArray and emailArray have different length`);
         checkOK = false;
@@ -2805,19 +2807,19 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
       }
       const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
       const investorListBf = await instCrowdFunding.methods.getInvestors(0, 0).call();
-      wlogger.debug(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]} \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
+      console.log(`\nBefore calling investTokens for each investors: \nassetbookArrayBf: ${investorListBf[0]} \ninvestedTokenQtyArrayBf: ${investorListBf[1]}`);
 
       const resultCheckAssetbookArray = await checkAssetbookArray(assetbookCtrtArray).catch(async(err) => {
-        wlogger.debug(`checkAssetbookArray() \nresult: ${err} \ncheckAssetbookArray() failed inside asyncForEachAbCFC(). \nassetbookCtrtArray: ${assetbookCtrtArray}`);
+        console.log(`checkAssetbookArray() \nresult: ${err} \ncheckAssetbookArray() failed inside asyncForEachAbCFC(). \nassetbookCtrtArray: ${assetbookCtrtArray}`);
         checkOK = false;
         return false;
       });
       if(resultCheckAssetbookArray.includes(false)){
-        wlogger.debug(`\naddressArray has at least one invalid item. \n\naddressArray: ${assetbookCtrtArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbookArray}`);
+        console.log(`\naddressArray has at least one invalid item. \n\naddressArray: ${assetbookCtrtArray} \n\ncheckAssetbookArray() Result: ${resultCheckAssetbookArray}`);
         checkOK = false;
         return false;
       } else {
-        wlogger.debug(`\n------------------==\nall input addresses have been checked good by checkAssetbookArray \nresultCheckAssetbookArray: ${resultCheckAssetbookArray} `);
+        console.log(`\n------------------==\nall input addresses have been checked good by checkAssetbookArray \nresultCheckAssetbookArray: ${resultCheckAssetbookArray} `);
       }
 
       const queryStr5 = 'UPDATE order_list SET o_paymentStatus = "txnFinished", o_txHash = ? WHERE o_id = ?';
@@ -2827,7 +2829,7 @@ const addAssetbooksIntoCFC = async (serverTime, paymentStatus = "paid") => {
         const orderId = orderIdArray[index];
         const email = emailArray[index];
         const amountToInvest = parseInt(tokenCountArray[index]);
-        wlogger.info(`\n[Good] About to write the assetbook address into the crowdfunding contract
+        console.log(`\n[Good] About to write the assetbook address into the crowdfunding contract
 index: ${index}, amountToInvest: ${amountToInvest}, serverTime: ${serverTime}
 addrAssetbook: ${addrAssetbook}
 crowdFundingAddr: ${crowdFundingAddr}`);
@@ -2835,32 +2837,32 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         const [isInvestSuccess, txnHash] = await investTokens(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime, 'asyncForEachAbCFC2').catch(async(err) => { 
 
           checkOK = false;
-          wlogger.error(`\n>>Rejected @ investTokens()`);
-          wlogger.error(`\n[Error @ investTokens] ${err}`);
+          console.log(`\n>>Rejected @ investTokens()`);
+          console.log(`\n[Error @ investTokens] ${err}`);
           const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime).catch((err) => {
-            wlogger.error(`\n[Error @ checkInvest1] ${err}`);
+            console.log(`\n[Error @ checkInvest1] ${err}`);
             checkOK = false;
             return [false, null];
           });
-          wlogger.debug(`\ncheckInvest result: ${result}`);
+          console.log(`\ncheckInvest result: ${result}`);
 
           let checkWritingToDB1 = true;
           const fakeHash = makeFakeTxHash();
           const results5a = await mysqlPoolQueryB(queryStr5F, [fakeHash, orderId ]).catch((err) => {
             checkWritingToDB1 = false;
-            wlogger.error(`\n[Error2 @ mysqlPoolQueryB(queryStr5F) errCFC] Failed to write "errCFC" into DB \n${err}`);
+            console.log(`\n[Error2 @ mysqlPoolQueryB(queryStr5F) errCFC] Failed to write "errCFC" into DB \n${err}`);
           });
 
           if(checkWritingToDB1){
-            wlogger.info(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+            console.log(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
           } else {
-            wlogger.debug(`\nresults5a: ${results5a}`);
-            wlogger.error(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+            console.log(`\nresults5a: ${results5a}`);
+            console.log(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
 
           }
           return [false, null];
         });
-        wlogger.debug(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
+        console.log(`\nisInvestSuccess: ${isInvestSuccess} \ntxnHash: ${txnHash}`);
 
         isInvestSuccessArray.push(isInvestSuccess);
         txnHashArray.push(txnHash);
@@ -2868,49 +2870,49 @@ crowdFundingAddr: ${crowdFundingAddr}`);
         //----------==
         let checkWritingToDB2 = true;
         if(isInvestSuccess){
-          wlogger.info(`\n>>isInvestSuccess: true @ investTokens()`);
+          console.log(`\n>>isInvestSuccess: true @ investTokens()`);
           const results5b = await mysqlPoolQueryB(queryStr5, [txnHash, orderId ]).catch((err) => {
-            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
+            console.log(`\n[Error @ mysqlPoolQueryB(queryStr5)] ${err}`);
             checkWritingToDB2 = false;
             checkOK = false;
           });
 
           if(checkWritingToDB2){
-            wlogger.info(`\n>>[Success @ investTokens() & writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+            console.log(`\n>>[Success @ investTokens() & writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
           } else {
-            wlogger.debug(`\nresults5b: ${results5b}`);
-            wlogger.error(`\n[Error @ writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+            console.log(`\nresults5b: ${results5b}`);
+            console.log(`\n[Error @ writing "txnFinished" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
           }
 
         } else {
-          wlogger.error(`\n>>isInvestSuccess: false @ investTokens()`);
+          console.log(`\n>>isInvestSuccess: false @ investTokens()`);
           const result = await checkInvest(crowdFundingAddr, addrAssetbook, amountToInvest, serverTime).catch((err) => {
             wlogger.error(`\n[Error @ checkInvest2] ${err}`);
             checkOK = false;
             return [false, null];
           });
-          wlogger.debug(`\ncheckInvest result: ${result}`);
+          console.log(`\ncheckInvest result: ${result}`);
 
           const results5c = await mysqlPoolQueryB(queryStr5F, [txnHash, orderId ]).catch((err) => {
-            wlogger.error(`\n[Error @ mysqlPoolQueryB(queryStr5F)] ${err}`);
+            console.log(`\n[Error @ mysqlPoolQueryB(queryStr5F)] ${err}`);
             checkOK = false;
             checkWritingToDB2 = false;
           });
 
           if(checkWritingToDB2){
-            wlogger.info(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
+            console.log(`\n[Success @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook} `);
           } else {
-            wlogger.debug(`\nresults5c: ${results5c}`);
-            wlogger.error(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
+            console.log(`\nresults5c: ${results5c}`);
+            console.log(`\n[Error @ writing "errCFC" into DB] email: ${email}, orderId: ${orderId}, amountToInvest: ${amountToInvest} \naddrAssetbook: ${addrAssetbook}`);
           }
         }
       });
 
-      wlogger.debug(`\nisInvestSuccessArray: ${isInvestSuccessArray}
+      console.log(`\nisInvestSuccessArray: ${isInvestSuccessArray}
 txnHashArray: ${txnHashArray}`);
 
       const investorListAf = await instCrowdFunding.methods.getInvestors(0, 0).call();
-      wlogger.debug(`\nAfter calling investTokens() for \nassetbookArrayAf: ${investorListAf[0]}, \ninvestedTokenQtyArrayAf: ${investorListAf[1]}`);
+      console.log(`\nAfter calling investTokens() for \nassetbookArrayAf: ${investorListAf[0]}, \ninvestedTokenQtyArrayAf: ${investorListAf[1]}`);
 
     }
   });
