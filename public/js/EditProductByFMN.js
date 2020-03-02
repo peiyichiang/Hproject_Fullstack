@@ -65,61 +65,67 @@ function UploadImage(){
                 //     // console.log(data.filePath['file'][0].path);
                 // }
                 if(data.filePath['p_NotarizedRentalContract_form']!=null){
-                    $("#p_NotarizedRentalContract").val(data.filePath['p_NotarizedRentalContract_form'][0].path);
-                    // console.log(data.filePath['icon'][0].path);
+                    $("#pd_NotarizedRentalContract").val(data.filePath['p_NotarizedRentalContract_form'][0].path);
+                    // console.log(data.filePath['p_NotarizedRentalContract_form'][0].path);
+                    // console.log($("#pd_NotarizedRentalContract").val())
                 }
 
                 if(data.filePath['p_OnGridAuditedLetter_form']!=null){
-                    $("#p_OnGridAuditedLetter").val(data.filePath['p_OnGridAuditedLetter_form'][0].path);
-                    // console.log(data.filePath['icon'][0].path);
+                    $("#pd_OnGridAuditedLetter").val(data.filePath['p_OnGridAuditedLetter_form'][0].path);
+                    // console.log(data.filePath['p_OnGridAuditedLetter_form'][0].path);
+                    // console.log($("#pd_OnGridAuditedLetter").val())
                 }
 
                 if(data.filePath['icon']!=null){
-                    $("#p_icon").val(data.filePath['icon'][0].path);
-                    // alert(data.filePath['icon'][0].path);
+                    $("#pd_icon").val(data.filePath['icon'][0].path);
+                    // console.log(data.filePath['icon'][0].path);
+                    // console.log($("#pd_icon").val())
                 }
                 if(data.filePath['csvFIle']!=null){
-                    $("#p_csvFIle").val(data.filePath['csvFIle'][0].path);
-                    // alert(data.filePath['csvFIle'][0].path);
+                    $("#pd_csvFIle").val(data.filePath['csvFIle'][0].path);
+                    // console.log(data.filePath['csvFIle'][0].path);
+                    // console.log($("#pd_csvFIle").val())
                 }
                 if(data.filePath['image1']!=null){      
-                    $("#p_Image1").val(data.filePath['image1'][0].path);
+                    $("#pd_Image1").val(data.filePath['image1'][0].path);
                     // console.log("Image1：" + data.filePath['image1'][0].path);
+                    // console.log($("#pd_Image1").val())
                 }
                 if(data.filePath['image2']!=null){  
-                    $("#p_Image2").val(data.filePath['image2'][0].path);    
+                    $("#pd_Image2").val(data.filePath['image2'][0].path);    
                     // console.log("Image2：" + data.filePath['image2'][0].path);
+                    // console.log($("#pd_Image2").val())
                 }
                 if(data.filePath['image3']!=null){      
-                    $("#p_Image3").val(data.filePath['image3'][0].path);
+                    $("#pd_Image3").val(data.filePath['image3'][0].path);
                     // console.log("Image3：" + data.filePath['image3'][0].path);
                 }
                 if(data.filePath['image4']!=null){   
-                    $("#p_Image4").val(data.filePath['image4'][0].path);   
+                    $("#pd_Image4").val(data.filePath['image4'][0].path);   
                     // console.log("Image4：" + data.filePath['image4'][0].path);
                 }
                 if(data.filePath['image5']!=null){  
-                    $("#p_Image5").val(data.filePath['image5'][0].path);    
+                    $("#pd_Image5").val(data.filePath['image5'][0].path);    
                     // console.log("Image5：" + data.filePath['image5'][0].path);
                 }
                 if(data.filePath['image6']!=null){   
-                    $("#p_Image6").val(data.filePath['image6'][0].path);   
+                    $("#pd_Image6").val(data.filePath['image6'][0].path);   
                     // console.log("Image6：" + data.filePath['image6'][0].path);
                 }
                 if(data.filePath['image7']!=null){      
-                    $("#p_Image7").val(data.filePath['image7'][0].path);
+                    $("#pd_Image7").val(data.filePath['image7'][0].path);
                     // console.log("Image7：" + data.filePath['image7'][0].path);
                 }
                 if(data.filePath['image8']!=null){   
-                    $("#p_Image8").val(data.filePath['image8'][0].path);   
+                    $("#pd_Image8").val(data.filePath['image8'][0].path);   
                     // console.log("Image8：" + data.filePath['image8'][0].path);
                 }
                 if(data.filePath['image9']!=null){  
-                    $("#p_Image9").val(data.filePath['image9'][0].path);    
+                    $("#pd_Image9").val(data.filePath['image9'][0].path);    
                     // console.log("Image9：" + data.filePath['image9'][0].path);
                 }
                 if(data.filePath['image10']!=null){ 
-                    $("#p_Image10").val(data.filePath['image10'][0].path);     
+                    $("#pd_Image10").val(data.filePath['image10'][0].path);     
                     // console.log("Image10：" + data.filePath['image10'][0].path);
                 }
                 

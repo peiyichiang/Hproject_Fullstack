@@ -41,31 +41,32 @@
                         <th class="nowrap">產品名稱</th>
                         <th class="nowrap">產品所在地</th>
                         <th class="nowrap">產品定價</th>
-                        <th class="nowrap">幣別</th>
+                        <!-- <th class="nowrap">幣別</th>
                         <th class="nowrap">專案年期</th>
-                        <th class="nowrap">預期報酬率(%)</th>
+                        <th class="nowrap">預期報酬率(%)</th> -->
                         <!--  -->
-                        <th class="nowrap">專案開始日期</th>
+                        <!-- <th class="nowrap">專案開始日期</th> -->
                         <!-- <th class="nowrap">FMS審核通過的日期</th>
                         <th class="nowrap">PA審核通過的日期</th> -->
-                        <th class="nowrap">募資起始日</th>
-                        <th class="nowrap">募資截止日</th>
+                        <!-- <th class="nowrap">募資起始日</th> -->
+                        <!-- <th class="nowrap">募資截止日</th> -->
                         <!--  -->
-                        <th class="nowrap">產品發行日</th>
+                        <!-- <th class="nowrap">產品發行日</th>
                         <th class="nowrap">產品到期日</th>
                         <th class="nowrap">專案規模(kw)</th>
-                        <th class="nowrap">產品總發行量(個)</th>
+                        <th class="nowrap">產品總發行量(個)</th> -->
                         <!-- <th class="nowrap">發行專案的產品經理</th> -->
-                        <th class="nowrap">該專案處理狀態</th>
+                        <!-- <th class="nowrap">該專案處理狀態</th> -->
                         <!-- <th class="nowrap">預估平均年收益</th> -->
                         <!-- <th class="nowrap">預估回收金額</th> -->
-                        <th class="nowrap">收益總期數</th>
-                        <th class="nowrap">預估回收年限</th>
+                        <!-- <th class="nowrap">收益總期數</th>
+                        <th class="nowrap">預估回收年限</th> -->
                         <!-- <th class="nowrap">預估進度圖</th> -->
-                        <th class="nowrap">FMS審核退回備註</th>
+                        <!-- <th class="nowrap">FMS審核退回備註</th>
                         <th class="nowrap">購售電合約</th>
                         <th class="nowrap">產品icon</th>
-                        <th class="nowrap">CSV文件</th>
+                        <th class="nowrap">CSV文件</th> -->
+                        <th class="nowrap">詳細資料</th>
                         <th class="nowrap">編輯</th>
                         <th class="nowrap">刪除</th>
                         <th class="nowrap">送審</th>
@@ -86,7 +87,7 @@
                                 <td>
                                     <%= dataDraft[i].p_pricing  %>
                                 </td>
-                                <td>
+                                <!-- <td>
                                     <%= dataDraft[i].p_currency  %>
                                 </td>
                                 <td>
@@ -95,23 +96,21 @@
                                 <td>
                                     <%= dataDraft[i].p_irr  %>
                                 </td>
-                                <!--  -->
                                 <td>
                                     <%= dataDraft[i].p_PSD  %>
-                                </td>
+                                </td> -->
                                 <!-- <td>
                                     <%= dataDraft[i].p_FMXAdate  %>
                                 </td>
                                 <td>
                                     <%= dataDraft[i].p_PAdate  %>
                                 </td> -->
-                                <td>
+                                <!-- <td>
                                     <%= dataDraft[i].p_CFSD  %>
                                 </td>
                                 <td>
                                     <%= dataDraft[i].p_CFED  %>
                                 </td>
-                                <!--  -->
                                 <td>
                                     <%= dataDraft[i].p_releasedate  %>
                                 </td>
@@ -123,32 +122,32 @@
                                 </td>
                                 <td>
                                     <%= dataDraft[i].p_totalrelease  %>
-                                </td>
+                                </td> -->
                                 <!-- <td>
                                     <%= dataDraft[i].p_fundmanager  %>
                                 </td> -->
-                                <td>
+                                <!-- <td>
                                     <%= dataDraft[i].p_state  %>
-                                </td>
+                                </td> -->
                                 <!-- <td>
                                     <%= dataDraft[i].p_FAY  %>
                                 </td> -->
                                 <!-- <td>
                                     <%= dataDraft[i].p_FTRT  %>
                                 </td> -->
-                                <td>
+                                <!-- <td>
                                     <%= dataDraft[i].p_RPT  %>
                                 </td>
                                 <td>
                                     <%= dataDraft[i].p_FRP  %>
-                                </td>
+                                </td> -->
                                 <!-- <td>
                                     <%= dataDraft[i].p_Timeline  %>
                                 </td> -->
-                                <td>
+                                <!-- <td>
                                     <%= dataDraft[i].p_FMSNote %>
-                                </td>
-                                <td>
+                                </td> -->
+                                <!-- <td>
                                     <%if (dataDraft[i].p_assetdocs != null && dataDraft[i].p_assetdocs != "") { %>
                                         <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + dataDraft[i].p_assetdocs.replace('public','')  %>">doc</a>
                                     <% } %>
@@ -159,10 +158,12 @@
                                     <% } %>
                                 </td>
                                 <td>
-                                    <!-- <%=  process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' %> -->
                                     <%if (dataDraft[i].p_csvFIle != null && dataDraft[i].p_csvFIle != "") { %>
                                         <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + dataDraft[i].p_csvFIle.replace('public','')  %>">CSV File</a>
                                     <% } %>
+                                </td> -->
+                                <td>
+                                    <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= dataDraft[i].p_SYMBOL  %>');">詳細資料</button>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-success" name="edit" value="Edit" onclick="Edit('<%= dataDraft[i].p_SYMBOL  %>');">Edit</button>
@@ -190,30 +191,30 @@
                 <th class="nowrap">產品名稱</th>
                 <th class="nowrap">產品所在地</th>
                 <th class="nowrap">產品定價</th>
-                <th class="nowrap">幣別</th>
+                <th class="nowrap">產品狀態</th>
+                <th class="nowrap">詳細資料</th>
+                <!-- <th class="nowrap">幣別</th>
                 <th class="nowrap">專案年期</th>
                 <th class="nowrap">預期報酬率(%)</th>
-                <!--  -->
-                <th class="nowrap">專案開始日期</th>
+                <th class="nowrap">專案開始日期</th> -->
                 <!-- <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">PA審核通過的日期</th> -->
-                <th class="nowrap">募資起始日</th>
+                <!-- <th class="nowrap">募資起始日</th>
                 <th class="nowrap">募資截止日</th>
-                <!--  -->
                 <th class="nowrap">產品發行日</th>
                 <th class="nowrap">產品到期日</th>
                 <th class="nowrap">專案規模(kw)</th>
-                <th class="nowrap">產品總發行量(個)</th>
+                <th class="nowrap">產品總發行量(個)</th> -->
                 <!-- <th class="nowrap">發行專案的產品經理</th> -->
-                <th class="nowrap">該專案處理狀態</th>
+                <!-- <th class="nowrap">該專案處理狀態</th> -->
                 <!-- <th class="nowrap">預估平均年收益</th> -->
                 <!-- <th class="nowrap">預估回收金額</th> -->
-                <th class="nowrap">收益總期數</th>
-                <th class="nowrap">預估回收年限</th>
+                <!-- <th class="nowrap">收益總期數</th>
+                <th class="nowrap">預估回收年限</th> -->
                 <!-- <th class="nowrap">預估進度圖</th> -->
-                <th class="nowrap">購售電合約</th>
+                <!-- <th class="nowrap">購售電合約</th>
                 <th class="nowrap">產品icon</th>
-                <th class="nowrap">CSV文件</th>
+                <th class="nowrap">CSV文件</th> -->
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
                 <tr>
@@ -230,6 +231,12 @@
                         <%= data[i].p_pricing  %>
                     </td>
                     <td>
+                        <%= data[i].p_state  %>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
+                    </td>
+                    <!-- <td>
                         <%= data[i].p_currency  %>
                     </td>
                     <td>
@@ -238,23 +245,21 @@
                     <td>
                         <%= data[i].p_irr  %>
                     </td>                                
-                    <!--  -->
                     <td>
                         <%= data[i].p_PSD  %>
-                    </td>
+                    </td> -->
                     <!-- <td>
                         <%= data[i].p_FMXAdate  %>
                     </td>
                     <td>
                         <%= data[i].p_PAdate  %>
                     </td> -->
-                    <td>
+                    <!-- <td>
                         <%= data[i].p_CFSD  %>
                     </td>
                     <td>
                         <%= data[i].p_CFED  %>
                     </td>
-                    <!--  -->
                     <td>
                         <%= data[i].p_releasedate  %>
                     </td>
@@ -266,29 +271,26 @@
                     </td>
                     <td>
                         <%= data[i].p_totalrelease  %>
-                    </td>
+                    </td> -->
                     <!-- <td>
                         <%= data[i].p_fundmanager  %>
                     </td> -->
-                    <td>
-                        <%= data[i].p_state  %>
-                    </td>
                     <!-- <td>
                         <%= data[i].p_FAY  %>
                     </td> -->
                     <!-- <td>
                         <%= data[i].p_FTRT  %>
                     </td> -->
-                    <td>
+                    <!-- <td>
                         <%= data[i].p_RPT  %>
                     </td>
                     <td>
                         <%= data[i].p_FRP  %>
-                    </td>
+                    </td> -->
                     <!-- <td>
                         <%= data[i].p_Timeline  %>
                     </td> -->
-                    <td>
+                    <!-- <td>
                         <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
                             <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_assetdocs.replace('public','')  %>">doc</a>
                         <% } %>
@@ -302,7 +304,7 @@
                         <%if (data[i].p_csvFIle != null && data[i].p_csvFIle != "") { %>
                             <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
                         <% } %>
-                    </td>
+                    </td> -->
                     <!-- onclick="Edit('<%= data[i].id  %>');" -->
                 </tr>
             <% } %>
@@ -310,6 +312,11 @@
     </div>
 
     <script>
+        // 查看產品詳細資料
+        function ViewProductDetail(SYMBOL) {
+            window.location.href = "/Product/ViewProductDeatil?symbol=" + SYMBOL;
+        }
+
         function Send(SYMBOL){
             window.location.href = "/Product/SetProductCreationByFMN?symbol=" + SYMBOL;
         }
