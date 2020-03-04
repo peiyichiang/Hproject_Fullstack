@@ -2943,6 +2943,7 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
       wlogger.info(`valid funding state: ${fundingStateM}`);
     } else {
       wlogger.warn(`invalid funding state: ${fundingStateM}, stateDescriptionM: ${stateDescriptionM}, tokenSymbolM: ${tokenSymbolM} ... exiting investTokens() `);
+      reject(err);
       return false;
     }
       /**
