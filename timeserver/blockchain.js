@@ -2920,11 +2920,11 @@ txnHashArray: ${txnHashArray}`);
 
 const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr, serverTime, invokedBy = '') => {
   return new Promise(async(resolve, reject) => {
-    wlogger.debug(`\n--------------==investTokens()...`);
+    console.log(`\n--------------==investTokens()...`);
     const amountToInvest = parseInt(amountToInvestStr);
     //DO not check serverTime against the localtime because it IS FROM the local time!
 
-    wlogger.debug(`amountToInvest: ${amountToInvest}, serverTime: ${serverTime}, \naddrAssetbookX: ${addrAssetbookX} \ncrowdFundingAddr: ${crowdFundingAddr}`);
+    console.log(`amountToInvest: ${amountToInvest}, serverTime: ${serverTime}, \naddrAssetbookX: ${addrAssetbookX} \ncrowdFundingAddr: ${crowdFundingAddr}`);
 
     if(isNaN(amountToInvest)){
       reject(`[Error] amountToInvest is not valid`);
@@ -2932,7 +2932,7 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     }
   
     const instCrowdFunding = new web3.eth.Contract(CrowdFunding.abi, crowdFundingAddr);
-    wlogger.debug(`investTokens1`);
+    console.log(`investTokens1`);
 
     const fundingStateM = await instCrowdFunding.methods.fundingState().call();
     //    enum FundingState{initial, funding, fundingPaused, fundingGoalReached, fundingClosed, fundingNotClosed, terminated}
@@ -2940,9 +2940,9 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     const stateDescriptionM = await instCrowdFunding.methods.stateDescription().call();
 
     if(fundingStateM === '0' || fundingStateM === '1' || fundingStateM === '3'){
-      wlogger.info(`valid funding state: ${fundingStateM}`);
+      console.log(`valid funding state: ${fundingStateM}`);
     } else {
-      wlogger.warn(`invalid funding state: ${fundingStateM}, stateDescriptionM: ${stateDescriptionM}, tokenSymbolM: ${tokenSymbolM} ... exiting investTokens() `);
+      console.log(`invalid funding state: ${fundingStateM}, stateDescriptionM: ${stateDescriptionM}, tokenSymbolM: ${tokenSymbolM} ... exiting investTokens() `);
       reject();
       return false;
     }
@@ -2959,12 +2959,12 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     const balanceB4Investing = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
     const quantitySoldMB4 = await instCrowdFunding.methods.quantitySold().call();
 
-    wlogger.debug(`balanceB4Investing: ${balanceB4Investing}, quantitySoldMB4: ${quantitySoldMB4}, fundingStateM: ${fundingStateM}`);
+    console.log(`balanceB4Investing: ${balanceB4Investing}, quantitySoldMB4: ${quantitySoldMB4}, fundingStateM: ${fundingStateM}`);
 
     const encodedData = instCrowdFunding.methods.invest(addrAssetbookX, amountToInvest, serverTime).encodeABI();
-    wlogger.debug(`investTokens3`);
+    console.log(`investTokens3`);
     const TxResult = await signTx(backendAddr, backendAddrpkRaw, crowdFundingAddr, encodedData).catch(async(err) => {
-      wlogger.error(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
+      console.log(`\n[Error @ invest() invoked by ${invokedBy}] \nerr: ${err}`);
       reject(err);
       return false;
     });
@@ -2972,10 +2972,10 @@ const investTokens = async (crowdFundingAddr, addrAssetbookX, amountToInvestStr,
     const balanceAfterInvesting = await instCrowdFunding.methods.ownerToQty(addrAssetbookX).call();
     const quantitySoldMAf = await instCrowdFunding.methods.quantitySold().call();
     const isInvestingSuccessful = (balanceAfterInvesting-balanceB4Investing) === amountToInvest;
-    wlogger.debug(`balanceAfterInvesting: ${balanceAfterInvesting}, quantitySoldMAf: ${quantitySoldMAf} \nisInvestingSuccessful: ${isInvestingSuccessful}`);
+    console.log(`balanceAfterInvesting: ${balanceAfterInvesting}, quantitySoldMAf: ${quantitySoldMAf} \nisInvestingSuccessful: ${isInvestingSuccessful}`);
 
     const remainingTokenQtyM = await instCrowdFunding.methods.getRemainingTokenQty().call();
-    wlogger.debug(`remainingTokenQtyM: ${remainingTokenQtyM}`);
+    console.log(`remainingTokenQtyM: ${remainingTokenQtyM}`);
   
     resolve([isInvestingSuccessful, TxResult.transactionHash]);
   });
