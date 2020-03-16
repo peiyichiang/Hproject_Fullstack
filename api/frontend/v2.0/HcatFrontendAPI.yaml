@@ -29,12 +29,32 @@ servers:
   - url: "http://localhost:3030/frontendAPI/v2.0/" # 本地端
   # - url: 'https://hcat.io:3030/frontendAPI/v2.0/' # 正式環境
 paths:
-  /Product/_________:
+  /Product/ProductInfo:
     get:
       tags:
         - Product
       summary: 取得產品資料
-      operationId: getProductList
+      operationId: getProductInfo
+      parameters:
+        - name: status
+          in: query
+          description: 產品狀態
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - draft
+                - creation
+                - publish
+                - funding
+                - ONM
+                - aborted
+              default: available
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
       responses:
         "200":
           description: _________
@@ -566,6 +586,13 @@ components:
             $ref: "#/components/schemas/Pet"
       description: Pet object that needs to be added to the store
       required: true
+    Product:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
+      # description: Pet object that needs to be added to the store
+      required: true
   securitySchemes:
     petstore_auth:
       type: oauth2
@@ -698,6 +725,18 @@ components:
           type: string
         message:
           type: string
+    Product:
+      type: object
+      properties:
+        status:
+          type: array
+          items: 
+            type: string
+            example: 已上架
+
+
+
+      
   responses:
     UnauthorizedError:
       description: JWT 有誤或被更改
