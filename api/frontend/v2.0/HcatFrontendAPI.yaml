@@ -58,6 +58,10 @@ paths:
       responses:
         "200":
           description: _________
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
         "404":
           description: _________
         "401":
@@ -725,14 +729,144 @@ components:
           type: string
         message:
           type: string
+    ProductImage:
+      type: object
+      properties:
+        img1:
+          type: string
+        img2:
+          type: string
+        img3:
+          type: string
+        img4:
+          type: string
+        img5:
+          type: string
+        img6:
+          type: string
+        img7:
+          type: string
+        img8:
+          type: string
+        img9:
+          type: string
+        img10:
+          type: string
+
+    ProductDoc:
+      type: object
+      properties:
+        notarizedRentalContract: #房屋 / 土地租約 
+          type: string
+        onGridAuditedLetter:     #併聯審查意見書 
+          type: string
+        BOEApprovedLetter:       #能源局同意備案函
+          type: string
+        powerPurchaseAgreement:  #台電購售店契約
+          type: string
+        onGridTryrunLetter:      #併聯試運轉訪查文件
+          type: string
+        powerPlantEquipmentRegisteredLetter:  #設備登記文件
+          type: string
+        powerPlantInsurancePolicy:  #設備保單
+          type: string
+
+    ProductDate:
+      type: object
+      properties:
+        PSD: 
+          type: string
+        FMXAdate:      
+          type: string
+        TaiPowerApprovalDate:       
+          type: string
+        BOEApprovalDate:  
+          type: string
+        PVTrialOperationDate:      
+          type: string
+        PVOnGridDate:  
+          type: string
+        CFSD:  
+          type: string
+        CFED:
+          type: string
+
     Product:
       type: object
       properties:
-        status:
+        irr:
+          type: number
+          format: float
+        icon:         
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        ForecastedAnnualIncomePerModule:
+          type: integer
+          format: int8
+        totalRelease:   #總片數
+          type: integer
+          format: int8
+        remainRelease: #剩餘片數(總片數-訂單中已付款＆已下單)
+          type: integer
+          format: int8
+        price: 
+          type: integer
+          format: int11
+        purchaseNum:   #購買人數 (計算多少訂單)
+          type: integer
+          format: int8
+        RPT:           #電費支付期數
+          type: integer
+          format: int8
+        FRPYear:       #預計回收年限(年)
+          type: integer
+          format: int8
+        FRPMonth:      #預計回收年限(月)
+          type: integer
+          format: int8
+        sunshine:      #平均年日照量(目前資料庫沒有該欄位)
+          type: integer
+          format: int8
+        solarIntroduction: #  太陽能簡介(目前資料庫沒有該欄位)
+          type: string
+        size:          #系統規模
+          type: number
+          format: float
+        CFSD:          #起始日
+          type: string   
+        CFED:          #結束日
+          type: string 
+        Copywriting:   #文案
+          type: string
+        image:         #案場圖片
+          $ref: "#/components/schemas/ProductImage" 
+        doc:
+          $ref: "#/components/schemas/ProductDoc"
+        data:          #預估進度
+          $ref: "#/components/schemas/ProductDate"
+        gift:          #贈品
+          type: string
+        giftRequirement: #贈品門檻
+          type: integer
+          format: int8
+        ForecastedAnnualIncome: #預估當期收益
           type: array
           items: 
-            type: string
-            example: 已上架
+            type: integer
+            format: int11
+        AccumulateForecastedAnnualIncome: #預估累積收益
+          type: array
+          items: 
+            type: integer
+            format: int11
+          
+        
+
+        
+        
 
 
 
