@@ -12,6 +12,8 @@ tags:
   #   description: 管理訂單相關的功能
   # - name: IncomeManagement
   #   description: 管理資產相關的功能
+  - name: AssetManagement
+    description: 管理資產相關功能
   - name: pet
     description: Everything about your Pets
     externalDocs:
@@ -62,6 +64,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+        "404":
+          description: _________
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /AssetManagement/asset:
+    get:
+      tags:
+        - AssetManagement 
+      summary: 取得使用者資產資料
+      operationId: getAsset
+      parameters:
+        - name: symbol 
+          in: query
+          description: 取得資產資料 
+          required: true
+          explode: true
+          schema:
+            type: string
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetManagement"       
         "404":
           description: _________
         "401":
@@ -770,7 +801,7 @@ components:
           type: string
         powerPlantInsurancePolicy:  #設備保單
           type: string
-
+    
     ProductDate:
       type: object
       properties:
@@ -803,7 +834,9 @@ components:
           type: string
         location:
           type: string
-        ForecastedAnnualIncomePerModule:
+        symbol:
+          type: string
+        forecastedAnnualIncomePerModule:
           type: integer
           format: int8
         totalRelease:   #總片數
@@ -839,7 +872,7 @@ components:
           type: string   
         CFED:          #結束日
           type: string 
-        Copywriting:   #文案
+        copywriting:   #文案
           type: string
         image:         #案場圖片
           $ref: "#/components/schemas/ProductImage" 
@@ -852,16 +885,111 @@ components:
         giftRequirement: #贈品門檻
           type: integer
           format: int8
-        ForecastedAnnualIncome: #預估當期收益
+        forecastedAnnualIncome: #預估當期收益
           type: array
           items: 
             type: integer
             format: int11
-        AccumulateForecastedAnnualIncome: #預估累積收益
+        accumulateForecastedAnnualIncome: #預估累積收益
           type: array
           items: 
             type: integer
             format: int11
+    AssetManagementPowerGeneration:
+      type: object
+      properties:
+        seven:
+          type: number
+          format: float  
+        eight:
+          type: number
+          format: float 
+        nine:
+          type: number
+          format: float 
+        ten:
+          type: number
+          format: float 
+        eleven:
+          type: number
+          format: float 
+        twelve:
+          type: number
+          format: float 
+        thirteen:
+          type: number
+          format: float 
+        fourteen:
+          type: number
+          format: float 
+        fifteen:
+          type: number
+          format: float
+        sixteen:
+          type: number
+          format: float 
+    
+    AssetManagementAssetRecord:
+      type: object
+      properties:
+        time:  #年月
+          type: string
+        income: #收入
+          type: integer
+          format: int11
+        managementFee: #維運管理
+          type: integer
+          format: int11
+        insurance: #保險
+          type: integer
+          format: int11
+        rent:      #場地租金
+          type: integer
+          format: int11
+
+    AssetManagement:
+      type: object
+      properties:
+        name:
+          type: string
+        location:
+          type: string
+        symbol:
+          type: string
+        balanceOf: #擁有片數要去合約抓資料
+          type: integer
+          format: int8
+        powerGeneration: #當日發電量，每小時會從電廠抓
+          $ref: "#/components/schemas/AssetManagementPowerGeneration"
+        powerGenerationAcc: #當其累積發電量，每期會加總後更新
+          type: integer
+          format: int11
+        forecastedPeriodIncomePerPiece: #本期預估收益 ia_single_Forecasted_Payable_Income_in_the_Period
+          type: integer
+          format: int11
+        PVOnGridDate: #掛錶年份 只要前6個數字(年月)
+          type: string
+        size:  #系統規模
+          type: number
+          format: float
+        totalRelease:   #總片數
+          type: integer
+          format: int8
+        temp: #躉受費率 目前資料庫還沒有欄位
+          type: number
+          foramt: float
+        assetRecord: #收益紀錄
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetManagementAssetRecord"
+        accIncome: #累積收益 從asset record中的personal income的累積
+          type: integer
+          format: int11
+        
+        
+
+        
+
           
         
 
