@@ -35,7 +35,7 @@ router.get('/SalesReport', function (req, res, next) {
     }
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT htoken.order_list.o_symbol,htoken.user.u_name,htoken.order_list.o_purchaseDate,htoken.order_list.o_tokenCount,htoken.order_list.o_fundCount,htoken.order_list.o_txHash from htoken.user,htoken.order_list where htoken.user.u_email=htoken.order_list.o_email', function (err, rows) {
+    mysqlPoolQuery('SELECT order_list.o_symbol,user.u_name,order_list.o_purchaseDate,order_list.o_tokenCount,order_list.o_fundCount,order_list.o_txHash from user,order_list where user.u_email=order_list.o_email', function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -76,7 +76,7 @@ router.get('/IncomeReport', function (req, res, next) {
     }
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT investor_assetRecord.ar_tokenSYMBOL,htoken.user.u_name,investor_assetRecord.ar_Time,investor_assetRecord.ar_personal_income from htoken.user,htoken.investor_assetRecord where htoken.user.u_email=htoken.investor_assetRecord.ar_investorEmail', function (err, rows) {
+    mysqlPoolQuery('SELECT investor_assetRecord.ar_tokenSYMBOL,user.u_name,investor_assetRecord.ar_Time,investor_assetRecord.ar_personal_income from user,investor_assetRecord where user.u_email=investor_assetRecord.ar_investorEmail', function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -117,7 +117,7 @@ router.get('/InvestorReport', function (req, res, next) {
     }
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT user.u_name,user.u_email,user.u_cellphone,user.u_identityNumber,user.u_bankBooklet,user.u_investorLevel,user.u_review_status from htoken.user', function (err, rows) {
+    mysqlPoolQuery('SELECT user.u_name,user.u_email,user.u_cellphone,user.u_identityNumber,user.u_bankBooklet,user.u_investorLevel,user.u_review_status from user', function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -158,7 +158,7 @@ router.get('/FMReport', function (req, res, next) {
     }
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT backend_user.m_company,backend_user.m_email,backend_user.m_permission from htoken.backend_user', function (err, rows) {
+    mysqlPoolQuery('SELECT backend_user.m_company,backend_user.m_email,backend_user.m_permission from backend_user', function (err, rows) {
         if (err) {
             console.log(err);
         }
@@ -199,7 +199,7 @@ router.get('/ProductReport', function (req, res, next) {
     }
 
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery('SELECT htoken.product.p_SYMBOL,htoken.backend_user.m_company,htoken.product.p_name,htoken.product.p_PAdate,htoken.product.p_CFSD,htoken.product.p_CFED,htoken.product.p_fundingType,htoken.product.p_totalrelease,htoken.product.p_totalrelease*htoken.product.p_pricing as TotalReleaseAmount,htoken.product.p_paidNumber from htoken.product,htoken.backend_user where htoken.product.p_fundmanager=htoken.backend_user.m_id', function (err, rows) {
+    mysqlPoolQuery('SELECT product.p_SYMBOL,backend_user.m_company,product.p_name,product.p_PAdate,product.p_CFSD,product.p_CFED,product.p_fundingType,product.p_totalrelease,product.p_totalrelease*product.p_pricing as TotalReleaseAmount,product.p_paidNumber from product,backend_user where product.p_fundmanager=backend_user.m_id', function (err, rows) {
         if (err) {
             console.log(err);
         }
