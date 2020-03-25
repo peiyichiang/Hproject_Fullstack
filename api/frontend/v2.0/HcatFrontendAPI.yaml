@@ -1,0 +1,1004 @@
+openapi: 3.0.0
+info:
+  description: 電利超商 APP 使用的所有 API
+  version: "2.0.0"
+  title: 電利超商 APP API
+  license:
+    name: All Right Reserved by Hcat.io
+tags:
+  - name: Product
+    description: 管理產品相關的功能
+  # - name: Order
+  #   description: 管理訂單相關的功能
+  # - name: IncomeManagement
+  #   description: 管理資產相關的功能
+  - name: AssetManagement
+    description: 管理資產相關功能
+  - name: pet
+    description: Everything about your Pets
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: store
+    description: Access to Petstore orders
+  - name: user
+    description: Operations about user
+    externalDocs:
+      description: Find out more about our store
+      url: "http://swagger.io"
+servers:
+  - url: "http://203.66.68.70:3030/frontendAPI/v2.0/" # 測試環境
+  - url: "http://localhost:3030/frontendAPI/v2.0/" # 本地端
+  # - url: 'https://hcat.io:3030/frontendAPI/v2.0/' # 正式環境
+paths:
+  /Product/ProductInfo:
+    get:
+      tags:
+        - Product
+      summary: 取得產品資料
+      operationId: getProductInfo
+      parameters:
+        - name: status
+          in: query
+          description: 產品狀態
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - draft
+                - creation
+                - publish
+                - funding
+                - ONM
+                - aborted
+              default: available
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: _________
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /AssetManagement/asset:
+    get:
+      tags:
+        - AssetManagement 
+      summary: 取得使用者資產資料
+      operationId: getAsset
+      parameters:
+        - name: symbol 
+          in: query
+          description: 取得資產資料 
+          required: true
+          explode: true
+          schema:
+            type: string
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetManagement"       
+        "404":
+          description: _________
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /pet:
+    post:
+      tags:
+        - pet
+      summary: Add a new pet to the store
+      operationId: addPet
+      responses:
+        "405":
+          description: Invalid input
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+      requestBody:
+        $ref: "#/components/requestBodies/Pet"
+
+    put:
+      tags:
+        - pet
+      summary: Update an existing pet
+      operationId: updatePet
+      responses:
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+        "405":
+          description: Validation exception
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+      requestBody:
+        $ref: "#/components/requestBodies/Pet"
+  /pet/findByStatus:
+    get:
+      tags:
+        - pet
+      summary: Finds Pets by status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findPetsByStatus
+      parameters:
+        - name: status
+          in: query
+          description: Status values that need to be considered for filter
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - available
+                - pending
+                - sold
+              default: available
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+        "400":
+          description: Invalid status value
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+  /pet/findByTags:
+    get:
+      tags:
+        - pet
+      summary: Finds Pets by tags
+      description: >-
+        Muliple tags can be provided with comma separated strings. Use\ \ tag1,
+        tag2, tag3 for testing.
+      operationId: findPetsByTags
+      parameters:
+        - name: tags
+          in: query
+          description: Tags to filter by
+          required: true
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+        "400":
+          description: Invalid tag value
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+      deprecated: true
+  "/pet/{petId}":
+    get:
+      tags:
+        - pet
+      summary: Find pet by ID
+      description: Returns a single pet
+      operationId: getPetById
+      parameters:
+        - name: petId
+          in: path
+          description: ID of pet to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+      security:
+        - api_key: []
+    post:
+      tags:
+        - pet
+      summary: Updates a pet in the store with form data
+      operationId: updatePetWithForm
+      parameters:
+        - name: petId
+          in: path
+          description: ID of pet that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "405":
+          description: Invalid input
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: Updated name of the pet
+                  type: string
+                status:
+                  description: Updated status of the pet
+                  type: string
+    delete:
+      tags:
+        - pet
+      summary: Deletes a pet
+      operationId: deletePet
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: petId
+          in: path
+          description: Pet id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+  "/pet/{petId}/uploadImage":
+    post:
+      tags:
+        - pet
+      summary: uploads an image
+      operationId: uploadFile
+      parameters:
+        - name: petId
+          in: path
+          description: ID of pet to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+      security:
+        - petstore_auth:
+            - "write:pets"
+            - "read:pets"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                additionalMetadata:
+                  description: Additional data to pass to server
+                  type: string
+                file:
+                  description: file to upload
+                  type: string
+                  format: binary
+  /store/inventory:
+    get:
+      tags:
+        - store
+      summary: Returns pet inventories by status
+      description: Returns a map of status codes to quantities
+      operationId: getInventory
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+      security:
+        - api_key: []
+  /store/order:
+    post:
+      tags:
+        - store
+      summary: Place an order for a pet
+      operationId: placeOrder
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid Order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Order"
+        description: order placed for purchasing the pet
+        required: true
+  "/store/order/{orderId}":
+    get:
+      tags:
+        - store
+      summary: Find purchase order by ID
+      description: >-
+        For valid response try integer IDs with value >= 1 and <= 10.\ \ Other
+        values will generated exceptions
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of pet that needs to be fetched
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            maximum: 10
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Order not found
+    delete:
+      tags:
+        - store
+      summary: Delete purchase order by ID
+      description: >-
+        For valid response try integer IDs with positive integer value.\ \
+        Negative or non-integer values will generate API errors
+      operationId: deleteOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the order that needs to be deleted
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Order not found
+  /user:
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: createUser
+      responses:
+        default:
+          description: successful operation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        description: Created user object
+        required: true
+  /user/createWithArray:
+    post:
+      tags:
+        - user
+      summary: Creates list of users with given input array
+      operationId: createUsersWithArrayInput
+      responses:
+        default:
+          description: successful operation
+      requestBody:
+        $ref: "#/components/requestBodies/UserArray"
+  /user/createWithList:
+    post:
+      tags:
+        - user
+      summary: Creates list of users with given input array
+      operationId: createUsersWithListInput
+      responses:
+        default:
+          description: successful operation
+      requestBody:
+        $ref: "#/components/requestBodies/UserArray"
+  /user/login:
+    get:
+      tags:
+        - user
+      summary: Logs user into the system
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: Invalid username/password supplied
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      responses:
+        default:
+          description: successful operation
+  "/user/{username}":
+    get:
+      tags:
+        - user
+      summary: Get user by user name
+      operationId: getUserByName
+      parameters:
+        - name: username
+          in: path
+          description: The name that needs to be fetched. Use user1 for testing.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+    put:
+      tags:
+        - user
+      summary: Updated user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+        - name: username
+          in: path
+          description: name that need to be updated
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          description: Invalid user supplied
+        "404":
+          description: User not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        description: Updated user object
+        required: true
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: path
+          description: The name that needs to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+components:
+  requestBodies:
+    UserArray:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/User"
+      description: List of user object
+      required: true
+    Pet:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Pet"
+        application/xml:
+          schema:
+            $ref: "#/components/schemas/Pet"
+      description: Pet object that needs to be added to the store
+      required: true
+    Product:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
+      # description: Pet object that needs to be added to the store
+      required: true
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
+          scopes:
+            "write:pets": modify pets in your account
+            "read:pets": read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+  schemas:
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        petId:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          format: int32
+        shipDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: Order Status
+          enum:
+            - placed
+            - approved
+            - delivered
+        complete:
+          type: boolean
+          default: false
+      xml:
+        name: Order
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Category
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        userStatus:
+          type: integer
+          format: int32
+          description: User Status
+      xml:
+        name: User
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Tag
+    Pet:
+      type: object
+      required:
+        - name
+        - photoUrls
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          $ref: "#/components/schemas/Category"
+        name:
+          type: string
+          example: doggie
+        photoUrls:
+          type: array
+          xml:
+            name: photoUrl
+            wrapped: true
+          items:
+            type: string
+        tags:
+          type: array
+          xml:
+            name: tag
+            wrapped: true
+          items:
+            $ref: "#/components/schemas/Tag"
+        status:
+          type: string
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+      xml:
+        name: Pet
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+    ProductImage:
+      type: object
+      properties:
+        img1:
+          type: string
+        img2:
+          type: string
+        img3:
+          type: string
+        img4:
+          type: string
+        img5:
+          type: string
+        img6:
+          type: string
+        img7:
+          type: string
+        img8:
+          type: string
+        img9:
+          type: string
+        img10:
+          type: string
+
+    ProductDoc:
+      type: object
+      properties:
+        notarizedRentalContract: #房屋 / 土地租約 
+          type: string
+        onGridAuditedLetter:     #併聯審查意見書 
+          type: string
+        BOEApprovedLetter:       #能源局同意備案函
+          type: string
+        powerPurchaseAgreement:  #台電購售店契約
+          type: string
+        onGridTryrunLetter:      #併聯試運轉訪查文件
+          type: string
+        powerPlantEquipmentRegisteredLetter:  #設備登記文件
+          type: string
+        powerPlantInsurancePolicy:  #設備保單
+          type: string
+    
+    ProductDate:
+      type: object
+      properties:
+        PSD: 
+          type: string
+        FMXAdate:      
+          type: string
+        TaiPowerApprovalDate:       
+          type: string
+        BOEApprovalDate:  
+          type: string
+        PVTrialOperationDate:      
+          type: string
+        PVOnGridDate:  
+          type: string
+        CFSD:  
+          type: string
+        CFED:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        irr:
+          type: number
+          format: float
+        icon:         
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        symbol:
+          type: string
+        forecastedAnnualIncomePerModule:
+          type: integer
+          format: int8
+        totalRelease:   #總片數
+          type: integer
+          format: int8
+        remainRelease: #剩餘片數(總片數-訂單中已付款＆已下單)
+          type: integer
+          format: int8
+        price: 
+          type: integer
+          format: int11
+        purchaseNum:   #購買人數 (計算多少訂單)
+          type: integer
+          format: int8
+        RPT:           #電費支付期數
+          type: integer
+          format: int8
+        FRPYear:       #預計回收年限(年)
+          type: integer
+          format: int8
+        FRPMonth:      #預計回收年限(月)
+          type: integer
+          format: int8
+        sunshine:      #平均年日照量(目前資料庫沒有該欄位)
+          type: integer
+          format: int8
+        solarIntroduction: #  太陽能簡介(目前資料庫沒有該欄位)
+          type: string
+        size:          #系統規模
+          type: number
+          format: float
+        CFSD:          #起始日
+          type: string   
+        CFED:          #結束日
+          type: string 
+        copywriting:   #文案
+          type: string
+        image:         #案場圖片
+          $ref: "#/components/schemas/ProductImage" 
+        doc:
+          $ref: "#/components/schemas/ProductDoc"
+        data:          #預估進度
+          $ref: "#/components/schemas/ProductDate"
+        gift:          #贈品
+          type: string
+        giftRequirement: #贈品門檻
+          type: integer
+          format: int8
+        forecastedAnnualIncome: #預估當期收益
+          type: array
+          items: 
+            type: integer
+            format: int11
+        accumulateForecastedAnnualIncome: #預估累積收益
+          type: array
+          items: 
+            type: integer
+            format: int11
+    AssetManagementPowerGeneration:
+      type: object
+      properties:
+        seven:
+          type: number
+          format: float  
+        eight:
+          type: number
+          format: float 
+        nine:
+          type: number
+          format: float 
+        ten:
+          type: number
+          format: float 
+        eleven:
+          type: number
+          format: float 
+        twelve:
+          type: number
+          format: float 
+        thirteen:
+          type: number
+          format: float 
+        fourteen:
+          type: number
+          format: float 
+        fifteen:
+          type: number
+          format: float
+        sixteen:
+          type: number
+          format: float 
+    
+    AssetManagementAssetRecord:
+      type: object
+      properties:
+        time:  #年月
+          type: string
+        income: #收入
+          type: integer
+          format: int11
+        managementFee: #維運管理
+          type: integer
+          format: int11
+        insurance: #保險
+          type: integer
+          format: int11
+        rent:      #場地租金
+          type: integer
+          format: int11
+
+    AssetManagement:
+      type: object
+      properties:
+        name:
+          type: string
+        location:
+          type: string
+        symbol:
+          type: string
+        balanceOf: #擁有片數要去合約抓資料
+          type: integer
+          format: int8
+        powerGeneration: #當日發電量，每小時會從電廠抓
+          $ref: "#/components/schemas/AssetManagementPowerGeneration"
+        powerGenerationAcc: #當其累積發電量，每期會加總後更新
+          type: integer
+          format: int11
+        forecastedPeriodIncomePerPiece: #本期預估收益 ia_single_Forecasted_Payable_Income_in_the_Period
+          type: integer
+          format: int11
+        PVOnGridDate: #掛錶年份 只要前6個數字(年月)
+          type: string
+        size:  #系統規模
+          type: number
+          format: float
+        totalRelease:   #總片數
+          type: integer
+          format: int8
+        temp: #躉受費率 目前資料庫還沒有欄位
+          type: number
+          foramt: float
+        assetRecord: #收益紀錄
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetManagementAssetRecord"
+        accIncome: #累積收益 從asset record中的personal income的累積
+          type: integer
+          format: int11
+        
+        
+
+        
+
+          
+        
+
+        
+        
+
+
+
+      
+  responses:
+    UnauthorizedError:
+      description: JWT 有誤或被更改
