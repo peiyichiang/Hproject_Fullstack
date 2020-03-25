@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="border-bottom:1px solid white;">
+        <a class="navbar-brand sticky-top" href="#">Hcat電利超商</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:history.back()">管理產品</a>
+              </li>
+            <!-- <li class="nav-item" id="SignOut">
+              <a class="nav-link" href="#">登出</a>
+            </li> -->
+          </ul>
+        </div>
+</nav>
+
+<div class="wrap" style="width:80%;height:100%;margin:0 auto;margin-top:60px;margin-bottom:60px;border:1px solid #dbdbdb;border-radius: 25px;padding:20px;">
+    <form name="UpdateProductForm" id="UpdateProductForm" accept-charset="utf-8">
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label for="pe_symbol">產品代號</label>
+                <input type="text" class="form-control" name="pe_symbol" id="pe_symbol" value="<%=data[0].pe_symbol %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                    <label for="pe_columnName">欄位名稱</label>
+                    <input type="text" class="form-control" name="pe_columnName" id="pe_columnName" value="<%=data[0].pe_columnName %>" readonly>
+            </div>
+            <div class="form-group col-md-4">
+                    <label for="pe_applicationTime">申請時間</label>
+                    <input type="text" class="form-control" name="pe_applicationTime" id="pe_applicationTime" value="<%=data[0].pe_applicationTime %>" readonly>
+            </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+              <label for="pe_originalValue">原始值</label>
+              <input type="text" class="form-control" name="pe_originalValue" id="pe_originalValue" value="<%=data[0].pe_originalValue %>" readonly>
+          </div>
+          <div class="form-group col-md-4">
+                  <label for="pe_newValue">更新值</label>
+                  <input type="text" class="form-control" name="pe_newValue" id="pe_newValue" value="<%=data[0].pe_newValue %>" readonly>
+          </div>
+          <div class="form-group col-md-4">
+                  <label for="pe_modifyReason">修改理由</label>
+                  <input type="text" class="form-control" name="pe_modifyReason" id="pe_modifyReason" value="<%=data[0].pe_modifyReason %>" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-12">
+            <label for="pe_status">審核狀態</label>
+            <br>
+              <%if (data[0].pe_status=="WaitingAuditByFMS" ) { %>
+                <textarea class="form-control" name="pe_status" id="pe_status" style="width:100%;height: 200px;" readonly>正在等待FMS審核</textarea>
+              <% } %>
+              <%if (data[0].pe_status=="RejectedByFMS" ) { %>
+                <textarea class="form-control" name="pe_status" id="pe_status" style="width:100%;height: 200px;" readonly>被FMS退回，退回理由為：<%=data[0].pe_fmsRevertreason %></textarea>
+              <% } %>
+              <%if (data[0].pe_status=="WaitingAuditByPS" ) { %>
+                <textarea class="form-control" name="pe_status" id="pe_status" style="width:100%;height: 200px;" readonly>通過FMS審核，正在等待PS審核</textarea>
+              <% } %>
+              <%if (data[0].pe_status=="RejectedByPS" ) { %>
+                <textarea class="form-control" name="pe_status" id="pe_status" style="width:100%;height: 200px;" readonly>被PS退回，退回理由為：<%=data[0].pe_psRevertreason %></textarea>
+              <% } %>
+              <%if (data[0].pe_status=="Approved" ) { %>
+                <textarea class="form-control" name="pe_status" id="pe_status" style="width:100%;height: 200px;" readonly>審核通過</textarea>
+              <% } %>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+</html>

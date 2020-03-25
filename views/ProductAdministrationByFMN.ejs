@@ -42,8 +42,8 @@
                         <th class="nowrap">產品所在地</th>
                         <th class="nowrap">產品定價</th>
                         <!-- <th class="nowrap">幣別</th>
-                        <th class="nowrap">專案年期</th>
-                        <th class="nowrap">預期報酬率(%)</th> -->
+                        <th class="nowrap">專案年數</th>
+                        <th class="nowrap">預期內部報酬率(%)</th> -->
                         <!--  -->
                         <!-- <th class="nowrap">專案開始日期</th> -->
                         <!-- <th class="nowrap">FMS審核通過的日期</th>
@@ -51,8 +51,8 @@
                         <!-- <th class="nowrap">募資起始日</th> -->
                         <!-- <th class="nowrap">募資截止日</th> -->
                         <!--  -->
-                        <!-- <th class="nowrap">產品發行日</th>
-                        <th class="nowrap">產品到期日</th>
+                        <!-- <th class="nowrap">募資專案權利義務起始日</th>
+                        <th class="nowrap">募資專案權利義務截止日</th>
                         <th class="nowrap">專案規模(kw)</th>
                         <th class="nowrap">產品總發行量(個)</th> -->
                         <!-- <th class="nowrap">發行專案的產品經理</th> -->
@@ -180,7 +180,7 @@
         </table>
     </div>
 
-    <!-- 審核中 -->
+    <!-- 審核中的產品 -->
     <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
         <span style="margin-left:15px;">專案處理狀態</span>
     </div>
@@ -193,16 +193,17 @@
                 <th class="nowrap">產品定價</th>
                 <th class="nowrap">產品狀態</th>
                 <th class="nowrap">詳細資料</th>
+                <th class="nowrap">更新資料</th>
                 <!-- <th class="nowrap">幣別</th>
-                <th class="nowrap">專案年期</th>
-                <th class="nowrap">預期報酬率(%)</th>
+                <th class="nowrap">專案年數</th>
+                <th class="nowrap">預期內部報酬率(%)</th>
                 <th class="nowrap">專案開始日期</th> -->
                 <!-- <th class="nowrap">FMS審核通過的日期</th>
                 <th class="nowrap">PA審核通過的日期</th> -->
                 <!-- <th class="nowrap">募資起始日</th>
                 <th class="nowrap">募資截止日</th>
-                <th class="nowrap">產品發行日</th>
-                <th class="nowrap">產品到期日</th>
+                <th class="nowrap">募資專案權利義務起始日</th>
+                <th class="nowrap">募資專案權利義務截止日</th>
                 <th class="nowrap">專案規模(kw)</th>
                 <th class="nowrap">產品總發行量(個)</th> -->
                 <!-- <th class="nowrap">發行專案的產品經理</th> -->
@@ -235,6 +236,9 @@
                     </td>
                     <td>
                         <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" name="UpdateProductAfterPublish" value="UpdateProductAfterPublish" onclick="UpdateProductAfterPublish('<%= data[i].p_SYMBOL  %>');">更新資料</button>
                     </td>
                     <!-- <td>
                         <%= data[i].p_currency  %>
@@ -311,10 +315,43 @@
         </table>
     </div>
 
+    <% if (UpdateProductData.length>0 ) { %>
+        <!-- 審核中的 更新產品資料 -->
+        <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
+            <span style="margin-left:15px;">產品更新審核區</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <tr class="bg-warning" style="color:white;">
+                    <th class="nowrap">產品代號</th>
+                    <th class="nowrap">更新欄位名稱</th>
+                    <th class="nowrap">詳細資料</th>
+                </tr>
+                <% for ( var i = 0 ; i < UpdateProductData.length ; i++){ %>
+                    <tr>
+                        <td>
+                            <%= UpdateProductData[i].pe_symbol  %>
+                        </td>
+                        <td>
+                            <%= UpdateProductData[i].pe_columnName  %>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-success" name="ViewUpdateProductDetail" value="ViewUpdateProductDetail" onclick="ViewUpdateProductDetail('<%= UpdateProductData[i].pe_symbol  %>','<%= UpdateProductData[i].pe_columnName  %>','<%= UpdateProductData[i].pe_applicationTime  %>');">詳細資料</button>
+                        </td>
+                    </tr>
+                <% } %>
+            </table>
+        </div>
+    <% } %>
+
     <script>
         // 查看產品詳細資料
         function ViewProductDetail(SYMBOL) {
             window.location.href = "/Product/ViewProductDeatil?symbol=" + SYMBOL;
+        }
+
+        function UpdateProductAfterPublish(SYMBOL){
+            window.location.href = "/Product/UpdateProductAfterPublish?symbol="+ SYMBOL;
         }
 
         function Send(SYMBOL){
@@ -328,6 +365,14 @@
             if (rs) {
                 window.location.href = "/Product/DeleteProduct?symbol=" + SYMBOL;
             }
+        }
+        
+        //查看 更新產品詳細資料
+        function ViewUpdateProductDetail(SYMBOL,COLUMNNAME,APPLICATIONTIME) {
+            // alert(SYMBOL);
+            // alert(COLUMNNAME);
+            // alert(APPLICATIONTIME);
+            window.location.href = "/Product/ViewUpdateProductDetail?symbol=" + SYMBOL + "&columnname=" + COLUMNNAME + "&applicationtime=" + APPLICATIONTIME;
         }
     </script>
 

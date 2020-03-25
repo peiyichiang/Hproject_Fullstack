@@ -50,7 +50,7 @@
                 <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500" value="<%=data[0].p_pricing %>" readonly>
                 </div>
                 <div class="form-group col-md-4">
-                    <label for="p_duration">專案年期</label>
+                    <label for="p_duration">專案年數</label>
                     <input type="text" class="form-control" name="p_duration" id="p_duration" placeholder="ex:10" value="<%=data[0].p_duration %>" readonly>
                 </div>
                 <div class="form-group col-md-4">
@@ -60,15 +60,15 @@
         </div>
         <div class="form-row">
                 <div class="form-group col-md-4">
-                <label for="p_irr">預期報酬率(%)</label>
+                <label for="p_irr">預期內部報酬率(%)</label>
                 <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8" value="<%=data[0].p_irr %>" readonly>
                 </div>
                 <div class="form-group col-md-4">
-                    <label for="p_releasedate">產品發行日</label>
+                    <label for="p_releasedate">募資專案權利義務起始日</label>
                     <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_releasedate %>" readonly>
                 </div>
                 <div class="form-group col-md-4">
-                    <label for="p_validdate">產品到期日</label>
+                    <label for="p_validdate">募資專案權利義務截止日</label>
                     <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_validdate %>" readonly>
                 </div>
         </div>
@@ -146,7 +146,7 @@
             <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="" value="<%=data[0].p_EPCname %>" readonly>
           </div>
           <div class="form-group col-md-4">
-            <label for="p_ForecastedAnnualIncomePerModule">預估每片平均年收益</label>
+            <label for="p_ForecastedAnnualIncomePerModule">預估平均年收益(元/片)</label>
             <input type="text" class="form-control" name="p_ForecastedAnnualIncomePerModule" id="p_ForecastedAnnualIncomePerModule" placeholder="" value="<%=data[0].p_ForecastedAnnualIncomePerModule %>" readonly>
           </div>
           
@@ -177,11 +177,11 @@
         </div>
         <div class="form-row">
                 <div class="form-group col-md-6">
-                  <label for="p_TaiPowerApprovalDate">台電並聯作業日期</label>
+                  <label for="p_TaiPowerApprovalDate">台電並聯審查意見書日期</label>
                   <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_TaiPowerApprovalDate %>" readonly>
                 </div>
                 <div class="form-group col-md-6">
-                      <label for="p_BOEApprovalDate">能源局同意備案日期</label>
+                      <label for="p_BOEApprovalDate">能源局同意備案函日期</label>
                       <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_BOEApprovalDate %>" readonly>
                  </div>
         </div>
@@ -191,7 +191,7 @@
                   <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVTrialOperationDate %>" readonly>
                 </div>
                 <div class="form-group col-md-6">
-                      <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
+                      <label for="p_PVOnGridDate">正式掛表日期(正式售電起始日)</label>
                       <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVOnGridDate %>" readonly>
                  </div>
         </div>
@@ -227,7 +227,7 @@
                   <input type="text" class="form-control" name="pd_assetdocsHash" id="pd_assetdocsHash" readonly>
                 </div>
                 <div class="form-group col-md-2">
-                  <label for="p_NotarizedRentalContract">房屋與土地租約</label>
+                  <label for="p_NotarizedRentalContract">房屋與土地公證租約</label>
                   <input type="text" class="form-control" name="pd_NotarizedRentalContract" id="pd_NotarizedRentalContract" value="<%=data[0].pd_NotarizedRentalContract %>" readonly>
                 </div>
                 <div class="form-group col-md-2">
@@ -303,7 +303,7 @@
                             <% } %>
                     </div> -->
                     <div class="form-group col-md-3">
-                      <label for="p_NotarizedRentalContract_form">房屋與土地租約</label>
+                      <label for="p_NotarizedRentalContract_form">房屋與土地公證租約</label>
                       <!-- <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form"> -->
                       <%if (data[0].pd_NotarizedRentalContract != null && data[0].pd_NotarizedRentalContract != "") { %>
                         <br>

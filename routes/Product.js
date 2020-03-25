@@ -127,16 +127,16 @@ router.get('/Product', function (req, res, next) {
     // });
 
 
-    mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        var data = rows;
+    // mysqlPoolQuery('SELECT * FROM product', function (err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     var data = rows;
 
-        // use index.ejs
-        res.render('ViewProduct', { title: 'Product Information', data: data });
-        //res.render('ProductAdministrationByPlatformSupervisor', { title: 'Product Information', data: data});
-    });
+    //     // use index.ejs
+    //     res.render('ViewProduct', { title: 'Product Information', data: data });
+    //     //res.render('ProductAdministrationByPlatformSupervisor', { title: 'Product Information', data: data});
+    // });
 
 });
 
@@ -196,7 +196,16 @@ router.get('/ProductByFMN', function (req, res, next) {
                 console.log(err);
             }
             var dataDraft = rows;
-            res.render('ProductAdministrationByFMN', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataDraft: dataDraft });
+            // res.render('ProductAdministrationByFMN', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataDraft: dataDraft });
+            
+            // 獲取送出審核的更新產品資料
+            mysqlPoolQuery('SELECT * FROM htoken_newschema.product_editHistory WHERE pe_symbol IN (SELECT p_SYMBOL from htoken_newschema.product WHERE p_fundmanager = ?)', JWT_decoded.payload.m_id, function (err, rows) {
+                if (err) {
+                    console.log(err);
+                }
+                var UpdateProductData = rows;
+                res.render('ProductAdministrationByFMN', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataDraft: dataDraft,UpdateProductData:UpdateProductData });                
+            });
         });
     });
 
@@ -237,17 +246,6 @@ router.get('/ProductByFMS', function (req, res, next) {
         return;
     }
 
-    //   var mysqlPoolQuery = req.pool;
-    //   mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company,"creation"]  , function(err, rows) {
-    //       if (err) {
-    //           console.log(err);
-    //       }
-    //       var data = rows;
-    //     //   console.log(rows);
-    //       // use index.ejs
-    //       res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID:JWT_decoded.payload.m_id, data: data});
-    //   });
-
     var mysqlPoolQuery = req.pool;
     mysqlPoolQuery("SELECT * FROM product WHERE p_fundmanager IN (SELECT m_id FROM  backend_user WHERE m_company = ?) AND p_state = ?", [JWT_decoded.payload.m_company, "creation"], function (err, rows) {
         if (err) {
@@ -286,7 +284,15 @@ router.get('/ProductByFMS', function (req, res, next) {
                 console.log(err);
             }
             var dataPublish = rows;
-            res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish });
+
+            // res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish });
+            mysqlPoolQuery("SELECT * FROM htoken_newschema.product_editHistory WHERE pe_status = 'WaitingAuditByFMS' and  pe_symbol IN (SELECT p_SYMBOL from htoken_newschema.product WHERE p_fundmanager IN (SELECT m_id FROM htoken_newschema.backend_user WHERE m_company = ?))", JWT_decoded.payload.m_company, function (err, rows) {
+                if (err) {
+                    console.log(err);
+                }
+                var UpdateProductData = rows;
+                res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish,UpdateProductData:UpdateProductData });
+            });
         });
 
 
@@ -513,6 +519,530 @@ router.post('/AddProductByFMN', function (req, res, next) {
 
 });
 
+//上架後更新資料(頁面)
+router.get('/UpdateProductAfterPublish', function (req, res, next) {
+    var token = req.cookies.access_token;
+    var dateNow = new Date();
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if (decoded.exp < dateNow.getTime() / 1000) {
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                return;
+            } else {
+                //JWT token驗證成功
+                if (decoded.payload.m_permission != "Company_FundManagerN") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    var symbol = req.query.symbol;
+    var mysqlPoolQuery = req.pool;
+
+    mysqlPoolQuery('SELECT * from product_doc,product where product.p_SYMBOL = ? and product_doc.pd_SYMBOL = product.p_SYMBOL', symbol, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        var data = rows;
+        res.render('UpdateProductAfterPublish', { title: '更新產品資料', data: data });
+    });
+});
+
+//上架後更新資料(接收資料的post)
+router.post('/UpdateProductAfterPublish', function (req, res, next) {
+    var token = req.cookies.access_token;
+    var JWT_decoded;
+    var dateNow = new Date();
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if (decoded.exp < dateNow.getTime() / 1000) {
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                return;
+            } else {
+                //JWT token驗證成功
+                JWT_decoded = decoded;
+                if (decoded.payload.m_permission != "Company_FundManagerN") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    // 撈取原始值
+    var mysqlPoolQuery = req.pool;
+    mysqlPoolQuery('SELECT * from product_doc,product where product.p_SYMBOL = ? and product_doc.pd_SYMBOL = product.p_SYMBOL', req.body.p_SYMBOL, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        var data = rows;
+        var currentTime = new Date().toLocaleString().toString();
+
+        // 清空要插入的值
+        var insertValue="";
+
+        //如果p_releasedate_UpdateReason有修改
+        if(req.body.p_releasedate_UpdateReason!="" && req.body.p_releasedate_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_releasedate" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_releasedate.toString() + "'"  + "," + "'"  + req.body.p_releasedate.toString() + "'"  + "," + "'"  + req.body.p_releasedate_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_fundingGoal有修改
+        if(req.body.p_fundingGoal_UpdateReason!="" && req.body.p_fundingGoal_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_fundingGoal" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_fundingGoal.toString() + "'"  + "," + "'"  + req.body.p_fundingGoal.toString() + "'"  + "," + "'"  + req.body.p_fundingGoal_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_CFED有修改
+        if(req.body.p_CFED_UpdateReason!="" && req.body.p_CFED_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_CFED" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_CFED.toString() + "'"  + "," + "'"  + req.body.p_CFED.toString() + "'"  + "," + "'"  + req.body.p_CFED_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_validdate有修改
+        if(req.body.p_validdate_UpdateReason!="" && req.body.p_validdate_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_validdate" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_validdate.toString() + "'"  + "," + "'"  + req.body.p_validdate.toString() + "'"  + "," + "'"  + req.body.p_validdate_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_TaiPowerApprovalDate有修改
+        if(req.body.p_TaiPowerApprovalDate_UpdateReason!="" && req.body.p_TaiPowerApprovalDate_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_TaiPowerApprovalDate" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_TaiPowerApprovalDate.toString() + "'"  + "," + "'"  + req.body.p_TaiPowerApprovalDate.toString() + "'"  + "," + "'"  + req.body.p_TaiPowerApprovalDate_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_BOEApprovalDate有修改
+        if(req.body.p_BOEApprovalDate_UpdateReason!="" && req.body.p_BOEApprovalDate_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_BOEApprovalDate" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_BOEApprovalDate.toString() + "'"  + "," + "'"  + req.body.p_BOEApprovalDate.toString() + "'"  + "," + "'"  + req.body.p_BOEApprovalDate_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_PVTrialOperationDate有修改
+        if(req.body.p_PVTrialOperationDate_UpdateReason!="" && req.body.p_PVTrialOperationDate_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_PVTrialOperationDate" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_PVTrialOperationDate.toString() + "'"  + "," + "'"  + req.body.p_PVTrialOperationDate.toString() + "'"  + "," + "'"  + req.body.p_PVTrialOperationDate_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_PVOnGridDate有修改
+        if(req.body.p_PVOnGridDate_UpdateReason!="" && req.body.p_PVOnGridDate_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_PVOnGridDate" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_PVOnGridDate.toString() + "'"  + "," + "'"  + req.body.p_PVOnGridDate.toString() + "'"  + "," + "'"  + req.body.p_PVOnGridDate_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_ContractOut有修改
+        if(req.body.p_ContractOut_UpdateReason!="" && req.body.p_ContractOut_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_ContractOut" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_ContractOut.toString() + "'"  + "," + "'"  + req.body.p_ContractOut.toString() + "'"  + "," + "'"  + req.body.p_ContractOut_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_CaseConstruction有修改
+        if(req.body.p_CaseConstruction_UpdateReason!="" && req.body.p_CaseConstruction_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_CaseConstruction" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_CaseConstruction.toString() + "'"  + "," + "'"  + req.body.p_CaseConstruction.toString() + "'"  + "," + "'"  + req.body.p_CaseConstruction_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_Copywriting有修改
+        if(req.body.p_Copywriting_UpdateReason!="" && req.body.p_Copywriting_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_Copywriting" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_Copywriting.toString() + "'"  + "," + "'"  + req.body.p_Copywriting.toString() + "'"  + "," + "'"  + req.body.p_Copywriting_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        // 以下為文件
+        //如果p_NotarizedRentalContract有修改
+        if(req.body.p_NotarizedRentalContract_UpdateReason!="" && req.body.p_NotarizedRentalContract_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_NotarizedRentalContract" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_NotarizedRentalContract + "'"  + "," + "'"  + req.body.p_NotarizedRentalContract_path.toString() + "'"  + "," + "'"  + req.body.p_NotarizedRentalContract_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_NotarizedRentalContract_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_NotarizedRentalContract_mask + "'"  + "," + "'"  + req.body.p_NotarizedRentalContract_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_NotarizedRentalContract_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+        
+        //如果p_OnGridAuditedLetter有修改
+        if(req.body.p_OnGridAuditedLetter_UpdateReason!="" && req.body.p_OnGridAuditedLetter_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_OnGridAuditedLetter" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_OnGridAuditedLetter + "'"  + "," + "'"  + req.body.p_OnGridAuditedLetter_path.toString() + "'"  + "," + "'"  + req.body.p_OnGridAuditedLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_OnGridAuditedLetter_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_OnGridAuditedLetter_mask + "'"  + "," + "'"  + req.body.p_OnGridAuditedLetter_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_OnGridAuditedLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+        
+        //如果p_BOEApprovedLetter有修改
+        if(req.body.p_BOEApprovedLetter_UpdateReason!="" && req.body.p_BOEApprovedLetter_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_BOEApprovedLetter" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_BOEApprovedLetter + "'"  + "," + "'"  + req.body.p_BOEApprovedLetter_path.toString() + "'"  + "," + "'"  + req.body.p_BOEApprovedLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_BOEApprovedLetter_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_BOEApprovedLetter_mask + "'"  + "," + "'"  + req.body.p_BOEApprovedLetter_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_BOEApprovedLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_powerPurchaseAgreement有修改
+        if(req.body.p_powerPurchaseAgreement_UpdateReason!="" && req.body.p_powerPurchaseAgreement_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_powerPurchaseAgreement" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_powerPurchaseAgreement + "'"  + "," + "'"  + req.body.p_powerPurchaseAgreement_path.toString() + "'"  + "," + "'"  + req.body.p_powerPurchaseAgreement_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_powerPurchaseAgreement_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_powerPurchaseAgreement_mask + "'"  + "," + "'"  + req.body.p_powerPurchaseAgreement_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_powerPurchaseAgreement_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_onGridTryrunLetter有修改
+        if(req.body.p_onGridTryrunLetter_UpdateReason!="" && req.body.p_onGridTryrunLetter_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_onGridTryrunLetter" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_onGridTryrunLetter + "'"  + "," + "'"  + req.body.p_onGridTryrunLetter_path.toString() + "'"  + "," + "'"  + req.body.p_onGridTryrunLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_onGridTryrunLetter_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_onGridTryrunLetter_mask + "'"  + "," + "'"  + req.body.p_onGridTryrunLetter_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_onGridTryrunLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_powerPlantEquipmentRegisteredLetter有修改
+        if(req.body.p_powerPlantEquipmentRegisteredLetter_UpdateReason!="" && req.body.p_powerPlantEquipmentRegisteredLetter_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_powerPlantEquipmentRegisteredLetter" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_powerPlantEquipmentRegisteredLetter + "'"  + "," + "'"  + req.body.p_powerPlantEquipmentRegisteredLetter_path.toString() + "'"  + "," + "'"  + req.body.p_powerPlantEquipmentRegisteredLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_powerPlantEquipmentRegisteredLetter_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_powerPlantEquipmentRegisteredLetter_mask + "'"  + "," + "'"  + req.body.p_powerPlantEquipmentRegisteredLetter_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_powerPlantEquipmentRegisteredLetter_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+        //如果p_powerPlantInsurancePolicy有修改
+        if(req.body.p_powerPlantInsurancePolicy_UpdateReason!="" && req.body.p_powerPlantInsurancePolicy_UpdateReason!==null)
+        {
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_powerPlantInsurancePolicy" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_powerPlantInsurancePolicy + "'"  + "," + "'"  + req.body.p_powerPlantInsurancePolicy_path.toString() + "'"  + "," + "'"  + req.body.p_powerPlantInsurancePolicy_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "pd_powerPlantInsurancePolicy_mask" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].pd_powerPlantInsurancePolicy_mask + "'"  + "," + "'"  + req.body.p_powerPlantInsurancePolicy_Mask_path.toString() + "'"  + "," + "'"  + req.body.p_powerPlantInsurancePolicy_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+        }
+
+
+        // 去掉尾巴的逗點
+        insertValue = insertValue.substr(0,insertValue.length-1);
+        console.log(insertValue);
+
+        // 寫入更新申請
+        var mysqlPoolQuery = req.pool;
+        mysqlPoolQuery('INSERT INTO product_editHistory(pe_symbol,pe_columnName,pe_applicationTime,pe_isApproval,pe_originalValue,pe_newValue,pe_modifyReason,pe_status) VALUES ' + insertValue, function (err, rows) {
+            if (err) {
+                console.log(err);
+            }
+            var data = rows;
+            console.log("****");
+
+            res.setHeader('Content-Type', 'application/json');
+            res.redirect('/Product/ProductByFMN');
+        });
+
+        // console.log(rows[0].p_releasedate);
+        // console.log(rows[0].p_fundingGoal);
+        // console.log(rows[0].p_CFED);
+        // console.log(rows[0].p_validdate);
+        // console.log(rows[0].p_TaiPowerApprovalDate);
+        // console.log(rows[0].p_BOEApprovalDate);
+        // console.log(rows[0].p_PVTrialOperationDate);
+        // console.log(rows[0].p_PVOnGridDate);
+        // console.log(rows[0].p_ContractOut);
+        // console.log(rows[0].p_CaseConstruction);
+        // console.log(rows[0].p_Copywriting);
+
+        // console.log("*");
+        // console.log(rows[0].pd_NotarizedRentalContract);
+        // console.log(rows[0].pd_NotarizedRentalContract_mask);
+        // console.log("*");
+        // console.log(rows[0].pd_BOEApprovedLetter);
+        // console.log(rows[0].pd_BOEApprovedLetter_mask);
+        // console.log("*");
+        // console.log(rows[0].pd_PowerPurchaseAgreement);
+        // console.log(rows[0].pd_PowerPurchaseAgreement_mask);
+        // console.log("*");
+        // console.log(rows[0].pd_OnGridTryrunLetter);
+        // console.log(rows[0].pd_OnGridTryrunLetter_mask);
+        // console.log("*");
+        // console.log(rows[0].pd_PowerPlantEquipmentRegisteredLetter);
+        // console.log(rows[0].pd_PowerPlantEquipmentRegisteredLetter_mask);
+        // console.log("*");
+        // console.log(rows[0].pd_PowerPlantInsurancePolicy);
+        // console.log(rows[0].pd_PowerPlantInsurancePolicy_mask);
+        // console.log("*");
+        // console.log(rows[0].pd_OnGridAuditedLetter);
+        // console.log(rows[0].pd_OnGridAuditedLetter_mask);
+        
+        // res.render('EditProductByFMN', { title: 'Edit Product', data: data });
+    });
+
+    
+    // // *********************************************************
+    // // 產品代號
+    // console.log(req.body.p_SYMBOL);
+    // // 產品名稱
+    // console.log(req.body.p_name);
+
+    // // 募資專案權利義務起始日
+    // console.log(req.body.p_releasedate);    
+    // // 修改理由
+    // console.log(req.body.p_releasedate_UpdateReason);
+
+    // // 專案募資目標(個)
+    // console.log(req.body.p_fundingGoal);
+    // // 修改理由
+    // console.log(req.body.p_fundingGoal_UpdateReason);
+    
+    // // 募資截止日
+    // console.log(req.body.p_CFED);    
+    // // 修改理由
+    // console.log(req.body.p_CFED_UpdateReason);
+
+    // // 募資專案權利義務截止日
+    // console.log(req.body.p_validdate);
+    // // 修改理由
+    // console.log(req.body.p_validdate_UpdateReason);
+
+    // // 台電並聯審查意見書日期
+    // console.log(req.body.p_TaiPowerApprovalDate);    
+    // // 修改理由
+    // console.log(req.body.p_TaiPowerApprovalDate_UpdateReason);
+
+    // // 能源局同意備案函日期
+    // console.log(req.body.p_BOEApprovalDate);    
+    // // 修改理由
+    // console.log(req.body.p_BOEApprovalDate_UpdateReason);    
+    
+    // // 併聯試運轉日期
+    // console.log(req.body.p_PVTrialOperationDate);    
+    // // 修改理由
+    // console.log(req.body.p_PVTrialOperationDate_UpdateReason);    
+    
+    // // 正式掛表日期(正式售電起始日)
+    // console.log(req.body.p_PVOnGridDate);    
+    // // 修改理由
+    // console.log(req.body.p_PVOnGridDate_UpdateReason);
+
+    // // 工程發包日期
+    // console.log(req.body.p_ContractOut);    
+    // // 修改理由
+    // console.log(req.body.p_ContractOut_UpdateReason);  
+    
+    // // 案場建置完成日期
+    // console.log(req.body.p_CaseConstruction);    
+    // // 修改理由
+    // console.log(req.body.p_CaseConstruction_UpdateReason); 
+    
+    // // 產品文案
+    // console.log(req.body.p_Copywriting);    
+    // // 修改理由
+    // console.log(req.body.p_Copywriting_UpdateReason);
+
+    // // *********************************************************
+
+    // // 房屋與土地公證租約(文件)
+    // console.log(req.body.p_NotarizedRentalContract_path);
+    // console.log(req.body.p_NotarizedRentalContract_Mask_path);    
+    // // 修改理由
+    // console.log(req.body.p_NotarizedRentalContract_UpdateReason);
+
+    // // 併聯審查意見書(文件)
+    // console.log(req.body.p_OnGridAuditedLetter_path); 
+    // console.log(req.body.p_OnGridAuditedLetter_Mask_path);   
+    // // 修改理由
+    // console.log(req.body.p_OnGridAuditedLetter_UpdateReason);
+
+    // // 能源局同意備案函(文件)
+    // console.log(req.body.p_BOEApprovedLetter_path);
+    // console.log(req.body.p_BOEApprovedLetter_Mask_path);    
+    // // 修改理由
+    // console.log(req.body.p_BOEApprovedLetter_UpdateReason);
+
+    // // 台電購售電契約(文件)
+    // console.log(req.body.p_powerPurchaseAgreement_path);
+    // console.log(req.body.p_powerPurchaseAgreement_Mask_path);    
+    // // 修改理由
+    // console.log(req.body.p_powerPurchaseAgreement_UpdateReason);
+
+    // // 併聯試運轉訪查文件(文件)
+    // console.log(req.body.p_onGridTryrunLetter_path);
+    // console.log(req.body.p_onGridTryrunLetter_Mask_path);    
+    // // 修改理由
+    // console.log(req.body.p_onGridTryrunLetter_UpdateReason);
+
+    // // 設備登記文件(文件)
+    // console.log(req.body.p_powerPlantEquipmentRegisteredLetter_path);
+    // console.log(req.body.p_powerPlantEquipmentRegisteredLetter_Mask_path);    
+    // // 修改理由
+    // console.log(req.body.p_powerPlantEquipmentRegisteredLetter_UpdateReason);
+
+    // // 設備保單(文件)
+    // console.log(req.body.p_powerPlantInsurancePolicy_path);
+    // console.log(req.body.p_powerPlantInsurancePolicy_Mask_path);    
+    // // 修改理由
+    // console.log(req.body.p_powerPlantInsurancePolicy_UpdateReason);
+
+
+});
+
+//ViewUpdateProductDetail 查看(單個)更新產品詳細資料
+router.get('/ViewUpdateProductDetail', function (req, res, next) {
+    var token = req.cookies.access_token;
+    var dateNow = new Date();
+    var permission_="";
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            permission_=decoded.payload.m_permission;
+            //檢查JWT token有沒有過期
+            if (decoded.exp < dateNow.getTime() / 1000) {
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                return;
+            } else {
+                console.log("＊＊＊:" + decoded.payload.m_permission);
+                //JWT token驗證成功
+                if (decoded.payload.m_permission != "Company_FundManagerS" && decoded.payload.m_permission != "Platform_Supervisor" && decoded.payload.m_permission != "Company_FundManagerN") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    var symbol = req.query.symbol;
+    var columnname = req.query.columnname;
+    var applicationtime = req.query.applicationtime;
+
+    var mysqlPoolQuery = req.pool;
+
+
+    // console.log("*");
+    // console.log(permission_);
+
+    // console.log(symbol);
+    // console.log(columnname);
+    // console.log(applicationtime);
+
+    mysqlPoolQuery('SELECT * from product_editHistory where pe_symbol = ? and pe_columnName = ? and pe_applicationTime = ?', [symbol,columnname,applicationtime], function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        var data = rows;
+        // console.log(rows);
+        if(permission_=="Company_FundManagerN"){
+            res.render('ViewUpdateProductDetail.ejs', { title: '查看更新產品詳細資料', data: data });
+        }else if(permission_=="Company_FundManagerS"){
+            res.render('ReviewUpdateProductDetailFMS.ejs', { title: '查看更新產品詳細資料', data: data });
+        }else if(permission_=="Platform_Supervisor"){
+            res.render('ReviewUpdateProductDetailFMS.ejs', { title: '查看更新產品詳細資料', data: data });
+        }
+    });
+});
+
+//更新資料的審核(接收資料的post)
+router.get('/ReviewUpdateProductAfterPublish/:isApproved/:pe_symbol/:pe_columnName/:pe_applicationTime/:RejectReason', function (req, res, next) {
+    var token = req.cookies.access_token;
+    var JWT_decoded;
+    var dateNow = new Date();
+    var permission_;
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            permission_=decoded.payload.m_permission;
+            if (decoded.exp < dateNow.getTime() / 1000) {
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                return;
+            } else {
+                //JWT token驗證成功
+                JWT_decoded = decoded;
+                if (decoded.payload.m_permission != "Company_FundManagerS" && decoded.payload.m_permission != "Platform_Supervisor") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    console.log(req.params.isApproved);
+    console.log(req.params.pe_symbol);
+    console.log(req.params.pe_columnName);
+    console.log(req.params.pe_applicationTime);
+    console.log(req.params.RejectReason);
+    console.log(permission_);
+
+    // 如果是FMS審核
+    if(permission_=="Company_FundManagerS"){
+        // 審核通過
+        if(req.params.isApproved=="true"){
+            sql={
+                pe_fmsAuditTime:dateNow,
+                pe_status:"WaitingAuditByPS"
+            }
+        // 審核失敗
+        }else if(req.params.isApproved=="false"){
+            sql={
+                pe_fmsAuditTime:dateNow,
+                pe_status:"RejectedByFMS",
+                pe_fmsRevertreason:req.params.RejectReason
+            }
+        }
+    // 如果是PS審核
+    }else if(permission_=="Platform_Supervisor"){
+        // 審核通過
+        if(req.params.isApproved=="true"){
+            sql={
+                pe_psAuditTime:dateNow,
+                pe_status:"Approved"
+            }
+        // 審核失敗
+        }else if(req.params.isApproved=="false"){
+            sql={
+                pe_psAuditTime:dateNow,
+                pe_status:"RejectedByPS",
+                pe_psRevertreason:req.params.RejectReason
+            }
+        }
+    }
+
+    var mysqlPoolQuery = req.pool;
+    var qur = mysqlPoolQuery('UPDATE product_editHistory SET ? WHERE pe_symbol = ? and pe_columnName=? and pe_applicationTime=?', [sql, req.params.pe_symbol,req.params.pe_columnName,req.params.pe_applicationTime], function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        console.log("Update Success");
+
+        if (permission_ == "Platform_Supervisor") {
+            res.redirect('/BackendUser/BackendUser_Platform_Supervisor');
+        } else if (permission_ == "Company_FundManagerS") {
+            res.redirect('/Product/ProductByFMS');
+        }
+    });
+
+    // res.setHeader('Content-Type', 'application/json');
+    // res.redirect('/Product/ProductByFMN');
+
+});
+
+
 //刪除資料：獲取網址上的參數(Platform_Supervisor跟FMN都可以使用)
 router.get('/DeleteProduct', function (req, res, next) {
     console.log('------------------------==\n@Product/DeleteProduct:\nreq.query', req.query, 'req.body', req.body);
@@ -681,6 +1211,8 @@ router.get('/ViewProductDeatil', function (req, res, next) {
         res.render('ViewProductDetail', { title: '查看產品詳細資料', data: data });
     });
 });
+
+
 
 //修改資料：將修改後的資料傳到資料庫(FMN專用)
 router.post('/EditProductByFMN', function (req, res, next) {

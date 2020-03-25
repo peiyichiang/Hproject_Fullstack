@@ -4,7 +4,7 @@ addBtn.addEventListener('click',function(){
     var empty_=0;
 
     // 判斷這些欄位 有沒有填寫
-    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_PSD","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ElectricityBilling","p_ForecastedAnnualIncomePerModule","p_NotarizedRentalContract_form","p_OnGridAuditedLetter_form","icon","csvFIle"]; 
+    fieldArray=["p_SYMBOL","p_name","p_location","p_pricing","p_duration","p_currency","p_irr","p_releasedate","p_validdate","p_size","p_totalrelease","p_RPT","p_FRP","p_fundingGoal","p_EPCname","p_CFSD","p_CFED","p_TaiPowerApprovalDate","p_BOEApprovalDate","p_PVTrialOperationDate","p_PVOnGridDate","p_ContractOut","p_CaseConstruction","p_ForecastedAnnualIncomePerModule","p_NotarizedRentalContract_form","p_OnGridAuditedLetter_form","icon","csvFIle"]; 
     for(var i=0;i<fieldArray.length;i++){
         ele=document.getElementById(fieldArray[i]);
         // ele.previousElementSibling.innerHTML.length<42 是用來判斷 是不是已經加了<必填>

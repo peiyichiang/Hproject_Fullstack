@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="border-bottom:1px solid white;">
+        <a class="navbar-brand sticky-top" href="#">Hcat電利超商</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:history.back()">管理產品</a>
+              </li>
+            <!-- <li class="nav-item" id="SignOut">
+              <a class="nav-link" href="#">登出</a>
+            </li> -->
+          </ul>
+        </div>
+</nav>
+
+<!-- 更新產品表單 -->
+<div class="wrap" style="width:50%;height:100%;margin:0 auto;margin-top:60px;margin-bottom:60px;border:1px solid #dbdbdb;border-radius: 25px;padding:20px;">
+    <form name="UpdateForm" id="UpdateForm" action="/Product/UpdateProductAfterPublish" method="post" accept-charset="utf-8">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+              <label for="p_SYMBOL">產品代號</label>
+              <input type="text" class="form-control" name="p_SYMBOL" id="p_SYMBOL" placeholder="ex:NCCU19" value="<%=data[0].p_SYMBOL %>" readonly>
+          </div>
+          <div class="form-group col-md-6">
+                  <label for="p_name">產品名稱</label>
+                  <input type="text" class="form-control" name="p_name" id="p_name" placeholder="ex:政大一號" value="<%=data[0].p_name %>" readonly>
+          </div>
+        </div>
+
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="p_releasedate">募資專案權利義務起始日</label>
+                    <input type="text" class="form-control" name="p_releasedate" id="p_releasedate"  value="<%=data[0].p_releasedate %>">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="p_releasedate">修改理由</label>
+                  <input type="text" class="form-control" name="p_releasedate_UpdateReason" id="p_releasedate_UpdateReason" placeholder="">
+              </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_fundingGoal">專案募資目標(個)</label>
+            <input type="text" class="form-control" name="p_fundingGoal" id="p_fundingGoal" placeholder="ex:800" value="<%=data[0].p_fundingGoal %>">
+          </div>
+          <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_fundingGoal_UpdateReason" id="p_fundingGoal_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_CFED">募資截止日</label>
+            <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_CFED %>">
+          </div>
+          <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_CFED_UpdateReason" id="p_CFED_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_validdate">募資專案權利義務截止日</label>
+            <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" value="<%=data[0].p_validdate %>">
+          </div>
+          <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_validdate_UpdateReason" id="p_validdate_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_TaiPowerApprovalDate">台電並聯審查意見書日期</label>
+            <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_TaiPowerApprovalDate %>">
+          </div>
+          <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_TaiPowerApprovalDate_UpdateReason" id="p_TaiPowerApprovalDate_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                      <label for="p_BOEApprovalDate">能源局同意備案函日期</label>
+                      <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_BOEApprovalDate %>">
+                 </div>
+                 <div class="form-group col-md-6">
+                  <label for="p_releasedate">修改理由</label>
+                  <input type="text" class="form-control" name="p_BOEApprovalDate_UpdateReason" id="p_BOEApprovalDate_UpdateReason" placeholder="">
+                </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_PVTrialOperationDate">併聯試運轉日期</label>
+            <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVTrialOperationDate %>">
+          </div>
+           <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_PVTrialOperationDate_UpdateReason" id="p_PVTrialOperationDate_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+                <div class="form-group col-md-6">
+                      <label for="p_PVOnGridDate">正式掛表日期(正式售電起始日)</label>
+                      <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" value="<%=data[0].p_PVOnGridDate %>">
+                 </div>
+                 <div class="form-group col-md-6">
+                  <label for="p_releasedate">修改理由</label>
+                  <input type="text" class="form-control" name="p_PVOnGridDate_UpdateReason" id="p_PVOnGridDate_UpdateReason" placeholder="">
+                </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_ContractOut">工程發包日期</label>
+            <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDD" value="<%=data[0].p_ContractOut %>">
+          </div>
+           <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_ContractOut_UpdateReason" id="p_ContractOut_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_CaseConstruction">案場建置完成日期</label>
+            <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDD" value="<%=data[0].p_CaseConstruction %>">
+          </div>
+           <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_CaseConstruction_UpdateReason" id="p_CaseConstruction_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <!-- <div class="form-row">
+          <div class="form-group col-md-6">
+                <label for="p_ElectricityBilling">電費計費開始日期</label>
+                <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDD" value="<%=data[0].p_ElectricityBilling %>">
+           </div>
+           <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_ElectricityBilling_UpdateReason" id="p_ElectricityBilling_UpdateReason" placeholder="">
+          </div>
+        </div> -->
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="p_Copywriting">產品文案</label>
+            <br>
+            <!-- <input type="text" class="form-control" name="p_Copywriting" id="p_Copywriting"> -->
+            <textarea class="form-control" name="p_Copywriting" id="p_Copywriting" style="width:100%;height: 200px;" maxlength="200"><%=data[0].p_Copywriting %></textarea>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="p_releasedate">修改理由</label>
+            <input type="text" class="form-control" name="p_Copywriting_UpdateReason" id="p_Copywriting_UpdateReason" placeholder="">
+          </div>
+        </div>
+
+        <!-- 以下為隱藏欄位，文件修改的理由 -->
+        <!-- 房屋與土地公證租約 -->
+        <input type="text" class="form-control" name="p_NotarizedRentalContract_UpdateReason" id="p_NotarizedRentalContract_UpdateReason" hidden>
+        <!-- 併聯審查意見書 -->
+        <input type="text" class="form-control" name="p_OnGridAuditedLetter_UpdateReason" id="p_OnGridAuditedLetter_UpdateReason" hidden>
+        <!-- 能源局同意備案函 -->
+        <input type="text" class="form-control" name="p_BOEApprovedLetter_UpdateReason" id="p_BOEApprovedLetter_UpdateReason" hidden>
+        <!-- 台電購售電契約 -->
+        <input type="text" class="form-control" name="p_powerPurchaseAgreement_UpdateReason" id="p_powerPurchaseAgreement_UpdateReason" hidden>
+        <!-- 併聯試運轉訪查文件 -->
+        <input type="text" class="form-control" name="p_onGridTryrunLetter_UpdateReason" id="p_onGridTryrunLetter_UpdateReason" hidden>
+        <!-- 設備登記文件 -->
+        <input type="text" class="form-control" name="p_powerPlantEquipmentRegisteredLetter_UpdateReason" id="p_powerPlantEquipmentRegisteredLetter_UpdateReason" hidden>
+        <!-- 設備保單 -->
+        <input type="text" class="form-control" name="p_powerPlantInsurancePolicy_UpdateReason" id="p_powerPlantInsurancePolicy_UpdateReason" hidden>
+
+        <!-- 以下為隱藏欄位，為上傳文件的網址 -->
+        <!-- 房屋 / 土地租約 -->
+        <input type="text" name="p_NotarizedRentalContract_path" id="p_NotarizedRentalContract_path" hidden>
+        <!-- 併聯審查意見書 -->
+        <input type="text" name="p_OnGridAuditedLetter_path" id="p_OnGridAuditedLetter_path" hidden>
+        <!-- 能源局同意備案函 -->
+        <input type="text" name="p_BOEApprovedLetter_path" id="p_BOEApprovedLetter_path" hidden>
+        <!-- 台電購售電契約 -->
+        <input type="text" name="p_powerPurchaseAgreement_path" id="p_powerPurchaseAgreement_path" hidden>
+        <!-- 併聯試運轉訪查文件 -->
+        <input type="text" name="p_onGridTryrunLetter_path" id="p_onGridTryrunLetter_path" hidden>
+        <!-- 設備登記文件 -->
+        <input type="text" name="p_powerPlantEquipmentRegisteredLetter_path" id="p_powerPlantEquipmentRegisteredLetter_path" hidden>
+        <!-- 設備保單 -->
+        <input type="text" name="p_powerPlantInsurancePolicy_path" id="p_powerPlantInsurancePolicy_path" hidden>
+
+        <!-- 以下為隱藏欄位，為上傳Mask文件的網址 -->
+        <!-- 房屋 / 土地租約 -->
+        <input type="text" name="p_NotarizedRentalContract_Mask_path" id="p_NotarizedRentalContract_Mask_path" hidden>
+        <!-- 併聯審查意見書 -->
+        <input type="text" name="p_OnGridAuditedLetter_Mask_path" id="p_OnGridAuditedLetter_Mask_path" hidden>
+        <!-- 能源局同意備案函 -->
+        <input type="text" name="p_BOEApprovedLetter_Mask_path" id="p_BOEApprovedLetter_Mask_path" hidden>
+        <!-- 台電購售電契約 -->
+        <input type="text" name="p_powerPurchaseAgreement_Mask_path" id="p_powerPurchaseAgreement_Mask_path" hidden>
+        <!-- 併聯試運轉訪查文件 -->
+        <input type="text" name="p_onGridTryrunLetter_Mask_path" id="p_onGridTryrunLetter_Mask_path" hidden>
+        <!-- 設備登記文件 -->
+        <input type="text" name="p_powerPlantEquipmentRegisteredLetter_Mask_path" id="p_powerPlantEquipmentRegisteredLetter_Mask_path" hidden>
+        <!-- 設備保單 -->
+        <input type="text" name="p_powerPlantInsurancePolicy_Mask_path" id="p_powerPlantInsurancePolicy_Mask_path" hidden>
+    </form>
+        <!-- 文件上傳表單 -->
+        <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_NotarizedRentalContract_form">房屋與土地公證租約</label>
+              <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_NotarizedRentalContract_Mask_form">房屋與土地公證租約(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_NotarizedRentalContract_Mask_form" id="p_NotarizedRentalContract_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_NotarizedRentalContract_UpdateReasonCopy" id="p_NotarizedRentalContract_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
+              <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_OnGridAuditedLetter_Mask_form">併聯審查意見書(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_OnGridAuditedLetter_Mask_form" id="p_OnGridAuditedLetter_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_OnGridAuditedLetter_UpdateReasonCopy" id="p_OnGridAuditedLetter_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_BOEApprovedLetter_form">能源局同意備案函</label>
+              <input type="file" class="form-control" name="p_BOEApprovedLetter_form" id="p_BOEApprovedLetter_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_BOEApprovedLetter_Mask_form">能源局同意備案函(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_BOEApprovedLetter_Mask_form" id="p_BOEApprovedLetter_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_BOEApprovedLetter_UpdateReasonCopy" id="p_BOEApprovedLetter_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_powerPurchaseAgreement_form">台電購售電契約</label>
+              <input type="file" class="form-control" name="p_powerPurchaseAgreement_form" id="p_powerPurchaseAgreement_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_powerPurchaseAgreement_Mask_form">台電購售電契約(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_powerPurchaseAgreement_Mask_form" id="p_powerPurchaseAgreement_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_powerPurchaseAgreement_UpdateReasonCopy" id="p_powerPurchaseAgreement_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_onGridTryrunLetter_form">併聯試運轉訪查文件</label>
+              <input type="file" class="form-control" name="p_onGridTryrunLetter_form" id="p_onGridTryrunLetter_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_onGridTryrunLetter_Mask_form">併聯試運轉訪查文件(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_onGridTryrunLetter_Mask_form" id="p_onGridTryrunLetter_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_onGridTryrunLetter_UpdateReasonCopy" id="p_onGridTryrunLetter_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_powerPlantEquipmentRegisteredLetter_form">設備登記文件</label>
+              <input type="file" class="form-control" name="p_powerPlantEquipmentRegisteredLetter_form" id="p_powerPlantEquipmentRegisteredLetter_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_powerPlantEquipmentRegisteredLetter_Mask_form">設備登記文件(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_powerPlantEquipmentRegisteredLetter_Mask_form" id="p_powerPlantEquipmentRegisteredLetter_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_powerPlantEquipmentRegisteredLetter_UpdateReasonCopy" id="p_powerPlantEquipmentRegisteredLetter_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="p_powerPlantInsurancePolicy_form">設備保單</label>
+              <input type="file" class="form-control" name="p_powerPlantInsurancePolicy_form" id="p_powerPlantInsurancePolicy_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_powerPlantInsurancePolicy_Mask_form">設備保單(馬賽克版)</label>
+              <input type="file" class="form-control" name="p_powerPlantInsurancePolicy_Mask_form" id="p_powerPlantInsurancePolicy_Mask_form" />
+            </div>
+            <div class="form-group col-md-4">
+              <label for="p_releasedate">修改理由</label>
+              <input type="text" class="form-control" name="p_powerPlantInsurancePolicy_UpdateReasonCopy" id="p_powerPlantInsurancePolicy_UpdateReasonCopy" placeholder="">
+            </div>
+          </div>
+        </form>
+
+        <button type="button" id="UpdateBtn" class="btn btn-primary">更新產品資料</button>
+</div>
+
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="/js/UpdateProduct.js"></script>
+</body>
+</html>

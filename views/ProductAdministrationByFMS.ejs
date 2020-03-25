@@ -29,6 +29,7 @@
 </nav>
 
 <!-- 待審核區 -->
+<% if (data.length>0 ) { %>
 <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
         <span>待審核區</span>
 </div>
@@ -39,30 +40,6 @@
             <th class="nowrap">產品名稱</th>
             <th class="nowrap">產品所在地</th>
             <th class="nowrap">產品定價</th>
-            <!-- <th class="nowrap">幣別</th>
-            <th class="nowrap">專案年期</th>
-            <th class="nowrap">預期報酬率(%)</th>                         -->
-            <!--  -->
-            <!-- <th class="nowrap">專案開始日期</th> -->
-            <!-- <th class="nowrap">FMS審核通過的日期</th>
-            <th class="nowrap">PA審核通過的日期</th> -->
-            <!-- <th class="nowrap">募資起始日</th>
-            <th class="nowrap">募資截止日</th>
-            <th class="nowrap">產品發行日</th>
-            <th class="nowrap">產品到期日</th>
-            <th class="nowrap">專案規模(kw)</th>
-            <th class="nowrap">產品總發行量(個)</th>
-            <th class="nowrap">發行專案的產品經理</th>
-            <th class="nowrap">該專案處理狀態</th> -->
-            <!-- <th class="nowrap">預估平均年收益</th> -->
-            <!-- <th class="nowrap">預估回收金額</th> -->
-            <!-- <th class="nowrap">收益總期數</th>
-            <th class="nowrap">預估回收年限</th> -->
-            <!-- <th class="nowrap">預估進度圖</th> -->
-            <!-- <th class="nowrap">PS審核退回備註</th>
-            <th class="nowrap">購售電合約</th>
-            <th class="nowrap">產品icon</th>
-            <th class="nowrap">CSV文件</th> -->
             <th class="nowrap">產品詳細資料</th>
             <th class="nowrap">發佈</th>
             <th class="nowrap">退回</th>
@@ -81,82 +58,6 @@
                 <td>
                     <%= data[i].p_pricing  %>
                 </td>
-                <!-- <td>
-                    <%= data[i].p_currency  %>
-                </td>
-                <td>
-                    <%= data[i].p_duration  %>
-                </td>
-                <td>
-                    <%= data[i].p_irr  %>
-                </td>                                 -->
-                <!--  -->
-                <!-- <td>
-                    <%= data[i].p_PSD  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FMXAdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_PAdate  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_CFSD  %>
-                </td>
-                <td>
-                    <%= data[i].p_CFED  %>
-                </td>
-                <td>
-                    <%= data[i].p_releasedate  %>
-                </td>
-                <td>
-                    <%= data[i].p_validdate  %>
-                </td>
-                <td>
-                    <%= data[i].p_size  %>
-                </td>
-                <td>
-                    <%= data[i].p_totalrelease  %>
-                </td>
-                <td>
-                    <%= data[i].p_fundmanager  %>
-                </td>
-                <td>
-                    <%= data[i].p_state  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FAY  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_FTRT  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_RPT  %>
-                </td>
-                <td>
-                    <%= data[i].p_FRP  %>
-                </td> -->
-                <!-- <td>
-                    <%= data[i].p_Timeline  %>
-                </td> -->                                
-                <!-- <td>
-                    <%= data[i].p_PANote %>
-                </td>
-                <td>
-                    <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                        <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' + data[i].p_assetdocs.replace('public','')  %>">doc</a>
-                    <% } %>
-                </td>
-                <td>
-                    <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                        <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
-                    <% } %>
-                </td>
-                <td>
-                    <%if (data[i].p_csvFIle != null && data[i].p_csvFIle != "") { %>
-                        <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
-                    <% } %>
-                </td> -->
                 <td>
                     <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
                 </td>
@@ -173,7 +74,16 @@
         <% } %>
     </table>
 </div>
+<% } %>
+
 <!-- 營運管理區 -->
+<% var count=0 %>
+<% for ( var i = 0 ; i < dataPublish.length ; i++){ %>
+<%if (dataPublish[i].p_state =="funding" || dataPublish[i].p_state =="FundingClosed" || dataPublish[i].p_state =="ONM" ) { %>
+<% count++; %>
+<% } %>
+<% } %>
+<%if (count>0 ) { %>
 <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
         <span>營運管理區</span>
 </div>
@@ -234,6 +144,40 @@
         <% } %>
     </table>
 </div>
+<% } %>
+
+<!-- 產品更新審核區 -->
+<% if (UpdateProductData.length>0 ) { %>
+    <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
+            <span>產品更新審核區</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <tr class="bg-primary" style="color:white;">
+                <th class="nowrap">產品代號</th>
+                <th class="nowrap">更新欄位名稱</th>
+                <th class="nowrap">詳細資料</th>
+            </tr>
+            <% for ( var i = 0 ; i < UpdateProductData.length ; i++){ %>
+                <tr>
+                    <td>
+                        <%= UpdateProductData[i].pe_symbol  %>
+                    </td>
+                    <td>
+                        <%= UpdateProductData[i].pe_columnName  %>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" name="ViewUpdateProductDetail" value="ViewUpdateProductDetail" onclick="ViewUpdateProductDetail('<%= UpdateProductData[i].pe_symbol  %>','<%= UpdateProductData[i].pe_columnName  %>','<%= UpdateProductData[i].pe_applicationTime  %>');">詳細資料</button>
+                    </td>
+                </tr>
+            <% } %>
+        </table>
+    </div>
+<% } %>
+
+
+
+
 <!-- 按下退回時，要出現的產品備註(p_FMSNote)的Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -461,6 +405,14 @@
             var SYMBOL=CurrentSYMBOL;
             var NOTE=document.getElementById('message-text').value;
             window.location.href = "/Product/SetFMSNoteAndReturnByFMS?symbol=" + SYMBOL + "&note=" + NOTE;
+        }
+
+        //查看 更新產品詳細資料
+        function ViewUpdateProductDetail(SYMBOL,COLUMNNAME,APPLICATIONTIME) {
+            // alert(SYMBOL);
+            // alert(COLUMNNAME);
+            // alert(APPLICATIONTIME);
+            window.location.href = "/Product/ViewUpdateProductDetail?symbol=" + SYMBOL + "&columnname=" + COLUMNNAME + "&applicationtime=" + APPLICATIONTIME;
         }
 
         // Modal觸發

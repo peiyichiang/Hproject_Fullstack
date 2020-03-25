@@ -54,7 +54,7 @@
                       <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500" required>
                     </div>
                     <div class="form-group col-md-4">
-                          <label for="p_duration">專案年期</label>
+                          <label for="p_duration">專案年數</label>
                           <input type="text" class="form-control" name="p_duration" id="p_duration" placeholder="ex:10" required>
                      </div>
                      <div class="form-group col-md-4">
@@ -64,15 +64,15 @@
             </div>
             <div class="form-row">
                     <div class="form-group col-md-4">
-                      <label for="p_irr">預期報酬率(%)</label>
+                      <label for="p_irr">預期內部報酬率(%)</label>
                       <input type="text" class="form-control" name="p_irr" id="p_irr" placeholder="ex:4.8" required>
                     </div>
                     <div class="form-group col-md-4">
-                          <label for="p_releasedate">產品發行日</label>
+                          <label for="p_releasedate">募資專案權利義務起始日</label>
                           <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM" required>
                      </div>
                      <div class="form-group col-md-4">
-                          <label for="p_validdate">產品到期日</label>
+                          <label for="p_validdate">募資專案權利義務截止日</label>
                           <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" required>
                      </div>
             </div>
@@ -130,7 +130,7 @@
                   <input type="text" class="form-control" name="p_EPCname" id="p_EPCname" placeholder="" required>
                 </div>
                 <div class="form-group col-md-4">
-                  <label for="p_ForecastedAnnualIncomePerModule">預估每片平均年收益</label>
+                  <label for="p_ForecastedAnnualIncomePerModule">預估平均年收益(元/片)</label>
                   <input type="text" class="form-control" name="p_ForecastedAnnualIncomePerModule" id="p_ForecastedAnnualIncomePerModule" placeholder="ex:200" required>
                 </div>
             </div>
@@ -145,26 +145,26 @@
                      </div>
             </div> -->
             <div class="form-row">
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-4" hidden>
                   <label for="p_PSD">專案開始日期</label>
-                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM" required>
+                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM" value="99999" required>
               </div>
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-6">
                 <label for="p_CFSD">募資起始日</label>
                 <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM" required>
               </div>
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-6">
                     <label for="p_CFED">募資截止日</label>
                     <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM" required>
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
-                <label for="p_TaiPowerApprovalDate">台電並聯作業日期</label>
+                <label for="p_TaiPowerApprovalDate">台電並聯審查意見書日期</label>
                 <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" required>
               </div>
               <div class="form-group col-md-6">
-                    <label for="p_BOEApprovalDate">能源局同意備案日期</label>
+                    <label for="p_BOEApprovalDate">能源局同意備案函日期</label>
                     <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" required>
                </div>
             </div>
@@ -174,22 +174,22 @@
                 <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" required>
               </div>
               <div class="form-group col-md-6">
-                    <label for="p_PVOnGridDate">案場建置完成/電費開始計費日期</label>
+                    <label for="p_PVOnGridDate">正式掛表日期(正式售電起始日)</label>
                     <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" required>
                </div>
             </div>
             <div class="form-row">
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-6">
                   <label for="p_ContractOut">工程發包日期</label>
                   <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDD" required>
               </div>
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-6">
                 <label for="p_CaseConstruction">案場建置完成日期</label>
                 <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDD" required>
               </div>
-              <div class="form-group col-md-4">
+              <div class="form-group col-md-4" hidden>
                     <label for="p_ElectricityBilling">電費計費開始日期</label>
-                    <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" placeholder="ex:YYYYMMDD" required>
+                    <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" value="999" placeholder="ex:YYYYMMDD" required>
                </div>
             </div>
             <div class="form-row">
@@ -224,7 +224,7 @@
                             <input type="file" class="form-control" name="file" id="file" />
                     </div> -->
                     <div class="form-group col-md-3">
-                      <label for="p_NotarizedRentalContract_form">房屋與土地租約</label>
+                      <label for="p_NotarizedRentalContract_form">房屋與土地公證租約</label>
                       <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form" />
                     </div>
                     <div class="form-group col-md-3">
