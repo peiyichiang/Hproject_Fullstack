@@ -805,9 +805,9 @@ components:
     ProductDate:
       type: object
       properties:
-        PSD: 
+        ContractOut: 
           type: string
-        FMXAdate:      
+        CaseConstruction:      
           type: string
         TaiPowerApprovalDate:       
           type: string
@@ -815,7 +815,7 @@ components:
           type: string
         PVTrialOperationDate:      
           type: string
-        PVOnGridDate:  
+        ElectricityBilling:  
           type: string
         CFSD:  
           type: string
@@ -878,7 +878,7 @@ components:
           $ref: "#/components/schemas/ProductImage" 
         doc:
           $ref: "#/components/schemas/ProductDoc"
-        data:          #預估進度
+        date:          #預估進度
           $ref: "#/components/schemas/ProductDate"
         gift:          #贈品
           type: string
