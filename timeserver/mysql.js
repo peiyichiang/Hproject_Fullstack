@@ -121,7 +121,8 @@ const product = function(){
     console.log(status);
     var query1 =  new Promise(async (resolve,reject) => {
         const queryStr = 
-        `SELECT p.p_irr AS irr,
+        `SELECT p.p_state AS status,
+                p.p_irr AS irr,
                 pd.pd_icon AS icon,
                 p.p_name AS name,
                 p.p_location AS location,

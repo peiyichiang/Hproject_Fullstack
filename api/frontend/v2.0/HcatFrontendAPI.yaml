@@ -825,6 +825,8 @@ components:
     Product:
       type: object
       properties:
+        status:
+          type: string
         irr:
           type: number
           format: float
