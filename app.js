@@ -32,7 +32,7 @@ var ContractsRouter = require('./routes/Contracts');
 var contractExplorerRouter = require('./routes/ContractExplorer');
 
 // DataBase
-const { mysqlPoolQuery } = require('./timeserver/mysql.js');
+const { mysqlPoolQuery,frontendPoolQuery } = require('./timeserver/mysql.js');
 
 
 var app = express();
@@ -101,6 +101,13 @@ app.post('/upload', cpUpload, function (req, res, next) {
     })
 });
 
+//則明
+// for frontend API Database query
+app.use(function (req,res,next){
+    console.log("set up frontendPoolQuery")
+    req.frontendPoolQuery = frontendPoolQuery;
+    next()
+})
 
 //有容
 app.use('/user', userRouter);

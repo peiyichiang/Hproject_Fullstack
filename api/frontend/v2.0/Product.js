@@ -21,6 +21,66 @@ router.post('/a', function (req, res) {
     ])
 })
 
+router.get('/ProductInfo',function (req,res){
+    console.log("This is ProductInfo API")
+    //get parameter from req.query
+    const status = req.query.status;
+    //database query
+    const query = req.frontendPoolQuery;
+    query('product',[status]).then((result) => {
+        var string=JSON.stringify(result); 
+        var data = JSON.parse(string)
+        data = formating(data);
+        return res.json({message: 'success',data: data});
+    }).catch((err => {
+        // console.log(err);
+        return res.json({message: 'fail'});
+    }))
+
+})
+function formating(data){
+    newData = [];
+    newDataId = {};
+    for (let i = 0; i < data.length; i++) {
+        var key = Object.keys(data[i]);
+        if (key == "main"){
+            for (let j = 0; j < data[i]["main"].length; j++) {
+                newData.push(data[i]["main"][j]);
+                newDataId[data[i]["main"][j].symbol] = j;
+            }  
+        }
+    }
+    for (let i = 0; i < data.length; i++) {
+        var key = Object.keys(data[i]);
+        if (key != "main"){
+            if(key == "income"){
+                symbols = Object.keys(data[i][key])
+                for (let k = 0; k < symbols.length; k++) {
+                    symbol = symbols[k]
+                    var id = newDataId[symbol];
+                    var value = data[i][key][symbol];
+                    acc_income = []
+                    for (let h = 0; h < value.length; h++) {
+                        if (h == 0){
+                            acc_income.push(value[h])
+                        }else{
+                            acc_income.push(acc_income[h-1]+value[h])
+                        }  
+                    }
+                    newData[id]["forecastedAnnualIncome"] = value;
+                    newData[id]["accumulateForecastedAnnualIncome"] = acc_income;
+                }
+            }else{
+                for (let j = 0; j < data[i][key].length; j++) {
+                    var id = newDataId[data[i][key][j].symbol];
+                    newData[id][key] = data[i][key][j];
+                }
+            }   
+        }  
+    }
+    return newData
+}
+
 router.use(function (req, res, next) {
     
     var token = req.headers['x-access-token'];

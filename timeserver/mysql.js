@@ -102,8 +102,161 @@ const mysqlPoolQueryB = async (sql, options) => {
         });
     });
 };
+// frontend sql query pool
+const frontendPoolQuery = (a,b) => {
+    console.log("This is frontend pool query");
+    const queryType = {'product': product,'asset': asset};
+    var query = queryType[a];
+    return new Promise(async (resolve,reject) => {
+        query(b).then((result) => {
+            resolve(result);
+        }).catch((err => {
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        }))
+    });
+}
+const product = function(){
+    console.log("This is product query")
+    status = arguments[0][0];
+    console.log(status);
+    var query1 =  new Promise(async (resolve,reject) => {
+        const queryStr = 
+        `SELECT p.p_irr AS irr,
+                pd.pd_icon AS icon,
+                p.p_name AS name,
+                p.p_location AS location,
+                p.p_SYMBOL AS symbol,
+                p.p_ForecastedAnnualIncomePerModule AS forecastedAnnualIncomePerModule,
+                p.p_totalrelease AS totalRelease,
+                (p.p_totalrelease - o.purchasetokenNum) AS remainRelease,
+                p.p_pricing AS price,
+                o.purchaseNum AS purchaseNum,
+                CONVERT(p.p_RPT,SIGNED) AS RPT,
+                CONVERT(SUBSTRING(p.p_FRP,1,2),SIGNED) AS FRPYear,
+                CONVERT(SUBSTRING(p.p_FRP,4,5),SIGNED) AS FRPMonth,
+                p.p_size AS size,
+                p.p_CFSD AS CFSD,
+                p.p_CFED AS CFED,
+                p.p_Copywriting AS copywriting,
+                g.g_giftRequirement AS giftRequirement,
+                g.g_image AS gift
+        FROM product p
+        LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
+        LEFT JOIN (SELECT o_symbol , COUNT(o_id) purchaseNum , SUM(o_tokenCount) purchasetokenNum
+                   FROM order_list
+                   GROUP BY o_symbol) o
+        ON p.p_SYMBOL = o.o_SYMBOL
+        LEFT JOIN gift g ON p.p_giftid = g.g_id
+        WHERE p.p_state IN (?);`;
+        const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        // console.log(result2);
+        resolve({"main":result});
 
-
+    });
+    var query2 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                pd.pd_Image1 AS img1,
+                pd.pd_Image2 AS img2,
+                pd.pd_Image3 AS img3,
+                pd.pd_Image4 AS img4,
+                pd.pd_Image5 AS img5,
+                pd.pd_Image6 AS img6,
+                pd.pd_Image7 AS img7,
+                pd.pd_Image8 AS img8,
+                pd.pd_Image9 AS img9,
+                pd.pd_Image10 AS img10
+        FROM product p
+        LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
+        WHERE p.p_state IN (?);`;
+        const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        resolve({"image":result});
+    });
+    var query3 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                pd.pd_NotarizedRentalContract_mask AS notarizedRentalContract,
+                pd.pd_BOEApprovedLetter AS BOEApprovedLetter,
+                pd.pd_OnGridTryrunLetter AS onGridAuditedLetter,
+                pd.pd_PowerPurchaseAgreement AS powerPurchaseAgreement,
+                pd.pd_OnGridTryrunLetter_mask AS onGridTryrunLetter,
+                pd.pd_PowerPlantEquipmentRegisteredLetter AS powerPlantEquipmentRegisteredLetter,
+                pd.pd_PowerPlantInsurancePolicy AS powerPlantInsurancePolicy
+        FROM product p
+        LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
+        WHERE p.p_state IN (?);`;
+        const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        resolve({"doc":result});
+    });
+    var query4 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                p.p_ContractOut AS ContractOut,
+                p.p_CaseConstruction AS CaseConstruction,
+                p.p_TaiPowerApprovalDate AS TaiPowerApprovalDate,
+                p.p_BOEApprovalDate AS BOEApprovalDate,
+                p.p_PVTrialOperationDate AS PVTrialOperationDate,
+                p.p_ElectricityBilling AS ElectricityBilling,
+                p.p_CFSD AS CFSD,
+                p.p_CFED AS CFED
+        FROM product p
+        WHERE p.p_state IN (?);`;
+        const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        resolve({"date":result});
+    });
+    var query5 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                ia.ia_single_Forecasted_Annual_Income as forecastedAnnualIncome
+        FROM product p
+        LEFT JOIN income_arrangement ia ON p.p_SYMBOL = ia.ia_SYMBOL
+        WHERE p.p_state IN (?) AND ia.ia_single_Forecasted_Annual_Income >0;`;
+        const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        }); 
+        var string=JSON.stringify(result); 
+        var data = JSON.parse(string)
+        income = {}
+        // acc_income = []
+        for (let i = 0; i < data.length; i++) {
+            var symbol = data[i].symbol;
+            var value = data[i].forecastedAnnualIncome;
+            if(!(symbol in income)){
+                income[symbol] = [];
+            }
+            income[symbol].push(value)
+        }
+        resolve({"income":income});
+    });
+    return Promise.all([query1,query2,query3,query4,query5]).then();
+}
+const asset = function(){
+    console.log("This is asset query")
+    status = arguments[0][0];
+    size = arguments[0][1];
+    console.log(status);
+    console.log(size);
+    return new Promise(async (resolve,reject) => {
+        const queryStr = 'SELECT * FROM product WHERE p_state = ? AND p_size = ?';
+        const result = await mysqlPoolQueryB(queryStr, [status,size]).catch((err) => {
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        resolve(result);
+    });
+}
 
 
 const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook) => {
@@ -1856,6 +2009,7 @@ const getForecastedSchedulesFromDB = async (symbol) => {
 
 
 module.exports = {
+    frontendPoolQuery,
     mysqlPoolQuery,
     addOrderRow,
     addUserRow,
@@ -1909,6 +2063,7 @@ module.exports = {
     deleteUsersInDB
 }
 module.exports = {
+    frontendPoolQuery,
     mysqlPoolQuery,
     addOrderRow,
     addUserRow,
