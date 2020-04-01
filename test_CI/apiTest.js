@@ -18,7 +18,7 @@ let crowdFundingAddr;
 //var describe = mocha.describe;
 //var it = mocha.it;
 const version = "/frontendAPI/v1.0";
-
+const version2 = "/frontendAPI/v2.0";
 const getRandomNum = async(x)=>{
   return new Promise((resolve, reject) => {
     resolve(Math.floor(Math.random()*x)+1);
@@ -144,7 +144,7 @@ const frontEndUserViewingPages = async() => {
     });
   })
 }
-const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', password = '02282040') => {
+const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', password = '02282040',product_status="ONM") => {
   describe('intergration testing of front-end user ordering', async function(){
     this.timeout(3000);  
     let jwt, canBuy = false;
@@ -181,18 +181,28 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
           canBuy = true;
       });
     });
-    it('get all products info', async function(){
-      await request
-        .get(version+'/product/LaunchedProductList')
-        .set('Accept', 'application/json')
-        .expect(200)
-        .then(async function(res){
-          await res.body.result.should.be.instanceOf(Array);
-            //symbol = res.body.result[0].symbol;
-            //
-            //fundingType = res.body.result[0].fundingType;
-        })
-    })
+    it("Get Products Information", done => {
+      request
+      .get(version2+"/product/ProductInfo")
+      .query({
+        status:product_status
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          if(err){
+            console.log(err)
+            done(err);
+          }
+          else{
+            res.body.message.should.equal("success")
+            res.body.data.should.not.empty()
+            done();
+          }
+        }
+      )
+    });
     it('get one products detail', async function(){
       await request
         .get(version+'/product/CaseImageURLByCaseSymbol')
@@ -699,7 +709,7 @@ const PSMintToken = async(updateTime) => {
       }).then(() => {
         return ; // do the promise call in a `then` callback to properly chain it
       });
-    }).timeout(30000);
+    }).timeout(300000);
     it('update funding state', async function(){
       await updateFundingStateFromDB(updateTime).catch((err) => {
         console.error(`[Error @ addAssetbooksIntoCFC]: ${err}`);
@@ -885,4 +895,4 @@ const flow5 = async() => {
   });
 };
 //frontEndUserRegistry();
-flow2();
+flow1();
