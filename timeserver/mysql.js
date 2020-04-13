@@ -202,7 +202,7 @@ const addProductRow = async (tokenSymbol, nftName, location, initialAssetPricing
             p_BOEApprovalDate: _CFSD,
             p_PVTrialOperationDate: _CFSD,
             p_PVOnGridDate: _CFSD,
-            p_Copywriting: "auto",
+            p_pvSiteintro: "auto",
             p_NotarizedRentalContract: notarizedRentalContract,
             p_BOEApprovedLetter: BOEApprovedLetter,
             p_PowerPurchaseAgreement: powerPurchaseAgreement,

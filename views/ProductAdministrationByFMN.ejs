@@ -42,21 +42,21 @@
                         <th class="nowrap">產品所在地</th>
                         <th class="nowrap">產品定價</th>
                         <!-- <th class="nowrap">幣別</th>
-                        <th class="nowrap">專案年數</th>
+                        <th class="nowrap">產品年數</th>
                         <th class="nowrap">預期內部報酬率(%)</th> -->
                         <!--  -->
-                        <!-- <th class="nowrap">專案開始日期</th> -->
+                        <!-- <th class="nowrap">產品開始日期</th> -->
                         <!-- <th class="nowrap">FMS審核通過的日期</th>
                         <th class="nowrap">PA審核通過的日期</th> -->
                         <!-- <th class="nowrap">募資起始日</th> -->
                         <!-- <th class="nowrap">募資截止日</th> -->
                         <!--  -->
-                        <!-- <th class="nowrap">募資專案權利義務起始日</th>
-                        <th class="nowrap">募資專案權利義務截止日</th>
-                        <th class="nowrap">專案規模(kw)</th>
+                        <!-- <th class="nowrap">募資產品權利義務起始日</th>
+                        <th class="nowrap">募資產品權利義務截止日</th>
+                        <th class="nowrap">產品規模(kw)</th>
                         <th class="nowrap">產品總發行量(個)</th> -->
-                        <!-- <th class="nowrap">發行專案的產品經理</th> -->
-                        <!-- <th class="nowrap">該專案處理狀態</th> -->
+                        <!-- <th class="nowrap">發行產品的產品經理</th> -->
+                        <!-- <th class="nowrap">該產品處理狀態</th> -->
                         <!-- <th class="nowrap">預估平均年收益</th> -->
                         <!-- <th class="nowrap">預估回收金額</th> -->
                         <!-- <th class="nowrap">收益總期數</th>
@@ -182,7 +182,7 @@
 
     <!-- 審核中的產品 -->
     <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
-        <span style="margin-left:15px;">專案處理狀態</span>
+        <span style="margin-left:15px;">產品處理狀態</span>
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
@@ -194,123 +194,63 @@
                 <th class="nowrap">產品狀態</th>
                 <th class="nowrap">詳細資料</th>
                 <th class="nowrap">更新資料</th>
-                <!-- <th class="nowrap">幣別</th>
-                <th class="nowrap">專案年數</th>
-                <th class="nowrap">預期內部報酬率(%)</th>
-                <th class="nowrap">專案開始日期</th> -->
-                <!-- <th class="nowrap">FMS審核通過的日期</th>
-                <th class="nowrap">PA審核通過的日期</th> -->
-                <!-- <th class="nowrap">募資起始日</th>
-                <th class="nowrap">募資截止日</th>
-                <th class="nowrap">募資專案權利義務起始日</th>
-                <th class="nowrap">募資專案權利義務截止日</th>
-                <th class="nowrap">專案規模(kw)</th>
-                <th class="nowrap">產品總發行量(個)</th> -->
-                <!-- <th class="nowrap">發行專案的產品經理</th> -->
-                <!-- <th class="nowrap">該專案處理狀態</th> -->
-                <!-- <th class="nowrap">預估平均年收益</th> -->
-                <!-- <th class="nowrap">預估回收金額</th> -->
-                <!-- <th class="nowrap">收益總期數</th>
-                <th class="nowrap">預估回收年限</th> -->
-                <!-- <th class="nowrap">預估進度圖</th> -->
-                <!-- <th class="nowrap">購售電合約</th>
-                <th class="nowrap">產品icon</th>
-                <th class="nowrap">CSV文件</th> -->
             </tr>
             <% for ( var i = 0 ; i < data.length ; i++){ %>
-                <tr>
-                    <td>
-                        <%= data[i].p_SYMBOL  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_name  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_location  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_pricing  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_state  %>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-success" name="UpdateProductAfterPublish" value="UpdateProductAfterPublish" onclick="UpdateProductAfterPublish('<%= data[i].p_SYMBOL  %>');">更新資料</button>
-                    </td>
-                    <!-- <td>
-                        <%= data[i].p_currency  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_duration  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_irr  %>
-                    </td>                                
-                    <td>
-                        <%= data[i].p_PSD  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_FMXAdate  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_PAdate  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_CFSD  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_CFED  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_releasedate  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_validdate  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_size  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_totalrelease  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_fundmanager  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_FAY  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_FTRT  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_RPT  %>
-                    </td>
-                    <td>
-                        <%= data[i].p_FRP  %>
-                    </td> -->
-                    <!-- <td>
-                        <%= data[i].p_Timeline  %>
-                    </td> -->
-                    <!-- <td>
-                        <%if (data[i].p_assetdocs != null && data[i].p_assetdocs !="") { %>
-                            <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_assetdocs.replace('public','')  %>">doc</a>
-                        <% } %>
-                    </td>
-                    <td>
-                        <%if (data[i].p_icon != null && data[i].p_icon !="") { %>
-                            <img src="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_icon.replace('public','')  %>" alt="" style="width:50%;">
-                        <% } %>
-                    </td>
-                    <td>
-                        <%if (data[i].p_csvFIle != null && data[i].p_csvFIle != "") { %>
-                            <a target="_blank" href="<%= process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/' +data[i].p_csvFIle.replace('public','')  %>">CSV File</a>
-                        <% } %>
-                    </td> -->
-                    <!-- onclick="Edit('<%= data[i].id  %>');" -->
-                </tr>
+                <% if (data[i].p_state!='draft' ) { %>
+                    <tr>
+                        <td>
+                            <%= data[i].p_SYMBOL  %>
+                        </td>
+                        <td>
+                            <%= data[i].p_name  %>
+                        </td>
+                        <td>
+                            <%= data[i].p_location  %>
+                        </td>
+                        <td>
+                            <%= data[i].p_pricing  %>
+                        </td>
+                        <td>
+                            <% if (data[i].p_state=='creation' ) { %>
+                                FMS審核中
+                            <% } %>
+                            <% if (data[i].p_state=='publish' ) { %>
+                                平台審核中
+                            <% } %>
+                            <% if (data[i].p_state=='funding' ) { %>
+                                已上架並正在募資
+                            <% } %>
+                            <% if (data[i].p_state=='FundingPaused' ) { %>
+                                暫停募資
+                            <% } %>
+                            <% if (data[i].p_state=='aborted' ) { %>
+                                緊急下架
+                            <% } %>
+                            <% if (data[i].p_state=='FundingClosed' ) { %>
+                                募資成功
+                            <% } %>
+                            <% if (data[i].p_state=='FundingNotClosed' ) { %>
+                                募資失敗
+                            <% } %>
+                            <% if (data[i].p_state=='refunded' ) { %>
+                                已退款
+                            <% } %>
+                            <% if (data[i].p_state=='ONM' ) { %>
+                                營運管理中
+                            <% } %>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-success" name="ViewProductDetail" value="ViewProductDetail" onclick="ViewProductDetail('<%= data[i].p_SYMBOL  %>');">詳細資料</button>
+                        </td>
+                        <td>
+                            <% if (data[i].p_state=='funding' ) { %>
+                                <button type="button" class="btn btn-success" name="UpdateProductAfterPublish" value="UpdateProductAfterPublish" onclick="UpdateProductAfterPublish('<%= data[i].p_SYMBOL  %>');">更新資料</button>
+                            <% }else { %>
+                                <button type="button" class="btn btn-success" name="UpdateProductAfterPublish" value="UpdateProductAfterPublish" disabled onclick="UpdateProductAfterPublish('<%= data[i].p_SYMBOL  %>');">更新資料</button>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% } %>
             <% } %>
         </table>
     </div>
@@ -318,13 +258,14 @@
     <% if (UpdateProductData.length>0 ) { %>
         <!-- 審核中的 更新產品資料 -->
         <div class="tableTitle bg-warning" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
-            <span style="margin-left:15px;">產品更新審核區</span>
+            <span style="margin-left:15px;">產品資訊更新待審核進度</span>
         </div>
         <div class="table-responsive">
             <table class="table table-hover table-striped">
                 <tr class="bg-warning" style="color:white;">
                     <th class="nowrap">產品代號</th>
                     <th class="nowrap">更新欄位名稱</th>
+                    <th class="nowrap">審核狀態</th>
                     <th class="nowrap">詳細資料</th>
                 </tr>
                 <% for ( var i = 0 ; i < UpdateProductData.length ; i++){ %>
@@ -333,7 +274,122 @@
                             <%= UpdateProductData[i].pe_symbol  %>
                         </td>
                         <td>
-                            <%= UpdateProductData[i].pe_columnName  %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_BOEApprovedLetter' ) { %>
+                                能源局同意備案函
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_BOEApprovedLetter_mask' ) { %>
+                                能源局同意備案函(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+                                房屋與土地租約
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+                                房屋與土地租約(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+                                房屋與土地租約
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+                                房屋與土地租約(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_OnGridAuditedLetter' ) { %>
+                                併聯審查意見書
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_OnGridAuditedLetter_mask' ) { %>
+                                併聯審查意見書(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_onGridTryrunLetter' ) { %>
+                                併聯試運轉訪查文件
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_onGridTryrunLetter_mask' ) { %>
+                                併聯試運轉訪查文件(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter' ) { %>
+                                設備登記文件
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter_mask' ) { %>
+                                設備登記文件(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantInsurancePolicy' ) { %>
+                                設備保單
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantInsurancePolicy_mask' ) { %>
+                                設備保單(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='pd_powerPurchaseAgreement' ) { %>
+                                台電購售電契約
+                            <% } %>
+                            <% if (UpdateProductData[i].pe_columnName=='pd_powerPurchaseAgreement_mask' ) { %>
+                                台電購售電契約(個資馬賽克版)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_BOEApprovalDate' ) { %>
+                                能源局同意備案函日期
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_CaseConstruction' ) { %>
+                                案場建置完成日期
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_ContractOut' ) { %>
+                                工程發包日期
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_TaiPowerApprovalDate' ) { %>
+                                台電並聯審查意見書日期
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_PVTrialOperationDate' ) { %>
+                                併聯試運轉日期
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_PVOnGridDate' ) { %>
+                                正式掛表日期(正式售電起始日)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_CFED' ) { %>
+                                募資截止日
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_pvSiteintro' ) { %>
+                                產品文案
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_fundingGoal' ) { %>
+                                專案募資目標(個)
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_releasedate' ) { %>
+                                募資專案權利義務起始日
+                            <% } %>
+
+                            <% if (UpdateProductData[i].pe_columnName=='p_validdate' ) { %>
+                                募資專案權利義務截止日
+                            <% } %>
+                        </td>
+                        <td>
+                            <%if (UpdateProductData[i].pe_status=="WaitingAuditByFMS" ) { %>
+                                正在等待FMS審核
+                              <% } %>
+                              <%if (UpdateProductData[i].pe_status=="RejectedByFMS" ) { %>
+                                被FMS退回
+                              <% } %>
+                              <%if (UpdateProductData[i].pe_status=="WaitingAuditByPS" ) { %>
+                                通過FMS審核，正在等待PS審核
+                              <% } %>
+                              <%if (UpdateProductData[i].pe_status=="RejectedByPS" ) { %>
+                                被PS退回
+                              <% } %>
+                              <%if (UpdateProductData[i].pe_status=="Approved" ) { %>
+                                審核通過
+                              <% } %>
                         </td>
                         <td>
                             <button type="button" class="btn btn-success" name="ViewUpdateProductDetail" value="ViewUpdateProductDetail" onclick="ViewUpdateProductDetail('<%= UpdateProductData[i].pe_symbol  %>','<%= UpdateProductData[i].pe_columnName  %>','<%= UpdateProductData[i].pe_applicationTime  %>');">詳細資料</button>

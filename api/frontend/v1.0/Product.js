@@ -44,7 +44,7 @@ router.get('/LaunchedProductList', function (req, res) {
         p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
         IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
         IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-        p_Copywriting AS copyWritingText,
+        p_pvSiteintro AS copyWritingText,
         p_ForecastedAnnualIncomePerModule as forecastedAnnualIncomePerMudule
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
@@ -411,7 +411,7 @@ router.get('/ProductDataBySymbol', function (req, res) {
                 p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
                 IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
                 IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-                p_Copywriting AS copyWritingText,
+                p_pvSiteintro AS copyWritingText,
                 p_ForecastedAnnualIncomePerModule as forecastedAnnualIncomePerMudule,
                 p_NotarizedRentalContract AS notarizedRentalContract,
                 p_OnGridAuditedLetter AS onGridAuditedLetter,

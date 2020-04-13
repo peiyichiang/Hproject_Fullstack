@@ -43,7 +43,108 @@
         <div class="form-group col-md-4">
           <label for="pe_columnName">欄位名稱</label>
           <input type="text" class="form-control" name="pe_columnName" id="pe_columnName"
-            value="<%=data[0].pe_columnName %>" readonly>
+            value="<%=data[0].pe_columnName %>" readonly hidden>
+            <% var Column_TW_Name="" %>
+            <% if (data[0].pe_columnName=='pd_BOEApprovedLetter' ) { %>
+              <% Column_TW_Name="能源局同意備案函"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_BOEApprovedLetter_mask' ) { %>
+              <% Column_TW_Name="能源局同意備案函(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+              <% Column_TW_Name="房屋與土地租約"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+              <% Column_TW_Name="房屋與土地租約(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+              <% Column_TW_Name="房屋與土地租約"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+              <% Column_TW_Name="房屋與土地租約(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_OnGridAuditedLetter' ) { %>
+              <% Column_TW_Name="併聯審查意見書"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_OnGridAuditedLetter_mask' ) { %>
+              <% Column_TW_Name="併聯審查意見書(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_onGridTryrunLetter' ) { %>
+              <% Column_TW_Name="併聯試運轉訪查文件"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_onGridTryrunLetter_mask' ) { %>
+              <% Column_TW_Name="併聯試運轉訪查文件(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter' ) { %>
+              <% Column_TW_Name="設備登記文件"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter_mask' ) { %>
+              <% Column_TW_Name="設備登記文件(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_powerPlantInsurancePolicy' ) { %>
+              <% Column_TW_Name="設備保單"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_powerPlantInsurancePolicy_mask' ) { %>
+              <% Column_TW_Name="設備保單(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='pd_powerPurchaseAgreement' ) { %>
+              <% Column_TW_Name="台電購售電契約"; %>
+            <% } %>
+            <% if (data[0].pe_columnName=='pd_powerPurchaseAgreement_mask' ) { %>
+              <% Column_TW_Name="台電購售電契約(個資馬賽克版)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_BOEApprovalDate' ) { %>
+              <% Column_TW_Name="能源局同意備案函日期"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_CaseConstruction' ) { %>
+              <% Column_TW_Name="案場建置完成日期"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_ContractOut' ) { %>
+              <% Column_TW_Name="工程發包日期"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_TaiPowerApprovalDate' ) { %>
+              <% Column_TW_Name="台電並聯審查意見書日期"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_PVTrialOperationDate' ) { %>
+              <% Column_TW_Name="併聯試運轉日期"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_PVOnGridDate' ) { %>
+              <% Column_TW_Name="正式掛表日期(正式售電起始日)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_CFED' ) { %>
+              <% Column_TW_Name="募資截止日"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_pvSiteintro' ) { %>
+              <% Column_TW_Name="產品文案"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_fundingGoal' ) { %>
+              <% Column_TW_Name="專案募資目標(個)"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_releasedate' ) { %>
+              <% Column_TW_Name="募資專案權利義務起始日"; %>
+            <% } %>
+
+            <% if (data[0].pe_columnName=='p_validdate' ) { %>
+              <% Column_TW_Name="募資專案權利義務截止日"; %>
+            <% } %>
+            <input type="text" class="form-control" value="<%=Column_TW_Name %>" readonly>
         </div>
         <div class="form-group col-md-4">
           <label for="pe_applicationTime">申請時間</label>

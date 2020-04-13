@@ -736,8 +736,17 @@ router.get('/BackendUser_Platform_Supervisor', function (req, res, next) {
                     console.log(err);
                 }
                 var productEditHistory = rows;
-                console.log("***:" + JWT_decoded.payload.m_id);
-                res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data,iaData:iaData,productEditHistory:productEditHistory });
+                //console.log("***:" + JWT_decoded.payload.m_id);
+                //res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data,iaData:iaData,productEditHistory:productEditHistory });
+                
+                mysqlPoolQuery("SELECT * FROM product_editHistory where pe_status = 'RejectedByPS' or pe_status = 'Approved' ", function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    var productEditHistory_ = rows;
+                    console.log("***:" + JWT_decoded.payload.m_id);
+                    res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data,iaData:iaData,productEditHistory:productEditHistory,productEditHistory_:productEditHistory_ });
+                });
             });
         });
     }

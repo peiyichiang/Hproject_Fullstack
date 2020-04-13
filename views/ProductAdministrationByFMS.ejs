@@ -31,7 +31,7 @@
 <!-- 待審核區 -->
 <% if (data.length>0 ) { %>
 <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
-        <span>待審核區</span>
+        <span>產品待審核區</span>
 </div>
 <div class="table-responsive">
     <table class="table table-hover table-striped">
@@ -149,7 +149,7 @@
 <!-- 產品更新審核區 -->
 <% if (UpdateProductData.length>0 ) { %>
     <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
-            <span>產品更新審核區</span>
+            <span>產品更新待審核區</span>
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
@@ -164,7 +164,105 @@
                         <%= UpdateProductData[i].pe_symbol  %>
                     </td>
                     <td>
-                        <%= UpdateProductData[i].pe_columnName  %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_BOEApprovedLetter' ) { %>
+                            能源局同意備案函
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_BOEApprovedLetter_mask' ) { %>
+                            能源局同意備案函(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+                            房屋與土地租約
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+                            房屋與土地租約(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+                            房屋與土地租約
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+                            房屋與土地租約(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_OnGridAuditedLetter' ) { %>
+                            併聯審查意見書
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_OnGridAuditedLetter_mask' ) { %>
+                            併聯審查意見書(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_onGridTryrunLetter' ) { %>
+                            併聯試運轉訪查文件
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_onGridTryrunLetter_mask' ) { %>
+                            併聯試運轉訪查文件(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter' ) { %>
+                            設備登記文件
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter_mask' ) { %>
+                            設備登記文件(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantInsurancePolicy' ) { %>
+                            設備保單
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_powerPlantInsurancePolicy_mask' ) { %>
+                            設備保單(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='pd_powerPurchaseAgreement' ) { %>
+                            台電購售電契約
+                        <% } %>
+                        <% if (UpdateProductData[i].pe_columnName=='pd_powerPurchaseAgreement_mask' ) { %>
+                            台電購售電契約(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_BOEApprovalDate' ) { %>
+                            能源局同意備案函日期
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_CaseConstruction' ) { %>
+                            案場建置完成日期
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_ContractOut' ) { %>
+                            工程發包日期
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_TaiPowerApprovalDate' ) { %>
+                            台電並聯審查意見書日期
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_PVTrialOperationDate' ) { %>
+                            併聯試運轉日期
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_PVOnGridDate' ) { %>
+                            正式掛表日期(正式售電起始日)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_CFED' ) { %>
+                            募資截止日
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_pvSiteintro' ) { %>
+                            產品文案
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_fundingGoal' ) { %>
+                            專案募資目標(個)
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_releasedate' ) { %>
+                            募資專案權利義務起始日
+                        <% } %>
+
+                        <% if (UpdateProductData[i].pe_columnName=='p_validdate' ) { %>
+                            募資專案權利義務截止日
+                        <% } %>
                     </td>
                     <td>
                         <button type="button" class="btn btn-success" name="ViewUpdateProductDetail" value="ViewUpdateProductDetail" onclick="ViewUpdateProductDetail('<%= UpdateProductData[i].pe_symbol  %>','<%= UpdateProductData[i].pe_columnName  %>','<%= UpdateProductData[i].pe_applicationTime  %>');">詳細資料</button>
@@ -175,6 +273,150 @@
     </div>
 <% } %>
 
+<!-- 產品更新審核歷史紀錄區 -->
+<% if (UpdateProductData.length>0 ) { %>
+    <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
+            <span>產品更新審核歷史紀錄區</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <tr class="bg-primary" style="color:white;">
+                <th class="nowrap">產品代號</th>
+                <th class="nowrap">更新欄位名稱</th>
+                <th class="nowrap">審核狀態</th>
+                <th class="nowrap">詳細資料</th>
+            </tr>
+            <% for ( var i = 0 ; i < UpdateProductDataHistory.length ; i++){ %>
+                <tr>
+                    <td>
+                        <%= UpdateProductDataHistory[i].pe_symbol  %>
+                    </td>
+                    <td>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_BOEApprovedLetter' ) { %>
+                            能源局同意備案函
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_BOEApprovedLetter_mask' ) { %>
+                            能源局同意備案函(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+                            房屋與土地租約
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+                            房屋與土地租約(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_NotarizedRentalContract' ) { %>
+                            房屋與土地租約
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_NotarizedRentalContract_mask' ) { %>
+                            房屋與土地租約(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_OnGridAuditedLetter' ) { %>
+                            併聯審查意見書
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_OnGridAuditedLetter_mask' ) { %>
+                            併聯審查意見書(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_onGridTryrunLetter' ) { %>
+                            併聯試運轉訪查文件
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_onGridTryrunLetter_mask' ) { %>
+                            併聯試運轉訪查文件(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter' ) { %>
+                            設備登記文件
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_powerPlantEquipmentRegisteredLetter_mask' ) { %>
+                            設備登記文件(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_powerPlantInsurancePolicy' ) { %>
+                            設備保單
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_powerPlantInsurancePolicy_mask' ) { %>
+                            設備保單(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_powerPurchaseAgreement' ) { %>
+                            台電購售電契約
+                        <% } %>
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='pd_powerPurchaseAgreement_mask' ) { %>
+                            台電購售電契約(個資馬賽克版)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_BOEApprovalDate' ) { %>
+                            能源局同意備案函日期
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_CaseConstruction' ) { %>
+                            案場建置完成日期
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_ContractOut' ) { %>
+                            工程發包日期
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_TaiPowerApprovalDate' ) { %>
+                            台電並聯審查意見書日期
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_PVTrialOperationDate' ) { %>
+                            併聯試運轉日期
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_PVOnGridDate' ) { %>
+                            正式掛表日期(正式售電起始日)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_CFED' ) { %>
+                            募資截止日
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_pvSiteintro' ) { %>
+                            產品文案
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_fundingGoal' ) { %>
+                            專案募資目標(個)
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_releasedate' ) { %>
+                            募資專案權利義務起始日
+                        <% } %>
+
+                        <% if (UpdateProductDataHistory[i].pe_columnName=='p_validdate' ) { %>
+                            募資專案權利義務截止日
+                        <% } %>
+                    </td>
+                    <td>
+                        <%if (UpdateProductDataHistory[i].pe_status=="WaitingAuditByFMS" ) { %>
+                            正在等待FMS審核
+                          <% } %>
+                          <%if (UpdateProductDataHistory[i].pe_status=="RejectedByFMS" ) { %>
+                            被FMS退回
+                          <% } %>
+                          <%if (UpdateProductDataHistory[i].pe_status=="WaitingAuditByPS" ) { %>
+                            通過FMS審核，正在等待PS審核
+                          <% } %>
+                          <%if (UpdateProductDataHistory[i].pe_status=="RejectedByPS" ) { %>
+                            被PS退回
+                          <% } %>
+                          <%if (UpdateProductDataHistory[i].pe_status=="Approved" ) { %>
+                            審核通過
+                          <% } %>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" name="ViewUpdateProductDetail" value="ViewUpdateProductDetail" onclick="ViewUpdateProductDetail('<%= UpdateProductDataHistory[i].pe_symbol  %>','<%= UpdateProductDataHistory[i].pe_columnName  %>','<%= UpdateProductDataHistory[i].pe_applicationTime  %>');">詳細資料</button>
+                    </td>
+                </tr>
+            <% } %>
+        </table>
+    </div>
+<% } %>
 
 
 

@@ -71,7 +71,7 @@ const edit_product = {
     p_fundingType: type,
     p_paidNumber: "300",
     p_EPCname: '朝羿光電能源',
-    p_Copywriting:
+    p_pvSiteintro:
      '愛因斯坦一號案場位於台南市新營區, 平均年日照量達1,292小時以上。本場地為合格Pics藥廠, 結構與屋況保養皆優良。本場使用969片AUO 310W高效模組, 總裝置量300.39kw, 採股票上市公司逆變器等優質部件, 由具工程實績之EPC廠商責任施作、知名能源廠監工, 將帶給您最安心的長期報酬! HCAT電利超商首發產品, 具高達5.4%之20年內部報酬率(IRR), 好機會請勿錯過! ',
     p_ContractOut: '201907260800',
     p_CaseConstruction: '201912200800',
@@ -130,7 +130,7 @@ const add_product = {
     p_fundingType: type,
     p_paidNumber: "300",
     p_EPCname: '朝羿光電能源',
-    p_Copywriting:
+    p_pvSiteintro:
      '愛因斯坦一號案場位於台南市新營區, 平均年日照量達1,292小時以上。本場地為合格Pics藥廠, 結構與屋況保養皆優良。本場使用969片AUO 310W高效模組, 總裝置量300.39kw, 採股票上市公司逆變器等優質部件, 由具工程實績之EPC廠商責任施作、知名能源廠監工, 將帶給您最安心的長期報酬! HCAT電利超商首發產品, 具高達5.4%之20年內部報酬率(IRR), 好機會請勿錯過! ',
     p_ContractOut: '201907260800',
     p_CaseConstruction: '201912200800',
