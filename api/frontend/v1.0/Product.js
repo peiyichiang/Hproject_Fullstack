@@ -158,18 +158,18 @@ router.get('/CaseImageURLByCaseSymbol', function (req, res) {
         }
         else {
             mysqlPoolQuery(
-                `SELECT p_Image1 AS ImageURL1,
-                        p_Image2 AS ImageURL2,
-                        p_Image3 AS ImageURL3,
-                        p_Image4 AS ImageURL4,
-                        p_Image5 AS ImageURL5,
-                        p_Image6 AS ImageURL6,
-                        p_Image7 AS ImageURL7,
-                        p_Image8 AS ImageURL8,
-                        p_Image9 AS ImageURL9,
-                        p_Image10 AS ImageURL10
-                 FROM   product
-                 WHERE  p_SYMBOL = ? `, symbol, function (err, imageURLObjectArray) {
+                `SELECT pd_Image1 AS ImageURL1,
+                        pd_Image2 AS ImageURL2,
+                        pd_Image3 AS ImageURL3,
+                        pd_Image4 AS ImageURL4,
+                        pd_Image5 AS ImageURL5,
+                        pd_Image6 AS ImageURL6,
+                        pd_Image7 AS ImageURL7,
+                        pd_Image8 AS ImageURL8,
+                        pd_Image9 AS ImageURL9,
+                        pd_Image10 AS ImageURL10
+                 FROM   product_doc
+                 WHERE  pd_SYMBOL = ? `, symbol, function (err, imageURLObjectArray) {
 
                 let imageURLObject = imageURLObjectArray[0]
                 let imageURLArray = Object.values(imageURLObject)
