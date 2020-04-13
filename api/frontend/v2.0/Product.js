@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const TokenGenerator = require('./TokenGenerator');
 var jwt = require('jsonwebtoken');
 var async = require('async');
 const path = require('path');
@@ -11,7 +12,10 @@ router.post('/a', function (req, res) {
     name = req.body.name;
     async.waterfall([
         function(callback) {
-            callback(null, jwt.sign({usr_name: name},process.env.JWT_PRIVATEKEY, { expiresIn: 60 }))
+            const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEYp, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '1m', notBefore: '2s' })
+            token = tokenGenerator.sign({ myclaim: 'something' }, { audience: name, issuer: 'myissuer', jwtid: '1', subject: 'user' })
+            //callback(null, jwt.sign({usr_name: name},process.env.JWT_PRIVATEKEY, { expiresIn: 60 }))
+            callback(null,token);
         },
         function(data, callback) {
             res.setHeader('Cache-Control', 'no-store');
@@ -19,6 +23,17 @@ router.post('/a', function (req, res) {
             res.status(302).json(data);
         }
     ])
+})
+
+router.post('/c',function(req,res){
+    const tokenGenerator = new TokenGenerator('a', 'a', { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '2m', notBefore: '2s' })
+    token = tokenGenerator.sign({ myclaim: 'something' }, { audience: 'myaud', issuer: 'myissuer', jwtid: '1', subject: 'user' })
+    console.log(token)
+    setTimeout(function () {
+    token2 = tokenGenerator.refresh(token, { verify: { audience: 'myaud', issuer: 'myissuer' }, jwtid: '2' })
+    console.log(jwt.decode(token, { complete: true }))
+    console.log(jwt.decode(token2, { complete: true }))
+    }, 3000)
 })
 
 router.get('/ProductInfo',function (req,res){
@@ -40,45 +55,34 @@ router.get('/ProductInfo',function (req,res){
 })
 function formating(data){
     newData = [];
-    newDataId = {};
-    for (let i = 0; i < data.length; i++) {
-        var key = Object.keys(data[i]);
-        if (key == "main"){
-            for (let j = 0; j < data[i]["main"].length; j++) {
-                newData.push(data[i]["main"][j]);
-                newDataId[data[i]["main"][j].symbol] = j;
-            }  
-        }
-    }
-    for (let i = 0; i < data.length; i++) {
-        var key = Object.keys(data[i]);
-        if (key != "main"){
-            if(key == "income"){
-                symbols = Object.keys(data[i][key])
-                for (let k = 0; k < symbols.length; k++) {
-                    symbol = symbols[k]
-                    var id = newDataId[symbol];
-                    var value = data[i][key][symbol];
-                    acc_income = []
-                    for (let h = 0; h < value.length; h++) {
-                        if (h == 0){
-                            acc_income.push(value[h])
-                        }else{
-                            acc_income.push(acc_income[h-1]+value[h])
-                        }  
-                    }
-                    newData[id]["forecastedAnnualIncome"] = value;
-                    newData[id]["accumulateForecastedAnnualIncome"] = acc_income;
-                }
-            }else{
-                for (let j = 0; j < data[i][key].length; j++) {
-                    var id = newDataId[data[i][key][j].symbol];
-                    newData[id][key] = data[i][key][j];
-                }
-            }   
-        }  
-    }
-    return newData
+    data.forEach(function(item, index, array){
+        key = Object.keys(item);
+        if(key=="main"){
+            item[key].forEach(function(obj){
+                newData.push(obj);
+            })
+        }else if(key=="income"){
+            console.log(item[key])
+            newData.forEach(function(obj){
+                symbol = obj.symbol;
+                acc_income = [];
+                item[key][symbol].forEach(function(value){
+                    if(acc_income.length == 0) acc_income.push(value); 
+                    else acc_income.push(value+acc_income[acc_income.length-1]);
+                })
+                obj["forecastedAnnualIncome"] = item[key][symbol];
+                obj["accumulateForecastedAnnualIncome"] = acc_income;
+            })
+        }else{
+            item[key].forEach(function(item){
+                var symbol = item.symbol;
+                id = newData.findIndex(obj => obj.symbol === symbol);
+                delete item.symbol;
+                newData[id][key] = item;
+            })
+        }    // forEach 就如同 for，不過寫法更容易
+    });
+    return newData;
 }
 
 router.use(function (req, res, next) {
@@ -103,6 +107,6 @@ router.use(function (req, res, next) {
 })
 
 router.get('/b', function (req, res) {
-    res.json({message: 'Welcome to the APIs',token_playload: req.decoded, usr_name: req.decoded.usr_name});
+    res.json({message: 'Welcome to the APIs',token_playload: req.decoded});
 })
 module.exports = router;
