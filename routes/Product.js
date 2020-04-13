@@ -291,7 +291,14 @@ router.get('/ProductByFMS', function (req, res, next) {
                     console.log(err);
                 }
                 var UpdateProductData = rows;
-                res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish,UpdateProductData:UpdateProductData });
+                //res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish,UpdateProductData:UpdateProductData });
+                mysqlPoolQuery("SELECT * FROM htoken_newschema.product_editHistory WHERE pe_status != 'WaitingAuditByFMS' and  pe_symbol IN (SELECT p_SYMBOL from htoken_newschema.product WHERE p_fundmanager IN (SELECT m_id FROM htoken_newschema.backend_user WHERE m_company = ?))", JWT_decoded.payload.m_company, function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    var UpdateProductDataHistory = rows;
+                    res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish,UpdateProductData:UpdateProductData,UpdateProductDataHistory:UpdateProductDataHistory });
+                });
             });
         });
 
@@ -437,7 +444,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
         p_EPCname: req.body.p_EPCname,
-        p_Copywriting: req.body.p_Copywriting,
+        p_pvSiteintro: req.body.p_pvSiteintro,
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
@@ -475,7 +482,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_EPCname: req.body.p_EPCname,
-        p_Copywriting: req.body.p_Copywriting,
+        p_pvSiteintro: req.body.p_pvSiteintro,
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
@@ -665,10 +672,10 @@ router.post('/UpdateProductAfterPublish', function (req, res, next) {
             insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_CaseConstruction" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_CaseConstruction.toString() + "'"  + "," + "'"  + req.body.p_CaseConstruction.toString() + "'"  + "," + "'"  + req.body.p_CaseConstruction_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
         }
 
-        //如果p_Copywriting有修改
-        if(req.body.p_Copywriting_UpdateReason!="" && req.body.p_Copywriting_UpdateReason!==null)
+        //如果p_pvSiteintro有修改
+        if(req.body.p_pvSiteintro_UpdateReason!="" && req.body.p_pvSiteintro_UpdateReason!==null)
         {
-            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_Copywriting" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_Copywriting.toString() + "'"  + "," + "'"  + req.body.p_Copywriting.toString() + "'"  + "," + "'"  + req.body.p_Copywriting_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
+            insertValue += "(" + "'" + req.body.p_SYMBOL.toString() + "'" + "," + "'"  + "p_pvSiteintro" + "'"  + "," + "'"  + currentTime.toString() + "'"  + "," + "'"  +  "3" + "'"  + "," + "'"  + rows[0].p_pvSiteintro.toString() + "'"  + "," + "'"  + req.body.p_pvSiteintro.toString() + "'"  + "," + "'"  + req.body.p_pvSiteintro_UpdateReason.toString() + "'"  + "," + "'"  + "WaitingAuditByFMS" + "'"  + ")" + "," ;
         }
 
         // 以下為文件
@@ -749,7 +756,7 @@ router.post('/UpdateProductAfterPublish', function (req, res, next) {
         // console.log(rows[0].p_PVOnGridDate);
         // console.log(rows[0].p_ContractOut);
         // console.log(rows[0].p_CaseConstruction);
-        // console.log(rows[0].p_Copywriting);
+        // console.log(rows[0].p_pvSiteintro);
 
         // console.log("*");
         // console.log(rows[0].pd_NotarizedRentalContract);
@@ -834,9 +841,9 @@ router.post('/UpdateProductAfterPublish', function (req, res, next) {
     // console.log(req.body.p_CaseConstruction_UpdateReason); 
     
     // // 產品文案
-    // console.log(req.body.p_Copywriting);    
+    // console.log(req.body.p_pvSiteintro);    
     // // 修改理由
-    // console.log(req.body.p_Copywriting_UpdateReason);
+    // console.log(req.body.p_pvSiteintro_UpdateReason);
 
     // // *********************************************************
 
@@ -1212,8 +1219,6 @@ router.get('/ViewProductDeatil', function (req, res, next) {
     });
 });
 
-
-
 //修改資料：將修改後的資料傳到資料庫(FMN專用)
 router.post('/EditProductByFMN', function (req, res, next) {
     // console.log('------------------------==\n@Product/EditProductByFMS:\nreq.query', req.query, 'req.body', req.body);
@@ -1301,7 +1306,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_fundingGoal: req.body.p_fundingGoal,
         p_HCAT721uri: req.body.p_HCAT721uri,
         p_EPCname: req.body.p_EPCname,
-        p_Copywriting: req.body.p_Copywriting,
+        p_pvSiteintro: req.body.p_pvSiteintro,
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
@@ -1339,7 +1344,7 @@ router.post('/EditProductByFMN', function (req, res, next) {
         p_CFED: req.body.p_CFED,
         p_fundingGoal: req.body.p_fundingGoal,
         p_EPCname: req.body.p_EPCname,
-        p_Copywriting: req.body.p_Copywriting,
+        p_pvSiteintro: req.body.p_pvSiteintro,
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
@@ -2098,7 +2103,7 @@ router.get('/LaunchedProductList', function (req, res) {
         p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
         IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
         IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-        p_Copywriting AS copyWritingText
+        p_pvSiteintro AS copyWritingText
         FROM product AS T1
         LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
                     FROM order_list
@@ -2485,7 +2490,7 @@ router.get('/ProductDataBySymbol', function (req, res) {
                 p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
                 IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
                 IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
-                p_Copywriting AS copyWritingText
+                p_pvSiteintro AS copyWritingText
                 FROM product AS T1
                 LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
                             FROM order_list
