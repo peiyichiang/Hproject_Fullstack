@@ -121,7 +121,8 @@ const product = function(){
     console.log(status);
     var query1 =  new Promise(async (resolve,reject) => {
         const queryStr = 
-        `SELECT p.p_irr AS irr,
+        `SELECT p.p_state AS status,
+                p.p_irr AS irr,
                 pd.pd_icon AS icon,
                 p.p_name AS name,
                 p.p_location AS location,
@@ -137,7 +138,8 @@ const product = function(){
                 p.p_size AS size,
                 p.p_CFSD AS CFSD,
                 p.p_CFED AS CFED,
-                p.p_Copywriting AS copywriting,
+                p.p_pvModuleintro AS solarIntroduction,
+                p.p_pvSiteintro AS pvSiteintro,
                 g.g_giftRequirement AS giftRequirement,
                 g.g_image AS gift
         FROM product p
@@ -245,17 +247,44 @@ const product = function(){
 }
 const asset = function(){
     console.log("This is asset query")
-    status = arguments[0][0];
-    size = arguments[0][1];
-    console.log(status);
-    console.log(size);
-    return new Promise(async (resolve,reject) => {
-        const queryStr = 'SELECT * FROM product WHERE p_state = ? AND p_size = ?';
-        const result = await mysqlPoolQueryB(queryStr, [status,size]).catch((err) => {
+    user_email = arguments[0][0];
+    symbol = arguments[0][1];
+    console.log(user_email);
+    console.log(symbol);
+    var query1 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_name AS name,
+                p.p_location AS location,
+                p.p_SYMBOL AS symbol,
+                SUBSTRING(p.p_PVOnGridDate,1,6) AS PVOnGridDate,
+                p.p_size AS size,
+                p.p_totalrelease AS totalRelease
+        FROM  product p
+        INNER JOIN investor_assetRecord ar on ar.ar_tokenSYMBOL = p.p_SYMBOL 
+        WHERE ar.ar_investorEmail = (?)
+        GROUP BY p.p_SYMBOL;`;
+        const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+            console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
-        resolve(result);
+        console.log(result)
+        resolve({"main":result});
     });
+    // LEFT JOIN product p ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
+    var query2 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT ar.ar_tokenSYMBOL AS symbol,
+                ar.ar_Time AS time,
+                ar.ar_Holding_Amount_in_the_end_of_Period AS test
+        FROM investor_assetRecord ar
+        WHERE ar.ar_investorEmail = (?);`;
+        const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        resolve({"assetRecord":result});
+    });
+    return Promise.all([query1,query2]).then();
 }
 
 
