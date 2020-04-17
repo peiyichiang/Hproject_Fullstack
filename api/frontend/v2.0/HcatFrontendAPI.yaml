@@ -979,9 +979,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AssetManagementAssetRecord"
-        accIncome: #累積收益 從asset record中的personal income的累積
-          type: integer
-          format: int11
         
         
 
