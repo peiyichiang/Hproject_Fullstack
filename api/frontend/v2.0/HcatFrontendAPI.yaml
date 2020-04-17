@@ -966,6 +966,9 @@ components:
         size:  #系統規模
           type: number
           format: float
+        RPT:   #電費支付期數
+          type: integer
+          format: int8
         totalRelease:   #總片數
           type: integer
           format: int8
