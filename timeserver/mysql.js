@@ -258,7 +258,8 @@ const asset = function(){
                 p.p_SYMBOL AS symbol,
                 SUBSTRING(p.p_PVOnGridDate,1,6) AS PVOnGridDate,
                 p.p_size AS size,
-                p.p_totalrelease AS totalRelease
+                p.p_totalrelease AS totalRelease,
+                p.p_RPT AS RPT
         FROM  product p
         INNER JOIN investor_assetRecord ar on ar.ar_tokenSYMBOL = p.p_SYMBOL 
         WHERE ar.ar_investorEmail = (?)
@@ -275,7 +276,10 @@ const asset = function(){
         const queryStr = 
         `SELECT ar.ar_tokenSYMBOL AS symbol,
                 ar.ar_Time AS time,
-                ar.ar_Holding_Amount_in_the_end_of_Period AS test
+                ar.ar_personal_income AS income,
+                ar.ar_managementfee AS managementFee,
+                ar.ar_insurancepremium AS insurance,
+                ar.ar_rent AS rent
         FROM investor_assetRecord ar
         WHERE ar.ar_investorEmail = (?);`;
         const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
