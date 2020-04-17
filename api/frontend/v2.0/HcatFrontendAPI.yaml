@@ -74,14 +74,6 @@ paths:
         - AssetManagement 
       summary: 取得使用者資產資料
       operationId: getAsset
-      parameters:
-        - name: symbol 
-          in: query
-          description: 取得資產資料 
-          required: true
-          explode: true
-          schema:
-            type: string
       # requestBody:
       #   $ref: "#/components/requestBodies/Product"
       responses:
