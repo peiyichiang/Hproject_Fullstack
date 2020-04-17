@@ -5,14 +5,13 @@ var async = require('async');
 
 router.get('/asset',function (req,res){
     console.log("This is asset API")
-    //get parameter from req.query
-    symbol = req.query.symbol;
-    //get user information from jwt.decode
-    userName = 'test';
-    userEmail = 'ivan55660228@gmail.com';
+    //get user information from req.decoded
+    //_userName = req.decoded.name;
+    //_userEmail = req.decoded.email;
+    _userEmail = 'ivan55660228@gmail.com';
     //database query
     const query = req.frontendPoolQuery;
-    query('asset',[userEmail,symbol]).then((result) => {
+    query('asset',[_userEmail]).then((result) => {
         var string=JSON.stringify(result); 
         var data = JSON.parse(string);
         data = formating(data);
