@@ -1015,7 +1015,7 @@ components:
         totalRelease:   #總片數
           type: integer
           format: int8
-        temp: #躉受費率 目前資料庫還沒有欄位
+        feedInTariff: #躉受費率 
           type: number
           foramt: float
         assetRecord: #收益紀錄
