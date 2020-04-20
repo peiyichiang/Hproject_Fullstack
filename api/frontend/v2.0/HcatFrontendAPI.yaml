@@ -14,6 +14,8 @@ tags:
   #   description: 管理資產相關的功能
   - name: AssetManagement
     description: 管理資產相關功能
+  - name: Order
+    description: 管理訂單相關功能
   - name: pet
     description: Everything about your Pets
     externalDocs:
@@ -85,6 +87,48 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AssetManagement"       
+        "404":
+          description: _________
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /Order/QueryOrder:
+    get:
+      tags:
+        - Order 
+      summary: 查詢使用者訂單
+      operationId: getQueryOrder
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"       
+        "404":
+          description: _________
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /Order/b:
+    post:
+      tags:
+        - Order 
+      summary: ______
+      operationId: ______
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"       
         "404":
           description: _________
         "401":
@@ -637,30 +681,29 @@ components:
     Order:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        petId:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int32
-        shipDate:
+        status: #訂單狀態 (已付款 txnFinish，待付款 waiting，已過期 expired) o_paymentStatus
           type: string
-          format: date-time
-        status:
+        name:  #產品名稱，要去product找
           type: string
-          description: Order Status
-          enum:
-            - placed
-            - approved
-            - delivered
-        complete:
+        symbol: 
+          type: string
+        tokenCount: #o_tokenCOunt
+          type: integer
+          format: int11
+        fundCount: #o_fundCount
+          type: integer
+          format: int11
+        source: #訂單來源，需要加資料庫（用數字代表 status）
+          type: integer
+          format: int11
+        date: # 待付款 => 付款期限，購買日（o_purchaseDate）加三天 ; 已付款 => 銷帳日期 o_accountingTime ; 已過期 => 下單日期 o_purchaseDate
+          type: string
+        gift: #有無贈品
           type: boolean
           default: false
-      xml:
-        name: Order
+        bankVirtualAccount: #o_bankvirtualaccount
+          type: string
+        
     Category:
       type: object
       properties:
