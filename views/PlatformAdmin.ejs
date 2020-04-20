@@ -77,9 +77,14 @@
                         <!-- <input type="button" name="edit" value="Edit" onclick="Edit('<%= data[i].m_id  %>');" /> -->
                     </td>
                     <td>
-                        <button type="button" class="btn btn-danger" name="delete" value="Delete"
-                            onclick="Delete('<%= data[i].m_id  %>');">Delete</button>
-                        <!-- <input type="button" name="delete" value="Delete" onclick="Delete('<%= data[i].m_id  %>');" /> -->
+                        <%if (data[i].m_permission !="Deleted" ) { %>
+                            <button type="button" class="btn btn-danger" name="delete" value="Delete"
+                                onclick="Delete('<%= data[i].m_id  %>');">Delete</button>
+                        <% } %>
+                        <%if (data[i].m_permission =="Deleted" ) { %>
+                            <button type="button" class="btn btn-danger" disabled name="delete" value="Delete"
+                                onclick="Delete('<%= data[i].m_id  %>');">Delete</button>
+                        <% } %>
                     </td>
                     <!-- onclick="Edit('<%= data[i].id  %>');" -->
                 </tr>

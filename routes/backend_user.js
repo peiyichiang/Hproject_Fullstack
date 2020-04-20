@@ -103,6 +103,14 @@ router.get('/AddBackendUser', function (req, res, next) {
 router.post('/AddBackendUser', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
 
+    // console.log(req.body.m_id);
+    // console.log(req.body.m_passwordhash);
+    // console.log(req.body.m_taxidnumber);
+    // console.log(req.body.m_company);
+    // console.log(req.body.m_bankcode);
+    // console.log(req.body.m_email);
+    console.log(req.body.m_permission);
+
     const saltRounds = 10;
     bcrypt
     .genSalt(saltRounds)
@@ -118,8 +126,10 @@ router.post('/AddBackendUser', function (req, res, next) {
             m_salt: '0',
             m_passwordhash: hash,
             m_company: req.body.m_company,
-            m_permission: "NA",
+            m_permission: req.body.m_permission,
             m_email:req.body.m_email,
+            m_taxidnumber:req.body.m_taxidnumber,
+            m_bankcode:req.body.m_bankcode
         };
 
         console.log("###" + JSON.stringify(sql));
@@ -198,7 +208,7 @@ router.post('/ForgetPassword', function (req, res, next) {
                 from: ' <noreply@hcat.io>', // sender address
                 to: email, // list of receivers
                 subject: '重新設置密碼', // Subject line
-                text: '請點以下連結重新設置密碼： http://127.0.0.1:3030/BackendUser/ResetPassword?hash=' + passwordHash, // plain text body
+                text: '請點以下連結重新設置密碼：' + process.env['SERVER_PROTOCOL'] + '://' + process.env['SERVER_HOST'] + ':' + process.env['SERVER_PORT'] + '/BackendUser/ResetPassword?hash=' + passwordHash, // plain text body
                 // html: '<b>Hello world?</b>' // html body
             };
         
@@ -216,7 +226,7 @@ router.post('/ForgetPassword', function (req, res, next) {
                     // res.json({
                     //     "message": "重新設置密碼連結 寄送成功"
                     // })
-                    res.render('error', { message: '重新設置密碼連結 寄送成功', error: '' });
+                    res.render('error', { message: '重新設置密碼連結 寄送成功,若信箱內沒找到信,若是信件夾找不到，有可能是被系統分類到"垃圾郵件"或"廣告郵件"裡，請到這幾個信件夾找尋認證信。', error: '' });
                 }
                 // console.log('Message sent: %s', info.messageId);
                 // Preview only available when sending through an Ethereal account
@@ -307,10 +317,26 @@ router.get('/DeleteBackendUser', function (req, res, next) {
     var ID = req.query.ID;
     var mysqlPoolQuery = req.pool;
 
-    var qur = mysqlPoolQuery('DELETE FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+    // var qur = mysqlPoolQuery('DELETE FROM backend_user WHERE m_id = ?', ID, function (err, rows) {
+    //     if (err) {
+    //         console.log(err);
+    //     }
+    //     res.redirect('/BackendUser/backend_user');
+    // });
+    var sql = {
+        m_permission: "Deleted"
+    };
+
+    console.log("*:" + JSON.stringify(sql));
+
+    var qur = mysqlPoolQuery('UPDATE backend_user SET ? WHERE m_id = ?', [sql, ID], function (err, rows) {
         if (err) {
             console.log(err);
+        } else {
+            console.log(rows);
         }
+
+        // res.setHeader('Content-Type', 'application/json');
         res.redirect('/BackendUser/backend_user');
     });
 });

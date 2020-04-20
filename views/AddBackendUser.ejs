@@ -30,9 +30,9 @@
                                 <div class="right">
                                     <div class="login">
                                         <form name="addform" id="addform" action="/BackendUser/AddBackendUser" method="post" accept-charset="utf-8" >
-                                            <div class="inputTitle">公司統編*<span id="errorMessage" style="color:red;font-size:12px; "></span></div>
+                                            <div class="inputTitle">帳號*</div>
                                             <div class="inputContainer">
-                                                <input type="text" class="username" name="m_id" id="m_id" onchange="isEmail(this.value)">
+                                                <input type="text" class="username" name="m_id" id="m_id">
                                                 <i class="fas fa-id-badge"></i>
                                             </div>
                                             <!-- <br> -->
@@ -47,22 +47,48 @@
                                                 <input type="password" class="password" name="m_password_2" id="m_password_2">
                                                 <i class="fas fa-lock"></i>
                                             </div>
+                                            <div class="inputTitle">公司統編*</span></div>
+                                            <div class="inputContainer">
+                                                <input type="text" class="username" name="m_taxidnumber" id="m_taxidnumber">
+                                                <i class="fas fa-id-badge"></i>
+                                            </div>
+                                            <div class="inputTitle">公司名稱*</span></div>
+                                            <div class="inputContainer">
+                                                <input type="text" class="username" name="m_company" id="m_company">
+                                                <i class="fas fa-id-badge"></i>
+                                            </div>
+                                            <div class="inputTitle">虛擬帳號專案代號*</span></div>
+                                            <div class="inputContainer">
+                                                <input type="text" class="username" name="m_bankcode" id="m_bankcode">
+                                                <i class="fas fa-id-badge"></i>
+                                            </div>
+                                            <div class="inputTitle">Email*<span id="errorMessage" style="color:red;font-size:12px; "></span></div>
+                                            <div class="inputContainer">
+                                                <input type="text" class="username" name="m_email" id="m_email" onchange="isEmail(this.value)">
+                                                <i class="fas fa-id-badge"></i>
+                                            </div>
+
+                                            <div class="inputTitle">權限*</div>
+                                            <div class="inputContainer">
+                                                    <input type="hidden" class="username" id="m_permission" name="m_permission" placeholder="m_permission">
+                                                    <select class="username" id="m_permission_list" onchange="onSelectChange(this.options[this.options.selectedIndex].value)">
+                                                            <option value="NA">NA</option>
+                                                            <option value="Platform_Admin">Platform_Admin</option>
+                                                            <option value="Platform_Supervisor">Platform_Supervisor</option>
+                                                            <option value="Platform_CustomerService">Platform_CustomerService</option>
+                                                            <option value="Company_FundManagerN">Company_FundManagerN</option>
+                                                            <option value="Company_FundManagerS">Company_FundManagerS</option>
+                                                            <option value="Company_FundManagerS">Deleted</option>
+                                                    </select>
+                                            </div>
+
                                             <div>
                                                 <input type="hidden" name="m_salt" placeholder="m_salt" id="m_salt">
                                             </div>
                                             <div>
                                                 <input type="hidden" name="m_passwordhash" placeholder="m_passwordhash" id="m_passwordhash">
                                             </div>
-                                            <div class="inputTitle">公司*</div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_company">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div>
-                                            <!-- <div class="inputTitle">Email*</div>
-                                            <div class="inputContainer">
-                                                <input type="text" class="username" name="m_email">
-                                                <i class="fas fa-id-badge"></i>
-                                            </div> -->
+
                                             <div class="haveAccount responseState"></div>
                                             <input type='button' value="註冊" id="register" class="register">
                                         </form>

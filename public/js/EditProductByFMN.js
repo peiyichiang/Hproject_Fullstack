@@ -18,11 +18,11 @@ modify.addEventListener('click',function(){
         }
     }
  
-    // 判斷textArea(p_Copywriting)有沒有填寫
+    // 判斷textArea(p_pvSiteintro)有沒有填寫
     String.prototype.trim = function() {
         return this.replace(/^\s+|\s+$/g,"");
       }
-    ele=document.getElementById("p_Copywriting");
+    ele=document.getElementById("p_pvSiteintro");
  
     if(ele.value==""){
         empty_++;
