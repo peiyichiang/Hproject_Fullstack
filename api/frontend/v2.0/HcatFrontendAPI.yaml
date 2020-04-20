@@ -74,14 +74,6 @@ paths:
         - AssetManagement 
       summary: 取得使用者資產資料
       operationId: getAsset
-      parameters:
-        - name: symbol 
-          in: query
-          description: 取得資產資料 
-          required: true
-          explode: true
-          schema:
-            type: string
       # requestBody:
       #   $ref: "#/components/requestBodies/Product"
       responses:
@@ -805,9 +797,9 @@ components:
     ProductDate:
       type: object
       properties:
-        PSD: 
+        ContractOut: 
           type: string
-        FMXAdate:      
+        CaseConstruction:      
           type: string
         TaiPowerApprovalDate:       
           type: string
@@ -815,7 +807,7 @@ components:
           type: string
         PVTrialOperationDate:      
           type: string
-        PVOnGridDate:  
+        ElectricityBilling:  
           type: string
         CFSD:  
           type: string
@@ -825,6 +817,8 @@ components:
     Product:
       type: object
       properties:
+        status:
+          type: string
         irr:
           type: number
           format: float
@@ -863,7 +857,7 @@ components:
         sunshine:      #平均年日照量(目前資料庫沒有該欄位)
           type: integer
           format: int8
-        solarIntroduction: #  太陽能簡介(目前資料庫沒有該欄位)
+        solarIntroduction: #  太陽能簡介(目前資料庫沒有該欄位) p_pvModuleintro
           type: string
         size:          #系統規模
           type: number
@@ -872,13 +866,13 @@ components:
           type: string   
         CFED:          #結束日
           type: string 
-        copywriting:   #文案
+        pvSiteintro:   #文案 p_pvSiteintro 原本是copywriting
           type: string
         image:         #案場圖片
           $ref: "#/components/schemas/ProductImage" 
         doc:
           $ref: "#/components/schemas/ProductDoc"
-        data:          #預估進度
+        date:          #預估進度
           $ref: "#/components/schemas/ProductDate"
         gift:          #贈品
           type: string
@@ -964,7 +958,7 @@ components:
         powerGenerationAcc: #當其累積發電量，每期會加總後更新
           type: integer
           format: int11
-        forecastedPeriodIncomePerPiece: #本期預估收益 ia_single_Forecasted_Payable_Income_in_the_Period
+        forecastedPeriodIncomePerPiece: #本期預估收益 ia_single_Forecasted_Payable_Income_in_the_Period 期數要從timeserver中找大於現在時間的最小值
           type: integer
           format: int11
         PVOnGridDate: #掛錶年份 只要前6個數字(年月)
@@ -972,6 +966,9 @@ components:
         size:  #系統規模
           type: number
           format: float
+        RPT:   #電費支付期數
+          type: integer
+          format: int8
         totalRelease:   #總片數
           type: integer
           format: int8
@@ -982,9 +979,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AssetManagementAssetRecord"
-        accIncome: #累積收益 從asset record中的personal income的累積
-          type: integer
-          format: int11
         
         
 
