@@ -248,9 +248,7 @@ const product = function(){
 const asset = function(){
     console.log("This is asset query")
     user_email = arguments[0][0];
-    symbol = arguments[0][1];
     console.log(user_email);
-    console.log(symbol);
     var query1 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_name AS name,
@@ -268,11 +266,44 @@ const asset = function(){
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
-        console.log(result)
+        // console.log(result)
         resolve({"main":result});
     });
-    // LEFT JOIN product p ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
     var query2 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                rd.rd_date AS date,
+                rd.rd_six AS six,
+                rd.rd_seven AS seven,
+                rd.rd_eight AS eight,
+                rd.rd_nine AS nine,
+                rd.rd_ten AS ten,
+                rd.rd_eleven AS eleven,
+                rd.rd_twelve AS twelve,
+                rd.rd_thirteen AS thirteen,
+                rd.rd_fourteen AS fourteen,
+                rd.rd_fifteen AS fifteen,
+                rd.rd_sixteen AS sixteen,
+                rd.rd_seventeen AS seventeen
+        FROM radiation_data rd
+        LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_serialnumberfromvendor
+        WHERE rd.rd_serialnumberfromvendor IN 
+            (SELECT p.p_serialnumberfromvendor
+             FROM product p
+             WHERE p.p_symbol IN
+                 (SELECT ar.ar_tokenSYMBOL
+                  FROM investor_assetRecord ar
+                  WHERE ar.ar_investorEmail = (?))
+            );`;
+        const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        console.log("@",result)
+        resolve({"powerGeneration":result});
+    })
+    // LEFT JOIN product p ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
+    var query3 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT ar.ar_tokenSYMBOL AS symbol,
                 ar.ar_Time AS time,
@@ -288,7 +319,7 @@ const asset = function(){
         });
         resolve({"assetRecord":result});
     });
-    return Promise.all([query1,query2]).then();
+    return Promise.all([query1,query2,query3]).then();
 }
 
 
