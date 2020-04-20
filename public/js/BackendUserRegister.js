@@ -4,7 +4,6 @@ var m_password_1=document.getElementById('m_password_1');
 var m_password_2=document.getElementById('m_password_2');
 var m_passwordhash=document.getElementById('m_passwordhash');
 
-
 //監聽註冊按鈕
 register.addEventListener('click',function(){
 	// 判斷email是否正確
@@ -34,9 +33,16 @@ function isEmail(email){
 	if(is.email(email)){
 		document.getElementById("errorMessage").textContent="";
 	}else{
-		document.getElementById("errorMessage").textContent=" (輸入Email有錯誤)";
+		document.getElementById("errorMessage").textContent=" (Email有錯誤)";
 		console.log("false");
 	}
+}
+
+var m_permission=document.getElementById('m_permission');
+var m_permission_list=document.getElementById('m_permission_list');
+//當權限選單改變，將新的權限設置給m_permission
+function onSelectChange(opt){
+	m_permission.value=opt;
 }
 
 

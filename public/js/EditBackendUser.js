@@ -6,8 +6,6 @@ window.onload=function(){
     //將資料庫中撈到的權限資料設置在select選單中
     for(var i=0;i<m_permission_list.options.length;i++){
         // alert(m_permission_list.options[i].value);
-        // alert(m_permission.value);
-        // alert(m_permission_list.options[i].value);
         if(m_permission.value==m_permission_list.options[i].value){
             m_permission_list.selectedIndex=i;
         }
