@@ -286,8 +286,8 @@ const asset = function(){
                 rd.rd_sixteen AS sixteen,
                 rd.rd_seventeen AS seventeen
         FROM radiation_data rd
-        LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_serialnumberfromvendor
-        WHERE rd.rd_serialnumberfromvendor IN 
+        LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
+        WHERE rd.rd_apistringofmonitor IN 
             (SELECT p.p_serialnumberfromvendor
              FROM product p
              WHERE p.p_symbol IN
