@@ -104,7 +104,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
   });
 })}
 
-//Following AssetManagement api function is not finished yet.
+
 const AssetManagement_api = ()=>{
   describe("AssetManagement.js api test...",()=>{
     it("get asset",done=>{
@@ -112,15 +112,15 @@ const AssetManagement_api = ()=>{
       .get(version2+"/AssetManagement/asset")
       .set("Accept","application/json")
       .expect(200)
-      .then(
+      .end(
         (err,res)=>{
           if(err){
-            console.log("Fail")
+            
             console.log(err);
             done(err);
           }
           else{
-            console.log("Success")
+            
             console.log(res.text)
             done();
           }
@@ -135,9 +135,10 @@ const flow1 = ()=>{
   p_status.forEach(element =>{
     productinfo_api(element);
   })
+  AssetManagement_api();
 }
 
-AssetManagement_api();
+
 
 
 
