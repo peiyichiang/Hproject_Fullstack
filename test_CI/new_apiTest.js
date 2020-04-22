@@ -78,12 +78,12 @@ const JWT_demo = ()=>{describe("test the new api",()=>{
 // new api testing begin 
 
 
-/*describe("Frontend API 2.0/ Product.js",()=>{
-  it("Get Products Information", done => {
+const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
+  it("Get Products Information(status:200) with "+p_status, done => {
     request
     .get(version2+"/product/ProductInfo")
     .query({
-      status:"ONM"
+      status:p_status
     })
     .set("Accept","application/json")
     .expect(200)
@@ -102,38 +102,47 @@ const JWT_demo = ()=>{describe("test the new api",()=>{
       }
     )
   });
-})*/
+})}
+
+//Following AssetManagement api function is not finished yet.
+const AssetManagement_api = ()=>{
+  describe("AssetManagement.js api test...",()=>{
+    it("get asset",done=>{
+      request
+      .get(version2+"/AssetManagement/asset")
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (err,res)=>{
+          if(err){
+            console.log("Fail")
+            console.log(err);
+            done(err);
+          }
+          else{
+            console.log("Success")
+            console.log(res.text)
+            done();
+          }
+        }
+      )
+    })
+  })
+}
+
+const flow1 = ()=>{
+  p_status=["draft","creation","publish", "funding", "ONM", "aborted"]
+  p_status.forEach(element =>{
+    productinfo_api(element);
+  })
+}
+
+AssetManagement_api();
+
 
 
 // demo zone...
 
-
-describe("demo",(email = 'ivan55660228@gmail.com', password = '02282040',symbol="APPL2022")=>{
-  before('Login before do something', async function(){
-    await request
-      .get(version + '/user/UserLogin')
-      .set('Accept', 'application/json')
-      .query({ email: email, password: password })
-      .expect(200)
-      .then(async function(res){
-        await res.body.jwt.should.not.empty();
-        jwt = res.body.jwt;
-      });
-  });
-  it("CaseImageURLByCaseSymbol",done=>{
-    request
-        .get(version+'/product/CaseImageURLByCaseSymbol')
-        .query({ JWT: jwt, symbol: symbol })
-        .set('Accept', 'application/json')
-        .expect(200)
-        .then(async function(res){
-          await res.body.result.should.not.empty();
-          console.log("message down below")
-          console.log(res.body.message)
-          done();
-        })
-  });
-})
 
 
 
