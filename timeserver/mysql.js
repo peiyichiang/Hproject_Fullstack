@@ -289,7 +289,7 @@ const asset = function(){
                 IFNULL(rd.rd_seventeen, 0) AS seventeen
         FROM radiation_data rd
         LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
-        WHERE rd.rd_date = ? AND rd.rd_apistringofmonitor IN 
+        WHERE rd.rd_apistringofmonitor IN 
             (SELECT p.p_serialnumberfromvendor
              FROM product p
              WHERE p.p_symbol IN
