@@ -36,6 +36,17 @@ router.post('/c',function(req,res){
     }, 3000)
 })
 
+router.get('/TimeServerTime',function (req,res){
+    console.log("This is TimeServerTime API");
+    time = getTimeServerTime().then((result) => {
+        console.log("time",result);
+        return res.json({message: 'success',data: result});
+    }).catch((err) => {
+        console.log(err);
+        return res.json({message: 'fail'});
+    })
+})
+
 router.get('/ProductInfo',function (req,res){
     console.log("This is ProductInfo API")
     //get parameter from req.query
@@ -50,29 +61,36 @@ router.get('/ProductInfo',function (req,res){
     }).catch((err => {
         // console.log(err);
         return res.json({message: 'fail'});
-    }))
-
+    }))    
 })
+
 function formating(data){
     newData = [];
     data.forEach(function(item, index, array){
         key = Object.keys(item);
         if(key=="main"){
+            console.log('main')
             item[key].forEach(function(obj){
                 newData.push(obj);
             })
         }else if(key=="income"){
-            console.log(item[key])
-            newData.forEach(function(obj){
-                symbol = obj.symbol;
-                acc_income = [];
-                item[key][symbol].forEach(function(value){
-                    if(acc_income.length == 0) acc_income.push(value); 
-                    else acc_income.push(value+acc_income[acc_income.length-1]);
+            if (Object.keys(item[key]).length > 0){
+                newData.forEach(function(obj){
+                    symbol = obj.symbol;
+                    acc_income = [];
+                    item[key][symbol].forEach(function(value){
+                        if(acc_income.length == 0) acc_income.push(value); 
+                        else acc_income.push(value+acc_income[acc_income.length-1]);
+                    })
+                    obj["forecastedAnnualIncome"] = item[key][symbol];
+                    obj["accumulateForecastedAnnualIncome"] = acc_income;
                 })
-                obj["forecastedAnnualIncome"] = item[key][symbol];
-                obj["accumulateForecastedAnnualIncome"] = acc_income;
-            })
+            }else{
+                newData.forEach(function(obj){
+                    obj["forecastedAnnualIncome"] = [];
+                    obj["accumulateForecastedAnnualIncome"] = [];
+                })
+            }
         }else{
             item[key].forEach(function(item){
                 var symbol = item.symbol;
