@@ -89,14 +89,13 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
     .expect(200)
     .end(
       (err,res)=>{
+        res.body.message.should.equal("success")
+        res.body.data.should.not.empty()
         if(err){
           console.log(err)
           done(err);
         }
         else{
-          console.log(res.body)
-          res.body.message.should.equal("success")
-          res.body.data.should.not.empty()
           done();
         }
       }
@@ -104,7 +103,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
   });
 })}
 
-
+// the api query string still fixed it will be a parameter later so still need to be modified
 const AssetManagement_api = ()=>{
   describe("AssetManagement.js api test...",()=>{
     it("get asset",done=>{
@@ -114,15 +113,36 @@ const AssetManagement_api = ()=>{
       .expect(200)
       .end(
         (err,res)=>{
+          res.body.message.should.equal("success")
           if(err){
-            
             console.log(err);
             done(err);
           }
           else{
-            
-            console.log(res.text)
             done();
+          }
+        }
+      )
+    })
+  })
+}
+// the api query string still fixed it will be a parameter later so still need to be modified
+const Order_api = () => {
+  describe("Order.js test...",()=>{
+    it("QueryOrder api test..",done=>{
+      request
+      .get(version2+"/Order/QueryOrder")
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          res.body.message.should.equal("success")
+          if(err){
+            console.log(err)
+            done(err)
+          }
+          else{
+            done()
           }
         }
       )
@@ -136,16 +156,17 @@ const flow1 = ()=>{
     productinfo_api(element);
   })
   AssetManagement_api();
+  Order_api();
 }
 
 
-
+flow1();
 
 
 // demo zone...
 
 
-
+JWT_demo();
 
 
 
