@@ -1,3 +1,5 @@
+//Main tool of CICD testing is Mocha, the rest of modules help us judge the api work successfully or not.
+//the following command is to start testing the api testing code.(make sure yor are in the Hproject_Fullstack) -> node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js
 const app = require('../app');
 const request = require('supertest')(app);
 var mocha = require('mocha');
@@ -15,6 +17,8 @@ const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 let virtualAccount;
 let crowdFundingAddr;
 
+//each version is represented as different version of frontend api path
+
 //var describe = mocha.describe;
 //var it = mocha.it;
 const version = "/frontendAPI/v1.0";
@@ -22,7 +26,7 @@ const version2 = "/frontendAPI/v2.0";
 
 
 
-// new type of api testing demo is down below
+// JWT_demo is a demo of our new method of jwt authorization test.
 
 const JWT_demo = ()=>{describe("test the new api",()=>{
   let token;
@@ -75,7 +79,7 @@ const JWT_demo = ()=>{describe("test the new api",()=>{
 })}
 
 
-// new api testing begin 
+// new api testing begin here. Every api mocha code is designed to be fed all parameters in and simulate all conditions.
 
 
 const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
@@ -161,12 +165,9 @@ const flow1 = ()=>{
 
 
 flow1();
-
+//JWT_demo();
 
 // demo zone...
-
-
-JWT_demo();
 
 
 
