@@ -1,3 +1,5 @@
+//Main tool of CICD testing is Mocha, the rest of modules help us judge the api work successfully or not.
+//the following command is to start testing the api testing code.(make sure yor are in the Hproject_Fullstack) -> node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js
 const app = require('../app');
 const request = require('supertest')(app);
 var mocha = require('mocha');
@@ -15,6 +17,8 @@ const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 let virtualAccount;
 let crowdFundingAddr;
 
+//each version is represented as different version of frontend api path
+
 //var describe = mocha.describe;
 //var it = mocha.it;
 const version = "/frontendAPI/v1.0";
@@ -22,7 +26,7 @@ const version2 = "/frontendAPI/v2.0";
 
 
 
-// new type of api testing demo is down below
+// JWT_demo is a demo of our new method of jwt authorization test.
 
 const JWT_demo = ()=>{describe("test the new api",()=>{
   let token;
@@ -75,7 +79,7 @@ const JWT_demo = ()=>{describe("test the new api",()=>{
 })}
 
 
-// new api testing begin 
+// new api testing begin here. Every api mocha code is designed to be fed all parameters in and simulate all conditions.
 
 
 const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
@@ -89,14 +93,13 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
     .expect(200)
     .end(
       (err,res)=>{
+        res.body.message.should.equal("success")
+        res.body.data.should.not.empty()
         if(err){
           console.log(err)
           done(err);
         }
         else{
-          console.log(res.body)
-          res.body.message.should.equal("success")
-          res.body.data.should.not.empty()
           done();
         }
       }
@@ -104,7 +107,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
   });
 })}
 
-
+// the api query string still fixed it will be a parameter later so still need to be modified
 const AssetManagement_api = ()=>{
   describe("AssetManagement.js api test...",()=>{
     it("get asset",done=>{
@@ -114,15 +117,36 @@ const AssetManagement_api = ()=>{
       .expect(200)
       .end(
         (err,res)=>{
+          res.body.message.should.equal("success")
           if(err){
-            
             console.log(err);
             done(err);
           }
           else{
-            
-            console.log(res.text)
             done();
+          }
+        }
+      )
+    })
+  })
+}
+// the api query string still fixed it will be a parameter later so still need to be modified
+const Order_api = () => {
+  describe("Order.js test...",()=>{
+    it("QueryOrder api test..",done=>{
+      request
+      .get(version2+"/Order/QueryOrder")
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          res.body.message.should.equal("success")
+          if(err){
+            console.log(err)
+            done(err)
+          }
+          else{
+            done()
           }
         }
       )
@@ -136,16 +160,14 @@ const flow1 = ()=>{
     productinfo_api(element);
   })
   AssetManagement_api();
+  Order_api();
 }
 
 
-
-
+flow1();
+//JWT_demo();
 
 // demo zone...
-
-
-
 
 
 

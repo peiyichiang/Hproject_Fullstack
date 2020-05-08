@@ -89,6 +89,7 @@ const mysqlPoolQueryB = async (sql, options) => {
             if (err) {
                 return reject(err);
             } else {
+                // console.log("connected")
                 conn.query(sql, options, function (err, result) {
                     if (err) {
                         return reject(err);
@@ -105,7 +106,7 @@ const mysqlPoolQueryB = async (sql, options) => {
 // frontend sql query pool
 const frontendPoolQuery = (a,b) => {
     console.log("This is frontend pool query");
-    const queryType = {'product': product,'asset': asset};
+    const queryType = {'product': product,'asset': asset,'queryOrder': queryOrder};
     var query = queryType[a];
     return new Promise(async (resolve,reject) => {
         query(b).then((result) => {
@@ -135,6 +136,7 @@ const product = function(){
                 CONVERT(p.p_RPT,SIGNED) AS RPT,
                 CONVERT(SUBSTRING(p.p_FRP,1,2),SIGNED) AS FRPYear,
                 CONVERT(SUBSTRING(p.p_FRP,4,5),SIGNED) AS FRPMonth,
+                p.p_radiationPeryear AS sunshine,
                 p.p_size AS size,
                 p.p_CFSD AS CFSD,
                 p.p_CFED AS CFED,
@@ -154,7 +156,6 @@ const product = function(){
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
-        // console.log(result2);
         resolve({"main":result});
 
     });
@@ -248,7 +249,8 @@ const product = function(){
 const asset = function(){
     console.log("This is asset query")
     user_email = arguments[0][0];
-    console.log(user_email);
+    date = arguments[0][1].toString().slice(0,8);
+
     var query1 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_name AS name,
@@ -257,9 +259,10 @@ const asset = function(){
                 SUBSTRING(p.p_PVOnGridDate,1,6) AS PVOnGridDate,
                 p.p_size AS size,
                 p.p_totalrelease AS totalRelease,
-                p.p_RPT AS RPT
+                p.p_RPT AS RPT,
+                IFNULL(p.p_feedintariff, 0) AS feedInTariff
         FROM  product p
-        INNER JOIN investor_assetRecord ar on ar.ar_tokenSYMBOL = p.p_SYMBOL 
+        INNER JOIN investor_assetRecord ar ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
         WHERE ar.ar_investorEmail = (?)
         GROUP BY p.p_SYMBOL;`;
         const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
@@ -272,34 +275,33 @@ const asset = function(){
     var query2 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
-                rd.rd_date AS date,
-                rd.rd_six AS six,
-                rd.rd_seven AS seven,
-                rd.rd_eight AS eight,
-                rd.rd_nine AS nine,
-                rd.rd_ten AS ten,
-                rd.rd_eleven AS eleven,
-                rd.rd_twelve AS twelve,
-                rd.rd_thirteen AS thirteen,
-                rd.rd_fourteen AS fourteen,
-                rd.rd_fifteen AS fifteen,
-                rd.rd_sixteen AS sixteen,
-                rd.rd_seventeen AS seventeen
+                IFNULL(rd.rd_six, 0) AS six,
+                IFNULL(rd.rd_seven, 0) AS seven,
+                IFNULL(rd.rd_eight, 0) AS eight,
+                IFNULL(rd.rd_nine, 0) AS nine,
+                IFNULL(rd.rd_ten, 0) AS ten,
+                IFNULL(rd.rd_eleven, 0) AS eleven,
+                IFNULL(rd.rd_twelve, 0) AS twelve,
+                IFNULL(rd.rd_thirteen, 0) AS thirteen,
+                IFNULL(rd.rd_fourteen, 0) AS fourteen,
+                IFNULL(rd.rd_fifteen, 0) AS fifteen,
+                IFNULL(rd.rd_sixteen, 0) AS sixteen,
+                IFNULL(rd.rd_seventeen, 0) AS seventeen
         FROM radiation_data rd
         LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
-        WHERE rd.rd_apistringofmonitor IN 
+        WHERE rd.rd_date = ? AND rd.rd_apistringofmonitor IN 
             (SELECT p.p_serialnumberfromvendor
              FROM product p
              WHERE p.p_symbol IN
                  (SELECT ar.ar_tokenSYMBOL
                   FROM investor_assetRecord ar
-                  WHERE ar.ar_investorEmail = (?))
-            );`;
-        const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+                  WHERE ar.ar_investorEmail = (?)) 
+            ) ;`;
+        const result = await mysqlPoolQueryB(queryStr,[date,user_email]).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
-        console.log("@",result)
+        // console.log("@",result)
         resolve({"powerGeneration":result});
     })
     // LEFT JOIN product p ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
@@ -319,9 +321,59 @@ const asset = function(){
         });
         resolve({"assetRecord":result});
     });
+    // var query4 = new Promise(async (resolve,reject) =>{
+    //     const queryStr = 
+    //     `SELECT ia_SYMBOL,
+    //             ia_time,
+    //             ia_single_Forecasted_Payable_Income_in_the_Period
+    //     FROM income_arrangement
+    //     WHERE CONCAT(ia_SYMBOL,ia_time) IN
+    //         (SELECT  CONCAT(ia_SYMBOL,MIN(ia_time)) AS symbol
+    //         FROM income_arrangement
+    //         WHERE CONVERT(SUBSTRING(ia_time,1,8),SIGNED) > 20200420
+    //         GROUP BY ia_SYMBOL
+    //         );`;
+    //     const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+    //         console.log(err)
+    //         reject('[Error @ mysqlPoolQueryB]' + err);
+    //     });
+    //     console.log(result)
+    //     resolve({"assetRecord":result});
+    // });
     return Promise.all([query1,query2,query3]).then();
 }
 
+const queryOrder = function(){
+    console.log('This is queryOrder query');
+    user_email = arguments[0][0];
+    var query1 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT o.o_paymentStatus AS status,
+                p.p_name AS name,
+                o.o_symbol AS symbol,
+                o.o_tokenCount AS tokenCount,
+                o.o_fundCount AS fundCount,
+                o.o_purchaseDate AS temp_date,
+                CASE o.o_paymentStatus
+                    WHEN 'waiting' THEN DATE_ADD(CONVERT(SUBSTRING(o_purchaseDate,1,8),datetime), INTERVAL 3 DAY)
+                    WHEN 'txnFinished' THEN DATE_ADD(CONVERT(SUBSTRING(o_purchaseDate,1,8),datetime), INTERVAL 3 DAY)
+                    WHEN 'expired' THEN o_purchaseDate
+                    ELSE 0
+                END AS date,
+                o.o_bankvirtualaccount AS bankVirtualAccount
+        FROM  order_list o
+        LEFT JOIN product p on p.p_SYMBOL = o.o_symbol
+        WHERE o.o_email = (?) AND o.o_paymentStatus IN ('waiting','txnFinished','expired') ;`;
+        const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        // console.log(result)
+        resolve({"main":result});
+    });
+    return Promise.all([query1]).then();
+
+}
 
 const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook) => {
     return new Promise(async (resolve, reject) => {
