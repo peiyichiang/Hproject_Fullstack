@@ -8,15 +8,24 @@ router.get('/QueryOrder', function(req,res){
     console.log("This is QueryOrder API");
     _userEmail = 'ivan55660228@gmail.com';
     const query = req.frontendPoolQuery;
-    query('queryOrder',[_userEmail]).then((result) => {
-        var string=JSON.stringify(result); 
-        var data = JSON.parse(string);
-        data = formating(data);
-        return res.json({message: 'success',data: data});
-    }).catch((err => {
-        console.log(err);
-        return res.json({message: 'fail'});
-    }))
+    if (_userEmail){
+        query('queryOrder',[_userEmail]).then((result) => {
+            var string=JSON.stringify(result); 
+            var data = JSON.parse(string);
+            data = formating(data);
+            if (data.length != 0){
+                return res.status(200).json({success:"True",data: data});
+            }else{
+                return res.status(404).json({success: "False", message: "data not found"});
+            }
+        }).catch((err => {
+            console.log(err);
+            return res.status(500).json({success: "False", message: "sql error"});
+        }))
+    }else{
+        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+    }
+    
 })
 
 function formating(data){
@@ -25,10 +34,11 @@ function formating(data){
         key = Object.keys(item);                // all the sql result has a key see mysql.js
         if(key=="main"){
             item[key].forEach(function(obj){
-                if(obj.status == 'txnFinished'){  // this is waiting
+                if(obj.status == 'waiting'){  // this is waiting
                     obj.date = obj.date.substring(0,10).replace(/[-]/g,'')+obj.temp_date.substring(7,12)
-                    delete obj.temp_date
+                    
                 }
+                delete obj.temp_date
                 newData.push(obj);
             })
         }// forEach 就如同 for，不過寫法更容易
