@@ -3,6 +3,7 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 var async = require('async');
 const { getTimeServerTime } = require('../../../timeserver/utilities');
+const fetch = require("node-fetch");
 const powerGenerationdata = {
     "six": 0,
     "seven": 0,
@@ -17,26 +18,53 @@ const powerGenerationdata = {
     "sixteen": 0,
     "seventeen": 0
 }
+
+async function getbalanceof(){
+    const BcApiBase = "http://localhost:3030/Contracts/";
+    console.log(BcApiBase)
+    const url = BcApiBase+`tokenHCAT/balanceOf`;
+    // http://localhost:3030/Contracts/tokenHCAT/balanceOf/
+    var ctrtAddr = 0xAb974D97Ec089d326f493F44AfF9D3EA380DB4e8
+    var assetbookAddr = 0xABeC535d76BE8aDDC7d19a630F94B6132239Ac43
+    const data = {ctrtAddr, assetbookAddr };
+    const options = {
+        method: 'POST', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{'Content-Type': 'application/json'}
+    };
+    const response = await fetch(url, options).catch(error => console.error('Error:', error));
+    const jsonObj = await response.json();
+    console.log('jsonObj', jsonObj);
+    document.getElementById("balanceOfM").innerText = jsonObj['balanceOf'];
+}
 router.get('/asset',async function (req,res){
     console.log("This is asset API")
+    getbalanceof()
     //get user information from req.decoded
     //_userName = req.decoded.name;
-    //_userEmail = req.decoded.email;
+    // _userEmail = req.decoded.email;
     _userEmail = 'ivan55660228@gmail.com';
-    // _date = getTimeServerTime().then()
-    // console.log(_date)
     //database query
-    const time = await getTimeServerTime() // using await to avoid async problem (function should be async)
+    const _time = await getTimeServerTime() // using await to avoid async problem (function should be async)
     const query = req.frontendPoolQuery;
-    query('asset',[_userEmail,time]).then((result) => {
-        var string=JSON.stringify(result); 
-        var data = JSON.parse(string);
-        data = formating(data);
-        return res.json({message: 'success',data: data});
-    }).catch((err => {
-        console.log(err);
-        return res.json({message: 'fail'});
-    }))
+    if (_userEmail && _time){
+        query('asset',[_userEmail,_time]).then((result) => {
+            var string=JSON.stringify(result); 
+            var data = JSON.parse(string);
+            data = formating(data);
+            if (data.length != 0){
+                return res.status(200).json({success:"True",data: data});
+            }else{
+                return res.status(404).json({success: "False", message: "data not found"});
+            }
+        }).catch((err => {
+            console.log(err);
+            return res.status(500).json({success: "False", message: "sql error"});
+        }))
+    }else{
+        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+    }
+    
 
 })
 function formating(data){
@@ -67,6 +95,15 @@ function formating(data){
                 })
             })
 
+        }else if(key=="powerGenerationAcc"){
+            item[key].forEach(function(item){
+                // console.log(item);
+                var symbol = item.symbol;
+                newData.forEach(function(elm){
+                    if(elm[key] == undefined) elm[key] = 0;
+                    if(elm.symbol == symbol) elm[key] = item.sum;
+                })
+            })
         }    // forEach 就如同 for，不過寫法更容易
     });
     return newData
