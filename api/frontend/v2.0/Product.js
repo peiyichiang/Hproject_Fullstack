@@ -40,10 +40,10 @@ router.get('/TimeServerTime',function (req,res){
     console.log("This is TimeServerTime API");
     time = getTimeServerTime().then((result) => {
         console.log("time",result);
-        return res.json({message: 'success',data: result});
+        return res.status(200).json({success:"True",data: result});
     }).catch((err) => {
         console.log(err);
-        return res.json({message: 'fail'});
+        return res.status(500).json({success: "False", message: "timeserver error"});
     })
 })
 
@@ -53,15 +53,24 @@ router.get('/ProductInfo',function (req,res){
     const status = req.query.status;
     //database query
     const query = req.frontendPoolQuery;
-    query('product',[status]).then((result) => {
-        var string=JSON.stringify(result); 
-        var data = JSON.parse(string)
-        data = formating(data);
-        return res.json({message: 'success',data: data});
-    }).catch((err => {
-        // console.log(err);
-        return res.json({message: 'fail'});
-    }))    
+    if(status){
+        query('product',[status]).then((result) => {
+            var string=JSON.stringify(result); 
+            var data = JSON.parse(string)
+            data = formating(data);
+            if (data.length != 0){
+                return res.status(200).json({success:"True",data: data});
+            }else{
+                return res.status(404).json({success: "False", message: "data not found"});
+            }
+        }).catch((err => {
+            console.log(err);
+            return res.status(500).json({success: "False", message: "sql error"});
+        }))    
+    }else{
+        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+    }
+    
 })
 
 function formating(data){
