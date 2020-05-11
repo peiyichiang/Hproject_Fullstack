@@ -66,10 +66,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
         "404":
-          description: _________
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+        
   /AssetManagement/asset:
     get:
       tags:
@@ -87,10 +92,15 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AssetManagement"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
         "404":
-          description: _________
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+
   /Order/QueryOrder:
     get:
       tags:
@@ -108,10 +118,15 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Order"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
         "404":
-          description: _________
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+
   /Order/b:
     post:
       tags:
@@ -681,6 +696,8 @@ components:
     Order:
       type: object
       properties:
+        id: #訂單編號 
+          type: string
         status: #訂單狀態 (已付款 txnFinish，待付款 waiting，已過期 expired) o_paymentStatus
           type: string
         name:  #產品名稱，要去product找
@@ -1017,25 +1034,18 @@ components:
           format: int8
         feedInTariff: #躉受費率 
           type: number
-          foramt: float
+          format: float
         assetRecord: #收益紀錄
           type: array
           items:
             $ref: "#/components/schemas/AssetManagementAssetRecord"
-        
-        
 
-        
-
-          
-        
-
-        
-        
-
-
-
-      
   responses:
-    UnauthorizedError:
-      description: JWT 有誤或被更改
+    parameterError:
+      description: 未帶入完整參數、參數內容有誤
+    JWTUnauthorizedError:
+      description: 未 JWT 傳入、JWT 被竄改、JWT 過期
+    notFoundError:
+      description: 未找到對應的資料
+    serverError:
+      description: 伺服器處理出錯，詢問 api 負責人
