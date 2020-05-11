@@ -280,19 +280,19 @@ const asset = function(){
     var query2 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
-                IFNULL(rd.rd_five, 0) AS five,
-                IFNULL(rd.rd_six, 0) AS six,
-                IFNULL(rd.rd_seven, 0) AS seven,
-                IFNULL(rd.rd_eight, 0) AS eight,
-                IFNULL(rd.rd_nine, 0) AS nine,
-                IFNULL(rd.rd_ten, 0) AS ten,
-                IFNULL(rd.rd_eleven, 0) AS eleven,
-                IFNULL(rd.rd_twelve, 0) AS twelve,
-                IFNULL(rd.rd_thirteen, 0) AS thirteen,
-                IFNULL(rd.rd_fourteen, 0) AS fourteen,
-                IFNULL(rd.rd_fifteen, 0) AS fifteen,
-                IFNULL(rd.rd_sixteen, 0) AS sixteen,
-                IFNULL(rd.rd_seventeen, 0) AS seventeen
+                ROUND(IFNULL(rd.rd_five, 0),0) AS five,
+                ROUND(IFNULL(rd.rd_six, 0),0) AS six,
+                ROUND(IFNULL(rd.rd_seven, 0),0) AS seven,
+                ROUND(IFNULL(rd.rd_eight, 0),0) AS eight,
+                ROUND(IFNULL(rd.rd_nine, 0),0) AS nine,
+                ROUND(IFNULL(rd.rd_ten, 0),0) AS ten,
+                ROUND(IFNULL(rd.rd_eleven, 0),0) AS eleven,
+                ROUND(IFNULL(rd.rd_twelve, 0),0) AS twelve,
+                ROUND(IFNULL(rd.rd_thirteen, 0),0) AS thirteen,
+                ROUND(IFNULL(rd.rd_fourteen, 0),0) AS fourteen,
+                ROUND(IFNULL(rd.rd_fifteen, 0),0) AS fifteen,
+                ROUND(IFNULL(rd.rd_sixteen, 0),0) AS sixteen,
+                ROUND(IFNULL(rd.rd_seventeen, 0),0) AS seventeen
         FROM radiation_data rd
         LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
         WHERE rd.rd_date = ? AND rd.rd_apistringofmonitor IN 
@@ -330,9 +330,11 @@ const asset = function(){
     var query4 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
-                SUM(IFNULL(rd.rd_five, 0) + IFNULL(rd.rd_six, 0) + IFNULL(rd.rd_seven, 0) + IFNULL(rd.rd_eight, 0) + IFNULL(rd.rd_nine, 0) + 
-                    IFNULL(rd.rd_ten, 0) + IFNULL(rd.rd_eleven, 0) + IFNULL(rd.rd_twelve, 0) + IFNULL(rd.rd_thirteen, 0) + IFNULL(rd.rd_fourteen, 0) + 
-                    IFNULL(rd.rd_fifteen, 0) + IFNULL(rd.rd_sixteen, 0) + IFNULL(rd.rd_seventeen, 0)) as sum
+                SUM( ROUND(IFNULL(rd.rd_five, 0),0) + ROUND(IFNULL(rd.rd_six, 0),0) + ROUND(IFNULL(rd.rd_seven, 0),0) + 
+                    ROUND(IFNULL(rd.rd_eight, 0),0) + ROUND(IFNULL(rd.rd_nine, 0),0) + ROUND(IFNULL(rd.rd_ten, 0),0) + 
+                    ROUND(IFNULL(rd.rd_eleven, 0),0) + ROUND(IFNULL(rd.rd_twelve, 0),0) + ROUND(IFNULL(rd.rd_thirteen, 0),0) + 
+                    ROUND(IFNULL(rd.rd_fourteen, 0),0) + ROUND(IFNULL(rd.rd_fifteen, 0),0) + ROUND(IFNULL(rd.rd_sixteen, 0),0) + 
+                    ROUND(IFNULL(rd.rd_seventeen, 0),0) ) as sum
         FROM radiation_data rd
         LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
         LEFT JOIN (SELECT ia_SYMBOL , MAX(ia_time) AS ia_time
