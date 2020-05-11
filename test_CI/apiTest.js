@@ -272,6 +272,8 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
     });
   });
 }
+
+
 const FMNAddProduct = async() => {
   let token;
   describe('intergration testing of FMS', async function(){
@@ -353,6 +355,7 @@ const FMNAddProduct = async() => {
     });
   })
 }
+
 const FMSApproveProduct = async() => {
   describe('intergration testing of FMS', async function(){
     this.timeout(3000);  
@@ -894,5 +897,10 @@ const flow5 = async() => {
     await PSTerminateProduct();
   });
 };
-//frontEndUserRegistry();
+
 flow1();
+
+
+
+
+

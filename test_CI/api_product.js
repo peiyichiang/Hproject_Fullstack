@@ -38,10 +38,10 @@ const edit_product = {
     p_PAdate: '2019-10-24 11:27:11 AM',
     p_CFSD: '201910180900',
     p_CFED: '202012241700',
-    p_icon: 'public/uploadImgs/1571287635079_icon_ENIS1901.png',
-    p_OnGridAuditedLetter:
+    pd_icon: 'public/uploadImgs/1571287635079_icon_ENIS1901.png',
+    pd_OnGridAuditedLetter:
      'public/uploadImgs/1571287635041_file_銀鏈資產管理有限公司(正和製藥)-併聯審查意見書(無初細步協商) [FAX版].pdf',
-    p_assetdocsHash: '',
+    pd_assetdocsHash: '',
     p_state: 'draft',
     p_RPT: '80',
     p_FRP: '10/08',
@@ -53,20 +53,20 @@ const edit_product = {
     p_PVOnGridDate: '201912310800',
     p_PANote: '',
     p_FMSNote: '',
-    p_Image1: 'public/uploadImgs/1571366992648_image1_00-01.jpg',
-    p_Image2: 'public/uploadImgs/1571287635146_image2_施作範圍-2.jpg',
-    p_Image3: 'public/uploadImgs/1571287635178_image3_主建物施作範圍.jpg',
-    p_Image4: 'public/uploadImgs/1571287635202_image4_主建物施作範圍-1.jpg',
-    p_Image5: 'public/uploadImgs/1571287635234_image5_車棚空拍照.jpg',
-    p_Image6: 'public/uploadImgs/1571366662168_image6_施作範圍-1.jpg',
-    p_Image7:
+    pd_Image1: 'public/uploadImgs/1571366992648_image1_00-01.jpg',
+    pd_Image2: 'public/uploadImgs/1571287635146_image2_施作範圍-2.jpg',
+    pd_Image3: 'public/uploadImgs/1571287635178_image3_主建物施作範圍.jpg',
+    pd_Image4: 'public/uploadImgs/1571287635202_image4_主建物施作範圍-1.jpg',
+    pd_Image5: 'public/uploadImgs/1571287635234_image5_車棚空拍照.jpg',
+    pd_Image6: 'public/uploadImgs/1571366662168_image6_施作範圍-1.jpg',
+    pd_Image7:
      'public/uploadImgs/1571370557683_image7_銀鏈資產管理有限公司(正和製藥)-機電圖_01.jpg',
-    p_Image8: '',
-    p_Image9: '',
-    p_Image10: '',
+    pd_Image8: '',
+    pd_Image9: '',
+    pd_Image10: '',
     p_fundingGoal: goal,
     p_abortedReason: '321321321',
-    p_csvFIle:
+    pd_csvFIle:
     `public/uploadImgs/${symbol}.csv`,
     p_fundingType: type,
     p_paidNumber: "300",
@@ -77,9 +77,10 @@ const edit_product = {
     p_CaseConstruction: '201912200800',
     p_ElectricityBilling: '201912310800',
     p_isNewCase: "2",
-    p_NotarizedRentalContract: '',
+    pd_NotarizedRentalContract: '',
     p_ForecastedAnnualIncomePerModule: "1",
-    p_lockuptime: 201911010800
+    p_lockuptime: 201911010800,
+    pd_HCAT721uri:""
 };
 const add_product = {
     p_SYMBOL: symbol,
