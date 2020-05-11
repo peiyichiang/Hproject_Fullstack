@@ -250,7 +250,6 @@ const asset = function(){
     console.log("This is asset query")
     user_email = arguments[0][0];
     date = arguments[0][1].toString().slice(0,8);
-
     var query1 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_name AS name,
@@ -260,12 +259,18 @@ const asset = function(){
                 p.p_size AS size,
                 p.p_totalrelease AS totalRelease,
                 p.p_RPT AS RPT,
-                IFNULL(p.p_feedintariff, 0) AS feedInTariff
+                IFNULL(p.p_feedintariff, 0) AS feedInTariff,
+                ia.ia_single_Forecasted_Payable_Income_in_the_Period AS forecastedPeriodIncomePerPiece,
+                SUBSTRING(ia.ia_time,1,6) AS time
         FROM  product p
-        INNER JOIN investor_assetRecord ar ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
+        INNER JOIN investor_assetRecord ar ON ar.ar_tokenSYMBOL = p.p_SYMBOL
+        LEFT JOIN (SELECT ia_SYMBOL , MIN(ia_time) AS ia_time, ia_single_Forecasted_Payable_Income_in_the_Period
+					FROM income_arrangement
+					WHERE CONVERT(SUBSTRING(ia_time,1,8),SIGNED) > (?)
+					GROUP BY ia_SYMBOL) ia ON ia.ia_SYMBOL = p.p_SYMBOL 
         WHERE ar.ar_investorEmail = (?)
         GROUP BY p.p_SYMBOL;`;
-        const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
+        const result = await mysqlPoolQueryB(queryStr, [date,user_email]).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
@@ -275,6 +280,7 @@ const asset = function(){
     var query2 = new Promise(async (resolve,reject) =>{
         const queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
+                IFNULL(rd.rd_five, 0) AS five,
                 IFNULL(rd.rd_six, 0) AS six,
                 IFNULL(rd.rd_seven, 0) AS seven,
                 IFNULL(rd.rd_eight, 0) AS eight,
@@ -286,7 +292,7 @@ const asset = function(){
                 IFNULL(rd.rd_fourteen, 0) AS fourteen,
                 IFNULL(rd.rd_fifteen, 0) AS fifteen,
                 IFNULL(rd.rd_sixteen, 0) AS sixteen,
-                IFNULL(rd.rd_seventeen, 0) AS seventeen
+                IFNULL(rd.rd_seventeen, 0) AS seventeen,
         FROM radiation_data rd
         LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
         WHERE rd.rd_date = ? AND rd.rd_apistringofmonitor IN 
@@ -321,25 +327,33 @@ const asset = function(){
         });
         resolve({"assetRecord":result});
     });
-    // var query4 = new Promise(async (resolve,reject) =>{
-    //     const queryStr = 
-    //     `SELECT ia_SYMBOL,
-    //             ia_time,
-    //             ia_single_Forecasted_Payable_Income_in_the_Period
-    //     FROM income_arrangement
-    //     WHERE CONCAT(ia_SYMBOL,ia_time) IN
-    //         (SELECT  CONCAT(ia_SYMBOL,MIN(ia_time)) AS symbol
-    //         FROM income_arrangement
-    //         WHERE CONVERT(SUBSTRING(ia_time,1,8),SIGNED) > 20200420
-    //         GROUP BY ia_SYMBOL
-    //         );`;
-    //     const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
-    //         console.log(err)
-    //         reject('[Error @ mysqlPoolQueryB]' + err);
-    //     });
-    //     console.log(result)
-    //     resolve({"assetRecord":result});
-    // });
+    var query4 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                SUM(IFNULL(rd.rd_five, 0) + IFNULL(rd.rd_six, 0) + IFNULL(rd.rd_seven, 0) + IFNULL(rd.rd_eight, 0) + IFNULL(rd.rd_nine, 0) + 
+                    IFNULL(rd.rd_ten, 0) + IFNULL(rd.rd_eleven, 0) + IFNULL(rd.rd_twelve, 0) + IFNULL(rd.rd_thirteen, 0) + IFNULL(rd.rd_fourteen, 0) + 
+                    IFNULL(rd.rd_fifteen, 0) + IFNULL(rd.rd_sixteen, 0) + IFNULL(rd.rd_seventeen, 0)) as sum
+        FROM radiation_data rd
+        LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
+        LEFT JOIN (SELECT ia_SYMBOL , MAX(ia_time) AS ia_time
+                    FROM income_arrangement
+                    WHERE CONVERT(SUBSTRING(ia_time,1,8),SIGNED) < (?)
+                    GROUP BY ia_SYMBOL) AS ia on ia.ia_SYMBOL = p.p_SYMBOL
+        WHERE rd.rd_apistringofmonitor IN 
+            (SELECT p.p_serialnumberfromvendor
+            FROM product p
+            WHERE p.p_symbol IN
+                (SELECT ar.ar_tokenSYMBOL
+                FROM investor_assetRecord ar
+                WHERE ar.ar_investorEmail = (?)) 
+            ) AND rd.rd_date >= ia.ia_time
+        GROUP BY p.p_SYMBOL;`;
+        const result = await mysqlPoolQueryB(queryStr, [date,user_email]).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        resolve({"powerGenerationAcc":result});
+    });
     return Promise.all([query1,query2,query3]).then();
 }
 
@@ -348,18 +362,21 @@ const queryOrder = function(){
     user_email = arguments[0][0];
     var query1 = new Promise(async (resolve,reject) =>{
         const queryStr = 
-        `SELECT o.o_paymentStatus AS status,
+        `SELECT o.o_id AS id,
+                o.o_paymentStatus AS status,
                 p.p_name AS name,
                 o.o_symbol AS symbol,
                 o.o_tokenCount AS tokenCount,
                 o.o_fundCount AS fundCount,
                 o.o_purchaseDate AS temp_date,
+                1 AS source,
                 CASE o.o_paymentStatus
                     WHEN 'waiting' THEN DATE_ADD(CONVERT(SUBSTRING(o_purchaseDate,1,8),datetime), INTERVAL 3 DAY)
-                    WHEN 'txnFinished' THEN DATE_ADD(CONVERT(SUBSTRING(o_purchaseDate,1,8),datetime), INTERVAL 3 DAY)
+                    WHEN 'txnFinished' THEN o_accountingTime
                     WHEN 'expired' THEN o_purchaseDate
                     ELSE 0
                 END AS date,
+                o.o_giftwithpurchase AS gift,
                 o.o_bankvirtualaccount AS bankVirtualAccount
         FROM  order_list o
         LEFT JOIN product p on p.p_SYMBOL = o.o_symbol
