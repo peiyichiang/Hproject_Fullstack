@@ -292,7 +292,7 @@ const asset = function(){
                 IFNULL(rd.rd_fourteen, 0) AS fourteen,
                 IFNULL(rd.rd_fifteen, 0) AS fifteen,
                 IFNULL(rd.rd_sixteen, 0) AS sixteen,
-                IFNULL(rd.rd_seventeen, 0) AS seventeen,
+                IFNULL(rd.rd_seventeen, 0) AS seventeen
         FROM radiation_data rd
         LEFT JOIN product p on p.p_serialnumberfromvendor = rd.rd_apistringofmonitor
         WHERE rd.rd_date = ? AND rd.rd_apistringofmonitor IN 
@@ -354,7 +354,7 @@ const asset = function(){
         });
         resolve({"powerGenerationAcc":result});
     });
-    return Promise.all([query1,query2,query3]).then();
+    return Promise.all([query1,query2,query3,query4]).then();
 }
 
 const queryOrder = function(){
