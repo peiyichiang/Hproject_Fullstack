@@ -5,6 +5,7 @@ var async = require('async');
 const { getTimeServerTime } = require('../../../timeserver/utilities');
 const fetch = require("node-fetch");
 const powerGenerationdata = {
+    "five":0,
     "six": 0,
     "seven": 0,
     "eight": 0,
@@ -39,7 +40,7 @@ async function getbalanceof(){
 }
 router.get('/asset',async function (req,res){
     console.log("This is asset API")
-    getbalanceof()
+    // getbalanceof()
     //get user information from req.decoded
     //_userName = req.decoded.name;
     // _userEmail = req.decoded.email;
