@@ -196,7 +196,7 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
             done(err);
           }
           else{
-            res.body.message.should.equal("success")
+            res.body.success.should.equal("True")
             res.body.data.should.not.empty()
             done();
           }

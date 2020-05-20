@@ -93,7 +93,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
     .expect(200)
     .end(
       (err,res)=>{
-        res.body.message.should.equal("success")
+        res.body.success.should.equal("True")
         res.body.data.should.not.empty()
         if(err){
           console.log(err)
@@ -117,7 +117,7 @@ const AssetManagement_api = ()=>{
       .expect(200)
       .end(
         (err,res)=>{
-          res.body.message.should.equal("success")
+          res.body.success.should.equal("True")
           if(err){
             console.log(err);
             done(err);
@@ -140,7 +140,7 @@ const Order_api = () => {
       .expect(200)
       .end(
         (err,res)=>{
-          res.body.message.should.equal("success")
+          res.body.success.should.equal("True")
           if(err){
             console.log(err)
             done(err)
@@ -168,8 +168,6 @@ flow1();
 //JWT_demo();
 
 // demo zone...
-
-
 
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
 
