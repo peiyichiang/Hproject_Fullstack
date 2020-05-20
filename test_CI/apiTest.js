@@ -961,6 +961,87 @@ const PSFundingClose = async(updateTime) => {
     
   });
 };
+
+
+const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
+  it("Get Products Information(status:200) with "+p_status, done => {
+    request
+    .get(version2+"/product/ProductInfo")
+    .query({
+      status:p_status
+    })
+    .set("Accept","application/json")
+    .expect(200)
+    .end(
+      (err,res)=>{
+        res.body.success.should.equal("True")
+        res.body.data.should.not.empty()
+        if(err){
+          console.log(err)
+          done(err);
+        }
+        else{
+          done();
+        }
+      }
+    )
+  });
+})}
+
+
+// the api query string still fixed it will be a parameter later so still need to be modified
+const AssetManagement_api = ()=>{
+  describe("AssetManagement.js api test...",()=>{
+    it("get asset",done=>{
+      request
+      .get(version2+"/AssetManagement/asset")
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          res.body.success.should.equal("True")
+          if(err){
+            console.log(err);
+            done(err);
+          }
+          else{
+            done();
+          }
+        }
+      )
+    })
+  })
+}
+// the api query string still fixed it will be a parameter later so still need to be modified
+const Order_api = () => {
+  describe("Order.js test...",()=>{
+    it("QueryOrder api test..",done=>{
+      request
+      .get(version2+"/Order/QueryOrder")
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          res.body.success.should.equal("True")
+          if(err){
+            console.log(err)
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    })
+  })
+}
+
+
+
+
+
+// V1 api testing flow
+
 const flow1 = async() => {
   describe('intergration testing of sold out the product', async function(){
     await FMNAddProduct();
@@ -1048,7 +1129,23 @@ const flow5 = async() => {
   });
 };
 
-flow1();
 
+
+
+
+// V2 api testing flow
+const new_flow1 = ()=>{
+  p_status=["draft","creation","publish", "funding", "ONM", "aborted"]
+  p_status.forEach(element =>{
+    productinfo_api(element);
+  })
+  AssetManagement_api();
+  Order_api();
+}
+
+
+
+flow1();
+new_flow1();
 
 
