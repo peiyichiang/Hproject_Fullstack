@@ -8,7 +8,7 @@ const amqp = require('amqplib/callback_api');
 require("dotenv").config();
 
 const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
-const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
+const {edit_product, add_product, symbol, total, goal, generateCSV, price, type,updated_product} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 
@@ -404,6 +404,146 @@ const FMSApproveProduct = async() => {
     });
   });
 };
+
+function FMNUpdateProduct(){ 
+  let currentTime
+  describe("Whole processes are about updating Product documents.", ()=>{
+  it('Login before do something', done=>{
+    request
+      .post('/BackendUser/BackendUserLogin')
+      .set('Accept', 'application/json')
+      .send({ m_id: 'myrronlin@gmail.com', m_password: '123456789' })
+      .expect(302)
+      .then((res)=>{
+        res.header["set-cookie"].should.not.empty();
+        //jwt = res.body.jwt;
+        token = (res.header["set-cookie"]);
+        done();
+      });
+  });
+  it('update product after publish',done=>{
+    request
+    .post("/product/UpdateProductAfterPublish")
+    .send(updated_product)
+    .set("Cookie",token)
+    .expect(302)
+    .end(
+      (err)=>{
+        currentTime = new Date().toLocaleString().toString();
+        console.log(updated_product)
+        if(err){
+          console.log(err);
+          done(err)
+        }
+        else{
+          done()
+        }
+      }
+    )
+  });
+  
+});
+}
+/*
+const application_time_get = async(symbol) => {
+  let currentTime
+  describe("get application time by sql query", async=>{
+    let currentTime
+    it("get time operation...",async function(){
+      currentTime = await mysqlPoolQueryB("SELECT * FROM product_editHistory WHERE pe_symbol = ?",[symbol])
+      currentTime = currentTime[0].pe_applicationTime
+      console.log(currentTime)
+    });
+    return currentTime;
+  })
+  return currentTime;
+}*/
+
+const update_approve_flow = async()=>{
+  describe("update_approve_flow is here",async function(){
+      await FMS_PS_Approve_update(symbol,"pd_NotarizedRentalContract");
+      await FMS_PS_Approve_update(symbol,"pd_OnGridAuditedLetter");
+      await FMS_PS_Approve_update(symbol,"pd_OnGridAuditedLetter_mask");
+      await FMS_PS_Approve_update(symbol,"pd_NotarizedRentalContract_mask");
+  })
+}
+
+
+const FMS_PS_Approve_update = async(symbol,pe_columnName)=>{
+  describe("FMS+PS approved the update",async function(){
+    let token;
+    let currentTime;
+    //let pe_applicationTime = "2020%2F5%2F13%20%E4%B8%8B%E5%8D%882%3A27%3A06" // have  to be translate by url encoding
+    let RejectReason = "useless_for_now"
+    it('Login FMS before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'myrronlins@gmail.com', m_password: '123456789' })
+        .expect(302)
+        .then((res)=>{
+          res.header["set-cookie"].should.not.empty();
+          //jwt = res.body.jwt;
+          token = (res.header["set-cookie"]);
+          
+        });
+    });
+    
+    it("FMS approved the update",async function(){
+      currentTime = await mysqlPoolQueryB("SELECT * FROM product_editHistory WHERE pe_symbol = ?",[symbol])
+      currentTime = currentTime[0].pe_applicationTime
+      console.log(currentTime)
+      currentTime = encodeURIComponent(currentTime)
+      await request
+      .get(`/product/ReviewUpdateProductAfterPublish/true/${symbol}/${pe_columnName}/${currentTime}/${RejectReason}`)
+      .set("Cookie",token) 
+      .expect(302)
+      .then( 
+        /*(res,err)=>{
+          if(err){
+            done(err)
+          }
+          else{
+            done()}
+          }  */
+      )
+    })
+    it('Login FMS before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
+        .expect(302)
+        .then((res)=>{
+          res.header["set-cookie"].should.not.empty();
+          //jwt = res.body.jwt;
+          token = (res.header["set-cookie"]);
+          //done();
+        });
+    });
+    it("PS approved the update",async function(){
+      currentTime = await mysqlPoolQueryB("SELECT * FROM product_editHistory WHERE pe_symbol = ?",[symbol])
+      currentTime = currentTime[0].pe_applicationTime
+      console.log(currentTime)
+      currentTime = encodeURIComponent(currentTime)
+      await request
+      .get(`/product/ReviewUpdateProductAfterPublish/true/${symbol}/${pe_columnName}/${currentTime}/${RejectReason}`)
+      .set("Cookie",token) 
+      .expect(302)
+      .then( 
+        /*(res,err)=>{
+          if(err){
+            done(err)
+          }
+          else{
+            done()}
+          }  */
+      )
+    })
+  })
+}
+
+
 const PSPublishProduct = async() => {
   describe('intergration testing of PS publish product', async function(){
     this.timeout(3000);  
@@ -826,6 +966,8 @@ const flow1 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await frontEndUserOrdering(total);
     await makeOrderPaidAndWriteIntoCFC();
     await PSMintToken(getLocalTime());
@@ -839,6 +981,8 @@ async function flow2(){
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await getRandomList()
     .then(async(result) =>{
       console.log(result);
@@ -859,6 +1003,8 @@ const flow3 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await frontEndUserOrdering(goal);
     await PSPauseProduct();
     await makeOrderPaidAndWriteIntoCFC();
@@ -871,6 +1017,8 @@ const flow4 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await PSPauseProduct();      
     await PSRestartProduct();
     await frontEndUserOrdering(goal + 10);
@@ -884,6 +1032,8 @@ const flow5 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await getRandomList()
     .then(async(result) =>{
       console.log(result);
@@ -899,8 +1049,6 @@ const flow5 = async() => {
 };
 
 flow1();
-
-
 
 
 
