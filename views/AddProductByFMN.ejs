@@ -49,6 +49,16 @@
                </div>
             </div>
             <div class="form-row">
+              <div class="form-group col-md-6">
+                    <label for="p_duration">產品平均年日照量</label>
+                    <input type="text" class="form-control" name="p_radiationPeryear" id="p_radiationPeryear" placeholder="ex:10" required>
+               </div>
+               <div class="form-group col-md-6">
+                    <label for="p_currency">售電費率(FIT)</label>
+                    <input type="text" class="form-control" name="p_feedintariff" id="p_feedintariff" placeholder="" required>
+               </div>
+            </div>
+            <div class="form-row">
                     <div class="form-group col-md-4">
                       <label for="p_pricing">產品定價</label>
                       <input type="text" class="form-control" name="p_pricing" id="p_pricing" placeholder="ex:500" required>
@@ -69,11 +79,11 @@
                     </div>
                     <div class="form-group col-md-4">
                           <label for="p_releasedate">募資專案權利義務起始日</label>
-                          <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM" required>
+                          <input type="text" class="form-control" name="p_releasedate" id="p_releasedate" placeholder="ex:YYYYMMDDHHMM" maxlength="12" required>
                      </div>
                      <div class="form-group col-md-4">
                           <label for="p_validdate">募資專案權利義務截止日</label>
-                          <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" required>
+                          <input type="text" class="form-control" name="p_validdate" id="p_validdate" placeholder="ex:YYYYMMDDHHMM" maxlength="12" required>
                      </div>
             </div>
             <div class="form-row">
@@ -147,54 +157,60 @@
             <div class="form-row">
               <div class="form-group col-md-4" hidden>
                   <label for="p_PSD">專案開始日期</label>
-                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM" value="99999" required>
+                  <input type="text" class="form-control" name="p_PSD" id="p_PSD" placeholder="ex:YYYYMMDDHHMM" maxlength="12" value="99999" required>
               </div>
               <div class="form-group col-md-6">
                 <label for="p_CFSD">募資起始日</label>
-                <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM" required>
+                <input type="text" class="form-control" name="p_CFSD" id="p_CFSD" placeholder="ex:YYYYMMDDHHMM" maxlength="12" required>
               </div>
               <div class="form-group col-md-6">
                     <label for="p_CFED">募資截止日</label>
-                    <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM" required>
+                    <input type="text" class="form-control" name="p_CFED" id="p_CFED" placeholder="ex:YYYYMMDDHHMM" maxlength="12" required>
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="p_TaiPowerApprovalDate">台電並聯審查意見書日期</label>
-                <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" required>
+                <input type="text" class="form-control" name="p_TaiPowerApprovalDate" id="p_TaiPowerApprovalDate" placeholder="ex:YYYYMMDD" maxlength="12" required>
               </div>
               <div class="form-group col-md-6">
                     <label for="p_BOEApprovalDate">能源局同意備案函日期</label>
-                    <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" required>
+                    <input type="text" class="form-control" name="p_BOEApprovalDate" id="p_BOEApprovalDate" placeholder="ex:YYYYMMDD" maxlength="12" required>
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                 <label for="p_PVTrialOperationDate">併聯試運轉日期</label>
-                <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" required>
+                <input type="text" class="form-control" name="p_PVTrialOperationDate" id="p_PVTrialOperationDate" placeholder="ex:YYYYMMDD" maxlength="12" required>
               </div>
               <div class="form-group col-md-6">
                     <label for="p_PVOnGridDate">正式掛表日期(正式售電起始日)</label>
-                    <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" required>
+                    <input type="text" class="form-control" name="p_PVOnGridDate" id="p_PVOnGridDate" placeholder="ex:YYYYMMDD" maxlength="12" required>
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-6">
                   <label for="p_ContractOut">工程發包日期</label>
-                  <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDD" required>
+                  <input type="text" class="form-control" name="p_ContractOut" id="p_ContractOut" placeholder="ex:YYYYMMDD" maxlength="12" required>
               </div>
               <div class="form-group col-md-6">
                 <label for="p_CaseConstruction">案場建置完成日期</label>
-                <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDD" required>
+                <input type="text" class="form-control" name="p_CaseConstruction" id="p_CaseConstruction" placeholder="ex:YYYYMMDD" maxlength="12" required>
               </div>
               <div class="form-group col-md-4" hidden>
                     <label for="p_ElectricityBilling">電費計費開始日期</label>
-                    <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" value="999" placeholder="ex:YYYYMMDD" required>
+                    <input type="text" class="form-control" name="p_ElectricityBilling" id="p_ElectricityBilling" value="999" placeholder="ex:YYYYMMDD" maxlength="12" required>
                </div>
             </div>
             <div class="form-row">
               <div class="form-group col-md-12">
-                <label for="p_pvSiteintro">產品文案</label>
+                <label for="p_pvModuleintro">太陽能板簡介</label>
+                <textarea class="form-control" name="p_pvModuleintro" id="p_pvModuleintro" style="width:100%;height: 200px;" maxlength="200" required></textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="p_pvSiteintro">場地簡介</label>
                 <textarea class="form-control" name="p_pvSiteintro" id="p_pvSiteintro" style="width:100%;height: 200px;" maxlength="200" required></textarea>
               </div>
             </div>
@@ -219,23 +235,39 @@
         <!-- 文件上傳表單 -->
         <form action="/upload" id="FileForm" method="post" enctype="multipart/form-data">
             <div class="form-row">
-                    <!-- <div class="form-group col-md-4">
-                            <label for="file">購售電合約</label>
-                            <input type="file" class="form-control" name="file" id="file" />
-                    </div> -->
-                    <div class="form-group col-md-3">
+                <div class="form-group col-md-6">
+                  <label for="p_NotarizedRentalContract_form">房屋與土地公證租約</label>
+                  <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form" />
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="p_NotarizedRentalContract_copy">房屋與土地公證租約(馬賽克版)</label>
+                  <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form" />
+                </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
+                <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form" />
+              </div>
+              <div class="form-group col-md-6">
+                <label for="p_OnGridAuditedLetter_copy">併聯審查意見書(馬賽克版)</label>
+                <input type="file" class="form-control" name="p_OnGridAuditedLetter_copy" id="p_OnGridAuditedLetter_copy" />
+              </div>
+            </div>
+            <div class="form-row">
+                    <!-- <div class="form-group col-md-3">
                       <label for="p_NotarizedRentalContract_form">房屋與土地公證租約</label>
                       <input type="file" class="form-control" name="p_NotarizedRentalContract_form" id="p_NotarizedRentalContract_form" />
                     </div>
                     <div class="form-group col-md-3">
                       <label for="p_OnGridAuditedLetter_form">併聯審查意見書</label>
                       <input type="file" class="form-control" name="p_OnGridAuditedLetter_form" id="p_OnGridAuditedLetter_form" />
-                    </div>
-                    <div class="form-group col-md-3">
+                    </div> -->
+                    <div class="form-group col-md-6">
                             <label for="icon">產品icon</label>
                             <input type="file" class="form-control" name="icon" id="icon">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="form-group col-md-6">
                       <label for="csvFIle">CSV文件</label>
                       <input type="file" class="form-control" name="csvFIle" id="csvFIle">
                     </div>
