@@ -483,6 +483,9 @@ router.post('/AddProductByFMN', function (req, res, next) {
         p_fundingGoal: req.body.p_fundingGoal,
         p_EPCname: req.body.p_EPCname,
         p_pvSiteintro: req.body.p_pvSiteintro,
+        p_pvModuleintro: req.body.p_pvModuleintro,
+        p_radiationPeryear: req.body.p_radiationPeryear,
+        p_feedintariff: req.body.p_feedintariff,
         p_ContractOut: req.body.p_ContractOut,
         p_CaseConstruction: req.body.p_CaseConstruction,
         p_ElectricityBilling: req.body.p_ElectricityBilling,
@@ -509,7 +512,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         pd_assetdocsHash: req.body.p_assetdocsHash
     }
 
-    //console.log(sql);
+    console.log(sql1);
 
     var qur = mysqlPoolQuery('INSERT INTO product SET ?', sql1, function (err, rows) {
         if (err) {
