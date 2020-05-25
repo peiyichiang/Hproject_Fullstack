@@ -127,12 +127,11 @@ paths:
         "500":
           $ref: "#/components/responses/serverError"
 
-  /Order/b:
-    post:
+  /Order/PlaceOrder:
+    get:
       tags:
         - Order 
-      summary: ______
-      operationId: ______
+      summary: 下單
       # requestBody:
       #   $ref: "#/components/requestBodies/Product"
       responses:
@@ -143,11 +142,63 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Order"       
+                  $ref: "#/components/schemas/PlaceOrder"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
         "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /Order/QuaifyPlaceOrder:
+    get:
+      tags:
+        - Order 
+      summary: 檢查是否可以下單
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
           description: _________
-        "401":
-          $ref: "#/components/responses/UnauthorizedError"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuaifyPlaceOrder"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /Order/RemainRelease:
+    get:
+      tags:
+        - Order 
+      summary: 回傳當下可購買的片數
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemainRelease"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
   /pet:
     post:
       tags:
@@ -693,6 +744,27 @@ components:
       name: api_key
       in: header
   schemas:
+    RemainRelease:
+      type: object
+      properties:
+        remainRelease:
+          type: integer
+          format: int8
+    QuaifyPlaceOrder:
+      type: object
+      properties:
+        quaification: #下單資格
+          type: boolean
+          default: false 
+    PlaceOrder:
+      type: object
+      properties:
+        purchaseDate:
+          type: string
+        orderId:
+          type: string
+        bankaccount:
+          type: string
     Order:
       type: object
       properties:

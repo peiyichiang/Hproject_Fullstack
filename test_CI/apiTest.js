@@ -8,7 +8,7 @@ const amqp = require('amqplib/callback_api');
 require("dotenv").config();
 
 const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
-const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
+const {edit_product, add_product, symbol, total, goal, generateCSV, price, type,updated_product} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
 
@@ -196,7 +196,7 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
             done(err);
           }
           else{
-            res.body.message.should.equal("success")
+            res.body.success.should.equal("True")
             res.body.data.should.not.empty()
             done();
           }
@@ -404,6 +404,146 @@ const FMSApproveProduct = async() => {
     });
   });
 };
+
+function FMNUpdateProduct(){ 
+  let currentTime
+  describe("Whole processes are about updating Product documents.", ()=>{
+  it('Login before do something', done=>{
+    request
+      .post('/BackendUser/BackendUserLogin')
+      .set('Accept', 'application/json')
+      .send({ m_id: 'myrronlin@gmail.com', m_password: '123456789' })
+      .expect(302)
+      .then((res)=>{
+        res.header["set-cookie"].should.not.empty();
+        //jwt = res.body.jwt;
+        token = (res.header["set-cookie"]);
+        done();
+      });
+  });
+  it('update product after publish',done=>{
+    request
+    .post("/product/UpdateProductAfterPublish")
+    .send(updated_product)
+    .set("Cookie",token)
+    .expect(302)
+    .end(
+      (err)=>{
+        currentTime = new Date().toLocaleString().toString();
+        console.log(updated_product)
+        if(err){
+          console.log(err);
+          done(err)
+        }
+        else{
+          done()
+        }
+      }
+    )
+  });
+  
+});
+}
+/*
+const application_time_get = async(symbol) => {
+  let currentTime
+  describe("get application time by sql query", async=>{
+    let currentTime
+    it("get time operation...",async function(){
+      currentTime = await mysqlPoolQueryB("SELECT * FROM product_editHistory WHERE pe_symbol = ?",[symbol])
+      currentTime = currentTime[0].pe_applicationTime
+      console.log(currentTime)
+    });
+    return currentTime;
+  })
+  return currentTime;
+}*/
+
+const update_approve_flow = async()=>{
+  describe("update_approve_flow is here",async function(){
+      await FMS_PS_Approve_update(symbol,"pd_NotarizedRentalContract");
+      await FMS_PS_Approve_update(symbol,"pd_OnGridAuditedLetter");
+      await FMS_PS_Approve_update(symbol,"pd_OnGridAuditedLetter_mask");
+      await FMS_PS_Approve_update(symbol,"pd_NotarizedRentalContract_mask");
+  })
+}
+
+
+const FMS_PS_Approve_update = async(symbol,pe_columnName)=>{
+  describe("FMS+PS approved the update",async function(){
+    let token;
+    let currentTime;
+    //let pe_applicationTime = "2020%2F5%2F13%20%E4%B8%8B%E5%8D%882%3A27%3A06" // have  to be translate by url encoding
+    let RejectReason = "useless_for_now"
+    it('Login FMS before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'myrronlins@gmail.com', m_password: '123456789' })
+        .expect(302)
+        .then((res)=>{
+          res.header["set-cookie"].should.not.empty();
+          //jwt = res.body.jwt;
+          token = (res.header["set-cookie"]);
+          
+        });
+    });
+    
+    it("FMS approved the update",async function(){
+      currentTime = await mysqlPoolQueryB("SELECT * FROM product_editHistory WHERE pe_symbol = ?",[symbol])
+      currentTime = currentTime[0].pe_applicationTime
+      console.log(currentTime)
+      currentTime = encodeURIComponent(currentTime)
+      await request
+      .get(`/product/ReviewUpdateProductAfterPublish/true/${symbol}/${pe_columnName}/${currentTime}/${RejectReason}`)
+      .set("Cookie",token) 
+      .expect(302)
+      .then( 
+        /*(res,err)=>{
+          if(err){
+            done(err)
+          }
+          else{
+            done()}
+          }  */
+      )
+    })
+    it('Login FMS before do something', async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
+        .expect(302)
+        .then((res)=>{
+          res.header["set-cookie"].should.not.empty();
+          //jwt = res.body.jwt;
+          token = (res.header["set-cookie"]);
+          //done();
+        });
+    });
+    it("PS approved the update",async function(){
+      currentTime = await mysqlPoolQueryB("SELECT * FROM product_editHistory WHERE pe_symbol = ?",[symbol])
+      currentTime = currentTime[0].pe_applicationTime
+      console.log(currentTime)
+      currentTime = encodeURIComponent(currentTime)
+      await request
+      .get(`/product/ReviewUpdateProductAfterPublish/true/${symbol}/${pe_columnName}/${currentTime}/${RejectReason}`)
+      .set("Cookie",token) 
+      .expect(302)
+      .then( 
+        /*(res,err)=>{
+          if(err){
+            done(err)
+          }
+          else{
+            done()}
+          }  */
+      )
+    })
+  })
+}
+
+
 const PSPublishProduct = async() => {
   describe('intergration testing of PS publish product', async function(){
     this.timeout(3000);  
@@ -821,11 +961,94 @@ const PSFundingClose = async(updateTime) => {
     
   });
 };
+
+
+const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
+  it("Get Products Information(status:200) with "+p_status, done => {
+    request
+    .get(version2+"/product/ProductInfo")
+    .query({
+      status:p_status
+    })
+    .set("Accept","application/json")
+    .expect(200)
+    .end(
+      (err,res)=>{
+        res.body.success.should.equal("True")
+        res.body.data.should.not.empty()
+        if(err){
+          console.log(err)
+          done(err);
+        }
+        else{
+          done();
+        }
+      }
+    )
+  });
+})}
+
+
+// the api query string still fixed it will be a parameter later so still need to be modified
+const AssetManagement_api = ()=>{
+  describe("AssetManagement.js api test...",()=>{
+    it("get asset",done=>{
+      request
+      .get(version2+"/AssetManagement/asset")
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          res.body.success.should.equal("True")
+          if(err){
+            console.log(err);
+            done(err);
+          }
+          else{
+            done();
+          }
+        }
+      )
+    })
+  })
+}
+// the api query string still fixed it will be a parameter later so still need to be modified
+const Order_api = () => {
+  describe("Order.js test...",()=>{
+    it("QueryOrder api test..",done=>{
+      request
+      .get(version2+"/Order/QueryOrder")
+      .set("Accept","application/json")
+      .expect(200)
+      .end(
+        (err,res)=>{
+          res.body.success.should.equal("True")
+          if(err){
+            console.log(err)
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    })
+  })
+}
+
+
+
+
+
+// V1 api testing flow
+
 const flow1 = async() => {
   describe('intergration testing of sold out the product', async function(){
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await frontEndUserOrdering(total);
     await makeOrderPaidAndWriteIntoCFC();
     await PSMintToken(getLocalTime());
@@ -839,6 +1062,8 @@ async function flow2(){
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await getRandomList()
     .then(async(result) =>{
       console.log(result);
@@ -859,6 +1084,8 @@ const flow3 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await frontEndUserOrdering(goal);
     await PSPauseProduct();
     await makeOrderPaidAndWriteIntoCFC();
@@ -871,6 +1098,8 @@ const flow4 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await PSPauseProduct();      
     await PSRestartProduct();
     await frontEndUserOrdering(goal + 10);
@@ -884,6 +1113,8 @@ const flow5 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    FMNUpdateProduct();
+    await update_approve_flow();
     await getRandomList()
     .then(async(result) =>{
       console.log(result);
@@ -898,9 +1129,23 @@ const flow5 = async() => {
   });
 };
 
+
+
+
+
+// V2 api testing flow
+const new_flow1 = ()=>{
+  p_status=["draft","creation","publish", "funding", "ONM", "aborted"]
+  p_status.forEach(element =>{
+    productinfo_api(element);
+  })
+  AssetManagement_api();
+  Order_api();
+}
+
+
+
 flow1();
-
-
-
+new_flow1();
 
 

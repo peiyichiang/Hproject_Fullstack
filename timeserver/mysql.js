@@ -106,7 +106,7 @@ const mysqlPoolQueryB = async (sql, options) => {
 // frontend sql query pool
 const frontendPoolQuery = (a,b) => {
     console.log("This is frontend pool query");
-    const queryType = {'product': product,'asset': asset,'queryOrder': queryOrder};
+    const queryType = {'product': product,'asset': asset,'queryOrder': queryOrder,'remainRelease_Order': remainRelease_Order};
     var query = queryType[a];
     return new Promise(async (resolve,reject) => {
         query(b).then((result) => {
@@ -130,9 +130,9 @@ const product = function(){
                 p.p_SYMBOL AS symbol,
                 p.p_ForecastedAnnualIncomePerModule AS forecastedAnnualIncomePerModule,
                 p.p_totalrelease AS totalRelease,
-                (p.p_totalrelease - o.purchasetokenNum) AS remainRelease,
+                (p.p_totalrelease - IFNULL(o.purchasetokenNum,0)) AS remainRelease,
                 p.p_pricing AS price,
-                o.purchaseNum AS purchaseNum,
+                IFNULL(o.purchaseNum,0) AS purchaseNum,
                 CONVERT(p.p_RPT,SIGNED) AS RPT,
                 CONVERT(SUBSTRING(p.p_FRP,1,2),SIGNED) AS FRPYear,
                 CONVERT(SUBSTRING(p.p_FRP,4,5),SIGNED) AS FRPMonth,
@@ -392,6 +392,29 @@ const queryOrder = function(){
     });
     return Promise.all([query1]).then();
 
+}
+const remainRelease_Order = function(){
+    console.log('This is remainRelease_Order query');
+    symbol = arguments[0][0];
+    var query1 = new Promise(async (resolve,reject) =>{
+        const queryStr = 
+        `SELECT p.p_SYMBOL AS symbol,
+                p.p_totalrelease AS totalRelease,
+                (p.p_totalrelease - IFNULL(o.purchasetokenNum,0)) AS remainRelease
+        FROM product p
+        LEFT JOIN (SELECT o_symbol , COUNT(o_id) purchaseNum , SUM(o_tokenCount) purchasetokenNum
+                   FROM order_list
+                   GROUP BY o_symbol) o
+        ON p.p_SYMBOL = o.o_SYMBOL
+        WHERE p.p_SYMBOL IN (?);`;
+        const result = await mysqlPoolQueryB(queryStr, symbol).catch((err) => {
+            console.log(err)
+            reject('[Error @ mysqlPoolQueryB]' + err);
+        });
+        // console.log(result)
+        resolve(result);
+    });  
+    return Promise.all([query1]).then();
 }
 
 const addTxnInfoRow = (txid, tokenSymbol, fromAssetbook, toAssetbook, tokenId, txCount, holdingDays, txTime, balanceOffromassetbook) => {

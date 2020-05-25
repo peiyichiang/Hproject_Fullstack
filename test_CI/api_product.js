@@ -41,7 +41,8 @@ const edit_product = {
     pd_icon: 'public/uploadImgs/1571287635079_icon_ENIS1901.png',
     pd_OnGridAuditedLetter:
      'public/uploadImgs/1571287635041_file_銀鏈資產管理有限公司(正和製藥)-併聯審查意見書(無初細步協商) [FAX版].pdf',
-    pd_assetdocsHash: '',
+    //pd_assetdocsHash: '',
+    pd_assetdocs:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf",
     p_state: 'draft',
     p_RPT: '80',
     p_FRP: '10/08',
@@ -53,17 +54,17 @@ const edit_product = {
     p_PVOnGridDate: '201912310800',
     p_PANote: '',
     p_FMSNote: '',
-    pd_Image1: 'public/uploadImgs/1571366992648_image1_00-01.jpg',
-    pd_Image2: 'public/uploadImgs/1571287635146_image2_施作範圍-2.jpg',
-    pd_Image3: 'public/uploadImgs/1571287635178_image3_主建物施作範圍.jpg',
-    pd_Image4: 'public/uploadImgs/1571287635202_image4_主建物施作範圍-1.jpg',
-    pd_Image5: 'public/uploadImgs/1571287635234_image5_車棚空拍照.jpg',
-    pd_Image6: 'public/uploadImgs/1571366662168_image6_施作範圍-1.jpg',
+    pd_Image1: 'public/uploadImgs/1.jpg',
+    pd_Image2: 'public/uploadImgs/2.jpg',
+    pd_Image3: 'public/uploadImgs/3.jpg',
+    pd_Image4: 'public/uploadImgs/4.jpg',
+    pd_Image5: 'public/uploadImgs/5.jpg',
+    pd_Image6: 'public/uploadImgs/6.jpg',
     pd_Image7:
-     'public/uploadImgs/1571370557683_image7_銀鏈資產管理有限公司(正和製藥)-機電圖_01.jpg',
-    pd_Image8: '',
+     'public/uploadImgs/7.jpg',
+    /*pd_Image8: '',
     pd_Image9: '',
-    pd_Image10: '',
+    pd_Image10: '',*/
     p_fundingGoal: goal,
     p_abortedReason: '321321321',
     pd_csvFIle:
@@ -80,7 +81,11 @@ const edit_product = {
     pd_NotarizedRentalContract: '',
     p_ForecastedAnnualIncomePerModule: "1",
     p_lockuptime: 201911010800,
-    pd_HCAT721uri:""
+    //d_HCAT721uri:""
+    pd_NotarizedRentalContract:"public/uploadImgs/update_needed.pdf",
+    pd_OnGridAuditedLetter:"public/update_needed.pdf",
+    pd_NotarizedRentalContract_mask:"public/uploadImgs/update_needed.pdf",
+    pd_OnGridAuditedLetter_mask:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf"
 };
 const add_product = {
     p_SYMBOL: symbol,
@@ -142,6 +147,71 @@ const add_product = {
     p_lockuptime: 201911010800
 
 };
+const updated_product = {
+    p_SYMBOL: symbol,
+
+    p_OnGridAuditedLetter_path:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf",
+    p_OnGridAuditedLetter_Mask_path:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf",
+    p_OnGridAuditedLetter_UpdateReason:"CICD test usage",
+
+    p_NotarizedRentalContract_path:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf",
+    p_NotarizedRentalContract_Mask_path:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf",
+    p_NotarizedRentalContract_UpdateReason:"CICD test usage",
+
+    p_releasedate_UpdateReason:"",
+    p_releasedate:"",
+
+    p_fundingGoal_UpdateReason:"",
+    p_fundingGoal:"",
+
+    p_CFED_UpdateReason:"",
+    p_CFED:"",
+
+    p_validdate_UpdateReason:"",
+    p_validdate:"",
+
+    p_TaiPowerApprovalDate_UpdateReason:"",
+    p_TaiPowerApprovalDate:"",
+
+    p_BOEApprovalDate_UpdateReason:"",
+    p_BOEApprovalDate:"",
+
+    p_PVTrialOperationDate_UpdateReason:"",
+    p_PVTrialOperationDate:"",
+
+    p_PVOnGridDate_UpdateReason:"",
+    p_PVOnGridDate:"",
+
+    p_ContractOut_UpdateReason:"",
+    p_ContractOut:"",
+
+    p_CaseConstruction_UpdateReason:"",
+    p_CaseConstruction:"",
+
+    p_pvSiteintro_UpdateReason:"",
+    p_pvSiteintro:"",
+
+    p_BOEApprovedLetter_UpdateReason:"",
+    p_BOEApprovedLetter_path:"",
+    p_BOEApprovedLetter_Mask_path:"",
+
+    p_powerPurchaseAgreement_UpdateReason:"",
+    p_powerPurchaseAgreement_path:"",
+    p_powerPurchaseAgreement_Mask_path:"",
+
+    p_onGridTryrunLetter_UpdateReason:"",
+    p_onGridTryrunLetter_path:"",
+    p_onGridTryrunLetter_Mask_path:"",
+
+    p_powerPlantEquipmentRegisteredLetter_UpdateReason:"",
+    p_powerPlantEquipmentRegisteredLetter_path:"",
+    p_powerPlantEquipmentRegisteredLetter_Mask_path:"",
+
+    p_powerPlantInsurancePolicy_UpdateReason:"",
+    p_powerPlantInsurancePolicy_path:"",
+    p_powerPlantInsurancePolicy_Mask_path:""
+
+}
 
 const generateCSV = async() => {
     let newCsv =  fs.createWriteStream(`\./public/uploadImgs/${symbol}.csv`);
@@ -159,4 +229,4 @@ const generateCSV = async() => {
             }))
 }
 generateCSV();
-module.exports = {edit_product, add_product, symbol, total, goal, generateCSV, price, type};
+module.exports = {edit_product, add_product, symbol, total, goal, generateCSV, price, type,updated_product};
