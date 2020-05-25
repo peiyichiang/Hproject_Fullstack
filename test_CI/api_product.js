@@ -82,10 +82,10 @@ const edit_product = {
     p_ForecastedAnnualIncomePerModule: "1",
     p_lockuptime: 201911010800,
     //d_HCAT721uri:""
-    pd_NotarizedRentalContract:"public/uploadImgs/update_needed.pdf",
-    pd_OnGridAuditedLetter:"public/update_needed.pdf",
-    pd_NotarizedRentalContract_mask:"public/uploadImgs/update_needed.pdf",
-    pd_OnGridAuditedLetter_mask:"public/uploadImgs/1585884725705_p_NotarizedRentalContract_form_杏和-晉鋒租賃約.pdf"
+    pd_NotarizedRentalContract:"public/uploadImgs/1585884734014_p_OnGridAuditedLetter_form_99.71kw設備明細表.pdf.pdf",
+    pd_OnGridAuditedLetter:"public/1585884734014_p_OnGridAuditedLetter_form_99.71kw設備明細表.pdf.pdf",
+    pd_NotarizedRentalContract_mask:"public/uploadImgs/1585884734014_p_OnGridAuditedLetter_form_99.71kw設備明細表.pdf.pdf",
+    pd_OnGridAuditedLetter_mask:"public/uploadImgs/1585884734014_p_OnGridAuditedLetter_form_99.71kw設備明細表.pdf.pdf"
 };
 const add_product = {
     p_SYMBOL: symbol,
