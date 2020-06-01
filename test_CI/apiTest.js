@@ -237,7 +237,29 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
         })
     });
     
-    it('add order to db', async function(){
+    it("place a order...",done=>{
+      request
+      .get(version2+"/Order/PlaceOrder")
+      .send(
+            { symbol:symbol,tokenCount:amout,fundCount:price*amout } // email... etc  must be send
+          )
+      .expect(200)
+      .end(
+        (err,res)=>{
+          console.log(res.body)
+          res.body.success.should.equal("True")
+          if (err) {
+            console.log(err)
+            done(err)
+              }
+          else{
+            done()
+          }
+        }  
+      )
+    }).timeout(300000);
+    // previous adding order api is down below
+    /*it('add order to db', async function(){
       await request
         .post(version+'/order/AddOrder')
         .send({ JWT: jwt, symbol: symbol, email: email, fundingType: type, authLevel: "5", tokenCount: amout,  buyAmount: amout, userIdentity: "A128465975", fundCount: price * amout})
@@ -247,7 +269,7 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
           await res.body.message.should.equal('訂單寫入資料庫成功 & 驗證信寄送成功');
             
         })
-    }).timeout(20000);
+    }).timeout(20000);*/
     it('get unpaid orders detail', async function(){
       await request
         .get(version+'/order/OrdersByEmail')
@@ -604,8 +626,9 @@ const PSPublishProduct = async() => {
         .send({ tokenPrice: price, currency: "NTD", quantityMax: total, fundingGoal: goal, CFSD2: edit_product.p_CFSD, CFED2: edit_product.p_CFED})
         .set('Cookie', token)
         .expect(200)
-        .then(async function(res){
+        .then(async function(res,err){
           console.log(res.body);
+          console.log(err)
           await res.body.status.should.equal(true);
           
         });
@@ -788,7 +811,7 @@ const makeOrderPaidAndWriteIntoCFC = async() => {
       const result = await mysqlPoolQueryB('UPDATE order_list SET ? WHERE o_bankvirtualaccount = ?', [sql, virtualAccount]).catch(async (err) => {
         await err.should.empty();
       });
-    }).timeout(3000);
+    });
     it('Write Into Crowdfunding Request', async function(){
       /*
       await addAssetbooksIntoCFC(getLocalTime()+2).catch(async (err) => {
@@ -961,6 +984,9 @@ const PSFundingClose = async(updateTime) => {
     
   });
 };
+
+
+// frontend_api V2.0 begin (All the membership are fixed for now, it would be modified later.)(Ivan@gmail.com......)
 
 
 const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
@@ -1146,6 +1172,6 @@ const new_flow1 = ()=>{
 
 
 flow1();
-new_flow1();
+//new_flow1();
 
 
