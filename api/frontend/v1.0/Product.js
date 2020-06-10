@@ -7,7 +7,7 @@ router.get('/LaunchedProductList', function (req, res) {
     console.log('------------------------==\n@Product/LaunchedProductList');
     let mysqlPoolQuery = req.pool;
     mysqlPoolQuery(
-        `SELECT 
+        /*`SELECT 
         p_irr AS IRR,
         p_name AS name,
         p_location AS location,
@@ -32,6 +32,60 @@ router.get('/LaunchedProductList', function (req, res) {
         SUBSTRING(p_CFED, 9, 2) AS deadlineHour,
         SUBSTRING(p_CFED, 11, 2) AS deadlineMinute,
         p_Image1 AS imageURL,
+        p_TaiPowerApprovalDate AS taiPowerApprovalDate,
+        p_CFSD AS CFSD,
+        p_BOEApprovalDate AS BOEApprovalDate,
+        p_CFED AS CFED,
+        p_PVTrialOperationDate AS PVTrialOperationDate,
+        p_ContractOut AS contractOut,
+        p_CaseConstruction AS caseConstruction,
+        p_ElectricityBilling AS electricityBilling,
+        p_fundingType AS fundingType,
+        p_totalrelease - IFNULL(reservedTokenCount, 0 ) AS remainTokenCount,
+        IFNULL(purchasedNumberOfPeople , 0) AS purchasedNumberOfPeople,
+        IFNULL(payablePeriodTotal, 0) AS payablePeriodTotal,
+        p_pvSiteintro AS copyWritingText,
+        p_ForecastedAnnualIncomePerModule as forecastedAnnualIncomePerMudule
+        FROM product AS T1
+        LEFT JOIN ( SELECT o_symbol , SUM(o_tokenCount) AS reservedTokenCount
+                    FROM order_list
+                    WHERE o_paymentStatus = "waiting" OR o_paymentStatus = "paid" OR o_paymentStatus = "txnFinished"
+                    GROUP BY o_symbol) AS T2
+        ON T1.p_SYMBOL = T2.o_symbol
+        LEFT JOIN ( SELECT o_symbol , COUNT(DISTINCT o_email) AS purchasedNumberOfPeople
+                    FROM order_list
+                    GROUP BY o_symbol) AS T3
+        ON T1.p_SYMBOL = T3.o_symbol
+        LEFT JOIN ( SELECT ia_SYMBOL , COUNT(*)-1 AS payablePeriodTotal
+                    FROM income_arrangement 
+                    GROUP BY ia_SYMBOL) AS T4
+        ON T1.p_SYMBOL = T4.ia_SYMBOL
+        WHERE p_state = \'funding\';`*/
+        `SELECT 
+        p_irr AS IRR,
+        p_name AS name,
+        p_location AS location,
+        p_SYMBOL AS symbol,
+        p_pricing AS pricing,
+        p_currency AS currency,
+        p_totalrelease AS maxProductQuantity,
+        
+        ROUND(p_pricing * p_irr * 0.01, 0) AS astimatedIncomePerToken,
+        SUBSTRING(p_CFSD, 1, 4) AS releaseDateYear,
+        SUBSTRING(p_CFSD, 5, 2) AS releaseDateMonth,
+        SUBSTRING(p_CFSD, 7, 2) AS releaseDateDate,
+        SUBSTRING(p_CFSD, 9, 2) AS releaseDateHour,
+        SUBSTRING(p_CFSD, 11, 2) AS releaseDateMinute,
+        p_size AS size,
+        p_duration AS durationInYear,
+        p_FRP AS duration,
+        p_RPT AS RPT,
+        SUBSTRING(p_CFED, 1, 4) AS deadlineYear,
+        SUBSTRING(p_CFED, 5, 2) AS deadlineMonth,
+        SUBSTRING(p_CFED, 7, 2) AS deadlineDate,
+        SUBSTRING(p_CFED, 9, 2) AS deadlineHour,
+        SUBSTRING(p_CFED, 11, 2) AS deadlineMinute,
+        
         p_TaiPowerApprovalDate AS taiPowerApprovalDate,
         p_CFSD AS CFSD,
         p_BOEApprovalDate AS BOEApprovalDate,

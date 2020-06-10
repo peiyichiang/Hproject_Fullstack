@@ -59,11 +59,14 @@ const checkAmountArray = async(randomList)=>{
 const frontEndUserRegistry = async() => {
   let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol;
   describe('intergration testing of front-end user register', async function(){
-    this.timeout(3000);  
+    this.timeout(3000);
+    let eth_account_var = "0x" + faker.random.number(420989161277374234851052247841559622657063210593).toString(16)  
+    let assetBookAddress_var
+    let user_identy_var = 'T' + faker.random.number(999999999)
     it('sign up an user', async function(){
       await request
         .post(version+'/user/addUser')
-        .send({ ID: 'T' + faker.random.number(999999999), email: _email, password: _password, imageURLF: faker.internet.url(), imageURLB: faker.internet.url(), bankAccount: faker.internet.url(), eth_account: faker.random.hexaDecimal, verify_status: 0, phoneNumber: "09" + faker.random.number(9999999), name: faker.internet.userName})
+        .send({ ID: user_identy_var, email: _email, password: _password, imageURLF: faker.internet.url(), imageURLB: faker.internet.url(), bankAccount: faker.internet.url(), eth_account:eth_account_var , verify_status: 0, phoneNumber: "09" + faker.random.number(9999999), name: faker.internet.userName})
         .set('Accept', 'application/json')
         .expect(200)
         .then(async function(res){
@@ -116,16 +119,53 @@ const frontEndUserRegistry = async() => {
           symbol = res.body.result[0].symbol;
         })
     })
-
+    it("deploy assetbook contract",async function (){
+      await  request
+        .post("/Contracts/assetbookContract")
+        .send({assetBookOwner:eth_account_var})
+        .expect(200)
+        .then(async function(res){
+          await res.body.contractAddress.should.not.empty();
+          console.log(res.body.contractAddress)
+          assetBookAddress_var = res.body.contractAddress
+          }
+        )
+    }).timeout(100000);
+    it("write assetbook addr back to the DB",async function (){
+      await request
+        .post("/Contracts/registryContract/users/"+user_identy_var)
+        .send({
+          assetBookAddress:assetBookAddress_var,
+          ethAddr:eth_account_var,
+          email:_email
+        })
+        .expect(200)
+        .then(
+          async function(res,err) {
+            if(err){
+              console.log(err)
+            }
+            
+              }
+        )
+        }).timeout(100000);
+    it("review member status change unapproved to approve",async function(){
+      await request
+        .post("/user/reviewStatus")
+        .send({reviewStatus:"approved",email:_email})
+        .expect(302)
+        
+    })    
     it('check if the user can buy token', async function(){
       await  request
         .get(version+'/product/canBuyToken')
         .set('Accept', 'application/json')
         .query({ JWT: jwt, symbol: symbol })
-        .expect(400)
+        .expect(200)
     });
   });
 }
+
 
 const frontEndUserViewingPages = async() => {
   describe('intergration testing of front-end user viewing pages', async function(){
@@ -1173,5 +1213,4 @@ const new_flow1 = ()=>{
 
 flow1();
 //new_flow1();
-
 

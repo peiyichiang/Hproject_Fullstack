@@ -94,6 +94,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
     .end(
       (err,res)=>{
         res.body.success.should.equal("True")
+        console.log(res.body.data)
         res.body.data.should.not.empty()
         if(err){
           console.log(err)
@@ -229,8 +230,11 @@ const flow1 = ()=>{
 }
 
 
-Order_api();
+//Order_api();
 //JWT_demo();
+productinfo_api("funding");
+
+
 
 // demo zone...
 
