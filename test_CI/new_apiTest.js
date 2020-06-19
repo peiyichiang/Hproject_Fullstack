@@ -94,6 +94,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
     .end(
       (err,res)=>{
         res.body.success.should.equal("True")
+        console.log(res.body.data)
         res.body.data.should.not.empty()
         if(err){
           console.log(err)
@@ -130,10 +131,10 @@ const AssetManagement_api = ()=>{
     })
   })
 }
-// the api query string still fixed it will be a parameter later so still need to be modified
+// the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
 const Order_api = () => {
   describe("Order.js test...",()=>{
-    it("QueryOrder api test..",done=>{
+    it("Query all the Order data..",done=>{
       request
       .get(version2+"/Order/QueryOrder")
       .set("Accept","application/json")
@@ -150,7 +151,72 @@ const Order_api = () => {
           }
         }
       )
-    })
+    });
+
+
+    it("Product Remain number query api...",done=>{
+      request
+      .get(version2+"/Order/RemainRelease")
+      .send({
+        symbol:"EMMY0511"
+      })
+      .expect(200)
+      .then(
+        (res,err)=>{
+          res.body.success.should.equal("True")
+          if(err){
+           done(err)
+          }
+          else {
+            done()
+              }
+        }
+      )
+    });
+
+    it("Qualify place order api test...",done=>{
+      request
+      .get(version2+"/Order/QualifyPlaceOrder")
+      .send({
+        symbol:"EMMY0511"
+      })
+      .expect(200)
+      .then(
+        (res,err)=>{
+          res.body.success.should.equal("True")
+          //res.body.quaification.should.equal("True")  
+          if(err){
+           done(err)
+          }
+          else {
+            done()
+              }
+        }
+      )
+    });
+    
+    it("place a order...",done=>{
+      request
+      .get(version2+"/Order/PlaceOrder")
+      .send(
+            { symbol:symbol,tokenCount:amout,fundCount:price*amout } // email... etc  must be send
+          )
+      .expect(200)
+      .end(
+        (err,res)=>{
+          console.log(res.body)
+          res.body.success.should.equal("True")
+          if (err) {
+            console.log(err)
+            done(err)
+              }
+          else{
+            done()
+          }
+        }  
+      )
+    }).timeout(300000);
+
   })
 }
 
@@ -164,8 +230,11 @@ const flow1 = ()=>{
 }
 
 
-flow1();
+//Order_api();
 //JWT_demo();
+productinfo_api("funding");
+
+
 
 // demo zone...
 

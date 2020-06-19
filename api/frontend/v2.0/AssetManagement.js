@@ -1,8 +1,12 @@
 var express = require('express');
+const Web3 = require('web3');
 var router = express.Router();
 var jwt = require('jsonwebtoken');
 var async = require('async');
 const { getTimeServerTime } = require('../../../timeserver/utilities');
+const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../../../timeserver/envVariables');
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
+
 const fetch = require("node-fetch");
 const powerGenerationdata = {
     "five":0,
@@ -20,39 +24,65 @@ const powerGenerationdata = {
     "seventeen": 0
 }
 
-async function getbalanceof(){
-    const BcApiBase = "http://localhost:3030/Contracts/";
-    console.log(BcApiBase)
-    const url = BcApiBase+`tokenHCAT/balanceOf`;
-    // http://localhost:3030/Contracts/tokenHCAT/balanceOf/
-    var ctrtAddr = 0xAb974D97Ec089d326f493F44AfF9D3EA380DB4e8
-    var assetbookAddr = 0xABeC535d76BE8aDDC7d19a630F94B6132239Ac43
-    const data = {ctrtAddr, assetbookAddr };
-    const options = {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(data), // data can be `string` or {object}!
-        headers:{'Content-Type': 'application/json'}
-    };
-    const response = await fetch(url, options).catch(error => console.error('Error:', error));
-    const jsonObj = await response.json();
-    console.log('jsonObj', jsonObj);
-    document.getElementById("balanceOfM").innerText = jsonObj['balanceOf'];
+function getbalanceof(mysqlPoolQuery,symbol,user){
+    return new Promise(async (resolve, reject) => {
+        const HCAT721_AssetTokenContract = require('../../../ethereum/contracts/build/HCAT721_AssetToken.json');
+        var ctrtAddr = await getctrtAddr(mysqlPoolQuery,symbol);
+        var assetbookAddr = await getassetbookAddr(mysqlPoolQuery,user);
+        if(ctrtAddr && assetbookAddr){
+            const instHCAT721 = new web3.eth.Contract(HCAT721_AssetTokenContract.abi, ctrtAddr);
+            if(instHCAT721 != undefined){
+                // console.log(instHCAT721)
+                const balanceOf = await instHCAT721.methods.balanceOf(assetbookAddr).call();
+                resolve(balanceOf);
+            }  
+        }
+    })
 }
+function getctrtAddr(mysqlPoolQuery,symbol) {
+    return new Promise((resolve, reject) => {
+        mysqlPoolQuery('SELECT sc_erc721address  FROM smart_contracts WHERE sc_symbol = ?', [symbol], function (err, DBresult, rows) {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            else {
+                resolve(DBresult[0].sc_erc721address);
+            }
+        });
+    })
+}
+function getassetbookAddr(mysqlPoolQuery,user) {
+    return new Promise((resolve, reject) => {
+        mysqlPoolQuery('SELECT u_eth_add FROM user WHERE u_email = ?', [user], function (err, DBresult, rows) {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            else {
+                resolve(DBresult[0].u_eth_add);
+            }
+        });
+    })
+}
+
 router.get('/asset',async function (req,res){
     console.log("This is asset API")
-    // getbalanceof()
+    var mysqlPoolQuery = req.pool;
     //get user information from req.decoded
     //_userName = req.decoded.name;
     // _userEmail = req.decoded.email;
-    _userEmail = 'ivan55660228@gmail.com';
+    var _userEmail = 'ivan55660228@gmail.com';
+
     //database query
     const _time = await getTimeServerTime() // using await to avoid async problem (function should be async)
     const query = req.frontendPoolQuery;
     if (_userEmail && _time){
-        query('asset',[_userEmail,_time]).then((result) => {
+        query('asset',[_userEmail,_time]).then(async (result) => {
             var string=JSON.stringify(result); 
             var data = JSON.parse(string);
             data = formating(data);
+            data = await AddBalanceOf(data,_userEmail,mysqlPoolQuery);
             if (data.length != 0){
                 return res.status(200).json({success:"True",data: data});
             }else{
@@ -65,50 +95,67 @@ router.get('/asset',async function (req,res){
     }else{
         return res.status(400).json({success: "False", message: "wrong or lack parameters"});
     }
+    function AddBalanceOf(data,user,mysqlPoolQuery) {
+        return new Promise(async (resolve, reject) => {
+            var itemsProcessed = 0;
+            data.forEach(async function(item,index,array){
+                var symbol = item.symbol;
+                symbol = 'ANGE0522';
+                var balanceOf = await getbalanceof(mysqlPoolQuery,symbol,user);
+                data[index]['balanceOf'] = balanceOf;
+                if(data[index]['balanceOf']){
+                    itemsProcessed++;
+                }
+                if(itemsProcessed === array.length){
+                    resolve(data);
+                }
+            })  
+        })
+    }
+    function formating(data){
+        newData = []                                // the output data for new format
+        data.forEach(function(item, index, array){
+            key = Object.keys(item);                // all the sql result has a key see mysql.js
+            if(key=="main"){
+                item[key].forEach(async function(item){
+                    newData.push(item);
+                })
+            }else if(key=="assetRecord"){
+                item[key].forEach(function(item){
+                    var symbol = item.symbol;
+                    id = newData.findIndex(obj => obj.symbol === symbol);
+                    delete item.symbol;
+                    if(newData[id][key]== undefined) newData[id][key] = [];  // initialize the assetRecord with aan empty arry
+                    newData[id][key].push(item);
+                })
+            }else if(key=="powerGeneration"){
+                newData.forEach(function(elm){
+                    if(elm[key]== undefined) elm[key] = powerGenerationdata;    // setting powerGeneration default values
+                })
+                item[key].forEach(function(item){
+                    // console.log(item);
+                    var symbol = item.symbol;
+                    newData.forEach(function(elm){
+                        if(elm.symbol == symbol) elm[key] = {...elm[key],...item};  // using spread syntax to overwrite default values
+                    })
+                })
     
+            }else if(key=="powerGenerationAcc"){
+                item[key].forEach(function(item){
+                    // console.log(item);
+                    var symbol = item.symbol;
+                    newData.forEach(function(elm){
+                        if(elm[key] == undefined) elm[key] = 0;
+                        if(elm.symbol == symbol) elm[key] = item.sum;
+                    })
+                })
+            }    // forEach 就如同 for，不過寫法更容易
+        });
+        return newData
+    }
 
 })
-function formating(data){
-    newData = []                                // the output data for new format
-    data.forEach(function(item, index, array){
-        key = Object.keys(item);                // all the sql result has a key see mysql.js
-        if(key=="main"){
-            item[key].forEach(function(item){
-                newData.push(item);
-            })
-        }else if(key=="assetRecord"){
-            item[key].forEach(function(item){
-                var symbol = item.symbol;
-                id = newData.findIndex(obj => obj.symbol === symbol);
-                delete item.symbol;
-                if(newData[id][key]== undefined) newData[id][key] = [];  // initialize the assetRecord with aan empty arry
-                newData[id][key].push(item);
-            })
-        }else if(key=="powerGeneration"){
-            newData.forEach(function(elm){
-                if(elm[key]== undefined) elm[key] = powerGenerationdata;    // setting powerGeneration default values
-            })
-            item[key].forEach(function(item){
-                // console.log(item);
-                var symbol = item.symbol;
-                newData.forEach(function(elm){
-                    if(elm.symbol == symbol) elm[key] = {...elm[key],...item};  // using spread syntax to overwrite default values
-                })
-            })
 
-        }else if(key=="powerGenerationAcc"){
-            item[key].forEach(function(item){
-                // console.log(item);
-                var symbol = item.symbol;
-                newData.forEach(function(elm){
-                    if(elm[key] == undefined) elm[key] = 0;
-                    if(elm.symbol == symbol) elm[key] = item.sum;
-                })
-            })
-        }    // forEach 就如同 for，不過寫法更容易
-    });
-    return newData
-}
 router.use(function (req, res, next) {
     
     var token = req.headers['x-access-token'];
