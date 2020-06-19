@@ -1951,11 +1951,26 @@ router.post('/CorrectActualPayment', function (req, res, next) {
     console.log("#校正前金額:" + req.body.OriginalPaymentNumber);
     console.log("#校正後金額:" + req.body.CorrectActualPaymentNumber);
 
+    console.log("#售電收入:" + req.body.ia_ElectricitySellingIncomeEachPiece);
+    console.log("#維運管理費:" + req.body.ia_managementfee);
+    console.log("#保險費:" + req.body.ia_insurancepremium);
+    console.log("#場地租金:" + req.body.ia_rent);
+    
+
     var sql = {
         //校正後金額
         ia_single_Actual_Income_Payment_in_the_Period: req.body.CorrectActualPaymentNumber,
         //校正後時間
         ia_actualPaymentTime: req.body.CorrectActualPaymentTime,
+        //售電收入
+        ia_ElectricitySellingIncomeEachPiece:req.body.ia_ElectricitySellingIncomeEachPiece,
+        //維運管理費
+        ia_managementfee:req.body.ia_managementfee,
+        //保險費
+        ia_insurancepremium:req.body.ia_insurancepremium,
+        //場地租金
+        ia_rent:req.body.ia_rent,
+        //
         ia_State: "ia_state_underReview"
     };
 
@@ -1997,8 +2012,10 @@ router.post('/CorrectActualPaymentResult', function (req, res, next) {
             // 實際發放時間
             var actualPaymentTime_ = rows[0].ia_actualPaymentTime;
             console.log("實際發放時間：" + actualPaymentTime_);
-            // console.log(rows[0].ia_actualPaymentTime);                    
+            // console.log(rows[0].ia_actualPaymentTime);     
 
+            console.log("審核結果：" + req.body.CorrectActualPaymentResult);
+            
             // 如果通過審核就寫入到智能合約
             if (req.body.CorrectActualPaymentResult == "ia_state_approved") {
                 const symbol = req.body.CorrectActualPaymentTokenSymbol;
