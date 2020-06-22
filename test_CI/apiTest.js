@@ -149,7 +149,7 @@ const frontEndUserRegistry = async() => {
               }
         )
         }).timeout(100000);
-    it("review member status change unapproved to approve",async function(){
+    it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
         .send({reviewStatus:"approved",email:_email})
@@ -906,9 +906,8 @@ const PSMintToken = async(updateTime) => {
         .set('Cookie', token)
         .then(async function(res){
           await res.text.should.not.equal("請先登入");
-          
         });
-    });
+    }).timeout(3000);
     it('waiting for rabbitmq consumer', async function(){
       return new Promise((resolve, reject) => {
         setTimeout(resolve, 30000);    
@@ -1110,6 +1109,7 @@ const Order_api = () => {
 
 const flow1 = async() => {
   describe('intergration testing of sold out the product', async function(){
+    await frontEndUserRegistry();
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
@@ -1212,5 +1212,9 @@ const new_flow1 = ()=>{
 
 
 flow1();
-//new_flow1();
+new_flow1();
 
+
+
+
+//node node_modules/.bin/mocha  --exit test_CI/apiTest.js 

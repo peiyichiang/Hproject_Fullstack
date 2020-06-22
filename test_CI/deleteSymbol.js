@@ -5,6 +5,8 @@ var fs = require('fs');
 let result;
 const deleteSymbol = async(symbol) => {
     await mysqlPoolQueryB('DELETE FROM product WHERE p_SYMBOL = ?', [symbol]);
+    await mysqlPoolQueryB('DELETE FROM product_doc WHERE pd_SYMBOL = ?', [symbol]);
+    await mysqlPoolQueryB('DELETE FROM product_editHistory WHERE pe_symbol = ?', [symbol]);
     await mysqlPoolQueryB('DELETE FROM smart_contracts WHERE sc_symbol = ?', [symbol]);
     await mysqlPoolQueryB('DELETE FROM order_list WHERE o_symbol = ?', [symbol]);
     await mysqlPoolQueryB('DELETE FROM investor_assetRecord WHERE ar_tokenSYMBOL = ?', [symbol]);
