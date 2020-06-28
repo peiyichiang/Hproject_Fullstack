@@ -1,15 +1,42 @@
 var express = require('express');
 var router = express.Router();
-// const TokenGenerator = require('./TokenGenerator');
 var jwt = require('jsonwebtoken');
 var async = require('async');
 const nodemailer = require('nodemailer');
+const TokenGenerator = require('./TokenGenerator');
 const { checkCompliance } = require('../../../ethereum/contracts/zsetupData');
 const { getTimeServerTime } = require('../../../timeserver/utilities');
 
+router.use(function (req, res, next) {
+
+    const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' });
+    var token = req.headers['x-access-token'];
+
+
+    if (token) {
+        jwt.verify(token, process.env.JWT_PRIVATEKEY, function (err, decoded) {
+        if (err) {
+            return res.json({success: false, message: 'Failed to authenticate token.'});
+        } else {
+            req.decoded = decoded;
+            new_token = tokenGenerator.refresh(token, { verify: { audience: 'myaud', issuer: 'myissuer' }, jwtid: '2' });
+            req.headers['x-access-token'] = new_token;
+            next();
+        }
+        })
+    } else {
+        return res.status(403).send({
+            success: false,
+            message: 'No token provided.'
+        });
+    }
+})
+
 router.get('/QueryOrder', function(req,res){
     console.log("This is QueryOrder API");
-    _userEmail = 'ivan55660228@gmail.com';
+    var _userEmail = req.decoded.data.u_email;
+    console.log(_userEmail)
+    // _userEmail = 'ivan55660228@gmail.com';
     const query = req.frontendPoolQuery;
     if (_userEmail){
         query('queryOrder',[_userEmail]).then((result) => {
@@ -103,7 +130,9 @@ router.get('/QualifyPlaceOrder',async function(req,res){
     }
     
     //要改用jwt取得
-    const email = 'ivan55660228@gmail.com';
+    // const email = 'ivan55660228@gmail.com';
+    const email = req.decoded.data.u_email;
+    console.log(email)
     if(email){
         var UserVerifyStatus = await getUserVerifyStatus(mysqlPoolQuery,email);
         if(UserVerifyStatus){
@@ -174,8 +203,12 @@ router.get('/PlaceOrder', async function(req,res){
     // 要用jwt來取資料
     // const nationalId = req.decoded.userIdentity;
     // const email = req.decoded.email;
-    const nationalId = 'A128465975';
-    const email = 'ivan55660228@gmail.com';
+    // const nationalId = 'A128465975';
+    // const email = 'ivan55660228@gmail.com';
+    const nationalId = req.decoded.data.u_identityNumber;
+    const email = req.decoded.data.u_email;
+    console.log(nationalId);
+    console.log(email);
     const tokenCount = req.body.tokenCount;
     const fundCount = req.body.fundCount
 
@@ -418,24 +451,5 @@ router.get('/PlaceOrder', async function(req,res){
     }; 
 })
 
-router.use(function (req, res, next) {
-    
-    var token = req.headers['x-access-token'];
 
-    if (token) {
-        jwt.verify(token, process.env.JWT_PRIVATEKEY, function (err, decoded) {
-        if (err) {
-            return res.json({success: false, message: 'Failed to authenticate token.'});
-        } else {
-            req.decoded = decoded;
-            next();
-        }
-        })
-    } else {
-        return res.status(403).send({
-            success: false,
-            message: 'No token provided.'
-        });
-    }
-})
 module.exports = router;
