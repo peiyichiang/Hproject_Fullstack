@@ -6,7 +6,7 @@ var async = require('async');
 const { getTimeServerTime } = require('../../../timeserver/utilities');
 const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../../../timeserver/envVariables');
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
-
+const TokenGenerator = require('./TokenGenerator');
 const fetch = require("node-fetch");
 const powerGenerationdata = {
     "five":0,
@@ -23,6 +23,31 @@ const powerGenerationdata = {
     "sixteen": 0,
     "seventeen": 0
 }
+
+router.use(function (req, res, next) {
+
+    const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' });
+    var token = req.headers['x-access-token'];
+
+
+    if (token) {
+        jwt.verify(token, process.env.JWT_PRIVATEKEY, function (err, decoded) {
+        if (err) {
+            return res.json({success: false, message: 'Failed to authenticate token.'});
+        } else {
+            req.decoded = decoded;
+            new_token = tokenGenerator.refresh(token, { verify: { audience: 'myaud', issuer: 'myissuer' }, jwtid: '2' });
+            req.headers['x-access-token'] = new_token;
+            next();
+        }
+        })
+    } else {
+        return res.status(403).send({
+            success: false,
+            message: 'No token provided.'
+        });
+    }
+})
 
 function getbalanceof(mysqlPoolQuery,symbol,user){
     return new Promise(async (resolve, reject) => {
@@ -70,10 +95,10 @@ router.get('/asset',async function (req,res){
     console.log("This is asset API")
     var mysqlPoolQuery = req.pool;
     //get user information from req.decoded
-    //_userName = req.decoded.name;
-    // _userEmail = req.decoded.email;
-    var _userEmail = 'ivan55660228@gmail.com';
-
+    var _userName = req.decoded.data.u_name;
+    var _userEmail = req.decoded.data.u_email;
+    // var _userEmail = 'ivan55660228@gmail.com';
+    console.log(_userEmail)
     //database query
     const _time = await getTimeServerTime() // using await to avoid async problem (function should be async)
     const query = req.frontendPoolQuery;
@@ -155,26 +180,4 @@ router.get('/asset',async function (req,res){
     }
 
 })
-
-router.use(function (req, res, next) {
-    
-    var token = req.headers['x-access-token'];
-
-    if (token) {
-        jwt.verify(token, process.env.JWT_PRIVATEKEY, function (err, decoded) {
-        if (err) {
-            return res.json({success: false, message: 'Failed to authenticate token.'});
-        } else {
-            req.decoded = decoded;
-            next();
-        }
-        })
-    } else {
-        return res.status(403).send({
-            success: false,
-            message: 'No token provided.'
-        });
-    }
-})
-
 module.exports = router;
