@@ -13,6 +13,7 @@ const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
+const { wait } = require('event-stream');
 
 let virtualAccount;
 let crowdFundingAddr;
@@ -26,75 +27,56 @@ const version2 = "/frontendAPI/v2.0";
 
 
 
-// JWT_demo is a demo of our new method of jwt authorization test.
 
-const JWT_demo = ()=>{describe("test the new api",()=>{
-  let token;
-  let headers;
-  it("test /a ", done=>{
-    request
-    .post(version2+"/product/a")
-    .send({
-      name:"George"
-    })
-    .set("Accept","application/json")
-    .expect(302)
-    .then(
-      (res,err)=>{
-        if(err){
-          done(err)
-        }
-        else{
-          res.header["set-cookie"].should.not.empty();
-          token = (res.body)
-          console.log(headers)
-          done()
-        }
-      }
-    )
-  });
-
-  
-  
-  it("test /b",done=>{
-    request
-    .get(version2+"/product/b")
-    .set("x-access-token",token)
-    .set("Accept","application/json")
-    .expect(200)
-    .end(
-      (err,res)=>{
-        if(err){
-          done(err);
-        }
-        else{
-          console.log(res.body.usr_name)
-          done();
-        }
-      }
-    )
-  });
-
-
-})}
 
 
 // new api testing begin here. Every api mocha code is designed to be fed all parameters in and simulate all conditions.
 
 
 const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
+  let token;
+  it("Sign in", done=>{
+    request
+    .post(version2+"/Login/signIn")
+    .send({
+      email:"ivan55660228@gmail.com",
+      password:"02282040"
+    })
+    .set("Accept","application/json")
+    .expect(200)
+    .then(
+      (res,err)=>{
+        token =  res.body.jwt
+        res.body.success.should.equal("True")
+        if(err){
+          done(err)
+        }
+        else{
+          done()
+        }
+      }
+    )
+  });
+  it('waiting for jwt done', async function(){
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, 2000);    
+    }).then(() => {
+      return ; 
+    });
+  }).timeout(10000);
   it("Get Products Information(status:200) with "+p_status, done => {
     request
     .get(version2+"/product/ProductInfo")
     .query({
       status:p_status
     })
-    .set("Accept","application/json")
+    .set('Accept', 'application/json')
+    .set("x-access-token",token)
+    
     .expect(200)
     .end(
       (err,res)=>{
         res.body.success.should.equal("True")
-        console.log(res.body.data)
         res.body.data.should.not.empty()
         if(err){
           console.log(err)
@@ -111,9 +93,40 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
 // the api query string still fixed it will be a parameter later so still need to be modified
 const AssetManagement_api = ()=>{
   describe("AssetManagement.js api test...",()=>{
+    let token;
+  it("Sign in", done=>{
+    request
+    .post(version2+"/Login/signIn")
+    .send({
+      email:"ivan55660228@gmail.com",
+      password:"02282040"
+    })
+    .set("Accept","application/json")
+    .expect(200)
+    .then(
+      (res,err)=>{
+        token =  res.body.jwt
+        res.body.success.should.equal("True")
+        if(err){
+          done(err)
+        }
+        else{
+          done()
+        }
+      }
+    )
+  });
+  it('waiting for jwt done', async function(){
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, 2000);    
+    }).then(() => {
+      return ; 
+    });
+  }).timeout(10000);
     it("get asset",done=>{
       request
       .get(version2+"/AssetManagement/asset")
+      .set("x-access-token",token)
       .set("Accept","application/json")
       .expect(200)
       .end(
@@ -134,10 +147,41 @@ const AssetManagement_api = ()=>{
 // the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
 const Order_api = () => {
   describe("Order.js test...",()=>{
+    let token;
+    it("Sign in", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:"ivan55660228@gmail.com",
+        password:"02282040"
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });
+    it('waiting for jwt done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 2000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(10000);
     it("Query all the Order data..",done=>{
       request
       .get(version2+"/Order/QueryOrder")
       .set("Accept","application/json")
+      .set("x-access-token",token)
       .expect(200)
       .end(
         (err,res)=>{
@@ -160,6 +204,7 @@ const Order_api = () => {
       .send({
         symbol:"EMMY0511"
       })
+      .set("x-access-token",token)
       .expect(200)
       .then(
         (res,err)=>{
@@ -180,6 +225,7 @@ const Order_api = () => {
       .send({
         symbol:"EMMY0511"
       })
+      .set("x-access-token",token)
       .expect(200)
       .then(
         (res,err)=>{
@@ -195,12 +241,13 @@ const Order_api = () => {
       )
     });
     
-    it("place a order...",done=>{
+    /*it("place a order...",done=>{
       request
       .get(version2+"/Order/PlaceOrder")
       .send(
             { symbol:symbol,tokenCount:amout,fundCount:price*amout } // email... etc  must be send
           )
+      .set("x-access-token",token)
       .expect(200)
       .end(
         (err,res)=>{
@@ -215,7 +262,7 @@ const Order_api = () => {
           }
         }  
       )
-    }).timeout(300000);
+    }).timeout(300000);*/
 
   })
 }
@@ -228,13 +275,7 @@ const flow1 = ()=>{
   AssetManagement_api();
   Order_api();
 }
-
-
-//Order_api();
-//JWT_demo();
-productinfo_api("funding");
-
-
+flow1()
 
 // demo zone...
 

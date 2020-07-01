@@ -11,6 +11,7 @@ const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type,updated_product} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
 const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
+const { set } = require('../app');
 
 let virtualAccount;
 let crowdFundingAddr;
@@ -187,6 +188,7 @@ const frontEndUserViewingPages = async() => {
 const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', password = '02282040',product_status="ONM") => {
   describe('intergration testing of front-end user ordering', async function(){
     this.timeout(3000);  
+    let token
     let jwt, canBuy = false;
     before('Login before do something', async function(){
       await request
@@ -199,7 +201,35 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
           jwt = res.body.jwt;
         });
     });
-
+    it("Sign in", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:email,
+        password:password
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });
+    it('waiting for jwt done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 2000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(10000);
     it('check need to reupload info', async function(){
       await request
         .get(version+'/user/NeedToReuploadMemberDocument')
@@ -227,17 +257,18 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
       .query({
         status:product_status
       })
+      .set("x-access-token",token)
       .set("Accept","application/json")
       .expect(200)
       .end(
         (err,res)=>{
+          res.body.success.should.equal("True")
+          res.body.data.should.not.empty()
           if(err){
             console.log(err)
             done(err);
           }
           else{
-            res.body.success.should.equal("True")
-            res.body.data.should.not.empty()
             done();
           }
         }
@@ -276,13 +307,13 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
           await res.body.message.should.equal('[Success] Success');
         })
     });
-    
-    it("place a order...",done=>{
+    it("place an order...",done=>{
       request
       .get(version2+"/Order/PlaceOrder")
       .send(
             { symbol:symbol,tokenCount:amout,fundCount:price*amout } // email... etc  must be send
           )
+      .set("x-access-token",token)
       .expect(200)
       .end(
         (err,res)=>{
@@ -1029,13 +1060,45 @@ const PSFundingClose = async(updateTime) => {
 
 
 const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=>{
+  let token;
+  it("Sign in", done=>{
+    request
+    .post(version2+"/Login/signIn")
+    .send({
+      email:"ivan55660228@gmail.com",
+      password:"02282040"
+    })
+    .set("Accept","application/json")
+    .expect(200)
+    .then(
+      (res,err)=>{
+        token =  res.body.jwt
+        res.body.success.should.equal("True")
+        if(err){
+          done(err)
+        }
+        else{
+          done()
+        }
+      }
+    )
+  });
+  it('waiting for jwt done', async function(){
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, 2000);    
+    }).then(() => {
+      return ; 
+    });
+  }).timeout(10000);
   it("Get Products Information(status:200) with "+p_status, done => {
     request
     .get(version2+"/product/ProductInfo")
     .query({
       status:p_status
     })
-    .set("Accept","application/json")
+    .set('Accept', 'application/json')
+    .set("x-access-token",token)
+    
     .expect(200)
     .end(
       (err,res)=>{
@@ -1053,13 +1116,43 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
   });
 })}
 
-
 // the api query string still fixed it will be a parameter later so still need to be modified
 const AssetManagement_api = ()=>{
   describe("AssetManagement.js api test...",()=>{
+    let token;
+  it("Sign in", done=>{
+    request
+    .post(version2+"/Login/signIn")
+    .send({
+      email:"ivan55660228@gmail.com",
+      password:"02282040"
+    })
+    .set("Accept","application/json")
+    .expect(200)
+    .then(
+      (res,err)=>{
+        token =  res.body.jwt
+        res.body.success.should.equal("True")
+        if(err){
+          done(err)
+        }
+        else{
+          done()
+        }
+      }
+    )
+  });
+  it('waiting for jwt done', async function(){
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, 2000);    
+    }).then(() => {
+      return ; 
+    });
+  }).timeout(10000);
     it("get asset",done=>{
       request
       .get(version2+"/AssetManagement/asset")
+      .set("x-access-token",token)
       .set("Accept","application/json")
       .expect(200)
       .end(
@@ -1077,13 +1170,44 @@ const AssetManagement_api = ()=>{
     })
   })
 }
-// the api query string still fixed it will be a parameter later so still need to be modified
+// the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
 const Order_api = () => {
   describe("Order.js test...",()=>{
-    it("QueryOrder api test..",done=>{
+    let token;
+    it("Sign in", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:"ivan55660228@gmail.com",
+        password:"02282040"
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });
+    it('waiting for jwt done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 2000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(10000);
+    it("Query all the Order data..",done=>{
       request
       .get(version2+"/Order/QueryOrder")
       .set("Accept","application/json")
+      .set("x-access-token",token)
       .expect(200)
       .end(
         (err,res)=>{
@@ -1097,7 +1221,53 @@ const Order_api = () => {
           }
         }
       )
-    })
+    });
+
+
+    it("Product Remain number query api...",done=>{
+      request
+      .get(version2+"/Order/RemainRelease")
+      .send({
+        symbol:"EMMY0511"
+      })
+      .set("x-access-token",token)
+      .expect(200)
+      .then(
+        (res,err)=>{
+          res.body.success.should.equal("True")
+          if(err){
+           done(err)
+          }
+          else {
+            done()
+              }
+        }
+      )
+    });
+
+    it("Qualify place order api test...",done=>{
+      request
+      .get(version2+"/Order/QualifyPlaceOrder")
+      .send({
+        symbol:"EMMY0511"
+      })
+      .set("x-access-token",token)
+      .expect(200)
+      .then(
+        (res,err)=>{
+          res.body.success.should.equal("True")
+          //res.body.quaification.should.equal("True")  
+          if(err){
+           done(err)
+          }
+          else {
+            done()
+              }
+        }
+      )
+    });
+    
+    
   })
 }
 
