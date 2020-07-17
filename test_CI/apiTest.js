@@ -225,7 +225,7 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
     });
     it('waiting for jwt done', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 2000);    
+        setTimeout(resolve, 5000);    
       }).then(() => {
         return ; 
       });
@@ -1085,7 +1085,7 @@ const productinfo_api = (p_status)=>{describe("Frontend API 2.0/ Product.js",()=
   });
   it('waiting for jwt done', async function(){
     return new Promise((resolve, reject) => {
-      setTimeout(resolve, 2000);    
+      setTimeout(resolve, 5000);    
     }).then(() => {
       return ; 
     });
@@ -1144,7 +1144,7 @@ const AssetManagement_api = ()=>{
   });
   it('waiting for jwt done', async function(){
     return new Promise((resolve, reject) => {
-      setTimeout(resolve, 2000);    
+      setTimeout(resolve, 5000);    
     }).then(() => {
       return ; 
     });
@@ -1198,7 +1198,7 @@ const Order_api = () => {
     });
     it('waiting for jwt done', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 2000);    
+        setTimeout(resolve, 5000);    
       }).then(() => {
         return ; 
       });
