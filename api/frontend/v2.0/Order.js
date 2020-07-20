@@ -44,16 +44,16 @@ router.get('/QueryOrder', function(req,res){
             var data = JSON.parse(string);
             data = formating(data);
             if (data.length != 0){
-                return res.status(200).json({success:"True",data: data});
+                return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
             }else{
-                return res.status(404).json({success: "False", message: "data not found"});
+                return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
             }
         }).catch((err => {
             console.log(err);
-            return res.status(500).json({success: "False", message: "sql error"});
+            return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
         }))
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters", new_token: req.headers['x-access-token']});
     }
     function formating(data){
         newData = []                                // the output data for new format
@@ -99,12 +99,12 @@ router.get('/RemainRelease',async function(req,res){
     if (symbol){
         var data = await remainRelease(query,symbol);
         if(data){
-            return res.status(200).json({success: "True", remainRelease: data});
+            return res.status(200).json({success: "True", remainRelease: data, new_token: req.headers['x-access-token']});
         }else{
-            return res.status(404).json({success: "False", message: "data not found"});
+            return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
         }
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters", new_token: req.headers['x-access-token']});
     }
 })
 
@@ -120,13 +120,13 @@ router.get('/QualifyPlaceOrder',async function(req,res){
         var cfed = Number(result.p_CFED);
         if(cfsd && cfed){
             if(time < cfsd || time > cfed){
-                return res.status(200).json({success: "True", quaification: false, message: "非合法購買時間"})
+                return res.status(200).json({success: "True", quaification: false, message: "非合法購買時間", new_token: req.headers['x-access-token']})
             }
         }else{
-            return res.status(404).json({success: "False", message: "data not found"})
+            return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']})
         }
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters", new_token: req.headers['x-access-token']});
     }
     
     //要改用jwt取得
@@ -137,7 +137,7 @@ router.get('/QualifyPlaceOrder',async function(req,res){
         var UserVerifyStatus = await getUserVerifyStatus(mysqlPoolQuery,email);
         if(UserVerifyStatus){
             if(UserVerifyStatus == 3){
-                return res.status(200).json({success: "True", quaification: true});
+                return res.status(200).json({success: "True", quaification: true, new_token: req.headers['x-access-token']});
             }else{
                 var message = "";
                 if(UserVerifyStatus == 2){
@@ -147,13 +147,13 @@ router.get('/QualifyPlaceOrder',async function(req,res){
                 }else{
                     message = "一階段註冊尚未完成信箱驗證"
                 }
-                return res.status(200).json({success: "True", quaification: false, message: message});
+                return res.status(200).json({success: "True", quaification: false, message: message, new_token: req.headers['x-access-token']});
             }
         }else{
-            return res.status(404).json({success: "False", message: "data not found"})
+            return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']})
         }
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters", new_token: req.headers['x-access-token']});
     }
      
     function getUserVerifyStatus(mysqlPoolQuery, email) {
@@ -238,7 +238,7 @@ router.get('/PlaceOrder', async function(req,res){
         mysqlPoolQuery('INSERT INTO order_list SET ?', sql, function (err, result) {
             if (err) {
                 console.log(err);
-                return res.status(500).json({success: "False", message: "訂單寫入資料庫失敗:\n"});
+                return res.status(500).json({success: "False", message: "訂單寫入資料庫失敗:\n", new_token: req.headers['x-access-token']});
             } else {
                 var transporter = nodemailer.createTransport({
                     /* Helium */
@@ -275,7 +275,7 @@ router.get('/PlaceOrder', async function(req,res){
                 // send mail with defined transport object
                 transporter.sendMail(mailOptions, (err, info) => {
                     if (err) {
-                        return res.status(404).json({success: "False", message: "驗證信寄送失敗"+err});
+                        return res.status(404).json({success: "False", message: "驗證信寄送失敗"+err, new_token: req.headers['x-access-token']});
                     }
                     else {
                         data = [{ "purchaseDate":purchasedDate , "orderId":orderId , "bankaccount":bankVirtualAccount}]
@@ -283,12 +283,12 @@ router.get('/PlaceOrder', async function(req,res){
                     // console.log('Message sent: %s', info.messageId);
                     // Preview only available when sending through an Ethereal account
                     console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-                    return res.status(200).json({success:"True",data: data});
+                    return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
                 });
             }
         });
     }else{
-        return res.status(404).json({success: "False", message: "下單數超過可購買數量"});
+        return res.status(404).json({success: "False", message: "下單數超過可購買數量", new_token: req.headers['x-access-token']});
     }
     
     /* TODO */
