@@ -47,6 +47,7 @@ router.use(function (req, res, next) {
             return res.json({success: false, message: 'Failed to authenticate token.'});
         } else {
             req.decoded = decoded;
+            // res.setHeader('Cache-Control', 'store');
             new_token = tokenGenerator.refresh(token, { verify: { audience: 'myaud', issuer: 'myissuer' }, jwtid: '2' });
             req.headers['x-access-token'] = new_token;
             next();
@@ -64,10 +65,10 @@ router.get('/TimeServerTime',function (req,res){
     console.log("This is TimeServerTime API");
     time = getTimeServerTime().then((result) => {
         console.log("time",result);
-        return res.status(200).json({success:"True",data: result});
+        return res.status(200).json({success:"True",data: result, new_token: req.headers['x-access-token']});
     }).catch((err) => {
         console.log(err);
-        return res.status(500).json({success: "False", message: "timeserver error"});
+        return res.status(500).json({success: "False", message: "timeserver error", new_token: req.headers['x-access-token']});
     })
 })
 
@@ -83,16 +84,16 @@ router.get('/ProductInfo',function (req,res){
             var data = JSON.parse(string)
             data = formating(data);
             if (data.length != 0){
-                return res.status(200).json({success:"True",data: data});
+                return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
             }else{
-                return res.status(404).json({success: "False", message: "data not found"});
+                return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
             }
         }).catch((err => {
             console.log(err);
-            return res.status(500).json({success: "False", message: "sql error"});
+            return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
         }))    
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters" ,new_token: req.headers['x-access-token']});
     }
     function formating(data){
         newData = [];
