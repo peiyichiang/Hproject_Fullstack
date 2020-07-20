@@ -109,16 +109,16 @@ router.get('/asset',async function (req,res){
             data = formating(data);
             data = await AddBalanceOf(data,_userEmail,mysqlPoolQuery);
             if (data.length != 0){
-                return res.status(200).json({success:"True",data: data});
+                return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
             }else{
-                return res.status(404).json({success: "False", message: "data not found"});
+                return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
             }
         }).catch((err => {
             console.log(err);
-            return res.status(500).json({success: "False", message: "sql error"});
+            return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
         }))
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters", new_token: req.headers['x-access-token']});
     }
     function AddBalanceOf(data,user,mysqlPoolQuery) {
         return new Promise(async (resolve, reject) => {
