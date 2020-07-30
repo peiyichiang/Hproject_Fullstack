@@ -178,7 +178,6 @@ router.post('/verify_email', async function(req,res){
 //發送驗證信 ＆ 再次發送驗證信
 router.post('/send_email', async function (req, res) {
     const email = req.body.email;
-    const option = req.body.option;
     const _time = await getTimeServerTime()
     var expr = _time+10; // 時效為10分鐘 (單位為分鐘)
     var u_verify_code = Math.floor(Math.random() * 1000000);
@@ -235,35 +234,6 @@ router.post('/send_email', async function (req, res) {
             }
         });
     }
-    function forgetPassword(mysqlPoolQuery, email){
-        mysqlPoolQuery('SELECT u_email,u_verify_status,u_password_hash FROM user WHERE u_email = ?', [email], function (err, DBresult, rows) {
-            if (err) {      // sql wrong
-                console.log(err);
-            }
-            else {          // sql correct
-                console.log(DBresult);
-                if(DBresult.length==0){     // db can't find the email record
-                    console.log('account is not found');
-                    return res.status(404).json({success:"False",message:"查無此帳戶"});
-                }else{                      // the email is exist in db 
-                    console.log('account exist');
-                    if(DBresult[0].u_verify_status == 0){       // the email is not verified yet
-                        console.log('account is not verified');
-                        return res.status(404).json({success:"False",message:"該帳戶尚未驗證通過，請先驗證"});
-                    }else{                                      // the email is verified
-                        console.log('account is verified')
-                        if(DBresult[0].u_password_hash == null){ // email is not signUp
-                            console.log('account is not signUp');
-                            return res.status(404).json({success:"False",message:"該帳戶尚未註冊，請先註冊"});
-                        }else{                                   // email has been signUp
-                            updateAccount(mysqlPoolQuery,email);
-                            sendEmail();
-                        }
-                    } 
-                }
-            }
-        });
-    }
     function sendEmail(){
         var transporter = nodemailer.createTransport({
             /* Helium */
@@ -305,16 +275,7 @@ router.post('/send_email', async function (req, res) {
             }
         });
     }
-    switch(option){
-        case "signUp":
-            checkUserAccount(mysqlPoolQuery,email);
-            break;
-        case "forgetPassword":
-            forgetPassword(mysqlPoolQuery,email);
-            break;
-        default:
-            console.log("option is not defined")
-    }
+    checkUserAccount(mysqlPoolQuery,email);
     
 });
 
