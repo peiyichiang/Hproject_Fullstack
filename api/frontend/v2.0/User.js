@@ -72,7 +72,10 @@ router.post('/AddUserInformation',function(req,res){
         u_identityNumber: user.u_identityNumber,
         u_cellphone: user.u_cellphone,
         u_physicalAddress: user.u_physicalAddress,
+        u_postalCode: user.u_postalCode,
+        u_bankAccountName: user.u_bankAccountName,
         u_bankcode: user.u_bankcode,
+        u_branchBankCode:user.u_branchBankCode,
         u_bankBooklet: user.u_bankBooklet,
         u_imagef: user.u_imagef,
         u_imageb: user.u_imageb,
@@ -94,10 +97,10 @@ router.post('/AddUserInformation',function(req,res){
 
 router.get('/UserByEmail', function (req, res, next) {
     let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
-    var mysqlPoolQuery = req.pool;
-    var email = req.body.email;
+    let mysqlPoolQuery = req.pool;
+    let email = req.body.email;
     if (email) {
-        mysqlPoolQuery(qstr1, email, function (err, result) {
+        mysqlPoolQuery(qstr1, [email], function (err, result) {
             if(err){
                 return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
             }else{
