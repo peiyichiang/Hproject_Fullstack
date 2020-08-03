@@ -14,6 +14,7 @@ const jwt = require('jsonwebtoken')
 
 /* images management */
 var multer = require('multer');
+const { Console } = require('console');
 const Storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const imageLocation = req.body.imageLocation;
@@ -183,9 +184,17 @@ router.post('/reviewStatus', function (req, res, next) {
     console.log(req.body.reviewStatus);
     console.log(req.body.email);
     console.log("＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊");
-    sql = {
-        u_review_status: req.body.reviewStatus
-    };
+    if(req.body.reviewStatus!="approved"){
+        sql = {
+            u_review_status: req.body.reviewStatus
+        };
+    }else if(req.body.reviewStatus=="approved"){
+        sql = {
+            u_review_status: req.body.reviewStatus,
+            u_verify_status:3
+        };
+    }
+
     var qur = mysqlPoolQuery('UPDATE ' + process.env.DB_NAME + '.user SET ? WHERE u_email = ?', [sql, req.body.email], function (err, rows) {
 
         if (err) {
@@ -1210,6 +1219,34 @@ router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
         }
     })
 });
+
+//
+router.post('/AssetRecordDailySnapshot', function (req, res, next) {
+    //Step 1:先撈取有幾種symbol
+    var mysqlPoolQuery = req.pool;
+    var qur = mysqlPoolQuery('SELECT ar_tokenSYMBOL,ar_investorEmail,ar_Holding_Amount_in_the_end_of_Period FROM ' + process.env.DB_NAME + '.investor_assetRecord;', async function (err, rows) {
+        if (err) {
+            console.log(err);
+        } else {
+            // console.log(JSON.stringify(rows));
+            // console.log(new Date().toString());
+            var sql = {
+                DateTime:new Date().toString() ,
+                Content:JSON.stringify(rows)
+            };
+            var qur1 = mysqlPoolQuery('INSERT INTO  AseetRecordDailySnapshot SET ?',sql, async function (err, rows) {
+                if (err) {
+                    console.log(err);
+                    res.status(400).send('寫入AssetRecordDailySnapshot失敗');
+                } else {
+                    console.log("寫入AssetRecordDailySnapshot成功");
+                    res.status(200).json({ "message": "寫入AssetRecordDailySnapshot成功" });
+                }
+            });
+        }
+    });
+});
+
 
 module.exports = router;
 /**
