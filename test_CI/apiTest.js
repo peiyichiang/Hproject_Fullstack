@@ -324,7 +324,7 @@ const ForgetPassword = async()=>{
           
           }
       )
-    }).timeout(10000);
+    }).timeout(100000);
     it("Verify the code sent in email",async function(){
       fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[email])
       fp_verify_code = fp_verify_code[0].fp_verification_code
