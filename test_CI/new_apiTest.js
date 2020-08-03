@@ -453,11 +453,73 @@ const frontEndUserRegistry = async() => {
 
 
 const ForgetPassword = async()=>{
-  var email = _eamil
+  let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol,user_verify_code,token;
+  var email = _email
   let fp_verify_code
   var password = faker.random.words()
-  _password = password
   describe("Forget Password testing...",async function(){
+    it("post user email",async function(){
+      await request
+        .post(version2+"/Login/send_email")
+        .send({email:_email,option:"signUp"})
+        .set('Accept', 'application/json')
+        .expect(200)
+        .then(
+          async function(res){
+            await res.body.message.should.equal("驗證信寄送成功")
+          }
+        )
+    }).timeout(300000);
+    it("post user verify code ", async function(){
+      user_verify_code = await mysqlPoolQueryB("SELECT u_verify_code FROM user WHERE u_email = ?",[_email])
+      user_verify_code = user_verify_code[0].u_verify_code
+      await request
+      .post(version2+"/Login/verify_email")
+      .send({email:_email,verify_code:user_verify_code})
+      .set('Accept', 'application/json')
+      .expect(200)
+      .then(
+        async function(res){
+          await res.body.message.should.equal("驗證成功")
+          console.log(res.text)
+        }
+      )
+    });
+    it("sign up for stage one ",async function(){
+      await request
+      .post(version2+"/Login/signUp")
+      .send({password:_password,email: _email})
+      .set('Accept', 'application/json')
+      .expect(200)
+      .then(
+        async function(res){
+          console.log(res.body)
+          await res.body.message.should.equal("[Success] Success")
+        }
+      )
+    });
+    it("Sign in", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:_email,
+        password:_password
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });
     it("Send email",async function(){
       await request
       .post(version2+"/ForgetPassword/send_email")
@@ -525,7 +587,93 @@ const ForgetPassword = async()=>{
   })
 }
 
-frontEndUserRegistry();
+
+
+const ForgetPassword2 = async()=> {
+  let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol,user_verify_code,token;
+  var email = _eamil
+  let fp_verify_code
+  var password = faker.random.words()
+  describe("Forget Password (KYC needed) API CICD test",async function(){
+    it("Send email",async function(){
+      await request
+      .post(version2+"/ForgetPassword/send_email")
+      .send({email:email})
+      .set("Accept",'application/json')
+      .expect(200)
+      .then(
+        async function(res,err){
+          await res.body.message.should.equal("驗證信寄送成功")
+          }
+      )
+    }).timeout(10000);
+    it("Verify the code sent in email",async function(){
+      fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[email])
+      fp_verify_code = fp_verify_code[0].fp_verification_code
+      await request
+      .post(version2+"/ForgetPassword/verify_email")
+      .send({email:email, fp_verification_code:fp_verify_code})
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        async function(res,err){
+          await res.body.message.should.equal("投資者為二階段註冊會員，需KYC審核")
+          console.log(res.body)
+        }
+      )
+    });
+    it("change Password (no need to do KYC)",async function(){
+      await request
+      .post(version2+"/ForgetPassword/changePassword")
+      .send({email:email,password:password})
+      .set('Accept','application/json')
+      .expect(200)
+      .then(
+        async function(res){
+          console.log(res.body)
+        }
+      )
+    });
+    
+    it("new password Sign-in testing", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:email,
+        password:password
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ForgetPassword();
 
 
