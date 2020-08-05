@@ -386,7 +386,7 @@ const ForgetPassword2 = async()=> {
   let fp_verify_code
   var password = faker.random.words()
   describe("Forget Password (KYC needed) API CICD test",async function(){
-    this.timeout(3000);
+    this.timeout(10000);
     let eth_account_var = "0x" + faker.random.number(420989161277374234851052247841559622657063210593).toString(16)  
     let assetBookAddress_var
     let user_identy_var = 'T' + faker.random.number(999999999)
