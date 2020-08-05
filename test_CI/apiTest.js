@@ -380,6 +380,270 @@ const ForgetPassword = async()=>{
 }
 
 
+const ForgetPassword2 = async()=> {
+  let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol,user_verify_code,token;
+  var email = _email
+  let fp_verify_code
+  var password = faker.random.words()
+  describe("Forget Password (KYC needed) API CICD test",async function(){
+    this.timeout(3000);
+    let eth_account_var = "0x" + faker.random.number(420989161277374234851052247841559622657063210593).toString(16)  
+    let assetBookAddress_var
+    let user_identy_var = 'T' + faker.random.number(999999999)
+    it("post user email",async function(){
+      await request
+        .post(version2+"/Login/send_email")
+        .send({email:_email,option:"signUp"})
+        .set('Accept', 'application/json')
+        .expect(200)
+        .then(
+          async function(res){
+            await res.body.message.should.equal("驗證信寄送成功")
+          }
+        )
+    }).timeout(300000);
+    it("post user verify code ", async function(){
+      user_verify_code = await mysqlPoolQueryB("SELECT u_verify_code FROM user WHERE u_email = ?",[_email])
+      user_verify_code = user_verify_code[0].u_verify_code
+      await request
+      .post(version2+"/Login/verify_email")
+      .send({email:_email,verify_code:user_verify_code})
+      .set('Accept', 'application/json')
+      .expect(200)
+      .then(
+        async function(res){
+          await res.body.message.should.equal("驗證成功")
+          console.log(res.text)
+        }
+      )
+    });
+    it("sign up for stage one ",async function(){
+      await request
+      .post(version2+"/Login/signUp")
+      .send({password:_password,email: _email})
+      .set('Accept', 'application/json')
+      .expect(200)
+      .then(
+        async function(res){
+          console.log(res.body)
+          await res.body.message.should.equal("[Success] Success")
+        }
+      )
+    });
+    it("Sign in", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:_email,
+        password:_password
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });
+    it('waiting for jwt done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 5000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(10000);
+    it("update user detail information",async function(){
+      await request
+      .post(version2+"/User/AddUserInformation")
+      .send({
+        u_eth_add:eth_account_var,
+        u_name :faker.internet.userName(),
+        u_identityNumber:user_identy_var,
+        u_cellphone: "09" + faker.random.number(9999999),
+        u_physicalAddress:"台北市文山區指南路一號",
+        u_birthday:"19930204",
+        u_bankBooklet: faker.internet.url(), 
+        u_imagef:faker.internet.url(),
+        u_imageb:faker.internet.url(),
+        email:_email
+      })
+      .set('Accept', 'application/json')
+      .set("x-access-token",token)
+      .expect(200)
+      .then(async function(res){
+        await res.body.message.should.equal("更新帳戶資料庫成功")
+      })
+    });
+    it('get all products info', async function(){
+      await request
+        .get(version+'/product/LaunchedProductList')
+        .set('Accept', 'application/json')
+        .expect(200)
+        .then(async function(res){
+          await res.body.result.should.be.instanceOf(Array);
+          symbol = res.body.result[0].symbol;
+        })
+    })
+    
+    it("deploy assetbook contract",async function (){
+      await  request
+        .post("/Contracts/assetbookContract")
+        .send({assetBookOwner:eth_account_var})
+        .expect(200)
+        .then(async function(res){
+          await res.body.contractAddress.should.not.empty();
+          console.log(res.body.contractAddress)
+          assetBookAddress_var = res.body.contractAddress
+          }
+        )
+    }).timeout(100000);
+    it("write assetbook addr back to the DB",async function (){
+      await request
+        .post("/Contracts/registryContract/users/"+user_identy_var)
+        .send({
+          assetBookAddress:assetBookAddress_var,
+          ethAddr:eth_account_var,
+          email:_email
+        })
+        .expect(200)
+        .then(
+          async function(res,err) {
+            if(err){
+              console.log(err)
+            }
+            
+              }
+        )
+        }).timeout(100000);
+    it("review member status change unapproved into approve",async function(){
+      await request
+        .post("/user/reviewStatus")
+        .send({reviewStatus:"approved",email:_email})
+        .expect(302)
+    })    
+    it('check if the new user can login', async function(){
+      await request
+        .get(version + '/user/UserLogin')
+        .set('Accept', 'application/json')
+        .query({ email: _email, password: _password })
+        .expect(200)
+        .then(async function(res){
+          await res.body.jwt.should.not.empty();
+          jwt = res.body.jwt;
+        });
+    });
+    it('check if the user can buy token', async function(){
+      await  request
+        .get(version+'/product/canBuyToken')
+        .set('Accept', 'application/json')
+        .query({ JWT: jwt, symbol: symbol })
+        .expect(200)
+    });
+
+
+
+    
+
+    it("check the account is  able to change PW or not.",async function(){
+      await request
+      .get(version2+"/ForgetPassword/IsAbleToApply")
+      .send({email:email})
+      .set('Accept','application/json')
+      .expect(200)
+      .then(
+        async function(res,err){
+          await res.body.message.should.equal("符合申請資格")
+        }
+      )
+    });
+    it("Send email",async function(){
+      await request
+      .post(version2+"/ForgetPassword/send_email")
+      .send({email:email})
+      .set("Accept",'application/json')
+      .expect(200)
+      .then(
+        async function(res,err){
+          await res.body.message.should.equal("驗證信寄送成功")
+          }
+      )
+    }).timeout(100000);
+    it("Verify the code sent in email",async function(){
+      fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[email])
+      fp_verify_code = fp_verify_code[0].fp_verification_code
+      await request
+      .post(version2+"/ForgetPassword/verify_email")
+      .send({email:email, fp_verification_code:fp_verify_code})
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        async function(res,err){
+          await res.body.message.should.equal("投資者為二階段註冊會員，需要KYC審核")
+          console.log(res.body)
+        }
+      )
+    });
+    /*
+    it("upload KYC images ", async function(){
+      await request
+      .post(version2+"/ForgetPassword/Image")
+      .send({})
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        async function(res){
+          comsole.log(res)
+        }
+      )
+    });*/
+    it("apply for new password", async function(){
+      await request
+      .post(version2+"/ForgetPassword/ApplyForResettingPassword")
+      .send({email:email, password:password, fp_imagef:"public/uploadImgs/1.jpg",fp_imageb:"public/uploadImgs/1.jpg",fp_bankAccountimage:"public/uploadImgs/1.jpg" })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        async function(res){
+          await res.body.message.should.equal("申請成功，請等待身份驗證通過後再以新密碼登入")
+        }
+      )
+    });
+    /*
+    it("new password Sign-in testing", done=>{
+      request
+      .post(version2+"/Login/signIn")
+      .send({
+        email:email,
+        password:password
+      })
+      .set("Accept","application/json")
+      .expect(200)
+      .then(
+        (res,err)=>{
+          token =  res.body.jwt
+          res.body.success.should.equal("True")
+          if(err){
+            done(err)
+          }
+          else{
+            done()
+          }
+        }
+      )
+    });*/
+  })
+}
+
+
+
+
 
 const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', password = '02282040',product_status="ONM") => {
   describe('intergration testing of front-end user ordering', async function(){
@@ -1574,6 +1838,7 @@ const new_flow1 = ()=>{
   AssetManagement_api();
   Order_api();
   ForgetPassword();
+  ForgetPassword2();
 }
 
 
