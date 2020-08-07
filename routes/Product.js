@@ -4,6 +4,7 @@ var jwt = require('jsonwebtoken');
 var cookieParser = require('cookie-parser');
 var csv2sql = require('csv2sql-stream');
 var fs = require('fs');
+var json2csv = require('json2csv').parse;
 const { getTimeServerTime, asyncForEach } = require('../timeserver/utilities');
 const { addScheduleBatch, editActualSchedule, getIncomeScheduleList, addScheduleBatchFromDB } = require('../timeserver/blockchain.js');
 
@@ -2611,6 +2612,89 @@ router.get('/WriteHashtoEthereum', async function () {
         // reject('[Error @ signTx() addPlatformSupervisor()]'+ err);
         // return false;
     });
+});
+
+//生成持幣人報表頁面(FMS專用)
+router.get('/GenerateHolderReport', function (req, res, next) {
+    // console.log('------------------------==\n@Product/AddProductByFMN:\nreq.query', req.query, 'req.body', req.body);
+    // console.log("＊：" + JSON.stringify(req.session));
+    var token = req.cookies.access_token;
+    var dateNow = new Date();
+    if (token) {
+        // 驗證JWT token
+        jwt.verify(token, "my_secret_key", function (err, decoded) {
+            //檢查JWT token有沒有過期
+            if (decoded.exp < dateNow.getTime() / 1000) {
+                res.render('error', { message: '登入過時，請重新登入', error: '' });
+                return;
+            }
+            if (err) {
+                //JWT token驗證失敗
+                res.render('error', { message: '帳號密碼錯誤', error: '' });
+                return;
+            } else {
+                //JWT token驗證成功
+                if (decoded.payload.m_permission != "Company_FundManagerS") {
+                    res.render('error', { message: '權限不足', error: '' });
+                    return;
+                }
+            }
+        })
+    } else {
+        //不存在JWT token
+        res.render('error', { message: '請先登入', error: '' });
+        return;
+    }
+
+    res.render('GenerateHolderReport', { title: 'Add Product' });
+});
+
+//生成持幣人報表(接收資料,FMS專用)
+router.post('/GenerateHolderReport', function (req, res, next) {
+    console.log("#Symobl:" + req.body.p_symbol);
+    console.log("#日期:" + req.body.p_date);
+
+    var mysqlPoolQuery = req.pool;
+    var qur = mysqlPoolQuery('SELECT * FROM AseetRecordDailySnapshot WHERE DateTime = ? ',req.body.p_date , async function (err, rows) {
+        if (err) {
+            console.log(err);
+        } else {
+            if(rows.length>0){
+                // 指定日期的Snapshot資料存在
+                var HolderData=JSON.parse(rows[0].Content);
+                var DataCount=0;
+                var dataObj=[];
+                for(var i=0;i<HolderData.length;i++){
+                    if(HolderData[i].ar_tokenSYMBOL==req.body.p_symbol){
+                        DataCount++;    
+                        // console.log(HolderData[i]);
+                        dataObj.push(HolderData[i]);
+                    }
+                }
+                // console.log(dataObj);
+
+                if(DataCount>0){
+                    const fields = ['ar_tokenSYMBOL', 'ar_investorEmail', 'ar_Holding_Amount_in_the_end_of_Period'];
+                    const csv = json2csv(dataObj,fields);
+                    res.attachment( "Holder Report.csv");
+                    res.status(200).send(csv);
+
+                    // res.render('GenerateHolderReport', { title: 'Add Product' });
+                }else{
+                    res.status(404).send('查找不到指定的Symbol資料');
+                }
+                
+            }else{
+                // 指定日期的Snapshot資料不存在
+                console.log(rows.length);
+                res.status(404).send('查找不到指定日期的Snapshot資料');
+            }
+            
+        }
+    });
+
+
+    
 });
 
 module.exports = router;

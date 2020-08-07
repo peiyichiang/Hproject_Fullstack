@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <!-- <link rel="stylesheet" href="/css/HeaderFooter.css"> -->
+    <!-- <link rel="stylesheet" href="/css/AddProductByFMN.css"> -->
+    <!-- <link rel="stylesheet" href="/css/AddProductByFMN_.css"> -->
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="border-bottom:1px solid white;">
+                <a class="navbar-brand sticky-top" href="#">Hcat電利超商</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                  <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Product/ProductByFMS">管理產品</a>
+                      </li>
+                    <!-- <li class="nav-item" id="SignOut">
+                      <a class="nav-link" href="#">登出</a>
+                    </li> -->
+                  </ul>
+                </div>
+    </nav>
+    <!-- <span style="color:red;">&nbsp(必填)</span> -->
+    <!-- 新增產品表單 -->
+    <div class="wrap" style="width:50%;height:100%;margin:0 auto;margin-top:60px;margin-bottom:60px;border:1px solid #dbdbdb;border-radius: 25px;padding:20px;">
+        <form name="addform" id="GenerateHolderReportForm" action="/Product/GenerateHolderReport" method="post" accept-charset="utf-8">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="p_SYMBOL">產品代號</label>
+                <input type="text" class="form-control" name="p_symbol" id="p_symbol" placeholder="ex:NCCU19" maxlength="8" required>
+              </div>
+              <div class="form-group col-md-6">
+                    <label for="p_name">報表日期</label>
+                    <input type="text" class="form-control" name="p_date" id="p_date" placeholder="ex:2020/06/15" maxlength="10" required>
+               </div>
+            </div>
+        </form>
+        <button type="button" id="SubmitBtn" class="btn btn-primary" required>生成持幣人報表</button>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/js/web3.js"></script>
+    <!-- <script src="/js/PDFtoImage.js"></script> -->
+    <script src="/js/GenerateHolderReport.js"></script>
+</body>
+
+</html>

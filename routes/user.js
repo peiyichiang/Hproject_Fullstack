@@ -184,6 +184,7 @@ router.post('/reviewStatus', function (req, res, next) {
     console.log(req.body.reviewStatus);
     console.log(req.body.email);
     console.log("＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊");
+    
     if(req.body.reviewStatus!="approved"){
         sql = {
             u_review_status: req.body.reviewStatus
@@ -1230,8 +1231,20 @@ router.post('/AssetRecordDailySnapshot', function (req, res, next) {
         } else {
             // console.log(JSON.stringify(rows));
             // console.log(new Date().toString());
+            var Year_=new Date().getFullYear().toString();
+            var Month_=new Date().getMonth() + 1;
+            Month_=Month_.toString();
+            if(Month_.length==1){
+                Month_="0" + Month_;
+            }
+            var Date_=new Date().getDate().toString();
+            if(Date_.length==1){
+                Date_="0" + Date_;
+            }
+            var DateStr = Year_ + "/" + Month_ + "/" + Date_;
+
             var sql = {
-                DateTime:new Date().toString() ,
+                DateTime:DateStr ,
                 Content:JSON.stringify(rows)
             };
             var qur1 = mysqlPoolQuery('INSERT INTO  AseetRecordDailySnapshot SET ?',sql, async function (err, rows) {

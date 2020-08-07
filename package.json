@@ -42,6 +42,7 @@
     "fs": "^0.0.1-security",
     "http-errors": "~1.6.2",
     "https": "^1.0.0",
+    "json2csv": "^5.0.1",
     "jsonwebtoken": "^8.4.0",
     "line-reader": "^0.4.0",
     "linereader": "^1.1.0",
