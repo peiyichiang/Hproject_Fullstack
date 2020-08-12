@@ -60,7 +60,7 @@
     "supertest": "^4.0.2",
     "truffle-privatekey-provider": "^1.0.0",
     "typedarray-to-buffer": "^3.1.5",
-    "web3": "1.0.0-beta.37",
+    "web3": "^1.2.11",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^3.10.0",
     "yaeti": "^1.0.2"
@@ -68,7 +68,7 @@
   "devDependencies": {
     "async": "^2.6.1",
     "ganache-cli": "^6.3.0",
-    "solc": "^0.5.4",
+    "solc": "^0.7.0",
     "tinyify": "^2.5.1"
   }
 }
