@@ -1732,107 +1732,6 @@ const Order_api = () => {
 }
 
 
-const FMsystemApiTest = async()=>{
-  describe("FM system API test (after product ONM )", async function(){
-    var token
-    it("Backend User Login FMS",async function(){
-      await request
-        .post('/BackendUser/BackendUserLogin')
-        .set('Accept', 'application/json')
-        .send({ m_id: 'myrronlins@gmail.com', m_password: '123456789' })
-        .expect(302)
-        .then(async function(res){
-          await res.header["set-cookie"].should.not.empty();
-          //jwt = res.body.jwt;
-          token = (res.header["set-cookie"]);
-        })
-    });
-    it('Browse Product By PS', async function(){
-      await request
-        .get('/Product/GenerateHolderReport')
-        .set('Cookie', token)
-        .expect(200)
-        .then(async function(res){
-          await res.text.should.not.empty();
-        });
-    });
-    it('request for HolderReport', async function(){
-      await request
-      .post("/Product/GenerateHolderReport")
-      .send({p_symbol:"ADEL0525",p_date:"2020/08/06"})
-      .set("Accept","application/json")
-      .set("Cookie",token)
-      .expect(200)
-      .then(
-        async function(res){
-          await res.text.should.not.empty()
-        }
-      )
-    });
-    it("Backend User Login PS",async function(){
-      await request
-        .post('/BackendUser/BackendUserLogin')
-        .set('Accept', 'application/json')
-        .send({ m_id: 'Platform_Supervisor', m_password: 'Platform_Supervisor' })
-        .expect(302)
-        .then(async function(res){
-          await res.header["set-cookie"].should.not.empty();
-          //jwt = res.body.jwt;
-          token = (res.header["set-cookie"]);
-        })
-    });
-    it("get Sales Report", async function(){
-      await request
-      .get("/Report/SalesReport")
-      .set("Accept","application/json")
-      .set("Cookie",token)
-      .expect(200)
-      .then(
-        async function(res){
-          await res.text.should.not.empty()
-        }
-      )
-    });
-    it("get income Report", async function(){
-      await request
-      .get("/Report/IncomeReport")
-      .set("Accept","application/json")
-      .set("Cookie",token)
-      .expect(200)
-      .then(
-        async function(res){
-          await res.text.should.not.empty()
-        }
-      )
-    });
-    it("get investor Report", async function(){
-      await request
-      .get("/Report/InvestorReport")
-      .set("Accept","application/json")
-      .set("Cookie",token)
-      .expect(200)
-      .then(
-        async function(res){
-          await res.text.should.not.empty()
-        }
-      )
-    });
-    it("get FM Report", async function(){
-      await request
-      .get("/Report/FMReport")
-      .set("Accept","application/json")
-      .set("Cookie",token)
-      .expect(200)
-      .then(
-        async function(res){
-          await res.text.should.not.empty()
-        }
-      )
-    });
-    
-  })
-}
-
 
 
 
@@ -1940,7 +1839,6 @@ const new_flow1 = ()=>{
   Order_api();
   ForgetPassword();
   ForgetPassword2();
-  FMsystemApiTest();
 }
 
 
