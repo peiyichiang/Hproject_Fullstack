@@ -77,7 +77,7 @@ const frontEndUserRegistry = async() => {
             await res.body.message.should.equal("驗證信寄送成功")
           }
         )
-    }).timeout(300000);
+    }).timeout(500000);
     it("post user verify code ", async function(){
       user_verify_code = await mysqlPoolQueryB("SELECT u_verify_code FROM user WHERE u_email = ?",[_email])
       user_verify_code = user_verify_code[0].u_verify_code
@@ -105,7 +105,7 @@ const frontEndUserRegistry = async() => {
           await res.body.message.should.equal("[Success] Success")
         }
       )
-    });
+    }).timeout(300000);
     it("Sign in", done=>{
       request
       .post(version2+"/Login/signIn")
@@ -261,7 +261,7 @@ const ForgetPassword = async()=>{
             await res.body.message.should.equal("驗證信寄送成功")
           }
         )
-    }).timeout(300000);
+    }).timeout(500000);
     it("post user verify code ", async function(){
       user_verify_code = await mysqlPoolQueryB("SELECT u_verify_code FROM user WHERE u_email = ?",[_email])
       user_verify_code = user_verify_code[0].u_verify_code
@@ -289,7 +289,7 @@ const ForgetPassword = async()=>{
           await res.body.message.should.equal("[Success] Success")
         }
       )
-    });
+    }).timeout(300000);
     it("Sign in", done=>{
       request
       .post(version2+"/Login/signIn")
@@ -324,7 +324,7 @@ const ForgetPassword = async()=>{
           
           }
       )
-    }).timeout(100000);
+    }).timeout(300000);
     it("Verify the code sent in email",async function(){
       fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[email])
       fp_verify_code = fp_verify_code[0].fp_verification_code
@@ -386,7 +386,7 @@ const ForgetPassword2 = async()=> {
   let fp_verify_code
   var password = faker.random.words()
   describe("Forget Password (KYC needed) API CICD test",async function(){
-    this.timeout(10000);
+    this.timeout(100000);
     let eth_account_var = "0x" + faker.random.number(420989161277374234851052247841559622657063210593).toString(16)  
     let assetBookAddress_var
     let user_identy_var = 'T' + faker.random.number(999999999)
@@ -401,7 +401,7 @@ const ForgetPassword2 = async()=> {
             await res.body.message.should.equal("驗證信寄送成功")
           }
         )
-    }).timeout(300000);
+    }).timeout(500000);
     it("post user verify code ", async function(){
       user_verify_code = await mysqlPoolQueryB("SELECT u_verify_code FROM user WHERE u_email = ?",[_email])
       user_verify_code = user_verify_code[0].u_verify_code
@@ -429,7 +429,7 @@ const ForgetPassword2 = async()=> {
           await res.body.message.should.equal("[Success] Success")
         }
       )
-    });
+    }).timeout(300000);
     it("Sign in", done=>{
       request
       .post(version2+"/Login/signIn")
@@ -574,7 +574,7 @@ const ForgetPassword2 = async()=> {
           await res.body.message.should.equal("驗證信寄送成功")
           }
       )
-    }).timeout(100000);
+    }).timeout(300000);
     it("Verify the code sent in email",async function(){
       fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[email])
       fp_verify_code = fp_verify_code[0].fp_verification_code
@@ -1627,7 +1627,7 @@ const AssetManagement_api = ()=>{
           }
         }
       )
-    })
+    }).timeout(5000)
   })
 }
 // the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
@@ -1844,12 +1844,14 @@ const flow1 = async() => {
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
+    await FMsystemApiTest();
     FMNUpdateProduct();
     await update_approve_flow();
     await frontEndUserOrdering(total);
     await makeOrderPaidAndWriteIntoCFC();
     await PSMintToken(getLocalTime());
-
+    new_flow1();
+    await FPprocess();
   });
 };
 async function flow2(){
@@ -1938,16 +1940,14 @@ const new_flow1 = ()=>{
   })
   AssetManagement_api();
   Order_api();
-  ForgetPassword();
-  ForgetPassword2();
-  FMsystemApiTest();
 }
 
-
+const FPprocess = async function(){
+  await ForgetPassword();
+  await ForgetPassword2();
+}
 
 flow1();
-new_flow1();
-console.log("Done")
 
 
 
