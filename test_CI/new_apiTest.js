@@ -964,9 +964,9 @@ const FMsystemApiTest = async()=>{
 
 //flow1();
 //ForgetPassword();
-ForgetPassword2();
+//ForgetPassword2();
 //FMsystemApiTest();
-
+frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
 
 

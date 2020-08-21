@@ -83,7 +83,8 @@ router.post('/AddUserInformation',function(req,res){
         u_verify_status: 2, //第二階段註冊尚未完成審核
         u_investorLevel: 1,
         u_account_status: 0,
-        u_review_status: "unapproved"
+        u_review_status: "unapproved",
+        u_register_time: new Date()
     }
     mysqlPoolQuery('UPDATE user SET ? WHERE u_email = ?', [data,email], function (err, result) {
         if (err) {
