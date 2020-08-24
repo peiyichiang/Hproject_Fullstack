@@ -58,7 +58,14 @@ router.get('/backend_user', function (req, res, next) {
                 }
                 //FrontEnd_data=前端使用者資料
                 var FrontEnd_data = rows;
-                res.render('PlatformAdmin', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data });
+
+                mysqlPoolQuery('SELECT fp_investor_email,fp_imagef,fp_imageb,fp_bankAccountimage,fp_application_date,fp_isApproved,fp_investor_account_status FROM forget_pw', function (err, rows) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    var FP_data = rows;
+                    res.render('PlatformAdmin', { title: 'Backend User Information', UserID: JWT_decoded.payload.m_id, data: data, FrontEnd_data: FrontEnd_data,FP_data:FP_data });
+                });
             });
         });
     }

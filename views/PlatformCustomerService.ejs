@@ -137,7 +137,7 @@
                 <%= console.log(ForgetPassword_data) %>
                 <% for ( var i = 0 ; i < ForgetPassword_data.length ; i++){ %>
                     <!-- 30分鐘過期後就不顯示 -->
-                    <%if ((new Date(ForgetPassword_data[i].fp_application_date_.substr(0,4)+'-'+ForgetPassword_data[i].fp_application_date_.substr(4,2) + '-' + ForgetPassword_data[i].fp_application_date_.substr(6,2) + ' ' + ForgetPassword_data[i].fp_application_date_.substr(8,2) + ':' + ForgetPassword_data[i].fp_application_date_.substr(10,2) + ':00:00').getTime()/1000 + 28800 + 1800) > Math.floor(new Date().getTime() / 1000)  ) { %>
+
                         <tr>
                             <td class="align-middle">
                                 <%= ForgetPassword_data[i].fp_investor_email  %>
@@ -180,7 +180,7 @@
                                 <% } %>
                             </td>
                         </tr>
-                    <% } %>
+
                 <% } %>
             </tbody>
         </table>

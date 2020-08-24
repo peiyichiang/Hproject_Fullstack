@@ -177,6 +177,41 @@ router.post('/AddUser', function (req, res, next) {
         .catch(err => console.error(err.message));
 });
 
+router.post('/ReviewForgetPassword', function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    // console.log("＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊");
+    // console.log(req.body.email);
+    // console.log(req.body.application_date);
+    // console.log(req.body.isApprove);
+    // console.log("＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊");
+
+    if(req.body.isApprove=="true"){
+        //通過
+        sql = {
+            fp_isApproved: 2
+        };
+    }else{
+        //未通過
+        sql = {
+            fp_isApproved: 1
+        };
+    }
+    
+    var qur = mysqlPoolQuery('UPDATE ' + process.env.DB_NAME + '.forget_pw SET ? WHERE fp_investor_email = ? and fp_application_date=?', [sql, req.body.email,req.body.application_date], function (err, rows) {
+
+        if (err) {
+             res.status(400).json({ "message": "更改fp_isApproved失敗" + err }); 
+             console.log("更改fp_isApproved失敗:" + err)
+        }
+        else {
+            console.log("更改fp_isApproved成功")
+            res.redirect('/BackendUser/backend_user');
+        }
+    });
+
+});
+
+
 //設置reviewStatus
 router.post('/reviewStatus', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
