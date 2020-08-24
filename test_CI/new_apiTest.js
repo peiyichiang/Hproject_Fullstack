@@ -611,7 +611,7 @@ const ForgetPassword2 = async()=> {
             await res.body.message.should.equal("驗證信寄送成功")
           }
         )
-    }).timeout(300000);
+    }).timeout(500000);
     it("post user verify code ", async function(){
       user_verify_code = await mysqlPoolQueryB("SELECT u_verify_code FROM user WHERE u_email = ?",[_email])
       user_verify_code = user_verify_code[0].u_verify_code
@@ -764,7 +764,7 @@ const ForgetPassword2 = async()=> {
     it("check the account is  able to change PW or not.",async function(){
       await request
       .get(version2+"/ForgetPassword/IsAbleToApply")
-      .send({email:email})
+      .send({email:_email})
       .set('Accept','application/json')
       .expect(200)
       .then(
@@ -776,7 +776,7 @@ const ForgetPassword2 = async()=> {
     it("Send email",async function(){
       await request
       .post(version2+"/ForgetPassword/send_email")
-      .send({email:email})
+      .send({email:_email})
       .set("Accept",'application/json')
       .expect(200)
       .then(
@@ -784,13 +784,13 @@ const ForgetPassword2 = async()=> {
           await res.body.message.should.equal("驗證信寄送成功")
           }
       )
-    }).timeout(100000);
+    }).timeout(300000);
     it("Verify the code sent in email",async function(){
-      fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[email])
+      fp_verify_code = await mysqlPoolQueryB("SELECT fp_verification_code FROM forget_pw WHERE fp_investor_email = ?",[_email])
       fp_verify_code = fp_verify_code[0].fp_verification_code
       await request
       .post(version2+"/ForgetPassword/verify_email")
-      .send({email:email, fp_verification_code:fp_verify_code})
+      .send({email:_email, fp_verification_code:fp_verify_code})
       .set("Accept","application/json")
       .expect(200)
       .then(
@@ -816,7 +816,7 @@ const ForgetPassword2 = async()=> {
     it("apply for new password", async function(){
       await request
       .post(version2+"/ForgetPassword/ApplyForResettingPassword")
-      .send({email:email, password:password, fp_imagef:"public/uploadImgs/1.jpg",fp_imageb:"public/uploadImgs/1.jpg",fp_bankAccountimage:"public/uploadImgs/1.jpg" })
+      .send({email:_email, password:password, fp_imagef:"public/uploadImgs/1.jpg",fp_imageb:"public/uploadImgs/1.jpg",fp_bankAccountimage:"public/uploadImgs/1.jpg" })
       .set("Accept","application/json")
       .expect(200)
       .then(
@@ -962,10 +962,11 @@ const FMsystemApiTest = async()=>{
 
 //frontEndUserRegistry();
 
-
+//flow1();
+//ForgetPassword();
 //ForgetPassword2();
-FMsystemApiTest();
-
+//FMsystemApiTest();
+frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
 
 
