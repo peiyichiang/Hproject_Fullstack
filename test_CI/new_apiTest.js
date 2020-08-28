@@ -825,13 +825,42 @@ const ForgetPassword2 = async()=> {
         }
       )
     });
+    it("Backend User Login PS",async function(){
+      await request
+        .post('/BackendUser/BackendUserLogin')
+        .set('Accept', 'application/json')
+        .send({ m_id: 'Platform_Admin', m_password: 'Platform_Admin' })
+        .expect(302)
+        .then(async function(res){
+          await res.header["set-cookie"].should.not.empty();
+          //jwt = res.body.jwt;
+          token = (res.header["set-cookie"]);
+        })
+    });
+    it("KYC approve by Platform Admin",async function(){
+      ForgetPassword_application_time = await mysqlPoolQueryB("SELECT fp_application_date FROM forget_pw WHERE fp_investor_email = ?",[_email])
+      ForgetPassword_application_time = ForgetPassword_application_time[0].fp_application_date
+      await request
+      .post("/User/ReviewForgetPassword")
+      .send({
+        email:_email,
+        application_date:ForgetPassword_application_time,
+        isApprove:"true"
+      })
+      .set("Cookie",token)
+      .expect(302)
+      .then(
+        async function(){
+        }
+      )
+    });
     /*
     it("new password Sign-in testing", done=>{
       request
       .post(version2+"/Login/signIn")
       .send({
         email:email,
-        password:password
+        password:_password
       })
       .set("Accept","application/json")
       .expect(200)
@@ -956,17 +985,48 @@ const FMsystemApiTest = async()=>{
 
 
 
-
-
+/*
+describe("test",async function(){
+  _email="Bennie_Doyle0@hotmail.com"
+  it("Backend User Login PS",async function(){
+    await request
+      .post('/BackendUser/BackendUserLogin')
+      .set('Accept', 'application/json')
+      .send({ m_id: 'Platform_Admin', m_password: 'Platform_Admin' })
+      .expect(302)
+      .then(async function(res){
+        await res.header["set-cookie"].should.not.empty();
+        //jwt = res.body.jwt;
+        token = (res.header["set-cookie"]);
+      })
+  });
+  it("KYC approve by Platform Admin",async function(){
+    ForgetPassword_application_time = await mysqlPoolQueryB("SELECT fp_application_date FROM forget_pw WHERE fp_investor_email = ?",[_email])
+    ForgetPassword_application_time = ForgetPassword_application_time[0].fp_application_date
+    await request
+    .post("/User/ReviewForgetPassword")
+    .send({
+      email:_email,
+      application_date:ForgetPassword_application_time,
+      isApprove:"true"
+    })
+    .set("Cookie",token)
+    .expect(302)
+    .then(
+      async function(){
+      }
+    )
+  });
+})*/
 
 
 //frontEndUserRegistry();
 
 //flow1();
 //ForgetPassword();
-//ForgetPassword2();
+ForgetPassword2();
 //FMsystemApiTest();
-frontEndUserRegistry();
+//frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
 
 
