@@ -205,7 +205,34 @@ router.post('/ReviewForgetPassword', function (req, res, next) {
         }
         else {
             console.log("更改fp_isApproved成功")
-            res.redirect('/BackendUser/backend_user');
+            // res.redirect('/BackendUser/backend_user');
+            var qur = mysqlPoolQuery('SELECT fp_salt,fp_password_hash From ' + process.env.DB_NAME + '.forget_pw WHERE fp_investor_email = ? and fp_application_date=?', [req.body.email,req.body.application_date], function (err, rows) {
+
+                if (err) {
+                     res.status(400).json({ "message": "獲取salt與pwd_hash失敗" + err }); 
+                     console.log("獲取salt與pwd_hash失敗:" + err);
+                }
+                else {
+                    console.log("獲取salt與pwd_hash成功");
+                    console.log(rows[0].fp_salt);
+                    console.log(rows[0].fp_password_hash);
+
+                    NewPasswordSQL = {
+                        u_salt: rows[0].fp_salt,
+                        u_password_hash:rows[0].fp_password_hash
+                    };
+                    var qur = mysqlPoolQuery('UPDATE ' + process.env.DB_NAME + '.user SET ? WHERE u_email = ?', [NewPasswordSQL, req.body.email], function (err, rows) {
+                        if (err) {
+                             res.status(400).json({ "message": "更新salt與pwd_hash失敗" + err }); 
+                             console.log("更新salt與pwd_hash失敗:" + err);
+                        }
+                        else {
+                            console.log("更新salt與pwd_hash成功");
+                            res.redirect('/BackendUser/backend_user');
+                        }
+                    });
+                }
+            });
         }
     });
 
@@ -1260,11 +1287,12 @@ router.get('/NeedToReuploadMemberDocument', function (req, res, next) {
 router.post('/AssetRecordDailySnapshot', function (req, res, next) {
     //Step 1:先撈取有幾種symbol
     var mysqlPoolQuery = req.pool;
-    var qur = mysqlPoolQuery('SELECT ar_tokenSYMBOL,ar_investorEmail,ar_Holding_Amount_in_the_end_of_Period FROM ' + process.env.DB_NAME + '.investor_assetRecord;', async function (err, rows) {
+    //var qur = mysqlPoolQuery('SELECT ar_tokenSYMBOL,ar_investorEmail,ar_Holding_Amount_in_the_end_of_Period FROM ' + process.env.DB_NAME + '.investor_assetRecord;', async function (err, rows) {
+    var qur = mysqlPoolQuery('SELECT hi.ar_tokenSYMBOL,hi.ar_investorEmail,hi.ar_Holding_Amount_in_the_end_of_Period,hu.u_bankcode,hu.u_bankBooklet FROM ' + process.env.DB_NAME + '.investor_assetRecord hi,' + process.env.DB_NAME + '.user hu where hu.u_email=hi.ar_investorEmail', async function (err, rows) {
         if (err) {
             console.log(err);
         } else {
-            // console.log(JSON.stringify(rows));
+            console.log(JSON.stringify(rows));
             // console.log(new Date().toString());
             var Year_=new Date().getFullYear().toString();
             var Month_=new Date().getMonth() + 1;
