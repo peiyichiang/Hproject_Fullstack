@@ -61,10 +61,12 @@ router.post('/Image', uploadImages.array('image',3), function (req, res) {
     }
     
 })
-router.post('/AddUserInformation',function(req,res){
+router.post('/AddUserInformation',async function(req,res){
     var user = req.body;
     var email = req.body.email;
     var mysqlPoolQuery = req.pool;
+    const _time = await getTimeServerTime()
+    var register_time = _time + 0
     const data = {
         u_eth_add: user.u_eth_add,
         u_name: user.u_name,
@@ -84,7 +86,7 @@ router.post('/AddUserInformation',function(req,res){
         u_investorLevel: 1,
         u_account_status: 0,
         u_review_status: "unapproved",
-        u_register_time: new Date()
+        u_register_time: register_time
     }
     mysqlPoolQuery('UPDATE user SET ? WHERE u_email = ?', [data,email], function (err, result) {
         if (err) {
