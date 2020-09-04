@@ -1,6 +1,51 @@
 
 var schedule = require('node-schedule');
-const { mysqlPoolQuery } = require('../timeserver/mysql.js');
+var mysql = require("mysql");
+var debugSQL = require('debug')('dev:mysql');
+
+const {
+    DB_host,
+    DB_user,
+    DB_password,
+    DB_name,
+    DB_port,
+    blockchainURL,
+    assetbookAmount
+} = require('../timeserver/envVariables');
+
+const DatabaseCredential = {
+    host: DB_host,
+    user: DB_user,
+    password: DB_password,
+    database: DB_name,
+    port: DB_port,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+};
+var pool = mysql.createPool(DatabaseCredential);
+const mysqlPoolQuery = async (sql, options, callback) => {
+    debugSQL(sql, options, callback);
+    if (typeof options === "function") {
+        callback = options;
+        options = undefined;
+    }
+    pool.getConnection(async function (err, conn) {
+        if (err) {
+            callback(err, null, null);
+        } else {
+            conn.query(sql, options, async function (err, result, fields) {
+                // callback
+                callback(err, result, fields);
+                //wlogger.debug(`[connection sussessful @ mysql.js] `);
+                // http://localhost:${serverPort}/Product/ProductList
+            });
+            // release connection。
+            // 要注意的是，connection 的釋放需要在此 release，而不能在 callback 中 release
+            conn.release();
+        }
+    });
+};
 
 var j = schedule.scheduleJob('59 23 * * *', function(){
     var qur = mysqlPoolQuery('SELECT ar_tokenSYMBOL,ar_investorEmail,ar_Holding_Amount_in_the_end_of_Period FROM ' + process.env.DB_NAME + '.investor_assetRecord;', async function (err, rows) {
@@ -32,7 +77,6 @@ var j = schedule.scheduleJob('59 23 * * *', function(){
                 } else {
                     console.log("寫入AssetRecordDailySnapshot成功");
                 }
-                process.exit();
             });
         }
     });
