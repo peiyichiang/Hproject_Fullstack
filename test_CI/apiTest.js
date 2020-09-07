@@ -354,8 +354,8 @@ const ForgetPassword = async()=>{
       )
     });
     
-    it("new password Sign-in testing", done=>{
-      request
+    it("new password Sign-in testing", async function(){
+      await request
       .post(version2+"/Login/signIn")
       .send({
         email:email,
@@ -364,15 +364,8 @@ const ForgetPassword = async()=>{
       .set("Accept","application/json")
       .expect(200)
       .then(
-        (res,err)=>{
-          token =  res.body.jwt
-          res.body.success.should.equal("True")
-          if(err){
-            done(err)
-          }
-          else{
-            done()
-          }
+        async function(res,err){
+          await res.body.success.should.equal("True")
         }
       )
     });
@@ -644,9 +637,9 @@ const ForgetPassword2 = async()=> {
         }
       )
     });
-    /*
-    it("new password Sign-in testing", done=>{
-      request
+    
+    it("new password Sign-in testing", async function(){
+      await request
       .post(version2+"/Login/signIn")
       .send({
         email:email,
@@ -655,18 +648,11 @@ const ForgetPassword2 = async()=> {
       .set("Accept","application/json")
       .expect(200)
       .then(
-        (res,err)=>{
-          token =  res.body.jwt
-          res.body.success.should.equal("True")
-          if(err){
-            done(err)
-          }
-          else{
-            done()
-          }
+        async function(res,err){
+          await res.body.success.should.equal("True")
         }
       )
-    });*/
+    });
   })
 }
 
