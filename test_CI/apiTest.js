@@ -25,6 +25,10 @@ const getRandomNum = async(x)=>{
     resolve(Math.floor(Math.random()*x)+1);
   })
 };
+
+const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+
 const getRandomList = async(randomList = [],  randomListLength = 0, remain = 0)=>{
     if(randomListLength == 0 ){
       randomListLength = await getRandomNum(9);// How many user buy
@@ -63,7 +67,7 @@ const frontEndUserRegistry = async() => {
   let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol,user_verify_code,token;
   describe('intergration testing of front-end user register', async function(){
     this.timeout(3000);
-    let eth_account_var = "0x" + faker.random.number(420989161277374234851052247841559622657063210593).toString(16)  
+    let eth_account_var = "0x" + genRanHex(40)
     let assetBookAddress_var
     let user_identy_var = 'T' + faker.random.number(999999999)
     it("post user email",async function(){
@@ -289,7 +293,7 @@ const ForgetPassword = async()=>{
           await res.body.message.should.equal("[Success] Success")
         }
       )
-    }).timeout(300000);
+    });
     it("Sign in", done=>{
       request
       .post(version2+"/Login/signIn")
@@ -354,8 +358,8 @@ const ForgetPassword = async()=>{
       )
     });
     
-    it("new password Sign-in testing", done=>{
-      request
+    it("new password Sign-in testing", async function(){
+      await request
       .post(version2+"/Login/signIn")
       .send({
         email:email,
@@ -364,15 +368,8 @@ const ForgetPassword = async()=>{
       .set("Accept","application/json")
       .expect(200)
       .then(
-        (res,err)=>{
-          token =  res.body.jwt
-          res.body.success.should.equal("True")
-          if(err){
-            done(err)
-          }
-          else{
-            done()
-          }
+        async function(res,err){
+          await res.body.success.should.equal("True")
         }
       )
     });
@@ -387,7 +384,7 @@ const ForgetPassword2 = async()=> {
   var password = faker.random.words()
   describe("Forget Password (KYC needed) API CICD test",async function(){
     this.timeout(100000);
-    let eth_account_var = "0x" + faker.random.number(420989161277374234851052247841559622657063210593).toString(16)  
+    let eth_account_var = "0x" + genRanHex(40)
     let assetBookAddress_var
     let user_identy_var = 'T' + faker.random.number(999999999)
     it("post user email",async function(){
@@ -417,6 +414,13 @@ const ForgetPassword2 = async()=> {
         }
       )
     });
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("sign up for stage one ",async function(){
       await request
       .post(version2+"/Login/signUp")
@@ -644,9 +648,9 @@ const ForgetPassword2 = async()=> {
         }
       )
     });
-    /*
-    it("new password Sign-in testing", done=>{
-      request
+    
+    it("new password Sign-in testing", async function(){
+      await request
       .post(version2+"/Login/signIn")
       .send({
         email:email,
@@ -655,18 +659,11 @@ const ForgetPassword2 = async()=> {
       .set("Accept","application/json")
       .expect(200)
       .then(
-        (res,err)=>{
-          token =  res.body.jwt
-          res.body.success.should.equal("True")
-          if(err){
-            done(err)
-          }
-          else{
-            done()
-          }
+        async function(res,err){
+          await res.body.success.should.equal("True")
         }
       )
-    });*/
+    });
   })
 }
 
