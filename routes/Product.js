@@ -2664,22 +2664,70 @@ router.post('/GenerateHolderReport', function (req, res, next) {
                 var HolderData=JSON.parse(rows[0].Content);
                 var DataCount=0;
                 var dataObj=[];
+                dataObj.push(['姓名', '銀行帳號', '分行代碼','產品代號','持幣人Email','持幣個數']);
+                // dataObj.push(['產品代號','持幣人Email','持幣個數']);
                 for(var i=0;i<HolderData.length;i++){
                     if(HolderData[i].ar_tokenSYMBOL==req.body.p_symbol){
                         DataCount++;    
                         // console.log(HolderData[i]);
-                        dataObj.push(HolderData[i]);
+                        var tempArray=[];
+                        Object.keys(HolderData[i]).map(function (key){
+                            tempArray.push(HolderData[i][key]);
+                        });
+                        dataObj.push(tempArray);
                     }
                 }
                 // console.log(dataObj);
+                // console.log("=======");
 
                 if(DataCount>0){
-                    const fields = ['ar_tokenSYMBOL', 'ar_investorEmail', 'ar_Holding_Amount_in_the_end_of_Period'];
-                    const csv = json2csv(dataObj,fields);
-                    res.attachment( "Holder Report.csv");
-                    res.status(200).send(csv);
+                    // console.log(dataObj);
+                    // const fields = ['ar_tokenSYMBOL', 'ar_investorEmail', 'ar_Holding_Amount_in_the_end_of_Period'];
+                    // const csv = json2csv(dataObj,fields);
+                    // res.attachment( "Holder Report.csv");
+                    // res.status(200).send(csv);
 
-                    // res.render('GenerateHolderReport', { title: 'Add Product' });
+                    var fonts = {
+                        Roboto: {
+                        normal: '微軟正黑體.ttf',
+                        bold: '微軟正黑體.ttf',
+                        italics: '微軟正黑體.ttf',
+                        bolditalics: '微軟正黑體.ttf'
+                        }
+                    };
+                    
+                    var PdfPrinter = require('pdfmake');
+                    var printer = new PdfPrinter(fonts);
+                    var fs = require('fs');
+                
+                    var docDefinition = {
+                        pageOrientation: 'landscape',
+                        content: [
+                            {
+                                style: 'tableExample',
+                                table: {
+                                    body:dataObj
+                                }
+                            }
+                        ]
+                    };
+                
+                    var pdfDoc = printer.createPdfKitDocument(docDefinition);
+                
+                    var chunks = [];
+                    var result;
+                
+                    pdfDoc.on('data', function (chunk) {
+                        chunks.push(chunk);
+                    });
+                    pdfDoc.on('end', function () {
+                        result = Buffer.concat(chunks);
+                        var resultPDF='data:application/pdf;base64,' + result.toString('base64');
+                        res.send('<body style="margin:0px;padding:0px;overflow:hidden"><iframe frameborder="0" style="overflow:hidden;height:100%;width:100%" height="100%" width="100%" src="'+ resultPDF +'"></body>');
+                        
+                    });
+                    pdfDoc.end();
+
                 }else{
                     res.status(404).send('查找不到指定的Symbol資料');
                 }
@@ -2695,6 +2743,52 @@ router.post('/GenerateHolderReport', function (req, res, next) {
 
 
     
+});
+
+router.post('/GeneratePDF', function (req, res, next) {    
+    var fonts = {
+        Roboto: {
+        normal: '微軟正黑體.ttf',
+        bold: '微軟正黑體.ttf',
+        italics: '微軟正黑體.ttf',
+        bolditalics: '微軟正黑體.ttf'
+        }
+    };
+    
+    var PdfPrinter = require('pdfmake');
+    var printer = new PdfPrinter(fonts);
+    var fs = require('fs');
+
+    var docDefinition = {
+        pageOrientation: 'landscape',
+        content: [
+            {
+                style: 'tableExample',
+                table: {
+                    body: [
+                        ['姓名', '銀行代碼', '銀行帳號','產品代號','持幣人Email','持幣個數'],
+                        ['姓名', '銀行代碼', '銀行帳號','產品代號','持幣人Email','持幣個數']
+                    ]
+                }
+            }
+        ]
+    };
+
+    var pdfDoc = printer.createPdfKitDocument(docDefinition);
+
+    var chunks = [];
+	var result;
+
+	pdfDoc.on('data', function (chunk) {
+		chunks.push(chunk);
+	});
+	pdfDoc.on('end', function () {
+		result = Buffer.concat(chunks);
+        var resultPDF='data:application/pdf;base64,' + result.toString('base64');
+        res.send('<body style="margin:0px;padding:0px;overflow:hidden"><iframe frameborder="0" style="overflow:hidden;height:100%;width:100%" height="100%" width="100%" src="'+ resultPDF +'"></body>');
+        
+    });
+    pdfDoc.end();
 });
 
 module.exports = router;
