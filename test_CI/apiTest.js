@@ -184,6 +184,13 @@ const frontEndUserRegistry = async() => {
           }
         )
     }).timeout(100000);
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000)
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
@@ -508,6 +515,13 @@ const ForgetPassword2 = async()=> {
           }
         )
     }).timeout(100000);
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
@@ -1758,6 +1772,7 @@ const Order_api = () => {
 }
 const FMsystemApiTest = async()=>{
   describe("FM system API test (after product ONM )", async function(){
+    this.timeout(100000)
     var token
     it("Backend User Login FMS",async function(){
       await request
@@ -1866,6 +1881,7 @@ const FMsystemApiTest = async()=>{
 
 const flow1 = async() => {
   describe('intergration testing of sold out the product', async function(){
+    
     await frontEndUserRegistry();
     await FMNAddProduct();
     await FMSApproveProduct();
