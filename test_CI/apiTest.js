@@ -97,6 +97,13 @@ const frontEndUserRegistry = async() => {
         }
       )
     });
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("sign up for stage one ",async function(){
       await request
       .post(version2+"/Login/signUp")
@@ -288,6 +295,13 @@ const ForgetPassword = async()=>{
         }
       )
     });
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("sign up for stage one ",async function(){
       await request
       .post(version2+"/Login/signUp")
@@ -1798,7 +1812,7 @@ const FMsystemApiTest = async()=>{
     it('request for HolderReport', async function(){
       await request
       .post("/Product/GenerateHolderReport")
-      .send({p_symbol:"ADEL0525",p_date:"2020/08/06"})
+      .send({p_symbol:"ADEL0525",p_date:"2020/09/10"})
       .set("Accept","application/json")
       .set("Cookie",token)
       .expect(200)
