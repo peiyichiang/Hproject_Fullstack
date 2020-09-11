@@ -215,7 +215,7 @@ const frontEndUserRegistry = async() => {
             
               }
         )
-        }).timeout(30000);
+        }).timeout(119000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -553,7 +553,7 @@ const ForgetPassword2 = async()=> {
             
               }
         )
-        }).timeout(30000);
+        }).timeout(119000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
