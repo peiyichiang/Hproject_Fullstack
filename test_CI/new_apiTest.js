@@ -424,7 +424,7 @@ const frontEndUserRegistry = async() => {
             
               }
         )
-        }).timeout(100000);
+        }).timeout(30000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -740,7 +740,7 @@ const ForgetPassword2 = async()=> {
             
               }
         )
-        }).timeout(100000);
+        }).timeout(30000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -1027,8 +1027,8 @@ describe("test",async function(){
 //flow1();
 //ForgetPassword();
 //ForgetPassword2();
-FMsystemApiTest();
-//frontEndUserRegistry();
+//FMsystemApiTest();
+frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
 
 
