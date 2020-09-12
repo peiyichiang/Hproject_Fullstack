@@ -143,7 +143,7 @@ const AssetManagement_api = ()=>{
           }
         }
       )
-    })
+    }).timeout(10000)
   })
 }
 // the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
@@ -1028,9 +1028,9 @@ describe("test",async function(){
 //ForgetPassword();
 //ForgetPassword2();
 //FMsystemApiTest();
-frontEndUserRegistry();
+//frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
-
+AssetManagement_api();
 
 
 
