@@ -182,6 +182,7 @@ const frontEndUserRegistry = async() => {
     it("deploy assetbook contract",async function (){
       await  request
         .post("/Contracts/assetbookContract")
+        .set("Accept","application/json")
         .send({assetBookOwner:eth_account_var})
         .expect(200)
         .then(async function(res){
@@ -202,6 +203,7 @@ const frontEndUserRegistry = async() => {
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
+        .set('Accept','application/json')
         .send({
           assetBookAddress:assetBookAddress_var,
           ethAddr:eth_account_var,
@@ -220,7 +222,7 @@ const frontEndUserRegistry = async() => {
             await res.body.status.should.equal(true)
               }
         )
-        }).timeout(119000);
+        }).timeout(30000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
