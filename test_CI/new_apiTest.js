@@ -1028,9 +1028,9 @@ describe("test",async function(){
 //ForgetPassword();
 //ForgetPassword2();
 //FMsystemApiTest();
-//frontEndUserRegistry();
+frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
-AssetManagement_api();
+//AssetManagement_api();
 
 
 
