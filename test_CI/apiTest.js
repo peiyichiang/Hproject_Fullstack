@@ -191,13 +191,14 @@ const frontEndUserRegistry = async() => {
           }
         )
     }).timeout(100000);
+    /*
     it('waiting for verification done', async function(){
       return new Promise((resolve, reject) => {
         setTimeout(resolve, 60000);    
       }).then(() => {
         return ; 
       });
-    }).timeout(70000)
+    }).timeout(70000)*/
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
@@ -2003,8 +2004,8 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-flow1();
+//flow1();
 
-
+frontEndUserRegistry();
 
 //node node_modules/.bin/mocha  --exit test_CI/apiTest.js 
