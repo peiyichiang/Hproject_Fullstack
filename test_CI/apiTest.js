@@ -213,7 +213,10 @@ const frontEndUserRegistry = async() => {
             if(err){
               console.log(err)
             }
-            
+            console.log("email --> "+_email)
+            console.log("assetbook addr is --> "+assetBookAddress_var)
+            console.log("res is down below")
+            console.log(res)
               }
         )
         }).timeout(119000);
