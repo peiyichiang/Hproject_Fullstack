@@ -143,7 +143,7 @@ const AssetManagement_api = ()=>{
           }
         }
       )
-    })
+    }).timeout(10000)
   })
 }
 // the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
@@ -424,7 +424,7 @@ const frontEndUserRegistry = async() => {
             
               }
         )
-        }).timeout(100000);
+        }).timeout(30000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -487,6 +487,13 @@ const ForgetPassword = async()=>{
         }
       )
     });
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("sign up for stage one ",async function(){
       await request
       .post(version2+"/Login/signUp")
@@ -733,7 +740,7 @@ const ForgetPassword2 = async()=> {
             
               }
         )
-        }).timeout(100000);
+        }).timeout(30000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -902,7 +909,7 @@ const FMsystemApiTest = async()=>{
     it('request for HolderReport', async function(){
       await request
       .post("/Product/GenerateHolderReport")
-      .send({p_symbol:"ADEL0525",p_date:"2020/08/06"})
+      .send({p_symbol:"ADEL0525",p_date:"2020/09/10"})
       .set("Accept","application/json")
       .set("Cookie",token)
       .expect(200)
@@ -1019,11 +1026,11 @@ describe("test",async function(){
 
 //flow1();
 //ForgetPassword();
-ForgetPassword2();
+//ForgetPassword2();
 //FMsystemApiTest();
-//frontEndUserRegistry();
+frontEndUserRegistry();
 /* node node_modules/.bin/mocha  --exit test_CI/new_apiTest.js */
-
+//AssetManagement_api();
 
 
 

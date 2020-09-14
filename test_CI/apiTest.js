@@ -97,6 +97,13 @@ const frontEndUserRegistry = async() => {
         }
       )
     });
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("sign up for stage one ",async function(){
       await request
       .post(version2+"/Login/signUp")
@@ -175,6 +182,7 @@ const frontEndUserRegistry = async() => {
     it("deploy assetbook contract",async function (){
       await  request
         .post("/Contracts/assetbookContract")
+        .set("Accept","application/json")
         .send({assetBookOwner:eth_account_var})
         .expect(200)
         .then(async function(res){
@@ -184,16 +192,18 @@ const frontEndUserRegistry = async() => {
           }
         )
     }).timeout(100000);
+    /*
     it('waiting for verification done', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 10000);    
+        setTimeout(resolve, 60000);    
       }).then(() => {
         return ; 
       });
-    }).timeout(15000)
+    }).timeout(70000)*/
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
+        .set('Accept','application/json')
         .send({
           assetBookAddress:assetBookAddress_var,
           ethAddr:eth_account_var,
@@ -205,10 +215,14 @@ const frontEndUserRegistry = async() => {
             if(err){
               console.log(err)
             }
-            
+            console.log("email --> "+_email)
+            console.log("assetbook addr is --> "+assetBookAddress_var)
+            console.log("res is down below")
+            console.log(res.body)
+            await res.body.status.should.equal(true)
               }
         )
-        }).timeout(100000);
+        }).timeout(30000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -288,6 +302,13 @@ const ForgetPassword = async()=>{
         }
       )
     });
+    it('waiting for verification done', async function(){
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000);    
+      }).then(() => {
+        return ; 
+      });
+    }).timeout(15000);
     it("sign up for stage one ",async function(){
       await request
       .post(version2+"/Login/signUp")
@@ -517,11 +538,11 @@ const ForgetPassword2 = async()=> {
     }).timeout(100000);
     it('waiting for verification done', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 10000);    
+        setTimeout(resolve, 60000);    
       }).then(() => {
         return ; 
       });
-    }).timeout(15000);
+    }).timeout(70000);
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
@@ -539,7 +560,7 @@ const ForgetPassword2 = async()=> {
             
               }
         )
-        }).timeout(100000);
+        }).timeout(119000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
@@ -1667,7 +1688,7 @@ const AssetManagement_api = ()=>{
           }
         }
       )
-    }).timeout(5000)
+    }).timeout(10000)
   })
 }
 // the api query string still fixed it will be a parameter later so still need to be modified, eg: e-mail --> ivan55660228@gmail.com for now
@@ -1798,7 +1819,7 @@ const FMsystemApiTest = async()=>{
     it('request for HolderReport', async function(){
       await request
       .post("/Product/GenerateHolderReport")
-      .send({p_symbol:"ADEL0525",p_date:"2020/08/06"})
+      .send({p_symbol:"ADEL0525",p_date:"2020/09/10"})
       .set("Accept","application/json")
       .set("Cookie",token)
       .expect(200)
@@ -1989,8 +2010,8 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-flow1();
+//flow1();
 
-
+frontEndUserRegistry();
 
 //node node_modules/.bin/mocha  --exit test_CI/apiTest.js 
