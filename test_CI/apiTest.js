@@ -192,20 +192,14 @@ const frontEndUserRegistry = async() => {
           }
         )
     }).timeout(100000);
-    /*
+    
     it('waiting for verification done', async function(){
       return new Promise((resolve, reject) => {
         setTimeout(resolve, 60000);    
       }).then(() => {
         return ; 
       });
-    }).timeout(70000)*/
-    it("review member status change unapproved into approve",async function(){
-      await request
-        .post("/user/reviewStatus")
-        .send({reviewStatus:"approved",email:_email})
-        .expect(302)
-    })    
+    }).timeout(30000)
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
@@ -226,7 +220,12 @@ const frontEndUserRegistry = async() => {
               }
         )
         }).timeout(30000);
-    
+    it("review member status change unapproved into approve",async function(){
+      await request
+        .post("/user/reviewStatus")
+        .send({reviewStatus:"approved",email:_email})
+        .expect(302)
+    })    
     it('check if the new user can login', async function(){
       await request
         .get(version + '/user/UserLogin')
