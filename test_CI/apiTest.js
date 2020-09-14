@@ -205,21 +205,20 @@ const frontEndUserRegistry = async() => {
         .post("/Contracts/registryContract/users/"+user_identy_var)
         .set('Accept','application/json')
         .send({
-          assetBookAddress:"",//assetBookAddress_var,
+          assetBookAddress:assetBookAddress_var,
           ethAddr:eth_account_var,
           email:_email
         })
         .expect(200)
         .then(
           async function(res) {
+            console.log("it is running")
             await res.body.status.should.equal(true)
             console.log("email --> "+_email)
             console.log("assetbook addr is --> "+assetBookAddress_var)
-            console.log("res is down below")
-            console.log(res.body)
               }
         )
-        }).timeout(30000);
+        }).timeout(119000);
     it("review member status change unapproved into approve",async function(){
       await request
         .post("/user/reviewStatus")
