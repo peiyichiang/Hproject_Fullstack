@@ -195,7 +195,7 @@ const frontEndUserRegistry = async() => {
     
     it('waiting for verification done', async function(){
       return new Promise((resolve, reject) => {
-        setTimeout(resolve, 60000);    
+        setTimeout(resolve, 20000);    
       }).then(() => {
         return ; 
       });
