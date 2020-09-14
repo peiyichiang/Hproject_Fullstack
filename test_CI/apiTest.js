@@ -205,7 +205,7 @@ const frontEndUserRegistry = async() => {
         .post("/Contracts/registryContract/users/"+user_identy_var)
         .set('Accept','application/json')
         .send({
-          assetBookAddress:assetBookAddress_var,
+          assetBookAddress:"",//assetBookAddress_var,
           ethAddr:eth_account_var,
           email:_email
         })
