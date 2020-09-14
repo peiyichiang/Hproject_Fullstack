@@ -104,6 +104,8 @@ test_CI/random_symbol.txt
 public/uploadImgs/
 public/images/
 public/media/
+routes/AssetRecordDailySnapshot.js
+AssetRecordDailySnapshot.js
 
 #https ca
 *.crt
