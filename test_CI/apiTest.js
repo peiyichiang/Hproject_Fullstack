@@ -66,7 +66,7 @@ const checkAmountArray = async(randomList)=>{
 const frontEndUserRegistry = async() => {
   let hash, _email = faker.internet.email(), _password = faker.random.words(), jwt, symbol,user_verify_code,token;
   describe('intergration testing of front-end user register', async function(){
-    this.timeout(3000);
+    //this.timeout(3000);
     let eth_account_var = "0x" + genRanHex(40)
     let assetBookAddress_var
     let user_identy_var = 'T' + faker.random.number(999999999)
@@ -200,6 +200,12 @@ const frontEndUserRegistry = async() => {
         return ; 
       });
     }).timeout(70000)*/
+    it("review member status change unapproved into approve",async function(){
+      await request
+        .post("/user/reviewStatus")
+        .send({reviewStatus:"approved",email:_email})
+        .expect(302)
+    })    
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)
@@ -211,24 +217,16 @@ const frontEndUserRegistry = async() => {
         })
         .expect(200)
         .then(
-          async function(res,err) {
-            if(err){
-              console.log(err)
-            }
+          async function(res) {
+            await res.body.status.should.equal(true)
             console.log("email --> "+_email)
             console.log("assetbook addr is --> "+assetBookAddress_var)
             console.log("res is down below")
             console.log(res.body)
-            await res.body.status.should.equal(true)
               }
         )
         }).timeout(30000);
-    it("review member status change unapproved into approve",async function(){
-      await request
-        .post("/user/reviewStatus")
-        .send({reviewStatus:"approved",email:_email})
-        .expect(302)
-    })    
+    
     it('check if the new user can login', async function(){
       await request
         .get(version + '/user/UserLogin')
