@@ -178,7 +178,6 @@ const frontEndUserRegistry = async() => {
           symbol = res.body.result[0].symbol;
         })
     })
-    
     it("deploy assetbook contract",async function (){
       await  request
         .post("/Contracts/assetbookContract")
@@ -192,14 +191,6 @@ const frontEndUserRegistry = async() => {
           }
         )
     }).timeout(100000);
-    
-    it('waiting for verification done', async function(){
-      return new Promise((resolve, reject) => {
-        setTimeout(resolve, 20000);    
-      }).then(() => {
-        return ; 
-      });
-    }).timeout(30000)
     it("write assetbook addr back to the DB",async function (){
       await request
         .post("/Contracts/registryContract/users/"+user_identy_var)

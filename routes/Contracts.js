@@ -166,6 +166,7 @@ router.get('/registryContract/detail', async function (req, res, next) {
 /*註冊新會員 */
 router.post('/registryContract/users/:u_id', async function (req, res, next) {
     /**寫入BlockChain */
+    console.log("User assetbook addr is wrting back to the DB1")
     let userID = req.params.u_id;
     let assetBookAddr = req.body.assetBookAddress;
     let ethAddr = req.body.ethAddr;
@@ -173,7 +174,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
     const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
 
     let encodedData = registry.methods.addUser(userID, assetBookAddr, 1).encodeABI();
-
+    console.log("User assetbook addr is wrting back to the DB2")
     try {
         let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
         /**寫入DataBase */
@@ -186,6 +187,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
         };
 
         //console.log(element)
+        console.log("User assetbook addr is wrting back to the DB3")
         mysqlPoolQuery('UPDATE user SET ? WHERE u_email = ?', [sql, u_email], async function (err, rows) {
             if (err) {
                 console.log(err);
@@ -196,6 +198,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
                 })
             }
             else {
+                console.log("User assetbook addr is wrting back to the DB4")
                 let databaseResult = {
                     status: "success",
                     email: u_email,
