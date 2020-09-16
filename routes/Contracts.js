@@ -215,6 +215,7 @@ router.post('/registryContract/users/:u_id', async function (req, res, next) {
         });
 
     } catch (error) {
+        console.log("User assetbook addr is wrting back to the DB5")
         console.log("error:" + error);
         res.status(500);
         res.send(error.toString());
