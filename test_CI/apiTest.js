@@ -1997,8 +1997,7 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-//flow1();
+flow1();
 
-frontEndUserRegistry();
 
 //node node_modules/.bin/mocha  --exit test_CI/apiTest.js 
