@@ -2442,7 +2442,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
                         console.log(hash);
                     })
                     .on('confirmation', (confirmationNumber, receipt) => {
-                        // console.log('confirmation', confirmationNumber);
+                        console.log('confirmation', confirmationNumber);
                     })
                     .on('receipt', function (receipt) {
                         console.log("receipt:\n" + receipt);
