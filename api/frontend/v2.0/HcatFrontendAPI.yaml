@@ -16,6 +16,8 @@ tags:
     description: 管理資產相關功能
   - name: Order
     description: 管理訂單相關功能
+  - name: Login
+    description: 管理會員登入註冊相關功能
   - name: pet
     description: Everything about your Pets
     externalDocs:
@@ -191,6 +193,140 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RemainRelease"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /Login/signIn:
+    post:
+      tags:
+        - Login 
+      summary: 會員登入
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      parameters:
+        - name: email
+          in: query
+          description: The user email for sign in
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for sign in
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/signIn"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /Login/signUp:
+    post:
+      tags:
+        - Login 
+      summary: 註冊會員
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      parameters:
+        - name: email
+          in: query
+          description: The user email for sign up
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for sign up
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/signUp"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /Login/verify_email:
+    post:
+      tags:
+        - Login 
+      summary: 送出驗證碼 驗證信箱
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      parameters:
+        - name: email
+          in: query
+          description: The user email for verify
+          required: true
+          schema:
+            type: string
+        - name: verify_code
+          in: query
+          description: verify code for verify
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/verify_email"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /Login/send_email:
+    post:
+      tags:
+        - Login 
+      summary: 發送驗證信 ＆ 再次發送驗證信
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      parameters:
+        - name: email
+          in: query
+          description: The user email for send email
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/send_email"       
         "400":
           $ref: "#/components/responses/parameterError"
         "403":
@@ -744,6 +880,38 @@ components:
       name: api_key
       in: header
   schemas:
+    signIn:
+      type: object
+      properties:
+          success:
+            type: string
+          jwt:
+            type: string
+          message:
+            type: string    
+    signUp:
+      type: object
+      properties:
+          success:
+            type: string
+          result:
+            type: string
+          message:
+            type: string
+    verify_email:
+      type: object
+      properties:
+          success:
+            type: string
+          verify:
+            type: boolean
+          message:
+            type: string 
+    send_email:
+      type: object
+      properties:
+          message:
+            type: string
     RemainRelease:
       type: object
       properties:
