@@ -5,13 +5,20 @@ var faker = require('faker');
 const should = require('should');
 const assert = require('assert');
 const amqp = require('amqplib/callback_api');
+
+
+
+
+
 require("dotenv").config();
 
 const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type,updated_product} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
-const {asyncForEach, getLocalTime} = require('../timeserver/utilities');
+const {asyncForEach, getLocalTime,GenerateEOA} = require('../timeserver/utilities');
 const { set } = require('../app');
+
+
 
 let virtualAccount;
 let crowdFundingAddr;
@@ -168,6 +175,7 @@ const frontEndUserRegistry = async() => {
         await res.body.message.should.equal("更新帳戶資料庫成功")
       })
     });
+    /*
     it('get all products info', async function(){
       await request
         .get(version+'/product/LaunchedProductList')
@@ -233,7 +241,7 @@ const frontEndUserRegistry = async() => {
         .set('Accept', 'application/json')
         .query({ JWT: jwt, symbol: symbol })
         .expect(200)
-    });
+    });*/
   });
 }
 
@@ -1997,7 +2005,7 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-flow1();
-
+//flow1();
+frontEndUserRegistry();
 
 //node node_modules/.bin/mocha  --exit test_CI/apiTest.js 

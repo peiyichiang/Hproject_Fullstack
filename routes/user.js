@@ -1325,7 +1325,7 @@ router.post('/AssetRecordDailySnapshot', function (req, res, next) {
         }
     });
 });
-
+/*
 router.post('/GenerateEOA', function (req, res, next) {
     const account = web3.eth.accounts.create();
     console.log("Public Key:" + account.address);
@@ -1339,7 +1339,12 @@ router.post('/GenerateEOA', function (req, res, next) {
             }
         }
     );
-});
+});*/
+
+
+
+
+
 
 
 

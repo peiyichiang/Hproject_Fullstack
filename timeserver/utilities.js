@@ -1,4 +1,7 @@
 const fs = require('fs');
+var Web3 = require("web3");
+const {blockchainURL} = require('../timeserver/envVariables');
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 //const path = require('path');
 
 const { excludedSymbols, wlogger, COMPLIANCE_LEVELS } = require('../ethereum/contracts/zsetupData');
@@ -671,6 +674,16 @@ const validateEmail =(email) => {
   return re.test(String(email).toLowerCase());
 }
 
+const GenerateEOA = () => {
+  const account = web3.eth.accounts.create();
+  console.log("Public Key:" + account.address);
+  console.log("Private Key:" + account.privateKey);
+  return [account.address, account.privateKey];
+}
+
+
+
+
 module.exports = {
-  reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveZero, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, calculateBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeAmountArrayByCfcScenario
+  GenerateEOA,reduceArrays, checkEq, isEmpty, isNoneInteger, isAllTrueBool, getTimeServerTime, getLocalTime, testInputTime, getArraysFromCSV, getOneAddrPerLineFromCSV, validateEmail, asyncForEach, asyncForEachTsMain, asyncForEachMint, asyncForEachMint2, asyncForEachCFC, asyncForEachAbCFC, asyncForEachAbCFC2, asyncForEachAbCFC3, asyncForEachOrderExpiry, asyncForEachAssetRecordRowArray, asyncForEachAssetRecordRowArray2, checkTargetAmounts, breakdownArray, breakdownArrays, isInt, isIntAboveZero, checkBoolTrueArray, arraySum, getRndIntegerBothEnd, calculateBuyAmountArray, getInputArrays, makeFakeTxHash, makeIndexArray, makeAmountArrayByCfcScenario
 }

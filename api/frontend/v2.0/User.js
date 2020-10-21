@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { getTimeServerTime } = require('../../../timeserver/utilities');
+const { getTimeServerTime, GenerateEOA} = require('../../../timeserver/utilities');
 const TokenGenerator = require('./TokenGenerator');
 var jwt = require('jsonwebtoken');
 var async = require('async');
@@ -67,8 +67,10 @@ router.post('/AddUserInformation',async function(req,res){
     var mysqlPoolQuery = req.pool;
     const _time = await getTimeServerTime()
     var register_time = _time + 0
+    const EOA = GenerateEOA()
     const data = {
-        u_eth_add: user.u_eth_add,
+        u_eth_add: EOA[0],//user.u_eth_add,   更改為代管的部分因此由後端進行操作，註解部分為原本前端回傳公鑰的部分
+        u_eth_p:EOA[1],// 更改為代管的部分因此由後端操作，private key is here
         u_name: user.u_name,
         u_birthday: user.u_birthday,
         u_identityNumber: user.u_identityNumber,
