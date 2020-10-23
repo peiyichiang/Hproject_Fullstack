@@ -11,7 +11,7 @@ const amqp = require('amqplib/callback_api');
 
 
 require("dotenv").config();
-
+const {changeAssetOwner} = require('../ethereum/contractExplorer/js/smartContracts');
 const {mysqlPoolQueryB, getAllSmartContractAddrs} = require('../timeserver/mysql.js');
 const {edit_product, add_product, symbol, total, goal, generateCSV, price, type,updated_product} = require('./api_product');
 const {addAssetbooksIntoCFC, updateFundingStateFromDB} = require('../timeserver/blockchain.js');
@@ -2006,6 +2006,9 @@ const FPprocess = async function(){
 }
 
 //flow1();
-frontEndUserRegistry();
+//frontEndUserRegistry();
+const EOA = GenerateEOA();
+const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());
+
 
 //node node_modules/.bin/mocha  --exit test_CI/apiTest.js 
