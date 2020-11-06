@@ -8,6 +8,8 @@
  //const web3 = new Web3(new Web3.providers.HttpProvider(ethereumNodeURL));
  //const {blockchainURL} = require('../../../timeserver/envVariables');
  //const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
+ //正式IP:203.66.73.79
+ //const ethereumNodeURL = "http://203.66.73.79:8545";
  const ethereumNodeURL = "http://203.66.68.70:8545";
  const web3 = new Web3(new Web3.providers.HttpProvider(ethereumNodeURL));
  /*
@@ -24,7 +26,11 @@ const AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf
 const AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
 const AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
 const AssetOwner3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
-const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
+const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a451";
+//const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
+const AssetOwner4 = "0x076CEeEfEeAb5aFcB25A06ceeD321A779525AF32";
+const AssetOwner4pkRaw = "0x4AD782774E82F31A2FBB4F3D7CF05898DD02913C89E4C19D73804554D5A4C11F";
+
 
 const addrHCAT721 = "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b";
 const fromAssetbook = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";//addrAssetBook1
@@ -33,7 +39,7 @@ const amountStr = 3;
 const priceStr = 10000;
 
 let addrTo, addrFrom, addrToPk, addrFromPk;
-let choiceFrom = 2, choiceTo = 2;
+let choiceFrom = 4, choiceTo = 2;
 
 //get EOA credentials from platforms/browser/www/plugins/cordova-plugin-securekeystore/www/securekeystore.js
 
@@ -49,6 +55,10 @@ if(choiceFrom === 1){
   addrFrom = AssetOwner3;
   addrFromPk = AssetOwner3pkRaw;
 }
+else if(choiceFrom === 4){
+  addrFrom = AssetOwner4;
+  addrFromPk = AssetOwner4pkRaw;
+}
 
 if(choiceTo === 1){
   addrTo = AssetOwner1;
@@ -61,6 +71,10 @@ if(choiceTo === 1){
 } else if(choiceTo === 3){
   addrTo = AssetOwner3;
   addrToPk = AssetOwner3pkRaw;
+}
+else if(choiceTo === 4){
+  addrTo = AssetOwner4;
+  addrToPk = AssetOwner4pkRaw;
 }
 
 const checkBoolTrueArray = (item) => item;
