@@ -18,6 +18,10 @@ tags:
     description: 管理訂單相關功能
   - name: Login
     description: 管理會員登入註冊相關功能
+  - name: User
+    description: 管理會員資料相關功能
+  - name: ForgetPassword
+    description: 管理會員忘記密碼相關功能
   - name: pet
     description: Everything about your Pets
     externalDocs:
@@ -335,6 +339,319 @@ paths:
           $ref: "#/components/responses/notFoundError"
         "500":
           $ref: "#/components/responses/serverError"
+  /User/bankCodes:
+    get:
+      tags:
+        - User 
+      summary: 取得銀行代碼
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/bankCodes"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /User/bankBranchCodes:
+    get:
+      tags:
+        - User 
+      summary: 取得銀行分行代碼
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/bankBranchCodes"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /User/Image:
+    post:
+      tags:
+        - User 
+      summary: 以 reqest file 的格式上傳身分證正反面、銀行帳號 
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/Image"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /User/AddUserInformation:
+    post:
+      tags:
+        - User 
+      summary: 新增會員資料 
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/AddUserInformation"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /User/UserByEmail:
+    get:
+      tags:
+        - User 
+      summary: 依會員信箱取得會員資料
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/UserByEmail"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+
+  /ForgetPassword/send_email:
+    post:
+      tags:
+        - ForgetPassword 
+      summary: 忘記密碼 發送驗證信 ＆ 再次發送驗證信
+      # requestBody:
+      #   $ref: "#/components/requestBodies/Product"
+      parameters:
+        - name: email
+          in: query
+          description: The user email for send email
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: _________
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/send_email"       
+        "400":
+          $ref: "#/components/responses/parameterError"
+        "403":
+          $ref: "#/components/responses/JWTUnauthorizedError"
+        "404":
+          $ref: "#/components/responses/notFoundError"
+        "500":
+          $ref: "#/components/responses/serverError"
+  /ForgetPassword/verify_email:
+      post:
+        tags:
+          - ForgetPassword 
+        summary: 忘記密碼 驗證信驗證
+        # requestBody:
+        #   $ref: "#/components/requestBodies/Product"
+        parameters:
+          - name: email
+            in: query
+            description: The user email for verify email
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: _________
+            content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/f_verify_email"       
+          "400":
+            $ref: "#/components/responses/parameterError"
+          "403":
+            $ref: "#/components/responses/JWTUnauthorizedError"
+          "404":
+            $ref: "#/components/responses/notFoundError"
+          "500":
+            $ref: "#/components/responses/serverError"
+  /ForgetPassword/changePassword:
+      post:
+        tags:
+          - ForgetPassword 
+        summary: 更改密碼
+        # requestBody:
+        #   $ref: "#/components/requestBodies/Product"
+        parameters:
+          - name: email
+            in: query
+            description: The user email for change password
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: _________
+            content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/changePassword"       
+          "400":
+            $ref: "#/components/responses/parameterError"
+          "403":
+            $ref: "#/components/responses/JWTUnauthorizedError"
+          "404":
+            $ref: "#/components/responses/notFoundError"
+          "500":
+            $ref: "#/components/responses/serverError"
+  /ForgetPassword/Image:
+      post:
+        tags:
+          - ForgetPassword 
+        summary: 忘記密碼 以 reqest file 的格式上傳身分證正反面、銀行帳號
+        # requestBody:
+        #   $ref: "#/components/requestBodies/Product"
+        parameters:
+          - name: email
+            in: query
+            description: The user email for send email
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: _________
+            content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/Image"       
+          "400":
+            $ref: "#/components/responses/parameterError"
+          "403":
+            $ref: "#/components/responses/JWTUnauthorizedError"
+          "404":
+            $ref: "#/components/responses/notFoundError"
+          "500":
+            $ref: "#/components/responses/serverError"
+  /ForgetPassword/IsAbleToApply:
+      get:
+        tags:
+          - ForgetPassword 
+        summary: 檢查是否可以申請更換密碼
+        # requestBody:
+        #   $ref: "#/components/requestBodies/Product"
+        parameters:
+          - name: email
+            in: query
+            description: The user email for checking availability
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: _________
+            content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/IsAbleToApply"       
+          "400":
+            $ref: "#/components/responses/parameterError"
+          "403":
+            $ref: "#/components/responses/JWTUnauthorizedError"
+          "404":
+            $ref: "#/components/responses/notFoundError"
+          "500":
+            $ref: "#/components/responses/serverError"
+  /ForgetPassword/ApplyForResettingPassword:
+      post:
+        tags:
+          - ForgetPassword 
+        summary: 申請更換密碼
+        # requestBody:
+        #   $ref: "#/components/requestBodies/Product"
+        parameters:
+          - name: email
+            in: query
+            description: The user email for reset password
+            required: true
+            schema:
+              type: string
+          - name: password
+            in: query
+            description: The new password to reset 
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: _________
+            content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/ApplyForResettingPassword"       
+          "400":
+            $ref: "#/components/responses/parameterError"
+          "403":
+            $ref: "#/components/responses/JWTUnauthorizedError"
+          "404":
+            $ref: "#/components/responses/notFoundError"
+          "500":
+            $ref: "#/components/responses/serverError"
+  /ForgetPassword/UpdateEOA:
+      post:
+        tags:
+          - ForgetPassword 
+        summary: 更新EOA 
+        # requestBody:
+        #   $ref: "#/components/requestBodies/Product"
+        responses:
+          "200":
+            description: _________
+            content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/UpdateEOA"       
+          "400":
+            $ref: "#/components/responses/parameterError"
+          "403":
+            $ref: "#/components/responses/JWTUnauthorizedError"
+          "404":
+            $ref: "#/components/responses/notFoundError"
+          "500":
+            $ref: "#/components/responses/serverError"
   /pet:
     post:
       tags:
@@ -880,6 +1197,86 @@ components:
       name: api_key
       in: header
   schemas:
+    UpdateEOA:
+      type: object
+      properties:
+          success:
+            type: string
+          message:
+            type: string
+          new_token:
+            type: string
+    ApplyForResettingPassword:
+      type: object
+      properties:
+          message:
+            type: string
+    IsAbleToApply:
+      type: object
+      properties:
+          message:
+            type: string
+    changePassword:
+      type: object
+      properties:
+          success:
+            type: string
+          data:
+            type: object
+          result:
+            type: string
+    f_verify_email:
+      type: object
+      properties:
+          success:
+            type: string
+          need_KYC:
+            type: integer
+          verify:
+            type: boolean
+          message:
+            type: string
+    UserByEmail:
+      type: object
+      properties:
+          success:
+            type: string
+          data:
+            type: object
+          new_token:
+            type: string
+    AddUserInformation:
+      type: object
+      properties:
+          success:
+            type: string
+          message:
+            type: string
+          new_token:
+            type: string
+    Image:
+      type: object
+      properties:
+          success:
+            type: string
+          data:
+            type: object
+          new_token:
+            type: string
+    bankBranchCodes:
+      type: object
+      properties:
+          success:
+            type: string
+          data:
+            type: string
+    bankCodes:
+      type: object
+      properties:
+          success:
+            type: string
+          data:
+            type: string
     signIn:
       type: object
       properties:
