@@ -7,11 +7,12 @@ const amqp = require('amqplib/callback_api');
 
 const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../timeserver/envVariables');
 
-const { getTimeServerTime, isEmpty, checkIntFromOne } = require('../timeserver/utilities');
 
 const { preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
 
 const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit, getAssetbookFromIdentityNumber } = require('../timeserver/mysql.js');
+
+const { getTimeServerTime, isEmpty,GenerateEOA} = require('../timeserver/utilities');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -2411,6 +2412,20 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
 
 
 
+//二手市場確定掛單之鎖倉功能API
+router.post('/TokenLock', async function(req,res,next){
+    var mysqlPoolQuery = req.pool;
+    let symbol = req.body.symbol;
+    let u_email = req.body.u_email;
+    let quantity = req.body.quantity;
+    await need_newAccount_ro_not(mysqlPoolQuery,u_email);
+    res.send("done!");
+    //將token轉至第二組assetbook
+});
+
+
+
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
@@ -2456,6 +2471,66 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
     })
 };
+
+
+
+
+async function TokenLockedAccount(EOA){ //產生新的assetbook，便可讓即將交易的Token鎖倉，公鑰私鑰由資料庫代管
+    return new Promise((resolve,reject)=>{
+
+    
+
+    const provider = new PrivateKeyProvider(backendPrivateKey, blockchainURL);
+    const web3deploy = new Web3(provider);
+    let assetBookOwner = EOA;
+    const assetBook = new web3deploy.eth.Contract(assetBookContract.abi);
+
+    assetBook.deploy({
+        data: assetBookContract.bytecode,
+        arguments: [assetBookOwner, heliumContractAddr]
+    })
+        .send({
+            from: backendAddr,
+            gas: gasLimitValue,//6500000,
+            gasPrice: gasPriceValue//'0'
+        })
+        .on('receipt', function (receipt) {
+            //console.log(receipt.contractAddress);
+            resolve(receipt.contractAddress); 
+        })
+        .on('error', function (error) {
+            reject(error)
+        });
+        
+        
+})
+
+};
+
+async function need_newAccount_ro_not(mysqlPoolQuery,u_email){
+    await mysqlPoolQuery("SELECT u_assetbookContractAddress2 FROM user WHERE u_email=?;",[u_email],async function(err,rows){ //檢查是否初次使用二手市場，是否需要生產第二組AssetBook address
+        if (err){
+            console.log(err);
+        }
+        else{
+            if(rows[0].u_assetbookContractAddress2==null){
+                console.log("Generation needed.")
+                const EOA = GenerateEOA();
+                var AssetbookAddr = await TokenLockedAccount(EOA[0]);//新增第二組assetbook for二手市場
+                mysqlPoolQuery("UPDATE user SET u_eth_p2 =?, u_eth_add2 =?,u_assetbookContractAddress2=? WHERE u_email = ?",[EOA[1],EOA[0],AssetbookAddr,u_email],function(err){
+                    if(err){
+                        console.log(err);
+                    }
+                    console.log('New AssetBook written back to DB already.');
+                });    
+            }
+            else{
+                console.log("Another AssetBook Address existed.");
+            }
+        }
+    });
+}
+
 
 
 module.exports = router;
