@@ -1,12 +1,18 @@
 /**
  * 
  */
-// const Web3 = require('web3');
-// const Tx = require('ethereumjs-tx');
-
-const ethereumNodeURL = "http://140.119.101.130:8545";
-const web3 = new Web3(new Web3.providers.HttpProvider(ethereumNodeURL));
-
+ const Web3 = require('web3');
+ const Tx = require('ethereumjs-tx');
+ //const ethereumjs = require('ethereumjs-tx');
+ //const ethereumNodeURL = "http://140.119.101.130:8545";
+ //const web3 = new Web3(new Web3.providers.HttpProvider(ethereumNodeURL));
+ //const {blockchainURL} = require('../../../timeserver/envVariables');
+ //const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
+ //正式IP:203.66.73.79
+ //const ethereumNodeURL = "http://203.66.73.79:8545";
+ const ethereumNodeURL = "http://203.66.68.70:8545";
+ const web3 = new Web3(new Web3.providers.HttpProvider(ethereumNodeURL));
+ /*
 console.log('web3.defaultAccount', web3.defaultAccount);
 console.log(web3.version);
 console.log(web3.currentProvider);
@@ -14,13 +20,17 @@ console.log(web3.currentProvider);
 console.log('typeof ethereumjs:',               (typeof ethereumjs))
 console.log('Object.keys(ethereumjs):',         Object.keys(ethereumjs))
 console.log('typeof ethereumjs.Tx:',            (typeof ethereumjs.Tx))
-
+*/
 const AssetOwner1 = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
 const AssetOwner1pkRaw = "0x2457188f06f1e788fa6d55a8db7632b11a93bb6efde9023a9dbf59b869054dca";
 const AssetOwner2 = "0x470Dea51542017db8D352b8B36B798a4B6d92c2E";
 const AssetOwner2pkRaw = "0xc8300f087b43f03d0379c287e4a3aabceab6900e0e6e97dfd130ebe57c4afff2";
 const AssetOwner3 = "0xE6b5303e555Dd91A842AACB9dd9CaB0705210A61";
-const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
+const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a451";
+//const AssetOwner3pkRaw = "0xf9a486a3f8fb4b2fe2dcf297944c1b386c5c19ace41173f5d33eb70c9f175a45";
+const AssetOwner4 = "0x076CEeEfEeAb5aFcB25A06ceeD321A779525AF32";
+const AssetOwner4pkRaw = "0x4AD782774E82F31A2FBB4F3D7CF05898DD02913C89E4C19D73804554D5A4C11F";
+
 
 const addrHCAT721 = "0x50f4C3aFBD8e5d97d4dd4817f897388f77011b6b";
 const fromAssetbook = "0xdEc799A5912Ce621497BFD1Fe2C19f8e23307dbc";//addrAssetBook1
@@ -29,7 +39,7 @@ const amountStr = 3;
 const priceStr = 10000;
 
 let addrTo, addrFrom, addrToPk, addrFromPk;
-let choiceFrom = 1, choiceTo = 2;
+let choiceFrom = 4, choiceTo = 2;
 
 //get EOA credentials from platforms/browser/www/plugins/cordova-plugin-securekeystore/www/securekeystore.js
 
@@ -45,6 +55,10 @@ if(choiceFrom === 1){
   addrFrom = AssetOwner3;
   addrFromPk = AssetOwner3pkRaw;
 }
+else if(choiceFrom === 4){
+  addrFrom = AssetOwner4;
+  addrFromPk = AssetOwner4pkRaw;
+}
 
 if(choiceTo === 1){
   addrTo = AssetOwner1;
@@ -58,12 +72,16 @@ if(choiceTo === 1){
   addrTo = AssetOwner3;
   addrToPk = AssetOwner3pkRaw;
 }
+else if(choiceTo === 4){
+  addrTo = AssetOwner4;
+  addrToPk = AssetOwner4pkRaw;
+}
 
 const checkBoolTrueArray = (item) => item;
 
 //-------------------------------==
 //-------------------------------==
-const Helium = require('./build/Helium.json');
+const Helium = require('../../contracts/build/Helium.json');
 if (Helium === undefined){
   console.log('[Error] Helium is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -83,7 +101,7 @@ if (Helium === undefined){
   //console.log(Helium);
 }
 
-const AssetBook = require('./build/AssetBook.json');
+const AssetBook = require('../../contracts/build/AssetBook.json');
 if (AssetBook === undefined){
   console.log('[Error] AssetBook is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -104,7 +122,7 @@ if (AssetBook === undefined){
 }
 
 
-const Registry = require('./build/Registry.json');
+const Registry = require('../../contracts/build/Registry.json');
 if (Registry === undefined){
   console.log('[Error] Registry is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -124,7 +142,7 @@ if (Registry === undefined){
   //console.log(Registry);
 }
 
-const TokenController = require('./build/TokenController.json');
+const TokenController = require('../../contracts/build/TokenController.json');
 if (TokenController === undefined){
   console.log('[Error] TokenController is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -144,7 +162,7 @@ if (TokenController === undefined){
   //console.log(TokenController);
 }
 
-const HCAT721 = require('./build/HCAT721_AssetToken.json');
+const HCAT721 = require('../../contracts/build/HCAT721_AssetToken.json');
 if (HCAT721 === undefined){
   console.log('[Error] HCAT721 is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -186,7 +204,7 @@ if (HCAT721_Test === undefined) {
   //console.log(HCAT721_Test);
 }*/
 
-const CrowdFunding = require('./build/CrowdFunding.json');
+const CrowdFunding = require('../../contracts/build/CrowdFunding.json');
 if (CrowdFunding === undefined){
   console.log('[Error] CrowdFunding is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -206,7 +224,7 @@ if (CrowdFunding === undefined){
   //console.log(CrowdFunding);
 }
 
-const IncomeManager = require('./build/IncomeManagerCtrt.json');
+const IncomeManager = require('../../contracts/build/IncomeManagerCtrt.json');
 if (IncomeManager === undefined){
   console.log('[Error] IncomeManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -226,7 +244,7 @@ if (IncomeManager === undefined){
   //console.log(IncomeManager);
 }
 
-const ProductManager = require('./build/ProductManager.json');
+const ProductManager = require('../../contracts/build/ProductManager.json');
 if (ProductManager === undefined){
   console.log('[Error] ProductManager is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -246,7 +264,7 @@ if (ProductManager === undefined){
   //console.log(ProductManager);
 }
 
-const TestCtrt = require('./build/TestCtrt.json');
+/*const TestCtrt = require('../../contracts/build/TestCtrt.json');
 if (TestCtrt === undefined){
   console.log('[Error] TestCtrt is Not Defined <<<<<<<<<<<<<<<<<<<<<');
 } else {
@@ -264,7 +282,7 @@ if (TestCtrt === undefined){
       //console.log('TestCtrt.bytecode:', TestCtrt.bytecode);
   }
   //console.log(TestCtrt);
-}
+}*/
 
 /**
  * get the function names for getting acctAddr and accPrivatekey
@@ -550,14 +568,19 @@ const changeEndorser = async(addrAssetBook, oldEndorser, newEndorser, serverTime
 
 const changeAssetOwner = async(addrAssetBook,  _assetOwnerNew, serverTime) => {
   return new Promise(async (resolve, reject) => {
-    console.log('\n-------==changeAssetOwner()');
-    console.log(`serverTime: ${serverTime}`);
-    const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
-    const encodedData = instAssetBook.methods.changeAssetOwner( _assetOwnerNew, serverTime).encodeABI();
-    let TxResult = await signTx(addrFrom, addrFromPk, addrAssetBook, encodedData);
-    console.log('\nTxResult', TxResult);
-    resolve(true);
-  });
+    try{
+      console.log('\n-------==changeAssetOwner()');
+      console.log(`serverTime: ${serverTime}`);
+      //web3.eth.getBlockNumber().then(console.log);
+      const instAssetBook = new web3.eth.Contract(AssetBook.abi, addrAssetBook);
+      const encodedData = instAssetBook.methods.changeAssetOwner( _assetOwnerNew, serverTime).encodeABI();
+      let TxResult = await signTx(addrFrom, addrFromPk, addrAssetBook, encodedData);
+      console.log('\nTxResult', TxResult);
+      resolve(true);
+    } catch (err) {
+      console.log('changeAssetOwner error =====>', err)
+    }
+  }).catch(err => console.log(err));
 }
 
 
@@ -629,8 +652,9 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
                   data: encodedData
               }
 
-              let tx = new ethereumjs.Tx(txParams);//with min version
+              //let tx = new ethereumjs.Tx(txParams);//with min version
               //let tx = new Tx(txParams);//with require()
+              let tx = new Tx(txParams);//with require()
               tx.sign(userPrivateKey);
               const serializedTx = tx.serialize();
               const rawTx = '0x' + serializedTx.toString('hex');

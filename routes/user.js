@@ -5,7 +5,9 @@ const bcrypt = require('bcrypt');
 
 var Web3 = require("web3");
 
-web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+// web3 = new Web3(new Web3.providers.HttpProvider("http://140.119.101.130:8540"));
+const {blockchainURL} = require('../timeserver/envVariables');
+const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 /* email sender */
 const nodemailer = require('nodemailer');
 
@@ -1323,6 +1325,27 @@ router.post('/AssetRecordDailySnapshot', function (req, res, next) {
         }
     });
 });
+/*
+router.post('/GenerateEOA', function (req, res, next) {
+    const account = web3.eth.accounts.create();
+    console.log("Public Key:" + account.address);
+    console.log("Private Key:" + account.privateKey);
+    res.status(200).json(
+        { 
+            "message":"generate EOA success",
+            "data":{
+                "PublicKey": account.address,
+                "PrivateKey": account.privateKey
+            }
+        }
+    );
+});*/
+
+
+
+
+
+
 
 
 module.exports = router;
