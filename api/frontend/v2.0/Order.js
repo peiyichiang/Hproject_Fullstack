@@ -187,7 +187,7 @@ router.get('/QualifyPlaceOrder',async function(req,res){
     
 })
 
-router.get('/PlaceOrder', async function(req,res){
+router.post('/PlaceOrder', async function(req,res){
     console.log('------------------------==\n@Order/GET/PlaceOrder');
     const symbol = req.body.symbol;
     const mysqlPoolQuery = req.pool;
