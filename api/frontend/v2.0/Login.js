@@ -52,14 +52,17 @@ router.post('/signIn',function(req,res){
                                 async.waterfall([
                                     function(callback) {
                                         const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' })
-                                        token = tokenGenerator.sign({ data:data }, { audience: 'myaud', issuer: 'myissuer', jwtid: '1', subject: 'user' })
+                                        newData = {
+                                            token: tokenGenerator.sign({ data:data }, { audience: 'myaud', issuer: 'myissuer', jwtid: '1', subject: 'user' }),
+                                            verifyStatus: data.u_verify_status //for 前端判斷是否要繼續驗證
+                                        }
                                         //callback(null, jwt.sign({usr_name: name},process.env.JWT_PRIVATEKEY, { expiresIn: 60 }))
-                                        callback(null,token);
+                                        callback(null,newData);
                                     },
                                     function(data, callback) {
                                         res.setHeader('Cache-Control', 'no-store');
                                         res.setHeader('Pragma', 'no-cache');
-                                        res.status(200).json({success:"True",message:"密碼正確",jwt:data});
+                                        res.status(200).json({success:"True",message:"密碼正確",jwt:data.token, verifyStatus: data.verifyStatus});
                                     }
                                 ])
                             } else {

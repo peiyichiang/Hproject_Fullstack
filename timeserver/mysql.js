@@ -128,6 +128,7 @@ const product = function(){
                 p.p_name AS name,
                 p.p_location AS location,
                 p.p_SYMBOL AS symbol,
+                p.p_currency AS currency,
                 p.p_ForecastedAnnualIncomePerModule AS forecastedAnnualIncomePerModule,
                 p.p_totalrelease AS totalRelease,
                 (p.p_totalrelease - IFNULL(o.purchasetokenNum,0)) AS remainRelease,
