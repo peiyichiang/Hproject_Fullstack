@@ -39,7 +39,7 @@ const amountStr = 3;
 const priceStr = 10000;
 
 let addrTo, addrFrom, addrToPk, addrFromPk;
-let choiceFrom = 4, choiceTo = 2;
+let choiceFrom = 3, choiceTo = 2;
 
 //get EOA credentials from platforms/browser/www/plugins/cordova-plugin-securekeystore/www/securekeystore.js
 
@@ -308,7 +308,7 @@ const checkSafeTransferFromBatch = async(assetIndex, addrHCAT721, fromAssetbook,
 
     const boolArray = result[0];
     let mesg;
-    if(amountArray.every(checkBoolTrueArray)){
+    if(boolArray.every(checkBoolTrueArray)){
       mesg = '[Success] all checks have passed';
       console.log(mesg);
       resolve(mesg);

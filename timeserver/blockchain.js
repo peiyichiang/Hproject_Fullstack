@@ -1327,10 +1327,11 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
     if (!isTokenApprovedOperational) {
       wlogger.debug(`Setting serverTime to TimeTokenUnlock+1 ...`);
       serverTime = parseInt(TimeUnlockM)+1;
+      //const encodedData = instTokenController.methods.updateState(202111122000).encodeABI();//測試用下一行才是正常的code
       const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerCtrtAddr, encodedData);
       const TxResultStr = JSON.stringify(TxResult, null, 4);
-    wlogger.debug(`TxResult: ${TxResultStr}`);
+      wlogger.debug(`TxResult: ${TxResultStr}`);
       isTokenApprovedOperational = await instTokenController.methods.isTokenApprovedOperational().call();
       wlogger.debug(`\nisTokenApprovedOperational(): ${isTokenApprovedOperational}`);
     }
@@ -4048,7 +4049,7 @@ const TxResultStr = JSON.stringify(TxResult, null, 4);
 
 
 //----------==assetOwner to call his Assetbook contract. Not HCAT721 contract directly!!!
-const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime) => {
+const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime,_fromAssetOwner) => {
   return new Promise( async ( resolve, reject ) => {
 
     const instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
@@ -4140,7 +4141,8 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       reject(mesg);
       return false;
     }
-
+    serverTime =await getTimeServerTime();
+    console.log(serverTime);
     if(amount < 1 || price < 1 || serverTime < 201905281000){
       mesg = 'input values should be > 0 or 201905281000';
       wlogger.debug(`mesg, amount: ${amount}, price: ${price}, serverTime: ${serverTime}`);
@@ -4171,18 +4173,18 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
     try {
       const encodedData = instAssetBookFrom.methods.safeTransferFromBatch(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime).encodeABI();
 
-      let TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData).catch((err) => {
+      let TxResult = await signTx(_fromAssetOwner, _fromAssetOwnerpkRaw, fromAssetbook, encodedData)/*.catch((err) => {
         reject(`[Error @ signTx() safeTransferFromBatch()] ${err}`);
         return false;
-      });
+      });*/
       wlogger.debug(`TxResult ${TxResult}`);
 
     } catch (error) {
       wlogger.error(`error: ${error}`);
-      const result = await checkSafeTransferFromBatchFunction(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime);
+      const result = await checkSafeTransferFromBatchFunction(0, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime,_fromAssetOwner);
       //assetIndex, addrHCAT721, fromAssetbook, toAssetbook, amount, price, serverTime
-      reject(result);
-      return false;
+      /*reject(result);
+      return false;*/
     }
 
     const balanceFromAfterStr = await instHCAT721.methods.balanceOf(fromAssetbook).call();
@@ -4304,17 +4306,17 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
               wlogger.debug(`signTx5`);
               web3.eth.sendSignedTransaction(rawTx)
                   .on('transactionHash', hash => {
-                      //wlogger.debug(hash);
+                      wlogger.debug(hash);
                   })
                   .on('confirmation', (confirmationNumber, receipt) => {
-                      //wlogger.debug(`confirmation', confirmationNumber);
+                      wlogger.debug(`confirmation`, confirmationNumber);
                   })
                   .on('receipt', function (receipt) {
-                      //wlogger.debug(receipt);
+                      wlogger.debug(receipt);
                       resolve(receipt)
                   })
                   .on('error', function (err) {
-                      //wlogger.error(err);
+                      wlogger.error(err);
                       reject(err);
                   });
           });

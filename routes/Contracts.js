@@ -8,11 +8,17 @@ const amqp = require('amqplib/callback_api');
 const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../timeserver/envVariables');
 
 
-const { preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
+const {  setTokenController,transferTokens ,preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
 
 const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit, getAssetbookFromIdentityNumber } = require('../timeserver/mysql.js');
 
 const { getTimeServerTime, isEmpty,GenerateEOA} = require('../timeserver/utilities');
+
+
+
+
+//const { transferTokens } = require('../ethereum/contractExplorer/js/smartContracts');
+
 
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 
@@ -2412,19 +2418,35 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
 
 
 
-//二手市場確定掛單之鎖倉功能API
+//二手市場確定掛單之鎖倉功能API，本API會自動生成二手市場專用assetbook再transfer 721token到新assetbook
 router.post('/TokenLock', async function(req,res,next){
     var mysqlPoolQuery = req.pool;
-    let symbol = req.body.symbol;
     let u_email = req.body.u_email;
     let quantity = req.body.quantity;
+    let TokenAddr = req.body.TokenAddr; //在smartcontract table中
+    var priceStr= '1';
+    var result;
     await need_newAccount_ro_not(mysqlPoolQuery,u_email);
+    mysqlPoolQuery("SELECT u_assetbookContractAddress,u_assetbookContractAddress2,u_eth_add,u_eth_p FROM user WHERE u_email=?",[u_email],async function(err,rows){
+        if(err){
+            console.log(err);
+            res.send(err);
+        }
+        else{
+            result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress,rows[0].u_assetbookContractAddress2 , parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p);
+            //console.log(result)
+        }
+    })
     res.send("done!");
     //將token轉至第二組assetbook
 });
 
-
-
+//本API可以update該Token Controller 合約的 isTokenApprovedOperational to ture才可進行 token transfer
+router.post('/SetTokenController',async function(req, res){
+    var ControllerAddr = req.body.ControllerAddr;
+    setTokenController(ControllerAddr);
+    res.send('done!')
+});
 
 
 /*sign rawtx*/
@@ -2474,8 +2496,8 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
 
 
 
-
-async function TokenLockedAccount(EOA){ //產生新的assetbook，便可讓即將交易的Token鎖倉，公鑰私鑰由資料庫代管
+//產生新的assetbook，便可讓即將交易的Token transfer至二手市場assetbook，進行鎖倉，公鑰私鑰由資料庫代管
+async function TokenLockedAccount(EOA){ 
     return new Promise((resolve,reject)=>{
 
     
@@ -2501,14 +2523,28 @@ async function TokenLockedAccount(EOA){ //產生新的assetbook，便可讓即�
         .on('error', function (error) {
             reject(error)
         });
+
+    
         
+    
         
 })
 
 };
 
+//在Registry contract進行新會員註冊
+  async function RegistryForSecondaryMarketAccount(userID,assetBookAddr){
+    const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
+    let encodedData = registry.methods.addUser(userID, assetBookAddr, 1).encodeABI();
+    let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
+    };
+  
+    
+
+
+//確認是否已經有二手市場專用的assetbook，如果沒有就會自動產生，如果有就會跳過
 async function need_newAccount_ro_not(mysqlPoolQuery,u_email){
-    await mysqlPoolQuery("SELECT u_assetbookContractAddress2 FROM user WHERE u_email=?;",[u_email],async function(err,rows){ //檢查是否初次使用二手市場，是否需要生產第二組AssetBook address
+    await mysqlPoolQuery("SELECT u_assetbookContractAddress2,u_identityNumber FROM user WHERE u_email=?;",[u_email],async function(err,rows){ //檢查是否初次使用二手市場，是否需要生產第二組AssetBook address
         if (err){
             console.log(err);
         }
@@ -2517,6 +2553,8 @@ async function need_newAccount_ro_not(mysqlPoolQuery,u_email){
                 console.log("Generation needed.")
                 const EOA = GenerateEOA();
                 var AssetbookAddr = await TokenLockedAccount(EOA[0]);//新增第二組assetbook for二手市場
+                await RegistryForSecondaryMarketAccount(rows[0].u_identityNumber+"sm",AssetbookAddr);
+                
                 mysqlPoolQuery("UPDATE user SET u_eth_p2 =?, u_eth_add2 =?,u_assetbookContractAddress2=? WHERE u_email = ?",[EOA[1],EOA[0],AssetbookAddr,u_email],function(err){
                     if(err){
                         console.log(err);
