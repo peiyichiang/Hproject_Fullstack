@@ -2007,8 +2007,8 @@ const FPprocess = async function(){
 
 //flow1();
 //frontEndUserRegistry();
-const EOA = GenerateEOA();
-const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());
+//const EOA = GenerateEOA();
+//const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());
 
 
 //node node_modules/.bin/mocha  --exit test_CI/apiTest.js 

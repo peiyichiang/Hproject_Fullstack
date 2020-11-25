@@ -8,12 +8,13 @@ const amqp = require('amqplib/callback_api');
 const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../timeserver/envVariables');
 
 
-const {  setTokenController,transferTokens ,preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
+const {  setTokenController ,preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
 
 const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit, getAssetbookFromIdentityNumber } = require('../timeserver/mysql.js');
 
 const { getTimeServerTime, isEmpty,GenerateEOA} = require('../timeserver/utilities');
 
+const { transferTokens} = require("../ethereum/contractExplorer/js/smartContracts")
 
 
 
@@ -2417,27 +2418,34 @@ router.get('/productManagerContract/:nftSymbol', async function (req, res, next)
 });
 
 
-
 //二手市場確定掛單之鎖倉功能API，本API會自動生成二手市場專用assetbook再transfer 721token到新assetbook
 router.post('/TokenLock', async function(req,res,next){
     var mysqlPoolQuery = req.pool;
     let u_email = req.body.u_email;
     let quantity = req.body.quantity;
     let TokenAddr = req.body.TokenAddr; //在smartcontract table中
-    var priceStr= '1';
+    var priceStr= '500';
     var result;
-    await need_newAccount_ro_not(mysqlPoolQuery,u_email);
-    mysqlPoolQuery("SELECT u_assetbookContractAddress,u_assetbookContractAddress2,u_eth_add,u_eth_p FROM user WHERE u_email=?",[u_email],async function(err,rows){
-        if(err){
-            console.log(err);
-            res.send(err);
-        }
-        else{
-            result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress,rows[0].u_assetbookContractAddress2 , parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p);
-            //console.log(result)
-        }
-    })
-    res.send("done!");
+    try{need_newAccount_ro_not(mysqlPoolQuery,u_email).then(() => {
+        mysqlPoolQuery("SELECT u_assetbookContractAddress,u_assetbookContractAddress2,u_eth_add,u_eth_p FROM user WHERE u_email=?",[u_email],async function(err,rows){
+            if(err){
+                console.log(err);
+                res.send(err);
+            }
+            else{
+
+                result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress, rows[0].u_assetbookContractAddress2, parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p)
+                
+                //result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress,rows[0].u_assetbookContractAddress2 , parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p);
+                res.send(result);
+            }
+        })
+    })}
+    catch(error){
+        console.log(error)
+        res.send(false)
+    }
+    
     //將token轉至第二組assetbook
 });
 
@@ -2448,6 +2456,23 @@ router.post('/SetTokenController',async function(req, res){
     res.send('done!')
 });
 
+//撤回掛單時Token transfer 回原本AssetBook
+
+router.post('/TokenTransferBack',async function(req, res,next){
+    var u_email = req.body.u_email;
+    var symbol  = req.body.symbol;
+    var mysqlPoolQuery = req.pool;
+    mysqlPoolQuery("",[],async function(err,rows){
+        if(err){
+            console.log(err);
+        }
+        else{
+            // transfer back
+        }
+    })
+})
+
+//接到銀行付款完畢的信息後向 Buyer transfer Token 
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
@@ -2534,9 +2559,10 @@ async function TokenLockedAccount(EOA){
 
 //在Registry contract進行新會員註冊
   async function RegistryForSecondaryMarketAccount(userID,assetBookAddr){
-    const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
-    let encodedData = registry.methods.addUser(userID, assetBookAddr, 1).encodeABI();
-    let contractResult = await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
+      const registry = new web3.eth.Contract(registryContract.abi, registryContractAddr);
+      let encodedData = registry.methods.addUser(userID, assetBookAddr, 1).encodeABI();
+      let contractResult =  await signTx(backendAddr, backendRawPrivateKey, registryContractAddr, encodedData);
+      console.log("Contract Result of Registry: "+contractResult);
     };
   
     
@@ -2544,7 +2570,9 @@ async function TokenLockedAccount(EOA){
 
 //確認是否已經有二手市場專用的assetbook，如果沒有就會自動產生，如果有就會跳過
 async function need_newAccount_ro_not(mysqlPoolQuery,u_email){
-    await mysqlPoolQuery("SELECT u_assetbookContractAddress2,u_identityNumber FROM user WHERE u_email=?;",[u_email],async function(err,rows){ //檢查是否初次使用二手市場，是否需要生產第二組AssetBook address
+    return new Promise(function(resolve,reject){
+    mysqlPoolQuery("SELECT u_assetbookContractAddress2,u_identityNumber FROM user WHERE u_email=?;",[u_email],async function(err,rows){ //檢查是否初次使用二手市場，是否需要生產第二組AssetBook address
+        console.log(rows)
         if (err){
             console.log(err);
         }
@@ -2553,20 +2581,22 @@ async function need_newAccount_ro_not(mysqlPoolQuery,u_email){
                 console.log("Generation needed.")
                 const EOA = GenerateEOA();
                 var AssetbookAddr = await TokenLockedAccount(EOA[0]);//新增第二組assetbook for二手市場
-                await RegistryForSecondaryMarketAccount(rows[0].u_identityNumber+"sm",AssetbookAddr);
+                await RegistryForSecondaryMarketAccount(rows[0].u_identityNumber+"SecMarket",AssetbookAddr);
                 
                 mysqlPoolQuery("UPDATE user SET u_eth_p2 =?, u_eth_add2 =?,u_assetbookContractAddress2=? WHERE u_email = ?",[EOA[1],EOA[0],AssetbookAddr,u_email],function(err){
                     if(err){
-                        console.log(err);
+                        reject(err);
+
                     }
                     console.log('New AssetBook written back to DB already.');
+                    resolve();
                 });    
             }
             else{
-                console.log("Another AssetBook Address existed.");
+                resolve(console.log("Another AssetBook Address existed."));
             }
         }
-    });
+    });})
 }
 
 

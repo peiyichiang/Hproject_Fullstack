@@ -1,3 +1,5 @@
+
+const {getTimeServerTime} = require('../../../timeserver/utilities')
 /**
  * 
  */
@@ -369,7 +371,7 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
     console.log('entering transferTokens()');
 
     let mesg;
-    const serverTimeStr = 201905281400;// only used for emitting events in the blockchain
+    const serverTimeStr = await getTimeServerTime();;// only used for emitting events in the blockchain
     const addrZero = "0x0000000000000000000000000000000000000000";
 
     // const addrFrom = "0x9714BC24D73289d91Ac14861f00d0aBe7Ace5eE2";
@@ -666,7 +668,7 @@ function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
                       console.log(hash);
                   })
                   .on('confirmation', (confirmationNumber, receipt) => {
-                      // console.log('confirmation', confirmationNumber);
+                      console.log('confirmation', confirmationNumber);
                   })
                   .on('receipt', function (receipt) {
                       console.log(receipt);
