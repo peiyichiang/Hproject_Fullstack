@@ -107,6 +107,9 @@ router.get('/asset',async function (req,res){
             var string=JSON.stringify(result); 
             var data = JSON.parse(string);
             data = formating(data);
+            if(data.length === 0) {
+                return res.status(200).json({ success: "True", message: "this user has no asset", new_token: req.headers['x-access-token']}); // Brian: 新使用者沒有asset
+            }
             data = await AddBalanceOf(data,_userEmail,mysqlPoolQuery);
             if (data.length != 0){
                 return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
