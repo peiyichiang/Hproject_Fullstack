@@ -8,13 +8,13 @@ const amqp = require('amqplib/callback_api');
 const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimeserverON, wlogger, addrRegistry } = require('../timeserver/envVariables');
 
 
-const {  setTokenController ,preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
+const {  transferTokens,setTokenController ,preMint, mintSequentialPerContract, schCindex,  checkAddScheduleBatch, getIncomeSchedule, getIncomeScheduleList,  removeIncomeSchedule, imApprove, setPaymentReleaseResults, addScheduleBatchFromDB, rabbitMQSender, getRestrictions, setRestrictions } = require('../timeserver/blockchain.js');
 
 const { getCtrtAddr, findSymbolFromCtrtAddr, getAssetbookFromEmail, mysqlPoolQueryB, setFundingStateDB, setTokenStateDB, calculateLastPeriodProfit, getAssetbookFromIdentityNumber } = require('../timeserver/mysql.js');
 
 const { getTimeServerTime, isEmpty,GenerateEOA} = require('../timeserver/utilities');
 
-const { transferTokens} = require("../ethereum/contractExplorer/js/smartContracts")
+//const { transferTokens} = require("../ethereum/contractExplorer/js/smartContracts")
 
 
 
