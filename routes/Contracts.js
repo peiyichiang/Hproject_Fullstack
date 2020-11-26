@@ -2426,24 +2426,36 @@ router.post('/TokenLock', async function(req,res,next){
     let TokenAddr = req.body.TokenAddr; //在smartcontract table中
     var priceStr= '500';
     var result;
-    try{need_newAccount_ro_not(mysqlPoolQuery,u_email).then(() => {
+    try{
+        await need_newAccount_ro_not(mysqlPoolQuery,u_email)
         mysqlPoolQuery("SELECT u_assetbookContractAddress,u_assetbookContractAddress2,u_eth_add,u_eth_p FROM user WHERE u_email=?",[u_email],async function(err,rows){
             if(err){
                 console.log(err);
-                res.send(err);
+                res.send({"success":false,
+                          "message":"DB query error: "+err  });
             }
             else{
 
-                result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress, rows[0].u_assetbookContractAddress2, parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p)
+                try{
+                    result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress, rows[0].u_assetbookContractAddress2, parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p)
+                    res.send({"success":result,
+                               "message":"Token Locked Success" });
+                }catch(err){
+                    if(err.message){
+                        res.send({"success":false,"message": err.message })
+                    }
+                    else{
+                        res.send({"success":false,"message": err })
+                    }
+                }
                 
-                //result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress,rows[0].u_assetbookContractAddress2 , parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p);
-                res.send(result);
             }
         })
-    })}
-    catch(error){
-        console.log(error)
-        res.send(false)
+    }
+    catch(err){
+        console.log(err)
+        res.send({"success":false,
+                  "message":err  })
     }
     
     //將token轉至第二組assetbook
@@ -2572,12 +2584,14 @@ async function TokenLockedAccount(EOA){
 async function need_newAccount_ro_not(mysqlPoolQuery,u_email){
     return new Promise(function(resolve,reject){
     mysqlPoolQuery("SELECT u_assetbookContractAddress2,u_identityNumber FROM user WHERE u_email=?;",[u_email],async function(err,rows){ //檢查是否初次使用二手市場，是否需要生產第二組AssetBook address
-        console.log(rows)
         if (err){
             console.log(err);
         }
         else{
-            if(rows[0].u_assetbookContractAddress2==null){
+            if(rows.length==0){
+                reject("Email query in DB is empty");
+            }
+            else if(rows[0].u_assetbookContractAddress2==null){
                 console.log("Generation needed.")
                 const EOA = GenerateEOA();
                 var AssetbookAddr = await TokenLockedAccount(EOA[0]);//新增第二組assetbook for二手市場

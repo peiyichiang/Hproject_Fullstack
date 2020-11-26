@@ -4122,6 +4122,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
  */
 const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr, priceStr, _fromAssetOwner, _fromAssetOwnerpkRaw ) => {
   return new Promise( async ( resolve, reject ) => {
+    try{
     wlogger.debug(`entering transferTokens()`);
 
     let mesg = '';
@@ -4150,7 +4151,7 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       return false;
     }
     wlogger.debug(`after checking amount and price values`);
-
+    
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
     const instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
     wlogger.debug(`after contract instances`);
@@ -4212,6 +4213,11 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       resolve(false);
     }
     //call /HCAT721_AssetTokenContract/safeTransferFromBatch API to record txn info
+  }
+  catch(err){
+    console.log(err);
+    reject(err);
+  }
   });
 }
 
