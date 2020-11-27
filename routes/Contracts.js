@@ -2525,6 +2525,79 @@ router.post('/TokenTransferBack',async function(req, res,next){
 
 //接到銀行付款完畢的信息後向 Buyer transfer Token 
 
+router.post("/TransferToBuyer",async function(req,res,next){
+    var buyer_email = req.body.buyer_email;
+    var seller_email = req.body.seller_email;
+    var TokenAddr = req.body.TokenAddr;
+    var quantity = req.body.quantity;
+    var price = req.body.price;
+    var mysqlPoolQuery = req.pool;
+    
+    mysqlPoolQuery("SELECT * FROM user WHERE  u_email =? OR u_email=?",[buyer_email,seller_email], async function(err,rows){
+        try{
+        if(err){
+            res.send({
+                "success":false,
+                "message": "DB querying failed"
+            })
+        }
+        else{
+            if(rows[0].u_email==buyer_email){
+                try{
+                    result=await transferTokens(TokenAddr, rows[1].u_assetbookContractAddress2, rows[0].u_assetbookContractAddress, parseInt(quantity), parseInt(price), rows[1].u_eth_add2, rows[1].u_eth_p2);
+                    res.send({
+                        "success": true,
+                        "message": "Token transfered back already"
+                    })
+                }
+                    catch(err){
+                        if(err.message){
+                            res.send({
+                                "success":false,
+                                "message": err.message,
+                            })
+                        }
+                        else{
+                            res.send({
+                                "success":false,
+                                "message": err,
+                            })
+                        }
+                    }
+            }
+            if(rows[0].u_email==seller_email){
+                try{
+                    result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress2, rows[1].u_assetbookContractAddress, parseInt(quantity), parseInt(price), rows[0].u_eth_add2, rows[0].u_eth_p2);
+                    res.send({
+                        "success": true,
+                        "message": "Token transfer back already"
+                    })
+                }
+                    catch(err){
+                        if(err.message){
+                            res.send({
+                                "success":false,
+                                "message": err.message,
+                            })
+                        }
+                        else{
+                            res.send({
+                                "success":false,
+                                "message": err,
+                            })
+                        }
+                    }
+            }
+        }
+    }catch(err){
+        res.send({
+            "success":false,
+            "message": err.message
+        })
+    }});
+
+    
+})
 
 
 
