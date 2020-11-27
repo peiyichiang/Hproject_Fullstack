@@ -2464,8 +2464,20 @@ router.post('/TokenLock', async function(req,res,next){
 //本API可以update該Token Controller 合約的 isTokenApprovedOperational to ture才可進行 token transfer
 router.post('/SetTokenController',async function(req, res){
     var ControllerAddr = req.body.ControllerAddr;
-    setTokenController(ControllerAddr);
-    res.send('done!')
+    try{
+    await setTokenController(ControllerAddr);
+    res.send({
+        "success": true,
+        "message": "Token Controller Setting Success"
+    })
+    }
+    catch(err){
+        res.send({
+            "success" : false,
+            "message" : err.message
+        })
+    }
+    
 });
 
 //撤回掛單時Token transfer 回原本AssetBook
