@@ -2424,7 +2424,7 @@ router.post('/TokenLock', async function(req,res,next){
     let u_email = req.body.u_email;
     let quantity = req.body.quantity;
     let TokenAddr = req.body.TokenAddr; //在smartcontract table中
-    var priceStr= '500';
+    var priceStr= req.body.price;
     var result;
     try{
         await need_newAccount_ro_not(mysqlPoolQuery,u_email)
@@ -2484,19 +2484,50 @@ router.post('/SetTokenController',async function(req, res){
 
 router.post('/TokenTransferBack',async function(req, res,next){
     var u_email = req.body.u_email;
-    var symbol  = req.body.symbol;
+    var quantity = req.body.quantity;
+    var TokenAddr = req.body.TokenAddr;
     var mysqlPoolQuery = req.pool;
-    mysqlPoolQuery("",[],async function(err,rows){
+    mysqlPoolQuery("SELECT * FROM user WHERE u_email=?",[u_email],async function(err,rows){
         if(err){
             console.log(err);
+            res.send({
+                "success":false,
+                "message": "DB querying failed"
+            })
         }
         else{
             // transfer back
+            try{
+            result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress2, rows[0].u_assetbookContractAddress, parseInt(quantity), parseInt(1), rows[0].u_eth_add2, rows[0].u_eth_p2);
+            res.send({
+                "success": true,
+                "message": "Token transfer back already"
+            })
+        }
+            catch(err){
+                if(err.message){
+                    res.send({
+                        "success":false,
+                        "message": err.message,
+                    })
+                }
+                else{
+                    res.send({
+                        "success":false,
+                        "message": err,
+                    })
+                }
+            }
         }
     })
+    
 })
 
 //接到銀行付款完畢的信息後向 Buyer transfer Token 
+
+
+
+
 
 /*sign rawtx*/
 function signTx(userEthAddr, userRawPrivateKey, contractAddr, encodedData) {
