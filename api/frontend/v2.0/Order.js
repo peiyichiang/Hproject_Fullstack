@@ -46,7 +46,8 @@ router.get('/QueryOrder', function(req,res){
             if (data.length != 0){
                 return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
             }else{
-                return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
+                // return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
+                return res.status(200).json({success: "True", message: "this user has no order", new_token: req.headers['x-access-token']});
             }
         }).catch((err => {
             console.log(err);
