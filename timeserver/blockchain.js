@@ -1294,6 +1294,7 @@ const checkDeployedContracts = async(symbol) => {
 
 const setTokenController = async(tokenControllerCtrtAddr) => {
   return new Promise(async (resolve, reject) => {
+    try{
     wlogger.debug(`---------------==\nsetTokenController()`);
     const instTokenController = new web3.eth.Contract(TokenController.abi, tokenControllerCtrtAddr);
     boolArray = await instTokenController.methods.getHTokenControllerDetails().call();
@@ -1327,8 +1328,8 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
     if (!isTokenApprovedOperational) {
       wlogger.debug(`Setting serverTime to TimeTokenUnlock+1 ...`);
       serverTime = parseInt(TimeUnlockM)+1;
-      //const encodedData = instTokenController.methods.updateState(202111122000).encodeABI();//測試用下一行才是正常的code
-      const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
+      const encodedData = instTokenController.methods.updateState(202111122000).encodeABI();//測試用下一行才是正常的code
+      //const encodedData = instTokenController.methods.updateState(serverTime).encodeABI();
       let TxResult = await signTx(backendAddr, backendAddrpkRaw, tokenControllerCtrtAddr, encodedData);
       const TxResultStr = JSON.stringify(TxResult, null, 4);
       wlogger.debug(`TxResult: ${TxResultStr}`);
@@ -1337,7 +1338,14 @@ const setTokenController = async(tokenControllerCtrtAddr) => {
     }
     wlogger.debug(`setTokenController() is completed`);
     resolve(true);
-  });
+  
+  }
+  catch (err){
+    console.log("herela"+err)
+    reject(err);
+  }
+}
+  );
 }
 
 
@@ -4122,6 +4130,7 @@ const checkSafeTransferFromBatchFunction = async(assetIndex, addrHCAT721, fromAs
  */
 const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr, priceStr, _fromAssetOwner, _fromAssetOwnerpkRaw ) => {
   return new Promise( async ( resolve, reject ) => {
+    try{
     wlogger.debug(`entering transferTokens()`);
 
     let mesg = '';
@@ -4150,7 +4159,7 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       return false;
     }
     wlogger.debug(`after checking amount and price values`);
-
+    
     const instHCAT721 = new web3.eth.Contract(HCAT721.abi, addrHCAT721);
     const instAssetBookFrom = new web3.eth.Contract(AssetBook.abi, fromAssetbook);
     wlogger.debug(`after contract instances`);
@@ -4212,6 +4221,11 @@ const transferTokens = async (addrHCAT721, fromAssetbook, toAssetbook, amountStr
       resolve(false);
     }
     //call /HCAT721_AssetTokenContract/safeTransferFromBatch API to record txn info
+  }
+  catch(err){
+    console.log(err);
+    reject(err);
+  }
   });
 }
 
