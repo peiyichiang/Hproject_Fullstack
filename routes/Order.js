@@ -5,6 +5,7 @@ var async = require('async');
 const nodemailer = require('nodemailer');
 var router = express.Router();
 const fetch = require("node-fetch");
+var request = require('request');
 
 const { checkCompliance } = require('../ethereum/contracts/zsetupData');
 
@@ -789,5 +790,120 @@ router.get('/getPaidOrdersByUserEmail', function (req, res, next) {
 Date.prototype.myFormat = function () {
     return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
 };
+
+// 新增二手市場的訂單
+router.post('/Order', async function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    const Symbol = req.body.Symbol;
+    const OrderPrice = req.body.OrderPrice;
+    const OrderQuantity = req.body.OrderQuantity;
+    const OrderType = "Ask";
+    // const OrderOwnerEmail = req.body.OrderOwnerEmail;
+    var OrderOwnerEmail="";
+    const OrderUUID = req.body.OrderUUID;
+    const Action = req.body.Action;
+    const JWT = req.body.JWT;
+
+    // 驗證JWT
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            responseObj={
+                success:"false",
+                message:"JWT verification failed",
+                errorCode:"104",
+                data:{err}
+            }
+            res.status(401).send(responseObj);
+        }else{
+            responseObj={
+                success:"true",
+                message:"JWT verification success",
+                data:{decoded}
+            }
+            // 從JWT中讀取email
+            OrderOwnerEmail=decoded.data.u_email;
+            res.status(401).send(responseObj);
+        }
+    })
+
+    // 資料檢查
+    function CheckData(){
+        // Action只能是CREATE,UPDATE
+        if(Action!="CREATE" && Action!="UPDATE"){
+            ResponseObj={
+                success:"false",
+                message:"Action is illegal",
+                errorCode:"106",
+                data:{}
+            }
+            res.status(401).send(responseObj);
+        }
+
+        // 若action為Update則OrderUUID不能為空
+        if(Action=="Update" && OrderUUID==""){
+            ResponseObj={
+            success:"false",
+            message:"OrderUUID is empty",
+            errorCode:"102",
+            data:{}
+            }
+            res.status(401).send(responseObj);
+        }
+    }
+    CheckData();
+
+    // 鎖倉
+    function TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress){
+        var options = {
+            'method': 'POST',
+            'url': 'http://127.0.0.1:3030/Contracts/TokenLock',
+            'headers': {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            form: {
+              'u_email': OrderOwnerEmail,
+              'quantity': OrderQuantity,
+              'TokenAddr': '0x073BfF5AB4B049051D087f379548CD50Ca40E921',
+              'price': OrderPrice
+            }
+          };
+
+        request(options, function (error, response) {
+            if (error) throw new Error(error);
+            console.log(response.body);
+        });
+    }
+
+    // 取得ToeknAddress
+    function getToeknAddress(Symbol){
+        // Step 1:撈取ToeknAddress
+        mysqlPoolQuery("SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol=?",[Symbol],async function(err,rows){
+            if(err){
+                ResultObj={"success":false,"message":"Error occurred:Query sc_erc721address"};
+                res.status(401).send(ResultObj);
+            }
+            else{
+                if(rows.length>0){
+                    TokenAddress=rows[0].sc_erc721address;
+                    // Step 2:TokenLock
+                    console.log("*****:" + OrderOwnerEmail);
+                    TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress);  
+                }else{
+                    ResultObj={"success":false,"message":"Symbol is not exist","errorCode":"108"};
+                    res.status(401).send(ResultObj);
+                }
+       
+            }
+        })
+    }
+
+    // 取得ToeknAddress => 鎖倉
+    getToeknAddress(Symbol);
+
+
+});
+    
+
+
 
 module.exports = router;
