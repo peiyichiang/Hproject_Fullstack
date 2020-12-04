@@ -156,11 +156,12 @@ router.post('/verify_email', async function(req,res){
                 }
             });
             return res.status(200).json({success: "True", verify: true, message: "驗證成功"})
-        }else{
-            return res.status(200).json({success: "True", verify: false, message: "驗證碼錯誤或是超過驗證時效"})
-        }
+        } 
+        // else{
+        //     return res.status(200).json({success: "True", verify: false, message: "驗證碼錯誤或是超過驗證時效"})
+        // }
     }else{
-        return res.status(400).json({success: "False", message: "wrong or lack parameters"});
+        return res.status(400).json({success: "False", message: "wrong or lack parameters + 驗證碼錯誤或是超過驗證時效"});
     }
     
     function getUserVerifyCode(mysqlPoolQuery, email) {
