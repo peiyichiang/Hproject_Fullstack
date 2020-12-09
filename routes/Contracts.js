@@ -2438,8 +2438,12 @@ router.post('/TokenLock', async function(req,res,next){
 
                 try{
                     result=await transferTokens(TokenAddr, rows[0].u_assetbookContractAddress, rows[0].u_assetbookContractAddress2, parseInt(quantity), parseInt(priceStr), rows[0].u_eth_add, rows[0].u_eth_p)
+                    if(result==false){
+                        res.send({"success":false,"message": "isTokenApprovedOperational must be true" })
+                    }
                     res.send({"success":result,
                                "message":"Token Locked Success" });
+
                 }catch(err){
                     if(err.message){
                         res.send({"success":false,"message": err.message })
