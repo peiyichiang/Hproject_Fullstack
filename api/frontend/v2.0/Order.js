@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer');
 const TokenGenerator = require('./TokenGenerator');
 const { checkCompliance } = require('../../../ethereum/contracts/zsetupData');
 const { getTimeServerTime } = require('../../../timeserver/utilities');
+var request = require('request');
 
 router.use(function (req, res, next) {
 
@@ -452,5 +453,288 @@ router.post('/PlaceOrder', async function(req,res){
     }; 
 })
 
+// 新增二手市場的訂單
+router.post('/Order', async function (req, res, next) {
+    var mysqlPoolQuery = req.pool;
+    const Symbol = req.body.Symbol;
+    const OrderPrice = req.body.OrderPrice;
+    const OrderQuantity = req.body.OrderQuantity;
+    const OrderType = "Ask";
+    // const OrderOwnerEmail = req.body.OrderOwnerEmail;
+    var OrderOwnerEmail="";
+    let OrderUUID = req.body.OrderUUID;
+    const Action = req.body.Action;
+    const JWT = req.body.JWT;
+    const OrderTimestamp=Date.now();
+
+    // 鎖倉
+    function TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress){
+        var options = {
+            'method': 'POST',
+            'url': 'http://127.0.0.1:3030/Contracts/TokenLock',
+            'headers': {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            form: {
+              'u_email': OrderOwnerEmail,
+              'quantity': OrderQuantity,
+              'TokenAddr': '0x073BfF5AB4B049051D087f379548CD50Ca40E921',
+              'price': OrderPrice
+            }
+        };
+
+        request(options, function (error, response) {
+            if (error){
+                ResultObj={"success":false,"message":"TokenLock Fail",data:error};
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                res.status(401).send(ResultObj);
+            }
+            if(JSON.parse(response.body).success){
+                ResultObj=JSON.parse(response.body);
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                CreateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp);
+                res.status(401).send(ResultObj);
+            }else{
+                ResultObj=JSON.parse(response.body);
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                res.status(401).send(ResultObj);
+            }
+        });
+    }
+
+    // 取得ToeknAddress
+    function getToeknAddress(Symbol){
+        // Step 1:撈取ToeknAddress
+        mysqlPoolQuery("SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol=?",[Symbol],async function(err,rows){
+            if(err){
+                ResultObj={"success":false,"message":"Error occurred:Query sc_erc721address"};
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                res.status(401).send(ResultObj);
+            }
+            else{
+                if(rows.length>0){
+                    TokenAddress=rows[0].sc_erc721address;
+                    // Step 2:TokenLock
+                    TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress);  
+                }else{
+                    ResultObj={"success":false,"message":"Symbol is not exist","errorCode":"108"};
+                    SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                    res.status(401).send(ResultObj);
+                }
+       
+            }
+        })
+    }
+
+    function SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp,ActionType,OrderResult){
+        sql={
+            OrderUUID:OrderUUID,
+            OrderType:OrderType,
+            OrderPrice:OrderPrice,
+            OrderQuantity:OrderQuantity,
+            OrderSymbol:OrderSymbol,
+            OrderOwnerEmail:OrderOwnerEmail,
+            OrderTimestamp:OrderTimestamp,
+            ActionType:ActionType,
+            OrderResult:JSON.stringify(OrderResult)
+        }
+
+        var qur = mysqlPoolQuery('INSERT INTO OrderLog SET ?', sql, function (err, rows) {
+            if (err) {
+                console.log(err);
+                ResultObj={"success":false,"message":"Save OrderLog Fail",errorCode:"109",data:err};
+                // res.status(401).send(ResultObj);
+            }else{
+                ResultObj={"success":true,"message":"Save data to OrderLog"};
+                // res.status(401).send(ResultObj);
+            }
+        });
+    }
+
+    function CreateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp){
+        sql={
+            OrderUUID:OrderUUID,
+            OrderType:OrderType,
+            OrderPrice:OrderPrice,
+            OrderQuantity:OrderQuantity,
+            OrderSymbol:OrderSymbol,
+            OrderOwnerEmail:OrderOwnerEmail,
+            OrderTimestamp:OrderTimestamp,
+        }
+
+        var qur = mysqlPoolQuery('INSERT INTO OrderLog SET ?', sql, function (err, rows) {
+            if (err) {
+                console.log(err);
+                ResultObj={"success":false,"message":"Save Order Fail",errorCode:"110",data:err};
+                res.status(401).send(ResultObj);
+            }else{
+                ResultObj={"success":true,"message":"Save data to Order"};
+                res.status(401).send(ResultObj);
+            }
+        });
+    }
+
+    // 待做
+    function UpdateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp){
+
+    }
+
+    // 驗證JWT並從JWT中讀取email
+    {
+        jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+            if (err) {
+                responseObj={
+                    success:"false",
+                    message:"JWT verification failed",
+                    errorCode:"104",
+                    data:{err}
+                }
+                res.status(401).send(responseObj);
+            }else{
+                // responseObj={
+                //     success:"true",
+                //     message:"JWT verification success",
+                //     data:{decoded}
+                // }
+                // // 從JWT中讀取email
+                // res.status(401).send(responseObj);
+                OrderOwnerEmail=decoded.data.u_email;
+            }
+        })
+    }
+
+    // 若Action=CREATE,則產生UUID
+    {
+        if(Action=="CREATE"){
+            var dt = new Date().getTime();
+            var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = (dt + Math.random()*16)%16 | 0;
+                dt = Math.floor(dt/16);
+                return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+            });
+            OrderUUID=uuid;
+        }
+    }
+    
+    // 取得目前token在第幾期
+    function getTokenPeriod(Symbol){
+        mysqlPoolQuery("SELECT ia_time FROM income_arrangement WHERE ia_SYMBOL=?",[Symbol],async function(err,rows){
+            if(err){
+                ResultObj={"success":false,"message":"Error occurred:Query ia_time"};
+                res.status(401).send(ResultObj);
+            }
+            else{
+                if(rows.length>0){
+                    // 取得當前時間
+                    currentTimestamp=new Date().getTime();
+                    currentPeroid=0;
+                    // ia_time為預計發放時間,超過ia_time則算是下一期
+                    for(var i=0;i<rows.length;i++){
+                        ia_time_Year=parseInt(rows[i]["ia_time"].toString().substring(0,4));
+                        ia_time_Month=parseInt(rows[i]["ia_time"].toString().substring(4,6))-1;     //JavaScript 表達月份 (month) 是從 0 到 11，0 是一月；11 是十二月
+                        ia_time_Date=parseInt(rows[i]["ia_time"].toString().substring(6,8));
+                        ia_time_Hour=parseInt(rows[i]["ia_time"].toString().substring(8,10));
+                        ia_time_Minute=parseInt(rows[i]["ia_time"].toString().substring(10,12));
+                        ia_time_Timestamp=new Date(ia_time_Year,ia_time_Month,ia_time_Date,ia_time_Hour,ia_time_Minute).getTime();
+                        if(currentTimestamp>ia_time_Timestamp){
+                            currentPeroid=currentPeroid+1
+                        }
+                        if(currentTimestamp<ia_time_Timestamp){
+                            break;
+                        }
+                    }
+                    // +1是因為發過就算下一期,-1是因為從0開始
+                    currentPeroid=currentPeroid+1-1;
+                    getTokenPriceLimit(Symbol,currentPeroid);
+                    // ResultObj={"success":true,"message":"success",data:{"Peroid":currentPeroid}};
+                    // res.status(401).send(ResultObj);
+                }else{
+                    ResultObj={
+                      success:"false",
+                      message:"Symbol is not exist",
+                      errorCode:"108",
+                      data:{}
+                    };
+                    SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                    res.status(401).send(ResultObj);
+                }
+            }
+        })
+    }
+
+    // 取得第N期的token的價格上下限
+    function getTokenPriceLimit(Symbol,Period){
+        mysqlPoolQuery("SELECT ia_tokenValuation FROM income_arrangement WHERE ia_SYMBOL=? AND ia_Payable_Period_End=?",[Symbol,Period],async function(err,rows){
+            if(err){
+                ResultObj={"success":false,"message":"Error occurred:Query ia_tokenValuation,ia_tradingRange"};
+                res.status(401).send(ResultObj);
+            }
+            else{
+                if(rows.length>0){
+                    CheckData(rows[0]["ia_tokenValuation"]);
+                    // ResultObj={"success":true,"message":"success",data:rows[0]["ia_tokenValuation"]};
+                    // res.status(401).send(ResultObj);
+                }else{
+                    ResultObj={
+                      success:"false",
+                      message:"ia_tokenValuation is not exist",
+                      errorCode:"108",
+                      data:{}
+                    };
+                    res.status(401).send(ResultObj);
+                }
+            }
+        })
+    }
+
+    // 資料檢查
+    function CheckData(tokenValuation){
+        // Action只能是CREATE,UPDATE
+        if(Action!="CREATE" && Action!="UPDATE"){
+            ResponseObj={
+                success:"false",
+                message:"Action is illegal",
+                errorCode:"106",
+                data:{}
+            }
+            SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+            res.status(401).send(ResponseObj);
+            return false;
+        }
+
+        // 若action為Update則OrderUUID不能為空
+        if(Action=="Update" && OrderUUID==""){
+            ResponseObj={
+                success:"false",
+                message:"OrderUUID is empty",
+                errorCode:"102",
+                data:{}
+            }
+            SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+            res.status(401).send(ResponseObj);
+            return false;
+        }
+
+        // OrderPrice不能超過當期的tokenValuation上下25%
+        if(parseInt(OrderPrice)>parseInt(tokenValuation)*1.25 || parseInt(OrderPrice)<parseInt(tokenValuation)*0.75){
+            ResponseObj={
+              success:"false",
+              message:"price is illegal",
+              errorCode:"101",
+              data:{}
+            }
+            SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+            res.status(401).send(ResponseObj);
+            return false;
+        }
+
+        // 通過檢查後開始ToeknLock()
+        // getToeknAddress() => TokenLock()
+        getToeknAddress(Symbol);
+    }
+
+    // getTokenPeriod() => getTokenPriceLimit() => CheckData() => getToeknAddress() => TokenLock()
+    getTokenPeriod(Symbol);
+});
 
 module.exports = router;
