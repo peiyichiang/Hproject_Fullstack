@@ -100,10 +100,29 @@ router.post('/AddUserInformation',async function(req,res){
     });
 })
 
-router.get('/UserByEmail', function (req, res, next) {
-    let qstr1 = 'SELECT * FROM  user WHERE u_email = ?';
+router.get('/UserByEmail', async function (req, res, next) {
+    let qstr1 = 'SELECT u_email,u_eth_add,u_name,u_verify_status FROM  user WHERE u_email = ?';
     let mysqlPoolQuery = req.pool;
     let email = req.body.email;
+    var OrderOwnerEmail;
+    const JWT = req.body.JWT;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            responseObj={
+                success:"false",
+                message:"JWT verification failed",
+                errorCode:"104",
+                data:{err}
+            }
+            return res.status(401).send(responseObj);
+        }else{
+            OrderOwnerEmail=decoded.data.u_email;
+        }
+    })
+
+    if(OrderOwnerEmail!=email){
+        return res.status(404).json({success: "False", message: "Invalid request", new_token: req.headers['x-access-token']});
+    }
     if (email) {
         mysqlPoolQuery(qstr1, [email], function (err, result) {
             if(err){

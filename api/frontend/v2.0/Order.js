@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var jwt = require('jsonwebtoken');
 var async = require('async');
+var request = require('request');
 const nodemailer = require('nodemailer');
 const TokenGenerator = require('./TokenGenerator');
 const { checkCompliance } = require('../../../ethereum/contracts/zsetupData');
@@ -450,6 +451,83 @@ router.post('/PlaceOrder', async function(req,res){
     Date.prototype.myFormat = function () {
         return new Date(this.valueOf() + 8 * 3600000).toISOString().replace(/T|\:/g, '-').replace(/(\.(.*)Z)/g, '').split('-').join('').slice(0, 12);
     }; 
+})
+
+
+router.post("/OrderCancel", async function(req,res){
+    const mysqlPoolQuery = req.pool;
+    const query = req.frontendPoolQuery;
+    const symbol = req.body.symbol;
+    const OrderUUID = req.body.OrderUUID;
+    const CancelQuantity = req.body.cancelQuantity;
+    const JWT = req.body.JWT;
+    // decode JWT 取得用戶 e-mail 並且認證
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
+        if (err) {
+            responseObj={
+                success:"false",
+                message:"JWT verification failed",
+                errorCode:"104",
+                data:{err}
+            }
+            res.status(401).send(responseObj);
+        }else{
+            responseObj={
+                success:"true",
+                message:"JWT verification success",
+                data:{decoded}
+            }
+            // 從JWT中讀取email
+            OrderOwnerEmail=decoded.data.u_email;
+        }
+    })
+    // 觸發區跨練取消掛單API，"/TokenTransferBack"
+    async function TokenTransferBack(OrderQuantity,OrderOwnerEmail,TokenAddress){
+        var options = {
+            'method': 'POST',
+            'url': 'http://127.0.0.1:3030/Contracts/TokenTransferBack',
+            'headers': {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            form: {
+              'u_email': OrderOwnerEmail,
+              'quantity': OrderQuantity,
+              'TokenAddr': TokenAddress
+            }
+          };
+
+         request(options, function (error, response) {
+            if (error) throw new Error(error);
+            console.log(response.body); 
+        });
+    }
+    try{
+        mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol=?',[symbol],async function (err,rows){
+            if(err){
+                res.send({
+                    "success": "false",
+                    "message": "erc721 address db query failed  "+err
+                })
+            }
+            else{
+                TokenTransferBack(CancelQuantity,OrderOwnerEmail,rows[0].sc_erc721address);
+            }
+        })
+        // 成功取消掛單後，更新DB，PendingOrderUUID、PendingOrderPrice、PendingOrderQuantity這些
+        
+        res.send({
+            "success":"true",
+            "message":"Order Cancel Request was sent."
+        })
+    }
+    catch(err){
+        res.send({
+            "success":"false",
+            "message":err
+        })
+    }
+    
+    
 })
 
 
