@@ -100,7 +100,7 @@ router.post('/AddUserInformation',async function(req,res){
     });
 })
 
-router.get('/UserByEmail', async function (req, res, next) {
+router.post('/UserByEmail', async function (req, res, next) {
     let qstr1 = 'SELECT u_email,u_eth_add,u_name,u_verify_status FROM  user WHERE u_email = ?';
     let mysqlPoolQuery = req.pool;
     let email = req.body.email;
