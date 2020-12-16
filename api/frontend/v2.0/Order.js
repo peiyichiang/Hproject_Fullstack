@@ -460,14 +460,109 @@ router.post('/Order', async function (req, res, next) {
     const Symbol = req.body.Symbol;
     const OrderPrice = req.body.OrderPrice;
     const OrderQuantity = req.body.OrderQuantity;
-    const OrderType = "Ask";
+    const OrderType = "ASK";
     // const OrderOwnerEmail = req.body.OrderOwnerEmail;
-    var OrderOwnerEmail="";
+    var OrderOwnerEmail;
     let OrderUUID = req.body.OrderUUID;
     const Action = req.body.Action;
     const JWT = req.body.JWT;
     const OrderTimestamp=Date.now();
+    // 更新Order內容
+    function UpdateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp){
+        mysqlPoolQuery("SELECT * FROM Order_sec WHERE OrderUUID=?",[OrderUUID],async function(err,rows){
+            if(rows[0]){
+                if(rows[0].OrderQuantity!=OrderQuantity){ //本次UPDATE的數量與資料庫不同，故訂單Price需修改
+                    try{
+                        //觸動交割錢包，讓更新後的OrderQuantity數量與鎖倉Token數量持平
+                        await TokenLockBalancing(OrderQuantity-rows[0].OrderQuantity,OrderOwnerEmail,TokenAddress,OrderPrice);
+                        //更新DB中的細節
+                        DbOrderDetailUpdate(OrderUUID,OrderPrice,OrderQuantity);
+                    }catch(err){
+                        res.status(401).send({
+                            "success":"false",
+                            "message": err
+                        })
+                    }
+                }else{ //本次UPDATE的數量與資料庫相同，故只需要修改訂單Price，修改資料庫即可
+                    DbOrderDetailUpdate(OrderUUID,OrderPrice,OrderQuantity);
+                }
+            }else{
+                ResultObj={"success":false,"message":"Error occurred:Query Order detail failed (Update)"};
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                res.status(401).send(ResultObj);
+            }
+        })
+    }
+    //更新Order的資料庫部分
+    function DbOrderDetailUpdate(OrderUUID,OrderPrice,OrderQuantity){
+        var sql={OrderPrice:OrderPrice,OrderQuantity:OrderQuantity}
+        mysqlPoolQuery("UPDATE Order_sec SET ?  WHERE (OrderUUID = ?);",[sql,OrderUUID],function(err){
+            if(err){
+                ResultObj={"success":false,"message":"Error occurred:Update Order detail failed . "+err};
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                res.status(401).send(ResultObj);
+            }
+            else{
+                res.status(401).send({
+                    "success":true,
+                    "message":":Update Order detail successfully"
+                })
+            }
+        })
+    }
+    //處理DB訂單數量與鎖倉數量平衡
+    async function TokenLockBalancing(QuantityDelta,OrderOwnerEmail,TokenAddress,OrderPrice){
+        return new Promise(function(resolve,reject){
+            var options;
+        if(QuantityDelta>0){
+            options = {
+                'method': 'POST',
+                'url': 'http://127.0.0.1:3030/Contracts/TokenLock',
+                'headers': {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                form: {
+                  'u_email': OrderOwnerEmail,
+                  'quantity': QuantityDelta,
+                  'TokenAddr': TokenAddress,
+                  'price': OrderPrice
+                }
+            };
+        }else{
+            options = {
+                'method': 'POST',
+                'url': 'http://127.0.0.1:3030/Contracts/TokenTransferBack',
+                'headers': {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                form: {
+                  'u_email': OrderOwnerEmail,
+                  'quantity': -1*QuantityDelta,
+                  'TokenAddr': TokenAddress
+                }
+            };
+        }
 
+        request(options, function (error, response) {
+            if (error){
+                ResultObj={"success":false,"message":"TokenLock Fail",data:error};
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                reject(ResultObj);
+            }
+            if(JSON.parse(response.body).success){
+                ResultObj=JSON.parse(response.body);
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                resolve(ResultObj);
+                //res.status(401).send(ResultObj);
+            }else{
+                ResultObj=JSON.parse(response.body);
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                reject(ResultObj);
+            }
+        });
+        })
+        
+    }
     // 鎖倉
     function TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress){
         var options = {
@@ -479,7 +574,7 @@ router.post('/Order', async function (req, res, next) {
             form: {
               'u_email': OrderOwnerEmail,
               'quantity': OrderQuantity,
-              'TokenAddr': '0x073BfF5AB4B049051D087f379548CD50Ca40E921',
+              'TokenAddr': TokenAddress,
               'price': OrderPrice
             }
         };
@@ -494,7 +589,7 @@ router.post('/Order', async function (req, res, next) {
                 ResultObj=JSON.parse(response.body);
                 SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
                 CreateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp);
-                res.status(401).send(ResultObj);
+                //res.status(401).send(ResultObj);
             }else{
                 ResultObj=JSON.parse(response.body);
                 SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
@@ -516,7 +611,12 @@ router.post('/Order', async function (req, res, next) {
                 if(rows.length>0){
                     TokenAddress=rows[0].sc_erc721address;
                     // Step 2:TokenLock
-                    TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress);  
+                    if(Action=="CREATE"){
+                        TokenLock(OrderPrice,OrderQuantity,OrderOwnerEmail,TokenAddress);
+                    }
+                    if(Action=="UPDATE"){
+                        UpdateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp);
+                    }  
                 }else{
                     ResultObj={"success":false,"message":"Symbol is not exist","errorCode":"108"};
                     SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
@@ -560,10 +660,10 @@ router.post('/Order', async function (req, res, next) {
             OrderQuantity:OrderQuantity,
             OrderSymbol:OrderSymbol,
             OrderOwnerEmail:OrderOwnerEmail,
-            OrderTimestamp:OrderTimestamp,
+            OrderTimestamp:OrderTimestamp
         }
 
-        var qur = mysqlPoolQuery('INSERT INTO OrderLog SET ?', sql, function (err, rows) {
+        var qur = mysqlPoolQuery('INSERT INTO Order_sec SET ?', sql, function (err, rows) {
             if (err) {
                 console.log(err);
                 ResultObj={"success":false,"message":"Save Order Fail",errorCode:"110",data:err};
@@ -575,10 +675,7 @@ router.post('/Order', async function (req, res, next) {
         });
     }
 
-    // 待做
-    function UpdateOrder(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp){
-
-    }
+    
 
     // 驗證JWT並從JWT中讀取email
     {
