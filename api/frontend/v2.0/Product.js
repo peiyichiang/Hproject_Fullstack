@@ -135,6 +135,32 @@ router.get('/ProductInfo',function (req,res){
     }
 })
 
+
+router.get("/GetRadiationData",async function(req,res){
+    var mysqlPoolQuery = req.pool;
+    var symbol = req.body.symbol;
+    time = await getTimeServerTime()
+    time = time.toString().substr(0,8);
+    mysqlPoolQuery("SELECT rd_five,rd_six,rd_seven,rd_eight,rd_nine,rd_ten,rd_eleven,rd_twelve,rd_thirteen,rd_fourteen,rd_fifteen,rd_sixteen,rd_seventeen,rd_sum FROM radiation_data WHERE rd_apistringofmonitor=? AND rd_date=?",[symbol,time],function(err,rows){
+        if(err){
+            res.send({
+                "success":"false",
+                "message":"SQL query error(radiation data):"+err
+            });
+        }else if(rows[0]){
+            res.send({
+                "success":"true",
+                "data":rows[0]
+            })
+        }else{
+            res.send({
+                "success":"false",
+                "message":"Query success but Symbol not found"
+            })
+        }
+    }) 
+})
+
 router.get('/b', function (req, res) {
     res.json({message: 'Welcome to the APIs',token_playload: req.decoded, new_token: req.headers['x-access-token']});
 })
