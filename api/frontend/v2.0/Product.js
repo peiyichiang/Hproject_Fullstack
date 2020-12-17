@@ -136,7 +136,7 @@ router.get('/ProductInfo',function (req,res){
 })
 
 
-router.get("/GetRadiationData",async function(req,res){
+router.post("/GetRadiationData",async function(req,res){
     var mysqlPoolQuery = req.pool;
     var symbol = req.body.symbol;
     time = await getTimeServerTime()
