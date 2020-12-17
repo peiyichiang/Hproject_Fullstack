@@ -65,8 +65,7 @@ router.get('/QueryOrder', function(req,res){
             if(key=="main"){
                 item[key].forEach(function(obj){
                     if(obj.status == 'waiting'){  // this is waiting
-                        obj.date = obj.date.substring(0,10).replace(/[-]/g,'')+obj.temp_date.substring(7,12)
-                        
+                        obj.date = obj.date.substring(0,10).replace(/[-]/g,'')+obj.temp_date.substring(8,12)
                     }
                     delete obj.temp_date
                     newData.push(obj);
