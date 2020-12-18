@@ -544,7 +544,7 @@ router.post('/Order', async function (req, res, next) {
 
         request(options, function (error, response) {
             if (error){
-                ResultObj={"success":false,"message":"TokenLock Fail",data:error};
+                ResultObj={"success":false,"message":"Token Manipulation Fail",data:error};
                 SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
                 reject(ResultObj);
             }
@@ -837,10 +837,16 @@ router.post('/Order', async function (req, res, next) {
 router.post("/OrderCancel", async function(req,res){
     const mysqlPoolQuery = req.pool;
     const query = req.frontendPoolQuery;
-    const symbol = req.body.symbol;
+    var Symbol;
+    var OrderQuantity ;
     const OrderUUID = req.body.OrderUUID;
-    const CancelQuantity = req.body.cancelQuantity;
+    const OrderType = "ASK"
     const JWT = req.body.JWT;
+    var OrderPrice ;
+    const Action = "DELETE";
+    
+        
+    const OrderTimestamp=Date.now();
     // decode JWT 取得用戶 e-mail 並且認證
     jwt.verify(JWT, process.env.JWT_PRIVATEKEY, async (err, decoded) => {
         if (err) {
@@ -861,54 +867,157 @@ router.post("/OrderCancel", async function(req,res){
             OrderOwnerEmail=decoded.data.u_email;
         }
     })
-    // 觸發區跨練取消掛單API，"/TokenTransferBack"
-    async function TokenTransferBack(OrderQuantity,OrderOwnerEmail,TokenAddress){
-        var options = {
-            'method': 'POST',
-            'url': 'http://127.0.0.1:3030/Contracts/TokenTransferBack',
-            'headers': {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            form: {
-              'u_email': OrderOwnerEmail,
-              'quantity': OrderQuantity,
-              'TokenAddr': TokenAddress
-            }
-          };
-
-         request(options, function (error, response) {
-            if (error) throw new Error(error);
-            console.log(response.body); 
-        });
-    }
-    try{
-        mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol=?',[symbol],async function (err,rows){
+    
+    //執行刪除動in DB
+    function DeleteOrderInDb(OrderUUID){
+        mysqlPoolQuery("DELETE FROM `Order_sec` WHERE (`OrderUUID` = ?);",[OrderUUID],function(err){
             if(err){
-                res.send({
-                    "success": "false",
-                    "message": "erc721 address db query failed  "+err
-                })
+                ResultObj={"success":false,"message":"Error occurred:Delete Order failed . "+err};
+                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                res.status(401).send(ResultObj);
             }
             else{
-                TokenTransferBack(CancelQuantity,OrderOwnerEmail,rows[0].sc_erc721address);
+                res.status(401).send({
+                    "success":true,
+                    "message":":Delete Order detail successfully"
+                })
             }
         })
-        // 成功取消掛單後，更新DB，PendingOrderUUID、PendingOrderPrice、PendingOrderQuantity這些
-        
-        res.send({
-            "success":"true",
-            "message":"Order Cancel Request was sent."
+    }
+
+    //儲存log資料的Function
+    function SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,OrderSymbol,OrderOwnerEmail,OrderTimestamp,ActionType,OrderResult){
+        sql={
+            OrderUUID:OrderUUID,
+            OrderType:OrderType,
+            OrderPrice:OrderPrice,
+            OrderQuantity:OrderQuantity,
+            OrderSymbol:OrderSymbol,
+            OrderOwnerEmail:OrderOwnerEmail,
+            OrderTimestamp:OrderTimestamp,
+            ActionType:ActionType,
+            OrderResult:JSON.stringify(OrderResult)
+        }
+
+        var qur = mysqlPoolQuery('INSERT INTO OrderLog SET ?', sql, function (err, rows) {
+            if (err) {
+                console.log(err);
+                ResultObj={"success":false,"message":"Save OrderLog Fail",errorCode:"109",data:err};
+                // res.status(401).send(ResultObj);
+            }else{
+                ResultObj={"success":true,"message":"Save data to OrderLog"};
+                // res.status(401).send(ResultObj);
+            }
+        });
+    }
+
+    
+    // 觸發區跨練取消掛單API，"/TokenTransferBack"
+    async function TokenTransferBack(OrderQuantity,OrderOwnerEmail,TokenAddress){
+        return new Promise(function(resolve, reject){
+            var options = {
+                'method': 'POST',
+                'url': 'http://127.0.0.1:3030/Contracts/TokenTransferBack',
+                'headers': {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                form: {
+                  'u_email': OrderOwnerEmail,
+                  'quantity': OrderQuantity,
+                  'TokenAddr': TokenAddress
+                }
+              };
+    
+              request(options, function (error, response) {
+                if (error){
+                    ResultObj={"success":false,"message":"TokenLock Fail",data:error};
+                    SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                    reject(ResultObj);
+                }
+                if(JSON.parse(response.body).success){
+                    ResultObj=JSON.parse(response.body);
+                    SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                    resolve(ResultObj);
+                    //res.status(401).send(ResultObj);
+                }else{
+                    ResultObj=JSON.parse(response.body);
+                    SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResultObj);
+                    reject(ResultObj);
+                }
+            });
         })
     }
-    catch(err){
-        res.send({
-            "success":"false",
-            "message":err
-        })
+
+    async function MainFunction(){
+        mysqlPoolQuery("SELECT * FROM Order_sec WHERE OrderUUID = ?",[OrderUUID],async function(err,rows){
+            if(err){
+                res.status(401).send({
+                    "success":"false",
+                    "message":"DB query for Order detail failed"
+                })
+            }
+            else if(rows[0]){
+                OrderQuantity = rows[0].OrderQuantity;
+                OrderPrice = rows[0].OrderPrice;
+                Symbol = rows[0].OrderSymbol;
+                email = rows[0].OrderOwnerEmail;
+                try{
+                    mysqlPoolQuery('SELECT sc_erc721address FROM smart_contracts WHERE sc_symbol=?',[Symbol],async function (err,rows){
+                        if(err){
+                            ResponseObj={
+                                "success": "false",
+                                "message": "erc721 address db query failed  "+err
+                            }
+                            SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                            res.status(401).send(ResponseObj)
+                        }
+                        else{
+                            try{
+                                if(OrderOwnerEmail==email){
+                                    await TokenTransferBack(OrderQuantity,OrderOwnerEmail,rows[0].sc_erc721address);
+                                    DeleteOrderInDb(OrderUUID);
+                                }else{
+                                    res.status(401).send({
+                                        "success":"false",
+                                        "message":"Invalid target order. Please choose your own Secondary Market order."
+                                    })
+                                }
+                                
+                            }catch(err){
+                                ResponseObj={
+                                    "success":"false",
+                                    "message":err
+                                }
+                                SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                                res.status(401).send(ResponseObj)
+                            }
+                        }
+                    })
+                    // 成功取消掛單後，更新DB，PendingOrderUUID、PendingOrderPrice、PendingOrderQuantity這些
+                    
+                    
+                }
+                catch(err){
+                    ResponseObj={
+                        "success":"false",
+                        "message":err
+                    }
+                    SaveOrderLog(OrderUUID,OrderType,OrderPrice,OrderQuantity,Symbol,OrderOwnerEmail,OrderTimestamp,Action,ResponseObj);
+                    res.status(401).send(ResponseObj)
+                }
+            }
+            else{
+                res.status(401).send({
+                    "success":"false",
+                    "message":"DB query success but Order not found"
+                })
+            }
+        })        
     }
+    MainFunction();
+    })
+
     
-    
-})
 
 
 module.exports = router;
