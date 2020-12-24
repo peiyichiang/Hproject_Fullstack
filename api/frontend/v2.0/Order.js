@@ -1017,6 +1017,103 @@ router.post("/OrderCancel", async function(req,res){
     MainFunction();
     })
 
+
+
+    router.get("/SecOrderQuery",function(req,res){
+        const mysqlPoolQuery = req.pool;
+        var OrderOwnerEmail = req.query.OrderOwnerEmail
+        var OrderSymbol = req.query.OrderSymbol
+        if(OrderOwnerEmail&&OrderSymbol){
+            console.log("Sec Order Query By Email and Symbol")
+            mysqlPoolQuery("SELECT * FROM htoken_newschema.Order_sec WHERE OrderOwnerEmail = ? AND OrderSymbol = ?",[OrderOwnerEmail,OrderSymbol],function(err,rows){
+                if(err){
+                    res.status(401).send({
+                        "success":"false",
+                        "message":"order query failed"
+                    })
+                }else if(rows[0]){
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success.",
+                        "data":rows
+                    })
+                }else{
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success but no order found."
+                    })
+                }
+            })
+        }
+        else if(OrderOwnerEmail){
+            console.log("Sec Order Query By Email")
+            mysqlPoolQuery("SELECT * FROM htoken_newschema.Order_sec WHERE OrderOwnerEmail = ?",[OrderOwnerEmail],function(err,rows){
+                if(err){
+                    res.status(401).send({
+                        "success":"false",
+                        "message":"order query failed"
+                    })
+                }else if(rows[0]){
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success.",
+                        "data":rows
+                    })
+                }else{
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success but no order found."
+                    })
+                }
+            })
+        }else if(OrderSymbol){
+            console.log("Sec Order Query by Symbol")
+            mysqlPoolQuery("SELECT * FROM htoken_newschema.Order_sec WHERE OrderSymbol = ?",[OrderSymbol],function(err,rows){
+                if(err){
+                    res.status(401).send({
+                        "success":"false",
+                        "message":"order query failed"
+                    })
+                }else if(rows[0]){
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success.",
+                        "data":rows
+                    })
+                }else{
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success but no order found."
+                    })
+                }
+            })
+        }
+        else{
+            console.log("Sec Order Query without Email")
+            mysqlPoolQuery("SELECT * FROM htoken_newschema.Order_sec ",function(err,rows){
+                if(err){
+                    res.status(401).send({
+                        "success":"false",
+                        "message":"order query failed"
+                    })
+                }else if(rows[0]){
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success.",
+                        "data":rows
+                    })
+                }else{
+                    res.status(401).send({
+                        "success":"true",
+                        "message":"order query success but no order found."
+                    })
+                }
+            })
+        }
+        
+        
+    })
+
     
 
 
