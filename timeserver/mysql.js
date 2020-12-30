@@ -275,7 +275,6 @@ const asset = function(){
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
-        // console.log(result)
         resolve({"main":result});
     });
     var query2 = new Promise(async (resolve,reject) =>{
@@ -330,7 +329,7 @@ const asset = function(){
     });
     var query4 = new Promise(async (resolve,reject) =>{
         const queryStr = 
-        `SELECT p.p_SYMBOL AS symbol,
+        `SELECT p.p_SYMBOL AS symbol,p.p_totalrelease,p.p_feedintariff,
                 SUM( ROUND(IFNULL(rd.rd_five, 0),0) + ROUND(IFNULL(rd.rd_six, 0),0) + ROUND(IFNULL(rd.rd_seven, 0),0) + 
                     ROUND(IFNULL(rd.rd_eight, 0),0) + ROUND(IFNULL(rd.rd_nine, 0),0) + ROUND(IFNULL(rd.rd_ten, 0),0) + 
                     ROUND(IFNULL(rd.rd_eleven, 0),0) + ROUND(IFNULL(rd.rd_twelve, 0),0) + ROUND(IFNULL(rd.rd_thirteen, 0),0) + 
@@ -355,6 +354,11 @@ const asset = function(){
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
+        result.forEach(element => {
+            element.sum = (element.sum)/element.p_totalrelease
+            element.sum = (element.sum).toFixed(2)
+        });
+        console.log(result)
         resolve({"powerGenerationAcc":result});
     });
     return Promise.all([query1,query2,query3,query4]).then();

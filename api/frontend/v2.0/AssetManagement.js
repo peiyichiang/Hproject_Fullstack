@@ -25,7 +25,6 @@ const powerGenerationdata = {
 }
 
 router.use(function (req, res, next) {
-
     const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' });
     var token = req.headers['x-access-token'];
 
@@ -51,7 +50,16 @@ router.use(function (req, res, next) {
 
 function getbalanceof(mysqlPoolQuery,symbol,user){
     return new Promise(async (resolve, reject) => {
-        const HCAT721_AssetTokenContract = require('../../../ethereum/contracts/build/HCAT721_AssetToken.json');
+        mysqlPoolQuery("SELECT * FROM htoken_newschema.investor_assetRecord WHERE ar_tokenSYMBOL = ? AND ar_investorEmail = ?",[symbol,user],function(err,rows){
+            if(err){
+                resolve("QueryError")
+            }else if(rows){
+                resolve(rows[0].ar_Holding_Amount_in_the_end_of_Period)
+            }else{
+                resolve("NoRecord")
+            }
+        })
+        /*const HCAT721_AssetTokenContract = require('../../../ethereum/contracts/build/HCAT721_AssetToken.json');
         var ctrtAddr = await getctrtAddr(mysqlPoolQuery,symbol);
         var assetbookAddr = await getassetbookAddr(mysqlPoolQuery,user);
         if(ctrtAddr && assetbookAddr){
@@ -61,7 +69,7 @@ function getbalanceof(mysqlPoolQuery,symbol,user){
                 const balanceOf = await instHCAT721.methods.balanceOf(assetbookAddr).call();
                 resolve(balanceOf);
             }  
-        }
+        }*/
     })
 }
 function getctrtAddr(mysqlPoolQuery,symbol) {
@@ -128,7 +136,6 @@ router.get('/asset',async function (req,res){
             var itemsProcessed = 0;
             data.forEach(async function(item,index,array){
                 var symbol = item.symbol;
-                symbol = 'ANGE0522';
                 var balanceOf = await getbalanceof(mysqlPoolQuery,symbol,user);
                 data[index]['balanceOf'] = balanceOf;
                 if(data[index]['balanceOf']){
@@ -175,9 +182,10 @@ router.get('/asset',async function (req,res){
                     newData.forEach(function(elm){
                         if(elm[key] == undefined) elm[key] = 0;
                         if(elm.symbol == symbol) elm[key] = item.sum;
+                        if(elm.symbol == symbol) elm['forecastedPeriodIncomePerPiece'] = (item.sum*item.p_feedintariff).toFixed(2);
                     })
                 })
-            }    // forEach 就如同 for，不過寫法更容易
+            }   // forEach 就如同 for，不過寫法更容易
         });
         return newData
     }
