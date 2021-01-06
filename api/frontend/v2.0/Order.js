@@ -1113,6 +1113,37 @@ router.post("/OrderCancel", async function(req,res){
         
         
     })
+    
+    router.post('/GiftQualificationCheck',function(req,res){
+        var mysqlPoolQuery = req.pool;
+        var symbol = req.body.symbol;
+        var quantity = req.body.quantity;
+        mysqlPoolQuery('SELECT p_giftid,p_pricing,g_giftRequirement FROM product Inner Join gift On product.p_giftid=gift.g_id WHERE product.p_SYMBOL = ?',[symbol],function(err,rows){
+            if(err){
+                res.status(401).send({
+                    "success":false,
+                    "message":"DB query is failed. "+err
+                })
+            }else if(rows){
+                if(quantity*rows[0].p_pricing>rows[0].g_giftRequirement){
+                    res.status(401).send({
+                        "success":true,
+                        "message":"GiftQualificationCheck Pass"
+                    })
+                }else{
+                    res.status(401).send({
+                        "success":true,
+                        "message":"GiftQualificationCheck doesn't Pass"
+                    })
+                }
+            }else{
+                res.status(401).send({
+                    "success":false,
+                    "message":"DB query is success but data not found."
+                })
+            }
+        })
+    })
 
     
 
