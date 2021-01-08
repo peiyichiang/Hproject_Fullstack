@@ -1145,6 +1145,59 @@ router.post("/OrderCancel", async function(req,res){
         })
     })
 
+
+
+
+
+
+
+router.post('/SecOrderPurchase',function(req,res){
+    //下單購買該二手掛單交易
+    var mysqlPoolQuery = req.pool;
+    var OrderUUID = req.body.orderUUID;
+    var quantity = req.body.quantity;
+    mysqlPoolQuery("SELECT * FROM Order_sec WHERE OrderUUID=?",[OrderUUID],async function(err,rows){
+        if(err){
+            res.status(401).send({
+                "success":false,
+                "message":"DB query error: "+err
+            })
+        }
+        else if(rows[0]){
+            if(rows[0].OrderQuantity>=quantity && quantity>0 ){
+                var total_price = parseInt(rows[0].OrderPrice)*parseInt(quantity)
+                console.log("Total Price: "+total_price)
+                var payment = false;
+                //進行扣款流程
+                if(payment==true){//扣款成功
+                    res.send("ok")
+                }else{//扣款失敗
+                    res.send({
+                        "success":false,
+                        "message":"ACH transfer failed"
+                    })
+                }
+            }else{//購買數量大於掛單數量
+                res.status(401).send({
+                    "success":false,
+                    "message":"Purchase quantity is higher than the secondary market order(ASK) quantity or quantity error"
+                })
+            }
+        }else{//OrderUUID 並無出現在資料庫中
+            res.status(401).send({
+                "success":false,
+                "message":"OrderUUID not found"
+            })
+        }
+    })
+    })
+
+
+
+
+
+    
+
     
 
 

@@ -181,7 +181,8 @@ router.get('/asset',async function (req,res){
                     var symbol = item.symbol;
                     newData.forEach(function(elm){
                         if(elm[key] == undefined) elm[key] = 0;
-                        if(elm.symbol == symbol) elm[key] = item.sum;
+                        console.log(item.sum)
+                        if(elm.symbol == symbol) elm[key] = parseFloat(item.sum);
                         if(elm.symbol == symbol) elm['forecastedPeriodIncomePerPiece'] = (item.sum*item.p_feedintariff).toFixed(2);
                     })
                 })

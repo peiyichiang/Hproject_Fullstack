@@ -358,7 +358,7 @@ const asset = function(){
             element.sum = (element.sum)/element.p_totalrelease
             element.sum = (element.sum).toFixed(2)
         });
-        console.log(result)
+        
         resolve({"powerGenerationAcc":result});
     });
     return Promise.all([query1,query2,query3,query4]).then();
