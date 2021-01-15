@@ -1898,18 +1898,18 @@ const FMsystemApiTest = async()=>{
 const flow1 = async() => {
   describe('intergration testing of sold out the product', async function(){
     
-    await frontEndUserRegistry();
+    //await frontEndUserRegistry();
     await FMNAddProduct();
     await FMSApproveProduct();
     await PSPublishProduct();
-    await FMsystemApiTest();
+    //await FMsystemApiTest();
     FMNUpdateProduct();
     await update_approve_flow();
-    await frontEndUserOrdering(total);
-    await makeOrderPaidAndWriteIntoCFC();
-    await PSMintToken(getLocalTime());
-    new_flow1();
-    await FPprocess();
+    //await frontEndUserOrdering(total);
+    //await makeOrderPaidAndWriteIntoCFC();
+    //await PSMintToken(getLocalTime());
+    //new_flow1();
+    //await FPprocess();
   });
 };
 async function flow2(){
@@ -2005,7 +2005,7 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-//flow1();
+flow1();
 //frontEndUserRegistry();
 //const EOA = GenerateEOA();
 //const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());
