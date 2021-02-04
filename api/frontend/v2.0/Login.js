@@ -187,6 +187,12 @@ router.post('/send_email', async function (req, res) {
     var u_verify_code = Math.floor(Math.random() * 1000000);
     var mysqlPoolQuery = req.pool;
 
+    u_verify_code = u_verify_code.toString();
+    var u_verify_code_len = u_verify_code.length;
+    while(u_verify_code_len<6){
+        u_verify_code="0"+u_verify_code
+        u_verify_code_len = u_verify_code.length;
+    }
     var sql = {
        u_email:email,
        u_verify_status:0,
