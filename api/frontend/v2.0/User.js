@@ -27,6 +27,9 @@ router.get('/bankBranchCodes',function(req,res){
     return res.status(200).json({success: "True", data: bankBranchCodes[bankCode]});
 })
 
+
+
+
 router.use(function (req, res, next) {
 
     const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' });
@@ -144,5 +147,37 @@ router.post('/UserByEmail', async function (req, res, next) {
         return res.status(400).json({success: "False", message: "wrong or lack parameters" ,new_token: req.headers['x-access-token']});
     }
 });
+
+router.post('/IdRegistryCheck',async function(req,res){
+    var id = req.body.id ;
+    let mysqlPoolQuery = req.pool;
+    mysqlPoolQuery("SELECT u_email from user WHERE u_identityNumber= ?",id,async function(err,rows){
+        if(id){
+            if(rows.length!=0){
+                res.status(200).send({
+                    success:"false",
+                    message:"Invalid ID number"
+                })
+            }else if(err){
+                console.log(err)
+                res.status(400).send({
+                    success:"false",
+                    message:"SQL die"
+                })
+            }else{
+                res.status(200).send({
+                    success:"true",
+                    message:"Available ID number"
+                })
+            }
+        }else{
+            res.status(200).send({
+                success:"false",
+                message:"Input cannt be empty"
+            })
+        }
+    })
+})
+
 
 module.exports = router;
