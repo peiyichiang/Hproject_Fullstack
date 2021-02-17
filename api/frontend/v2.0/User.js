@@ -91,7 +91,8 @@ router.post('/AddUserInformation',async function(req,res){
         u_investorLevel: 1,
         u_account_status: 0,
         u_review_status: "unapproved",
-        u_register_time: register_time
+        u_register_time: register_time,
+        u_id_physicalAddress: user.u_id_physicalAddress
     }
     mysqlPoolQuery('UPDATE user SET ? WHERE u_email = ?', [data,email], function (err, result) {
         if (err) {

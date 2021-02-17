@@ -162,6 +162,7 @@ const frontEndUserRegistry = async() => {
         u_identityNumber:user_identy_var,
         u_cellphone: "09" + faker.random.number(9999999),
         u_physicalAddress:"台北市文山區指南路一號",
+        u_id_physicalAddress:"中山北路七百段四十號",
         u_birthday:"19930204",
         u_bankBooklet: faker.internet.url(), 
         u_imagef:faker.internet.url(),
@@ -2005,7 +2006,7 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-flow1();
+frontEndUserRegistry();
 //frontEndUserRegistry();
 //const EOA = GenerateEOA();
 //const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());
