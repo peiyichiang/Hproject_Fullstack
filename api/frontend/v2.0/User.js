@@ -181,4 +181,38 @@ router.post('/IdRegistryCheck',async function(req,res){
 })
 
 
+
+
+router.post('/BankRegistryCheck',async function(req,res){
+    var bankBooklet = req.body.bankBooklet ;
+    let mysqlPoolQuery = req.pool;
+    mysqlPoolQuery("SELECT u_email from user WHERE u_bankBooklet= ?",bankBooklet,async function(err,rows){
+        if(bankBooklet){
+            if(rows.length!=0){
+                res.status(200).send({
+                    success:"false",
+                    message:"Invalid  bankBooklet"
+                })
+            }else if(err){
+                console.log(err)
+                res.status(400).send({
+                    success:"false",
+                    message:"SQL die"
+                })
+            }else{
+                res.status(200).send({
+                    success:"true",
+                    message:"Available bankBooklet"
+                })
+            }
+        }else{
+            res.status(200).send({
+                success:"false",
+                message:"Input cannt be empty"
+            })
+        }
+    })
+})
+
+
 module.exports = router;
