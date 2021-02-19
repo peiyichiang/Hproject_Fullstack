@@ -826,7 +826,7 @@ const frontEndUserOrdering = async(amout, email = 'ivan55660228@gmail.com', pass
     });
     it("place an order...",done=>{
       request
-      .get(version2+"/Order/PlaceOrder")//本API應屬post方法故需修改
+      .post(version2+"/Order/PlaceOrder")//本API應屬post方法故需修改
       .send(
             { symbol:symbol,tokenCount:amout,fundCount:price*amout } // email... etc  must be send
           )

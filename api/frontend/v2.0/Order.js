@@ -200,6 +200,21 @@ router.post('/PlaceOrder', async function(req,res){
     var currentDate = new Date();
     var purchasedDate = currentDate.myFormat();//yyyymmddhhmm
     console.log('---------------== purchasedDate:', purchasedDate);
+    mysqlPoolQuery('SELECT p_CFED FROM product WHERE p_SYMBOL=?;',symbol,function(err,result){
+        if(err){
+            console.log(err)
+            res.status(400).send({
+                success:false,
+                message:"SQL error"
+            })
+        }
+        else if(purchasedDate>result[0].p_CFED){
+            res.send({
+                success:false,
+                message:"Unavailable to purchase this product, due to its CFED"
+            })
+        }
+    })
     var expiredDate = await new Date(currentDate.setDate(currentDate.getDate() + 3)).myFormat();
     console.log('---------------== expiredDate:', expiredDate);
     // 要用jwt來取資料
