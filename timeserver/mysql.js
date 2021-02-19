@@ -90,6 +90,9 @@ const mysqlPoolQueryB = async (sql, options) => {
                 return reject(err);
             } else {
                 // console.log("connected")
+                if(options=="AllProductForFrontend"){
+                    options="funding"
+                }
                 conn.query(sql, options, function (err, result) {
                     if (err) {
                         return reject(err);
@@ -118,10 +121,11 @@ const frontendPoolQuery = (a,b) => {
 }
 const product = function(){
     console.log("This is product query")
-    status = arguments[0][0];
+    status = arguments[0][0]
+    sql_extended = ""
     console.log(status);
     var query1 =  new Promise(async (resolve,reject) => {
-        const queryStr = 
+        var queryStr = 
         `SELECT p.p_state AS status,
                 p.p_irr AS irr,
                 pd.pd_icon AS icon,
@@ -152,7 +156,12 @@ const product = function(){
                    GROUP BY o_symbol) o
         ON p.p_SYMBOL = o.o_SYMBOL
         LEFT JOIN gift g ON p.p_giftid = g.g_id
-        WHERE p.p_state IN (?);`;
+        WHERE p.p_state IN (?)`;
+        if (status=="AllProductForFrontend"){
+            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            queryStr=queryStr+sql_extended
+            console.log(queryStr)
+        }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
@@ -161,7 +170,7 @@ const product = function(){
 
     });
     var query2 = new Promise(async (resolve,reject) =>{
-        const queryStr = 
+        var queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
                 pd.pd_Image1 AS img1,
                 pd.pd_Image2 AS img2,
@@ -175,7 +184,11 @@ const product = function(){
                 pd.pd_Image10 AS img10
         FROM product p
         LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
-        WHERE p.p_state IN (?);`;
+        WHERE p.p_state IN (?)`;
+        if (status=="AllProductForFrontend"){
+            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            queryStr=queryStr+sql_extended
+        }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
@@ -183,7 +196,7 @@ const product = function(){
         resolve({"image":result});
     });
     var query3 = new Promise(async (resolve,reject) =>{
-        const queryStr = 
+        var queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
                 pd.pd_NotarizedRentalContract_mask AS notarizedRentalContract,
                 pd.pd_BOEApprovedLetter AS BOEApprovedLetter,
@@ -194,7 +207,11 @@ const product = function(){
                 pd.pd_PowerPlantInsurancePolicy AS powerPlantInsurancePolicy
         FROM product p
         LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
-        WHERE p.p_state IN (?);`;
+        WHERE p.p_state IN (?)`;
+        if (status=="AllProductForFrontend"){
+            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            queryStr=queryStr+sql_extended
+        }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
@@ -202,7 +219,7 @@ const product = function(){
         resolve({"doc":result});
     });
     var query4 = new Promise(async (resolve,reject) =>{
-        const queryStr = 
+        var queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
                 p.p_ContractOut AS ContractOut,
                 p.p_CaseConstruction AS CaseConstruction,
@@ -213,7 +230,11 @@ const product = function(){
                 p.p_CFSD AS CFSD,
                 p.p_CFED AS CFED
         FROM product p
-        WHERE p.p_state IN (?);`;
+        WHERE p.p_state IN (?)`;
+        if (status=="AllProductForFrontend"){
+            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            queryStr=queryStr+sql_extended
+        }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
@@ -221,12 +242,16 @@ const product = function(){
         resolve({"date":result});
     });
     var query5 = new Promise(async (resolve,reject) =>{
-        const queryStr = 
+        var queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
                 ia.ia_single_Forecasted_Annual_Income as forecastedAnnualIncome
         FROM product p
         LEFT JOIN income_arrangement ia ON p.p_SYMBOL = ia.ia_SYMBOL
-        WHERE p.p_state IN (?) AND ia.ia_single_Forecasted_Annual_Income >0;`;
+        WHERE p.p_state IN (?) AND ia.ia_single_Forecasted_Annual_Income >0`;
+        if (status=="AllProductForFrontend"){
+            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            queryStr=queryStr+sql_extended
+        }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
