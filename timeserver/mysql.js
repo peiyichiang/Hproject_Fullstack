@@ -160,7 +160,6 @@ const product = function(){
         if (status=="AllProductForFrontend"){
             sql_extended = " OR p.p_state IN ('fundingClosed') "
             queryStr=queryStr+sql_extended
-            console.log(queryStr)
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
             console.log(err)
