@@ -214,5 +214,69 @@ router.post('/BankRegistryCheck',async function(req,res){
     })
 })
 
+router.post("/JWTrefresh",function(req,res){
+    var JWT = req.body.JWT;
+    var OrderOwnerEmail;
+    let mysqlPoolQuery = req.pool;
+    jwt.verify(JWT, process.env.JWT_PRIVATEKEY, function (err, decoded) {
+        if (err) {
+            res.status(401).send({
+                success:"false",
+                message:"JWT verification failed",
+                errorCode:"104",
+                data:{err}
+            })
+        }else{
+            OwnerEmail=decoded.data.u_email;
+        }
+    })    
+    console.log(OwnerEmail)
+    mysqlPoolQuery('SELECT * FROM user WHERE u_email = ?',[OwnerEmail],function(err,result){
+        if(err){
+            res.status(400).send({
+                success:false,
+                message:err
+            })
+        }
+        if(result){
+            const data = {
+                u_email: result[0].u_email,
+                u_identityNumber: result[0].u_identityNumber,
+                u_eth_add: result[0].u_eth_add,
+                u_cellphone: result[0].u_cellphone,
+                u_name: result[0].u_name,
+                u_physicalAddress: result[0].u_physicalAddress,
+                u_birthday: result[0].u_birthday,
+                u_gender: result[0].u_gender,
+                u_job: result[0].u_job,
+                u_telephone: result[0].u_telephone,
+                u_education: result[0].u_education,
+                u_verify_status: result[0].u_verify_status,
+                u_endorser1: result[0].u_endorser1,
+                u_endorser2: result[0].u_endorser2,
+                u_endorser3: result[0].u_endorser3,
+                u_investorLevel: result[0].u_investorLevel,
+                u_account_status: result[0].u_account_status,
+            }
+            const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' })
+        newData = {
+            token: tokenGenerator.sign({ data:data }, { audience: 'myaud', issuer: 'myissuer', jwtid: '1', subject: 'user' }),
+            verifyStatus: data.u_verify_status //for 前端判斷是否要繼續驗證
+        }
+        console.log(newData)
+        res.status(200).send({
+            jwt:newData.token
+            })
+        }
+        else{
+            res.status(400).send({
+                success:false,
+                message:"Query success but no data found, u-email input error."
+            })
+        }
+    })
+    
+})
+
 
 module.exports = router;
