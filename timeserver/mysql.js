@@ -158,7 +158,7 @@ const product = function(){
         LEFT JOIN gift g ON p.p_giftid = g.g_id
         WHERE p.p_state IN (?)`;
         if (status=="AllProductForFrontend"){
-            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
@@ -185,7 +185,7 @@ const product = function(){
         LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
         WHERE p.p_state IN (?)`;
         if (status=="AllProductForFrontend"){
-            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
@@ -208,7 +208,7 @@ const product = function(){
         LEFT JOIN product_doc pd ON p.p_SYMBOL = pd.pd_SYMBOL
         WHERE p.p_state IN (?)`;
         if (status=="AllProductForFrontend"){
-            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
@@ -231,7 +231,7 @@ const product = function(){
         FROM product p
         WHERE p.p_state IN (?)`;
         if (status=="AllProductForFrontend"){
-            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
@@ -248,7 +248,7 @@ const product = function(){
         LEFT JOIN income_arrangement ia ON p.p_SYMBOL = ia.ia_SYMBOL
         WHERE p.p_state IN (?) AND ia.ia_single_Forecasted_Annual_Income >0`;
         if (status=="AllProductForFrontend"){
-            sql_extended = " OR p.p_state IN ('fundingClosed') "
+            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
