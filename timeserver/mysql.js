@@ -199,7 +199,7 @@ const product = function(){
         `SELECT p.p_SYMBOL AS symbol,
                 pd.pd_NotarizedRentalContract_mask AS notarizedRentalContract,
                 pd.pd_BOEApprovedLetter AS BOEApprovedLetter,
-                pd.pd_OnGridTryrunLetter AS onGridAuditedLetter,
+                pd.pd_OnGridAuditedLetter AS onGridAuditedLetter,
                 pd.pd_PowerPurchaseAgreement AS powerPurchaseAgreement,
                 pd.pd_OnGridTryrunLetter_mask AS onGridTryrunLetter,
                 pd.pd_PowerPlantEquipmentRegisteredLetter AS powerPlantEquipmentRegisteredLetter,
