@@ -243,12 +243,12 @@ const product = function(){
     var query5 = new Promise(async (resolve,reject) =>{
         var queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
-                ia.ia_single_Forecasted_Annual_Income as forecastedAnnualIncome
+                ia.ia_single_Forecasted_Annual_Income as forecastedAnnualIncome 
         FROM product p
         LEFT JOIN income_arrangement ia ON p.p_SYMBOL = ia.ia_SYMBOL
-        WHERE p.p_state IN (?) AND ia.ia_single_Forecasted_Annual_Income >0`;
+        WHERE p.p_state IN (?) AND ia.ia_single_Forecasted_Annual_Income!=0`;
         if (status=="AllProductForFrontend"){
-            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
+            sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') AND ia.ia_single_Forecasted_Annual_Income!=0"
             queryStr=queryStr+sql_extended
         }
         const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
