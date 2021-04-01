@@ -50,7 +50,7 @@ router.use(function (req, res, next) {
 
 function getbalanceof(mysqlPoolQuery,symbol,user){
     return new Promise(async (resolve, reject) => {
-        mysqlPoolQuery("SELECT * FROM htoken_newschema.investor_assetRecord WHERE ar_tokenSYMBOL = ? AND ar_investorEmail = ?",[symbol,user],function(err,rows){
+        mysqlPoolQuery("SELECT * FROM investor_assetRecord WHERE ar_tokenSYMBOL = ? AND ar_investorEmail = ?",[symbol,user],function(err,rows){
             if(err){
                 resolve("QueryError")
             }else if(rows){
