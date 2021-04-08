@@ -153,6 +153,7 @@ router.get('/asset',async function (req,res){
             key = Object.keys(item);                // all the sql result has a key see mysql.js
             if(key=="main"){
                 item[key].forEach(async function(item){
+                    item.feedInTariff=item.feedInTariff.toFixed(4)
                     newData.push(item);
                 })
             }else if(key=="assetRecord"){
