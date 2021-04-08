@@ -182,7 +182,7 @@ router.get('/asset',async function (req,res){
                     newData.forEach(function(elm){
                         if(elm[key] == undefined) elm[key] = 0;
                         if(elm.symbol == symbol) elm[key] = parseFloat(item.sum);
-                        if(elm.symbol == symbol) elm['forecastedPeriodIncomePerPiece'] = (item.sum*item.p_feedintariff).toFixed(2);
+                        if(elm.symbol == symbol) elm['forecastedPeriodIncomePerPiece'] = parseFloat((item.sum*item.p_feedintariff).toFixed(2));
                     })
                 })
             }   // forEach 就如同 for，不過寫法更容易
