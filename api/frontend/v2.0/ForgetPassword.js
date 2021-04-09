@@ -41,7 +41,7 @@ router.post('/send_email', async function (req, res) {
                 return res.status(500).json({success: "False", message: "帳戶新增寫入資料庫失敗:\n"});
             } else {
                 console.log("新增寫入資料庫成功")
-                sendEmail();
+                sendEmail(status);
             }
         });
     }
@@ -76,7 +76,7 @@ router.post('/send_email', async function (req, res) {
         });
     }
 
-    function sendEmail(){
+    function sendEmail(status){
         var transporter = nodemailer.createTransport({
             /* Helium */
             host: 'server239.web-hosting.com',
@@ -112,6 +112,7 @@ router.post('/send_email', async function (req, res) {
             else {
                 res.status(200);
                 res.json({
+                    "u_status":status,
                     "message": "驗證信寄送成功"
                 })
             }
