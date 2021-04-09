@@ -120,7 +120,18 @@ router.get('/asset',async function (req,res){
             }
             data = await AddBalanceOf(data,_userEmail,mysqlPoolQuery);
             if (data.length != 0){
-                return res.status(200).json({success:"True",data: data, new_token: req.headers['x-access-token']});
+                //回傳累積電廠發電量
+                var temp=0
+                mysqlPoolQuery("SELECT sum(rd_sum) FROM radiation_data WHERE rd_apistringofmonitor=? ",[data[0].symbol],(err,rows)=>{
+                    if(rows[0]["sum(rd_sum)"]>0){
+                        temp=((rows[0]["sum(rd_sum)"]/data[0].totalRelease)*data[0].balanceOf).toFixed(2)
+                        return res.status(200).json({success:"True",data: data,power_total_acc:temp,new_token: req.headers['x-access-token']});
+                    }
+                    else{
+                        return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
+                    }
+                })
+                
             }else{
                 return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
             }
