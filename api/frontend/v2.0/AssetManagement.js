@@ -123,12 +123,16 @@ router.get('/asset',async function (req,res){
                 //回傳累積電廠發電量
                 var temp=0
                 mysqlPoolQuery("SELECT sum(rd_sum) FROM radiation_data WHERE rd_apistringofmonitor=? ",[data[0].symbol],(err,rows)=>{
+                    if(err){
+                        return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
+                    }
                     if(rows[0]["sum(rd_sum)"]>0){
+                        console.log("Here")
                         temp=((rows[0]["sum(rd_sum)"]/data[0].totalRelease)*data[0].balanceOf).toFixed(2)
                         return res.status(200).json({success:"True",data: data,power_total_acc:temp,new_token: req.headers['x-access-token']});
                     }
                     else{
-                        return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
+                        return res.status(200).json({success:"True",data: data,power_total_acc:1234,new_token: req.headers['x-access-token']});
                     }
                 })
                 
