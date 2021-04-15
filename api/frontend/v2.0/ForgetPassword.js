@@ -24,8 +24,12 @@ router.post('/send_email', async function (req, res) {
     var expr = _time+10; // 時效為10分鐘 (單位為分鐘)
     var fp_verification_code = Math.floor(Math.random() * 1000000);
     var mysqlPoolQuery = req.pool;
-
-    
+    fp_verification_code = fp_verification_code.toString();
+    var fp_verification_code_len = fp_verification_code.length;
+    while(fp_verification_code_len<6){
+        fp_verification_code="0"+fp_verification_code
+        fp_verification_code_len = fp_verification_code.length;
+    }
     function addRecord(mysqlPoolQuery,status){
         let sql = {
             fp_investor_email:email,
