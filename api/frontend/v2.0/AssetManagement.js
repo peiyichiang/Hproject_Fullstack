@@ -129,7 +129,7 @@ router.get('/asset',async function (req,res){
                     if(rows[0]["sum(rd_sum)"]>0){
                         console.log("Here")
                         temp=((rows[0]["sum(rd_sum)"]/data[0].totalRelease)*data[0].balanceOf).toFixed(2)
-                        return res.status(200).json({success:"True",data: data,power_total_acc:temp,new_token: req.headers['x-access-token']});
+                        return res.status(200).json({success:"True",data: data,power_total_acc:parseFloat(temp),new_token: req.headers['x-access-token']});
                     }
                     else{
                         return res.status(200).json({success:"True",data: data,power_total_acc:1234,new_token: req.headers['x-access-token']});
