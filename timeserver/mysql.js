@@ -337,18 +337,22 @@ const asset = function(){
     // LEFT JOIN product p ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
     var query3 = new Promise(async (resolve,reject) =>{
         const queryStr = 
-        `SELECT ar.ar_tokenSYMBOL AS symbol,
-                ar.ar_Time AS time,
-                ar.ar_personal_income AS income,
-                ar.ar_managementfee AS managementFee,
-                ar.ar_insurancepremium AS insurance,
-                ar.ar_rent AS rent
-        FROM investor_assetRecord ar
-        WHERE ar.ar_investorEmail = (?);`;
+        `SELECT 
+        investor_assetRecord.ar_tokenSYMBOL AS symbol,
+        income_arrangement.ia_actualPaymentTime AS time,
+        income_arrangement.ia_single_Actual_Income_Payment_in_the_Period AS income,
+        income_arrangement.ia_rent AS rent,
+        income_arrangement.ia_insurancepremium AS insurance,
+        income_arrangement.ia_managementfee AS managementFee
+        FROM investor_assetRecord
+        INNER JOIN income_arrangement
+        ON investor_assetRecord.ar_tokenSYMBOL = income_arrangement.ia_SYMBOL
+        WHERE ar_investorEmail = (?) AND length(ia_actualPaymentTime)>0`;
         const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
+        console.log(result)
         resolve({"assetRecord":result});
     });
     var query4 = new Promise(async (resolve,reject) =>{
