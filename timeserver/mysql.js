@@ -220,16 +220,25 @@ const product = function(){
     var query4 = new Promise(async (resolve,reject) =>{
         var queryStr = 
         `SELECT p.p_SYMBOL AS symbol,
-                p.p_ContractOut AS ContractOut,
-                p.p_CaseConstruction AS CaseConstruction,
-                p.p_TaiPowerApprovalDate AS TaiPowerApprovalDate,
-                p.p_BOEApprovalDate AS BOEApprovalDate,
-                p.p_PVTrialOperationDate AS PVTrialOperationDate,
-                p.p_ElectricityBilling AS ElectricityBilling,
-                p.p_CFSD AS CFSD,
-                p.p_CFED AS CFED
+        p.p_ContractOut AS ContractOut,
+        p.p_CaseConstruction AS CaseConstruction,
+        p.p_TaiPowerApprovalDate AS TaiPowerApprovalDate,
+        p.p_BOEApprovalDate AS BOEApprovalDate,
+        p.p_PVTrialOperationDate AS PVTrialOperationDate,
+        p.p_ElectricityBilling AS ElectricityBilling,
+        p.p_CFSD AS CFSD,
+        p.p_CFED AS CFED,
+        min(ia.time) AS next_income_time,
+        p.p_state AS status
         FROM product p
-        WHERE p.p_state IN (?)`;
+        INNER JOIN (SELECT ia_SYMBOL AS symbol,
+        ia.ia_actualPaymentTime AS actual_time,
+        ia.ia_time AS time
+        FROM income_arrangement ia
+        WHERE length(ia.ia_actualPaymentTime)<2) ia
+        ON ia.symbol = p.p_SYMBOL
+        group by symbol
+        HAVING p.p_state IN (?)`;
         if (status=="AllProductForFrontend"){
             sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
@@ -238,6 +247,7 @@ const product = function(){
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
+        console.log(result)
         resolve({"date":result});
     });
     var query5 = new Promise(async (resolve,reject) =>{
@@ -337,18 +347,22 @@ const asset = function(){
     // LEFT JOIN product p ON ar.ar_tokenSYMBOL = p.p_SYMBOL 
     var query3 = new Promise(async (resolve,reject) =>{
         const queryStr = 
-        `SELECT ar.ar_tokenSYMBOL AS symbol,
-                ar.ar_Time AS time,
-                ar.ar_personal_income AS income,
-                ar.ar_managementfee AS managementFee,
-                ar.ar_insurancepremium AS insurance,
-                ar.ar_rent AS rent
-        FROM investor_assetRecord ar
-        WHERE ar.ar_investorEmail = (?);`;
+        `SELECT 
+        investor_assetRecord.ar_tokenSYMBOL AS symbol,
+        income_arrangement.ia_actualPaymentTime AS time,
+        income_arrangement.ia_single_Actual_Income_Payment_in_the_Period*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS income,
+        income_arrangement.ia_rent*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS rent,
+        income_arrangement.ia_insurancepremium*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS insurance,
+        income_arrangement.ia_managementfee*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS managementFee
+        FROM investor_assetRecord
+        INNER JOIN income_arrangement
+        ON investor_assetRecord.ar_tokenSYMBOL = income_arrangement.ia_SYMBOL
+        WHERE ar_investorEmail = (?) AND length(ia_actualPaymentTime)>0`;
         const result = await mysqlPoolQueryB(queryStr, user_email).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
+        console.log(result)
         resolve({"assetRecord":result});
     });
     var query4 = new Promise(async (resolve,reject) =>{
