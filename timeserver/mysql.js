@@ -227,18 +227,9 @@ const product = function(){
         p.p_PVTrialOperationDate AS PVTrialOperationDate,
         p.p_ElectricityBilling AS ElectricityBilling,
         p.p_CFSD AS CFSD,
-        p.p_CFED AS CFED,
-        min(ia.time) AS next_income_time,
-        p.p_state AS status
+        p.p_CFED AS CFED
         FROM product p
-        INNER JOIN (SELECT ia_SYMBOL AS symbol,
-        ia.ia_actualPaymentTime AS actual_time,
-        ia.ia_time AS time
-        FROM income_arrangement ia
-        WHERE length(ia.ia_actualPaymentTime)<2) ia
-        ON ia.symbol = p.p_SYMBOL
-        group by symbol
-        HAVING p.p_state IN (?)`;
+        WHERE p.p_state IN (?)`;
         if (status=="AllProductForFrontend"){
             sql_extended = " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') "
             queryStr=queryStr+sql_extended
