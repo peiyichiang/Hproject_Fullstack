@@ -353,7 +353,6 @@ const asset = function(){
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
         });
-        console.log(result)
         resolve({"assetRecord":result});
     });
     var query4 = new Promise(async (resolve,reject) =>{

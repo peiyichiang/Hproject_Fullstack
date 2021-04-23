@@ -8,6 +8,7 @@ const { blockchainURL, gasLimitValue, gasPriceValue, admin, adminpkRaw, isTimese
 const web3 = new Web3(new Web3.providers.HttpProvider(blockchainURL));
 const TokenGenerator = require('./TokenGenerator');
 const fetch = require("node-fetch");
+const { stringify } = require('event-stream');
 const powerGenerationdata = {
     "five":0,
     "six": 0,
@@ -121,21 +122,14 @@ router.get('/asset',async function (req,res){
             data = await AddBalanceOf(data,_userEmail,mysqlPoolQuery);
             if (data.length != 0){
                 //回傳累積電廠發電量
-                var temp=0
-                mysqlPoolQuery("SELECT sum(rd_sum) FROM radiation_data WHERE rd_apistringofmonitor=? ",[data[0].symbol],(err,rows)=>{
-                    if(err){
-                        return res.status(500).json({success: "False", message: "sql error", new_token: req.headers['x-access-token']});
-                    }
-                    if(rows[0]["sum(rd_sum)"]>0){
-                        console.log("Here")
-                        temp=((rows[0]["sum(rd_sum)"]/data[0].totalRelease)*data[0].balanceOf).toFixed(2)
-                        return res.status(200).json({success:"True",data: data,power_total_acc:parseFloat(temp),new_token: req.headers['x-access-token']});
-                    }
-                    else{
-                        return res.status(200).json({success:"True",data: data,power_total_acc:1234,new_token: req.headers['x-access-token']});
-                    }
-                })
-                
+               var temp=0
+               for(var i=0;i <data.length;i++){
+                   var power_per = 0
+                   power_per =await getAccPowerTotal(data,i)
+                   temp+=power_per
+               }
+               temp = temp.toFixed(2)
+               return res.status(200).json({success:"True",data: data,power_total_acc:parseFloat(temp),new_token: req.headers['x-access-token']});                
             }else{
                 return res.status(404).json({success: "False", message: "data not found", new_token: req.headers['x-access-token']});
             }
@@ -162,6 +156,36 @@ router.get('/asset',async function (req,res){
             })  
         })
     }
+    async function getAccPowerTotal(data,i){
+        return new Promise(function(resolve,reject){
+           mysqlPoolQuery(`SELECT 
+           temp.symbol,
+           sum(temp.dailyrd)
+           FROM (SELECT 
+           rd.rd_apistringofmonitor AS symbol,
+           rd.rd_sum/p.p_totalrelease AS  dailyrd
+           FROM radiation_data rd
+           inner join product p
+           ON rd.rd_apistringofmonitor = p.p_SYMBOL) temp
+           group by temp.symbol
+           having symbol = ?`,data[i].symbol,(err,rows)=>{
+               
+            if(err){
+                console.log(err)
+                reject(0)
+            }
+            else{
+                try{
+                    resolve(rows[0]["sum(temp.dailyrd)"]*data[i]["balanceOf"])
+                }catch(err){
+                    resolve(0)
+                }
+                
+            }
+        })
+           })
+    }
+
     function formating(data){
         newData = []                                // the output data for new format
         data.forEach(function(item, index, array){
