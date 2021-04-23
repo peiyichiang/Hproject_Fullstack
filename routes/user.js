@@ -230,6 +230,7 @@ router.post('/ReviewForgetPassword', function (req, res, next) {
                         }
                         else {
                             console.log("更新salt與pwd_hash成功");
+                            sendEmail();
                             res.redirect('/BackendUser/backend_user');
                         }
                     });
@@ -237,7 +238,38 @@ router.post('/ReviewForgetPassword', function (req, res, next) {
             });
         }
     });
-
+    function sendEmail(){
+        var transporter = nodemailer.createTransport({
+            /* Helium */
+            host: 'server239.web-hosting.com',
+            port: 465,
+            secure: true, // use SSL
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+    
+        // setup email data with unicode symbols
+        let mailOptions = {
+            from: ' <noreply@hcat.io>', // sender address
+            to: req.body.email, // list of receivers
+            subject: '電利超商註冊驗證信', // Subject line
+            html: `<p>HCAT電利超商會員您好:<br>
+                   <p>您於HCAT APP 中申請的忘記密碼已經通過審核，密碼也順利啟用。<br>
+                   <p>HCAT電利超商客服`
+            // html: `<p>請點以下連結以完成驗證： <a href="${process.env.SERVER_PROTOCOL}://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=${passwordHash}">點我完成驗證</a>` // html body
+        };
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error(err);
+            }
+            else {
+                console.log("Email Sent")
+            }
+        });
+    }
 });
 
 

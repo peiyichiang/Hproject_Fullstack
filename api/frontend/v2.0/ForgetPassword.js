@@ -98,7 +98,7 @@ router.post('/send_email', async function (req, res) {
             to: email, // list of receivers
             subject: '電利超商註冊驗證信', // Subject line
             html: `<p>HCAT電利超商會員您好:<br>
-                   <p>您剛剛已申請忘記密碼, 請您依照以下六碼數字, 於HCAT電力超商APP上輸入, 以利平台驗證您的身分. 驗證通過後, 您將可以更新您的密碼.<br>
+                   <p>您剛剛已申請忘記密碼, 請您依照以下六碼數字, 於HCAT電力超商APP上輸入, 以利平台驗證您的身分. 驗證通過後, 您將可以更新您的密碼.（如果您屬於二階會員, 需再次進行個人資料查核, 新密碼也將在平台方審核過後方可使用, 為求謹慎如有不便請多多見諒。）<br>
                    <p>驗證碼 : ${fp_verification_code}<br>
                    <p>驗證碼有效至 : ${expr}<br><br>
                    <p>HCAT電利超商客服`
