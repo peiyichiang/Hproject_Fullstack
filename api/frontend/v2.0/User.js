@@ -123,6 +123,7 @@ router.post('/UserByEmail', async function (req, res, next) {
             OrderOwnerEmail=decoded.data.u_email;
         }
     })
+    email = email.toLowerCase()
 
     if(OrderOwnerEmail!=email){
         return res.status(404).json({success: "False", message: "Invalid request", new_token: req.headers['x-access-token']});
