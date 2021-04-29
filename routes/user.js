@@ -1355,7 +1355,7 @@ router.post('/AssetRecordDailySnapshot', function (req, res, next) {
     var mysqlPoolQuery = req.pool;
     //var qur = mysqlPoolQuery('SELECT ar_tokenSYMBOL,ar_investorEmail,ar_Holding_Amount_in_the_end_of_Period FROM ' + process.env.DB_NAME + '.investor_assetRecord;', async function (err, rows) {
     // var qur = mysqlPoolQuery('SELECT hi.ar_tokenSYMBOL,hi.ar_investorEmail,hi.ar_Holding_Amount_in_the_end_of_Period,hu.u_bankcode,hu.u_bankBooklet FROM ' + process.env.DB_NAME + '.investor_assetRecord hi,' + process.env.DB_NAME + '.user hu where hu.u_email=hi.ar_investorEmail', async function (err, rows) {
-    var qur = mysqlPoolQuery('SELECT hi.ar_tokenSYMBOL,hu.u_name,hi.ar_investorEmail,hi.ar_Holding_Amount_in_the_end_of_Period,hu.u_bankcode,hu.u_branchBankCode FROM ' + process.env.DB_NAME + '.investor_assetRecord hi,' + process.env.DB_NAME + '.user hu where hu.u_email=hi.ar_investorEmail', async function (err, rows) {
+    var qur = mysqlPoolQuery('SELECT hi.ar_tokenSYMBOL,hu.u_name,hi.ar_investorEmail,hi.ar_Holding_Amount_in_the_end_of_Period,hu.u_bankcode,hu.u_bankBooklet FROM ' + process.env.DB_NAME + '.investor_assetRecord hi,' + process.env.DB_NAME + '.user hu where hu.u_email=hi.ar_investorEmail', async function (err, rows) {
         if (err) {
             console.log(err);
         } else {

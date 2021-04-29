@@ -2664,7 +2664,7 @@ router.post('/GenerateHolderReport', function (req, res, next) {
                 var HolderData=JSON.parse(rows[0].Content);
                 var DataCount=0;
                 var dataObj=[];
-                dataObj.push(['姓名', '銀行帳號', '分行代碼','產品代號','持幣人Email','持幣個數']);
+                dataObj.push(['姓名', '分行代碼', '銀行帳號','產品代號','持幣人Email','持幣個數']);
                 // dataObj.push(['產品代號','持幣人Email','持幣個數']);
                 for(var i=0;i<HolderData.length;i++){
                     if(HolderData[i].ar_tokenSYMBOL==req.body.p_symbol){
