@@ -255,9 +255,9 @@ router.post('/ReviewForgetPassword', function (req, res, next) {
             from: ' <noreply@hcat.io>', // sender address
             to: req.body.email, // list of receivers
             subject: '電利超商註冊驗證信', // Subject line
-            html: `<p>HCAT電利超商會員您好:<br>
-                   <p>您於HCAT APP 忘記密碼流程中，申請之新密碼，已經通過審核，密碼已順利啟用。<br>
-                   <p>HCAT電利超商客服`
+            html: `<p>HCAT.電利超商會員您好:<br>
+                   <p>由於您已於HCAT.電利超商 APP中申請【忘記密碼】，您申請之新密碼，已經通過審核，即刻起請以您所申請之新密碼進行APP之登錄，謝謝。<br>
+                   <p>HCAT.電利超商客服`
             // html: `<p>請點以下連結以完成驗證： <a href="${process.env.SERVER_PROTOCOL}://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=${passwordHash}">點我完成驗證</a>` // html body
         };
         // send mail with defined transport object
@@ -354,9 +354,9 @@ router.post('/reviewStatus', function (req, res, next) {
                     from: ' <noreply@hcat.io>', // sender address
                     to: req.body.email, // list of receivers
                     subject: '電利超商註冊驗證信', // Subject line
-                    html: `<p>HCAT電利超商會員您好:<br>
-                           <p>您於HCAT APP 的會員實名制認證已經通過，即刻起可以進行投資。<br>
-                           <p>HCAT電利超商客服`
+                    html: `<p>HCAT.電利超商會員您好:<br>
+                           <p>您於HCAT.電利超商 APP 的會員註冊資料已經通過驗證，即刻起已可進行產品資訊瀏覽、太陽能面板申購等活動！請留意後續新產品上架訊息！<br>
+                           <p>HCAT.電利超商客服`
                     // html: `<p>請點以下連結以完成驗證： <a href="${process.env.SERVER_PROTOCOL}://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/frontendAPI/v1.0/User/verify_email?hash=${passwordHash}">點我完成驗證</a>` // html body
                 };
                 // send mail with defined transport object
