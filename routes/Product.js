@@ -400,59 +400,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
     //因為是FMN新增的產品資料，所以狀態永遠是creation
     //新增該產品資料的Fund Manager則是用存在JWT中的帳號資料
     console.log("@@@" + req.body.p_fundingType);
-    var sql = {
-        p_SYMBOL: req.body.p_SYMBOL,
-        p_name: req.body.p_name,
-        p_location: req.body.p_location,
-        p_pricing: req.body.p_pricing,
-        p_duration: req.body.p_duration,
-        p_currency: req.body.p_currency,
-        p_irr: Number(req.body.p_irr).toFixed(2),
-        p_releasedate: req.body.p_releasedate,
-        p_lockuptime: req.body.p_lockuptime,
-        p_validdate: req.body.p_validdate,
-        p_size: req.body.p_size,
-        p_totalrelease: req.body.p_totalrelease,
-        p_fundingType: req.body.p_fundingType,
-        p_fundmanager: JWT_decoded.payload.m_id,
-        p_state: "draft",   //草稿
-        p_icon: req.body.p_icon,
-        p_NotarizedRentalContract:req.body.p_NotarizedRentalContract,
-        p_OnGridAuditedLetter:req.body.p_OnGridAuditedLetter,
-        p_csvFIle: req.body.p_csvFIle,
-        p_Image1: req.body.p_Image1,
-        p_Image2: req.body.p_Image2,
-        p_Image3: req.body.p_Image3,
-        p_Image4: req.body.p_Image4,
-        p_Image5: req.body.p_Image5,
-        p_Image6: req.body.p_Image6,
-        p_Image7: req.body.p_Image7,
-        p_Image8: req.body.p_Image8,
-        p_Image9: req.body.p_Image9,
-        p_Image10: req.body.p_Image10,
-        p_FAY: req.body.p_FAY,
-        p_FTRT: req.body.p_FTRT,
-        p_RPT: req.body.p_RPT,
-        p_FRP: req.body.p_FRP,
-        p_Timeline: req.body.p_Timeline,
-        p_PSD: req.body.p_PSD,
-        p_TaiPowerApprovalDate: req.body.p_TaiPowerApprovalDate,
-        p_BOEApprovalDate: req.body.p_BOEApprovalDate,
-        p_PVTrialOperationDate: req.body.p_PVTrialOperationDate,
-        p_PVOnGridDate: req.body.p_PVOnGridDate,
-        p_CFSD: req.body.p_CFSD,
-        p_CFED: req.body.p_CFED,
-        p_fundingGoal: req.body.p_fundingGoal,
-        p_HCAT721uri: req.body.p_HCAT721uri,
-        p_EPCname: req.body.p_EPCname,
-        p_pvSiteintro: req.body.p_pvSiteintro,
-        p_ContractOut: req.body.p_ContractOut,
-        p_CaseConstruction: req.body.p_CaseConstruction,
-        p_ElectricityBilling: req.body.p_ElectricityBilling,
-        p_isNewCase: req.body.p_isNewCase,
-        p_assetdocsHash: req.body.p_assetdocsHash,
-        p_ForecastedAnnualIncomePerModule:req.body.p_ForecastedAnnualIncomePerModule
-    };
+    
     var sql1 = {
         p_SYMBOL: req.body.p_SYMBOL,
         p_name: req.body.p_name,
@@ -509,6 +457,7 @@ router.post('/AddProductByFMN', function (req, res, next) {
         pd_Image8: req.body.p_Image8,
         pd_Image9: req.body.p_Image9,
         pd_Image10: req.body.p_Image10,
+        pd_Image11: req.body.p_Image11,
         pd_HCAT721uri: req.body.p_HCAT721uri,
         pd_assetdocsHash: req.body.p_assetdocsHash
     }

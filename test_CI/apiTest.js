@@ -2006,7 +2006,8 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-frontEndUserRegistry();
+//frontEndUserRegistry();
+FMNAddProduct();
 //frontEndUserRegistry();
 //const EOA = GenerateEOA();
 //const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());

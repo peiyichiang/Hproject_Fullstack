@@ -129,6 +129,7 @@ const add_product = {
     p_Image8: '',
     p_Image9: '',
     p_Image10: '',
+    p_Image11:'public/uploadImgs/1571370557683_image7_銀鏈資產管理有限公司(正和製藥)-機電圖_01.jpg',
     p_fundingGoal: goal,
     p_abortedReason: '321321321',
     p_csvFIle:

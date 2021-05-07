@@ -1,6 +1,7 @@
 var addBtn=document.getElementById('addBtn');
 
 addBtn.addEventListener('click',function(){
+    console.log("檢查欄位")
     var empty_=0;
 
     // 判斷這些欄位 有沒有填寫
@@ -118,6 +119,10 @@ function UploadImage(){
                 }
                 if(data.filePath['image10']!=null){ 
                     $("#p_Image10").val(data.filePath['image10'][0].path);     
+                    // console.log("Image10：" + data.filePath['image10'][0].path);
+                }
+                if(data.filePath['image11']!=null){ 
+                    $("#p_Image11").val(data.filePath['image11'][0].path);     
                     // console.log("Image10：" + data.filePath['image10'][0].path);
                 }
                 
