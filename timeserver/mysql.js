@@ -278,24 +278,27 @@ const asset = function(){
     date = arguments[0][1].toString().slice(0,8);
     var query1 = new Promise(async (resolve,reject) =>{
         const queryStr = 
-        `SELECT p.p_name AS name,
-                p.p_location AS location,
-                p.p_SYMBOL AS symbol,
-                SUBSTRING(p.p_PVOnGridDate,1,6) AS PVOnGridDate,
-                p.p_size AS size,
-                p.p_totalrelease AS totalRelease,
-                p.p_RPT AS RPT,
-                IFNULL(p.p_feedintariff, 0) AS feedInTariff,
-                ia.ia_single_Forecasted_Payable_Income_in_the_Period AS forecastedPeriodIncomePerPiece,
-                SUBSTRING(ia.ia_time,1,6) AS time
-        FROM  product p
-        INNER JOIN investor_assetRecord ar ON ar.ar_tokenSYMBOL = p.p_SYMBOL
-        LEFT JOIN (SELECT ia_SYMBOL , MIN(ia_time) AS ia_time, ia_single_Forecasted_Payable_Income_in_the_Period
-					FROM income_arrangement
-					WHERE CONVERT(SUBSTRING(ia_time,1,8),SIGNED) > (?)
-					GROUP BY ia_SYMBOL) ia ON ia.ia_SYMBOL = p.p_SYMBOL 
-        WHERE ar.ar_investorEmail = (?)
-        GROUP BY p.p_SYMBOL;`;
+        `SELECT new_table.name,new_table.location,new_table.symbol,new_table.PVOnGridDate,new_table.size,new_table.totalRelease,new_table.RPT,new_table.feedInTariff,new_table.forecastedPeriodIncomePerPiece,new_table.time, pd.pd_Image11
+        FROM (SELECT p.p_name AS name,
+                        p.p_location AS location,
+                        p.p_SYMBOL AS symbol,
+                        SUBSTRING(p.p_PVOnGridDate,1,6) AS PVOnGridDate,
+                        p.p_size AS size,
+                        p.p_totalrelease AS totalRelease,
+                        p.p_RPT AS RPT,
+                        IFNULL(p.p_feedintariff, 0) AS feedInTariff,
+                        ia.ia_single_Forecasted_Payable_Income_in_the_Period AS forecastedPeriodIncomePerPiece,
+                        SUBSTRING(ia.ia_time,1,6) AS time
+                FROM  product p
+                INNER JOIN investor_assetRecord ar ON ar.ar_tokenSYMBOL = p.p_SYMBOL
+                LEFT JOIN (SELECT ia_SYMBOL , MIN(ia_time) AS ia_time, ia_single_Forecasted_Payable_Income_in_the_Period
+                            FROM income_arrangement
+                            WHERE CONVERT(SUBSTRING(ia_time,1,8),SIGNED) > (?)
+                            GROUP BY ia_SYMBOL) ia ON ia.ia_SYMBOL = p.p_SYMBOL 
+                WHERE ar.ar_investorEmail = (?)
+                GROUP BY p.p_SYMBOL) new_table
+        INNER JOIN product_doc pd
+        ON pd.pd_SYMBOL = new_table.symbol`;
         const result = await mysqlPoolQueryB(queryStr, [date,user_email]).catch((err) => {
             console.log(err)
             reject('[Error @ mysqlPoolQueryB]' + err);
