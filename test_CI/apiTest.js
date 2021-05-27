@@ -1906,9 +1906,9 @@ const flow1 = async() => {
     //await FMsystemApiTest();
     FMNUpdateProduct();
     await update_approve_flow();
-    //await frontEndUserOrdering(total);
-    //await makeOrderPaidAndWriteIntoCFC();
-    //await PSMintToken(getLocalTime());
+    await frontEndUserOrdering(total);
+    await makeOrderPaidAndWriteIntoCFC();
+    await PSMintToken(getLocalTime());
     //new_flow1();
     //await FPprocess();
   });
@@ -2006,9 +2006,10 @@ const FPprocess = async function(){
   await ForgetPassword2();
 }
 
-//frontEndUserRegistry();
-FMNAddProduct();
-//frontEndUserRegistry();
+
+flow1();
+
+
 //const EOA = GenerateEOA();
 //const temp = changeAssetOwner("0x8b659ba41c67D1611a4E148Fd173f46C98e9ae58",EOA[0].toString(),getLocalTime());
 
