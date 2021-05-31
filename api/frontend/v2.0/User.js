@@ -30,6 +30,18 @@ router.get('/bankBranchCodes',function(req,res){
 
 
 
+router.post('/Image', uploadImages.array('image',3), function (req, res) {
+    if(req.files.length != 3){
+        return res.status(400).json({success: "False", message: "the number of uploaded images are less than 3"})
+    }else{
+        data = {u_imagef: req.files[0].path.slice(6,), u_imageb: req.files[1].path.slice(6,), u_bankAccountimage: req.files[2].path.slice(6,)};
+        return res.status(200).json({success: "True", data: data})
+    }
+    
+})
+
+
+
 router.use(function (req, res, next) {
 
     const tokenGenerator = new TokenGenerator(process.env.JWT_PRIVATEKEY, process.env.JWT_PRIVATEKEY, { algorithm: 'HS256', keyid: '1', noTimestamp: false, expiresIn: '10m', notBefore: '2s' });
@@ -55,15 +67,6 @@ router.use(function (req, res, next) {
     }
 })
 
-router.post('/Image', uploadImages.array('image',3), function (req, res) {
-    if(req.files.length != 3){
-        return res.status(400).json({success: "False", message: "the number of uploaded images are less than 3", new_token: req.headers['x-access-token']})
-    }else{
-        data = {u_imagef: req.files[0].path.slice(6,), u_imageb: req.files[1].path.slice(6,), u_bankAccountimage: req.files[2].path.slice(6,)};
-        return res.status(200).json({success: "True", data: data, new_token: req.headers['x-access-token']})
-    }
-    
-})
 router.post('/AddUserInformation',async function(req,res){
     var user = req.body;
     var email = req.body.email;
