@@ -344,7 +344,7 @@ const asset = function(){
         `SELECT 
         investor_assetRecord.ar_tokenSYMBOL AS symbol,
         income_arrangement.ia_actualPaymentTime AS time,
-        income_arrangement.ia_single_Actual_Income_Payment_in_the_Period*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS income,
+        income_arrangement.ia_ElectricitySellingIncomeEachPiece*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS income,
         income_arrangement.ia_rent*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS rent,
         income_arrangement.ia_insurancepremium*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS insurance,
         income_arrangement.ia_managementfee*investor_assetRecord.ar_Holding_Amount_in_the_end_of_Period AS managementFee
