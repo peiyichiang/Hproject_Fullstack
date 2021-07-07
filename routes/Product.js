@@ -338,7 +338,7 @@ router.get("/ProductByFMS", function (req, res, next) {
 
           // res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish });
           mysqlPoolQuery(
-            "SELECT * FROM htoken_newschema.product_editHistory WHERE pe_status = 'WaitingAuditByFMS' and  pe_symbol IN (SELECT p_SYMBOL from htoken_newschema.product WHERE p_fundmanager IN (SELECT m_id FROM htoken_newschema.backend_user WHERE m_company = ?))",
+            "SELECT * FROM product_editHistory WHERE pe_status = 'WaitingAuditByFMS' and  pe_symbol IN (SELECT p_SYMBOL from product WHERE p_fundmanager IN (SELECT m_id FROM backend_user WHERE m_company = ?))",
             JWT_decoded.payload.m_company,
             function (err, rows) {
               if (err) {
@@ -347,7 +347,7 @@ router.get("/ProductByFMS", function (req, res, next) {
               var UpdateProductData = rows;
               //res.render('ProductAdministrationByFMS', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data, dataPublish: dataPublish,UpdateProductData:UpdateProductData });
               mysqlPoolQuery(
-                "SELECT * FROM htoken_newschema.product_editHistory WHERE pe_status != 'WaitingAuditByFMS' and  pe_symbol IN (SELECT p_SYMBOL from htoken_newschema.product WHERE p_fundmanager IN (SELECT m_id FROM htoken_newschema.backend_user WHERE m_company = ?))",
+                "SELECT * FROM product_editHistory WHERE pe_status != 'WaitingAuditByFMS' and  pe_symbol IN (SELECT p_SYMBOL from product WHERE p_fundmanager IN (SELECT m_id FROM backend_user WHERE m_company = ?))",
                 JWT_decoded.payload.m_company,
                 function (err, rows) {
                   if (err) {
@@ -1999,11 +1999,31 @@ router.get(
         }
         console.log("Update Success");
 
-        if (permission_ == "Platform_Supervisor") {
-          res.redirect("/BackendUser/BackendUser_Platform_Supervisor");
-        } else if (permission_ == "Company_FundManagerS") {
-          res.redirect("/Product/ProductByFMS");
-        }
+        // if Approve then update product and product_doc DB
+        const updateSql =
+          "UPDATE product, product_doc, product_editHistory SET " +
+          req.params.pe_columnName +
+          " = product_editHistory.pe_newValue WHERE product_doc.pd_symbol = '" +
+          req.params.pe_symbol +
+          "' AND product.p_SYMBOL = '" +
+          req.params.pe_symbol +
+          "' AND product_editHistory.pe_symbol = '" +
+          req.params.pe_symbol +
+          "' AND product_editHistory.pe_columnName = '" +
+          req.params.pe_columnName +
+          "' AND product_editHistory.pe_applicationTime = '" +
+          req.params.pe_applicationTime +
+          "' AND product_editHistory.pe_status = 'Approved'";
+        mysqlPoolQuery(updateSql, function (err, rows) {
+          if (err) {
+            console.log(err);
+          }
+          if (permission_ == "Platform_Supervisor") {
+            res.redirect("/BackendUser/BackendUser_Platform_Supervisor");
+          } else if (permission_ == "Company_FundManagerS") {
+            res.redirect("/Product/ProductByFMS");
+          }
+        });
       }
     );
 
@@ -2204,7 +2224,7 @@ router.get("/ViewProductDeatil", function (req, res, next) {
         console.log(err);
       }
       var data = rows;
-      res.render("ViewProductDeatil", {
+      res.render("ViewProductDetail", {
         title: "查看產品詳細資料",
         data: data,
       });

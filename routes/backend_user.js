@@ -827,43 +827,47 @@ router.get("/BackendUser_Platform_Supervisor", function (req, res, next) {
       }
     );
 
-    mysqlPoolQuery("SELECT * FROM product", function (err, rows) {
-      if (err) {
-        console.log(err);
-      }
-      var data = rows;
-
-      mysqlPoolQuery(
-        "SELECT * FROM product_editHistory where pe_status = 'WaitingAuditByPS' ",
-        function (err, rows) {
-          if (err) {
-            console.log(err);
-          }
-          var productEditHistory = rows;
-          //console.log("***:" + JWT_decoded.payload.m_id);
-          //res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data,iaData:iaData,productEditHistory:productEditHistory });
-
-          mysqlPoolQuery(
-            "SELECT * FROM product_editHistory where pe_status = 'RejectedByPS' or pe_status = 'Approved' ",
-            function (err, rows) {
-              if (err) {
-                console.log(err);
-              }
-              var productEditHistory_ = rows;
-              console.log("***:" + JWT_decoded.payload.m_id);
-              res.render("ProductAdministration", {
-                title: "Product Information",
-                UserID: JWT_decoded.payload.m_id,
-                data: data,
-                iaData: iaData,
-                productEditHistory: productEditHistory,
-                productEditHistory_: productEditHistory_,
-              });
-            }
-          );
+    //select all product with csv file
+    mysqlPoolQuery(
+      "SELECT product.*, product_doc.pd_csvFIle FROM product INNER JOIN product_doc ON product.p_SYMBOL = product_doc.pd_SYMBOL",
+      function (err, rows) {
+        if (err) {
+          console.log(err);
         }
-      );
-    });
+        var data = rows;
+
+        mysqlPoolQuery(
+          "SELECT * FROM product_editHistory where pe_status = 'WaitingAuditByPS' ",
+          function (err, rows) {
+            if (err) {
+              console.log(err);
+            }
+            var productEditHistory = rows;
+            //console.log("***:" + JWT_decoded.payload.m_id);
+            //res.render('ProductAdministration', { title: 'Product Information', UserID: JWT_decoded.payload.m_id, data: data,iaData:iaData,productEditHistory:productEditHistory });
+
+            mysqlPoolQuery(
+              "SELECT * FROM product_editHistory where pe_status = 'RejectedByPS' or pe_status = 'Approved' ",
+              function (err, rows) {
+                if (err) {
+                  console.log(err);
+                }
+                var productEditHistory_ = rows;
+                console.log("***:" + JWT_decoded.payload.m_id);
+                res.render("ProductAdministration", {
+                  title: "Product Information",
+                  UserID: JWT_decoded.payload.m_id,
+                  data: data,
+                  iaData: iaData,
+                  productEditHistory: productEditHistory,
+                  productEditHistory_: productEditHistory_,
+                });
+              }
+            );
+          }
+        );
+      }
+    );
   }
 });
 
