@@ -46,12 +46,27 @@
             </ul>
         </div>
     </nav>
+    <div class="目錄"
+        style="width:100%;text-align: center;font-size:16px;">
+        <span style=font-size:20px;color:black>目錄索引</span>
+        <br><a href=#1>產品更新審核區</a>
+        <br><a href=#2>產品更新審核歷史紀錄區</a>
+        <br><a href=#3>租金發放審核區</a>
+        <br><a href=#4>上架待審核區</a>
+        <br><a href=#5>募資區</a>
+        <br><a href=#6>暫停區</a>
+        <br><a href=#7>緊急下架區</a>
+        <br><a href=#8>代幣待發放區</a>
+        <br><a href=#9>募資失敗區</a>
+        <br><a href=#10>已退款區</a>
+        <br><a href=#11>運營管理區</a>
+    </div>
     <!-- 產品更新審核區 -->
     <% if (productEditHistory.length>0 ) { %>
-        <div class="tableTitle bg-warning Region"
+        <div class="tableTitle bg-warning Region" id="1"
             style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
-            <i class="fas fa-plus" style="display: none;"></i>
             <i class="fas fa-minus"></i>
+            <i class="fas fa-plus" style="display: none;"></i>
             <span style="margin-left:15px;">產品更新審核區</span>
         </div>
         <div class="table-responsive">
@@ -178,7 +193,9 @@
 
     <!-- 產品更新審核歷史紀錄區 -->
 <% if (productEditHistory_.length>0 ) { %>
-    <div class="tableTitle bg-primary" style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
+    <div class="tableTitle bg-primary"
+        id = "2" 
+        style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;">
             <span>產品更新審核歷史紀錄區</span>
     </div>
     <div class="table-responsive">
@@ -324,6 +341,7 @@
     <!-- 租金發放審核區：假如ia_State==ia_state_underReview >0，才顯示 -->
     <% if (iaData.length>0 ) { %>
     <div class="tableTitle bg-warning Region"
+        id = "3"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -402,6 +420,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-warning Region"
+        id = "4"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -467,6 +486,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-primary Region"
+        id = "5"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -529,6 +549,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-warning Region"
+        id = "6"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -595,6 +616,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-danger Region"
+        id = "7"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -725,6 +747,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-success Region"
+        id = "8"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -876,6 +899,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-danger Region"
+        id = "9"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -1013,6 +1037,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-success Region"
+        id = "10"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
@@ -1143,6 +1168,7 @@
     <% } %>
     <%if (count>0 ) { %>
     <div class="tableTitle bg-success Region"
+        id = "11"
         style="width:100%;height:50px;line-height:50px;text-align: center;font-size:20px;color:white;border-top:0.5px solid white;">
         <i class="fas fa-plus" style="display: none;"></i>
         <i class="fas fa-minus"></i>
