@@ -302,17 +302,18 @@ router.post("/reviewStatus", function (req, res, next) {
 
   if (req.body.reviewStatus != "approved") {
     sql = {
+      u_verify_status: "1",
       u_review_status: req.body.reviewStatus,
     };
-    // mysqlPoolQuery(
-    //   'UPDATE user SET  u_verify_status="1" , u_bankcode= NULL , u_bankBooklet= NULL , u_identityNumber= NULL WHERE u_email =?',
-    //   [req.body.email],
-    //   (err) => {
-    //     if (err) {
-    //       console.log(err);
-    //     }
-    //   }
-    // );
+    mysqlPoolQuery(
+      "UPDATE user SET ? WHERE u_email =?",
+      [sql, req.body.email],
+      (err) => {
+        if (err) {
+          console.log(err);
+        }
+      }
+    );
   } else if (req.body.reviewStatus == "approved") {
     sql = {
       u_review_status: req.body.reviewStatus,
