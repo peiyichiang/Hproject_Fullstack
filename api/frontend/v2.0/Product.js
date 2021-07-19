@@ -107,7 +107,6 @@ router.get("/ProductInfo", function (req, res) {
       .then((result) => {
         var string = JSON.stringify(result);
         var data = JSON.parse(string);
-        console.log(data);
         data = formating(data);
         if (data.length != 0) {
           return res.status(200).json({
@@ -156,9 +155,12 @@ router.get("/ProductInfo", function (req, res) {
               item[key][symbol].forEach(function (value) {
                 if (acc_income.length == 0) acc_income.push(value);
                 else acc_income.push(value + acc_income[acc_income.length - 1]);
+                obj["forecastedAnnualIncome"] = item[key][symbol];
+                obj["accumulateForecastedAnnualIncome"] = acc_income;
               });
-              obj["forecastedAnnualIncome"] = item[key][symbol];
-              obj["accumulateForecastedAnnualIncome"] = acc_income;
+            } else {
+              obj["forecastedAnnualIncome"] = [];
+              obj["accumulateForecastedAnnualIncome"] = [];
             }
           });
         } else {
