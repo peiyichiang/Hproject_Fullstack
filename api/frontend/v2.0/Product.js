@@ -142,7 +142,6 @@ router.get("/ProductInfo", function (req, res) {
     data.forEach(function (item, index, array) {
       key = Object.keys(item);
       if (key == "main") {
-        console.log("main");
         item[key].forEach(function (obj) {
           newData.push(obj);
         });
@@ -159,8 +158,8 @@ router.get("/ProductInfo", function (req, res) {
                 obj["accumulateForecastedAnnualIncome"] = acc_income;
               });
             } else {
-              obj["forecastedAnnualIncome"] = [];
-              obj["accumulateForecastedAnnualIncome"] = [];
+              obj["forecastedAnnualIncome"] = 0;
+              obj["accumulateForecastedAnnualIncome"] = 0;
             }
           });
         } else {

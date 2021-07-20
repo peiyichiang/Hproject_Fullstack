@@ -136,7 +136,7 @@ const product = function () {
                 p.p_location AS location,
                 p.p_SYMBOL AS symbol,
                 p.p_currency AS currency,
-                p.p_releaseDate AS date,
+                p.p_releasedate AS date,
                 p.p_ForecastedAnnualIncomePerModule AS forecastedAnnualIncomePerModule,
                 p.p_totalrelease AS totalRelease,
                 (p.p_totalrelease - IFNULL(o.purchasetokenNum,0)) AS remainRelease,
@@ -163,9 +163,11 @@ const product = function () {
         WHERE p.p_state IN (?)`;
     if (status == "AllProductForFrontend") {
       sql_extended =
-        " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') ";
-      queryStr = queryStr + sql_extended;
+        " OR p.p_state IN ('fundingClosed') OR p.p_state IN ('ONM') ORDER BY date DESC";
+    } else {
+      sql_extended = "ORDER BY date DESC";
     }
+    queryStr = queryStr + sql_extended;
     const result = await mysqlPoolQueryB(queryStr, status).catch((err) => {
       console.log(err);
       reject("[Error @ mysqlPoolQueryB]" + err);
@@ -242,7 +244,7 @@ const product = function () {
       console.log(err);
       reject("[Error @ mysqlPoolQueryB]" + err);
     });
-    console.log(result);
+    //console.log(result);
     resolve({ date: result });
   });
   var query5 = new Promise(async (resolve, reject) => {
