@@ -347,7 +347,7 @@ router.post("/reviewStatus", function (req, res, next) {
             from: " <noreply@hcat.io>", // sender address
             to: req.body.email, // list of receivers
             subject: "電利超商 - 補上傳身分證明文件通知", // Subject line
-            text: "由於您的身分證明文件尚未齊備，請參考以下流程補上。流程：登入電利超商之後，請點擊左上角的菜單(menu) - 會員專區 - 補上傳身份證明文件，請補上身分證正反面 以及銀行存摺正面，以利完成會員註冊程序，謝謝", // plain text body
+            text: "由於您的身分證明文件尚未齊備，或輸入資料有誤，請參考以下流程補上。流程：登入電利超商App之後，請進入右下角【我的】頁面，接著點擊右上角【身分驗證】，重新將身分驗證資料上傳。若右上角仍顯示為【身分驗證中】，請稍等10至15分鐘，再重新登入上傳，非常感謝!", // plain text body
             // html: '<b>Hello world?</b>' // html body
           };
 
